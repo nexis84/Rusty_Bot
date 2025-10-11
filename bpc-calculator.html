@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustyBot Quick BPC Calculator - EVE Online Tool</title>
+    <link rel="stylesheet" href="Style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="rusty_bot.png">
+    <style>
+        .calculator-container {
+            background-color: var(--primary-color);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--secondary-color);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--text-subtle-color);
+            border-radius: 4px;
+            color: var(--text-color);
+            font-family: var(--header-font);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .calc-button {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: #111;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .calc-button:hover {
+            background-color: var(--accent-color-hover);
+            transform: translateY(-2px);
+        }
+
+        .results-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--text-subtle-color);
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: var(--accent-color);
+            font-size: 1.1rem;
+        }
+
+        .total-result {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--accent-color);
+        }
+
+        .total-result .result-value {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body class="theme-twitch"> <!-- Yellow Theme -->
+
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Hub</a>
+        <header>
+            <img src="rusty_bot.png" alt="RustyBot BPC Calculator Logo" class="logo">
+            <h1>Quick <span>BPC Calculator</span></h1>
+            <p class="subtitle">Calculate blueprint copy values and profits for EVE Online manufacturing.</p>
+        </header>
+
+        <main>
+            <section id="calculator">
+                <h2 class="section-title">BPC Calculator</h2>
+                <div class="calculator-container">
+                    <form id="bpcForm">
+                        <div class="form-group">
+                            <label for="blueprintName">Blueprint Name</label>
+                            <input type="text" id="blueprintName" placeholder="e.g., Raven Blueprint Copy" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="materialEfficiency">Material Efficiency (ME)</label>
+                            <input type="number" id="materialEfficiency" min="0" max="10" value="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="timeEfficiency">Time Efficiency (TE)</label>
+                            <input type="number" id="timeEfficiency" min="0" max="20" value="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="runs">Number of Runs</label>
+                            <input type="number" id="runs" min="1" value="10" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="materialCost">Material Cost per Run (ISK)</label>
+                            <input type="number" id="materialCost" min="0" step="0.01" placeholder="e.g., 250000000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sellPrice">Sell Price per Unit (ISK)</label>
+                            <input type="number" id="sellPrice" min="0" step="0.01" placeholder="e.g., 300000000" required>
+                        </div>
+
+                        <button type="submit" class="calc-button">Calculate Profit</button>
+                    </form>
+
+                    <div id="results" class="results-container">
+                        <div class="result-item">
+                            <span class="result-label">Total Material Cost:</span>
+                            <span class="result-value" id="totalMaterialCost">0 ISK</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Revenue:</span>
+                            <span class="result-value" id="totalRevenue">0 ISK</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Manufacturing Time:</span>
+                            <span class="result-value" id="mfgTime">--</span>
+                        </div>
+                        <div class="result-item total-result">
+                            <span class="result-label">Net Profit:</span>
+                            <span class="result-value" id="netProfit">0 ISK</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Profit Margin:</span>
+                            <span class="result-value" id="profitMargin">0%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Profit per Run:</span>
+                            <span class="result-value" id="profitPerRun">0 ISK</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Quick Profit Analysis</h3>
+                        <p>Instantly calculate profits, margins, and ROI for your blueprint copies with material and time efficiency.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>ME/TE Support</h3>
+                        <p>Factor in Material Efficiency and Time Efficiency levels to get accurate material cost calculations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Batch Calculations</h3>
+                        <p>Calculate values for multiple runs at once to plan your manufacturing pipeline effectively.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>RustyBot BPC Calculator is an unofficial EVE Online tool. Not affiliated with CCP Games.</p>
+            <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('bpcForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const blueprintName = document.getElementById('blueprintName').value;
+            const me = parseInt(document.getElementById('materialEfficiency').value);
+            const te = parseInt(document.getElementById('timeEfficiency').value);
+            const runs = parseInt(document.getElementById('runs').value);
+            const materialCost = parseFloat(document.getElementById('materialCost').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            
+            // Calculate ME reduction (10% reduction per ME level)
+            const meReduction = 1 - (me * 0.01);
+            const adjustedMaterialCost = materialCost * meReduction;
+            
+            // Calculate totals
+            const totalMaterialCost = adjustedMaterialCost * runs;
+            const totalRevenue = sellPrice * runs;
+            const netProfit = totalRevenue - totalMaterialCost;
+            const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100) : 0;
+            const profitPerRun = netProfit / runs;
+            
+            // Format numbers with commas
+            const formatISK = (num) => {
+                return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' ISK';
+            };
+            
+            // Display results
+            document.getElementById('totalMaterialCost').textContent = formatISK(totalMaterialCost);
+            document.getElementById('totalRevenue').textContent = formatISK(totalRevenue);
+            document.getElementById('netProfit').textContent = formatISK(netProfit);
+            document.getElementById('profitMargin').textContent = profitMargin.toFixed(2) + '%';
+            document.getElementById('profitPerRun').textContent = formatISK(profitPerRun);
+            
+            // Estimate manufacturing time (simplified)
+            const baseTime = 60; // base minutes per run (placeholder)
+            const teReduction = 1 - (te * 0.01);
+            const totalMinutes = baseTime * teReduction * runs;
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            document.getElementById('mfgTime').textContent = `~${hours}h ${minutes}m`;
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    </script>
+</body>
+</html>
