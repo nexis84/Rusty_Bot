@@ -9,6 +9,56 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="rusty_bot.png">
+</head>
+<body class="theme-twitch"> <!-- Yellow Theme -->
+
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Hub</a>
+        <header>
+            <img src="rusty_bot.png" alt="RustyBot BPC Calculator Logo" class="logo">
+            <h1>Quick <span>BPC Calculator</span></h1>
+            <p class="subtitle">Calculate blueprint copy values and profits for EVE Online manufacturing.</p>
+        </header>
+
+        <main>
+            <section id="app">
+                <h2 class="section-title">BPC Calculator</h2>
+                <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
+                    <iframe 
+                        src="https://rustybot-quick-bpc-calcualtor.onrender.com/" 
+                        style="width: 100%; height: 800px; border: 2px solid var(--secondary-color); border-radius: 8px;"
+                        title="RustyBot BPC Calculator"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </section>
+
+            <section id="features">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Quick Profit Analysis</h3>
+                        <p>Instantly calculate profits, margins, and ROI for your blueprint copies with material and time efficiency.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>ME/TE Support</h3>
+                        <p>Factor in Material Efficiency and Time Efficiency levels to get accurate material cost calculations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Batch Calculations</h3>
+                        <p>Calculate values for multiple runs at once to plan your manufacturing pipeline effectively.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>RustyBot BPC Calculator is an unofficial EVE Online tool. Not affiliated with CCP Games.</p>
+            <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+        </footer>
+    </div>
+</body>
+</html>
     <style>
         .calculator-container {
             background-color: var(--primary-color);
