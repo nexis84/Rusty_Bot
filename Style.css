@@ -1,0 +1,249 @@
+:root {
+    --bg-color: #121212;
+    --primary-color: #1e1e1e;
+    --secondary-color: #2a2a2a;
+    --text-color: #e0e0e0;
+    --text-subtle-color: #aaa;
+    --header-font: 'Titillium Web', sans-serif;
+
+    /* --- Default Accent Color (Yellow for Twitch/Hub) --- */
+    --accent-color: #e8d900;
+    --accent-color-hover: #f5e53b;
+}
+
+/* --- Discord Theme Override --- */
+body.theme-discord {
+    --accent-color: #c97b5a; /* Rusty Orange */
+    --accent-color-hover: #b36a4a;
+}
+
+/* --- Twitch/Giveaway Theme --- */
+body.theme-twitch {
+    --accent-color: #e8d900; /* Golden Yellow */
+    --accent-color-hover: #f5e53b;
+}
+
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--header-font);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+}
+
+/* --- Header & CTA --- */
+header {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+
+.logo {
+    max-width: 180px;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+header h1 span {
+    color: var(--accent-color);
+}
+
+header .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-subtle-color);
+}
+
+.cta-button {
+    display: inline-block;
+    background-color: var(--accent-color);
+    color: #111; /* Dark text for better contrast on yellow/orange */
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cta-button:hover {
+    background-color: var(--accent-color-hover);
+    transform: translateY(-2px);
+}
+
+/* --- Sections & Cards --- */
+main {
+    padding-bottom: 2rem;
+}
+
+section {
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--secondary-color);
+}
+
+h2.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--accent-color);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background-color: var(--primary-color);
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--secondary-color);
+    text-align: center;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    margin-top: 0;
+}
+
+/* --- Commands Table --- */
+.commands-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.commands-table th, .commands-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.commands-table th {
+    font-size: 1.1rem;
+}
+
+.commands-table code {
+    background-color: var(--secondary-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--secondary-color);
+    color: #777;
+}
+
+footer a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+/* --- Hub Page Specific Styles --- */
+body.hub-page header h1 {
+    color: #ffffff; /* Make header text pure white */
+}
+
+/* This targets the tool selector only, removing its top border */
+.tool-selector {
+    border-top: none;
+}
+
+.tool-selector {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 2rem auto 0 auto;
+}
+
+.tool-card {
+    background-color: var(--primary-color); /* Dark background */
+    padding: 20px 30px;
+    border-radius: 8px;
+    text-decoration: none;
+    text-align: center;
+    border: 2px solid var(--text-color); /* White border */
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    flex: 0 1 280px;
+}
+
+.tool-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-color); /* Yellow border on hover */
+}
+
+.tool-card h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color); /* White text */
+}
+
+.tool-card p {
+    margin: 4px 0 0 0;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-subtle-color); /* Dimmer white text */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Style for the 4-box grid on the hub page */
+@media (min-width: 768px) {
+    .features-grid.hub-features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* --- Back Link --- */
+.back-link {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: var(--text-subtle-color);
+    text-decoration: none;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: var(--accent-color);
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 2.5rem;
+    }
+    .back-link {
+        position: static;
+        display: block;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+}

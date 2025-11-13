@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustyBot Quick BPC Calculator - EVE Online Tool</title>
+    <link rel="stylesheet" href="Style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="rusty_bot.png">
+</head>
+<body class="theme-twitch">
+
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Hub</a>
+        <header>
+            <img src="rusty_bot.png" alt="RustyBot BPC Calculator Logo" class="logo">
+            <h1>Quick <span>BPC Calculator</span></h1>
+            <p class="subtitle">Calculate blueprint copy values and profits for EVE Online manufacturing.</p>
+        </header>
+
+        <main>
+            <section id="app">
+                <h2 class="section-title">BPC Calculator</h2>
+                <style>
+                    /* Larger, responsive embed for the BPC calculator */
+                    :root {
+                        /* Sized to fit the calculator form properly */
+                        --bpc-embed-height: 1380px; /* adjusted height */
+                        --bpc-embed-max-width: 1500px; /* matches form width */
+                    }
+
+                    .bpc-embed-wrapper {
+                        width: 100%;
+                        max-width: var(--bpc-embed-max-width);
+                        margin: 0 auto;
+                        padding: 8px;
+                    }
+
+                    .bpc-embed {
+                        width: 100%;
+                        height: var(--bpc-embed-height);
+                        min-height: 700px; /* reasonable minimum */
+                        border: 2px solid var(--secondary-color);
+                        border-radius: 10px;
+                        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+                        overflow: hidden; /* hide scrollbar */
+                    }
+
+                    /* On very small screens, keep a sensible size */
+                    @media (max-width: 640px) {
+                        .bpc-embed { height: 900px; }
+                    }
+                </style>
+
+                <div class="bpc-embed-wrapper">
+                    <iframe 
+                        src="https://rustybot-quick-bpc-calcualtor.onrender.com/" 
+                        class="bpc-embed"
+                        title="RustyBot BPC Calculator"
+                        scrolling="no"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </section>
+
+            <section id="features">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Quick Profit Analysis</h3>
+                        <p>Instantly calculate profits, margins, and ROI for your blueprint copies with material and time efficiency.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>ME/TE Support</h3>
+                        <p>Factor in Material Efficiency and Time Efficiency levels to get accurate material cost calculations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Batch Calculations</h3>
+                        <p>Calculate values for multiple runs at once to plan your manufacturing pipeline effectively.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>RustyBot BPC Calculator is an unofficial EVE Online tool. Not affiliated with CCP Games.</p>
+            <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+        </footer>
+    </div>
+
+</body>
+</html>

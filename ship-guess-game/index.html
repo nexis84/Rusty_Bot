@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Classified Hulls — EVE Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+      :root{
+        --bg:#02060a; --panel:#041018; --muted:#9fb3c8; --accent:#00c3ff; --glass:rgba(255,255,255,0.03);
+        --accent-2:#28d1ff; --accent-dark:#002833; --danger:#ff6b6b;
+        --radius:10px; --glass-2:rgba(255,255,255,0.02);
+      }
+      html,body{height:100%;}
+      /* increase base font size for larger UI */
+      html{font-size:18px}
+      body{
+        margin:0; font-family: Orbitron, Inter, "Segoe UI", Roboto, Arial, sans-serif; background:
+          radial-gradient(ellipse at 20% 10%, rgba(0,100,140,0.06) 0%, transparent 10%),
+          radial-gradient(ellipse at 80% 90%, rgba(0,60,100,0.04) 0%, transparent 15%),
+          linear-gradient(180deg,#01060a 0%,#041018 60%);
+        color:#dfeffb; display:flex; align-items:center; justify-content:center; padding:18px 22px;
+        background-attachment: fixed;
+      }
+      .shell{width:100%; max-width:1400px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border:1px solid rgba(0,200,255,0.06); box-shadow:0 18px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02); border-radius:12px; padding:32px;}
+      .header{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative}
+      .header-left{display:flex;align-items:center;gap:10px;height:56px}
+      .header-left .controls{margin-left:6px}
+      /* reduce padding around header buttons while keeping size consistent */
+      .header-left .btn{padding:8px 16px;font-size:18px;width:150px;height:52px;display:inline-flex;align-items:center;justify-content:center}
+      .header-left .secondary{padding:8px 12px;font-size:14px;min-width:70px}
+      .header-left .controls{gap:8px}
+      .header-title{position:absolute;left:50%;transform:translateX(-50%);text-align:center}
+      .header-title h1{margin:0;font-size:34px;letter-spacing:2px;color:var(--accent);font-weight:800;text-transform:uppercase}
+      @media (max-width:720px){
+        .header-title h1{font-size:18px}
+      }
+      .controls{display:flex;gap:8px;align-items:center}
+      .btn{background:linear-gradient(180deg,var(--accent),var(--accent-2));border:none;color:#00121a;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:700;box-shadow:0 6px 20px rgba(14,94,130,0.12);transition:transform .12s ease,box-shadow .12s ease}
+      .btn:active{transform:translateY(1px)}
+      button.secondary{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;transition:transform .12s ease,box-shadow .12s ease,background .12s ease}
+      /* Subtle hover/focus animations for action buttons */
+      .btn:hover, .btn:focus { transform: translateY(-3px) scale(1.02); box-shadow:0 14px 36px rgba(14,94,130,0.12); }
+      .btn:focus { outline: none; }
+      button.secondary:hover, button.secondary:focus { transform: translateY(-2px); box-shadow:0 10px 26px rgba(0,0,0,0.35); background: rgba(255,255,255,0.02); }
+      .grid{display:grid;grid-template-columns:1fr 620px;gap:24px;margin-top:20px;align-items:start}
+      /* left panel layout: make clues flexible so guess area can center vertically */
+      .grid > .panel:first-child{display:flex;flex-direction:column}
+      .grid > .panel:first-child .clues{flex:1}
+      .guess-area{margin:0 auto}
+      .panel{background:linear-gradient(180deg, rgba(6,14,20,0.7), rgba(4,8,12,0.55));padding:20px;border-radius:var(--radius);border:1px solid rgba(0,200,255,0.04);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+      .clues{min-height:140px; max-height:360px; overflow:auto; padding:6px}
+      .clue{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.004));border-left:4px solid rgba(0,195,255,0.16);padding:16px 18px;margin:12px 0;color:var(--muted);border-radius:12px;transition:box-shadow .18s ease,transform .18s ease,background .12s ease}
+      .clue.new{box-shadow:0 18px 40px rgba(0,120,160,0.18);transform:translateY(-6px);background:linear-gradient(90deg, rgba(0,200,255,0.03), rgba(255,255,255,0.006));border-left-color:var(--accent);} 
+      /* stronger visual highlight for the most-recently revealed clue */
+      .clue.new, .clue.latest {
+        position:relative;
+        outline:0;
+        animation: cluePulse 900ms cubic-bezier(.2,.9,.2,1);
+      }
+
+      @keyframes cluePulse {
+        0% { box-shadow:0 6px 18px rgba(0,120,160,0.06); transform: translateY(0) scale(1); }
+        30% { box-shadow:0 26px 60px rgba(0,170,220,0.22); transform: translateY(-8px) scale(1.02); }
+        70% { box-shadow:0 16px 40px rgba(0,120,160,0.16); transform: translateY(-4px) scale(1.01); }
+        100% { box-shadow:0 8px 20px rgba(0,120,160,0.12); transform: translateY(0) scale(1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .clue.new, .clue.latest, .guess-dot.pulse { animation: none !important; transform: none !important; }
+      }
+      .clue .hint-list{margin:0;padding-left:18px;color:var(--muted);line-height:1.45}
+      .clue .hint-list li{margin-bottom:6px}
+      .meta{font-size:15px;color:var(--muted);margin-top:10px}
+      .guess-indicator{display:flex;gap:10px;margin-top:10px;align-items:center}
+      .guess-dot{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);box-shadow:inset 0 -2px 6px rgba(0,0,0,0.25);transition:transform .28s ease,opacity .36s ease,background .36s ease,box-shadow .36s ease}
+      .guess-dot.remain{background:linear-gradient(180deg,var(--accent),var(--accent-2));box-shadow:0 8px 22px rgba(0,180,240,0.08);border:none;opacity:1}
+      .guess-dot.used{background:rgba(255,255,255,0.02);opacity:0.36;border:1px solid rgba(255,255,255,0.04)}
+      /* pulse animation when dot changes state */
+      @keyframes dotPulse {
+        0% { transform: scale(1); opacity:1 }
+        40% { transform: scale(1.28); opacity:1 }
+        100% { transform: scale(1); opacity:0.9 }
+      }
+      .guess-dot.pulse { animation: dotPulse 520ms cubic-bezier(.2,.9,.2,1); }
+      .guess-area{display:flex;gap:12px;align-items:center;margin-top:18px;justify-content:center}
+      /* Larger, more prominent guess input */
+      input[type="text"]{flex:1;padding:20px 24px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:inherit;font-size:20px;max-width:1180px;min-width:360px;height:64px}
+      input[type="text"]:focus{outline:4px solid rgba(46,166,255,0.18);box-shadow:0 14px 40px rgba(46,166,255,0.08)}
+      /* Bigger submit button to match input height */
+      button#submit{padding:16px 24px;border-radius:14px;font-size:18px;height:64px;display:inline-flex;align-items:center;justify-content:center;min-width:150px}
+      .status{margin-top:10px;color:var(--muted)}
+      .wrong-list{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+      .wrong-label{color:var(--muted);font-size:13px;margin-right:6px}
+      .wrong-chip{background:linear-gradient(180deg, rgba(255,90,110,0.06), rgba(0,0,0,0.04));color:#ffb3b9;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,80,100,0.08);font-weight:700;font-size:15px;box-shadow:inset 0 -2px 6px rgba(0,0,0,0.25);transition:transform .22s ease,opacity .28s ease}
+      .wrong-chip.new{transform:scale(1.06);box-shadow:0 8px 20px rgba(255,80,110,0.08)}
+      .left-pill{background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;color:var(--muted);font-weight:700}
+      .small-muted{font-size:12px;color:var(--muted)}
+      #info-bonuses{margin:8px 0 0 18px;color:var(--muted);line-height:1.6}
+      /* Improved Ship Info styling */
+      #info{padding:12px 14px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+      #info strong{color:var(--accent);display:inline-block;width:64px}
+      #info-bonuses{margin:8px 0 0 18px;color:var(--muted);line-height:1.6;padding-left:6px}
+      #info-bonuses li{margin-bottom:8px;font-size:15px;word-break:break-word;hyphens:auto;list-style:disc;}
+      /* make overlay bonus lists match the in-panel style */
+      .overlay-bonuses{padding-left:18px;color:var(--muted);line-height:1.6}
+      .overlay-bonuses li{margin-bottom:8px;font-size:15px;word-break:break-word;hyphens:auto}
+      #clues::-webkit-scrollbar, #info-bonuses::-webkit-scrollbar{height:8px;width:8px}
+      #clues::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.04);border-radius:8px}
+      .footer{margin-top:12px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+      /* Overlay / modal styles for win/lose screens */
+      #win-screen { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px; backdrop-filter: blur(6px); }
+      /* Bigger, game-styled overlay */
+      .overlay-card { width: min(1300px,98%); border-radius:14px; box-shadow:0 30px 100px rgba(0,0,0,0.75); overflow:hidden; display:grid; grid-template-columns: 1fr 1.6fr; gap:24px; }
+      .overlay-left { padding:34px; background:linear-gradient(180deg, rgba(6,14,20,0.9), rgba(4,8,12,0.9)); color:var(--muted); display:flex; flex-direction:column; justify-content:flex-start }
+      .overlay-right { padding:28px; background:linear-gradient(180deg, rgba(2,10,16,0.85), rgba(4,12,18,0.85)); color:var(--muted); border-left:1px solid rgba(0,200,255,0.04); }
+      .overlay-title { font-size:24px; margin:0 0 10px 0; font-weight:900; color:var(--accent); letter-spacing:1px }
+      .overlay-ship { font-size:26px; margin-bottom:10px; color:#ffffff; font-weight:900 }
+      .overlay-meta { color:var(--muted); margin-bottom:14px; font-size:15px }
+      .overlay-bonuses { max-height:520px; overflow:auto; padding-left:18px; margin:0; color:var(--muted); line-height:1.6 }
+      .overlay-bonuses li{margin-bottom:10px;font-size:16px}
+      .overlay-actions .btn{padding:10px 16px;font-size:16px;height:auto;min-width:120px}
+      .overlay-badge{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(46,166,255,0.09);color:var(--accent);font-weight:800;font-size:13px}
+      .overlay-actions{display:flex;gap:10px;margin-top:14px}
+      .overlay-badge{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(46,166,255,0.1);color:var(--accent);font-weight:700;font-size:12px}
+      /* overlay enter animation */
+      .overlay-card { transform: translateY(12px) scale(.98); opacity:0; transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 240ms ease, box-shadow 260ms ease; }
+      #win-screen.show .overlay-card { transform: translateY(0) scale(1); opacity:1; box-shadow:0 30px 80px rgba(0,0,0,0.6); }
+
+      /* HUD accents */
+      .header::after{content:'';display:block;height:1px;width:100%;margin-top:14px;background:linear-gradient(90deg,transparent,rgba(0,200,255,0.06),transparent)}
+      .footer{opacity:0.9}
+      /* How-to collapsible (styled to match main game panels) */
+      .howto-shell{margin-top:6px;display:flex;flex-direction:column;gap:10px}
+      #howto-toggle{align-self:flex-start;padding:8px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);cursor:pointer}
+      .howto-content{background:linear-gradient(180deg, rgba(6,14,20,0.85), rgba(4,8,12,0.65));padding:18px;border-radius:12px;border:1px solid rgba(0,200,255,0.04);color:var(--muted);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+      .howto-content ol{margin:0;padding:0;list-style:none;counter-reset:howto}
+      .howto-content li{counter-increment:howto;display:flex;gap:12px;align-items:flex-start;margin:10px 0;padding-left:6px}
+      .howto-content li::before{content:counter(howto);min-width:34px;height:34px;display:inline-grid;place-items:center;border-radius:8px;background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#00121a;font-weight:800;font-size:15px;margin-top:2px}
+      .howto-content li{font-size:16px;line-height:1.6;color:var(--muted)}
+      .howto-content strong{color:#dffaff}
+      @media (max-width:720px){
+        .howto-content li{font-size:14px}
+        .howto-content li::before{min-width:28px;height:28px;font-size:13px}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="header">
+        <div class="header-left">
+            <div class="controls">
+            <button id="new" class="btn">New Game</button>
+            <button id="giveup" class="btn">Give Up</button>
+          </div>
+        </div>
+        <div class="header-title"><h1>Classified Hulls</h1></div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="clues" id="clues">
+            <!-- hints appear here -->
+          </div>
+          <div class="meta" id="meta">Guesses left: <span id="left">—</span></div>
+          <div id="guess-indicator" class="guess-indicator" aria-label="Guesses left"></div>
+          <div class="guess-area">
+            <input id="guess" type="text" list="ships" placeholder="Type a ship name and submit" autocomplete="off" />
+            <datalist id="ships"></datalist>
+            <button id="submit">Submit</button>
+          </div>
+          <div class="status" id="result"></div>
+          <div class="wrong-list" id="wrong"></div>
+        </div>
+
+        <div class="panel">
+          <h3 style="margin-top:0;color:var(--accent)">Ship Info</h3>
+          <div id="info">
+            <div><strong>Race:</strong> <span id="info-race">—</span></div>
+            <div><strong>Class:</strong> <span id="info-class">—</span></div>
+            <div style="margin-top:8px"><strong>Bonuses:</strong>
+              <ul id="info-bonuses" style="margin:8px 0 0 18px;color:var(--muted)"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>Classified Hulls — EVE Online inspired</div>
+        <div>8 guesses · reveal hints on wrong answers</div>
+      </div>
+
+      <div class="howto-shell" style="margin-top:18px;">
+        <button id="howto-toggle" class="secondary" aria-expanded="false">How to play ▸</button>
+        <div id="howto" class="howto-content" hidden>
+          <ol>
+            <li>A random ship is selected and one bonus hint is revealed.</li>
+            <li>Type your guess into the box and press Enter or click <strong>Submit</strong>.</li>
+            <li>Each incorrect guess reveals an additional hint. You have 8 guesses.</li>
+            <li>After 4 wrong guesses the game will reveal either the ship's Race or Class.</li>
+            <li>After 6 wrong guesses both Race and Class will be known.</li>
+            <li>Click <strong>Give Up</strong> to reveal the ship immediately.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
