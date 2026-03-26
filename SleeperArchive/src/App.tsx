@@ -251,7 +251,7 @@ export default function App() {
         </div>
 
         {/* Center: Main Game Area */}
-        <div className="col-span-1 lg:col-span-6 flex flex-col items-center justify-between py-1 min-h-[60vh] lg:min-h-0">
+        <div className="col-span-1 lg:col-span-6 flex flex-col items-center justify-between py-1 min-h-[54vh] lg:min-h-0">
           
           {/* Status Bar */}
           <div className="w-full space-y-3">
@@ -289,7 +289,7 @@ export default function App() {
           </div>
 
           {/* Visual Representation - Hacking Grid */}
-          <div className="relative w-full h-48 sm:h-64 md:h-72 lg:h-80 flex items-center justify-center bg-black/20 rounded-lg border border-white/5 my-2 lg:my-0">
+          <div className="relative w-full h-[45vh] min-h-[280px] max-h-[520px] flex items-center justify-center bg-black/20 rounded-lg border border-white/5 my-2 lg:my-0 overflow-hidden">
             <HackingGrid 
               key={word} // Force remount when word changes
               correctGuesses={guessedLetters.filter(l => word.includes(l)).length}
@@ -309,7 +309,7 @@ export default function App() {
           </div>
 
           {/* Keyboard */}
-          <div className="w-full space-y-1 mt-4">
+          <div className="w-full space-y-1 mt-2">
             {qwerty.map((row, i) => (
               <div key={i} className="flex justify-center gap-2">
                 {row.map(letter => {
