@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustyBot Giveaway - EVE Online Twitch Tool</title>
+    <link rel="stylesheet" href="Style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="rusty_bot.png">
+</head>
+<body class="theme-twitch"> <!-- Yellow Theme -->
+
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Hub</a>
+        <header>
+            <img src="rusty_bot.png" alt="RustyBot Giveaway Logo" class="logo">
+            <h1>Welcome to the <span>Giveaway Tool</span></h1>
+            <p class="subtitle">Your customizable application for running EVE Online giveaways on Twitch.</p>
+            <a href="#" class="cta-button">Download RustyBot</a>
+        </header>
+
+        <main>
+            <section id="features">
+                <h2 class="section-title">Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Real-time Chat Integration</h3>
+                        <p>Connects directly to your Twitch channel for live entry collection based on customizable commands.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Dynamic Winner Animations</h3>
+                        <p>Engage your viewers with high-fidelity, customizable animations for winner selection.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>ESI Pilot Verification</h3>
+                        <p>Automatic lookups and ESI verification to ensure the winner is a real EVE Online pilot.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="commands">
+                <h2 class="section-title">Streamer Commands</h2>
+                <table class="commands-table">
+                    <thead>
+                        <tr>
+                            <th>Command</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>!draw</code></td>
+                            <td>Viewer command to enter the active giveaway (customizable).</td>
+                        </tr>
+                        <tr>
+                            <td><code>!ign &lt;name&gt;</code></td>
+                            <td>Allows the winner to manually provide their In-Game Name.</td>
+                        </tr>
+                        <tr>
+                            <td><code>/prize &lt;item&gt;</code></td>
+                            <td>Streamer command to set the current prize and donator.</td>
+                        </tr>
+                        <tr>
+                            <td><code>/open</code></td>
+                            <td>Streamer command to open the giveaway for entries.</td>
+                        </tr>
+                        <tr>
+                            <td><code>/close</code></td>
+                            <td>Streamer command to close entries and draw a winner.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+
+        <footer>
+            <p>RustyBot Giveaway is an unofficial EVE Online tool. Not affiliated with CCP Games.</p>
+            <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+        </footer>
+    </div>
+</body>
+</html>

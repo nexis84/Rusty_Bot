@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Check - RustyBot</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
+</head>
+<body>
+<div class="container">
+    <a class="back-link" href="../index.html">← Back</a>
+
+    <header>
+        <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
+        <h1>Gate <span>Check</span></h1>
+        <p class="subtitle">Check before you jump.</p>
+    </header>
+
+    <section class="form-card">
+        <div class="form-row">
+            <div class="field">
+                <label>From</label>
+                <div class="ac-wrap">
+                    <input id="origin" type="text" placeholder="Jita" autocomplete="off" />
+                    <div id="origin-ac" class="ac-box"></div>
+                </div>
+            </div>
+            <div class="field">
+                <label>To</label>
+                <div class="ac-wrap">
+                    <input id="destination" type="text" placeholder="Amarr" autocomplete="off" />
+                    <div id="destination-ac" class="ac-box"></div>
+                </div>
+            </div>
+            <div class="field short">
+                <label>Prefer</label>
+                <select id="preference">
+                    <option value="shortest">Shortest</option>
+                    <option value="secure">Secure</option>
+                    <option value="insecure">Insecure</option>
+                </select>
+            </div>
+            <div class="field short">
+                <label>Window</label>
+                <select id="duration">
+                    <option value="3600">1 Hour</option>
+                    <option value="7200">2 Hours</option>
+                    <option value="21600">6 Hours</option>
+                    <option value="86400">24 Hours</option>
+                </select>
+            </div>
+            <button id="checkBtn" onclick="runGatecheck()">
+                <span id="btnText">Check!</span>
+                <span id="btnSpinner" class="spinner hidden"></span>
+            </button>
+        </div>
+        <div class="field avoid-field">
+            <label>Avoid systems (comma separated)</label>
+            <input id="avoid" type="text" placeholder="e.g. Uedama, Niarja" autocomplete="off" />
+        </div>
+        <div id="error" class="error hidden"></div>
+    </section>
+
+    <section class="legend">
+        <span class="leg-item"><span class="dot safe"></span> 0 kills</span>
+        <span class="leg-item"><span class="dot moderate"></span> 1–2 kills</span>
+        <span class="leg-item"><span class="dot high"></span> 3+ kills</span>
+        <span class="leg-item"><span class="dot smartbomb"></span> Smartbombs</span>
+        <span class="leg-item"><span class="dot bubble"></span> HIC / Dictor</span>
+        <span class="leg-item"><span class="dot avoided"></span> Avoided</span>
+    </section>
+    <section class="icon-legend">
+        <span class="leg-item"><span class="emoji">⛺</span> Gate camp</span>
+        <span class="leg-item"><span class="emoji">💥</span> Smartbomb kills</span>
+        <span class="leg-item"><span class="emoji">🫧</span> Bubble risk (HIC/Dictor)</span>
+        <span class="leg-item"><span class="emoji">🚫</span> Avoided system</span>
+    </section>
+
+    <section id="summary" class="summary hidden"></section>
+
+    <section id="results" class="results hidden">
+        <div class="results-title">
+            <span id="route-label"></span>
+            <span class="eve-time" id="eve-time"></span>
+        </div>
+        <div class="route-head">
+            <span>#</span><span>System</span><span>Sec</span>
+            <span>Kills</span><span>Hazards</span><span>Status</span><span>zKill</span>
+        </div>
+        <div id="route-body"></div>
+    </section>
+
+    <footer>
+        <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+    </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
