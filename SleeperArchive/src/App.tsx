@@ -402,7 +402,7 @@ export default function App() {
         </div>
 
         {/* Right Sidebar: Clone State, Market & Timer */}
-        <div className="lg:col-span-3 flex flex-col gap-4 lg:gap-6">
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 lg:gap-6">
           {/* Clone State Panel */}
           <div className="panel-border bg-eve-panel p-4 h-fit">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
