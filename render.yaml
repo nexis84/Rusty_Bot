@@ -3,7 +3,7 @@ services:
     name: sleeper-archive-hangman
     env: static
     rootDir: SleeperArchive
-    staticPublishPath: .
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
