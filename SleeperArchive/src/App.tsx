@@ -261,17 +261,6 @@ export default function App() {
             </h2>
             <ul className="space-y-3 text-[11px] font-mono uppercase">
               <li className="flex justify-between">
-                <span className="opacity-50">Standing:</span>
-                <span className={`font-bold ${getStandingLevel(totalEarned).name === 'Omega Clone' ? 'text-eve-warning' : 'text-eve-accent'}`}>
-                  {getStandingLevel(totalEarned).name}
-                  {getStandingLevel(totalEarned).multiplier > 1 && ` (x${getStandingLevel(totalEarned).multiplier})`}
-                </span>
-              </li>
-              <li className="flex justify-between">
-                <span className="opacity-50">Total Earned:</span>
-                <span className="text-eve-accent">{totalEarned.toLocaleString()} ISK</span>
-              </li>
-              <li className="flex justify-between">
                 <span className="opacity-50">Operative:</span>
                 <span className="text-eve-accent">Covert Ops Agent</span>
               </li>
@@ -412,8 +401,39 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right Sidebar: Market & Timer - Hidden on small screens */}
+        {/* Right Sidebar: Clone State, Market & Timer - Hidden on small screens */}
         <div className="hidden lg:block lg:col-span-3 flex flex-col gap-4 lg:gap-6">
+          {/* Clone State Panel */}
+          <div className="panel-border bg-eve-panel p-4 h-fit">
+            <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-eve-accent" />
+              Clone Status
+            </h2>
+            <div className="space-y-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] opacity-50 uppercase">Current Grade:</span>
+                <span className={`text-lg font-bold ${getStandingLevel(totalEarned).name === 'Omega Clone' ? 'text-eve-warning' : 'text-eve-accent'}`}>
+                  {getStandingLevel(totalEarned).name}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] opacity-50 uppercase">ISK Multiplier:</span>
+                <span className="text-xl font-display text-white">x{getStandingLevel(totalEarned).multiplier}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] opacity-50 uppercase">Lifetime Earnings:</span>
+                <span className="text-sm text-eve-accent">{totalEarned.toLocaleString()} ISK</span>
+              </div>
+              {getStandingLevel(totalEarned).name !== 'Omega Clone' && (
+                <div className="pt-2 border-t border-white/10">
+                  <span className="text-[9px] opacity-40 uppercase">
+                    Next: {STANDING_LEVELS.find(l => l.threshold > totalEarned)?.name} @ {STANDING_LEVELS.find(l => l.threshold > totalEarned)?.threshold.toLocaleString()} ISK
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="panel-border bg-eve-panel p-4 h-fit">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
               <Coins className="w-4 h-4 text-eve-accent" />
