@@ -23,7 +23,9 @@ import {
   DIFFICULTY_SETTINGS, 
   INITIAL_ISK, 
   HINT_COST, 
-  VOWEL_COST 
+  VOWEL_COST,
+  STANDING_LEVELS,
+  getStandingLevel
 } from './constants';
 
 type GameStatus = 'playing' | 'won' | 'lost';
@@ -51,10 +53,23 @@ const storeIsk = (isk: number): void => {
   localStorage.setItem(`sleeper_isk_${userId}`, isk.toString());
 };
 
+// Total earned persistence for standing system
+const getStoredTotalEarned = (): number => {
+  const userId = getUserId();
+  const stored = localStorage.getItem(`sleeper_total_earned_${userId}`);
+  return stored ? parseInt(stored, 10) : 0;
+};
+
+const storeTotalEarned = (total: number): void => {
+  const userId = getUserId();
+  localStorage.setItem(`sleeper_total_earned_${userId}`, total.toString());
+};
+
 export default function App() {
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
   const [isk, setIsk] = useState(getStoredIsk());
+  const [totalEarned, setTotalEarned] = useState(getStoredTotalEarned());
   const [status, setStatus] = useState<GameStatus>('playing');
   const [difficulty, setDifficulty] = useState<Difficulty>('highsec');
   const [oxygen, setOxygen] = useState(120); // Seconds
@@ -94,16 +109,24 @@ export default function App() {
     }, 2000);
   }, []);
 
-  const handleWin = useCallback((reward: number) => {
+  const handleWin = useCallback((baseReward: number) => {
+    const standing = getStandingLevel(totalEarned);
+    const actualReward = Math.floor(baseReward * standing.multiplier);
+    
     setStatus('won');
-    setIsk(prev => prev + reward);
-    setMessage(`DECRYPTION SUCCESSFUL. RECOVERED ${reward.toLocaleString()} ISK.`);
+    setIsk(prev => prev + actualReward);
+    setTotalEarned(prev => {
+      const newTotal = prev + actualReward;
+      storeTotalEarned(newTotal);
+      return newTotal;
+    });
+    setMessage(`DECRYPTION SUCCESSFUL. RECOVERED ${actualReward.toLocaleString()} ISK.`);
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
       setShowGameOver(true);
     }, 2000);
-  }, []);
+  }, [totalEarned]);
 
   // Oxygen/Timer
   useEffect(() => {
@@ -134,8 +157,8 @@ export default function App() {
 
   useEffect(() => {
     if (word && word.split('').every(l => guessedLetters.includes(l)) && status === 'playing') {
-      const reward = currentSettings.reward;
-      handleWin(reward);
+      const baseReward = currentSettings.reward;
+      handleWin(baseReward);
     }
   }, [guessedLetters, word, status, currentSettings.reward, handleWin]);
 
@@ -237,6 +260,17 @@ export default function App() {
               Tactical Overview
             </h2>
             <ul className="space-y-3 text-[11px] font-mono uppercase">
+              <li className="flex justify-between">
+                <span className="opacity-50">Standing:</span>
+                <span className={`font-bold ${getStandingLevel(totalEarned).name === 'Omega' ? 'text-eve-warning' : getStandingLevel(totalEarned).name === 'Legend' ? 'text-purple-400' : 'text-eve-accent'}`}>
+                  {getStandingLevel(totalEarned).name}
+                  {getStandingLevel(totalEarned).multiplier > 1 && ` (x${getStandingLevel(totalEarned).multiplier})`}
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span className="opacity-50">Total Earned:</span>
+                <span className="text-eve-accent">{totalEarned.toLocaleString()} ISK</span>
+              </li>
               <li className="flex justify-between">
                 <span className="opacity-50">Operative:</span>
                 <span className="text-eve-accent">Covert Ops Agent</span>
@@ -389,6 +423,11 @@ export default function App() {
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] opacity-50 uppercase">Current Balance:</span>
                 <span className="text-xl text-eve-accent font-bold">{isk.toLocaleString()} ISK</span>
+                {getStandingLevel(totalEarned).multiplier > 1 && (
+                  <span className="text-[10px] text-eve-warning">
+                    {getStandingLevel(totalEarned).name} Bonus: x{getStandingLevel(totalEarned).multiplier} ISK
+                  </span>
+                )}
               </div>
               
               <Tooltip 

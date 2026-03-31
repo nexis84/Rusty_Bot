@@ -66,3 +66,23 @@ export const DIFFICULTY_SETTINGS = {
 export const INITIAL_ISK = 10000000;
 export const HINT_COST = 5000000;
 export const VOWEL_COST = 1000000;
+
+// Standing system - rank up based on total ISK earned
+export const STANDING_LEVELS = [
+  { name: 'Alpha Clone', threshold: 0, multiplier: 1 },
+  { name: 'Capsuleer', threshold: 100_000_000, multiplier: 1 },
+  { name: 'Omega', threshold: 500_000_000, multiplier: 2 },
+  { name: 'Elite', threshold: 1_000_000_000, multiplier: 2.5 },
+  { name: 'Legend', threshold: 5_000_000_000, multiplier: 3 }
+] as const;
+
+export type StandingLevel = typeof STANDING_LEVELS[number]['name'];
+
+export const getStandingLevel = (totalEarned: number): typeof STANDING_LEVELS[number] => {
+  for (let i = STANDING_LEVELS.length - 1; i >= 0; i--) {
+    if (totalEarned >= STANDING_LEVELS[i].threshold) {
+      return STANDING_LEVELS[i];
+    }
+  }
+  return STANDING_LEVELS[0];
+};
