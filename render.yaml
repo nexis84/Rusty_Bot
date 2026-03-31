@@ -4,6 +4,7 @@ services:
     env: static
     rootDir: SleeperArchive
     staticPublishPath: dist
+    buildCommand: npm install && npm run build
     routes:
       - type: rewrite
         source: /*
