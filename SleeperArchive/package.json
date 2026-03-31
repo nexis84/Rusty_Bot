@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
