@@ -14,7 +14,11 @@ import {
   Trophy,
   RotateCcw,
   Clock,
-  Target
+  Target,
+  Zap,
+  Wrench,
+  Battery,
+  Package
 } from 'lucide-react';
 import { Tooltip } from './components/Tooltip';
 import { HackingGrid } from './components/HackingGrid';
@@ -24,6 +28,7 @@ import {
   INITIAL_ISK, 
   HINT_COST, 
   VOWEL_COST,
+  EMERGENCY_BYPASS_COST,
   STANDING_LEVELS,
   getStandingLevel
 } from './constants';
@@ -65,6 +70,22 @@ const storeTotalEarned = (total: number): void => {
   localStorage.setItem(`sleeper_total_earned_${userId}`, total.toString());
 };
 
+// Tool inventory persistence
+const getStoredTools = (): { dataAnalyzers: number; emergencyBypasses: number; cargoScanners: number } => {
+  const userId = getUserId();
+  const dataAnalyzers = parseInt(localStorage.getItem(`sleeper_tools_analyzer_${userId}`) || '0', 10);
+  const emergencyBypasses = parseInt(localStorage.getItem(`sleeper_tools_bypass_${userId}`) || '0', 10);
+  const cargoScanners = parseInt(localStorage.getItem(`sleeper_tools_scanner_${userId}`) || '0', 10);
+  return { dataAnalyzers, emergencyBypasses, cargoScanners };
+};
+
+const storeTools = (dataAnalyzers: number, emergencyBypasses: number, cargoScanners: number): void => {
+  const userId = getUserId();
+  localStorage.setItem(`sleeper_tools_analyzer_${userId}`, dataAnalyzers.toString());
+  localStorage.setItem(`sleeper_tools_bypass_${userId}`, emergencyBypasses.toString());
+  localStorage.setItem(`sleeper_tools_scanner_${userId}`, cargoScanners.toString());
+};
+
 export default function App() {
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
@@ -77,6 +98,12 @@ export default function App() {
   const [showExplosion, setShowExplosion] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
+  
+  // Tool inventory state
+  const storedTools = getStoredTools();
+  const [dataAnalyzers, setDataAnalyzers] = useState(storedTools.dataAnalyzers);
+  const [emergencyBypasses, setEmergencyBypasses] = useState(storedTools.emergencyBypasses);
+  const [cargoScanners, setCargoScanners] = useState(storedTools.cargoScanners);
 
   const startNewGame = useCallback((diff: Difficulty = difficulty) => {
     const bank = WORD_BANK[diff];
@@ -167,28 +194,62 @@ export default function App() {
     storeIsk(isk);
   }, [isk]);
 
+  // Persist tools to localStorage
+  useEffect(() => {
+    storeTools(dataAnalyzers, emergencyBypasses, cargoScanners);
+  }, [dataAnalyzers, emergencyBypasses, cargoScanners]);
+
   const handleGuess = (letter: string) => {
     if (status !== 'playing' || guessedLetters.includes(letter)) return;
     setGuessedLetters(prev => [...prev, letter]);
   };
 
-  const buyHint = () => {
-    if (isk < HINT_COST || status !== 'playing') return;
+  // Buy tools (store in inventory)
+  const buyDataAnalyzer = () => {
+    if (isk < HINT_COST) return;
+    setIsk(prev => prev - HINT_COST);
+    setDataAnalyzers(prev => prev + 1);
+  };
+
+  const buyEmergencyBypass = () => {
+    if (isk < EMERGENCY_BYPASS_COST) return;
+    setIsk(prev => prev - EMERGENCY_BYPASS_COST);
+    setEmergencyBypasses(prev => prev + 1);
+  };
+
+  const buyCargoScanner = () => {
+    if (isk < VOWEL_COST) return;
+    setIsk(prev => prev - VOWEL_COST);
+    setCargoScanners(prev => prev + 1);
+  };
+
+  // Use tools from inventory
+  const useDataAnalyzer = () => {
+    if (dataAnalyzers <= 0 || status !== 'playing') return;
     const unrevealed = word.split('').filter(l => !guessedLetters.includes(l));
     if (unrevealed.length === 0) return;
     const randomLetter = unrevealed[Math.floor(Math.random() * unrevealed.length)];
     setGuessedLetters(prev => [...prev, randomLetter]);
-    setIsk(prev => prev - HINT_COST);
+    setDataAnalyzers(prev => prev - 1);
   };
 
-  const buyVowel = () => {
-    if (isk < VOWEL_COST || status !== 'playing') return;
+  const useEmergencyBypass = () => {
+    if (emergencyBypasses <= 0 || status !== 'playing') return;
+    const unrevealed = word.split('').filter(l => !guessedLetters.includes(l));
+    if (unrevealed.length === 0) return;
+    const randomLetter = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    setGuessedLetters(prev => [...prev, randomLetter]);
+    setEmergencyBypasses(prev => prev - 1);
+  };
+
+  const useCargoScanner = () => {
+    if (cargoScanners <= 0 || status !== 'playing') return;
     const vowels = ['A', 'E', 'I', 'O', 'U'];
     const unrevealedVowels = vowels.filter(v => word.includes(v) && !guessedLetters.includes(v));
     if (unrevealedVowels.length === 0) return;
     const randomVowel = unrevealedVowels[Math.floor(Math.random() * unrevealedVowels.length)];
     setGuessedLetters(prev => [...prev, randomVowel]);
-    setIsk(prev => prev - VOWEL_COST);
+    setCargoScanners(prev => prev - 1);
   };
 
   const qwerty = [
@@ -252,8 +313,8 @@ export default function App() {
       {/* Main Layout Grid */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 z-10 overflow-y-auto lg:overflow-visible">
         
-        {/* Left Sidebar: Tactical Overview - Hidden on small screens */}
-        <div className="hidden lg:block lg:col-span-3 flex flex-col gap-4 lg:gap-6">
+        {/* Left Column: Tactical Overview */}
+        <div className="hidden lg:block lg:col-span-2 flex flex-col gap-4 lg:gap-6">
           <div className="panel-border bg-eve-panel p-4 h-fit">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
               <Activity className="w-4 h-4 text-eve-accent" />
@@ -300,8 +361,88 @@ export default function App() {
           </div>
         </div>
 
-        {/* Center: Main Game Area */}
-        <div className="col-span-1 lg:col-span-6 flex flex-col items-center justify-between py-1 min-h-[54vh] lg:min-h-0">
+        {/* Tactical Loadout - Separate Panel */}
+        <div className="hidden lg:block lg:col-span-2 flex flex-col gap-4 lg:gap-6">
+          <div className="panel-border bg-eve-panel p-4 h-fit">
+            <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
+              <Package className="w-4 h-4 text-eve-accent" />
+              Tactical Loadout
+            </h2>
+            <div className="space-y-3">
+              {/* Data Analyzer */}
+              <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                <div className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-eve-accent" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold">Data Analyzer</span>
+                    <span className="text-[9px] opacity-50">Reveals any letter</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-display text-eve-accent">{dataAnalyzers}</span>
+                  <button
+                    onClick={useDataAnalyzer}
+                    disabled={dataAnalyzers <= 0 || status !== 'playing'}
+                    className="px-2 py-1 text-[9px] uppercase bg-eve-accent/20 border border-eve-accent/50 text-eve-accent hover:bg-eve-accent/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                  >
+                    USE
+                  </button>
+                </div>
+              </div>
+
+              {/* Emergency Bypass */}
+              <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-eve-warning" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-eve-warning">Emergency Bypass</span>
+                    <span className="text-[9px] opacity-50">Instant reveal</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-display text-eve-warning">{emergencyBypasses}</span>
+                  <button
+                    onClick={useEmergencyBypass}
+                    disabled={emergencyBypasses <= 0 || status !== 'playing'}
+                    className="px-2 py-1 text-[9px] uppercase bg-eve-warning/20 border border-eve-warning/50 text-eve-warning hover:bg-eve-warning/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                  >
+                    USE
+                  </button>
+                </div>
+              </div>
+
+              {/* Cargo Scanner */}
+              <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                <div className="flex items-center gap-2">
+                  <Unlock className="w-4 h-4 text-eve-success" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-eve-success">Cargo Scanner</span>
+                    <span className="text-[9px] opacity-50">Reveals vowels</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-display text-eve-success">{cargoScanners}</span>
+                  <button
+                    onClick={useCargoScanner}
+                    disabled={cargoScanners <= 0 || status !== 'playing'}
+                    className="px-2 py-1 text-[9px] uppercase bg-eve-success/20 border border-eve-success/50 text-eve-success hover:bg-eve-success/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                  >
+                    USE
+                  </button>
+                </div>
+              </div>
+
+              {dataAnalyzers === 0 && emergencyBypasses === 0 && cargoScanners === 0 && (
+                <div className="text-[10px] opacity-40 italic text-center py-2">
+                  No tools in inventory. Purchase from The Market.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Center: Main Game Area - Reduced width */}
+        <div className="col-span-1 lg:col-span-5 flex flex-col items-center justify-between py-1 min-h-[54vh] lg:min-h-0">
           
           {/* Status Bar */}
           <div className="w-full space-y-3">
@@ -451,38 +592,56 @@ export default function App() {
               </div>
               
               <Tooltip 
-                content="Bypass encryption protocols to reveal a random vowel (A, E, I, O, U) in the target payload."
+                content="Scan cargo manifests to detect contraband vowels hidden in encrypted data. Reveals a random vowel (A, E, I, O, U). Stores in inventory."
                 subContent={`Cost: ${VOWEL_COST.toLocaleString()} ISK`}
                 position="left"
               >
                 <button 
-                  onClick={buyVowel}
-                  disabled={isk < VOWEL_COST || status !== 'playing'}
-                  className="w-full flex justify-between items-center p-3 border border-eve-warning/30 bg-eve-warning/5 hover:bg-eve-warning/10 disabled:opacity-20 transition-all group"
+                  onClick={buyCargoScanner}
+                  disabled={isk < VOWEL_COST}
+                  className="w-full flex justify-between items-center p-3 border border-eve-success/30 bg-eve-success/5 hover:bg-eve-success/10 disabled:opacity-20 transition-all group"
                 >
                   <div className="flex items-center gap-2">
-                    <Unlock className="w-3 h-3 text-eve-warning" />
-                    <span className="text-[10px] uppercase font-bold">Buy Vowel</span>
+                    <Unlock className="w-3 h-3 text-eve-success" />
+                    <span className="text-[10px] uppercase font-bold">Buy Cargo Scanner</span>
                   </div>
-                  <span className="text-[11px] font-bold text-eve-warning">{VOWEL_COST.toLocaleString()} ISK</span>
+                  <span className="text-[11px] font-bold text-eve-success">{VOWEL_COST.toLocaleString()} ISK</span>
                 </button>
               </Tooltip>
 
               <Tooltip 
-                content="Deploy a specialized data analyzer to decrypt a random unrevealed letter in the target payload."
+                content="Deploy a specialized data analyzer to decrypt a random unrevealed letter in the target payload. Stores in inventory for later use."
                 subContent={`Cost: ${HINT_COST.toLocaleString()} ISK`}
                 position="left"
               >
                 <button 
-                  onClick={buyHint}
-                  disabled={isk < HINT_COST || status !== 'playing'}
+                  onClick={buyDataAnalyzer}
+                  disabled={isk < HINT_COST}
                   className="w-full flex justify-between items-center p-3 border border-eve-accent/30 bg-eve-accent/5 hover:bg-eve-accent/10 disabled:opacity-20 transition-all group"
                 >
                   <div className="flex items-center gap-2">
                     <Search className="w-3 h-3 text-eve-accent" />
-                    <span className="text-[10px] uppercase font-bold">Data Analyzer</span>
+                    <span className="text-[10px] uppercase font-bold">Buy Data Analyzer</span>
                   </div>
                   <span className="text-[11px] font-bold text-eve-accent">{HINT_COST.toLocaleString()} ISK</span>
+                </button>
+              </Tooltip>
+
+              <Tooltip 
+                content="Emergency protocol bypass - reveals any letter instantly. High-tech solution for critical situations. Stores in inventory."
+                subContent={`Cost: ${EMERGENCY_BYPASS_COST.toLocaleString()} ISK`}
+                position="left"
+              >
+                <button 
+                  onClick={buyEmergencyBypass}
+                  disabled={isk < EMERGENCY_BYPASS_COST}
+                  className="w-full flex justify-between items-center p-3 border border-eve-warning/50 bg-eve-warning/5 hover:bg-eve-warning/10 disabled:opacity-20 transition-all group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-eve-warning" />
+                    <span className="text-[10px] uppercase font-bold">Emergency Bypass</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-eve-warning">{EMERGENCY_BYPASS_COST.toLocaleString()} ISK</span>
                 </button>
               </Tooltip>
             </div>

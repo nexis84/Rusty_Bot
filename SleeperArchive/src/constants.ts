@@ -64,8 +64,9 @@ export const DIFFICULTY_SETTINGS = {
 };
 
 export const INITIAL_ISK = 10000000;
-export const HINT_COST = 5000000;
+export const HINT_COST = 2000000; // Data Analyzer - reduced from 5M to 2M
 export const VOWEL_COST = 1000000;
+export const EMERGENCY_BYPASS_COST = 5000000; // Reveals any letter instantly
 
 // Standing system - rank up based on total ISK earned
 export const STANDING_LEVELS = [
