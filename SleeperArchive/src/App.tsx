@@ -29,10 +29,32 @@ import {
 type GameStatus = 'playing' | 'won' | 'lost';
 type Difficulty = 'highsec' | 'nullsec' | 'streamer';
 
+// User ID management
+const getUserId = (): string => {
+  let userId = localStorage.getItem('sleeper_user_id');
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem('sleeper_user_id', userId);
+  }
+  return userId;
+};
+
+// ISK persistence
+const getStoredIsk = (): number => {
+  const userId = getUserId();
+  const stored = localStorage.getItem(`sleeper_isk_${userId}`);
+  return stored ? parseInt(stored, 10) : INITIAL_ISK;
+};
+
+const storeIsk = (isk: number): void => {
+  const userId = getUserId();
+  localStorage.setItem(`sleeper_isk_${userId}`, isk.toString());
+};
+
 export default function App() {
   const [word, setWord] = useState('');
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
-  const [isk, setIsk] = useState(INITIAL_ISK);
+  const [isk, setIsk] = useState(getStoredIsk());
   const [status, setStatus] = useState<GameStatus>('playing');
   const [difficulty, setDifficulty] = useState<Difficulty>('highsec');
   const [oxygen, setOxygen] = useState(120); // Seconds
@@ -116,6 +138,11 @@ export default function App() {
       handleWin(reward);
     }
   }, [guessedLetters, word, status, currentSettings.reward, handleWin]);
+
+  // Persist ISK to localStorage
+  useEffect(() => {
+    storeIsk(isk);
+  }, [isk]);
 
   const handleGuess = (letter: string) => {
     if (status !== 'playing' || guessedLetters.includes(letter)) return;
