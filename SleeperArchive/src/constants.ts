@@ -70,10 +70,10 @@ export const VOWEL_COST = 1000000;
 // Standing system - rank up based on total ISK earned
 export const STANDING_LEVELS = [
   { name: 'Alpha Clone', threshold: 0, multiplier: 1 },
-  { name: 'Capsuleer', threshold: 100_000_000, multiplier: 1 },
-  { name: 'Omega', threshold: 500_000_000, multiplier: 2 },
-  { name: 'Elite', threshold: 1_000_000_000, multiplier: 2.5 },
-  { name: 'Legend', threshold: 5_000_000_000, multiplier: 3 }
+  { name: 'Beta Clone', threshold: 100_000_000, multiplier: 1.25 },
+  { name: 'Delta Clone', threshold: 250_000_000, multiplier: 1.5 },
+  { name: 'Epsilon Clone', threshold: 400_000_000, multiplier: 1.75 },
+  { name: 'Omega Clone', threshold: 500_000_000, multiplier: 2 }
 ] as const;
 
 export type StandingLevel = typeof STANDING_LEVELS[number]['name'];

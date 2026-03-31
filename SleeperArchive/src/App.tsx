@@ -262,7 +262,7 @@ export default function App() {
             <ul className="space-y-3 text-[11px] font-mono uppercase">
               <li className="flex justify-between">
                 <span className="opacity-50">Standing:</span>
-                <span className={`font-bold ${getStandingLevel(totalEarned).name === 'Omega' ? 'text-eve-warning' : getStandingLevel(totalEarned).name === 'Legend' ? 'text-purple-400' : 'text-eve-accent'}`}>
+                <span className={`font-bold ${getStandingLevel(totalEarned).name === 'Omega Clone' ? 'text-eve-warning' : 'text-eve-accent'}`}>
                   {getStandingLevel(totalEarned).name}
                   {getStandingLevel(totalEarned).multiplier > 1 && ` (x${getStandingLevel(totalEarned).multiplier})`}
                 </span>
