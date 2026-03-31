@@ -98,6 +98,29 @@ export default function App() {
   const [showExplosion, setShowExplosion] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
+
+  // Auto-Scaling State
+  const [scale, setScale] = useState(1);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      if (desktop) {
+        // Master resolution target: exactly 1920x1080 (1080p standard)
+        const widthRatio = window.innerWidth / 1920;
+        const heightRatio = window.innerHeight / 1080;
+        setScale(Math.min(widthRatio, heightRatio));
+      } else {
+        setScale(1);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Tool inventory state
   const storedTools = getStoredTools();
@@ -259,7 +282,7 @@ export default function App() {
   ];
 
   return (
-    <div className="relative min-h-screen flex flex-col p-2 md:p-4 lg:p-6 overflow-hidden bg-eve-bg selection:bg-eve-accent selection:text-black">
+    <div className="relative min-h-[100dvh] flex flex-col p-2 lg:p-4 xl:p-6 overflow-x-hidden overflow-y-auto no-scrollbar bg-eve-bg selection:bg-eve-accent selection:text-black">
       <div className="scanline" />
 
       {/* Decorative Background Text */}
@@ -313,9 +336,9 @@ export default function App() {
       {/* Main Layout Grid */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 z-10 overflow-y-auto lg:overflow-visible">
         
-        {/* Left Column: Tactical Overview */}
-        <div className="hidden lg:block lg:col-span-2 flex flex-col gap-4 lg:gap-6">
-          <div className="panel-border bg-eve-panel p-4 h-fit">
+        {/* Left Column: Tactical Overview & Loadout */}
+        <div className="hidden lg:flex lg:col-span-3 flex-col gap-4 lg:gap-6">
+          <div className="panel-border bg-eve-panel p-4 flex-1 flex flex-col">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
               <Activity className="w-4 h-4 text-eve-accent" />
               Tactical Overview
@@ -338,32 +361,18 @@ export default function App() {
                 <span className="text-eve-accent">CLASSIFIED</span>
               </li>
             </ul>
-          </div>
 
-          <div className="panel-border bg-eve-panel p-4 h-fit">
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2 text-eve-danger">
-              <AlertTriangle className="w-4 h-4" />
-              Incorrect Guesses
-            </h2>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {wrongGuesses.map((l, i) => (
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  key={i} 
-                  className="text-2xl font-display text-eve-danger border border-eve-danger/30 w-10 h-10 flex items-center justify-center bg-eve-danger/5"
-                >
-                  {l}
-                </motion.div>
-              ))}
-              {wrongGuesses.length === 0 && <span className="text-[10px] opacity-30 italic">No errors detected</span>}
+            <div className="mt-auto pt-4 border-t border-white/10 flex flex-col gap-1">
+              <span className="text-[10px] opacity-50 uppercase">Active Hull</span>
+              <span className="text-lg font-bold text-eve-accent uppercase tracking-widest">
+                Heron
+              </span>
+              <span className="text-[8px] uppercase opacity-40">Tech I Exploration Frigate</span>
             </div>
           </div>
-        </div>
 
-        {/* Tactical Loadout - Separate Panel */}
-        <div className="hidden lg:block lg:col-span-2 flex flex-col gap-4 lg:gap-6">
-          <div className="panel-border bg-eve-panel p-4 h-fit">
+          {/* Tactical Loadout - Under Tactical Overview */}
+          <div className="panel-border bg-eve-panel p-4 flex-1 flex flex-col justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
               <Package className="w-4 h-4 text-eve-accent" />
               Tactical Loadout
@@ -439,10 +448,54 @@ export default function App() {
               )}
             </div>
           </div>
+
+          {/* Security Overload Gauge */}
+          <div className="panel-border bg-eve-panel p-4 xl:p-6 flex-1 flex flex-col items-center justify-center gap-2 xl:gap-4">
+            <h2 className="text-[10px] xl:text-xs font-bold uppercase tracking-widest mb-2 border-b border-eve-danger/20 pb-2 flex items-center gap-2 text-eve-danger">
+              <AlertTriangle className="w-3 h-3 xl:w-4 xl:h-4" />
+              Security Overload
+            </h2>
+            <div className="relative w-20 h-20 xl:w-32 xl:h-32">
+              <svg viewBox="0 0 128 128" className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="58"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="transparent"
+                  className="text-white/5"
+                />
+                <motion.circle
+                  cx="64"
+                  cy="64"
+                  r="58"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="transparent"
+                  strokeDasharray={364}
+                  animate={{ strokeDashoffset: 364 - (364 * (wrongGuesses.length / currentSettings.attempts)) }}
+                  className="text-eve-danger"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-display text-eve-danger">{wrongGuesses.length}</span>
+                <span className="text-[8px] uppercase opacity-50">/{currentSettings.attempts} Failures</span>
+              </div>
+            </div>
+            <div className="text-center mt-auto">
+              <div className="text-[9px] xl:text-[10px] font-bold uppercase tracking-widest text-eve-danger animate-pulse">
+                {wrongGuesses.length === 0 ? 'System Stable' : wrongGuesses.length < currentSettings.attempts / 2 ? 'Intrusion Detected' : wrongGuesses.length < currentSettings.attempts - 2 ? 'Security Alert' : 'CRITICAL OVERLOAD'}
+              </div>
+              <div className="text-[7px] xl:text-[8px] uppercase opacity-40 mt-1">
+                Protocol: Breach Detection
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Center: Main Game Area - Reduced width */}
-        <div className="col-span-1 lg:col-span-5 flex flex-col items-center justify-between py-1 min-h-[54vh] lg:min-h-0">
+        {/* Center: Main Game Area */}
+        <div className="col-span-1 lg:col-span-6 flex flex-col items-center justify-between py-1 min-h-[54vh] lg:min-h-0">
           
           {/* Status Bar */}
           <div className="w-full space-y-3">
@@ -480,7 +533,7 @@ export default function App() {
           </div>
 
           {/* Visual Representation - Hacking Grid */}
-          <div className="relative w-full h-[45vh] min-h-[280px] max-h-[520px] flex items-center justify-center bg-black/20 rounded-lg border border-white/5 my-2 lg:my-0 overflow-hidden">
+          <div className="relative w-full h-[40vh] min-h-[220px] xl:h-[45vh] xl:min-h-[280px] max-h-[520px] flex items-center justify-center bg-black/20 rounded-lg border border-white/5 my-2 lg:my-0 overflow-hidden">
             <HackingGrid 
               key={word} // Force remount when word changes
               correctGuesses={guessedLetters.filter(l => word.includes(l)).length}
@@ -516,7 +569,7 @@ export default function App() {
                       onClick={() => handleGuess(letter)}
                       disabled={isGuessed || status !== 'playing'}
                       className={`
-                        w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 font-display text-sm md:text-lg transition-all border relative overflow-hidden
+                        w-8 h-8 sm:w-10 sm:h-10 lg:w-9 lg:h-9 xl:w-12 xl:h-12 font-display text-xs lg:text-sm xl:text-lg transition-all border relative overflow-hidden
                         ${isCorrect ? 'bg-eve-accent/30 border-eve-accent text-eve-accent shadow-[0_0_15px_rgba(0,255,255,0.2)]' : 
                           isWrong ? 'bg-black/60 border-eve-danger/20 text-eve-danger/30 line-through grayscale' : 
                           'bg-eve-panel border-white/10 text-white/60 hover:border-eve-accent hover:text-white focus:outline-none focus:ring-1 focus:ring-eve-accent/50'}
@@ -545,7 +598,7 @@ export default function App() {
         {/* Right Sidebar: Clone State, Market & Timer */}
         <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 lg:gap-6">
           {/* Clone State Panel */}
-          <div className="panel-border bg-eve-panel p-4 h-fit">
+          <div className="panel-border bg-eve-panel p-4 flex-1 flex flex-col">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
               <Shield className="w-4 h-4 text-eve-accent" />
               Clone Status
@@ -575,7 +628,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="panel-border bg-eve-panel p-4 h-fit">
+          <div className="panel-border bg-eve-panel p-4 flex-1 flex flex-col justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest mb-4 border-b border-eve-accent/20 pb-2 flex items-center gap-2">
               <Coins className="w-4 h-4 text-eve-accent" />
               The Market (Hints)
@@ -648,9 +701,9 @@ export default function App() {
           </div>
 
           {/* Auto-Destruct Gauge */}
-          <div className="panel-border bg-eve-panel p-6 flex flex-col items-center gap-4">
-            <div className="relative w-32 h-32">
-              <svg className="w-full h-full transform -rotate-90">
+          <div className="panel-border bg-eve-panel p-4 xl:p-6 flex-1 flex flex-col items-center justify-center gap-2 xl:gap-4">
+            <div className="relative w-20 h-20 xl:w-32 xl:h-32 mb-auto">
+              <svg viewBox="0 0 128 128" className="w-full h-full transform -rotate-90">
                 <circle
                   cx="64"
                   cy="64"
