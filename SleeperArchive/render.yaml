@@ -2,7 +2,7 @@ services:
   - type: static
     name: sleeper-archive-hangman
     env: static
-    buildCommand: npm run build
+    buildCommand: npm install && npm run build
     staticPublishPath: dist
     routes:
       - type: rewrite
