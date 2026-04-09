@@ -1,0 +1,3962 @@
+[
+  {
+    "id": 2403,
+    "name": "Advanced Planetology",
+    "groupID": 1241,
+    "groupName": "Planet Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 2406,
+    "name": "Planetology",
+    "groupID": 1241,
+    "groupName": "Planet Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 2495,
+    "name": "Interplanetary Consolidation",
+    "groupID": 1241,
+    "groupName": "Planet Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 2505,
+    "name": "Command Center Upgrades",
+    "groupID": 1241,
+    "groupName": "Planet Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3184,
+    "name": "ORE Hauler",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3300,
+    "name": "Gunnery",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3301,
+    "name": "Small Hybrid Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3302,
+    "name": "Small Projectile Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3303,
+    "name": "Small Energy Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3304,
+    "name": "Medium Hybrid Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3305,
+    "name": "Medium Projectile Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3306,
+    "name": "Medium Energy Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3307,
+    "name": "Large Hybrid Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3308,
+    "name": "Large Projectile Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3309,
+    "name": "Large Energy Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3310,
+    "name": "Rapid Firing",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3311,
+    "name": "Sharpshooter",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3312,
+    "name": "Motion Prediction",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3315,
+    "name": "Surgical Strike",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3316,
+    "name": "Controlled Bursts",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3317,
+    "name": "Trajectory Analysis",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3318,
+    "name": "Weapon Upgrades",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3319,
+    "name": "Missile Launcher Operation",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3320,
+    "name": "Rockets",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3321,
+    "name": "Light Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3322,
+    "name": "Auto-Targeting Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3323,
+    "name": "Defender Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3324,
+    "name": "Heavy Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3325,
+    "name": "Torpedoes",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3326,
+    "name": "Cruise Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3327,
+    "name": "Spaceship Command",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3328,
+    "name": "Gallente Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3329,
+    "name": "Minmatar Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3330,
+    "name": "Caldari Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3331,
+    "name": "Amarr Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3332,
+    "name": "Gallente Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3333,
+    "name": "Minmatar Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3334,
+    "name": "Caldari Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3335,
+    "name": "Amarr Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3336,
+    "name": "Gallente Battleship",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3337,
+    "name": "Minmatar Battleship",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3338,
+    "name": "Caldari Battleship",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3339,
+    "name": "Amarr Battleship",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3340,
+    "name": "Gallente Hauler",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3341,
+    "name": "Minmatar Hauler",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3342,
+    "name": "Caldari Hauler",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3343,
+    "name": "Amarr Hauler",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3344,
+    "name": "Gallente Titan",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3345,
+    "name": "Minmatar Titan",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3346,
+    "name": "Caldari Titan",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3347,
+    "name": "Amarr Titan",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3348,
+    "name": "Leadership",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3349,
+    "name": "Skirmish Command",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3350,
+    "name": "Shield Command",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3351,
+    "name": "Shield Command Specialist",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3352,
+    "name": "Information Command Specialist",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3354,
+    "name": "Command Burst Specialist",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3355,
+    "name": "Social",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3356,
+    "name": "Negotiation",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3357,
+    "name": "Diplomacy",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3358,
+    "name": "Fast Talk",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3359,
+    "name": "Connections",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3361,
+    "name": "Criminal Connections",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3363,
+    "name": "Corporation Management",
+    "groupID": 266,
+    "groupName": "Corporation Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3368,
+    "name": "Diplomatic Relations",
+    "groupID": 266,
+    "groupName": "Corporation Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3373,
+    "name": "Starbase Defense Management",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3380,
+    "name": "Industry",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3385,
+    "name": "Reprocessing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3386,
+    "name": "Mining",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3387,
+    "name": "Mass Production",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3388,
+    "name": "Advanced Industry",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3389,
+    "name": "Reprocessing Efficiency",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3392,
+    "name": "Mechanics",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3393,
+    "name": "Repair Systems",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3394,
+    "name": "Hull Upgrades",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3395,
+    "name": "Advanced Small Ship Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3396,
+    "name": "Advanced Industrial Ship Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3397,
+    "name": "Advanced Medium Ship Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3398,
+    "name": "Advanced Large Ship Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3400,
+    "name": "Outpost Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3402,
+    "name": "Science",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3403,
+    "name": "Research",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3405,
+    "name": "Biology",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3406,
+    "name": "Laboratory Operation",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3408,
+    "name": "Sleeper Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3409,
+    "name": "Metallurgy",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3410,
+    "name": "Astrogeology",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3411,
+    "name": "Cybernetics",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3412,
+    "name": "Astrometrics",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3413,
+    "name": "Power Grid Management",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3416,
+    "name": "Shield Operation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3417,
+    "name": "Capacitor Systems Operation",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3418,
+    "name": "Capacitor Management",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3419,
+    "name": "Shield Management",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3420,
+    "name": "Tactical Shield Manipulation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3421,
+    "name": "Energy Pulse Weapons",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3422,
+    "name": "Shield Emission Systems",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3423,
+    "name": "Capacitor Emission Systems",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3424,
+    "name": "Energy Grid Upgrades",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3425,
+    "name": "Shield Upgrades",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3426,
+    "name": "CPU Management",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3427,
+    "name": "Electronic Warfare",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3428,
+    "name": "Long Range Targeting",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3429,
+    "name": "Target Management",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3430,
+    "name": "Advanced Target Management",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3431,
+    "name": "Signature Analysis",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3432,
+    "name": "Electronics Upgrades",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3433,
+    "name": "Sensor Linking",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3434,
+    "name": "Weapon Disruption",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3435,
+    "name": "Propulsion Jamming",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3436,
+    "name": "Drones",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3437,
+    "name": "Drone Avionics",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3438,
+    "name": "Mining Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3439,
+    "name": "Repair Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3440,
+    "name": "Salvage Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3441,
+    "name": "Heavy Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3442,
+    "name": "Drone Interfacing",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3443,
+    "name": "Trade",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3444,
+    "name": "Retail",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3446,
+    "name": "Broker Relations",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3447,
+    "name": "Visibility",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3449,
+    "name": "Navigation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3450,
+    "name": "Afterburner",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3451,
+    "name": "Fuel Conservation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3452,
+    "name": "Acceleration Control",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3453,
+    "name": "Evasive Maneuvering",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3454,
+    "name": "High Speed Maneuvering",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3455,
+    "name": "Warp Drive Operation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3456,
+    "name": "Jump Drive Operation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3551,
+    "name": "Survey",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3731,
+    "name": "Megacorp Management",
+    "groupID": 266,
+    "groupName": "Corporation Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3732,
+    "name": "Empire Control",
+    "groupID": 266,
+    "groupName": "Corporation Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3893,
+    "name": "Mining Connections",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3894,
+    "name": "Distribution Connections",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 3895,
+    "name": "Security Connections",
+    "groupID": 278,
+    "groupName": "Social",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 4385,
+    "name": "Micro Jump Drive Operation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 4411,
+    "name": "Signature Masking",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11082,
+    "name": "Small Railgun Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11083,
+    "name": "Small Beam Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11084,
+    "name": "Small Autocannon Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11207,
+    "name": "Advanced Weapon Upgrades",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11395,
+    "name": "Deep Core Mining",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11433,
+    "name": "High Energy Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11441,
+    "name": "Plasma Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11442,
+    "name": "Nanite Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11443,
+    "name": "Hydromagnetic Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11444,
+    "name": "Amarr Starship Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11445,
+    "name": "Minmatar Starship Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11446,
+    "name": "Graviton Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11447,
+    "name": "Laser Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11448,
+    "name": "Electromagnetic Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11449,
+    "name": "Rocket Science",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11450,
+    "name": "Gallente Starship Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11451,
+    "name": "Nuclear Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11452,
+    "name": "Mechanical Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11453,
+    "name": "Electronic Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11454,
+    "name": "Caldari Starship Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11455,
+    "name": "Quantum Physics",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11487,
+    "name": "Astronautic Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11529,
+    "name": "Molecular Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11566,
+    "name": "Thermal Shield Compensation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11569,
+    "name": "Armored Command Specialist",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11572,
+    "name": "Skirmish Command Specialist",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11574,
+    "name": "Wing Command",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11579,
+    "name": "Cloaking",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 11584,
+    "name": "Anchoring",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12092,
+    "name": "Interceptors",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12093,
+    "name": "Covert Ops",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12095,
+    "name": "Assault Frigates",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12096,
+    "name": "Logistics Cruisers",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12098,
+    "name": "Interdictors",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12179,
+    "name": "Research Project Management",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12189,
+    "name": "Mercoxit Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12196,
+    "name": "Scrapmetal Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12201,
+    "name": "Small Artillery Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12202,
+    "name": "Medium Artillery Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12203,
+    "name": "Large Artillery Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12204,
+    "name": "Medium Beam Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12205,
+    "name": "Large Beam Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12206,
+    "name": "Medium Railgun Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12207,
+    "name": "Large Railgun Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12208,
+    "name": "Medium Autocannon Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12209,
+    "name": "Large Autocannon Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12210,
+    "name": "Small Blaster Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12211,
+    "name": "Medium Blaster Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12212,
+    "name": "Large Blaster Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12213,
+    "name": "Small Pulse Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12214,
+    "name": "Medium Pulse Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12215,
+    "name": "Large Pulse Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12241,
+    "name": "Sovereignty",
+    "groupID": 266,
+    "groupName": "Corporation Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12305,
+    "name": "Drone Navigation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12365,
+    "name": "EM Shield Compensation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12366,
+    "name": "Kinetic Shield Compensation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12367,
+    "name": "Explosive Shield Compensation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12441,
+    "name": "Missile Bombardment",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12442,
+    "name": "Missile Projection",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12484,
+    "name": "Amarr Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12485,
+    "name": "Minmatar Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12486,
+    "name": "Gallente Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 12487,
+    "name": "Caldari Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 13278,
+    "name": "Archaeology",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 13279,
+    "name": "Remote Sensing",
+    "groupID": 1241,
+    "groupName": "Planet Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16069,
+    "name": "Remote Armor Repair Systems",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16281,
+    "name": "Ice Harvesting",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16591,
+    "name": "Heavy Assault Cruisers",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16594,
+    "name": "Procurement",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16595,
+    "name": "Daytrading",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16596,
+    "name": "Wholesale",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16597,
+    "name": "Advanced Broker Relations",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16598,
+    "name": "Marketing",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 16622,
+    "name": "Accounting",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 17940,
+    "name": "Mining Barge",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 18025,
+    "name": "Ice Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 18580,
+    "name": "Tycoon",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19719,
+    "name": "Transport Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19759,
+    "name": "Long Distance Jamming",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19760,
+    "name": "Frequency Modulation",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19761,
+    "name": "Signal Dispersion",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19766,
+    "name": "Signal Suppression",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19767,
+    "name": "Weapon Destabilization",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19921,
+    "name": "Target Painting",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 19922,
+    "name": "Signature Focusing",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20209,
+    "name": "Rocket Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20210,
+    "name": "Light Missile Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20211,
+    "name": "Heavy Missile Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20212,
+    "name": "Cruise Missile Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20213,
+    "name": "Torpedo Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20312,
+    "name": "Guided Missile Precision",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20314,
+    "name": "Target Navigation Prediction",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20315,
+    "name": "Warhead Upgrades",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20327,
+    "name": "Capital Energy Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20342,
+    "name": "Advanced Spaceship Command",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20433,
+    "name": "Talocan Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20494,
+    "name": "Armored Command",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20495,
+    "name": "Information Command",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20524,
+    "name": "Amarr Freighter",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20525,
+    "name": "Amarr Dreadnought",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20526,
+    "name": "Caldari Freighter",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20527,
+    "name": "Gallente Freighter",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20528,
+    "name": "Minmatar Freighter",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20530,
+    "name": "Caldari Dreadnought",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20531,
+    "name": "Gallente Dreadnought",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20532,
+    "name": "Minmatar Dreadnought",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 20533,
+    "name": "Capital Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21059,
+    "name": "Shield Compensation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21071,
+    "name": "Rapid Launch",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21603,
+    "name": "Cynosural Field Theory",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21610,
+    "name": "Jump Fuel Conservation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21611,
+    "name": "Jump Drive Calibration",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21666,
+    "name": "Capital Hybrid Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21667,
+    "name": "Capital Projectile Turret",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21668,
+    "name": "XL Torpedoes",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21718,
+    "name": "Hacking",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21789,
+    "name": "Sleeper Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21790,
+    "name": "Caldari Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21791,
+    "name": "Minmatar Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21802,
+    "name": "Capital Shield Operation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 21803,
+    "name": "Capital Repair Systems",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22043,
+    "name": "Tactical Weapon Reconfiguration",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22242,
+    "name": "Capital Ship Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22536,
+    "name": "Mining Foreman",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22541,
+    "name": "Mining Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22551,
+    "name": "Exhumers",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22552,
+    "name": "Mining Director",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22578,
+    "name": "Mining Upgrades",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22761,
+    "name": "Recon Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22806,
+    "name": "EM Armor Compensation",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22807,
+    "name": "Explosive Armor Compensation",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22808,
+    "name": "Kinetic Armor Compensation",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 22809,
+    "name": "Thermal Armor Compensation",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23069,
+    "name": "Fighters",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23087,
+    "name": "Amarr Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23121,
+    "name": "Gallente Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23123,
+    "name": "Takmahl Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23124,
+    "name": "Yan Jung Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23566,
+    "name": "Advanced Drone Avionics",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23594,
+    "name": "Sentry Drone Interfacing",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23606,
+    "name": "Drone Sharpshooting",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23618,
+    "name": "Drone Durability",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 23950,
+    "name": "Command Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24241,
+    "name": "Light Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24242,
+    "name": "Infomorph Psychology",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24268,
+    "name": "Supply Chain Management",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24270,
+    "name": "Scientific Networking",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24311,
+    "name": "Amarr Carrier",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24312,
+    "name": "Caldari Carrier",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24313,
+    "name": "Gallente Carrier",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24314,
+    "name": "Minmatar Carrier",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24562,
+    "name": "Jump Portal Generation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24563,
+    "name": "Doomsday Operation",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24568,
+    "name": "Capital Remote Armor Repair Systems",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24571,
+    "name": "Capital Shield Emission Systems",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24572,
+    "name": "Capital Capacitor Emission Systems",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24606,
+    "name": "Cloning Facility Operation",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24613,
+    "name": "Fighter Hangar Management",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24624,
+    "name": "Advanced Laboratory Operation",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24625,
+    "name": "Advanced Mass Production",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 24764,
+    "name": "Fleet Command",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25233,
+    "name": "Corporation Contracting",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25235,
+    "name": "Contracting",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25530,
+    "name": "Neurotoxin Recovery",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25538,
+    "name": "Neurotoxin Control",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25544,
+    "name": "Gas Cloud Harvesting",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25718,
+    "name": "Heavy Assault Missile Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25719,
+    "name": "Heavy Assault Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25739,
+    "name": "Astrometric Rangefinding",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25810,
+    "name": "Astrometric Pinpointing",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25811,
+    "name": "Astrometric Acquisition",
+    "groupID": 1217,
+    "groupName": "Scanning",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 25863,
+    "name": "Salvaging",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26224,
+    "name": "Drug Manufacturing",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26252,
+    "name": "Jury Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26253,
+    "name": "Armor Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26254,
+    "name": "Astronautics Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26255,
+    "name": "Drones Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26256,
+    "name": "Electronic Superiority Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26257,
+    "name": "Projectile Weapon Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26258,
+    "name": "Energy Weapon Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26259,
+    "name": "Hybrid Weapon Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26260,
+    "name": "Launcher Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 26261,
+    "name": "Shield Rigging",
+    "groupID": 269,
+    "groupName": "Rigging",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 27902,
+    "name": "Remote Hull Repair Systems",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 27906,
+    "name": "Tactical Logistics Reconfiguration",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 27911,
+    "name": "Burst Projector Operation",
+    "groupID": 272,
+    "groupName": "Electronic Systems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 27936,
+    "name": "Capital Remote Hull Repair Systems",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28073,
+    "name": "Bomb Deployment",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28164,
+    "name": "Thermodynamics",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28374,
+    "name": "Capital Industrial Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28585,
+    "name": "Capital Industrial Reconfiguration",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28609,
+    "name": "Heavy Interdiction Cruisers",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28615,
+    "name": "Electronic Attack Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28656,
+    "name": "Black Ops",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28667,
+    "name": "Marauders",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28879,
+    "name": "Nanite Operation",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 28880,
+    "name": "Nanite Interfacing",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 29029,
+    "name": "Jump Freighters",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 29637,
+    "name": "Industrial Command Ships",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30324,
+    "name": "Defensive Subsystem Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30325,
+    "name": "Core Subsystem Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30327,
+    "name": "Offensive Subsystem Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30532,
+    "name": "Amarr Defensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30537,
+    "name": "Amarr Offensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30538,
+    "name": "Amarr Propulsion Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30539,
+    "name": "Amarr Core Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30540,
+    "name": "Gallente Defensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30544,
+    "name": "Caldari Defensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30545,
+    "name": "Minmatar Defensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30546,
+    "name": "Gallente Core Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30547,
+    "name": "Minmatar Core Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30548,
+    "name": "Caldari Core Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30549,
+    "name": "Caldari Offensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30550,
+    "name": "Gallente Offensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30551,
+    "name": "Minmatar Offensive Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30552,
+    "name": "Caldari Propulsion Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30553,
+    "name": "Gallente Propulsion Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30554,
+    "name": "Minmatar Propulsion Systems",
+    "groupID": 1240,
+    "groupName": "Subsystems",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30650,
+    "name": "Amarr Strategic Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30651,
+    "name": "Caldari Strategic Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30652,
+    "name": "Gallente Strategic Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30653,
+    "name": "Minmatar Strategic Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 30788,
+    "name": "Propulsion Subsystem Technology",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 32339,
+    "name": "Heavy Fighters",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 32435,
+    "name": "XL Cruise Missiles",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 32797,
+    "name": "Resistance Phasing",
+    "groupID": 1216,
+    "groupName": "Engineering",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 32918,
+    "name": "Mining Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 32999,
+    "name": "Magnetometric Sensor Compensation",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33000,
+    "name": "Gravimetric Sensor Compensation",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33001,
+    "name": "Ladar Sensor Compensation",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33002,
+    "name": "Radar Sensor Compensation",
+    "groupID": 1213,
+    "groupName": "Targeting",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33078,
+    "name": "Armor Layering",
+    "groupID": 1210,
+    "groupName": "Armor",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33091,
+    "name": "Amarr Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33092,
+    "name": "Caldari Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33093,
+    "name": "Gallente Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33094,
+    "name": "Minmatar Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33095,
+    "name": "Amarr Battlecruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33096,
+    "name": "Caldari Battlecruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33097,
+    "name": "Gallente Battlecruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33098,
+    "name": "Minmatar Battlecruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33399,
+    "name": "Infomorph Synchronizing",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33407,
+    "name": "Advanced Infomorph Psychology",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33467,
+    "name": "Customs Code Expertise",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33699,
+    "name": "Medium Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 33856,
+    "name": "Expedition Frigates",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 34327,
+    "name": "ORE Freighter",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 34390,
+    "name": "Amarr Tactical Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 34533,
+    "name": "Minmatar Tactical Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 35680,
+    "name": "Caldari Tactical Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 35685,
+    "name": "Gallente Tactical Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 37615,
+    "name": "Command Destroyers",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 37796,
+    "name": "Structure Missile Systems",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 37797,
+    "name": "Structure Doomsday Operation",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 37798,
+    "name": "Structure Electronic Systems",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 37799,
+    "name": "Structure Engineering Systems",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 40328,
+    "name": "Logistics Frigates",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 40572,
+    "name": "Light Fighters",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 40573,
+    "name": "Support Fighters",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41403,
+    "name": "Capital Autocannon Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41404,
+    "name": "Capital Artillery Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41405,
+    "name": "Capital Blaster Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41406,
+    "name": "Capital Railgun Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41407,
+    "name": "Capital Pulse Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41408,
+    "name": "Capital Beam Laser Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41409,
+    "name": "XL Torpedo Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41410,
+    "name": "XL Cruise Missile Specialization",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 41537,
+    "name": "Doomsday Rapid Firing",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 43702,
+    "name": "Ice Harvesting Drone Operation",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 43703,
+    "name": "Ice Harvesting Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 43728,
+    "name": "Spatial Phenomena Generation",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 44067,
+    "name": "Invulnerability Core Operation",
+    "groupID": 1209,
+    "groupName": "Shields",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 45746,
+    "name": "Reactions",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 45748,
+    "name": "Mass Reactions",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 45749,
+    "name": "Advanced Mass Reactions",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 45750,
+    "name": "Remote Reactions",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 46152,
+    "name": "Ubiquitous Moon Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 46153,
+    "name": "Common Moon Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 46154,
+    "name": "Uncommon Moon Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 46155,
+    "name": "Rare Moon Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 46156,
+    "name": "Exceptional Moon Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47445,
+    "name": "Flag Cruisers",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47867,
+    "name": "Precursor Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47868,
+    "name": "Precursor Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47869,
+    "name": "Precursor Battleship",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47870,
+    "name": "Small Precursor Weapon",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47871,
+    "name": "Medium Precursor Weapon",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47872,
+    "name": "Large Precursor Weapon",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47873,
+    "name": "Small Disintegrator Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47874,
+    "name": "Medium Disintegrator Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 47875,
+    "name": "Large Disintegrator Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 49742,
+    "name": "Precursor Destroyer",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 49743,
+    "name": "Precursor Battlecruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 52307,
+    "name": "Triglavian Quantum Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 52308,
+    "name": "Triglavian Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 52997,
+    "name": "Precursor Dreadnought",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 52998,
+    "name": "Capital Precursor Weapon",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54794,
+    "name": "EDENCOM Battleship",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54826,
+    "name": "Large Vorton Projector",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54827,
+    "name": "Small Vorton Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54828,
+    "name": "Medium Vorton Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54829,
+    "name": "Large Vorton Specialization",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54840,
+    "name": "Vorton Power Amplification",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 54841,
+    "name": "Vorton Arc Guidance",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55025,
+    "name": "Upwell Encryption Methods",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55031,
+    "name": "EDENCOM Frigate",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55032,
+    "name": "EDENCOM Cruiser",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55033,
+    "name": "Vorton Projector Operation",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55034,
+    "name": "Small Vorton Projector",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55035,
+    "name": "Medium Vorton Projector",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 55511,
+    "name": "Vorton Arc Extension",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 57164,
+    "name": "Salvage Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 57317,
+    "name": "Fleet Formations",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 57318,
+    "name": "Fleet Coordination",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 58956,
+    "name": "Industrial Reconfiguration",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 60377,
+    "name": "Simple Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 60378,
+    "name": "Coherent Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 60379,
+    "name": "Variegated Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 60380,
+    "name": "Complex Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 60381,
+    "name": "Abyssal Ore Processing",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 60515,
+    "name": "Mutated Drone Specialization",
+    "groupID": 273,
+    "groupName": "Drones",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 62450,
+    "name": "Shipboard Compression Technology",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 62451,
+    "name": "Capital Shipboard Compression Technology",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 62452,
+    "name": "Gas Decompression Efficiency",
+    "groupID": 1218,
+    "groupName": "Resource Processing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 62453,
+    "name": "Fleet Compression Logistics",
+    "groupID": 258,
+    "groupName": "Fleet Support",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 73910,
+    "name": "Elite Infomorph Psychology",
+    "groupID": 1220,
+    "groupName": "Neural Enhancement",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 73912,
+    "name": "Advanced Contracting",
+    "groupID": 274,
+    "groupName": "Trade",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 77725,
+    "name": "Advanced Capital Ship Construction",
+    "groupID": 268,
+    "groupName": "Production",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 77738,
+    "name": "Lancer Dreadnoughts",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 77739,
+    "name": "Disruptive Lance Operation",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81032,
+    "name": "Upwell Hauler",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81044,
+    "name": "Upwell Freighter",
+    "groupID": 257,
+    "groupName": "Spaceship Command",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81050,
+    "name": "Upwell Starship Engineering",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81364,
+    "name": "Mass Sequencing",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81365,
+    "name": "Industrial Sequencing",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81366,
+    "name": "Parallel Sequencing",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81367,
+    "name": "Multi-thread Sequencing",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81368,
+    "name": "Hub Promotion",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81369,
+    "name": "Hub Algorithm Optimization",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81370,
+    "name": "Studio Management",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81371,
+    "name": "Advanced Studio Management",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81372,
+    "name": "Induction Efficiency",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81373,
+    "name": "Advanced Induction Efficiency",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81374,
+    "name": "Peak Induction Acceleration",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81375,
+    "name": "Batch Sequencing",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81377,
+    "name": "Basic Induction",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 81896,
+    "name": "Mutagenic Stabilization",
+    "groupID": 270,
+    "groupName": "Science",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 83094,
+    "name": "Capital Jump Portal Generation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 83464,
+    "name": "Capital Micro Jump Drive Operation",
+    "groupID": 275,
+    "groupName": "Navigation",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 84217,
+    "name": "Paragon Relations",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 84218,
+    "name": "Paragon Partnership",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 84220,
+    "name": "Executive Paragon Partnership",
+    "groupID": 4734,
+    "groupName": "Sequencing",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 85233,
+    "name": "Mercenary Den Management",
+    "groupID": 1545,
+    "groupName": "Structure Management",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 86260,
+    "name": "Breacher Pod Launcher Operation",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 86261,
+    "name": "Breacher Pod Clone Efficacity",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 86262,
+    "name": "Breacher Pod Clone Longevity",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 86263,
+    "name": "Breacher Pod Projection",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 86264,
+    "name": "Breacher Pod Rapid Firing",
+    "groupID": 256,
+    "groupName": "Missiles",
+    "published": true,
+    "hasMarketGroup": true
+  },
+  {
+    "id": 88377,
+    "name": "Advanced Doomsday Operation",
+    "groupID": 255,
+    "groupName": "Gunnery",
+    "published": true,
+    "hasMarketGroup": true
+  }
+]

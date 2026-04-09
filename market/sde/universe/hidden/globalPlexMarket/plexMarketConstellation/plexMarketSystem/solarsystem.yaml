@@ -1,0 +1,27 @@
+border: false
+center:
+- 1.0
+- 1.0
+- 1.0
+corridor: false
+disallowedAnchorCategories:
+- 65
+fringe: false
+hub: false
+international: false
+luminosity: 0.0
+max:
+- 300000.0
+- 300000.0
+- 300000.0
+min:
+- -300000.0
+- -300000.0
+- -300000.0
+planets: {}
+radius: 14959787070000.0
+regional: false
+security: 1.0
+solarSystemID: 36000001
+solarSystemNameID: 1016437
+stargates: {}

@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RustyBot Quick BPC Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../rusty_bot.png">
+  <link rel="stylesheet" href="style.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="../index.html">&larr; Back</a>
+    <header class="tool-header">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+      <h1>Quick BPC <span>Calculator</span></h1>
+      <p class="subtitle">Calculate blueprint copy values and profits for EVE Online manufacturing.</p>
+    </header>
+    <div class="app-card">
+
+      <div class="form-section form-section--light">
+        <div class="field-grid field-grid--wide">
+          <div class="field">
+            <label for="name">Blueprint Name <small>(e.g., Rifter Blueprint)</small></label>
+            <input type="text" id="name" placeholder="Paste in-game title or enter name">
+          </div>
+          <div class="field field--compact">
+            <label for="runs">Runs <small>Enter number of blueprint runs</small></label>
+            <input type="number" id="runs" placeholder="Enter number of runs" value="1">
+          </div>
+        </div>
+
+        <!-- Type ID UI removed per user request; keep hidden input so scripts that reference #typeid don't break -->
+        <input type="hidden" id="typeid" />
+      </div>
+
+      <style>
+        /* tiny inline helpers left intentionally */
+        
+      </style>
+
+      <div class="form-section">
+        <div class="section-header">
+          <h2>Research</h2>
+          <p class="section-subtitle">Set blueprint efficiency values.</p>
+        </div>
+        <div class="field-grid field-grid--wide">
+          <div class="field">
+            <label for="me">Material Efficiency (ME %) <small>(max 10%)</small></label>
+            <select id="me" title="Material Efficiency - select 0 to 10">
+    <option value="0">0%</option>
+    <option value="1">1%</option>
+    <option value="2">2%</option>
+    <option value="3">3%</option>
+    <option value="4">4%</option>
+    <option value="5">5%</option>
+    <option value="6">6%</option>
+    <option value="7">7%</option>
+    <option value="8">8%</option>
+    <option value="9">9%</option>
+    <option value="10">10%</option>
+  </select>
+          </div>
+          <div class="field">
+            <label for="te">Time Efficiency (TE %) <small>(max 20%)</small></label>
+            <select id="te" title="Time Efficiency - select 0 to 20">
+    <option value="0">0%</option>
+    <option value="1">1%</option>
+    <option value="2">2%</option>
+    <option value="3">3%</option>
+    <option value="4">4%</option>
+    <option value="5">5%</option>
+    <option value="6">6%</option>
+    <option value="7">7%</option>
+    <option value="8">8%</option>
+    <option value="9">9%</option>
+    <option value="10">10%</option>
+    <option value="11">11%</option>
+    <option value="12">12%</option>
+    <option value="13">13%</option>
+    <option value="14">14%</option>
+    <option value="15">15%</option>
+    <option value="16">16%</option>
+    <option value="17">17%</option>
+    <option value="18">18%</option>
+    <option value="19">19%</option>
+    <option value="20">20%</option>
+  </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-section form-section--light">
+        <div class="section-header">
+          <h2>Skills</h2>
+          <p class="section-subtitle">Reflect your character expertise.</p>
+        </div>
+        <div class="field-grid field-grid--wide">
+          <div class="field">
+            <label for="industrySkill">Industry Skill Level <small>(0-5)</small></label>
+            <select id="industrySkill" title="Industry skill - select 0 to 5">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+          </div>
+          <div class="field">
+            <label for="advancedIndustrySkill">Advanced Industry Skill <small>(0-5)</small></label>
+            <select id="advancedIndustrySkill" title="Advanced Industry skill - select 0 to 5">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+          </div>
+          <div class="field">
+            <label for="implant">Implants</label>
+            <select id="implant" title="Select industry implants">
+          <option value="none">None</option>
+          <option value="BX-801">Zainou 'Beancounter' Industry BX-801 (1%)</option>
+          <option value="BX-802">Zainou 'Beancounter' Industry BX-802 (2%)</option>
+          <option value="BX-804">Zainou 'Beancounter' Industry BX-804 (4%)</option>
+        </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-header">
+          <h2>Market Region</h2>
+          <p class="section-subtitle">Choose where to fetch market prices.</p>
+        </div>
+        <div class="field-grid">
+          <div class="field field--compact">
+            <label for="hub">Trade hub (market region)</label>
+            <select id="hub">
+        <option value="10000002">Jita (The Forge)</option>
+        <option value="10000043">Amarr (Domain)</option>
+        <option value="10000032">Dodixie (Sinq Laison)</option>
+        <option value="10000030">Rens (Kador)</option>
+        <option value="10000042">Hek (Curse)</option>
+      </select>
+          </div>
+        </div>
+        <div class="action-row">
+          <button id="lookupBtn" class="btn secondary">Lookup blueprint</button>
+          <button id="resetBtn" class="btn secondary" title="Reset all fields">Start from scratch</button>
+        </div>
+      </div>
+
+      <!-- Screenshot OCR: upload an image and auto-fill fields -->
+      <div class="form-section form-section--light">
+        <div class="section-header">
+          <h2>Upload screenshot</h2>
+          <p class="section-subtitle"></p>
+        </div>
+        <div class="field-grid">
+          <div class="field field--centered">
+            <input type="file" id="screenshot" accept="image/*">
+            <button id="pasteScreenshotBtn" class="btn secondary" type="button">Paste screenshot from clipboard</button>
+          </div>
+        </div>
+        <div id="ocrProgress" style="display:none;margin-top:6px;padding:6px;background:#1e1e1e;color:#e6eef8;border-radius:6px;font-size:12px;"></div>
+        <div><img id="screenshotPreview" style="max-width:100%;display:none;margin-top:6px;border-radius:6px;"/></div>
+      </div>
+
+      <!-- Hidden containers for status messages and candidate selection -->
+      <div id="result" style="display:none;"></div>
+      <div id="candidates" style="display:none;"></div>
+    </div>
+
+    <!-- OCR Result Modal -->
+    <div id="ocrModal" class="modal" style="display:none;">
+      <div class="modal-content" style="max-width: 800px; max-height: 85vh;">
+        <span class="modal-close" onclick="closeOcrModal()">&times;</span>
+        <h2 style="margin-top:0; color:#e8d900;">Blueprint Processed</h2>
+        <div id="ocrModalBody" style="overflow-y: auto; max-height: calc(85vh - 140px); font-size: 15px; line-height: 1.7;"></div>
+        <button onclick="closeOcrModal()" class="btn primary" style="margin-top:15px; padding:10px 16px; width:100%;">Continue to Calculator</button>
+      </div>
+    </div>
+
+    <!-- Calculation Results Modal -->
+    <div id="calcModal" class="modal" style="display:none;">
+      <div class="modal-content" style="max-width: 1600px; max-height: 96vh; padding: 20px;">
+          <span class="modal-close" onclick="closeCalcModal()">&times;</span>
+          <h2 style="margin-top:0; margin-bottom:12px; color:#e8d900;" id="calcModalTitle">Calculation Results</h2>
+          <div id="calcModalBody" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace; font-size: 15px; line-height: 1.7; overflow-y: auto; max-height: calc(96vh - 100px); padding-right:12px;"></div>
+          <button onclick="closeCalcModal()" class="btn primary" style="margin-top:12px; padding:10px 16px; width:100%;">Close</button>
+      </div>
+    </div>
+
+  <script>
+    // ========== UTILITIES & CACHING ==========
+
+    // In-memory cache for type names to reduce ESI/Everef calls
+    const typeNameCache = new Map();
+
+    // EVE ship names dictionary for OCR correction (extracted from EVE University Wiki)
+    const eveShipNames = [
+      'Abaddon','Absolution','Adrestia','Aeon','Algos','Alligator','Anathema','Anshar','Apocalypse','Apostle',
+      'Arazu','Arbitrator','Archon','Ares','Ark','Armageddon','Ashimmu','Astarte','Astero','Atron',
+      'Augoror','Avatar','Azariel','Badger','Bane','Bantam','Barghest','Basilisk','Bellicose','Bestla',
+      'Bestower','Bhaalgorn','Bifrost','Blackbird','Bowhead','Breacher','Broadsword','Brutix','Burst','Bustard',
+      'Buzzard','Caedes','Caiman','Caracal','Catalyst','Celestis','Cenotaph','Cerberus','Chameleon','Charon',
+      'Cheetah','Chemosh','Chimera','Chremoas','Claw','Claymore','Cobra','Coercer','Condor','Confessor',
+      'Corax','Cormorant','Covetor','Crane','Crow','Crucifier','Cruor','Crusader','Curse','Cybele',
+      'Cyclone','Cynabal','Dagon','Damavik','Damnation','Daredevil','Deacon','Deimos','Deluge','Devoter',
+      'Dominix','Dragoon','Drake','Dramiel','Draugur','Drekavac','Eagle','Echelon','Echo','Eidolon',
+      'Endurance','Enforcer','Enyo','Eos','Epithal','Erebus','Eris','Etana','Executioner','Exequror',
+      'Falcon','Fenrir','Ferox','Fiend','Flycatcher','Freki','Garmur','Geri','Gila','Gnosis',
+      'Golem','Griffin','Guardian','Harbinger','Harpy','Hawk','Hecate','Hel','Helios','Hematos',
+      'Heretic','Heron','Hoarder','Hound','Hubris','Huginn','Hulk','Hurricane','Hydra','Hyena',
+      'Hyperion','Ibis','Ikitursa','Imicus','Immolator','Imp','Impairor','Impel','Incursus','Inquisitor',
+      'Ishkur','Ishtar','Ixion','Jackdaw','Jaguar','Karura','Keres','Kestrel','Khizriel','Kikimora',
+      'Kirin','Kitsune','Komodo','Kronos','Kryos','Lachesis','Laelaps','Legion','Leopard','Leshak',
+      'Leviathan','Lif','Loggerhead','Loki','Machariel','Mackinaw','Maelstrom','Magnate','Magus','Malediction',
+      'Malice','Maller','Mamba','Mammoth','Manticore','Marshal','Mastodon','Maulus','Medusa','Megathron',
+      'Mekubal','Merlin','Metamorphosis','Miasmos','Mimir','Minokawa','Moa','Molok','Monitor','Moracha',
+      'Moros','Muninn','Myrmidon','Naga','Naglfar','Navitas','Nemesis','Nereus','Nergal','Nestor',
+      'Nidhoggur','Nighthawk','Nightmare','Ninazu','Noctis','Nomad','Nyx','Obelisk','Occator','Omen',
+      'Oneiros','Onyx','Oracle','Orca','Orthrus','Osprey','Pacifier','Paladin','Panther','Phantasm',
+      'Phantom','Phobos','Phoenix','Pilgrim','Pontifex','Porpoise','Praxis','Primae','Probe','Procurer',
+      'Prophecy','Prorator','Prospect','Proteus','Providence','Prowler','Punisher','Purifier','Python','Rabisu',
+      'Ragnarok','Raiju','Rapier','Raptor','Rattlesnake','Raven','Reaper','Redeemer','Retribution','Retriever',
+      'Revelation','Revenant','Rhea','Rifter','Rodiva','Rokh','Rook','Rorqual','Rupture','Sabre',
+      'Sacrilege','Scalpel','Scimitar','Scorpion','Scythe','Sentinel','Shapash','Sidewinder','Sigil','Sin',
+      'Skiff','Skybreaker','Slasher','Sleipnir','Specter','Squall','Stabber','Stiletto','Stork','Stormbringer',
+      'Stratios','Succubus','Sunesis','Svipul','Taipan','Talos','Talwar','Taranis','Tayra','Tempest',
+      'Tengu','Thalia','Thanatos','Tholos','Thorax','Thrasher','Thunderchild','Tiamat','Torrent','Tormentor',
+      'Tornado','Tristan','Typhoon','Utu','Vagabond','Valravn','Vangel','Vanquisher','Vargur','Vedmak',
+      'Vehement','Velator','Vendetta','Vengeance','Venture','Vexor','Viator','Victor','Vigil','Vigilant',
+      'Vindicator','Violator','Virtuoso','Visitant','Vulture','Whiptail','Widow','Wolf','Worm','Wraith',
+      'Wreathe','Wyvern','Zarmazd','Zealot','Zephyr','Zirnitra'
+    ];
+    
+    // Levenshtein distance for fuzzy string matching (OCR error correction)
+    function levenshteinDistance(a, b) {
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+    
+    // Find closest matching ship name using fuzzy matching
+    function findClosestShipName(ocrText) {
+      const normalized = ocrText.toLowerCase().replace(/\s+/g, '');
+      let bestMatch = null;
+      let bestDistance = Infinity;
+      
+      for (const shipName of eveShipNames) {
+        const shipNormalized = shipName.toLowerCase();
+        const distance = levenshteinDistance(normalized, shipNormalized);
+        
+        // Only consider matches within reasonable edit distance (max 3 characters different)
+        if (distance < bestDistance && distance <= 3) {
+          bestDistance = distance;
+          bestMatch = shipName;
+        }
+      }
+      
+      return bestMatch;
+    }
+    
+    // Persistent preferences in localStorage
+    const prefs = {
+      load() {
+        try {
+          const stored = localStorage.getItem('bpcCalcPrefs');
+          if (stored) {
+            const p = JSON.parse(stored);
+            if (p.hub) document.getElementById('hub').value = p.hub;
+            if (p.me !== undefined) document.getElementById('me').value = p.me;
+            if (p.te !== undefined) document.getElementById('te').value = p.te;
+            if (p.runs !== undefined) document.getElementById('runs').value = p.runs;
+            if (p.industrySkill !== undefined) document.getElementById('industrySkill').value = p.industrySkill;
+            if (p.advancedIndustrySkill !== undefined) document.getElementById('advancedIndustrySkill').value = p.advancedIndustrySkill;
+            if (p.implant !== undefined) document.getElementById('implant').value = p.implant;
+          }
+        } catch (e) { console.error('Failed to load preferences', e); }
+      },
+      save() {
+        try {
+          const p = {
+            hub: document.getElementById('hub').value,
+            me: parseFloat(document.getElementById('me').value) || 0,
+            te: parseFloat(document.getElementById('te').value) || 0,
+            runs: parseInt(document.getElementById('runs').value) || 1,
+            industrySkill: parseInt(document.getElementById('industrySkill').value) || 0,
+            advancedIndustrySkill: parseInt(document.getElementById('advancedIndustrySkill').value) || 0
+            ,implant: document.getElementById('implant') ? document.getElementById('implant').value : 'none'
+          };
+          localStorage.setItem('bpcCalcPrefs', JSON.stringify(p));
+        } catch (e) { console.error('Failed to save preferences', e); }
+      }
+    };
+    
+    // Cached Tesseract worker for faster subsequent OCR runs
+    let tesseractWorker = null;
+    
+    // Load Tesseract via CDN dynamically for OCR when processing screenshots
+    async function ensureTesseract() {
+      if (window.Tesseract) return window.Tesseract;
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js';
+        s.onload = () => resolve(window.Tesseract);
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    
+    // Preprocess image for better OCR accuracy and speed
+    async function preprocessImage(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Scale down large images for faster processing (max 1920px width)
+          const maxWidth = 1920;
+          const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          
+          // Draw scaled image
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // Get image data for processing
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          // Convert to grayscale and increase contrast for better OCR
+          // EVE Online uses light text on dark backgrounds, so we need to handle that
+          for (let i = 0; i < data.length; i += 4) {
+            // Grayscale conversion
+            const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            
+            // For EVE's dark UI with light text, invert if image is predominantly dark
+            // This makes text appear as dark-on-light for better OCR
+            const inverted = 255 - gray;
+            
+            // Use whichever has better contrast (check which is more readable)
+            // If the pixel is bright (text), keep it bright; if dark (background), keep it dark
+            const enhanced = gray > 100 ? 255 : 0; // Aggressive threshold for clarity
+            
+            data[i] = data[i + 1] = data[i + 2] = enhanced;
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          
+          // For EVE blueprint windows, crop to top region (title and stats area)
+          // Blueprint titles are typically in the top 25% of the window
+          const cropHeight = Math.floor(canvas.height * 0.35);
+          const croppedCanvas = document.createElement('canvas');
+          const croppedCtx = croppedCanvas.getContext('2d');
+          croppedCanvas.width = canvas.width;
+          croppedCanvas.height = cropHeight;
+          croppedCtx.drawImage(canvas, 0, 0, canvas.width, cropHeight, 0, 0, canvas.width, cropHeight);
+          
+          // Convert to blob
+          croppedCanvas.toBlob((blob) => {
+            URL.revokeObjectURL(url);
+            resolve(blob);
+          }, 'image/png');
+        };
+        
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Failed to load image'));
+        };
+        
+        img.src = url;
+      });
+    }
+
+    async function processScreenshot(pastedBlob) {
+      const fileInput = document.getElementById('screenshot');
+      const preview = document.getElementById('screenshotPreview');
+      const f = pastedBlob || (fileInput.files && fileInput.files[0]);
+      if (!f) return statusUpdate('Select an image first');
+      
+      const url = URL.createObjectURL(f);
+      preview.src = url; preview.style.display = 'block';
+      
+      statusUpdate('Preprocessing image...', true);
+      try {
+        // Preprocess image first (crop, grayscale, contrast)
+        const processedBlob = await preprocessImage(f);
+        
+        statusUpdate('Loading OCR engine...', true);
+        const Tesseract = await ensureTesseract();
+        
+        // Create or reuse worker for faster subsequent runs
+        if (!tesseractWorker) {
+          statusUpdate('Initializing OCR worker (first run only)...', true);
+          tesseractWorker = await Tesseract.createWorker('eng', 1, {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                statusUpdate(`OCR progress: ${Math.round(m.progress * 100)}%`, true);
+              }
+            }
+          });
+        }
+        
+        statusUpdate('Running OCR (analyzing blueprint window)...', true);
+        const { data: { text } } = await tesseractWorker.recognize(processedBlob);
+  statusUpdate('OCR complete — parsing EVE blueprint window...');
+        console.log('OCR text:', text);
+        
+        const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+        let guessedName = null;
+        let guessedTypeId = null;
+        let guessedME = null;
+        let guessedTE = null;
+        let guessedRuns = null;
+        
+        // EVE blueprint windows have specific structure:
+        // Window title: "Hauler Blueprint: Information" (skip this)
+        // Item name: "Bestower Blueprint" (this is what we want)
+        // Status: "Copy - X Run remaining"
+        // Stats: ME percentage, TE percentage
+        
+        // Strategy 1: Look for the blueprint title (prioritize line before "Copy")
+        let copyLineIndex = -1;
+        for (let i = 0; i < lines.length; i++) {
+          if (/copy.*run.*remaining/i.test(lines[i])) {
+            copyLineIndex = i;
+            break;
+          }
+        }
+        
+        // Search for blueprint name (prefer line right before "Copy" line)
+        const searchStart = copyLineIndex > 0 ? Math.max(0, copyLineIndex - 3) : 0;
+        const searchEnd = copyLineIndex > 0 ? copyLineIndex : Math.min(10, lines.length);
+        
+        for (let i = searchStart; i < searchEnd; i++) {
+          const line = lines[i];
+          
+          // Skip window title lines (contain ":" or "Information")
+          if (/:/.test(line) || /information/i.test(line)) continue;
+          
+          // Skip the "Copy" line itself
+          if (/copy.*remaining/i.test(line)) continue;
+          
+          // Look for "X Blueprint" pattern
+          if (/blueprint/i.test(line)) {
+            // Clean up common OCR artifacts
+            let cleaned = line
+              .replace(/\s+/g, ' ')
+              .replace(/^[A-Z]{1,2}\s+/i, '') // Remove junk prefixes like "CY "
+              .replace(/[|]/g, 'I')
+              .replace(/[0O]/g, (m, offset, str) => {
+                const before = str[offset - 1];
+                const after = str[offset + 1];
+                if (before && /[a-z]/i.test(before) && after && /[a-z]/i.test(after)) return 'o';
+                return m;
+              })
+              .trim();
+            
+            // Extract just the ship/item name (before "Blueprint")
+            const nameMatch = cleaned.match(/^(.+?)\s+Blueprint/i);
+            if (nameMatch) {
+              const rawShipName = nameMatch[1].trim();
+              console.log('Raw OCR ship name:', rawShipName);
+              
+              // Try fuzzy matching against known ship names
+              const correctedName = findClosestShipName(rawShipName);
+              if (correctedName) {
+                guessedName = correctedName + ' Blueprint';
+                console.log('Corrected to:', guessedName, '(fuzzy match)');
+              } else {
+                guessedName = cleaned;
+                console.log('Using raw OCR:', guessedName, '(no match found)');
+              }
+              break;
+            } else {
+              guessedName = cleaned;
+              console.log('Detected blueprint name (no parsing):', guessedName);
+              break;
+            }
+          }
+        }
+        
+        // Strategy 2: Extract ME and TE percentages (e.g., "7%" and "14%")
+        // These appear near the top of the window
+        const meMatch = text.match(/(?:ME|Material\s+Efficiency)[:\s]*(\d+(?:\.\d+)?)\s*%/i);
+        if (meMatch) {
+          guessedME = parseFloat(meMatch[1]);
+          console.log('Detected ME:', guessedME);
+        }
+        
+        const teMatch = text.match(/(?:TE|Time\s+Efficiency)[:\s]*(\d+(?:\.\d+)?)\s*%/i);
+        if (teMatch) {
+          guessedTE = parseFloat(teMatch[1]);
+          console.log('Detected TE:', guessedTE);
+        }
+        
+        // Strategy 3: Extract runs remaining for BPCs (e.g., "1 Run remaining")
+        const runsMatch = text.match(/(\d+)\s+Runs?\s+remaining/i);
+        if (runsMatch) {
+          guessedRuns = parseInt(runsMatch[1]);
+          console.log('Detected runs:', guessedRuns);
+        }
+        
+        // Strategy 4: Look for time per run (format: 2D 23:40:00 or 23:40:00)
+        // This helps confirm we're looking at a blueprint window
+        const timeMatch = text.match(/Time\s+per\s+run[:\s]+(\d+D\s+)?\d{1,2}:\d{2}:\d{2}/i);
+        if (timeMatch) {
+          console.log('Detected blueprint window - Time per run:', timeMatch[0]);
+        }
+        
+        // EVE doesn't display Type ID in blueprint windows, so we'll rely on name lookup
+        // Type IDs for materials might appear in the list, but they're typically 5+ digits
+        for (const line of lines) {
+          const m = line.match(/\b([0-9]{5,7})\b/);
+          if (m) {
+            guessedTypeId = parseInt(m[1]);
+            console.log('Found potential Type ID:', guessedTypeId);
+            break;
+          }
+        }
+        
+        // Fallback: if no blueprint keyword found, use the first substantial line
+        if (!guessedName && lines.length > 0) {
+          // Skip very short lines and common UI text
+          for (const line of lines) {
+            if (line.length > 10 && !/^(industry|description|manufacturing|outcome|required|time|copy|run)/i.test(line)) {
+              guessedName = line.replace(/\s+/g, ' ').trim();
+              break;
+            }
+          }
+        }
+
+        // Auto-fill detected values
+        if (guessedName) {
+          document.getElementById('name').value = guessedName;
+          statusUpdate('Blueprint name detected: ' + guessedName);
+        }
+        
+        if (guessedME !== null) {
+          document.getElementById('me').value = guessedME;
+          statusUpdate('ME efficiency detected: ' + guessedME + '%');
+        }
+        
+        if (guessedTE !== null) {
+          document.getElementById('te').value = guessedTE;
+          statusUpdate('TE efficiency detected: ' + guessedTE + '%');
+        }
+        
+        if (guessedRuns !== null) {
+          document.getElementById('runs').value = guessedRuns;
+          statusUpdate('Runs detected: ' + guessedRuns);
+        }
+        
+        // Show modal with detected values
+        if (guessedName || guessedME !== null || guessedTE !== null || guessedRuns !== null) {
+          showOcrModal({
+            name: guessedName,
+            me: guessedME,
+            te: guessedTE,
+            runs: guessedRuns
+          });
+        }
+        
+        // If we found a blueprint name, auto-trigger lookup
+        if (guessedName) {
+          statusUpdate('Blueprint detected: ' + guessedName + '. Running lookup...');
+          setTimeout(() => lookupCandidates(), 500);
+        } else if (guessedTypeId) {
+          document.getElementById('typeid').value = guessedTypeId;
+          statusUpdate('Type ID detected. Use Lookup or the Type ID field to proceed.');
+        } else {
+          statusUpdate('Could not parse blueprint info. Please enter manually.');
+        }
+        // Screenshot processed automatically - no button needed
+      } catch (e) {
+        console.error('OCR failed', e);
+        statusUpdate('OCR failed: '+(e && e.message ? e.message : String(e)));
+        // Don't terminate worker on error - reuse for next attempt
+      }
+    }
+    
+    // Cleanup function for when page unloads
+    window.addEventListener('beforeunload', async () => {
+      if (tesseractWorker) {
+        try {
+          await tesseractWorker.terminate();
+        } catch (e) {
+          console.error('Worker termination failed:', e);
+        }
+      }
+    });
+    
+    // ========== NETWORK & STATUS ==========
+    
+    function statusUpdate(msg, isOcrProgress = false) {
+      try { 
+        const progressEl = document.getElementById('ocrProgress');
+        if (progressEl) {
+          progressEl.style.display = 'block';
+          progressEl.textContent = msg;
+        }
+      } catch (e) { /* ignore */ }
+      console.log('STATUS:', msg);
+    }
+
+    function showOcrModal(data) {
+      const modal = document.getElementById('ocrModal');
+      const body = document.getElementById('ocrModalBody');
+      
+      let html = '<div style="margin-bottom: 15px;">';
+      
+      if (data.name) {
+        html += `<div class="modal-info-row">
+          <span class="modal-info-label">Blueprint Name:</span>
+          <span class="modal-info-value">${data.name}</span>
+        </div>`;
+      }
+      
+      if (data.me !== null && data.me !== undefined) {
+        html += `<div class="modal-info-row">
+          <span class="modal-info-label">Material Efficiency:</span>
+          <span class="modal-info-value">${data.me}%</span>
+        </div>`;
+      }
+      
+      if (data.te !== null && data.te !== undefined) {
+        html += `<div class="modal-info-row">
+          <span class="modal-info-label">Time Efficiency:</span>
+          <span class="modal-info-value">${data.te}%</span>
+        </div>`;
+      }
+      
+      if (data.runs) {
+        html += `<div class="modal-info-row">
+          <span class="modal-info-label">Runs Remaining:</span>
+          <span class="modal-info-value">${data.runs}</span>
+        </div>`;
+      }
+      
+      html += '</div>';
+      html += '<p style="color: var(--success); text-align: center; margin-top: 15px;">✓ Values have been auto-filled in the calculator below</p>';
+      
+      body.innerHTML = html;
+      modal.style.display = 'flex';
+    }
+
+    function closeOcrModal() {
+      const modal = document.getElementById('ocrModal');
+      modal.style.display = 'none';
+    }
+
+    function showCalculationModal(data) {
+      const modal = document.getElementById('calcModal');
+      const title = document.getElementById('calcModalTitle');
+      const body = document.getElementById('calcModalBody');
+      
+      title.textContent = data.blueprintName || 'Calculation Results';
+
+      // Build header with optional blueprint image on the right
+      let html = `<div style="background:#121212; padding:15px; border-radius:8px; color:#d7d7d7;">`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">`;
+  html += `<div style="flex:1;min-width:0;">`;
+  // Larger, prominent blueprint name
+  html += `<div style="color:#e8d900;display:block;font-size:20px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.blueprintName} (Type ID: ${data.typeId})</div>`;
+  // Larger product name slightly smaller than blueprint name
+  html += `<div style="color:#e6eef8;display:block;margin-top:6px;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.productName} (Type ID: ${data.productTypeId})</div>`;
+  html += `</div>`;
+      if (data.imageUrl) {
+        html += `<div style="flex:0 0 auto;margin-left:12px;">
+          <img src="${data.imageUrl}" alt="Blueprint" style="width:128px;height:128px;object-fit:contain;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);"/>
+        </div>`;
+      }
+      html += `</div><br/>`;
+      
+      html += `<strong>Build Cost (per run):</strong> ${data.costPerRun}<br>`;
+      html += `<strong>Build Cost (all runs ${data.runs}x):</strong> ${data.costAllRuns}<br><br>`;
+      
+      html += `<strong>Materials:</strong><br>`;
+      html += `<div style="margin-left:15px; margin-top:5px;">${data.materials}</div><br>`;
+      
+  // Emphasize final outcome: product price and profit
+  html += `<div style="margin-top:8px;">`;
+  html += `<span style="font-size:16px;font-weight:700;">Final product sell price (${data.productQty}x per run):</span> `;
+  html += `<span style="font-size:16px;font-weight:700;color:#fff;">${data.productPrice}</span>`;
+  html += `</div>`;
+  html += `<div style="margin-top:6px;">`;
+  html += `<span style="font-size:16px;font-weight:800;color:${data.profitPerRun.includes('-') ? '#f85149' : '#3fb950'};">Profit (per run):</span> `;
+  html += `<span style="font-size:16px;font-weight:700;color:${data.profitPerRun.includes('-') ? '#f85149' : '#3fb950'};"> ${data.profitPerRun}</span>`;
+  html += `</div>`;
+  html += `<div style="margin-top:6px;">`;
+  html += `<span style="font-size:15px;font-weight:700;color:${data.profitAllRuns.includes('-') ? '#f85149' : '#3fb950'};">Profit (all runs ${data.runs}x):</span> `;
+  html += `<span style="font-size:15px;font-weight:700;color:${data.profitAllRuns.includes('-') ? '#f85149' : '#3fb950'};"> ${data.profitAllRuns}</span><br>`;
+  html += `</div>`;
+      html += `<strong>Time per run${data.skillInfoStr}:</strong> ${data.timePerRun}<br>`;
+      html += `<strong>Total time:</strong> ${data.totalTime}`;
+      
+      html += `</div>`;
+      
+      body.innerHTML = html;
+      modal.style.display = 'flex';
+    }
+
+    function closeCalcModal() {
+      const modal = document.getElementById('calcModal');
+      modal.style.display = 'none';
+    }
+
+    async function fetchWithTimeout(url, opts = {}, timeout = 10000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      try {
+        const response = await fetch(url, {...opts, signal: controller.signal});
+        clearTimeout(id);
+        if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return response.json();
+        return response.text();
+      } catch (err) {
+        clearTimeout(id);
+        if (err.name === 'AbortError') throw new Error('Request timeout: ' + url);
+        throw err;
+      }
+    }
+
+    const fetchESI = fetchWithTimeout;
+
+    // ========== CANDIDATE LOOKUP & BLUEPRINT RESOLUTION ==========
+    
+    async function lookupCandidates() {
+      const statusEl = document.getElementById('result');
+      statusEl.textContent = 'Looking up candidates...';
+      const name = document.getElementById('name').value.trim();
+      if (!name) {
+        statusEl.textContent = 'Enter a name to lookup candidates.';
+        return;
+      }
+      
+      const parts = name.split(/\t+|\s{2,}|\|/).map(p=>p.trim()).filter(Boolean);
+      parts.push(name.replace(/\s+/g,' ').trim());
+      const candidates = Array.from(new Set(parts));
+      // Also try common blueprint name variants to directly resolve a blueprint from a product name
+      const baseName = name.replace(/\s+/g,' ').trim();
+      const blueprintVariants = [
+        `${baseName} Blueprint`,
+        `${baseName} Blueprint Copy`,
+        `${baseName} BPC`,
+        `${baseName} (Blueprint)`,
+        `${baseName} Blueprint (Copy)`
+      ];
+      const allCandidates = Array.from(new Set([...candidates, ...blueprintVariants]));
+      
+      try {
+        // Use the expanded list (including blueprint-name variants) when resolving
+        const resp = await fetch('https://esi.evetech.net/latest/universe/ids/', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(allCandidates)
+        });
+        if (!resp.ok) throw new Error('HTTP '+resp.status);
+        const data = await resp.json();
+        console.log('universe/ids response:', data);
+        // ESI may return either an array or an object with inventory_types
+        let inv;
+        if (Array.isArray(data)) inv = data;
+        else inv = data.inventory_types || [];
+
+        // Try to find blueprint-like entries automatically (name contains 'blueprint' or 'bpc')
+        const blueprintMatches = inv.filter(entry => {
+          const ename = (typeof entry === 'object' ? entry.name : String(entry) || '').toLowerCase();
+          return ename.includes('blueprint') || ename.includes('bpc');
+        });
+
+        // If there's exactly one blueprint-like match, auto-select it and run calculate()
+        if (blueprintMatches.length === 1) {
+          const picked = blueprintMatches[0];
+          const pickedId = typeof picked === 'object' ? picked.id : picked;
+          window._lastCandidates = [picked];
+          document.getElementById('typeid').value = pickedId;
+          document.getElementById('candidates').innerHTML = '';
+          document.getElementById('result').textContent = `Auto-selected blueprint: ${picked.name || pickedId} (Type ID ${pickedId}) — calculating...`;
+          try { await calculate(); } catch (e) { console.error('Auto-calc after auto-select failed:', e); }
+          return;
+        }
+
+        // If we didn't find blueprint-like entries, but ESI returned a single product/type, try resolving its blueprint variants
+        if (blueprintMatches.length === 0 && inv.length === 1) {
+          const single = inv[0];
+          const singleName = typeof single === 'object' ? single.name : String(single);
+          if (singleName) {
+            const variants = [
+              `${singleName} Blueprint`,
+              `${singleName} Blueprint Copy`,
+              `${singleName} BPC`,
+              `${singleName} (Blueprint)`,
+              `${singleName} Blueprint (Copy)`
+            ];
+            try {
+              statusEl.textContent = 'Trying blueprint variants for exact product match...';
+              const resp2 = await fetch('https://esi.evetech.net/latest/universe/ids/', {
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(variants)
+              });
+              if (resp2.ok) {
+                const data2 = await resp2.json();
+                const inv2 = Array.isArray(data2) ? data2 : (data2.inventory_types || []);
+                const bp2 = inv2.filter(e => ((typeof e === 'object' ? e.name : String(e) || '').toLowerCase().includes('blueprint') || (typeof e === 'object' ? e.name : String(e) || '').toLowerCase().includes('bpc')));
+                if (bp2.length === 1) {
+                  const picked = bp2[0];
+                  const pickedId = typeof picked === 'object' ? picked.id : picked;
+                  window._lastCandidates = [picked];
+                  document.getElementById('typeid').value = pickedId;
+                  document.getElementById('candidates').innerHTML = '';
+                  document.getElementById('result').textContent = `Auto-selected blueprint: ${picked.name || pickedId} (Type ID ${pickedId}) — calculating...`;
+                  try { await calculate(); } catch (e) { console.error('Auto-calc after auto-select failed:', e); }
+                  return;
+                }
+              }
+            } catch (e) {
+              console.log('Secondary blueprint variant lookup failed:', e.message);
+            }
+          }
+        }
+        window._lastCandidates = inv;
+        renderCandidates(inv);
+        statusEl.textContent = inv.length ? `Found ${inv.length} candidate(s).` : 'No candidates found.';
+      } catch (e) {
+        statusEl.textContent = 'Lookup failed: '+e.message;
+      }
+    }
+
+    function renderCandidates(inv) {
+      const container = document.getElementById('candidates');
+      container.innerHTML = '';
+      if (!inv || inv.length === 0) return;
+      
+      const header = document.createElement('h3');
+      header.textContent = 'Candidate inventory types';
+      container.appendChild(header);
+      
+      for (const entry of inv) {
+        const id = typeof entry === 'object' ? entry.id : entry;
+        const name = typeof entry === 'object' ? entry.name : String(entry);
+        
+        const row = document.createElement('div');
+        row.className = 'candidate-row';
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.innerHTML = `<strong>${name}</strong><small>Type ID: ${id}</small>`;
+        row.appendChild(titleDiv);
+        
+        const btns = document.createElement('div');
+        btns.className = 'candidate-btns';
+        
+        const useBtn = document.createElement('button');
+        useBtn.textContent = 'Use this Type ID';
+        useBtn.onclick = async () => {
+          document.getElementById('typeid').value = id;
+          document.getElementById('candidates').innerHTML = '';
+          document.getElementById('result').textContent = 'Type ID selected. Calculating...';
+          try {
+            await calculate();
+          } catch (e) {
+            console.error('Auto-calculate error:', e);
+            document.getElementById('result').textContent = 'Auto-calculate failed: ' + (e && e.message ? e.message : String(e));
+          }
+        };
+        btns.appendChild(useBtn);
+        
+        const everefLink = document.createElement('a');
+        everefLink.href = `https://everef.net/types/${id}`;
+        everefLink.textContent = 'Everef';
+        everefLink.target = '_blank';
+        btns.appendChild(everefLink);
+        
+        const fuzzLink = document.createElement('a');
+        fuzzLink.href = `https://www.fuzzwork.co.uk/blueprint/?typeid=${id}`;
+        fuzzLink.textContent = 'Fuzzwork';
+        fuzzLink.target = '_blank';
+        btns.appendChild(fuzzLink);
+        
+        const adamLink = document.createElement('a');
+        adamLink.href = `https://www.adam4eve.eu/manu_calc.php?typeID=${id}`;
+        adamLink.textContent = 'Adam4EVE';
+        adamLink.target = '_blank';
+        btns.appendChild(adamLink);
+        
+        row.appendChild(btns);
+        container.appendChild(row);
+      }
+    }
+
+
+
+    // ========== MAIN CALCULATION ==========
+    
+    async function calculate() {
+      // Save preferences when calculate is run
+      prefs.save();
+      
+      const name = document.getElementById('name').value.trim();
+      const typeIdOverride = parseInt(document.getElementById('typeid').value);
+      const runs = parseInt(document.getElementById('runs').value);
+      const hubRegionId = parseInt(document.getElementById('hub').value);
+
+      if (isNaN(runs) || runs < 1) {
+        document.getElementById('result').textContent = 'Please enter valid runs (1 or more).';
+        return;
+      }
+      if (isNaN(hubRegionId)) {
+        document.getElementById('result').textContent = 'Please select a trade hub.';
+        return;
+      }
+
+      let typeId;
+      if (!isNaN(typeIdOverride)) {
+        typeId = typeIdOverride;
+        console.log('Using user-provided Type ID:', typeId);
+      } else {
+        document.getElementById('result').textContent = 'Enter a Type ID or use Lookup candidates to find it.';
+        return;
+      }
+
+      let bpData;
+      try {
+        statusUpdate('Fetching blueprint data from ESI...');
+        bpData = await fetchESI(`https://esi.evetech.net/latest/universe/blueprints/${typeId}/`, {}, 8000);
+      } catch (esiError) {
+        console.log('ESI blueprint endpoint failed:', esiError.message);
+        // Try to resolve if the provided typeId is actually the product/item type.
+        try {
+          statusUpdate('Blueprint not found. Attempting to resolve by type name...');
+          const typeInfo = await fetchESI(`https://esi.evetech.net/latest/universe/types/${typeId}/`, {}, 8000);
+          const baseName = typeInfo.name || '';
+          const candidates = [
+            `${baseName} Blueprint`,
+            `${baseName} Blueprint Copy`,
+            `${baseName} BPC`,
+            `${baseName} (Blueprint)`,
+            `${baseName} Blueprint (Copy)`
+          ];
+
+          // POST /universe/ids to resolve candidate names
+          try {
+            statusUpdate('Searching universe/ids for blueprint candidates...');
+            const resp = await fetchWithTimeout('https://esi.evetech.net/latest/universe/ids/', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(candidates)
+            }, 10000);
+            const inv = resp.inventory_types || [];
+            if (inv && inv.length > 0) {
+              // render candidates and ask user to pick the correct blueprint type
+              statusUpdate(`Found ${inv.length} candidate blueprint types. Please pick one.`);
+              renderCandidates(inv);
+              return;
+            }
+          } catch (e) {
+            console.log('universe/ids lookup failed:', e.message);
+          }
+        } catch (typeErr) {
+          console.log('Failed to fetch type info for resolution:', typeErr.message);
+        }
+
+        // If resolution failed, fall back to Everef blueprint data as before
+        try {
+          statusUpdate('ESI blueprint failed, fetching Everef fallback...');
+          const everefResp = await fetchWithTimeout(`https://ref-data.everef.net/blueprints/${typeId}`, {}, 8000);
+          bpData = everefResp;
+        } catch (e) {
+          document.getElementById('result').textContent = `Blueprint data not available for Type ID ${typeId}. ESI: ${esiError.message} , Everef: ${e.message}`;
+          return;
+        }
+      }
+      
+      try {
+        if (!bpData.activities || !bpData.activities.manufacturing) {
+          document.getElementById('result').textContent = 'Blueprint has no manufacturing activity.';
+          return;
+        }
+
+  let materials = bpData.activities.manufacturing.materials;
+        
+        // Everef uses object format, ESI uses array format
+        if (materials && !Array.isArray(materials)) {
+          materials = Object.values(materials);
+        }
+        
+        if (!materials || materials.length === 0) {
+          document.getElementById('result').textContent = 'Blueprint has no materials.';
+          return;
+        }
+        
+  let mePercent = parseFloat(document.getElementById('me').value) || 0;
+  let tePercent = parseFloat(document.getElementById('te').value) || 0;
+  // Clamp to allowed ranges: ME max 10%, TE max 20%
+  if (mePercent < 0) mePercent = 0;
+  if (mePercent > 10) { mePercent = 10; statusUpdate('ME clamped to 10% (max)'); }
+  if (tePercent < 0) tePercent = 0;
+  if (tePercent > 20) { tePercent = 20; statusUpdate('TE clamped to 20% (max)'); }
+        let totalCost = 0;
+        const materialDetails = [];
+        for (const mat of materials) {
+          try {
+            // Apply Material Efficiency: reduce required quantity per run
+            const baseQty = mat.quantity || 0;
+            const adjustedQtyPerRun = Math.max(0, Math.ceil(baseQty * (1 - mePercent / 100)));
+            statusUpdate(`Fetching market orders for material ${mat.type_id} in selected hub...`);
+            const orders = await fetchESI(`https://esi.evetech.net/latest/markets/${hubRegionId}/orders/?type_id=${mat.type_id}&order_type=sell`, {}, 10000);
+            if (!orders || orders.length === 0) {
+              document.getElementById('result').textContent = `No market data for material ${mat.type_id}.`;
+              return;
+            }
+            const lowestPrice = Math.min(...orders.map(o => o.price));
+            const lineTotal = lowestPrice * adjustedQtyPerRun;
+            totalCost += lineTotal;
+            materialDetails.push({ type_id: mat.type_id, quantity: adjustedQtyPerRun, unitPrice: lowestPrice, lineTotal, baseQty });
+          } catch (e) {
+            document.getElementById('result').textContent = `Failed to fetch market orders for material ${mat.type_id}: ${e.message}`;
+            return;
+          }
+        }
+
+  const products = bpData.activities.manufacturing.products;
+        
+        // Handle both Everef object format and ESI array format
+        let productsList = products;
+        if (products && !Array.isArray(products)) {
+          productsList = Object.values(products);
+        }
+        
+        let profit = 0;
+        let prodUnitPrice = NaN;
+        let prodRevenue = 0;
+        let productQty = 1;
+        if (productsList && productsList.length > 0) {
+          productQty = productsList[0].quantity || 1;
+          try {
+            statusUpdate(`Fetching product market orders for ${productsList[0].type_id} from selected hub...`);
+            const prodOrders = await fetchESI(`https://esi.evetech.net/latest/markets/${hubRegionId}/orders/?type_id=${productsList[0].type_id}&order_type=sell`, {}, 10000);
+            if (prodOrders && prodOrders.length > 0) {
+              prodUnitPrice = Math.min(...prodOrders.map(o => o.price));
+              prodRevenue = prodUnitPrice * productQty;
+              profit = prodRevenue - totalCost;
+            }
+          } catch (e) {
+            document.getElementById('result').textContent = `Failed to fetch product market orders: ${e.message}`;
+            return;
+          }
+        }
+
+  // Helper: fetch a human-friendly type name with caching (ESI -> Everef fallback)
+        async function fetchTypeName(typeId) {
+          if (typeNameCache.has(typeId)) return typeNameCache.get(typeId);
+          
+          try {
+            const t = await fetchWithTimeout(`https://esi.evetech.net/latest/universe/types/${typeId}/`, {}, 8000);
+            if (t && t.name) {
+              typeNameCache.set(typeId, t.name);
+              return t.name;
+            }
+          } catch (e) {
+            // ignore and try Everef
+          }
+          try {
+            const ref = await fetchWithTimeout(`https://ref-data.everef.net/types/${typeId}`, {}, 8000);
+            if (ref && ref.name) {
+              typeNameCache.set(typeId, ref.name);
+              return ref.name;
+            }
+          } catch (e) {
+            // ignore
+          }
+          const fallback = `Type ${typeId}`;
+          typeNameCache.set(typeId, fallback);
+          return fallback;
+        }
+
+        // Build a readable materials/products breakdown and show it immediately
+        const matLines = [];
+        for (const m of materialDetails) {
+          const name = await fetchTypeName(m.type_id);
+          const qtyNote = m.baseQty && m.baseQty !== m.quantity ? ` (base ${m.baseQty})` : '';
+          matLines.push(`${name} x${m.quantity}${qtyNote} @ ${formatIsk(m.unitPrice)} = ${formatIsk(m.lineTotal)} ISK`);
+        }
+
+        const prodLines = [];
+        for (const p of productsList || []) {
+          const pname = await fetchTypeName(p.type_id);
+          prodLines.push(`${pname} x${p.quantity}`);
+        }
+
+  const initialLowestStr = 'Contract search disabled';
+  const prodPriceStr = Number.isFinite(prodUnitPrice) ? `${formatIsk(prodUnitPrice)} ISK` : 'No product price found';
+  
+  // Get skill levels for time calculation
+  const industrySkill = parseInt(document.getElementById('industrySkill').value) || 0;
+  const advancedIndustrySkill = parseInt(document.getElementById('advancedIndustrySkill').value) || 0;
+  
+  // Compute manufacturing time per run (apply TE + skill bonuses)
+  // Formula: time = baseTime * (1 - TE%) * (1 - Industry% * 0.01) * (1 - AdvancedIndustry% * 0.01)
+  let baseTime = null;
+  try {
+    baseTime = bpData.activities.manufacturing.time || null;
+  } catch (e) { baseTime = null; }
+  
+  let timePerRun = null;
+  if (typeof baseTime === 'number') {
+    // Apply TE reduction
+    let adjustedTime = baseTime * (1 - tePercent / 100);
+    // Apply Industry skill reduction (1% per level)
+    adjustedTime = adjustedTime * (1 - (industrySkill * 0.01));
+    // Apply Advanced Industry skill reduction (1% per level for T2 items, but we apply to all for simplicity)
+    adjustedTime = adjustedTime * (1 - (advancedIndustrySkill * 0.01));
+    // Apply implant reductions if present
+    try {
+      const implant = document.getElementById('implant') ? document.getElementById('implant').value : 'none';
+      if (implant === 'BX-801') adjustedTime = adjustedTime * (1 - 0.01);
+      else if (implant === 'BX-802') adjustedTime = adjustedTime * (1 - 0.02);
+      else if (implant === 'BX-804') adjustedTime = adjustedTime * (1 - 0.04);
+    } catch (e) { /* ignore missing implant element */ }
+    timePerRun = Math.max(0, adjustedTime);
+  }
+  
+  const totalTimeSec = (timePerRun !== null) ? (timePerRun * runs) : null;
+  // Resolve human-friendly names for blueprint and product
+  const blueprintName = await fetchTypeName(typeId);
+  const productTypeId = (productsList && productsList[0]) ? productsList[0].type_id : null;
+  const productName = productTypeId ? await fetchTypeName(productTypeId) : 'Unknown product';
+  const materialsBlock = matLines.join('\n') || 'None';
+  const totalCostAllRuns = totalCost * runs;
+  const profitTotal = profit * runs;
+  const timePerRunStr = timePerRun !== null ? formatSeconds(timePerRun) : 'N/A';
+  const totalTimeStr = totalTimeSec !== null ? formatSeconds(totalTimeSec) : 'N/A';
+  
+  // Build skill info string
+  const skillInfo = [];
+  if (tePercent > 0) skillInfo.push(`TE ${tePercent}%`);
+  if (industrySkill > 0) skillInfo.push(`Industry ${industrySkill}`);
+  if (advancedIndustrySkill > 0) skillInfo.push(`Adv.Industry ${advancedIndustrySkill}`);
+  // Include implant info in the skill list
+  try {
+    const implantSel = document.getElementById('implant');
+    if (implantSel && implantSel.value && implantSel.value !== 'none') {
+      const map = { 'BX-801': "BX-801 (1%)", 'BX-802': "BX-802 (2%)", 'BX-804': "BX-804 (4%)" };
+      skillInfo.push(`Implant ${map[implantSel.value] || implantSel.value}`);
+    }
+  } catch (e) { /* ignore */ }
+  const skillInfoStr = skillInfo.length > 0 ? ` (with ${skillInfo.join(', ')})` : '';
+
+        // Show summary in modal
+        showCalculationModal({
+          blueprintName: blueprintName,
+          typeId: typeId,
+          productName: productName,
+          productTypeId: productTypeId,
+          // Use product's typeId for the image since blueprints don't have visual icons
+          imageUrl: productTypeId ? `https://images.evetech.net/types/${productTypeId}/icon?size=128` : null,
+          costPerRun: formatIsk(totalCost) + ' ISK',
+          costAllRuns: formatIsk(totalCostAllRuns) + ' ISK',
+          runs: runs,
+          materials: materialsBlock.replace(/\n/g, '<br>'),
+          productQty: productQty,
+          productPrice: prodPriceStr,
+          profitPerRun: formatIsk(profit) + ' ISK',
+          profitAllRuns: formatIsk(profitTotal) + ' ISK',
+          timePerRun: timePerRunStr,
+          totalTime: totalTimeStr,
+          skillInfoStr: skillInfoStr
+        });
+        document.getElementById('result').textContent = 'Calculation complete. Results shown in popup.';      } catch (error) {
+        console.error('Calculate error:', error);
+        document.getElementById('result').textContent = `Error: ${error.message || String(error)}`;
+      }
+    }
+    
+    // ========== FORMATTERS ==========
+
+    function formatIsk(value) {
+      if (typeof value !== 'number' || !isFinite(value)) return String(value);
+      const abs = Math.abs(value);
+      if (abs >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+      if (abs >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+      if (abs >= 1e3) return (value / 1e3).toFixed(2) + 'k';
+      return value.toFixed(2);
+    }
+
+    function formatSeconds(sec) {
+      if (sec === null || sec === undefined || !isFinite(sec)) return 'N/A';
+      sec = Math.max(0, Math.round(sec));
+      const hours = Math.floor(sec / 3600);
+      const minutes = Math.floor((sec % 3600) / 60);
+      const seconds = sec % 60;
+      const hh = String(hours).padStart(2,'0');
+      const mm = String(minutes).padStart(2,'0');
+      const ss = String(seconds).padStart(2,'0');
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    // ========== THEME COMPATIBILITY (no-op) ==========
+    // Some earlier versions used an initTheme() helper. Dark mode is forced
+    // via the html[data-theme="dark"] attribute, so provide a no-op to
+    // avoid runtime errors from leftover calls.
+    function initTheme() {
+      // intentionally empty - theme is forced in markup/CSS
+    }
+
+    // ========== EVENT HANDLERS & INITIALIZATION ==========
+    
+    async function pasteScreenshotFromClipboard() {
+      if (!navigator.clipboard || !navigator.clipboard.read) {
+        statusUpdate('Clipboard image access is not available in this browser context.');
+        return;
+      }
+      try {
+        const clipboardItems = await navigator.clipboard.read();
+        for (const clipboardItem of clipboardItems) {
+          const imageType = clipboardItem.types.find(t => t.startsWith('image/'));
+          if (!imageType) continue;
+          const blob = await clipboardItem.getType(imageType);
+          const preview = document.getElementById('screenshotPreview');
+          if (preview) {
+            preview.src = URL.createObjectURL(blob);
+            preview.style.display = 'block';
+          }
+          await processScreenshot(blob);
+          return;
+        }
+        statusUpdate('No image found in clipboard. Copy a screenshot first (Win+Shift+S).');
+      } catch (err) {
+        statusUpdate('Clipboard read failed. Try uploading a screenshot file instead.');
+      }
+    }
+
+    function attachHandlers() {
+      // Auto-trigger lookup on paste
+      document.getElementById('name').addEventListener('paste', () => {
+        setTimeout(() => lookupCandidates(), 200);
+      });
+  // Calculate button was removed; calculate() is invoked automatically
+  // after candidate selection or via other UI paths.
+      const lookup = document.getElementById('lookupBtn');
+      if (lookup) lookup.addEventListener('click', () => lookupCandidates());
+      // screenshot OCR is automatic on file selection or paste
+      const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) resetBtn.addEventListener('click', () => resetAll());
+      const pasteScreenshotBtn = document.getElementById('pasteScreenshotBtn');
+      if (pasteScreenshotBtn) pasteScreenshotBtn.addEventListener('click', () => pasteScreenshotFromClipboard());
+      const cancelBtn = document.getElementById('cancelOcrBtn');
+      if (cancelBtn) cancelBtn.addEventListener('click', () => cancelOcr());
+      
+      // Auto-process when file selected
+      const fileInput = document.getElementById('screenshot');
+      if (fileInput) {
+        fileInput.addEventListener('change', () => {
+          if (fileInput.files && fileInput.files[0]) {
+            processScreenshot();
+          }
+        });
+      }
+  // quick open button removed from DOM — no event hookup needed
+      const typeToggle = document.getElementById('typeidToggle');
+      const typeBox = document.getElementById('typeidBox');
+      const caret = document.getElementById('typeidCaret');
+      if (typeToggle && typeBox) {
+        const toggle = (e) => {
+          const isHidden = typeBox.classList.toggle('hidden');
+          if (isHidden) { caret.style.transform = 'rotate(0deg)'; typeToggle.setAttribute('aria-expanded','false'); }
+          else { caret.style.transform = 'rotate(90deg)'; typeToggle.setAttribute('aria-expanded','true'); }
+        };
+        typeToggle.addEventListener('click', toggle);
+        typeToggle.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } });
+      }
+    }
+
+    function resetAll() {
+      // Clear all form fields and results
+      try {
+        document.getElementById('name').value = '';
+        document.getElementById('typeid').value = '';
+        document.getElementById('runs').value = 1;
+        document.getElementById('me').value = 0;
+        document.getElementById('te').value = 0;
+        document.getElementById('industrySkill').value = 0;
+  document.getElementById('advancedIndustrySkill').value = 0;
+  if (document.getElementById('implant')) document.getElementById('implant').value = 'none';
+  document.getElementById('hub').value = '10000002';
+        document.getElementById('result').textContent = '';
+        document.getElementById('candidates').innerHTML = '';
+        const preview = document.getElementById('screenshotPreview');
+        if (preview) { preview.src = ''; preview.style.display = 'none'; }
+        const progressEl = document.getElementById('ocrProgress');
+        if (progressEl) progressEl.style.display = 'none';
+        // Close any open modals
+        closeOcrModal();
+        closeCalcModal();
+        // Clear file input
+        const fileInput = document.getElementById('screenshot');
+        if (fileInput) fileInput.value = '';
+      } catch (e) { console.error('Reset failed', e); }
+    }
+
+
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        attachHandlers();
+        prefs.load();
+        initTheme();
+      });
+    } else {
+      attachHandlers();
+      prefs.load();
+      initTheme();
+    }
+  </script>
+
+  <!-- pop-out feature removed -->
+
+  <footer>
+    <p>RustyBot BPC Calculator is an unofficial EVE Online tool. Not affiliated with CCP Games.</p>
+  </footer>
+</body>
+</html>

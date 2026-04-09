@@ -1,5 +1,7 @@
 # EVE Online Static Dump data files (too large for GitHub)
 ship-guess-game/Static Dump/
+market/sde.zip
+market/sde/fsd/types.yaml
 
 # Python cache
 __pycache__/

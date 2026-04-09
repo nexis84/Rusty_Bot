@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVE Market Browser - RustyBot</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1EELB9VSCK');
+    </script>
+</head>
+<body>
+<div class="app">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+            <div class="logo-section">
+                <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
+                <h1>Market<span class="accent">Browser</span></h1>
+            </div>
+        </div>
+        
+        <div class="sidebar-search">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearch" placeholder="Search items..." autocomplete="off">
+                <div id="searchSuggestions" class="search-suggestions hidden"></div>
+            </div>
+        </div>
+        
+        <nav class="category-nav">
+            <div class="nav-header">
+                <span>Categories</span>
+                <button id="collapseAll" class="nav-btn" title="Collapse All"><i class="fas fa-compress-alt"></i></button>
+                <button id="expandAll" class="nav-btn" title="Expand All"><i class="fas fa-expand-alt"></i></button>
+            </div>
+            <div id="categoryTree" class="category-tree"></div>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="eve-time-display">
+                <i class="far fa-clock"></i>
+                <span id="sidebarEveTime">--:--:--</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button id="toggleSidebar" class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="breadcrumb" id="breadcrumb">
+                <span class="breadcrumb-item"><a href="#" data-action="home">Home</a></span>
+            </div>
+            
+            <div class="region-selector">
+                <label><i class="fas fa-map-marker-alt"></i> Region:</label>
+                <select id="regionSelect">
+                    <option value="0" selected>All Regions (New Eden)</option>
+                    <option value="10000002">The Forge (Jita)</option>
+                    <option value="10000043">Domain (Amarr)</option>
+                    <option value="10000032">Sinq Laison (Dodixie)</option>
+                    <option value="10000030">Heimatar (Rens)</option>
+                    <option value="10000042">Metropolis (Hek)</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-wrapper">
+            <!-- Home/Category View -->
+            <section id="homeView" class="view">
+                <div class="hero-section">
+                    <h2>Welcome to EVE Market Browser</h2>
+                    <p>Browse market data for any item in New Eden. Select a category from the sidebar or search for an item.</p>
+                </div>
+                
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-fire"></i>
+                        <div class="stat-info">
+                            <span class="stat-value" id="topVolumeItem">—</span>
+                            <span class="stat-label">Top Volume (24h)</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="stat-info">
+                            <span class="stat-value" id="marketMovement">—</span>
+                            <span class="stat-label">Market Movement</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popular-items">
+                    <h3><i class="fas fa-star"></i> Popular Items</h3>
+                    <div class="item-grid" id="popularItems">
+                        <!-- Popular items will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Category View -->
+            <section id="categoryView" class="view hidden">
+                <div class="category-header">
+                    <h2 id="categoryTitle">Category</h2>
+                    <span class="item-count" id="categoryItemCount">0 items</span>
+                </div>
+                <div class="item-list" id="categoryItemList"></div>
+            </section>
+
+            <!-- Item Detail View -->
+            <section id="itemView" class="view hidden">
+                <div class="item-header">
+                    <div class="item-icon-large" id="itemIcon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="item-title-section">
+                        <h2 id="itemName">Item Name</h2>
+                        <div class="item-meta">
+                            <span id="itemCategory" class="category-badge">Category</span>
+                            <span id="itemTypeId" class="type-id">Type ID: —</span>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button id="favoriteBtn" class="action-btn" title="Add to Favorites">
+                            <i class="far fa-star"></i>
+                        </button>
+                        <button id="shareBtn" class="action-btn" title="Copy Link">
+                            <i class="fas fa-link"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Market Summary -->
+                <div class="market-summary">
+                    <div class="summary-card sell">
+                        <div class="summary-header">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Best Sell</span>
+                        </div>
+                        <div class="summary-value" id="bestSellPrice">—</div>
+                        <div class="summary-location" id="bestSellLocation">—</div>
+                    </div>
+                    <div class="summary-card buy">
+                        <div class="summary-header">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Best Buy</span>
+                        </div>
+                        <div class="summary-value" id="bestBuyPrice">—</div>
+                        <div class="summary-location" id="bestBuyLocation">—</div>
+                    </div>
+                    <div class="summary-card spread">
+                        <div class="summary-header">
+                            <i class="fas fa-percentage"></i>
+                            <span>Spread</span>
+                        </div>
+                        <div class="summary-value" id="priceSpread">—</div>
+                        <div class="summary-note" id="spreadNote">—</div>
+                    </div>
+                    <div class="summary-card volume">
+                        <div class="summary-header">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>30d Volume</span>
+                        </div>
+                        <div class="summary-value" id="volume30d">—</div>
+                        <div class="summary-note" id="avgPrice30d">Avg: —</div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="orders">
+                        <i class="fas fa-list"></i> Orders
+                    </button>
+                    <button class="tab-btn" data-tab="history">
+                        <i class="fas fa-history"></i> Price History
+                    </button>
+                    <button class="tab-btn" data-tab="details">
+                        <i class="fas fa-info-circle"></i> Details
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Orders Tab -->
+                    <div id="ordersTab" class="tab-pane active">
+                        <div class="orders-toolbar">
+                            <div class="filter-group">
+                                <label>Min Qty:</label>
+                                <input type="number" id="minQtyFilter" placeholder="0" min="0">
+                            </div>
+                            <div class="filter-group">
+                                <label>System:</label>
+                                <select id="systemFilter">
+                                    <option value="all">All Systems</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Type:</label>
+                                <select id="orderTypeFilter">
+                                    <option value="all">All Orders</option>
+                                    <option value="npc">NPC Only</option>
+                                    <option value="player">Player Only</option>
+                                </select>
+                            </div>
+                            <button id="refreshOrders" class="refresh-btn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        
+                        <div class="orders-split">
+                            <div class="orders-panel">
+                                <div class="panel-header sell-header">
+                                    <h3>Sell Orders</h3>
+                                    <span id="sellCount" class="order-count">0 orders</span>
+                                </div>
+                                <div class="orders-table-container">
+                                    <table class="orders-table" id="sellOrdersTable">
+                                        <thead>
+                                            <tr>
+                                                <th data-sort="price">Price <i class="fas fa-sort"></i></th>
+                                                <th data-sort="qty">Qty <i class="fas fa-sort"></i></th>
+                                                <th data-sort="type">Type <i class="fas fa-sort"></i></th>
+                                                <th data-sort="location">Location <i class="fas fa-sort"></i></th>
+                                                <th data-sort="expires">Expires <i class="fas fa-sort"></i></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sellOrdersBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="orders-panel">
+                                <div class="panel-header buy-header">
+                                    <h3>Buy Orders</h3>
+                                    <span id="buyCount" class="order-count">0 orders</span>
+                                </div>
+                                <div class="orders-table-container">
+                                    <table class="orders-table" id="buyOrdersTable">
+                                        <thead>
+                                            <tr>
+                                                <th data-sort="price">Price <i class="fas fa-sort"></i></th>
+                                                <th data-sort="qty">Qty <i class="fas fa-sort"></i></th>
+                                                <th data-sort="type">Type <i class="fas fa-sort"></i></th>
+                                                <th data-sort="location">Location <i class="fas fa-sort"></i></th>
+                                                <th data-sort="range">Range <i class="fas fa-sort"></i></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="buyOrdersBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div id="historyTab" class="tab-pane hidden">
+                        <div class="history-controls">
+                            <div class="time-range">
+                                <button class="range-btn" data-range="7">7 Days</button>
+                                <button class="range-btn active" data-range="30">30 Days</button>
+                                <button class="range-btn" data-range="90">3 Months</button>
+                                <button class="range-btn" data-range="180">6 Months</button>
+                                <button class="range-btn" data-range="365">1 Year</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                        <div class="history-stats" id="historyStats">
+                            <!-- Stats will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Details Tab -->
+                    <div id="detailsTab" class="tab-pane hidden">
+                        <div class="details-grid">
+                            <div class="detail-card">
+                                <h4>Item Information</h4>
+                                <dl id="itemDetails">
+                                    <!-- Details populated by JS -->
+                                </dl>
+                            </div>
+                            <div class="detail-card">
+                                <h4>Market Metrics</h4>
+                                <dl id="marketMetrics">
+                                    <!-- Metrics populated by JS -->
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Favorites View -->
+            <section id="favoritesView" class="view hidden">
+                <h2><i class="fas fa-star"></i> Favorite Items</h2>
+                <div id="favoritesList" class="favorites-list">
+                    <p class="empty-state">No favorite items yet. Click the star icon on any item to add it here.</p>
+                </div>
+            </section>
+
+            <!-- Message Area -->
+            <div id="messageArea" class="message-area hidden"></div>
+            
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="loading-overlay hidden">
+                <div class="loading-spinner"></div>
+                <p id="loadingText">Loading...</p>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+            <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
+        </footer>
+    </main>
+</div>
+
+<script src="items_database.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
