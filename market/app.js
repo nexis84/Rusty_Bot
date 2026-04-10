@@ -525,7 +525,13 @@ async function loadItem(typeId, name, forceRefresh = false) {
         }
         
         try {
-            const region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+            let region;
+            if (typeId === 44992) {
+                // PLEX uses global market region 19000001
+                region = '19000001';
+            } else {
+                region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+            }
             historyData = await fetchHistory(region, typeId, 30);
             console.log(`Fetched ${historyData.length} history entries`);
         } catch (e) {
@@ -597,6 +603,20 @@ async function fetchItemData(typeId) {
 // Fetch orders for an item
 async function fetchOrdersForItem(typeId, region) {
     const allOrders = [];
+    
+    // PLEX (44992) uses the global PLEX market (region 19000001)
+    if (typeId === 44992) {
+        try {
+            const orders = await fetchOrders('19000001', typeId);
+            orders.forEach(o => {
+                o.region_name = 'Global PLEX Market';
+            });
+            allOrders.push(...orders);
+        } catch (err) {
+            console.warn(`Failed to fetch PLEX global market:`, err.message || err);
+        }
+        return allOrders;
+    }
     
     if (region === '0') {
         // Fetch from all major trade hub regions
@@ -683,13 +703,20 @@ function renderMarketSummary(orders, history) {
     const bestSell = sells[0];
     const bestBuy = buys[0];
     
+    // Check if viewing PLEX (global market)
+    const isPlex = AppState.currentItem?.id === 44992;
+    
     // Best sell
     el('bestSellPrice').textContent = bestSell ? formatPrice(bestSell.price) + ' ISK' : '—';
-    el('bestSellLocation').textContent = bestSell ? 'Loading location...' : 'No sell orders';
+    el('bestSellLocation').textContent = bestSell 
+        ? (isPlex ? 'Global Market' : 'Loading location...') 
+        : 'No sell orders';
     
     // Best buy
     el('bestBuyPrice').textContent = bestBuy ? formatPrice(bestBuy.price) + ' ISK' : '—';
-    el('bestBuyLocation').textContent = bestBuy ? 'Loading location...' : 'No buy orders';
+    el('bestBuyLocation').textContent = bestBuy 
+        ? (isPlex ? 'Global Market' : 'Loading location...') 
+        : 'No buy orders';
     
     // Spread
     if (bestSell && bestBuy) {
@@ -713,9 +740,11 @@ function renderMarketSummary(orders, history) {
         el('avgPrice30d').textContent = 'Avg: —';
     }
     
-    // Resolve locations
-    if (bestSell) resolveLocation(bestSell.location_id, 'bestSellLocation');
-    if (bestBuy) resolveLocation(bestBuy.location_id, 'bestBuyLocation');
+    // Resolve locations (skip for PLEX since it uses global market)
+    if (!isPlex) {
+        if (bestSell) resolveLocation(bestSell.location_id, 'bestSellLocation');
+        if (bestBuy) resolveLocation(bestBuy.location_id, 'bestBuyLocation');
+    }
 }
 
 // Resolve location ID to name
@@ -914,8 +943,8 @@ function sortOrders(orders, column, direction, isBuyOrders = false) {
                 break;
             case 'type':
                 // Sort NPC first (true = 1), then Player (false = 0)
-                valA = a.location_id < 60000000 ? 1 : 0;
-                valB = b.location_id < 60000000 ? 1 : 0;
+                valA = (a.location_id >= 60000000 && a.location_id < 64000000) ? 1 : 0;
+                valB = (b.location_id >= 60000000 && b.location_id < 64000000) ? 1 : 0;
                 break;
             case 'location':
                 valA = AppState.locationCache[a.location_id] || '';
@@ -1005,8 +1034,8 @@ function renderOrders(orders) {
         if (o.is_buy_order) return false;
         if (o.volume_remain < minQty) return false;
         
-        // NPC/Player filter
-        const isNPC = o.location_id < 60000000;
+        // NPC/Player filter - NPC stations are in range 60000000-64000000
+        const isNPC = o.location_id >= 60000000 && o.location_id < 64000000;
         if (orderType === 'npc' && !isNPC) return false;
         if (orderType === 'player' && isNPC) return false;
         
@@ -1017,8 +1046,8 @@ function renderOrders(orders) {
         if (!o.is_buy_order) return false;
         if (o.volume_remain < minQty) return false;
         
-        // NPC/Player filter
-        const isNPC = o.location_id < 60000000;
+        // NPC/Player filter - NPC stations are in range 60000000-64000000
+        const isNPC = o.location_id >= 60000000 && o.location_id < 64000000;
         if (orderType === 'npc' && !isNPC) return false;
         if (orderType === 'player' && isNPC) return false;
         
@@ -1033,19 +1062,27 @@ function renderOrders(orders) {
     el('sellCount').textContent = `${sells.length} orders`;
     el('buyCount').textContent = `${buys.length} orders`;
     
+    // Check if viewing PLEX (global market item)
+    const isPlex = AppState.currentItem?.id === 44992;
+    
     // Render sell orders
     const sellBody = el('sellOrdersBody');
     sellBody.innerHTML = sells.slice(0, 50).map(o => {
-        const isNPC = o.location_id < 60000000;
+        // For PLEX global market, all orders are player orders
+        // For other items: NPC stations are 60000000-64000000
+        const isNPC = !isPlex && (o.location_id >= 60000000 && o.location_id < 64000000);
         const npcBadge = isNPC ? '<span class="npc-badge" title="NPC Station">NPC</span>' : '<span class="player-badge" title="Player Structure">Player</span>';
+        const locationCell = isPlex 
+            ? '<td class="location-cell"><span class="location-name" title="PLEX can be traded from anywhere in New Eden">Global Market</span></td>'
+            : `<td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
+                <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
+            </td>`;
         return `
         <tr>
             <td class="price">${formatPrice(o.price)}</td>
             <td>${fmtInt(o.volume_remain)}</td>
             <td class="type-cell">${npcBadge}</td>
-            <td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
-                <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
-            </td>
+            ${locationCell}
             <td>${formatDuration(o.duration)}</td>
         </tr>
     `;
@@ -1054,23 +1091,31 @@ function renderOrders(orders) {
     // Render buy orders
     const buyBody = el('buyOrdersBody');
     buyBody.innerHTML = buys.slice(0, 50).map(o => {
-        const isNPC = o.location_id < 60000000;
+        // For PLEX global market, all orders are player orders
+        // For other items: NPC stations are 60000000-64000000
+        const isNPC = !isPlex && (o.location_id >= 60000000 && o.location_id < 64000000);
         const npcBadge = isNPC ? '<span class="npc-badge" title="NPC Station">NPC</span>' : '<span class="player-badge" title="Player Structure">Player</span>';
+        const locationCell = isPlex 
+            ? '<td class="location-cell"><span class="location-name" title="PLEX can be traded from anywhere in New Eden">Global Market</span></td>'
+            : `<td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
+                <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
+            </td>`;
         return `
         <tr>
             <td class="price">${formatPrice(o.price)}</td>
             <td>${fmtInt(o.volume_remain)}</td>
             <td class="type-cell">${npcBadge}</td>
-            <td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
-                <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
-            </td>
+            ${locationCell}
             <td>${o.range === 'station' ? 'Station' : o.range + ' jumps'}</td>
         </tr>
     `;
     }).join('');
     
-    // Resolve locations
+    // Resolve locations (skip cells without data-location, e.g., PLEX global market)
     [...sellBody.querySelectorAll('.location-cell'), ...buyBody.querySelectorAll('.location-cell')].forEach(cell => {
+        // Skip if no data-location (e.g., PLEX global market)
+        if (!cell.dataset.location) return;
+        
         const locationId = parseInt(cell.dataset.location);
         const systemId = parseInt(cell.dataset.system);
         const locationSpan = cell.querySelector('.location-name');
@@ -1377,7 +1422,13 @@ async function loadHistory(typeId, days) {
     showLoading('Loading history...');
     
     try {
-        const region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+        let region;
+        if (typeId === 44992) {
+            // PLEX uses global market region 19000001
+            region = '19000001';
+        } else {
+            region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+        }
         const history = await fetchHistory(region, typeId, days);
         renderChart(history);
     } catch (err) {

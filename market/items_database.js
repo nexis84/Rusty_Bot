@@ -18463,7 +18463,7 @@ var PopularItems = [
     { id: 39, name: 'Zydrine', category: 'Materials' },
     { id: 40, name: 'Megacyte', category: 'Materials' },
     { id: 44, name: 'Enriched Uranium', category: 'Materials' },
-    { id: 29668, name: 'PLEX', category: 'Trade Goods' },
+    { id: 44992, name: 'PLEX', category: 'Trade Goods' },
 ];
 
 // Market regions
@@ -18473,6 +18473,7 @@ var Regions = {
     10000032: 'Sinq Laison',
     10000030: 'Heimatar',
     10000042: 'Metropolis',
+    19000001: 'Global PLEX Market',
 };
 
 // Backward compatibility - Types maps to AllMarketItems
