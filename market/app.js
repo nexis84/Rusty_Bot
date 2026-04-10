@@ -808,20 +808,20 @@ async function resolveLocation(locationId, elementIdOrCallback) {
             name = `Structure ${locationId}`;
         } else if (locationId >= 1000000000000) {
             // Player-owned citadel/structure (requires auth to get name)
-            name = `Player Structure #${locationId.toString().slice(-6)}`;
+            name = `#${locationId.toString().slice(-6)}`;
         } else {
             // Unknown location type
             name = `Location ${locationId}`;
         }
-        
+
     } catch (err) {
         console.warn(`Failed to resolve location ${locationId}:`, err.message || err);
-        
+
         // Better fallback based on ID range
         if (locationId < 60000000) {
             name = `Structure ${locationId}`;
         } else if (locationId >= 1000000000000) {
-            name = `Player Structure #${locationId.toString().slice(-6)}`;
+            name = `#${locationId.toString().slice(-6)}`;
         } else {
             name = `Location ${locationId}`;
         }
@@ -895,7 +895,7 @@ async function resolveLocationWithSystem(locationId, systemId, callback) {
                 if (locationId < 60000000) {
                     locationName = `Structure ${locationId} (${systemName})`;
                 } else if (locationId >= 1000000000000) {
-                    locationName = `Player Structure #${locationId.toString().slice(-6)} (${systemName})`;
+                    locationName = `${systemName}`;
                 } else {
                     locationName = `Location ${locationId} (${systemName})`;
                 }
@@ -911,7 +911,7 @@ async function resolveLocationWithSystem(locationId, systemId, callback) {
         if (locationId < 60000000) {
             locationName = `Structure ${locationId}`;
         } else if (locationId >= 1000000000000) {
-            locationName = `Player Structure #${locationId.toString().slice(-6)}`;
+            locationName = `#${locationId.toString().slice(-6)}`;
         } else {
             locationName = `Location ${locationId}`;
         }

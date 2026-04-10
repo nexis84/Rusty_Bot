@@ -147,6 +147,31 @@ const MarketCategories = {
             ]
         },
         {
+            id: 23,
+            name: "Structures",
+            icon: "fa-building",
+            children: [
+                { id: 35921, name: "Standup Weapons", children: [
+                    { id: 35921, name: "Standup Anticapital Missile Launcher I" },
+                    { id: 47323, name: "Standup Anticapital Missile Launcher II" },
+                    { id: 35928, name: "Standup Arcing Vorton Projector I" },
+                    { id: 35923, name: "Standup Guided Bomb Launcher I" },
+                    { id: 47325, name: "Standup Guided Bomb Launcher II" }
+                ]},
+                { id: 35881, name: "Structure Rigs", children: [
+                    { id: 37174, name: "Standup L-Set Advanced Component Manufacturing Efficiency I" },
+                    { id: 37175, name: "Standup L-Set Advanced Component Manufacturing Efficiency II" }
+                ]},
+                { id: 35878, name: "Structure Modules", children: [
+                    { id: 35881, name: "Standup Capital Shipyard I" },
+                    { id: 35894, name: "Standup Cloning Center I" },
+                    { id: 35886, name: "Standup Invention Lab I" },
+                    { id: 35878, name: "Standup Manufacturing Plant I" },
+                    { id: 35892, name: "Standup Market Hub I" }
+                ]}
+            ]
+        },
+        {
             id: 7,
             name: "Modules",
             icon: "fa-microchip",
