@@ -205,26 +205,183 @@ function renderCategoryTree() {
     });
 }
 
-// Build hierarchical category structure directly from Types data
+// Build hierarchical category structure from MarketCategories with subcategories
 function buildCategoryHierarchy() {
+    console.log('buildCategoryHierarchy called');
+    
+    // If MarketTree is available, use SDE market group data
+    if (typeof MarketTree !== 'undefined' && MarketTree) {
+        console.log('Using MarketTree (SDE market groups)');
+        return buildFromMarketTree();
+    }
+    
+    // Fallback to MarketCategories + SubCategories
+    if (typeof MarketCategories === 'undefined') {
+        console.error('MarketCategories data not available');
+        return null;
+    }
+    
     if (typeof AllMarketItems === 'undefined') {
         console.error('AllMarketItems data not available');
         return null;
     }
 
-    // Convert AllMarketItems object to category hierarchy
-    return Object.entries(AllMarketItems)
-        .filter(([key, category]) => category.items && category.items.length > 0)
-        .map(([key, category]) => ({
-            id: key,
+    // Map category names to MarketTree keys
+    const categoryMapping = {
+        'ships': 'Ships',
+        'modules': 'Ship Equipment',
+        'ammunition_and_charges': 'Ammunition & Charges',
+        'drones': 'Drones',
+        'implants_and_boosters': 'Implants & Boosters',
+        'skills': 'Skills',
+        'structures': 'Structures',
+        'trade_goods': 'Trade Goods',
+        'blueprints': 'Blueprints & Reactions'
+    };
+
+    // Use MarketCategories structure with SubCategories for grouping
+    const categories = MarketCategories.children.map(category => {
+        // If category has a categoryKey, get items from AllMarketItems
+        const dataCategory = category.categoryKey && AllMarketItems[category.categoryKey];
+        const allItems = dataCategory?.items || [];
+        
+        // Check if we have subcategory definitions for this category
+        const subCatDef = SubCategories && SubCategories[category.categoryKey];
+        
+        let groups = [];
+        
+        if (subCatDef && subCatDef.groups && allItems.length > 0) {
+            // Group items by subcategory
+            const assignedItems = new Set();
+            
+            subCatDef.groups.forEach(groupDef => {
+                // Find items that match this group's filter (but haven't been assigned yet)
+                const groupItems = allItems.filter(item => {
+                    if (assignedItems.has(item.id)) return false;
+                    const matches = groupDef.filter(item);
+                    if (matches) assignedItems.add(item.id);
+                    return matches;
+                });
+                
+                if (groupItems.length > 0 || groupDef.id.includes('other')) {
+                    groups.push({
+                        id: groupDef.id,
+                        name: groupDef.name,
+                        items: groupItems
+                    });
+                }
+            });
+        } else {
+            // No subcategories, put all items in one group
+            groups = [{
+                id: category.id,
+                name: category.name,
+                items: allItems
+            }];
+        }
+        
+        console.log(`Category ${category.name}: ${allItems.length} items in ${groups.length} groups`);
+        
+        return {
+            id: category.id,
             name: category.name,
             icon: category.icon,
-            groups: [{
-                id: key,
-                name: category.name,
-                items: category.items
-            }]
-        }));
+            groups: groups
+        };
+    });
+    
+    console.log(`Built ${categories.length} categories`);
+    return categories;
+}
+
+// Build category hierarchy from SDE MarketTree data
+function buildFromMarketTree() {
+    const iconRules = [
+        { pattern: /ships?/i, icon: 'fa-rocket' },
+        { pattern: /equipment|module|modifications?/i, icon: 'fa-cogs' },
+        { pattern: /ammunition|charges?/i, icon: 'fa-bullseye' },
+        { pattern: /drones?/i, icon: 'fa-dot-circle' },
+        { pattern: /implants?|boosters?/i, icon: 'fa-user-plus' },
+        { pattern: /skills?/i, icon: 'fa-graduation-cap' },
+        { pattern: /structures?|infrastructure/i, icon: 'fa-building' },
+        { pattern: /trade|services?/i, icon: 'fa-exchange-alt' },
+        { pattern: /blueprints?|reactions?|manufacture|research/i, icon: 'fa-scroll' },
+        { pattern: /skins?|personalization|apparel/i, icon: 'fa-palette' }
+    ];
+
+    function toCategoryId(name) {
+        return String(name)
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '_')
+            .replace(/^_|_$/g, '');
+    }
+
+    function getCategoryIcon(name) {
+        const match = iconRules.find(rule => rule.pattern.test(name));
+        return match ? match.icon : 'fa-folder';
+    }
+    
+    const categories = [];
+    
+    Object.keys(MarketTree).forEach(treeKey => {
+        const treeCategory = MarketTree[treeKey];
+        if (!treeCategory) return;
+        
+        // Build groups from children (subcategories)
+        const groups = [];
+        
+        function processGroup(group, path = []) {
+            if (!group || !group.name) return;
+
+            const groupPath = [...path, group.name];
+            const groupName = groupPath.join(' > ');
+            
+            // If this group has items, add them
+            if (group.items && group.items.length > 0) {
+                groups.push({
+                    id: `group_${group.id}`,
+                    name: groupName,
+                    items: group.items
+                });
+            }
+            
+            // Process children (sub-subcategories)
+            if (group.children && group.children.length > 0) {
+                group.children.forEach(child => processGroup(child, groupPath));
+            }
+        }
+
+        // Include direct items under the top-level category, if any
+        if (treeCategory.items && treeCategory.items.length > 0) {
+            groups.push({
+                id: `group_${treeCategory.id}`,
+                name: treeKey,
+                items: treeCategory.items
+            });
+        }
+        
+        // Process all children of this category
+        if (treeCategory.children) {
+            treeCategory.children.forEach(child => processGroup(child, []));
+        }
+        
+        // Keep only groups that have items, but still render the top-level category even if empty
+        const nonEmptyGroups = groups.filter(g => g.items && g.items.length > 0);
+
+        categories.push({
+            id: toCategoryId(treeKey),
+            name: treeKey,
+            icon: getCategoryIcon(treeKey),
+            groups: nonEmptyGroups
+        });
+
+        console.log(`Category ${treeKey}: ${nonEmptyGroups.length} groups with ${nonEmptyGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
+    });
+
+    categories.sort((a, b) => a.name.localeCompare(b.name));
+    
+    console.log(`Built ${categories.length} categories from MarketTree`);
+    return categories;
 }
 
 // Render popular items on home page
