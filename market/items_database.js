@@ -14785,6 +14785,7 @@ var AllMarketItems = {
             { id: 33220, name: "Premier ticket for: Clear Skies" },
             { id: 33221, name: "Premier ticket for: Day of Darkness" },
             { id: 33219, name: "Premier ticket for: The last G campaign" },
+            { id: 92392, name: "Presidential Candidate Favor" },
             { id: 33215, name: "Press pass to Prometheus Station opening" },
             { id: 57456, name: "Pressurized Oxidizers" },
             { id: 84081, name: "Primae Equinox Era SKIN" },
