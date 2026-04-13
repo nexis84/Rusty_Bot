@@ -37,6 +37,13 @@ class CharacterManager {
         return null;
     }
 
+    // Get cached data even if stale (used as fallback during ESI rate limits)
+    getAnyCachedData(characterId, dataType) {
+        const char = this.characters[characterId];
+        if (!char || !char.cache || !char.cache[dataType]) return null;
+        return char.cache[dataType].data;
+    }
+
     // Set cached data
     setCachedData(characterId, dataType, data) {
         if (!this.characters[characterId]) {
@@ -87,6 +94,13 @@ class CharacterManager {
             return data;
         } catch (e) {
             console.error('Failed to fetch skills:', e);
+            if (String(e.message || e).includes('429')) {
+                const stale = this.getAnyCachedData(characterId, 'skills');
+                if (stale) {
+                    console.warn('Using cached skills due to ESI rate limit');
+                    return stale;
+                }
+            }
             return null;
         }
     }
@@ -102,6 +116,13 @@ class CharacterManager {
             return data;
         } catch (e) {
             console.error('Failed to fetch skill queue:', e);
+            if (String(e.message || e).includes('429')) {
+                const stale = this.getAnyCachedData(characterId, 'skillQueue');
+                if (stale) {
+                    console.warn('Using cached skill queue due to ESI rate limit');
+                    return stale;
+                }
+            }
             return null;
         }
     }
@@ -129,6 +150,13 @@ class CharacterManager {
             return data;
         } catch (e) {
             console.warn('Failed to fetch attributes, using defaults:', e.message || e);
+            if (String(e.message || e).includes('429')) {
+                const stale = this.getAnyCachedData(characterId, 'attributes');
+                if (stale) {
+                    console.warn('Using cached attributes due to ESI rate limit');
+                    return stale;
+                }
+            }
             this.setCachedData(characterId, 'attributes', defaults);
             return defaults;
         }
@@ -145,6 +173,13 @@ class CharacterManager {
             return data || [];
         } catch (e) {
             console.warn('Failed to fetch implants, using empty list:', e.message || e);
+            if (String(e.message || e).includes('429')) {
+                const stale = this.getAnyCachedData(characterId, 'implants');
+                if (stale) {
+                    console.warn('Using cached implants due to ESI rate limit');
+                    return stale;
+                }
+            }
             const empty = [];
             this.setCachedData(characterId, 'implants', empty);
             return empty;
@@ -156,27 +191,23 @@ class CharacterManager {
         const cached = this.getCachedData(characterId, 'boosters');
         if (cached) return cached;
 
-        try {
-            const data = await esiAuth.esiFetch(`/characters/${characterId}/boosters/`);
-            this.setCachedData(characterId, 'boosters', data || []);
-            return data || [];
-        } catch (e) {
-            console.warn('Failed to fetch boosters, using empty list:', e.message || e);
-            const empty = [];
-            this.setCachedData(characterId, 'boosters', empty);
-            return empty;
-        }
+        // Boosters endpoint is not reliably available on ESI for this app context.
+        // Keep cached value if present; otherwise return empty without a network call.
+        const stale = this.getAnyCachedData(characterId, 'boosters');
+        if (stale) return stale;
+
+        const empty = [];
+        this.setCachedData(characterId, 'boosters', empty);
+        return empty;
     }
 
     // Get full character data (skills + attributes + queue + implants + boosters)
     async getFullCharacterData(characterId) {
-        const [skills, attributes, queue, implants, boosters] = await Promise.all([
-            this.fetchSkills(characterId),
-            this.fetchAttributes(characterId),
-            this.fetchSkillQueue(characterId),
-            this.fetchImplants(characterId),
-            this.fetchBoosters(characterId)
-        ]);
+        const skills = await this.fetchSkills(characterId);
+        const attributes = await this.fetchAttributes(characterId);
+        const queue = await this.fetchSkillQueue(characterId);
+        const implants = await this.fetchImplants(characterId);
+        const boosters = await this.fetchBoosters(characterId);
         
         return {
             skills: skills,

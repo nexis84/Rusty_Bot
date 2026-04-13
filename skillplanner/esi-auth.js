@@ -282,7 +282,7 @@ class ESIAuth {
     }
 
     // ESI API helper
-    async esiFetch(endpoint, characterId = null, options = {}) {
+    async esiFetch(endpoint, characterId = null, options = {}, attempt = 0) {
         const token = await this.getAccessToken(characterId);
         
         const url = endpoint.startsWith('http') ? endpoint : `https://esi.evetech.net/latest${endpoint}`;
@@ -301,7 +301,17 @@ class ESIAuth {
             if (response.status === 401) {
                 // Token expired, try refresh once
                 await this.refreshToken(characterId || this.currentCharacter);
-                return this.esiFetch(endpoint, characterId, options);
+                return this.esiFetch(endpoint, characterId, options, attempt + 1);
+            }
+
+            // ESI frequently returns 429 during bursts; respect Retry-After and retry.
+            if ((response.status === 429 || response.status === 420) && attempt < 3) {
+                const retryAfterHeader = response.headers.get('Retry-After');
+                const retryAfterSeconds = parseInt(retryAfterHeader || '2', 10);
+                const delayMs = Math.max(1000, (Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : 2) * 1000);
+
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+                return this.esiFetch(endpoint, characterId, options, attempt + 1);
             }
             throw new Error(`ESI Error ${response.status}: ${await response.text()}`);
         }

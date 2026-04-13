@@ -263,16 +263,15 @@ class SkillPlannerApp {
             this.currentCharacter = characterId;
             this.calculatorOverrides = null;
             
-            // Fetch all character data
-            const [skills, attributes, queue, implants, boosters] = await Promise.all([
-                characterManager.fetchSkills(characterId),
-                characterManager.fetchAttributes(characterId),
-                characterManager.fetchSkillQueue(characterId),
-                characterManager.fetchImplants(characterId),
-                characterManager.fetchBoosters(characterId)
-            ]);
-            
-            this.currentCharacterData = { skills, attributes, queue, implants, boosters };
+            // Fetch character data through manager to avoid request bursts against ESI.
+            const fullData = await characterManager.getFullCharacterData(characterId);
+            this.currentCharacterData = {
+                skills: fullData.skills,
+                attributes: fullData.attributes,
+                queue: fullData.skillQueue,
+                implants: fullData.implants,
+                boosters: fullData.boosters
+            };
             
             // Update UI
             await this.updateCharacterUI(characterId);
@@ -1330,12 +1329,22 @@ class SkillPlannerApp {
         }
 
         if (list) {
-            list.innerHTML = accelerators.map(a => `
-                <a href="${a.marketLink}" target="_blank" class="accelerator-item-link">
-                    <span>${a.name}</span>
-                    <i class="fas fa-external-link-alt"></i>
-                </a>
-            `).join('');
+            list.innerHTML = accelerators.map(a => {
+                if (a.typeId && a.marketLink) {
+                    return `
+                        <a href="${a.marketLink}" target="_blank" class="accelerator-item-link">
+                            <span>${a.name}</span>
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    `;
+                }
+
+                return `
+                    <div class="accelerator-item-link accelerator-item-disabled">
+                        <span>${a.name}</span>
+                    </div>
+                `;
+            }).join('');
         }
     }
 
