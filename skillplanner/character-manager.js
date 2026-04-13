@@ -245,7 +245,7 @@ class CharacterManager {
             totalSP: totalSP,
             skillsTrained: skills.skills ? skills.skills.length : 0,
             skillsAtFive: maxedSkills,
-            unallocatedSP: skills.unallocated_skillpoints || 0
+            unallocatedSP: skills.unallocated_skill_points || 0
         };
     }
 }
