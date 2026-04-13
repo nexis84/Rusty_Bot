@@ -5490,6 +5490,7 @@ if (root) {
   root.getSkillBookMarketLink = getSkillBookMarketLink;
   root.hasSkillBook = hasSkillBook;
   root.getSkillName = getSkillName;
+  console.log('skills-data.js: SKILLS loaded with', Object.keys(SKILLS).length, 'skills');
 }
 
 if (typeof window !== "undefined") {
@@ -5500,6 +5501,7 @@ if (typeof window !== "undefined") {
   window.getSkillBookMarketLink = getSkillBookMarketLink;
   window.hasSkillBook = hasSkillBook;
   window.getSkillName = getSkillName;
+  console.log('skills-data.js: Attached to window.SKILLS');
 }
 
 if (typeof module !== "undefined" && module.exports) {

@@ -1,7 +1,15 @@
 // Main Application Module
 // Orchestrates all functionality and UI interactions
 
-const SKILLS = globalThis.SKILLS || (typeof window !== 'undefined' ? window.SKILLS : {}) || {};
+// Access SKILLS from global scope
+function getSKILLS() {
+    if (typeof window !== 'undefined' && window.SKILLS) return window.SKILLS;
+    if (typeof globalThis !== 'undefined' && globalThis.SKILLS) return globalThis.SKILLS;
+    console.error('SKILLS data not loaded! Make sure skills-data.js is loaded before this script.');
+    return {};
+}
+
+const SKILLS = getSKILLS();
 
 class SkillPlannerApp {
     constructor() {
@@ -16,6 +24,13 @@ class SkillPlannerApp {
         this.bindElements();
         this.bindEvents();
         this.startClock();
+        
+        // Validate SKILLS data is loaded
+        if (!SKILLS || Object.keys(SKILLS).length === 0) {
+            console.error('SKILLS data is empty or not loaded!');
+            this.showMessage('Failed to load skill database. Please refresh the page.', 'error');
+            return;
+        }
         
         // Check for OAuth callback
         try {
