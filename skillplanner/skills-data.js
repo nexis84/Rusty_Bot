@@ -24,6 +24,9 @@ const SKILL_CATEGORIES = {
 };
 
 const SKILLS = {
+    // Navigation
+    1205: { name: 'Acceleration Control', group: 'Navigation', rank: 4, primary: 'int', secondary: 'per', prereqs: { 3449: 3 }, desc: 'Improves afterburner and MWD speed boost.' },
+
     // Gunnery
     3300: { name: 'Gunnery', group: 'Gunnery', rank: 1, primary: 'per', secondary: 'will', desc: 'Basic turret operation skill.' },
     3301: { name: 'Small Hybrid Turret', group: 'Gunnery', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3300: 1 }, desc: 'Operation of small hybrid turrets.' },
@@ -164,6 +167,8 @@ const SKILLS = {
     19922: { name: 'Turret Burst', group: 'Electronic Systems', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3432: 4 }, desc: 'Weapon disruptor burst.' },
 
     // Drones
+    2495: { name: 'Drone Navigation', group: 'Drones', rank: 1, primary: 'int', secondary: 'per', prereqs: { 3436: 1 }, desc: 'Increases drone max velocity.' },
+    3184: { name: 'Advanced Drone Avionics', group: 'Drones', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3436: 4 }, desc: 'Increases drone control range.' },
     3436: { name: 'Drones', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', desc: 'Basic drone operation.' },
     3437: { name: 'Drone Avionics', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', prereqs: { 3436: 1 }, desc: 'Drone control range.' },
     3438: { name: 'Drone Navigation', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', prereqs: { 3436: 1 }, desc: 'Drone speed.' },
