@@ -198,6 +198,7 @@ class SkillPlannerApp {
         const titles = {
             dashboard: 'Dashboard',
             skills: 'Skill Browser',
+            mySkills: 'My Skills',
             planner: 'Skill Planner',
             calculator: 'Training Calculator'
         };
@@ -206,6 +207,8 @@ class SkillPlannerApp {
         // View-specific initialization
         if (viewName === 'skills') {
             this.renderSkillCategories();
+        } else if (viewName === 'mySkills') {
+            this.renderMySkills();
         } else if (viewName === 'planner') {
             this.renderPlan();
             this.updatePlanSummary();
