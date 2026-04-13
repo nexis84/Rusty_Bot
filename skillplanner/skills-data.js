@@ -286,6 +286,46 @@ const SKILLS = {
     18580: { name: 'Contracting', group: 'Trade', rank: 1, primary: 'char', secondary: 'mem', desc: 'Contract limit.' },
     19198: { name: 'Advanced Contracting', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 18580: 3 }, desc: 'More contracts.' },
 
+    // Scanning
+    25739: { name: 'Astrometric Acquisition', group: 'Scanning', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 23087: 3 }, desc: 'Scanning probe strength.' },
+    25539: { name: 'Astrometric Pinpointing', group: 'Scanning', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 23087: 3 }, desc: 'Scanning probe speed.' },
+    25538: { name: 'Astrometric Rangefinding', group: 'Scanning', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 23087: 3 }, desc: 'Scanning deviation.' },
+
+    // Social
+    3359: { name: 'Social', group: 'Social', rank: 1, primary: 'char', secondary: 'int', desc: 'Agent standing increase.' },
+    3361: { name: 'Negotiation', group: 'Social', rank: 2, primary: 'char', secondary: 'int', prereqs: { 3359: 1 }, desc: 'Mission reward increase.' },
+    3362: { name: 'Diplomacy', group: 'Social', rank: 1, primary: 'char', secondary: 'int', prereqs: { 3359: 1 }, desc: 'Standing improvement with hostile agents.' },
+    3363: { name: 'Fast Talk', group: 'Social', rank: 3, primary: 'char', secondary: 'int', prereqs: { 3359: 3 }, desc: 'Security status loss reduction.' },
+    3364: { name: 'Connections', group: 'Social', rank: 3, primary: 'char', secondary: 'int', prereqs: { 3359: 2 }, desc: 'Standing boost with NPC corps.' },
+    3365: { name: 'Criminal Connections', group: 'Social', rank: 3, primary: 'char', secondary: 'int', prereqs: { 3359: 2 }, desc: 'Standing boost with pirate factions.' },
+    3366: { name: 'Criminal Negotiations', group: 'Social', rank: 5, primary: 'char', secondary: 'int', prereqs: { 3359: 5 }, desc: 'Reduced agent standing penalties.' },
+
+    // Resource Processing
+    3385: { name: 'Mining', group: 'Resource Processing', rank: 1, primary: 'int', secondary: 'per', desc: 'Mining laser yield increase.' },
+    3386: { name: 'Astrogeology', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'per', prereqs: { 3385: 3 }, desc: 'Mining yield bonus.' },
+    3387: { name: 'Ice Harvesting', group: 'Resource Processing', rank: 2, primary: 'int', secondary: 'per', prereqs: { 3385: 2 }, desc: 'Ice harvester duration reduction.' },
+    3388: { name: 'Gas Cloud Harvesting', group: 'Resource Processing', rank: 2, primary: 'int', secondary: 'per', prereqs: { 3385: 2 }, desc: 'Gas harvester duration reduction.' },
+    3389: { name: 'Reprocessing', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'mem', desc: 'Scrap metal reprocessing efficiency.' },
+    3390: { name: 'Reprocessing Efficiency', group: 'Resource Processing', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 3389: 3 }, desc: 'Further reprocessing efficiency.' },
+    12196: { name: 'Refining', group: 'Resource Processing', rank: 1, primary: 'int', secondary: 'mem', desc: 'Ore reprocessing efficiency.' },
+    12198: { name: 'Refinery Efficiency', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 12196: 3 }, desc: 'Further ore reprocessing efficiency.' },
+    16281: { name: 'Scrapmetal Processing', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3389: 3 }, desc: 'Scrap metal reprocessing efficiency.' },
+    18025: { name: 'Ore Specific Processing', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 12198: 3 }, desc: 'Specific ore reprocessing efficiency.' },
+    25544: { name: 'Ice Processing', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'mem', desc: 'Ice reprocessing efficiency.' },
+    25863: { name: 'Moon Ore Processing', group: 'Resource Processing', rank: 3, primary: 'int', secondary: 'mem', desc: 'Moon ore reprocessing efficiency.' },
+
+    // Production (Industry)
+    3380: { name: 'Industry', group: 'Industry', rank: 1, primary: 'int', secondary: 'mem', desc: 'Manufacturing time reduction.' },
+    3381: { name: 'Advanced Industry', group: 'Industry', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3380: 3 }, desc: 'Further manufacturing time reduction.' },
+    3382: { name: 'Production Efficiency', group: 'Industry', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3380: 3 }, desc: 'Material consumption reduction.' },
+    3383: { name: 'Advanced Production Efficiency', group: 'Industry', rank: 6, primary: 'int', secondary: 'mem', prereqs: { 3382: 5 }, desc: 'Further material consumption reduction.' },
+    3384: { name: 'Mass Production', group: 'Industry', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3380: 2 }, desc: 'Additional manufacturing slot.' },
+    3385: { name: 'Advanced Mass Production', group: 'Industry', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3384: 4 }, desc: 'More manufacturing slots.' },
+    26223: { name: 'Advanced Medium Ship Construction', group: 'Industry', rank: 8, primary: 'int', secondary: 'mem', desc: 'Cruiser, BC, and Indy manufacturing.' },
+    26224: { name: 'Advanced Large Ship Construction', group: 'Industry', rank: 8, primary: 'int', secondary: 'mem', desc: 'Battleship manufacturing.' },
+    26225: { name: 'Advanced Capital Ship Construction', group: 'Industry', rank: 12, primary: 'int', secondary: 'mem', desc: 'Capital ship manufacturing.' },
+    26226: { name: 'Outpost Construction', group: 'Industry', rank: 16, primary: 'int', secondary: 'mem', desc: 'Outpost construction.' },
+
     // Add more categories as needed - this covers the core skills
 };
 
@@ -406,7 +446,26 @@ function hasSkillBook(skillId) {
     return !!SKILL_BOOKS[skillId];
 }
 
+// Skill name cache for dynamic lookups
+const skillNameCache = {};
+
+// Get skill name - from local DB or fetch from ESI
+async function getSkillName(skillId) {
+    // Check local database first
+    if (SKILLS[skillId]) {
+        return SKILLS[skillId].name;
+    }
+    
+    // Check cache
+    if (skillNameCache[skillId]) {
+        return skillNameCache[skillId];
+    }
+    
+    // Return placeholder for now
+    return `Skill ${skillId}`;
+}
+
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { SKILLS, SKILL_CATEGORIES, SKILL_GROUP_NAMES, ATTRIBUTES, SP_TABLE, SKILL_BOOKS, getSkillBookMarketLink, hasSkillBook };
+    module.exports = { SKILLS, SKILL_CATEGORIES, SKILL_GROUP_NAMES, ATTRIBUTES, SP_TABLE, SKILL_BOOKS, getSkillBookMarketLink, hasSkillBook, getSkillName };
 }
