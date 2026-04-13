@@ -571,7 +571,7 @@ class SkillPlannerApp {
         
         // Group skills by category
         const groups = {};
-        Object.entries(SKILLS).forEach(([id, skill]) => {
+        Object.entries(window.SKILLS).forEach(([id, skill]) => {
             if (!groups[skill.group]) {
                 groups[skill.group] = [];
             }
@@ -1022,7 +1022,7 @@ class SkillPlannerApp {
         const container = document.getElementById('pickerCategories');
         if (!container) return;
         
-        const groups = [...new Set(Object.values(SKILLS).map(s => s.group))];
+        const groups = [...new Set(Object.values(window.SKILLS).map(s => s.group))];
         
         container.innerHTML = `
             <button class="picker-cat-btn active" data-cat="all">All</button>
@@ -1042,7 +1042,7 @@ class SkillPlannerApp {
         const container = document.getElementById('pickerSkills');
         if (!container) return;
         
-        let skills = Object.entries(SKILLS).map(([id, skill]) => ({ id: parseInt(id), ...skill }));
+        let skills = Object.entries(window.SKILLS).map(([id, skill]) => ({ id: parseInt(id), ...skill }));
         
         if (category !== 'all') {
             skills = skills.filter(s => s.group === category);
