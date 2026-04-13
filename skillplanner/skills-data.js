@@ -5486,8 +5486,8 @@ function getSkillMarketLink(skillId) {
   const skill = SKILLS[skillId];
   if (!skill?.name) return null;
 
-  // Fallback to a market search so skills with missing book mapping still deep-link sensibly.
-  return getRustyMarketSearchLink(`${skill.name} skillbook`);
+  // Fallback to the skill type itself. Market app only routes using ?type=.
+  return getRustyMarketTypeLink(skillId);
 }
 
 function hasSkillBook(skillId) {

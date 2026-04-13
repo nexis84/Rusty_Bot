@@ -110,8 +110,8 @@ class CharacterManager {
     async fetchAttributes(characterId) {
         const cached = this.getCachedData(characterId, 'attributes');
         if (cached) return cached;
-        
-        // Return default attributes since scope is unavailable
+
+        // Fallback defaults when scope is unavailable
         const defaults = {
             intelligence: 20,
             memory: 20,
@@ -122,34 +122,68 @@ class CharacterManager {
             last_remap_date: null,
             accrued_remap_cooldown_date: null
         };
-        
-        this.setCachedData(characterId, 'attributes', defaults);
-        return defaults;
+
+        try {
+            const data = await esiAuth.esiFetch(`/characters/${characterId}/attributes/`);
+            this.setCachedData(characterId, 'attributes', data);
+            return data;
+        } catch (e) {
+            console.warn('Failed to fetch attributes, using defaults:', e.message || e);
+            this.setCachedData(characterId, 'attributes', defaults);
+            return defaults;
+        }
     }
 
     // Fetch implants (returns empty array if scope unavailable)
     async fetchImplants(characterId) {
         const cached = this.getCachedData(characterId, 'implants');
         if (cached) return cached;
-        
-        // Return empty array since scope is unavailable
-        const empty = [];
-        this.setCachedData(characterId, 'implants', empty);
-        return empty;
+
+        try {
+            const data = await esiAuth.esiFetch(`/characters/${characterId}/implants/`);
+            this.setCachedData(characterId, 'implants', data || []);
+            return data || [];
+        } catch (e) {
+            console.warn('Failed to fetch implants, using empty list:', e.message || e);
+            const empty = [];
+            this.setCachedData(characterId, 'implants', empty);
+            return empty;
+        }
     }
 
-    // Get full character data (skills + attributes + queue)
+    // Fetch active boosters (includes active cerebral accelerators when present)
+    async fetchBoosters(characterId) {
+        const cached = this.getCachedData(characterId, 'boosters');
+        if (cached) return cached;
+
+        try {
+            const data = await esiAuth.esiFetch(`/characters/${characterId}/boosters/`);
+            this.setCachedData(characterId, 'boosters', data || []);
+            return data || [];
+        } catch (e) {
+            console.warn('Failed to fetch boosters, using empty list:', e.message || e);
+            const empty = [];
+            this.setCachedData(characterId, 'boosters', empty);
+            return empty;
+        }
+    }
+
+    // Get full character data (skills + attributes + queue + implants + boosters)
     async getFullCharacterData(characterId) {
-        const [skills, attributes, queue] = await Promise.all([
+        const [skills, attributes, queue, implants, boosters] = await Promise.all([
             this.fetchSkills(characterId),
             this.fetchAttributes(characterId),
-            this.fetchSkillQueue(characterId)
+            this.fetchSkillQueue(characterId),
+            this.fetchImplants(characterId),
+            this.fetchBoosters(characterId)
         ]);
         
         return {
             skills: skills,
             attributes: attributes,
-            skillQueue: queue
+            skillQueue: queue,
+            implants: implants,
+            boosters: boosters
         };
     }
 

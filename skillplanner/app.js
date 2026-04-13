@@ -7,6 +7,7 @@ class SkillPlannerApp {
         this.currentCharacter = null;
         this.currentCharacterData = null;
         this.selectedSkill = null;
+        this.calculatorOverrides = null;
         this.init();
     }
 
@@ -97,10 +98,13 @@ class SkillPlannerApp {
         this.planList = document.getElementById('planList');
         this.sumTotalSkills = document.getElementById('sumTotalSkills');
         this.sumTotalTime = document.getElementById('sumTotalTime');
+        this.sumTotalTimeCompare = document.getElementById('sumTotalTimeCompare');
         this.sumSpNeeded = document.getElementById('sumSpNeeded');
         this.sumBookCost = document.getElementById('sumBookCost');
         this.injLargeCount = document.getElementById('injLargeCount');
         this.injTotalCost = document.getElementById('injTotalCost');
+        this.injCompareRow = document.getElementById('injCompareRow');
+        this.injCompareText = document.getElementById('injCompareText');
         this.prereqWarning = document.getElementById('prereqWarning');
         
         // Calculator
@@ -257,15 +261,18 @@ class SkillPlannerApp {
         
         try {
             this.currentCharacter = characterId;
+            this.calculatorOverrides = null;
             
             // Fetch all character data
-            const [skills, attributes, queue] = await Promise.all([
+            const [skills, attributes, queue, implants, boosters] = await Promise.all([
                 characterManager.fetchSkills(characterId),
                 characterManager.fetchAttributes(characterId),
-                characterManager.fetchSkillQueue(characterId)
+                characterManager.fetchSkillQueue(characterId),
+                characterManager.fetchImplants(characterId),
+                characterManager.fetchBoosters(characterId)
             ]);
             
-            this.currentCharacterData = { skills, attributes, queue };
+            this.currentCharacterData = { skills, attributes, queue, implants, boosters };
             
             // Update UI
             await this.updateCharacterUI(characterId);
@@ -674,6 +681,7 @@ class SkillPlannerApp {
         const inPlan = skillPlanner.isInPlan(skillId);
         const planItem = skillPlanner.getPlanSkill(skillId);
         const plannedLevel = planItem ? planItem.targetLevel : null;
+        const marketLinkUrl = getSkillMarketLink(skillId);
         
         // Calculate SP and time for next level
         let nextLevelHtml = '';
@@ -743,8 +751,8 @@ class SkillPlannerApp {
                     </div>
                 </div>
                 
-                ${hasSkillBook(skillId) ? `
-                    <a href="${getSkillMarketLink(skillId)}" target="_blank" class="market-link-btn">
+                ${marketLinkUrl ? `
+                    <a href="${marketLinkUrl}" target="_blank" class="market-link-btn">
                         <i class="fas fa-external-link-alt"></i>
                         View Skill Book in Market
                     </a>
@@ -797,6 +805,133 @@ class SkillPlannerApp {
             const name = item.querySelector('span')?.textContent.toLowerCase() || '';
             item.style.display = name.includes(term) ? '' : 'none';
         });
+    }
+
+    withTrainingCalcState(work) {
+        const original = {
+            attributes: { ...trainingCalc.baseAttributes },
+            implants: Object.fromEntries(
+                Object.entries(trainingCalc.implantBonuses).map(([slot, data]) => [slot, data.bonus])
+            ),
+            accelerator: trainingCalc.cerebralAccelerator,
+            acceleratorBonus: trainingCalc.acceleratorBonus
+        };
+
+        try {
+            return work();
+        } finally {
+            trainingCalc.setAttributes(original.attributes);
+            Object.entries(original.implants).forEach(([slot, bonus]) => {
+                trainingCalc.setImplant(parseInt(slot), bonus);
+            });
+            trainingCalc.setCerebralAccelerator(original.accelerator, original.acceleratorBonus);
+        }
+    }
+
+    applyTrainingSettings(settings) {
+        if (!settings) return;
+
+        trainingCalc.setAttributes(settings.attributes);
+        Object.entries(settings.implants).forEach(([slot, bonus]) => {
+            trainingCalc.setImplant(parseInt(slot), parseInt(bonus));
+        });
+        trainingCalc.setCerebralAccelerator(!!settings.accelerator.enabled, settings.accelerator.bonus || 10);
+    }
+
+    getCharacterTrainingSettings() {
+        const attrs = this.currentCharacterData?.attributes || {
+            intelligence: 20,
+            memory: 20,
+            perception: 20,
+            willpower: 20,
+            charisma: 19
+        };
+
+        const settings = {
+            attributes: {
+                intelligence: attrs.intelligence || 20,
+                memory: attrs.memory || 20,
+                perception: attrs.perception || 20,
+                willpower: attrs.willpower || 20,
+                charisma: attrs.charisma || 19
+            },
+            implants: { 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 },
+            accelerator: { enabled: false, bonus: 10, typeId: 0 }
+        };
+
+        const implants = this.currentCharacterData?.implants || [];
+        implants.forEach(implant => {
+            const typeId = implant.type_id;
+            if (typeId >= 9956 && typeId <= 9960) settings.implants[6] = typeId - 9955;
+            else if (typeId >= 9961 && typeId <= 9965) settings.implants[7] = typeId - 9960;
+            else if (typeId >= 9966 && typeId <= 9970) settings.implants[8] = typeId - 9965;
+            else if (typeId >= 9971 && typeId <= 9975) settings.implants[9] = typeId - 9970;
+            else if (typeId >= 9976 && typeId <= 9980) settings.implants[10] = typeId - 9975;
+        });
+
+        const boosters = this.currentCharacterData?.boosters || [];
+        const active = boosters
+            .map(b => window.CEREBRAL_ACCELERATORS?.find(a => a.typeId === b.type_id))
+            .find(Boolean);
+
+        if (active) {
+            settings.accelerator = {
+                enabled: true,
+                bonus: active.bonus || 10,
+                typeId: active.typeId
+            };
+        }
+
+        return settings;
+    }
+
+    getCalculatorSettingsFromUI() {
+        const acceleratorSelect = document.getElementById('acceleratorPreset');
+        const selectedOption = acceleratorSelect?.selectedOptions?.[0];
+
+        return {
+            attributes: {
+                intelligence: parseInt(document.getElementById('calcInt')?.value || 20),
+                memory: parseInt(document.getElementById('calcMem')?.value || 20),
+                perception: parseInt(document.getElementById('calcPer')?.value || 20),
+                willpower: parseInt(document.getElementById('calcWill')?.value || 20),
+                charisma: parseInt(document.getElementById('calcChar')?.value || 20)
+            },
+            implants: {
+                6: parseInt(document.getElementById('implant6')?.value || 0),
+                7: parseInt(document.getElementById('implant7')?.value || 0),
+                8: parseInt(document.getElementById('implant8')?.value || 0),
+                9: parseInt(document.getElementById('implant9')?.value || 0),
+                10: parseInt(document.getElementById('implant10')?.value || 0)
+            },
+            accelerator: {
+                enabled: !!parseInt(acceleratorSelect?.value || 0),
+                bonus: parseInt(selectedOption?.dataset?.bonus || 10),
+                typeId: parseInt(acceleratorSelect?.value || 0)
+            }
+        };
+    }
+
+    calculatePlanSummaryWithSettings(settings) {
+        return this.withTrainingCalcState(() => {
+            this.applyTrainingSettings(settings);
+            const summary = skillPlanner.getSummary(this.currentCharacterData?.skills);
+            const totalSp = this.currentCharacterData?.skills
+                ? characterManager.calculateTotalSP(this.currentCharacterData.skills)
+                : 0;
+            const injectors = injectorCalc.calculateInjectors(totalSp, totalSp + summary.totalSP);
+            const injectorCost = injectorCalc.calculateCost(injectors.count);
+
+            return {
+                summary,
+                injectors,
+                injectorCost
+            };
+        });
+    }
+
+    settingsDiffer(a, b) {
+        return JSON.stringify(a) !== JSON.stringify(b);
     }
 
     // Planner
@@ -875,24 +1010,41 @@ class SkillPlannerApp {
     }
 
     updatePlanSummary() {
-        const summary = skillPlanner.getSummary(this.currentCharacterData?.skills);
-        
-        this.sumTotalSkills.textContent = summary.totalSkills;
-        this.sumTotalTime.textContent = summary.totalTime;
-        this.sumSpNeeded.textContent = characterManager.formatSP(summary.totalSP);
-        
-        // Injector estimate
-        if (this.currentCharacterData?.skills) {
-            const totalSp = characterManager.calculateTotalSP(this.currentCharacterData.skills);
-            const injectorStats = injectorCalc.calculateInjectors(totalSp, totalSp + summary.totalSP);
-            const cost = injectorCalc.calculateCost(injectorStats.count);
-            
-            this.injLargeCount.textContent = injectorStats.count;
-            this.injTotalCost.textContent = cost.formatted;
+        const baselineSettings = this.getCharacterTrainingSettings();
+        const baseline = this.calculatePlanSummaryWithSettings(baselineSettings);
+        const activeSettings = this.calculatorOverrides || baselineSettings;
+        const active = this.calculatePlanSummaryWithSettings(activeSettings);
+        const hasOverrides = this.calculatorOverrides && this.settingsDiffer(this.calculatorOverrides, baselineSettings);
+
+        this.sumTotalSkills.textContent = active.summary.totalSkills;
+        this.sumTotalTime.textContent = active.summary.totalTime;
+        this.sumSpNeeded.textContent = characterManager.formatSP(active.summary.totalSP);
+
+        this.injLargeCount.textContent = active.injectors.count;
+        this.injTotalCost.textContent = active.injectorCost.formatted;
+
+        if (this.sumTotalTimeCompare) {
+            if (hasOverrides) {
+                this.sumTotalTimeCompare.textContent = `Before: ${baseline.summary.totalTime} -> After: ${active.summary.totalTime}`;
+                this.sumTotalTimeCompare.classList.remove('hidden');
+            } else {
+                this.sumTotalTimeCompare.textContent = '';
+                this.sumTotalTimeCompare.classList.add('hidden');
+            }
+        }
+
+        if (this.injCompareRow && this.injCompareText) {
+            if (hasOverrides) {
+                this.injCompareText.textContent = `${baseline.injectors.count} -> ${active.injectors.count}`;
+                this.injCompareRow.classList.remove('hidden');
+            } else {
+                this.injCompareText.textContent = '';
+                this.injCompareRow.classList.add('hidden');
+            }
         }
         
         // Prereq warning
-        this.prereqWarning?.classList.toggle('hidden', !summary.hasPrereqIssues);
+        this.prereqWarning?.classList.toggle('hidden', !active.summary.hasPrereqIssues);
         
         // Update badge
         this.updatePlanBadge();

@@ -195,6 +195,9 @@ class TrainingCalculator {
     loadFromCharacter(characterId) {
         const char = characterManager.characters[characterId];
         if (!char) return;
+
+        // Ensure values from a previously loaded character do not leak.
+        this.reset();
         
         // Load attributes
         if (char.cache && char.cache.attributes) {
@@ -245,6 +248,18 @@ class TrainingCalculator {
                     this.setImplant(slot, bonus);
                 }
             });
+        }
+
+        // Load active cerebral accelerator from boosters when available.
+        if (char.cache && char.cache.boosters && Array.isArray(char.cache.boosters.data)) {
+            const boosters = char.cache.boosters.data;
+            const active = boosters
+                .map(b => window.CEREBRAL_ACCELERATORS?.find(a => a.typeId === b.type_id))
+                .find(Boolean);
+
+            if (active) {
+                this.setCerebralAccelerator(true, active.bonus || 10);
+            }
         }
     }
 

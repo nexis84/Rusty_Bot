@@ -10,7 +10,9 @@ const ESI_CONFIG = {
     jwksUrl: 'https://login.eveonline.com/oauth/jwks',
     scopes: [
         'esi-skills.read_skills.v1',
-        'esi-skills.read_skillqueue.v1'
+        'esi-skills.read_skillqueue.v1',
+        'esi-clones.read_implants.v1',
+        'esi-characters.read_attributes.v1'
     ]
 };
 
