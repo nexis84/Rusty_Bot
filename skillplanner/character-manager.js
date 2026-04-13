@@ -1,14 +1,6 @@
 // Character Manager Module
 // Handles fetching and caching character data from ESI
 
-const SP_TABLE = globalThis.SP_TABLE || (typeof window !== 'undefined' ? window.SP_TABLE : {}) || {
-    1: 250,
-    2: 1415,
-    3: 8000,
-    4: 45255,
-    5: 256000
-};
-
 class CharacterManager {
     constructor() {
         this.characters = this.loadCharacters();
