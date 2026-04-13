@@ -477,14 +477,15 @@ class SkillPlannerApp {
         if (!this.mySkillsList) return;
         
         const charId = esiAuth.getCurrentCharacter();
-        if (!charId || !this.currentCharacterData?.skills) {
+        const skillsData = this.currentCharacterData?.skills?.data || this.currentCharacterData?.skills;
+        if (!charId || !skillsData) {
             this.mySkillsList.innerHTML = '<p class="empty-state">Login to see your trained skills</p>';
             if (this.mySkillsTotal) this.mySkillsTotal.textContent = '0 skills';
             if (this.mySkillsAtFive) this.mySkillsAtFive.textContent = '0 at Level V';
             return;
         }
         
-        let skills = this.currentCharacterData.skills.skills || [];
+        let skills = skillsData.skills || [];
         const filter = this.mySkillsFilter?.value || 'all';
         const search = this.mySkillsSearch?.value?.toLowerCase() || '';
         
@@ -507,8 +508,8 @@ class SkillPlannerApp {
         }
         
         // Update stats
-        const totalSkills = this.currentCharacterData.skills.skills?.length || 0;
-        const maxedCount = this.currentCharacterData.skills.skills?.filter(s => s.trained_skill_level === 5).length || 0;
+        const totalSkills = skillsData.skills?.length || 0;
+        const maxedCount = skillsData.skills?.filter(s => s.trained_skill_level === 5).length || 0;
         if (this.mySkillsTotal) this.mySkillsTotal.textContent = `${totalSkills} skills`;
         if (this.mySkillsAtFive) this.mySkillsAtFive.textContent = `${maxedCount} at Level V`;
         
