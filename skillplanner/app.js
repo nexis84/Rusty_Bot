@@ -78,6 +78,13 @@ class SkillPlannerApp {
         this.skillSearch = document.getElementById('skillSearch');
         this.skillFilter = document.getElementById('skillFilter');
         
+        // My Skills view
+        this.mySkillsList = document.getElementById('mySkillsList');
+        this.mySkillsSearch = document.getElementById('mySkillsSearch');
+        this.mySkillsFilter = document.getElementById('mySkillsFilter');
+        this.mySkillsTotal = document.getElementById('mySkillsTotal');
+        this.mySkillsAtFive = document.getElementById('mySkillsAtFive');
+        
         // Planner
         this.planName = document.getElementById('planName');
         this.planList = document.getElementById('planList');
@@ -125,6 +132,10 @@ class SkillPlannerApp {
         // Skill search
         this.skillSearch?.addEventListener('input', (e) => this.filterSkills(e.target.value));
         this.skillFilter?.addEventListener('change', () => this.renderSkillCategories());
+        
+        // My Skills search
+        this.mySkillsSearch?.addEventListener('input', (e) => this.filterMySkills(e.target.value));
+        this.mySkillsFilter?.addEventListener('change', () => this.renderMySkills());
         
         // Planner actions
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
@@ -370,7 +381,7 @@ class SkillPlannerApp {
             return;
         }
         
-        const queue = this.currentCharacterData.queue;
+        const queue = this.currentCharacterData.skillQueue.data || this.currentCharacterData.skillQueue;
         if (!queue || queue.length === 0) {
             this.skillQueueList.innerHTML = '<p class="empty-hint">No skills in queue</p>';
             return;
@@ -460,6 +471,80 @@ class SkillPlannerApp {
                 </div>
             `;
         }).join('');
+    }
+
+    renderMySkills() {
+        if (!this.mySkillsList) return;
+        
+        const charId = esiAuth.getCurrentCharacter();
+        if (!charId || !this.currentCharacterData?.skills) {
+            this.mySkillsList.innerHTML = '<p class="empty-state">Login to see your trained skills</p>';
+            if (this.mySkillsTotal) this.mySkillsTotal.textContent = '0 skills';
+            if (this.mySkillsAtFive) this.mySkillsAtFive.textContent = '0 at Level V';
+            return;
+        }
+        
+        let skills = this.currentCharacterData.skills.skills || [];
+        const filter = this.mySkillsFilter?.value || 'all';
+        const search = this.mySkillsSearch?.value?.toLowerCase() || '';
+        
+        // Apply filter
+        if (filter === 'maxed') {
+            skills = skills.filter(s => s.trained_skill_level === 5);
+        } else if (filter === 'high') {
+            skills = skills.filter(s => s.trained_skill_level >= 4);
+        } else if (filter === 'partial') {
+            skills = skills.filter(s => s.trained_skill_level >= 1 && s.trained_skill_level <= 3);
+        }
+        
+        // Apply search
+        if (search) {
+            skills = skills.filter(s => {
+                const skillData = SKILLS[s.skill_id];
+                const name = skillData ? skillData.name.toLowerCase() : '';
+                return name.includes(search);
+            });
+        }
+        
+        // Update stats
+        const totalSkills = this.currentCharacterData.skills.skills?.length || 0;
+        const maxedCount = this.currentCharacterData.skills.skills?.filter(s => s.trained_skill_level === 5).length || 0;
+        if (this.mySkillsTotal) this.mySkillsTotal.textContent = `${totalSkills} skills`;
+        if (this.mySkillsAtFive) this.mySkillsAtFive.textContent = `${maxedCount} at Level V`;
+        
+        if (skills.length === 0) {
+            this.mySkillsList.innerHTML = '<p class="empty-state">No skills match your filter</p>';
+            return;
+        }
+        
+        // Sort by level (highest first), then by name
+        skills = skills.sort((a, b) => {
+            if (b.trained_skill_level !== a.trained_skill_level) {
+                return b.trained_skill_level - a.trained_skill_level;
+            }
+            const nameA = SKILLS[a.skill_id]?.name || '';
+            const nameB = SKILLS[b.skill_id]?.name || '';
+            return nameA.localeCompare(nameB);
+        });
+        
+        this.mySkillsList.innerHTML = skills.map(skill => {
+            const skillData = SKILLS[skill.skill_id];
+            const skillName = skillData ? skillData.name : `Skill ${skill.skill_id}`;
+            const level = skill.trained_skill_level;
+            const sp = skill.skillpoints_in_skill;
+            
+            return `
+                <div class="my-skill-item">
+                    <span class="my-skill-name">${skillName}</span>
+                    <span class="my-skill-level ${level === 5 ? 'maxed' : ''}">${this.roman(level)}</span>
+                    <span class="my-skill-sp">${characterManager.formatSP(sp)} SP</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    filterMySkills(search) {
+        this.renderMySkills();
     }
 
     roman(num) {

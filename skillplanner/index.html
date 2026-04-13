@@ -55,6 +55,9 @@
                 <button class="nav-item" data-view="skills">
                     <i class="fas fa-list"></i> Skill Browser
                 </button>
+                <button class="nav-item" data-view="mySkills">
+                    <i class="fas fa-certificate"></i> My Skills
+                </button>
                 <button class="nav-item" data-view="planner">
                     <i class="fas fa-clipboard-list"></i> Skill Plan
                     <span class="badge hidden" id="planBadge">0</span>
@@ -241,6 +244,32 @@
                                 <p>Select a skill to view details</p>
                             </div>
                         </div>
+                    </div>
+                </section>
+
+                <!-- My Skills View -->
+                <section id="mySkillsView" class="view">
+                    <div class="my-skills-header">
+                        <h2><i class="fas fa-certificate"></i> My Trained Skills</h2>
+                        <div class="my-skills-stats">
+                            <span id="mySkillsTotal">0 skills</span>
+                            <span id="mySkillsAtFive">0 at Level V</span>
+                        </div>
+                    </div>
+                    <div class="my-skills-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="mySkillsSearch" placeholder="Search your skills...">
+                        </div>
+                        <select id="mySkillsFilter">
+                            <option value="all">All Skills</option>
+                            <option value="maxed">Level V Only</option>
+                            <option value="high">Level IV-V</option>
+                            <option value="partial">Level I-III</option>
+                        </select>
+                    </div>
+                    <div class="my-skills-list" id="mySkillsList">
+                        <p class="empty-state">Login to see your trained skills</p>
                     </div>
                 </section>
 
