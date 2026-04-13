@@ -164,6 +164,10 @@ class CharacterManager {
     // Calculate total SP from skills
     calculateTotalSP(skills) {
         if (!skills || !skills.skills) return 0;
+        if (!window.SKILLS) {
+            console.error('window.SKILLS is not defined! Skills data not loaded.');
+            return 0;
+        }
         
         return skills.skills.reduce((total, skill) => {
             const skillData = window.SKILLS[skill.skill_id];
