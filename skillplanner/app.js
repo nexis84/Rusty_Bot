@@ -70,6 +70,7 @@ class SkillPlannerApp {
         this.valChar = document.getElementById('valChar');
         this.skillQueueList = document.getElementById('skillQueueList');
         this.recentSkillsList = document.getElementById('recentSkillsList');
+        this.currentSkillsList = document.getElementById('currentSkillsList');
         
         // Skills browser
         this.skillCategories = document.getElementById('skillCategories');
@@ -279,8 +280,9 @@ class SkillPlannerApp {
         // Render character list
         this.renderCharacterList();
         
-        // Render skill queue and recent skills
+        // Render skill queue, current skills, and recent skills
         this.renderSkillQueue();
+        this.renderCurrentSkills();
         this.renderRecentSkills();
     }
 
@@ -368,7 +370,7 @@ class SkillPlannerApp {
             return;
         }
         
-        const queue = this.currentCharacterData.skillQueue;
+        const queue = this.currentCharacterData.queue;
         if (!queue || queue.length === 0) {
             this.skillQueueList.innerHTML = '<p class="empty-hint">No skills in queue</p>';
             return;
@@ -389,6 +391,43 @@ class SkillPlannerApp {
                 </div>
             `;
         }).join('');
+    }
+
+    renderCurrentSkills() {
+        if (!this.currentSkillsList) return;
+        
+        const charId = esiAuth.getCurrentCharacter();
+        if (!charId || !this.currentCharacterData?.skills) {
+            this.currentSkillsList.innerHTML = '<p class="empty-hint">Login to see your trained skills</p>';
+            return;
+        }
+        
+        const skills = this.currentCharacterData.skills.skills || [];
+        if (skills.length === 0) {
+            this.currentSkillsList.innerHTML = '<p class="empty-hint">No skills trained yet</p>';
+            return;
+        }
+        
+        // Sort by level (highest first) and take top 10
+        const topSkills = skills
+            .filter(s => s.trained_skill_level > 0)
+            .sort((a, b) => b.trained_skill_level - a.trained_skill_level)
+            .slice(0, 10);
+        
+        this.currentSkillsList.innerHTML = topSkills.map(skill => {
+            const skillData = SKILLS[skill.skill_id];
+            const skillName = skillData ? skillData.name : `Skill ${skill.skill_id}`;
+            const level = skill.trained_skill_level;
+            const sp = skill.skillpoints_in_skill;
+            
+            return `
+                <div class="current-skill-item">
+                    <span class="current-skill-name">${skillName}</span>
+                    <span class="current-skill-level">${this.roman(level)}</span>
+                    <span class="current-skill-sp">${characterManager.formatSP(sp)} SP</span>
+                </div>
+            `;
+        }).join('') + (skills.length > 10 ? `<p class="more-hint">...and ${skills.length - 10} more skills</p>` : '');
     }
 
     renderRecentSkills() {
