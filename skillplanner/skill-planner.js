@@ -466,6 +466,7 @@ class SkillPlanner {
 
 // Create global instance
 const skillPlanner = new SkillPlanner();
+window.skillPlanner = skillPlanner;
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

@@ -266,6 +266,7 @@ class CharacterManager {
 
 // Create global instance
 const characterManager = new CharacterManager();
+window.characterManager = characterManager;
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

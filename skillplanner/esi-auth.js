@@ -311,6 +311,7 @@ class ESIAuth {
 
 // Create global instance
 const esiAuth = new ESIAuth();
+window.esiAuth = esiAuth;
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

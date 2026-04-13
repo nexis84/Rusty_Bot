@@ -246,6 +246,7 @@ class InjectorCalculator {
 
 // Create global instance
 const injectorCalc = new InjectorCalculator();
+window.injectorCalc = injectorCalc;
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

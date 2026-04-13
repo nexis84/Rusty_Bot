@@ -330,6 +330,7 @@ class TrainingCalculator {
 
 // Create global instance
 const trainingCalc = new TrainingCalculator();
+window.trainingCalc = trainingCalc;
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
