@@ -38,6 +38,9 @@
                     <button class="char-switch-btn" id="charSwitchBtn" title="Switch Character">
                         <i class="fas fa-exchange-alt"></i>
                     </button>
+                    <button class="char-logout-btn" id="charLogoutBtn" title="Logout Character">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
             </div>
 
@@ -188,9 +191,18 @@
                             </div>
                         </div>
 
+                        <div class="dash-card skill-queue" id="skillQueueCard">
+                            <h3><i class="fas fa-rocket"></i> Current Skill Queue</h3>
+                            <div class="queue-list" id="skillQueueList">
+                                <p class="empty-hint">Login to see your active skill queue</p>
+                            </div>
+                        </div>
+
                         <div class="dash-card recent-skills" id="recentSkillsCard">
                             <h3><i class="fas fa-history"></i> Recent Skill Activity</h3>
-                            <p class="empty-hint">Login to see your recent skill training</p>
+                            <div class="recent-list" id="recentSkillsList">
+                                <p class="empty-hint">Login to see your recent skill training</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -238,6 +250,9 @@
                             </button>
                             <button class="btn-secondary" id="savePlanBtn">
                                 <i class="fas fa-save"></i> Save
+                            </button>
+                            <button class="btn-danger" id="deletePlanBtn">
+                                <i class="fas fa-trash-alt"></i> Delete
                             </button>
                             <button class="btn-primary" id="optimizePlanBtn">
                                 <i class="fas fa-magic"></i> Optimize

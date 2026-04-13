@@ -181,6 +181,21 @@ body {
     background: var(--secondary-color);
 }
 
+.char-logout-btn {
+    background: none;
+    border: none;
+    color: var(--text-subtle-color);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.char-logout-btn:hover {
+    color: var(--error-color);
+    background: rgba(244, 67, 54, 0.1);
+}
+
 .character-list {
     max-height: 200px;
     overflow-y: auto;
@@ -504,6 +519,51 @@ body {
     text-align: right;
 }
 
+/* --- Skill Queue & Recent Skills --- */
+.queue-list, .recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.queue-item, .recent-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--secondary-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.queue-item.active {
+    background: rgba(204, 170, 102, 0.15);
+    border: 1px solid var(--accent-color);
+}
+
+.queue-position {
+    font-size: 0.75rem;
+    color: var(--text-subtle-color);
+    text-transform: uppercase;
+    min-width: 70px;
+}
+
+.queue-item.active .queue-position {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.queue-name, .recent-name {
+    flex: 1;
+    color: var(--text-color);
+}
+
+.queue-time, .recent-sp {
+    font-size: 0.8rem;
+    color: var(--text-subtle-color);
+    font-family: monospace;
+}
+
 /* --- Quick Actions --- */
 .action-grid {
     display: grid;
@@ -801,6 +861,25 @@ body {
     color: var(--accent-color);
 }
 
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid var(--error-color);
+    border-radius: 6px;
+    color: var(--error-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: var(--error-color);
+    color: var(--bg-color);
+    transform: translateY(-1px);
+}
+
 .btn-small {
     padding: 6px 12px;
     font-size: 0.85rem;
@@ -927,6 +1006,18 @@ body {
 .plan-skill-item .remove-btn:hover {
     color: var(--error-color);
     background: rgba(244, 67, 54, 0.1);
+}
+
+.plan-market-link {
+    color: var(--accent-color);
+    margin-left: 8px;
+    font-size: 0.85rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.plan-market-link:hover {
+    opacity: 1;
 }
 
 .plan-summary-panel {

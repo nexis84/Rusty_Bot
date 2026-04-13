@@ -3,7 +3,7 @@
 
 const ESI_CONFIG = {
     clientId: 'ac86bbdbb05e404b85c6eb1546ed06b1', // Rusty Skill Planner
-    redirectUri: 'https://www.rustybot.co.uk/skillplanner/index.html',
+    redirectUri: 'https://www.rustybot.co.uk/Skill planner/index.html',
     authorizeUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     revokeUrl: 'https://login.eveonline.com/v2/oauth/revoke',
@@ -21,9 +21,9 @@ class ESIAuth {
     }
 
     // Generate PKCE code verifier and challenge
-    async generatePKCE() {
+    generatePKCE() {
         const verifier = this.generateRandomString(128);
-        const challenge = await this.sha256Base64Url(verifier);
+        const challenge = this.base64URLEscape(btoa(verifier));
         return { verifier, challenge };
     }
 
@@ -36,19 +36,13 @@ class ESIAuth {
         return text;
     }
 
-    // SHA256 hash and base64url encode
-    async sha256Base64Url(str) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(str);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashBase64 = btoa(String.fromCharCode(...hashArray));
-        return hashBase64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    base64URLEscape(str) {
+        return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
     // Initiate ESI login
     async initiateLogin() {
-        const { verifier, challenge } = await this.generatePKCE();
+        const { verifier, challenge } = this.generatePKCE();
         
         // Store verifier for later
         sessionStorage.setItem('esi_code_verifier', verifier);

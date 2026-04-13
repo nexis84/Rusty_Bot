@@ -237,6 +237,8 @@ class CharacterManager {
         if (!char || !char.cache || !char.cache.skills) return null;
         
         const skills = char.cache.skills.data;
+        console.log('ESI Skills data:', skills); // Debug
+        console.log('Unallocated SP field:', skills.unallocated_skill_points); // Debug
         const totalSP = this.calculateTotalSP(skills);
         const maxedSkills = this.getMaxedSkillsCount(skills);
         
@@ -245,7 +247,7 @@ class CharacterManager {
             totalSP: totalSP,
             skillsTrained: skills.skills ? skills.skills.length : 0,
             skillsAtFive: maxedSkills,
-            unallocatedSP: skills.unallocated_skill_points || 0
+            unallocatedSP: skills.unallocated_skill_points || skills.unallocated_sp || 0
         };
     }
 }
