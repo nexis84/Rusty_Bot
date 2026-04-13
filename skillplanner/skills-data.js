@@ -5481,12 +5481,21 @@ async function getSkillName(skillId) {
   return `Skill ${skillId}`;
 }
 
+const ATTRIBUTES = {
+  int:  'intelligence',
+  mem:  'memory',
+  per:  'perception',
+  will: 'willpower',
+  cha:  'charisma'
+};
+
 const root = typeof globalThis !== "undefined" ? globalThis : (typeof window !== "undefined" ? window : undefined);
 if (root) {
   root.SKILLS = SKILLS;
   root.SKILL_CATEGORIES = SKILL_CATEGORIES;
   root.SP_TABLE = SP_TABLE;
   root.SKILL_BOOKS = SKILL_BOOKS;
+  root.ATTRIBUTES = ATTRIBUTES;
   root.getSkillBookMarketLink = getSkillBookMarketLink;
   root.hasSkillBook = hasSkillBook;
   root.getSkillName = getSkillName;
@@ -5498,6 +5507,7 @@ if (typeof window !== "undefined") {
   window.SKILL_CATEGORIES = SKILL_CATEGORIES;
   window.SP_TABLE = SP_TABLE;
   window.SKILL_BOOKS = SKILL_BOOKS;
+  window.ATTRIBUTES = ATTRIBUTES;
   window.getSkillBookMarketLink = getSkillBookMarketLink;
   window.hasSkillBook = hasSkillBook;
   window.getSkillName = getSkillName;
