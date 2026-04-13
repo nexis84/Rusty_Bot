@@ -233,6 +233,11 @@ class ESIAuth {
         return localStorage.getItem('esi_current_character');
     }
 
+    // Get current character ID
+    getCurrentCharacter() {
+        return this.currentCharacter;
+    }
+
     // Remove character
     removeCharacter(characterId) {
         delete this.tokens[characterId];
