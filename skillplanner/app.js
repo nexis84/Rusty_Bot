@@ -1026,20 +1026,48 @@ class SkillPlannerApp {
 
         if (this.sumTotalTimeCompare) {
             if (hasOverrides) {
-                this.sumTotalTimeCompare.textContent = `Before: ${baseline.summary.totalTime} -> After: ${active.summary.totalTime}`;
-                    this.sumTotalTimeCompareRow?.classList.remove('hidden');
+                const deltaMinutes = baseline.summary.totalMinutes - active.summary.totalMinutes;
+                this.sumTotalTimeCompare.classList.remove('positive', 'negative', 'neutral');
+
+                if (deltaMinutes > 0) {
+                    this.sumTotalTimeCompare.textContent = `Saved ${trainingCalc.formatTime(deltaMinutes)} (${baseline.summary.totalTime} -> ${active.summary.totalTime})`;
+                    this.sumTotalTimeCompare.classList.add('positive');
+                } else if (deltaMinutes < 0) {
+                    this.sumTotalTimeCompare.textContent = `Slower by ${trainingCalc.formatTime(Math.abs(deltaMinutes))} (${baseline.summary.totalTime} -> ${active.summary.totalTime})`;
+                    this.sumTotalTimeCompare.classList.add('negative');
+                } else {
+                    this.sumTotalTimeCompare.textContent = `No change (${baseline.summary.totalTime})`;
+                    this.sumTotalTimeCompare.classList.add('neutral');
+                }
+
+                this.sumTotalTimeCompareRow?.classList.remove('hidden');
             } else {
                 this.sumTotalTimeCompare.textContent = '';
-                    this.sumTotalTimeCompareRow?.classList.add('hidden');
+                this.sumTotalTimeCompare.classList.remove('positive', 'negative', 'neutral');
+                this.sumTotalTimeCompareRow?.classList.add('hidden');
             }
         }
 
         if (this.injCompareRow && this.injCompareText) {
             if (hasOverrides) {
-                this.injCompareText.textContent = `${baseline.injectors.count} -> ${active.injectors.count}`;
+                const injectorDelta = baseline.injectors.count - active.injectors.count;
+                this.injCompareText.classList.remove('positive', 'negative', 'neutral');
+
+                if (injectorDelta > 0) {
+                    this.injCompareText.textContent = `-${injectorDelta} (${baseline.injectors.count} -> ${active.injectors.count})`;
+                    this.injCompareText.classList.add('positive');
+                } else if (injectorDelta < 0) {
+                    this.injCompareText.textContent = `+${Math.abs(injectorDelta)} (${baseline.injectors.count} -> ${active.injectors.count})`;
+                    this.injCompareText.classList.add('negative');
+                } else {
+                    this.injCompareText.textContent = `No change (${active.injectors.count})`;
+                    this.injCompareText.classList.add('neutral');
+                }
+
                 this.injCompareRow.classList.remove('hidden');
             } else {
                 this.injCompareText.textContent = '';
+                this.injCompareText.classList.remove('positive', 'negative', 'neutral');
                 this.injCompareRow.classList.add('hidden');
             }
         }
