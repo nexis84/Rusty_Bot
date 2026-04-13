@@ -322,6 +322,10 @@
                                     <span class="sum-label">Total Training Time</span>
                                     <span class="sum-value" id="sumTotalTime">--</span>
                                 </div>
+                                <div class="sum-item hidden" id="sumTotalTimeCompareRow">
+                                    <span class="sum-label">Before/After</span>
+                                    <span class="sum-value" id="sumTotalTimeCompare"></span>
+                                </div>
                                 <div class="sum-item">
                                     <span class="sum-label">Skill Points Needed</span>
                                     <span class="sum-value" id="sumSpNeeded">--</span>
@@ -338,6 +342,10 @@
                                     <div class="inj-item">
                                         <span>Large Injectors (500k)</span>
                                         <span id="injLargeCount">0</span>
+                                    </div>
+                                    <div class="inj-item hidden" id="injCompareRow">
+                                        <span>Before/After Injectors</span>
+                                        <span id="injCompareText"></span>
                                     </div>
                                     <div class="inj-item">
                                         <span>Cost @ 900M ISK each</span>
@@ -468,10 +476,6 @@
                                             <option value="0">None</option>
                                         </select>
                                     </div>
-                                    <a href="../market/index.html" id="acceleratorMarketLink" target="_blank" class="market-link-btn compact">
-                                        <i class="fas fa-shopping-cart"></i>
-                                        View Selected Accelerator in Rusty Market
-                                    </a>
                                     <div class="accelerator-list" id="acceleratorList"></div>
                                 </div>
 

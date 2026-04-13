@@ -98,6 +98,7 @@ class SkillPlannerApp {
         this.planList = document.getElementById('planList');
         this.sumTotalSkills = document.getElementById('sumTotalSkills');
         this.sumTotalTime = document.getElementById('sumTotalTime');
+        this.sumTotalTimeCompareRow = document.getElementById('sumTotalTimeCompareRow');
         this.sumTotalTimeCompare = document.getElementById('sumTotalTimeCompare');
         this.sumSpNeeded = document.getElementById('sumSpNeeded');
         this.sumBookCost = document.getElementById('sumBookCost');
@@ -177,7 +178,6 @@ class SkillPlannerApp {
             document.getElementById(id)?.addEventListener('change', () => this.updateCalcDisplay());
         });
         document.getElementById('acceleratorPreset')?.addEventListener('change', () => {
-            this.updateAcceleratorMarketLink();
             this.updateCalcDisplay();
         });
 
@@ -887,6 +887,8 @@ class SkillPlannerApp {
     getCalculatorSettingsFromUI() {
         const acceleratorSelect = document.getElementById('acceleratorPreset');
         const selectedOption = acceleratorSelect?.selectedOptions?.[0];
+        const selectedTypeId = parseInt(selectedOption?.dataset?.typeId || 0);
+        const selectedBonus = parseInt(selectedOption?.dataset?.bonus || 0);
 
         return {
             attributes: {
@@ -904,9 +906,9 @@ class SkillPlannerApp {
                 10: parseInt(document.getElementById('implant10')?.value || 0)
             },
             accelerator: {
-                enabled: !!parseInt(acceleratorSelect?.value || 0),
-                bonus: parseInt(selectedOption?.dataset?.bonus || 10),
-                typeId: parseInt(acceleratorSelect?.value || 0)
+                enabled: selectedBonus > 0,
+                bonus: selectedBonus,
+                typeId: selectedTypeId
             }
         };
     }
@@ -1025,10 +1027,10 @@ class SkillPlannerApp {
         if (this.sumTotalTimeCompare) {
             if (hasOverrides) {
                 this.sumTotalTimeCompare.textContent = `Before: ${baseline.summary.totalTime} -> After: ${active.summary.totalTime}`;
-                this.sumTotalTimeCompare.classList.remove('hidden');
+                    this.sumTotalTimeCompareRow?.classList.remove('hidden');
             } else {
                 this.sumTotalTimeCompare.textContent = '';
-                this.sumTotalTimeCompare.classList.add('hidden');
+                    this.sumTotalTimeCompareRow?.classList.add('hidden');
             }
         }
 
@@ -1058,9 +1060,10 @@ class SkillPlannerApp {
         if (count > 0) {
             this.planSummaryMini?.classList.remove('hidden');
             this.miniSkills.textContent = count;
-            
-            const summary = skillPlanner.getSummary(this.currentCharacterData?.skills);
-            this.miniTime.textContent = summary.totalTime;
+
+            const activeSettings = this.calculatorOverrides || this.getCharacterTrainingSettings();
+            const active = this.calculatePlanSummaryWithSettings(activeSettings);
+            this.miniTime.textContent = active.summary.totalTime;
         } else {
             this.planSummaryMini?.classList.add('hidden');
         }
@@ -1283,35 +1286,29 @@ class SkillPlannerApp {
     initCalculator() {
         this.populateAcceleratorOptions();
 
-        if (this.currentCharacterData?.attributes) {
-            const attrs = this.currentCharacterData.attributes;
-            this.setSliderValue('calcInt', attrs.intelligence);
-            this.setSliderValue('calcMem', attrs.memory);
-            this.setSliderValue('calcPer', attrs.perception);
-            this.setSliderValue('calcWill', attrs.willpower);
-            this.setSliderValue('calcChar', attrs.charisma);
-        }
+        const settings = this.calculatorOverrides || this.getCharacterTrainingSettings();
 
-        // Keep calculator controls in sync with currently loaded training calculator state.
+        this.setSliderValue('calcInt', settings.attributes.intelligence);
+        this.setSliderValue('calcMem', settings.attributes.memory);
+        this.setSliderValue('calcPer', settings.attributes.perception);
+        this.setSliderValue('calcWill', settings.attributes.willpower);
+        this.setSliderValue('calcChar', settings.attributes.charisma);
+
         ['6', '7', '8', '9', '10'].forEach(slot => {
             const select = document.getElementById('implant' + slot);
             if (select) {
-                select.value = String(trainingCalc.implantBonuses[slot]?.bonus || 0);
+                select.value = String(settings.implants[slot] || 0);
             }
         });
 
         const acceleratorPreset = document.getElementById('acceleratorPreset');
         if (acceleratorPreset) {
-            if (trainingCalc.cerebralAccelerator) {
-                const match = (window.CEREBRAL_ACCELERATORS || []).find(a => a.bonus === trainingCalc.acceleratorBonus);
-                acceleratorPreset.value = String(match?.typeId || 0);
-            } else {
-                acceleratorPreset.value = '0';
-            }
+            const selected = (window.CEREBRAL_ACCELERATORS || []).find(a =>
+                settings.accelerator.enabled && (a.typeId === settings.accelerator.typeId || a.bonus === settings.accelerator.bonus)
+            );
+            acceleratorPreset.value = selected ? selected.name : 'None';
         }
 
-        this.updateAcceleratorMarketLink();
-        
         this.updateCalcDisplay();
         this.updateRemapSuggestion();
     }
@@ -1323,8 +1320,8 @@ class SkillPlannerApp {
 
         if (select) {
             select.innerHTML = `
-                <option value="0">None</option>
-                ${accelerators.map(a => `<option value="${a.typeId}" data-bonus="${a.bonus}">${a.name}</option>`).join('')}
+                <option value="None" data-bonus="0" data-type-id="0">None</option>
+                ${accelerators.map(a => `<option value="${a.name}" data-bonus="${a.bonus}" data-type-id="${a.typeId || 0}">${a.name}</option>`).join('')}
             `;
         }
 
@@ -1348,22 +1345,6 @@ class SkillPlannerApp {
         }
     }
 
-    updateAcceleratorMarketLink() {
-        const link = document.getElementById('acceleratorMarketLink');
-        const typeId = parseInt(document.getElementById('acceleratorPreset')?.value || 0);
-        const match = (window.CEREBRAL_ACCELERATORS || []).find(a => a.typeId === typeId);
-
-        if (!link) return;
-
-        if (match) {
-            link.href = match.marketLink;
-            link.classList.remove('hidden');
-        } else {
-            link.href = '../market/index.html';
-            link.classList.add('hidden');
-        }
-    }
-
     setSliderValue(id, value) {
         const slider = document.getElementById(id);
         const display = document.getElementById(id.replace('calc', 'disp'));
@@ -1372,6 +1353,8 @@ class SkillPlannerApp {
     }
 
     updateCalcDisplay() {
+        this.calculatorOverrides = this.getCalculatorSettingsFromUI();
+
         // Update display values
         ['Int', 'Mem', 'Per', 'Will', 'Char'].forEach(attr => {
             const slider = document.getElementById('calc' + attr);
@@ -1383,6 +1366,7 @@ class SkillPlannerApp {
         
         // Calculate with current plan
         this.calculateImpact();
+        this.updatePlanSummary();
     }
 
     calculateImpact() {

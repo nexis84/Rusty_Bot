@@ -29,6 +29,10 @@ body {
     overflow-x: hidden;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .app {
     display: flex;
     min-height: 100vh;
