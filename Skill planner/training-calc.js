@@ -1,6 +1,15 @@
 // Training Time Calculator Module
 // Calculates skill training times based on attributes and implants
 
+const SKILLS = globalThis.SKILLS || (typeof window !== 'undefined' ? window.SKILLS : {}) || {};
+const SP_TABLE = globalThis.SP_TABLE || (typeof window !== 'undefined' ? window.SP_TABLE : {}) || {
+    1: 250,
+    2: 1415,
+    3: 8000,
+    4: 45255,
+    5: 256000
+};
+
 class TrainingCalculator {
     constructor() {
         this.baseAttributes = {

@@ -1,6 +1,8 @@
 // Skill Planner Module
 // Handles skill planning, prerequisite resolution, and plan management
 
+const SKILLS = globalThis.SKILLS || (typeof window !== 'undefined' ? window.SKILLS : {}) || {};
+
 class SkillPlanner {
     constructor() {
         this.plan = this.loadPlan();

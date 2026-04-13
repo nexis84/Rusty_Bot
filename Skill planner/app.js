@@ -1,6 +1,8 @@
 // Main Application Module
 // Orchestrates all functionality and UI interactions
 
+const SKILLS = globalThis.SKILLS || (typeof window !== 'undefined' ? window.SKILLS : {}) || {};
+
 class SkillPlannerApp {
     constructor() {
         this.currentView = 'dashboard';

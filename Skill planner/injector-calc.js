@@ -1,6 +1,8 @@
 // Skill Injector Calculator Module
 // Calculates injector requirements and optimization
 
+const SKILLS = globalThis.SKILLS || (typeof window !== 'undefined' ? window.SKILLS : {}) || {};
+
 class InjectorCalculator {
     constructor() {
         // SP per injector based on total character SP
