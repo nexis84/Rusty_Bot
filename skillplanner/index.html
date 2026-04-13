@@ -277,6 +277,12 @@
                             <button id="renamePlanBtn"><i class="fas fa-edit"></i></button>
                         </div>
                         <div class="plan-actions">
+                            <button class="btn-secondary" id="plannerImportPlanBtn">
+                                <i class="fas fa-file-import"></i> Import
+                            </button>
+                            <button class="btn-secondary" id="plannerExportPlanBtn">
+                                <i class="fas fa-file-export"></i> Export
+                            </button>
                             <button class="btn-secondary" id="loadPlanBtn">
                                 <i class="fas fa-folder-open"></i> Load
                             </button>
@@ -456,10 +462,29 @@
 
                                 <div class="accelerator-section">
                                     <h4>Cerebral Accelerator</h4>
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="hasAccelerator">
-                                        <span>Active Accelerator (+10 all attributes)</span>
-                                    </label>
+                                    <div class="accelerator-picker">
+                                        <label for="acceleratorPreset">Available Accelerators</label>
+                                        <select id="acceleratorPreset">
+                                            <option value="0">None</option>
+                                        </select>
+                                    </div>
+                                    <a href="../market/index.html" id="acceleratorMarketLink" target="_blank" class="market-link-btn compact">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        View Selected Accelerator in Rusty Market
+                                    </a>
+                                    <div class="accelerator-list" id="acceleratorList"></div>
+                                </div>
+
+                                <div class="calc-plan-actions">
+                                    <h4>Skill Plan</h4>
+                                    <div class="calc-plan-btns">
+                                        <button class="btn-secondary" id="calcImportPlanBtn">
+                                            <i class="fas fa-file-import"></i> Import Plan
+                                        </button>
+                                        <button class="btn-secondary" id="calcExportPlanBtn">
+                                            <i class="fas fa-file-export"></i> Export Plan
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 

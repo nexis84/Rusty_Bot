@@ -1341,10 +1341,21 @@ body {
 }
 
 .implants-section h4,
-.accelerator-section h4 {
+.accelerator-section h4,
+.calc-plan-actions h4 {
     font-size: 1rem;
     margin-bottom: 15px;
     color: var(--text-color);
+}
+
+.calc-plan-actions {
+    margin-top: 20px;
+}
+
+.calc-plan-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .implant-slots {
@@ -1384,6 +1395,54 @@ body {
     width: 18px;
     height: 18px;
     accent-color: var(--accent-color);
+}
+
+.accelerator-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.accelerator-picker label {
+    font-size: 0.85rem;
+    color: var(--text-subtle-color);
+}
+
+.accelerator-picker select {
+    padding: 8px;
+    background: var(--bg-color);
+    border: 1px solid var(--tertiary-color);
+    border-radius: 4px;
+    color: var(--text-color);
+}
+
+.market-link-btn.compact {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+}
+
+.accelerator-list {
+    display: grid;
+    gap: 8px;
+}
+
+.accelerator-item-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--secondary-color);
+    border: 1px solid var(--tertiary-color);
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 0.85rem;
+}
+
+.accelerator-item-link:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
 }
 
 .calc-results {
@@ -1433,6 +1492,30 @@ body {
 .impact-diff.negative {
     background: rgba(244, 67, 54, 0.1);
     color: var(--error-color);
+}
+
+.plan-skill-link {
+    color: var(--text-color);
+    text-decoration: none;
+    border-bottom: 1px dashed transparent;
+}
+
+.plan-skill-link:hover {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.inj-result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.inj-result-note {
+    margin-top: 12px;
+    color: var(--text-subtle-color);
+    font-size: 0.9rem;
 }
 
 /* Remap Calculator */

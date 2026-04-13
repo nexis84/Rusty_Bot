@@ -5469,9 +5469,37 @@ function getSkillBookMarketLink(skillId) {
   return `../market/index.html?typeId=${bookId}`;
 }
 
+function getRustyMarketSearchLink(query) {
+  if (!query) return '../market/index.html';
+  return `../market/index.html?search=${encodeURIComponent(query)}`;
+}
+
+function getSkillMarketLink(skillId) {
+  const directBookLink = getSkillBookMarketLink(skillId);
+  if (directBookLink) return directBookLink;
+
+  const skill = SKILLS[skillId];
+  if (!skill?.name) return null;
+
+  // Fallback to a market search so skills with missing book mapping still deep-link sensibly.
+  return getRustyMarketSearchLink(`${skill.name} skillbook`);
+}
+
 function hasSkillBook(skillId) {
   return !!SKILL_BOOKS[skillId];
 }
+
+const CEREBRAL_ACCELERATORS = [
+  { name: 'Basic Cerebral Accelerator (+2)', bonus: 2 },
+  { name: 'Standard Cerebral Accelerator (+4)', bonus: 4 },
+  { name: 'Advanced Cerebral Accelerator (+6)', bonus: 6 },
+  { name: 'Improved Cerebral Accelerator (+8)', bonus: 8 },
+  { name: 'Prototype Cerebral Accelerator (+10)', bonus: 10 },
+  { name: 'Expert Cerebral Accelerator (+12)', bonus: 12 }
+].map(item => ({
+  ...item,
+  marketLink: getRustyMarketSearchLink(item.name)
+}));
 
 const skillNameCache = {};
 
@@ -5497,7 +5525,10 @@ if (root) {
   root.SKILL_BOOKS = SKILL_BOOKS;
   root.ATTRIBUTES = ATTRIBUTES;
   root.getSkillBookMarketLink = getSkillBookMarketLink;
+  root.getSkillMarketLink = getSkillMarketLink;
+  root.getRustyMarketSearchLink = getRustyMarketSearchLink;
   root.hasSkillBook = hasSkillBook;
+  root.CEREBRAL_ACCELERATORS = CEREBRAL_ACCELERATORS;
   root.getSkillName = getSkillName;
   console.log('skills-data.js: SKILLS loaded with', Object.keys(SKILLS).length, 'skills');
 }
@@ -5509,7 +5540,10 @@ if (typeof window !== "undefined") {
   window.SKILL_BOOKS = SKILL_BOOKS;
   window.ATTRIBUTES = ATTRIBUTES;
   window.getSkillBookMarketLink = getSkillBookMarketLink;
+  window.getSkillMarketLink = getSkillMarketLink;
+  window.getRustyMarketSearchLink = getRustyMarketSearchLink;
   window.hasSkillBook = hasSkillBook;
+  window.CEREBRAL_ACCELERATORS = CEREBRAL_ACCELERATORS;
   window.getSkillName = getSkillName;
   console.log('skills-data.js: Attached to window.SKILLS');
 }
@@ -5521,7 +5555,10 @@ if (typeof module !== "undefined" && module.exports) {
     SP_TABLE,
     SKILL_BOOKS,
     getSkillBookMarketLink,
+    getSkillMarketLink,
+    getRustyMarketSearchLink,
     hasSkillBook,
+    CEREBRAL_ACCELERATORS,
     getSkillName
   };
 }

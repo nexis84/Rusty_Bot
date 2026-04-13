@@ -298,6 +298,7 @@ class SkillPlanner {
     // Export plan to JSON
     exportPlan() {
         return JSON.stringify({
+            version: 1,
             name: this.name,
             created: new Date().toISOString(),
             skills: this.plan.map(item => ({
@@ -311,17 +312,23 @@ class SkillPlanner {
     importPlan(jsonString) {
         try {
             const data = JSON.parse(jsonString);
-            
-            if (!data.skills || !Array.isArray(data.skills)) {
-                return { success: false, message: 'Invalid plan format' };
+
+            // Supported formats:
+            // 1) { name, skills: [{ skillId, targetLevel }] }
+            // 2) { name, plan: [{ skillId, targetLevel }] }
+            // 3) [{ skillId, targetLevel }]
+            // 4) [{ id, level }]
+            const rawSkills = this.extractImportedSkillList(data);
+            if (!rawSkills || rawSkills.length === 0) {
+                return { success: false, message: 'Invalid plan format: no skills found' };
             }
-            
-            this.plan = data.skills.map(s => ({
-                skillId: s.skillId,
-                skillName: window.SKILLS[s.skillId]?.name || 'Unknown',
-                targetLevel: s.targetLevel,
-                addedAt: Date.now()
-            }));
+
+            const normalized = this.normalizeImportedSkills(rawSkills);
+            if (normalized.length === 0) {
+                return { success: false, message: 'Import failed: no valid skills in file' };
+            }
+
+            this.plan = normalized;
             
             if (data.name) {
                 this.name = data.name;
@@ -332,6 +339,55 @@ class SkillPlanner {
         } catch (e) {
             return { success: false, message: 'Invalid JSON: ' + e.message };
         }
+    }
+
+    extractImportedSkillList(data) {
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        if (!data || typeof data !== 'object') {
+            return [];
+        }
+
+        if (Array.isArray(data.skills)) {
+            return data.skills;
+        }
+
+        if (Array.isArray(data.plan)) {
+            return data.plan;
+        }
+
+        return [];
+    }
+
+    normalizeImportedSkills(rawSkills) {
+        const map = new Map();
+
+        rawSkills.forEach(item => {
+            const skillId = parseInt(item.skillId ?? item.id);
+            const targetLevel = parseInt(item.targetLevel ?? item.level);
+
+            if (!Number.isInteger(skillId) || !window.SKILLS[skillId]) {
+                return;
+            }
+
+            if (!Number.isInteger(targetLevel) || targetLevel < 1 || targetLevel > 5) {
+                return;
+            }
+
+            const existing = map.get(skillId);
+            if (!existing || targetLevel > existing.targetLevel) {
+                map.set(skillId, {
+                    skillId: skillId,
+                    skillName: window.SKILLS[skillId].name,
+                    targetLevel: targetLevel,
+                    addedAt: Date.now()
+                });
+            }
+        });
+
+        return Array.from(map.values());
     }
 
     // Get plan summary stats

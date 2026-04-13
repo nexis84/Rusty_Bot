@@ -145,6 +145,8 @@ class SkillPlannerApp {
         this.mySkillsFilter?.addEventListener('change', () => this.renderMySkills());
         
         // Planner actions
+        document.getElementById('plannerImportPlanBtn')?.addEventListener('click', () => this.importPlan());
+        document.getElementById('plannerExportPlanBtn')?.addEventListener('click', () => this.exportPlan());
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
         document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.loadSavedPlan());
         document.getElementById('savePlanBtn')?.addEventListener('click', () => this.savePlanDialog());
@@ -165,6 +167,21 @@ class SkillPlannerApp {
                 slider.addEventListener('input', () => this.updateCalcDisplay());
             }
         });
+
+        // Implant and accelerator controls
+        ['implant6', 'implant7', 'implant8', 'implant9', 'implant10'].forEach(id => {
+            document.getElementById(id)?.addEventListener('change', () => this.updateCalcDisplay());
+        });
+        document.getElementById('acceleratorPreset')?.addEventListener('change', () => {
+            this.updateAcceleratorMarketLink();
+            this.updateCalcDisplay();
+        });
+
+        // Calculator actions
+        document.getElementById('calcImportPlanBtn')?.addEventListener('click', () => this.importPlan());
+        document.getElementById('calcExportPlanBtn')?.addEventListener('click', () => this.exportPlan());
+        document.getElementById('applySuggestedRemap')?.addEventListener('click', () => this.applySuggestedRemap());
+        document.getElementById('calcInjectorsBtn')?.addEventListener('click', () => this.runInjectorCalculator());
         
         // Modal close buttons
         document.getElementById('closeSkillPicker')?.addEventListener('click', () => this.closeSkillPicker());
@@ -727,7 +744,7 @@ class SkillPlannerApp {
                 </div>
                 
                 ${hasSkillBook(skillId) ? `
-                    <a href="${getSkillBookMarketLink(skillId)}" target="_blank" class="market-link-btn">
+                    <a href="${getSkillMarketLink(skillId)}" target="_blank" class="market-link-btn">
                         <i class="fas fa-external-link-alt"></i>
                         View Skill Book in Market
                     </a>
@@ -808,12 +825,16 @@ class SkillPlannerApp {
             const spNeeded = trainingCalc.spNeeded(item.skillId, currentLevel, item.targetLevel);
             const time = trainingCalc.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
             
-            const marketLink = hasSkillBook(item.skillId) ? `<a href="${getSkillBookMarketLink(item.skillId)}" target="_blank" class="plan-market-link" title="View in Market"><i class="fas fa-shopping-cart"></i></a>` : '';
+            const marketLinkUrl = getSkillMarketLink(item.skillId);
+            const marketLink = marketLinkUrl ? `<a href="${marketLinkUrl}" target="_blank" class="plan-market-link" title="View in Market"><i class="fas fa-shopping-cart"></i></a>` : '';
             
             return `
                 <div class="plan-skill-item" data-skill-id="${item.skillId}">
                     <div class="skill-info">
-                        <div class="skill-name">${skill.name} ${marketLink}</div>
+                        <div class="skill-name">
+                            <a href="#" class="plan-skill-link" data-skill-id="${item.skillId}">${skill.name}</a>
+                            ${marketLink}
+                        </div>
                         <div class="skill-prereq ${!hasPrereqIssue ? 'hidden' : ''}">
                             <i class="fas fa-exclamation-triangle"></i>
                             Missing prereqs
@@ -842,6 +863,15 @@ class SkillPlannerApp {
                 skillPlanner.removeSkill(parseInt(btn.dataset.skillId));
             });
         });
+
+        this.planList.querySelectorAll('.plan-skill-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const skillId = parseInt(link.dataset.skillId);
+                this.switchView('skills');
+                this.showSkillDetails(skillId);
+            });
+        });
     }
 
     updatePlanSummary() {
@@ -854,10 +884,10 @@ class SkillPlannerApp {
         // Injector estimate
         if (this.currentCharacterData?.skills) {
             const totalSp = characterManager.calculateTotalSP(this.currentCharacterData.skills);
-            const injectorCalc = injectorCalc.calculateInjectors(totalSp, totalSp + summary.totalSP);
-            const cost = injectorCalc.calculateCost(injectorCalc.count);
+            const injectorStats = injectorCalc.calculateInjectors(totalSp, totalSp + summary.totalSP);
+            const cost = injectorCalc.calculateCost(injectorStats.count);
             
-            this.injLargeCount.textContent = injectorCalc.count;
+            this.injLargeCount.textContent = injectorStats.count;
             this.injTotalCost.textContent = cost.formatted;
         }
         
@@ -1100,6 +1130,8 @@ class SkillPlannerApp {
 
     // Calculator
     initCalculator() {
+        this.populateAcceleratorOptions();
+
         if (this.currentCharacterData?.attributes) {
             const attrs = this.currentCharacterData.attributes;
             this.setSliderValue('calcInt', attrs.intelligence);
@@ -1108,9 +1140,62 @@ class SkillPlannerApp {
             this.setSliderValue('calcWill', attrs.willpower);
             this.setSliderValue('calcChar', attrs.charisma);
         }
+
+        // Keep calculator controls in sync with currently loaded training calculator state.
+        ['6', '7', '8', '9', '10'].forEach(slot => {
+            const select = document.getElementById('implant' + slot);
+            if (select) {
+                select.value = String(trainingCalc.implantBonuses[slot]?.bonus || 0);
+            }
+        });
+
+        const acceleratorPreset = document.getElementById('acceleratorPreset');
+        if (acceleratorPreset) {
+            acceleratorPreset.value = String(trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0);
+        }
+
+        this.updateAcceleratorMarketLink();
         
         this.updateCalcDisplay();
         this.updateRemapSuggestion();
+    }
+
+    populateAcceleratorOptions() {
+        const select = document.getElementById('acceleratorPreset');
+        const list = document.getElementById('acceleratorList');
+        const accelerators = window.CEREBRAL_ACCELERATORS || [];
+
+        if (select) {
+            select.innerHTML = `
+                <option value="0">None</option>
+                ${accelerators.map(a => `<option value="${a.bonus}">${a.name}</option>`).join('')}
+            `;
+        }
+
+        if (list) {
+            list.innerHTML = accelerators.map(a => `
+                <a href="${a.marketLink}" target="_blank" class="accelerator-item-link">
+                    <span>${a.name}</span>
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            `).join('');
+        }
+    }
+
+    updateAcceleratorMarketLink() {
+        const link = document.getElementById('acceleratorMarketLink');
+        const bonus = parseInt(document.getElementById('acceleratorPreset')?.value || 0);
+        const match = (window.CEREBRAL_ACCELERATORS || []).find(a => a.bonus === bonus);
+
+        if (!link) return;
+
+        if (match) {
+            link.href = match.marketLink;
+            link.classList.remove('hidden');
+        } else {
+            link.href = '../market/index.html';
+            link.classList.add('hidden');
+        }
     }
 
     setSliderValue(id, value) {
@@ -1135,6 +1220,13 @@ class SkillPlannerApp {
     }
 
     calculateImpact() {
+        const originalAttributes = { ...trainingCalc.baseAttributes };
+        const originalImplants = Object.fromEntries(
+            Object.entries(trainingCalc.implantBonuses).map(([slot, data]) => [slot, data.bonus])
+        );
+        const originalAccelerator = trainingCalc.cerebralAccelerator;
+        const originalAcceleratorBonus = trainingCalc.acceleratorBonus;
+
         const attrs = {
             intelligence: parseInt(document.getElementById('calcInt')?.value || 20),
             memory: parseInt(document.getElementById('calcMem')?.value || 20),
@@ -1142,6 +1234,15 @@ class SkillPlannerApp {
             willpower: parseInt(document.getElementById('calcWill')?.value || 20),
             charisma: parseInt(document.getElementById('calcChar')?.value || 20)
         };
+
+        const implants = {
+            6: parseInt(document.getElementById('implant6')?.value || 0),
+            7: parseInt(document.getElementById('implant7')?.value || 0),
+            8: parseInt(document.getElementById('implant8')?.value || 0),
+            9: parseInt(document.getElementById('implant9')?.value || 0),
+            10: parseInt(document.getElementById('implant10')?.value || 0)
+        };
+        const acceleratorBonus = parseInt(document.getElementById('acceleratorPreset')?.value || 0);
         
         // Current time
         const currentTime = trainingCalc.calculatePlanTime(skillPlanner.getPlan(), this.currentCharacterData?.skills);
@@ -1149,6 +1250,10 @@ class SkillPlannerApp {
         
         // New time with adjusted attributes
         trainingCalc.setAttributes(attrs);
+        Object.entries(implants).forEach(([slot, bonus]) => {
+            trainingCalc.setImplant(parseInt(slot), bonus);
+        });
+        trainingCalc.setCerebralAccelerator(acceleratorBonus > 0, acceleratorBonus);
         const newTime = trainingCalc.calculatePlanTime(skillPlanner.getPlan(), this.currentCharacterData?.skills);
         document.getElementById('newPlanTime').textContent = newTime.formattedTime;
         
@@ -1167,11 +1272,72 @@ class SkillPlannerApp {
                 diffEl.className = 'impact-diff';
             }
         }
-        
-        // Reset training calc to character values
-        if (this.currentCharacter) {
-            trainingCalc.loadFromCharacter(this.currentCharacter);
+
+        // Restore state after preview calculation so normal plan calculations are unaffected.
+        trainingCalc.setAttributes(originalAttributes);
+        Object.entries(originalImplants).forEach(([slot, bonus]) => {
+            trainingCalc.setImplant(parseInt(slot), bonus);
+        });
+        trainingCalc.setCerebralAccelerator(originalAccelerator, originalAcceleratorBonus);
+    }
+
+    applySuggestedRemap() {
+        const plan = skillPlanner.getPlan();
+        if (plan.length === 0) {
+            this.showMessage('Add skills to your plan before applying a remap', 'warning');
+            return;
         }
+
+        const suggested = trainingCalc.optimizeAttributes(plan, this.currentCharacterData?.skills);
+        this.setSliderValue('calcInt', suggested.intelligence || 20);
+        this.setSliderValue('calcMem', suggested.memory || 20);
+        this.setSliderValue('calcPer', suggested.perception || 20);
+        this.setSliderValue('calcWill', suggested.willpower || 20);
+        this.setSliderValue('calcChar', suggested.charisma || 19);
+
+        this.updateCalcDisplay();
+        this.showMessage('Applied suggested remap to calculator preview', 'success');
+    }
+
+    runInjectorCalculator() {
+        const currentSp = parseInt(document.getElementById('currentSpInput')?.value || 0);
+        const targetSp = parseInt(document.getElementById('targetSpInput')?.value || 0);
+        const injectorPrice = parseInt(document.getElementById('injectorPriceInput')?.value || 900000000);
+        const results = document.getElementById('injectorResults');
+
+        if (!results) return;
+
+        if (!Number.isFinite(currentSp) || !Number.isFinite(targetSp) || currentSp < 0 || targetSp <= 0) {
+            this.showMessage('Enter valid SP values', 'warning');
+            return;
+        }
+
+        if (targetSp <= currentSp) {
+            this.showMessage('Target SP must be greater than current SP', 'warning');
+            return;
+        }
+
+        const summary = injectorCalc.generateSummary(currentSp, targetSp, injectorPrice);
+        const calc = injectorCalc.calculateInjectors(currentSp, targetSp);
+        results.innerHTML = `
+            <div class="inj-result-row">
+                <span>Injectors Needed</span>
+                <strong>${calc.count}</strong>
+            </div>
+            <div class="inj-result-row">
+                <span>Total Cost</span>
+                <strong>${summary.cost}</strong>
+            </div>
+            <div class="inj-result-row">
+                <span>Total SP Injected</span>
+                <strong>${calc.totalSp.toLocaleString()}</strong>
+            </div>
+            <div class="inj-result-row">
+                <span>SP Wasted</span>
+                <strong>${calc.wastedSp.toLocaleString()}</strong>
+            </div>
+            <div class="inj-result-note">Efficiency: ${summary.efficiency}</div>
+        `;
     }
 
     updateRemapSuggestion() {
