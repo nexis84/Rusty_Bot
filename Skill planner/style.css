@@ -456,6 +456,91 @@ body {
     font-size: 1rem;
 }
 
+/* --- My Skills View --- */
+#mySkillsView {
+    padding: 20px;
+}
+
+.my-skills-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.my-skills-header h2 {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.my-skills-header h2 i {
+    color: var(--accent-color);
+}
+
+.my-skills-stats {
+    display: flex;
+    gap: 20px;
+    color: var(--text-subtle-color);
+    font-size: 0.9rem;
+}
+
+.my-skills-toolbar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.my-skills-toolbar .search-box {
+    flex: 1;
+}
+
+.my-skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+.my-skill-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    background: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 6px;
+}
+
+.my-skill-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.my-skill-level {
+    color: var(--accent-color);
+    font-weight: 600;
+    min-width: 35px;
+    text-align: center;
+}
+
+.my-skill-level.maxed {
+    color: var(--accent-color);
+    text-shadow: 0 0 5px rgba(204, 170, 102, 0.3);
+}
+
+.my-skill-sp {
+    color: var(--text-subtle-color);
+    font-family: monospace;
+    font-size: 0.9rem;
+    min-width: 100px;
+    text-align: right;
+}
+
 /* --- Character Stats --- */
 .char-stats-grid {
     display: grid;
@@ -562,6 +647,56 @@ body {
     font-size: 0.8rem;
     color: var(--text-subtle-color);
     font-family: monospace;
+}
+
+/* --- Current Skills --- */
+.current-skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.current-skill-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: var(--secondary-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.current-skill-name {
+    flex: 1;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-skill-level {
+    color: var(--accent-color);
+    font-weight: 600;
+    min-width: 30px;
+    text-align: center;
+}
+
+.current-skill-sp {
+    font-size: 0.75rem;
+    color: var(--text-subtle-color);
+    font-family: monospace;
+    min-width: 70px;
+    text-align: right;
+}
+
+.more-hint {
+    text-align: center;
+    color: var(--text-subtle-color);
+    font-size: 0.8rem;
+    padding: 8px;
+    font-style: italic;
 }
 
 /* --- Quick Actions --- */

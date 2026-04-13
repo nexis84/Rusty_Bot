@@ -3,7 +3,7 @@
 
 const ESI_CONFIG = {
     clientId: 'ac86bbdbb05e404b85c6eb1546ed06b1', // Rusty Skill Planner
-    redirectUri: 'https://www.rustybot.co.uk/Skill planner/index.html',
+    redirectUri: 'https://www.rustybot.co.uk/skillplanner/index.html',
     authorizeUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     revokeUrl: 'https://login.eveonline.com/v2/oauth/revoke',
@@ -21,9 +21,9 @@ class ESIAuth {
     }
 
     // Generate PKCE code verifier and challenge
-    generatePKCE() {
+    async generatePKCE() {
         const verifier = this.generateRandomString(128);
-        const challenge = this.base64URLEscape(btoa(verifier));
+        const challenge = await this.sha256Base64Url(verifier);
         return { verifier, challenge };
     }
 
@@ -36,13 +36,19 @@ class ESIAuth {
         return text;
     }
 
-    base64URLEscape(str) {
-        return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    // SHA256 hash and base64url encode
+    async sha256Base64Url(str) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashBase64 = btoa(String.fromCharCode(...hashArray));
+        return hashBase64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
     // Initiate ESI login
     async initiateLogin() {
-        const { verifier, challenge } = this.generatePKCE();
+        const { verifier, challenge } = await this.generatePKCE();
         
         // Store verifier for later
         sessionStorage.setItem('esi_code_verifier', verifier);
@@ -225,6 +231,11 @@ class ESIAuth {
     // Load current character from localStorage
     loadCurrentCharacter() {
         return localStorage.getItem('esi_current_character');
+    }
+
+    // Get current character ID
+    getCurrentCharacter() {
+        return this.currentCharacter;
     }
 
     // Remove character

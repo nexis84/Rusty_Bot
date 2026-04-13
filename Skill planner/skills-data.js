@@ -1,409 +1,5515 @@
-// EVE Online Skills Database
-// Static skill data with prerequisites, attributes, and multipliers
+const SKILLS = {
+  "2403": {
+    "name": "Advanced Planetology",
+    "group": "Planet Management",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "The advanced understanding of planet evolution allowing you to interpret data from scans of planets for resources at much higher resolutions.\r \r Bonus"
+  },
+  "2406": {
+    "name": "Planetology",
+    "group": "Planet Management",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "The understanding of planet evolution allowing you to better interpret data from scans of planets for resources.  Bonus: The skill increases the resol"
+  },
+  "2495": {
+    "name": "Interplanetary Consolidation",
+    "group": "Planet Management",
+    "rank": 4,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "For each level in this skill, you may install a command center on one additional planet, to a maximum of 6 planets. You can have only one command cent"
+  },
+  "2505": {
+    "name": "Command Center Upgrades",
+    "group": "Planet Management",
+    "rank": 4,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Each level in this skill improves the quality of command facility available to you, in turn allowing for a greater number of connected facilities on t"
+  },
+  "3184": {
+    "name": "ORE Hauler",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ORE hauler ships."
+  },
+  "3300": {
+    "name": "Gunnery",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Basic turret operation skill. 2% Bonus to weapon turrets' rate of fire per skill level."
+  },
+  "3301": {
+    "name": "Small Hybrid Turret",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of small hybrid turrets. 5% Bonus to small hybrid turret damage per level."
+  },
+  "3302": {
+    "name": "Small Projectile Turret",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of small projectile turrets. 5% Bonus to small projectile turret damage per level."
+  },
+  "3303": {
+    "name": "Small Energy Turret",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of small energy turrets. 5% Bonus to small energy turret damage per level."
+  },
+  "3304": {
+    "name": "Medium Hybrid Turret",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of medium hybrid turrets. 5% Bonus to medium hybrid turret damage per level."
+  },
+  "3305": {
+    "name": "Medium Projectile Turret",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of medium projectile turrets. 5% Bonus to medium projectile turret damage per level."
+  },
+  "3306": {
+    "name": "Medium Energy Turret",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of medium energy turret. 5% Bonus to medium energy turret damage per level."
+  },
+  "3307": {
+    "name": "Large Hybrid Turret",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of large hybrid turret. 5% Bonus to large hybrid turret damage per level."
+  },
+  "3308": {
+    "name": "Large Projectile Turret",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of large projectile turret. 5% Bonus to large projectile turret damage per level."
+  },
+  "3309": {
+    "name": "Large Energy Turret",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of large energy turrets. 5% Bonus to large energy turret damage per level."
+  },
+  "3310": {
+    "name": "Rapid Firing",
+    "group": "Gunnery",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at the rapid discharge of weapon turrets. 4% bonus per skill level to weapon turret rate of fire."
+  },
+  "3311": {
+    "name": "Sharpshooter",
+    "group": "Gunnery",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at long-range weapon turret firing. 5% bonus to weapon optimal range per skill level."
+  },
+  "3312": {
+    "name": "Motion Prediction",
+    "group": "Gunnery",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Improved ability at hitting moving targets. 5% bonus per skill level to weapon turret tracking speeds."
+  },
+  "3315": {
+    "name": "Surgical Strike",
+    "group": "Gunnery",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Knowledge of spaceships' structural weaknesses. 3% bonus per skill level to the damage of all weapon turrets."
+  },
+  "3316": {
+    "name": "Controlled Bursts",
+    "group": "Gunnery",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Allows better control over the capacitor use of weapon turrets. 5% reduction in capacitor need of weapon turrets per skill level."
+  },
+  "3317": {
+    "name": "Trajectory Analysis",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Advanced understanding of zero-G physics. 5% bonus per skill level to weapon turret accuracy falloff."
+  },
+  "3318": {
+    "name": "Weapon Upgrades",
+    "group": "Engineering",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "cha",
+    "desc": "Knowledge of gunnery computer systems, including the use of weapon upgrade modules. 5% reduction per skill level in the CPU needs of weapon turrets, l"
+  },
+  "3319": {
+    "name": "Missile Launcher Operation",
+    "group": "Missiles",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Basic operation of missile launcher systems. 2% Bonus to missile launcher rate of fire per skill level."
+  },
+  "3320": {
+    "name": "Rockets",
+    "group": "Missiles",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill with small short range missiles. Special: 5% bonus to rocket damage per skill level."
+  },
+  "3321": {
+    "name": "Light Missiles",
+    "group": "Missiles",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill with manually targeted missiles. 5% Bonus to light missile damage per skill level."
+  },
+  "3322": {
+    "name": "Auto-Targeting Missiles",
+    "group": "Missiles",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill with auto-targeting missiles. Special: 5% bonus to Auto-Targeting Missiles (light, heavy and cruise) damage per skill level."
+  },
+  "3323": {
+    "name": "Defender Missiles",
+    "group": "Missiles",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill with anti-bomb missiles. Special: 10% bonus to defender missile max velocity per skill level."
+  },
+  "3324": {
+    "name": "Heavy Missiles",
+    "group": "Missiles",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill with heavy missiles. Special: 5% bonus to heavy missile damage per skill level."
+  },
+  "3325": {
+    "name": "Torpedoes",
+    "group": "Missiles",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at the handling and firing of torpedoes. 5% bonus to torpedo damage per skill level."
+  },
+  "3326": {
+    "name": "Cruise Missiles",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at the handling and firing of very large guided missiles. 5% bonus to cruise missile damage per skill level."
+  },
+  "3327": {
+    "name": "Spaceship Command",
+    "group": "Spaceship Command",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "The basic operation of spaceships. 2% improved ship agility for all ships per skill level."
+  },
+  "3328": {
+    "name": "Gallente Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente frigates."
+  },
+  "3329": {
+    "name": "Minmatar Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar frigates."
+  },
+  "3330": {
+    "name": "Caldari Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari frigates."
+  },
+  "3331": {
+    "name": "Amarr Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr frigates."
+  },
+  "3332": {
+    "name": "Gallente Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente cruisers."
+  },
+  "3333": {
+    "name": "Minmatar Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar cruisers."
+  },
+  "3334": {
+    "name": "Caldari Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari cruisers."
+  },
+  "3335": {
+    "name": "Amarr Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr cruisers."
+  },
+  "3336": {
+    "name": "Gallente Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente battleships."
+  },
+  "3337": {
+    "name": "Minmatar Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar battleships."
+  },
+  "3338": {
+    "name": "Caldari Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari battleships."
+  },
+  "3339": {
+    "name": "Amarr Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr battleships."
+  },
+  "3340": {
+    "name": "Gallente Hauler",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente hauler ships."
+  },
+  "3341": {
+    "name": "Minmatar Hauler",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar hauler ships."
+  },
+  "3342": {
+    "name": "Caldari Hauler",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari hauler ships."
+  },
+  "3343": {
+    "name": "Amarr Hauler",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr hauler ships."
+  },
+  "3344": {
+    "name": "Gallente Titan",
+    "group": "Spaceship Command",
+    "rank": 16,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente titans."
+  },
+  "3345": {
+    "name": "Minmatar Titan",
+    "group": "Spaceship Command",
+    "rank": 16,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar titans."
+  },
+  "3346": {
+    "name": "Caldari Titan",
+    "group": "Spaceship Command",
+    "rank": 16,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari titans."
+  },
+  "3347": {
+    "name": "Amarr Titan",
+    "group": "Spaceship Command",
+    "rank": 16,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr titans."
+  },
+  "3348": {
+    "name": "Leadership",
+    "group": "Fleet Support",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at projecting beneficial effects to fleetmates. Increases Command Burst and Mining Foreman Burst area of effect range by 7% per skil"
+  },
+  "3349": {
+    "name": "Skirmish Command",
+    "group": "Fleet Support",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at boosting the hit-and-run capabilities of allied ships. Grants a 10% bonus to the duration of Skirmish Command Burst effects per l"
+  },
+  "3350": {
+    "name": "Shield Command",
+    "group": "Fleet Support",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at boosting the shield defenses of allied ships. Grants a 10% bonus to the duration of Shield Command Burst effects per level."
+  },
+  "3351": {
+    "name": "Shield Command Specialist",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at boosting the shield defenses of allied ships. Increases the strength of Shield Command Burst effects by 10% per skill level."
+  },
+  "3352": {
+    "name": "Information Command Specialist",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at boosting the sensors and electronic warfare systems of allied ships. Increases the strength of Information Command Burst effec"
+  },
+  "3354": {
+    "name": "Command Burst Specialist",
+    "group": "Fleet Support",
+    "rank": 6,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Improved fleet support flexibility. Reduces reload duration of all Command Burst and Mining Foreman Burst modules by 10% per level."
+  },
+  "3355": {
+    "name": "Social",
+    "group": "Social",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at social interaction. 5% bonus per level to NPC agent, corporation and faction standing increase."
+  },
+  "3356": {
+    "name": "Negotiation",
+    "group": "Social",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at agent negotiation. 5% additional pay per skill level for agent missions."
+  },
+  "3357": {
+    "name": "Diplomacy",
+    "group": "Social",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at interacting with hostile Agents in order to de-escalate tense situations as demonstrated by some of the finest diplomats in New Eden. 4% Modi"
+  },
+  "3358": {
+    "name": "Fast Talk",
+    "group": "Social",
+    "rank": 4,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at interacting with Concord. 5% Bonus to effective security rating increase."
+  },
+  "3359": {
+    "name": "Connections",
+    "group": "Social",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at interacting with friendly NPCs. 4% Modifier to effective standing from friendly NPC Corporations and Factions per level. Not cumulative with "
+  },
+  "3361": {
+    "name": "Criminal Connections",
+    "group": "Social",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at interacting with friendly criminal NPCs. 4% Modifier per level to effective standing towards NPCs with low Concord standing. Not cumulative w"
+  },
+  "3362": {
+    "name": "DED Connections",
+    "group": "Social",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Skill at dealing with Concord Department and negotiating bounties \r \r Bonus fee of 1,500 ISK per pirate head per level of the skill"
+  },
+  "3363": {
+    "name": "Corporation Management",
+    "group": "Corporation Management",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Basic corporation operation. +20 corporation members allowed per level.\r \r Note: The CEO must update his corporation through the corporation user inte"
+  },
+  "3364": {
+    "name": "Station Management",
+    "group": "Corporation Management",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "The operation and management of spacestations."
+  },
+  "3365": {
+    "name": "Starbase Management",
+    "group": "Corporation Management",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at setting up Starbases"
+  },
+  "3366": {
+    "name": "Factory Management",
+    "group": "Corporation Management",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at factory operation."
+  },
+  "3367": {
+    "name": "Refinery Management",
+    "group": "Corporation Management",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at managing station refineries. Increases mineral yield of refinery by 5% if acting as station manager."
+  },
+  "3368": {
+    "name": "Diplomatic Relations",
+    "group": "Corporation Management",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at negotiating ally fees with Concord. Reduces cost to hire allies in wars by 5% per level."
+  },
+  "3369": {
+    "name": "CFO Training",
+    "group": "Corporation Management",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at managing corp finances. 5% discount on all fees at non-hostile NPC station if acting as CFO of a corp."
+  },
+  "3370": {
+    "name": "Chief Science Officer",
+    "group": "Corporation Management",
+    "rank": 6,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at managing corp research."
+  },
+  "3371": {
+    "name": "Public Relations",
+    "group": "Corporation Management",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at managing corporate offices."
+  },
+  "3372": {
+    "name": "Intelligence Analyst",
+    "group": "Corporation Management",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at directing a corporation's espionage division."
+  },
+  "3373": {
+    "name": "Starbase Defense Management",
+    "group": "Structure Management",
+    "rank": 7,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at using starbase weapon systems. Allows control of one array per level. Arrays must be placed outside of the forcefield to be controlled."
+  },
+  "3380": {
+    "name": "Industry",
+    "group": "Production",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Allows basic operation of factories. 4% reduction in manufacturing time per skill level."
+  },
+  "3381": {
+    "name": "Amarr Tech",
+    "group": "Production",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Grants +5% reduction in Amarr equipment production time."
+  },
+  "3382": {
+    "name": "Caldari Tech",
+    "group": "Production",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Grants +5% reduction in Caldari equipment production time."
+  },
+  "3383": {
+    "name": "Gallente Tech",
+    "group": "Production",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Grants +5% reduction in Gallente equipment production time."
+  },
+  "3384": {
+    "name": "Minmatar Tech",
+    "group": "Production",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Grants +5% reduction in Minmatar equipment production time."
+  },
+  "3385": {
+    "name": "Reprocessing",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at using reprocessing facilities in station, outposts and starbases to break ores and ice down into refined products.\r \r 3% bonus to ore and ice"
+  },
+  "3386": {
+    "name": "Mining",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at using mining lasers. 5% bonus to mining turret yield per skill level."
+  },
+  "3387": {
+    "name": "Mass Production",
+    "group": "Production",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Allows the operation of multiple factories. Ability to run 1 additional manufacturing job per level."
+  },
+  "3388": {
+    "name": "Advanced Industry",
+    "group": "Production",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at efficiently using industrial facilities. 3% reduction in all manufacturing and research times per skill level."
+  },
+  "3389": {
+    "name": "Reprocessing Efficiency",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Advanced skill at using reprocessing facilities in station, outposts and starbases to break ores and ice down into refined products.\r \r 2% bonus to or"
+  },
+  "3390": {
+    "name": "Mobile Refinery Operation",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": ""
+  },
+  "3391": {
+    "name": "Mobile Factory Operation",
+    "group": "Production",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": ""
+  },
+  "3392": {
+    "name": "Mechanics",
+    "group": "Armor",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at maintaining the mechanical components and structural integrity of a spaceship. 5% bonus to structure hit points per skill level."
+  },
+  "3393": {
+    "name": "Repair Systems",
+    "group": "Armor",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of armor/hull repair modules. 5% reduction in repair systems duration per skill level.\r \r Note: Has no effect on capital sized modules."
+  },
+  "3394": {
+    "name": "Hull Upgrades",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at maintaining your ship's armor and installing hull upgrades like expanded cargoholds and inertial stabilizers. Grants a 5% bonus to armor hit "
+  },
+  "3395": {
+    "name": "Advanced Small Ship Construction",
+    "group": "Production",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of advanced frigates and destroyers. 1% reduction in manufacturing time for all items requiring Advanced Small Sh"
+  },
+  "3396": {
+    "name": "Advanced Industrial Ship Construction",
+    "group": "Production",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of advanced industrial ships. 1% reduction in manufacturing time for all items requiring Advanced Industrial Ship"
+  },
+  "3397": {
+    "name": "Advanced Medium Ship Construction",
+    "group": "Production",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of advanced cruisers and battlecruisers. 1% reduction in manufacturing time for all items requiring Advanced Medi"
+  },
+  "3398": {
+    "name": "Advanced Large Ship Construction",
+    "group": "Production",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of advanced battleships. 1% reduction in manufacturing time for all items requiring Advanced Large Ship Construct"
+  },
+  "3400": {
+    "name": "Outpost Construction",
+    "group": "Production",
+    "rank": 16,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of player controllable outposts.\r \r 1% reduction in manufacturing time for all items requiring Outpost Constructi"
+  },
+  "3402": {
+    "name": "Science",
+    "group": "Science",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of scientific principles. 5% Bonus to blueprint copying speed per level."
+  },
+  "3403": {
+    "name": "Research",
+    "group": "Science",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at researching more efficient production methods. 5% bonus to blueprint manufacturing time research per skill level."
+  },
+  "3405": {
+    "name": "Biology",
+    "group": "Neural Enhancement",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "The science of life and of living organisms, and how chemicals affect them. 20% Bonus to attribute booster duration per skill level."
+  },
+  "3406": {
+    "name": "Laboratory Operation",
+    "group": "Science",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Allows basic operation of research facilities. Ability to run 1 additional research job per skill level."
+  },
+  "3408": {
+    "name": "Sleeper Encryption Methods",
+    "group": "Science",
+    "rank": 4,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the techniques and methods to reverse engineer Sleeper technology."
+  },
+  "3409": {
+    "name": "Metallurgy",
+    "group": "Science",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced knowledge of mineral composition. 5% Bonus to material efficiency research speed per skill level."
+  },
+  "3410": {
+    "name": "Astrogeology",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at analyzing the content of celestial objects with the intent of mining them. 5% bonus to mining turret yield per skill level."
+  },
+  "3411": {
+    "name": "Cybernetics",
+    "group": "Neural Enhancement",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "The science of interfacing biological and machine components. Allows the use of cybernetic implants."
+  },
+  "3412": {
+    "name": "Astrometrics",
+    "group": "Scanning",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating long range scanners.\r \r +5% scan strength per level.\r \r -5% max scan deviation per level.\r \r -5% scan probe scan time per level."
+  },
+  "3413": {
+    "name": "Power Grid Management",
+    "group": "Engineering",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of spaceship energy grid systems. 5% Bonus to ship's powergrid output per skill level."
+  },
+  "3416": {
+    "name": "Shield Operation",
+    "group": "Shields",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating a spaceship's shield systems, including the use of shield boosters and other basic shield modules. 5% reduction in shield recharge "
+  },
+  "3417": {
+    "name": "Capacitor Systems Operation",
+    "group": "Engineering",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating your ship's capacitor, including the use of capacitor boosters and other basic energy modules. 5% reduction in capacitor recharge t"
+  },
+  "3418": {
+    "name": "Capacitor Management",
+    "group": "Engineering",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at regulating your ship's overall energy capacity. 5% bonus to capacitor capacity per skill level."
+  },
+  "3419": {
+    "name": "Shield Management",
+    "group": "Shields",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at regulating a spaceship's shield systems. 5% bonus to shield capacity per skill level."
+  },
+  "3420": {
+    "name": "Tactical Shield Manipulation",
+    "group": "Shields",
+    "rank": 4,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at preventing damage from penetrating the shield, including the use of shield hardeners and other advanced shield modules. Reduces the chance of"
+  },
+  "3421": {
+    "name": "Energy Pulse Weapons",
+    "group": "Engineering",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at using smartbombs. 5% decrease in smartbomb duration per skill level."
+  },
+  "3422": {
+    "name": "Shield Emission Systems",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of shield transfer array and other shield emission systems. 5% reduced capacitor need for shield emission system modules per skill level."
+  },
+  "3423": {
+    "name": "Capacitor Emission Systems",
+    "group": "Engineering",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of energy transfer array and other energy emission systems. 5% reduced capacitor need of energy emission weapons per skill level."
+  },
+  "3424": {
+    "name": "Energy Grid Upgrades",
+    "group": "Engineering",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at installing power upgrades e.g. capacitor battery and power diagnostic units. 5% reduction in CPU needs of modules requiring Energy Grid Upgra"
+  },
+  "3425": {
+    "name": "Shield Upgrades",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at installing shield upgrades e.g. shield extenders and shield rechargers. 5% reduction in shield upgrade powergrid needs."
+  },
+  "3426": {
+    "name": "CPU Management",
+    "group": "Engineering",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of spaceship sensory and computer systems. 5% Bonus to ship CPU output per skill level."
+  },
+  "3427": {
+    "name": "Electronic Warfare",
+    "group": "Electronic Systems",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of ECM jamming systems. 5% less capacitor need for ECM and ECM Burst systems per skill level.\r \r Note: Does not affect capital class modules"
+  },
+  "3428": {
+    "name": "Long Range Targeting",
+    "group": "Targeting",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at long range targeting. 5% Bonus to targeting range per skill level."
+  },
+  "3429": {
+    "name": "Target Management",
+    "group": "Targeting",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at targeting multiple targets. +1 extra target per skill level, up to the ship's maximum allowed number of targets locked."
+  },
+  "3430": {
+    "name": "Advanced Target Management",
+    "group": "Targeting",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at targeting multiple targets. +1 extra target per skill level, up to the ship's maximum allowed number of targets locked."
+  },
+  "3431": {
+    "name": "Signature Analysis",
+    "group": "Targeting",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating Targeting systems. 5% improved targeting speed per skill level."
+  },
+  "3432": {
+    "name": "Electronics Upgrades",
+    "group": "Engineering",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at installing electronic upgrades, such as signal amplifiers, co-processors and backup sensor arrays. 5% reduction of CPU needs for all modules "
+  },
+  "3433": {
+    "name": "Sensor Linking",
+    "group": "Electronic Systems",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at using remote sensor booster/dampener. 5% less capacitor need for sensor link per skill level."
+  },
+  "3434": {
+    "name": "Weapon Disruption",
+    "group": "Electronic Systems",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at using remote weapon disruptors. 5% less capacitor need for weapon disruptors per skill level."
+  },
+  "3435": {
+    "name": "Propulsion Jamming",
+    "group": "Electronic Systems",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at using propulsion/warpdrive jammers. 5% Reduction to Warp Scrambler, Warp Disruptor, and Stasis Web capacitor need per skill level."
+  },
+  "3436": {
+    "name": "Drones",
+    "group": "Drones",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at remote controlling drones. Can operate 1 drone per skill level."
+  },
+  "3437": {
+    "name": "Drone Avionics",
+    "group": "Drones",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at control range for all drones.\r \r Bonus: Drone control range increased by 5000 meters per skill level."
+  },
+  "3438": {
+    "name": "Mining Drone Operation",
+    "group": "Drones",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling mining drones. 5% bonus to mining drone yield per skill level."
+  },
+  "3439": {
+    "name": "Repair Drone Operation",
+    "group": "Drones",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Allows operation of logistic drones. 5% increased repair amount per level."
+  },
+  "3440": {
+    "name": "Salvage Drone Operation",
+    "group": "Drones",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling salvage drones. 2% increased salvage chance per level."
+  },
+  "3441": {
+    "name": "Heavy Drone Operation",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling heavy combat drones. 5% bonus to heavy drone damage per level."
+  },
+  "3442": {
+    "name": "Drone Interfacing",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Improves damage and mining yield for drones and fighters under your control.\r \r 10% bonus to drone damage and drone mining yield per level.\r 10% bonus"
+  },
+  "3443": {
+    "name": "Trade",
+    "group": "Trade",
+    "rank": 1,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Knowledge of the market and skill at manipulating it. Active buy/sell order limit increased by 4 per level of skill."
+  },
+  "3444": {
+    "name": "Retail",
+    "group": "Trade",
+    "rank": 2,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Ability to organize and manage market operations. Each level raises the limit of active orders by 8."
+  },
+  "3445": {
+    "name": "Black Market Trading",
+    "group": "Trade",
+    "rank": 2,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Skill at forging cargo manifests and disguising contraband cargo. From a base of 90%, each level of skill reduces chance of contraband detection by 10"
+  },
+  "3446": {
+    "name": "Broker Relations",
+    "group": "Trade",
+    "rank": 2,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Proficiency at driving down market-related costs. Each level of skill subtracts a flat 0.3% from the costs associated with setting up a market order i"
+  },
+  "3447": {
+    "name": "Visibility",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Skill at acquiring products remotely. Each level of skill increases the range your remote buy orders are effective to from their origin station. Level"
+  },
+  "3448": {
+    "name": "Smuggling",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Proficiency at laying low and avoiding unwanted attention. From a base of 90%, each level of skill reduces by 10% the likelihood of being scanned whil"
+  },
+  "3449": {
+    "name": "Navigation",
+    "group": "Navigation",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at regulating the power output of ship thrusters. 5% bonus to sub-warp ship velocity per skill level."
+  },
+  "3450": {
+    "name": "Afterburner",
+    "group": "Navigation",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at using afterburners. 5% reduction to Afterburner duration and 10% reduction in Afterburner capacitor use per skill level."
+  },
+  "3451": {
+    "name": "Fuel Conservation",
+    "group": "Navigation",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at improved control over afterburner energy consumption. 10% reduction in afterburner capacitor needs per skill level."
+  },
+  "3452": {
+    "name": "Acceleration Control",
+    "group": "Navigation",
+    "rank": 4,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at efficiently using Afterburners and MicroWarpdrives. 5% Bonus to Afterburner and MicroWarpdrive speed boost per skill level."
+  },
+  "3453": {
+    "name": "Evasive Maneuvering",
+    "group": "Navigation",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Improved skill at efficiently turning and accelerating a spaceship. 5% improved ship agility for all ships per skill level."
+  },
+  "3454": {
+    "name": "High Speed Maneuvering",
+    "group": "Navigation",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at using Microwarpdrives. 5% reduction in Microwarpdrive capacitor usage per skill level."
+  },
+  "3455": {
+    "name": "Warp Drive Operation",
+    "group": "Navigation",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at managing warp drive efficiency. 10% reduction in capacitor need of initiating warp per skill level."
+  },
+  "3456": {
+    "name": "Jump Drive Operation",
+    "group": "Navigation",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at using Jump Drives. 5% reduction in capacitor need of initiating a jump per skill level."
+  },
+  "3551": {
+    "name": "Survey",
+    "group": "Scanning",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating ship and cargo scanners. 5% improvement per level in the scan speeds of those module types."
+  },
+  "3731": {
+    "name": "Megacorp Management",
+    "group": "Corporation Management",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Advanced corporation operation. +100 members per level.\r \r Note: The CEO must update his corporation through the corporation user interface before the"
+  },
+  "3732": {
+    "name": "Empire Control",
+    "group": "Corporation Management",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Advanced corporation operation. +400 corporation members allowed per level. \r \r Note: The CEO must update his corporation through the corporation user"
+  },
+  "3755": {
+    "name": "Jove Frigate",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": ""
+  },
+  "3758": {
+    "name": "Jove Cruiser",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": ""
+  },
+  "3893": {
+    "name": "Mining Connections",
+    "group": "Social",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Understanding of corporate culture on the industrial level and the plight of the worker.  Improves loyalty point gain by 10% per level when working fo"
+  },
+  "3894": {
+    "name": "Distribution Connections",
+    "group": "Social",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Understanding of the way trade is conducted at the corporate level.  Improves loyalty point gain by 10% per level when working for agents in the Distr"
+  },
+  "3895": {
+    "name": "Security Connections",
+    "group": "Social",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Understanding of military culture.\r \r Improves loyalty point gain by 10% per level when working for agents in the Security corporation division."
+  },
+  "4385": {
+    "name": "Micro Jump Drive Operation",
+    "group": "Navigation",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at using Micro Jump Drives. 5% reduction in activation time per skill level."
+  },
+  "4411": {
+    "name": "Signature Masking",
+    "group": "Electronic Systems",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Improves the active masking mode of Signature Radius Suppressors, resulting in more efficient masking that can be maintained for longer periods of tim"
+  },
+  "9955": {
+    "name": "Polaris",
+    "group": "Spaceship Command",
+    "rank": 0.5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Polaris ships."
+  },
+  "10264": {
+    "name": "Concord",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Concord."
+  },
+  "11015": {
+    "name": "Test",
+    "group": "Trade",
+    "rank": 0.01,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "This is a test skill and should never appear in the live game"
+  },
+  "11075": {
+    "name": "Jove Hauler",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Jovian hauler ships."
+  },
+  "11078": {
+    "name": "Jove Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating jove battleships."
+  },
+  "11082": {
+    "name": "Small Railgun Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced small railguns. 2% bonus per skill level to the damage of small turrets requiring Small Railgun Speci"
+  },
+  "11083": {
+    "name": "Small Beam Laser Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of small beam lasers. 2% bonus per skill level to the damage of small turrets requiring Small Beam Laser Speciali"
+  },
+  "11084": {
+    "name": "Small Autocannon Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced small autocannons. 2% bonus per skill level to the damage of small turrets requiring Small Autocannon"
+  },
+  "11204": {
+    "name": "Advanced Energy Grid Upgrades",
+    "group": "Engineering",
+    "rank": 6,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced Skill at installing power upgrades e.g. capacitor battery and power diagnostic units. a further a further 2% reduction in energy grid upgrade"
+  },
+  "11206": {
+    "name": "Advanced Shield Upgrades",
+    "group": "Shields",
+    "rank": 6,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at installing shield upgrades e.g. shield extenders and shield rechargers. 2% reduction in shield upgrade power needs."
+  },
+  "11207": {
+    "name": "Advanced Weapon Upgrades",
+    "group": "Engineering",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Reduces the powergrid needs of weapon turrets and launchers by 2% per skill level."
+  },
+  "11208": {
+    "name": "Advanced Sensor Upgrades",
+    "group": "Electronic Systems",
+    "rank": 6,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced skill at installing sensor upgrades, e.g. signal amplifier and backup sensor array. further 2% reduction of sensor upgrade CPU needs per skil"
+  },
+  "11395": {
+    "name": "Deep Core Mining",
+    "group": "Resource Processing",
+    "rank": 6,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at operating mining lasers requiring Deep Core Mining. 10% reduction per skill level to the chance of a damage cloud forming while mining Mercox"
+  },
+  "11433": {
+    "name": "High Energy Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of High Energy Physics and its use in the development of advanced technology. \r \r Used primarily in the research of various energy"
+  },
+  "11441": {
+    "name": "Plasma Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Plasma physics and its use in the development of advanced technology. \r \r Used primarily in the research of particle blaster we"
+  },
+  "11442": {
+    "name": "Nanite Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Nanite Engineering and its use in the development of advanced technology. \r \r Used primarily in the research of various armor a"
+  },
+  "11443": {
+    "name": "Hydromagnetic Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Hydromagnetic Physics and its use in the development of advanced technology . \r \r Used primarily in the research of shield syst"
+  },
+  "11444": {
+    "name": "Amarr Starship Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Amarr Starship Engineering. \r \r Used in the research of Amarr Ships of all Sizes.\r \r Allows Amarr Starship Engineering research"
+  },
+  "11445": {
+    "name": "Minmatar Starship Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Minmatar Starship Engineering and its use in the development of advanced technology. \r \r Used in the research of Minmatar Ships"
+  },
+  "11446": {
+    "name": "Graviton Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Graviton physics and its use in the development of advanced technology. \r \r Used primarily in the research of Cloaking and othe"
+  },
+  "11447": {
+    "name": "Laser Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Laser Physics and its use in the development of advanced Technology. \r \r Used primarily in the research of Laser weaponry as we"
+  },
+  "11448": {
+    "name": "Electromagnetic Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Electromagnetic Physics and its use in the development of advanced technology. \r \r Used primarily in the research of Railgun we"
+  },
+  "11449": {
+    "name": "Rocket Science",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Rocket Science and its use in the development of advanced technology. \r \r Used primarily in the research of missiles and propul"
+  },
+  "11450": {
+    "name": "Gallente Starship Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Gallente Starship Engineering and its use in the development of advanced technology. \r \r Used in the research of Gallente Ships"
+  },
+  "11451": {
+    "name": "Nuclear Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Nuclear physics and its use in the development of advanced technology.  \r \r Used primarily in the research of Projectile weapon"
+  },
+  "11452": {
+    "name": "Mechanical Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Mechanical Engineering and its use in the development of advanced technology. \r \r Used in all Starship research as well as hull"
+  },
+  "11453": {
+    "name": "Electronic Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Electronic Engineering and its use in the development of advanced technology. \r \r Used in all Electronics and Drone research.  "
+  },
+  "11454": {
+    "name": "Caldari Starship Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Caldari Starship Engineering and its use in the development of advanced technology. \r \r Used in the research of Caldari Ships o"
+  },
+  "11455": {
+    "name": "Quantum Physics",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Quantum Physics and its use in the development of advanced Technology. \r \r Used primarily in the research of shield systems and"
+  },
+  "11487": {
+    "name": "Astronautic Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Astronautics and its use in the development of advanced technology. This skill has no practical application for capsuleers, and"
+  },
+  "11529": {
+    "name": "Molecular Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Molecular Engineering and its use in the development of advanced technology.   Used primarily in the research of various hull a"
+  },
+  "11566": {
+    "name": "Thermal Shield Compensation",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to thermal resistance per level for Shield Amplifiers."
+  },
+  "11569": {
+    "name": "Armored Command Specialist",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at boosting the armor defenses of allied ships. Increases the strength of Armored Command Burst effects by 10% per skill level."
+  },
+  "11572": {
+    "name": "Skirmish Command Specialist",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at boosting the hit-and-run capabilities of allied ships. Increases the strength of Skirmish Command Burst effects by 10% per ski"
+  },
+  "11574": {
+    "name": "Wing Command",
+    "group": "Fleet Support",
+    "rank": 8,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Improved proficiency at projecting beneficial effects to fleetmates. Increases Command Burst and Mining Foreman Burst area of effect range by 6% per s"
+  },
+  "11579": {
+    "name": "Cloaking",
+    "group": "Electronic Systems",
+    "rank": 6,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at using Cloaking devices. 10% reduction in targeting delay after uncloaking per skill level."
+  },
+  "11584": {
+    "name": "Anchoring",
+    "group": "Structure Management",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at Anchoring Deployables."
+  },
+  "11858": {
+    "name": "Hypernet Science",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Hypernet Technology such as Hacking decks,  Codebreakers and Parasites."
+  },
+  "12092": {
+    "name": "Interceptors",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Interceptors."
+  },
+  "12093": {
+    "name": "Covert Ops",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Covert operations frigates are designed for recon and espionage operation. Their main strength is the ability to travel unseen through enemy territory"
+  },
+  "12095": {
+    "name": "Assault Frigates",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of the Assault Frigates."
+  },
+  "12096": {
+    "name": "Logistics Cruisers",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Logistics cruisers."
+  },
+  "12097": {
+    "name": "Destroyers",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill for the operation of Destroyers."
+  },
+  "12098": {
+    "name": "Interdictors",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Interdictors."
+  },
+  "12099": {
+    "name": "Battlecruisers",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Battlecruisers. Can not be trained on Trial Accounts."
+  },
+  "12179": {
+    "name": "Research Project Management",
+    "group": "Science",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at overseeing agent research and development projects. Allows the simultaneous use of 1 additional Research and Development agent per skill leve"
+  },
+  "12180": {
+    "name": "Arkonor Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Arkonor reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus"
+  },
+  "12181": {
+    "name": "Bistot Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Bistot reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus "
+  },
+  "12182": {
+    "name": "Crokite Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Crokite reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus"
+  },
+  "12183": {
+    "name": "Dark Ochre Processing",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Dark Ochre reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bo"
+  },
+  "12184": {
+    "name": "Gneiss Processing",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Gneiss reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus "
+  },
+  "12185": {
+    "name": "Hedbergite Processing",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Hedbergite reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bo"
+  },
+  "12186": {
+    "name": "Hemorphite Processing",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Hemorphite reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bo"
+  },
+  "12187": {
+    "name": "Jaspet Processing",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Jaspet reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus "
+  },
+  "12188": {
+    "name": "Kernite Processing",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Kernite reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus"
+  },
+  "12189": {
+    "name": "Mercoxit Ore Processing",
+    "group": "Resource Processing",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Mercoxit ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% "
+  },
+  "12190": {
+    "name": "Omber Processing",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Omber reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonus t"
+  },
+  "12191": {
+    "name": "Plagioclase Processing",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Plagioclase reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% b"
+  },
+  "12192": {
+    "name": "Pyroxeres Processing",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Pyroxeres reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bon"
+  },
+  "12193": {
+    "name": "Scordite Processing",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Scordite reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonu"
+  },
+  "12194": {
+    "name": "Spodumain Processing",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Spodumain reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bon"
+  },
+  "12195": {
+    "name": "Veldspar Processing",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Veldspar reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonu"
+  },
+  "12196": {
+    "name": "Scrapmetal Processing",
+    "group": "Resource Processing",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Scrapmetal reprocessing. Increases reprocessing returns for modules, ships and other reprocessable equipment (but not ore and ice).\r"
+  },
+  "12201": {
+    "name": "Small Artillery Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced small artillery. 2% bonus per skill level to the damage of small turrets requiring Small Artillery Sp"
+  },
+  "12202": {
+    "name": "Medium Artillery Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced medium artillery. 2% bonus per skill level to the damage of medium turrets requiring Medium Artillery"
+  },
+  "12203": {
+    "name": "Large Artillery Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced large artillery. 2% bonus per skill level to the damage of large turrets requiring Large Artillery Sp"
+  },
+  "12204": {
+    "name": "Medium Beam Laser Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced medium beam lasers. 2% bonus per skill level to the damage of medium turrets requiring Medium Beam La"
+  },
+  "12205": {
+    "name": "Large Beam Laser Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced large beam lasers. 2% Bonus per skill level to the damage of large turrets requiring Large Beam Laser"
+  },
+  "12206": {
+    "name": "Medium Railgun Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced medium railguns. 2% bonus per skill level to the damage of medium turrets requiring Medium Railgun Sp"
+  },
+  "12207": {
+    "name": "Large Railgun Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced large railguns. 2% bonus per skill level to the damage of large turrets requiring Large Railgun Speci"
+  },
+  "12208": {
+    "name": "Medium Autocannon Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced medium autocannons. 2% bonus per skill level to the damage of medium turrets requiring Medium Autocan"
+  },
+  "12209": {
+    "name": "Large Autocannon Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced large autocannons. 2% Bonus per skill level to the damage of large turrets requiring Large Autocannon"
+  },
+  "12210": {
+    "name": "Small Blaster Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced small blasters. 2% bonus per skill level to the damage of small turrets requiring Small Blaster Speci"
+  },
+  "12211": {
+    "name": "Medium Blaster Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced medium blasters. 2% bonus per skill level to the damage of medium turrets requiring Medium Blaster Sp"
+  },
+  "12212": {
+    "name": "Large Blaster Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced large blasters. 2% Bonus per skill level to the damage of large turrets requiring Large Blaster Speci"
+  },
+  "12213": {
+    "name": "Small Pulse Laser Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of small pulse lasers. 2% bonus per skill level to the damage of small turrets requiring Small Pulse Laser Specia"
+  },
+  "12214": {
+    "name": "Medium Pulse Laser Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced medium pulse lasers. 2% bonus per skill level to the damage of medium turrets requiring Medium Pulse "
+  },
+  "12215": {
+    "name": "Large Pulse Laser Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced large pulse lasers. 2% bonus per skill level to the damage of large turrets requiring Large Pulse Las"
+  },
+  "12241": {
+    "name": "Sovereignty",
+    "group": "Corporation Management",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Advanced corporation operation. +2000 corporation members allowed per level. \r \r Note: The CEO must update his corporation through the corporation use"
+  },
+  "12305": {
+    "name": "Drone Navigation",
+    "group": "Drones",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling drones at high speeds.\r \r 5% increase in drone max velocity per level.\r 5% increase in fighter max velocity per level."
+  },
+  "12365": {
+    "name": "EM Shield Compensation",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to EM resistance per level for Shield Amplifiers."
+  },
+  "12366": {
+    "name": "Kinetic Shield Compensation",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to kinetic resistance per level for Shield Amplifiers."
+  },
+  "12367": {
+    "name": "Explosive Shield Compensation",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to explosive resistance per level for Shield Amplifiers."
+  },
+  "12368": {
+    "name": "Hypereuclidean Navigation",
+    "group": "Electronic Systems",
+    "rank": 6,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at navigating while cloaked. 20% per level  bonus to cloaked velocity per skill level."
+  },
+  "12441": {
+    "name": "Missile Bombardment",
+    "group": "Missiles",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Proficiency at long-range missile combat. 10% bonus to all missiles' maximum flight time per level."
+  },
+  "12442": {
+    "name": "Missile Projection",
+    "group": "Missiles",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at boosting missile bay trigger circuits and enhancing guided missiles' ignition systems. 10% bonus to all missiles' maximum velocity per level."
+  },
+  "12484": {
+    "name": "Amarr Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Amarr drones. 2% bonus per skill level to the damage of light, medium, heavy and sentry drones requiring A"
+  },
+  "12485": {
+    "name": "Minmatar Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Minmatar drones. 2% bonus per skill level to the damage of light, medium, heavy and sentry drones requirin"
+  },
+  "12486": {
+    "name": "Gallente Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Gallente drones. 2% bonus per skill level to the damage of light, medium, heavy and sentry drones requirin"
+  },
+  "12487": {
+    "name": "Caldari Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Caldari drones. 2% bonus per skill level to the damage of light, medium, heavy and sentry drones requiring"
+  },
+  "12834": {
+    "name": "General Freight",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at the stowage and transportation of bulk goods. 5% Bonus per level to Ship Cargo Capacity"
+  },
+  "13069": {
+    "name": "Starship Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13070": {
+    "name": "Mineral Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13071": {
+    "name": "Munitions Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13072": {
+    "name": "Drone Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13073": {
+    "name": "Raw Material Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13074": {
+    "name": "Consumable Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13075": {
+    "name": "Hazardous Material Freight",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "The skill at transporting contraband without getting caught. -10% chance of being caught transporting contraband. Base chance 60%."
+  },
+  "13278": {
+    "name": "Archaeology",
+    "group": "Scanning",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Proficiency at identifying and analyzing ancient artifacts. Required skill for the use of Relic Analyzer modules.\r \r Gives +10 Virus Coherence per lev"
+  },
+  "13279": {
+    "name": "Remote Sensing",
+    "group": "Planet Management",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "The ability to gather and analyze remote sensing data from satellites in orbit around a planet and produce properly calibrated surveys.\r \r Level 1: al"
+  },
+  "16069": {
+    "name": "Remote Armor Repair Systems",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of remote armor repair systems. 5% reduced capacitor need for remote armor repair system modules per skill level."
+  },
+  "16281": {
+    "name": "Ice Harvesting",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at harvesting ice. 5% reduction per skill level to the cycle time of ice harvesters."
+  },
+  "16591": {
+    "name": "Heavy Assault Cruisers",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Heavy Assault Cruisers."
+  },
+  "16594": {
+    "name": "Procurement",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Proficiency at placing remote buy orders on the market. Level 1 allows for the placement of orders within the same solar system, Level 2 extends that "
+  },
+  "16595": {
+    "name": "Daytrading",
+    "group": "Trade",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Allows for remote modification of buy and sell orders. Each level of skill increases the range at which orders may be modified. Level 1 allows for mod"
+  },
+  "16596": {
+    "name": "Wholesale",
+    "group": "Trade",
+    "rank": 4,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Ability to organize and manage large-scale market operations. Each level raises the limit of active orders by 16."
+  },
+  "16597": {
+    "name": "Advanced Broker Relations",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Proficiency at negotiating the brokerage cost of relisting a market order at a new price. Each level of this skill adds <b>6 percentage points</b> to "
+  },
+  "16598": {
+    "name": "Marketing",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Skill at selling items remotely. Each level increases the range from the seller to the item being sold. Level 1 allows for the sale of items within th"
+  },
+  "16622": {
+    "name": "Accounting",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Proficiency at squaring away the odds and ends of business transactions, keeping the checkbooks tight. Each level of skill reduces sales tax by 11%. S"
+  },
+  "17940": {
+    "name": "Mining Barge",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ORE Mining Barges."
+  },
+  "18025": {
+    "name": "Ice Processing",
+    "group": "Resource Processing",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill for Ice reprocessing. Allows a skilled individual to utilize substandard reprocessing facilities at considerably greater efficiency.\r \r 2% bonus"
+  },
+  "18580": {
+    "name": "Tycoon",
+    "group": "Trade",
+    "rank": 6,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Ability to organize and manage ultra large-scale market operations. Each level raises the limit of active orders by 32."
+  },
+  "19430": {
+    "name": "Omnipotent",
+    "group": "Spaceship Command",
+    "rank": 42,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Those who possess this are all knowing and all seeing with unlimited power and authority."
+  },
+  "19719": {
+    "name": "Transport Ships",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Transport Ships."
+  },
+  "19759": {
+    "name": "Long Distance Jamming",
+    "group": "Electronic Systems",
+    "rank": 4,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at the long-range operation of electronic warfare systems. 10% bonus to optimal range of ECM, Remote Sensor Dampeners, Weapon Disruptors, Remote"
+  },
+  "19760": {
+    "name": "Frequency Modulation",
+    "group": "Electronic Systems",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of signal waves. 10% bonus to falloff for ECM, Remote Sensor Dampeners, Weapon Disruptors, Remote Tracking Computers, Remote Se"
+  },
+  "19761": {
+    "name": "Signal Dispersion",
+    "group": "Electronic Systems",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at the operation of target jamming equipment. 5% bonus to strength of all ECM jammers per skill level."
+  },
+  "19766": {
+    "name": "Signal Suppression",
+    "group": "Electronic Systems",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at the operation of remote sensor dampers. 5% bonus to remote sensor dampers' scan resolution and targeting range suppression per skill level."
+  },
+  "19767": {
+    "name": "Weapon Destabilization",
+    "group": "Electronic Systems",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of weapon disruption technology. 5% bonus to the effectiveness of Weapon Disruptor modules per skill level."
+  },
+  "19921": {
+    "name": "Target Painting",
+    "group": "Electronic Systems",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at using target painters. 5% less capacitor need for target painters per skill level."
+  },
+  "19922": {
+    "name": "Signature Focusing",
+    "group": "Electronic Systems",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of target painting technology. 5% bonus to target painter modules' signature radius multiplier per skill level."
+  },
+  "20127": {
+    "name": "Stealth Bombers Fake Skill",
+    "group": "Fake Skills",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "mem",
+    "desc": "Fake Skill to give the Stealth Bombers bonuses only to Cruise Missile Launchers."
+  },
+  "20209": {
+    "name": "Rocket Specialization",
+    "group": "Missiles",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced rocket launchers. 2% bonus per level to the rate of fire of modules requiring Rocket Specialization."
+  },
+  "20210": {
+    "name": "Light Missile Specialization",
+    "group": "Missiles",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced light missile launchers and arrays. 2% bonus per level to the rate of fire of modules requiring Light"
+  },
+  "20211": {
+    "name": "Heavy Missile Specialization",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced heavy missile launchers. 2% bonus per level to the rate of fire of modules requiring Heavy Missile Sp"
+  },
+  "20212": {
+    "name": "Cruise Missile Specialization",
+    "group": "Missiles",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced cruise missile launchers. 2% bonus per level to the rate of fire of modules requiring Cruise Missile "
+  },
+  "20213": {
+    "name": "Torpedo Specialization",
+    "group": "Missiles",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced siege launchers. 2% bonus per level to the rate of fire of modules requiring Torpedo Specialization."
+  },
+  "20312": {
+    "name": "Guided Missile Precision",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at precision missile homing. Proficiency at this skill increases the accuracy of a fired missile's exact point of impact, resulting in greater d"
+  },
+  "20314": {
+    "name": "Target Navigation Prediction",
+    "group": "Missiles",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Proficiency at optimizing a missile's flight path to negate the effects of a target's speed upon the explosion's impact. 10% decrease per level in fac"
+  },
+  "20315": {
+    "name": "Warhead Upgrades",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Proficiency at upgrading missile warheads with deadlier payloads. 2% bonus to all missile damage per skill level."
+  },
+  "20327": {
+    "name": "Capital Energy Turret",
+    "group": "Gunnery",
+    "rank": 7,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of capital energy turrets. 5% Bonus to capital energy turret damage per level."
+  },
+  "20342": {
+    "name": "Advanced Spaceship Command",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "The advanced operation of spaceships. Grants a 5% Bonus per skill level to the agility of ships requiring Advanced Spaceship Command."
+  },
+  "20433": {
+    "name": "Talocan Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of interfacing with Talocan technology.\r \r The Talocan were masters of Spatial manipulation and Hypereuclidean Mathematics.\r \r All"
+  },
+  "20494": {
+    "name": "Armored Command",
+    "group": "Fleet Support",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at boosting the armor defenses of allied ships. Grants a 10% bonus to the duration of Armored Command Burst effects per level."
+  },
+  "20495": {
+    "name": "Information Command",
+    "group": "Fleet Support",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at boosting the sensors and electronic warfare systems of allied ships. Grants a 10% bonus to the duration of Information Command Bu"
+  },
+  "20524": {
+    "name": "Amarr Freighter",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr freighters."
+  },
+  "20525": {
+    "name": "Amarr Dreadnought",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr dreadnoughts."
+  },
+  "20526": {
+    "name": "Caldari Freighter",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari freighters."
+  },
+  "20527": {
+    "name": "Gallente Freighter",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente freighters."
+  },
+  "20528": {
+    "name": "Minmatar Freighter",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar freighters."
+  },
+  "20530": {
+    "name": "Caldari Dreadnought",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari dreadnoughts."
+  },
+  "20531": {
+    "name": "Gallente Dreadnought",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente dreadnoughts."
+  },
+  "20532": {
+    "name": "Minmatar Dreadnought",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar dreadnoughts."
+  },
+  "20533": {
+    "name": "Capital Ships",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill for the operation of capital ships. Grants a 5% bonus per skill level to the agility of ships requiring the Capital Ships skill."
+  },
+  "21059": {
+    "name": "Shield Compensation",
+    "group": "Shields",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Improved skill for regulating energy flow to shields. 2% less capacitor need for shield boosters per skill level.\r \r Note: Has no effect on capital si"
+  },
+  "21071": {
+    "name": "Rapid Launch",
+    "group": "Missiles",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Proficiency in operation of missile launchers. 3% bonus to missile launcher rate of fire per level."
+  },
+  "21603": {
+    "name": "Cynosural Field Theory",
+    "group": "Navigation",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at creating effective cynosural fields. 10% reduction in liquid ozone consumption for module activation per skill level."
+  },
+  "21610": {
+    "name": "Jump Fuel Conservation",
+    "group": "Navigation",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at regulating energy flow to the jump drive. 10% reduction in isotope consumption amount for jump drive operation per light year per skill level"
+  },
+  "21611": {
+    "name": "Jump Drive Calibration",
+    "group": "Navigation",
+    "rank": 9,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Advanced skill at using Jump Drives. 20% increase in maximum jump range per skill level."
+  },
+  "21666": {
+    "name": "Capital Hybrid Turret",
+    "group": "Gunnery",
+    "rank": 7,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of capital hybrid turrets. 5% Bonus to capital hybrid turret damage per level."
+  },
+  "21667": {
+    "name": "Capital Projectile Turret",
+    "group": "Gunnery",
+    "rank": 7,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of capital projectile turrets. 5% Bonus to capital projectile turret damage per level."
+  },
+  "21668": {
+    "name": "XL Torpedoes",
+    "group": "Missiles",
+    "rank": 7,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at the handling and firing of XL torpedoes. 5% bonus to XL torpedo damage per skill level."
+  },
+  "21718": {
+    "name": "Hacking",
+    "group": "Scanning",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Proficiency at breaking into guarded computer systems. Required skill for the use of Data Analyzer modules.\r \r Gives +10 Virus Coherence per level."
+  },
+  "21789": {
+    "name": "Sleeper Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of interfacing with Sleeper technology.\r \r The Sleepers were masters of virtual reality, neural interfacing and cryotechnology.\r \r"
+  },
+  "21790": {
+    "name": "Caldari Encryption Methods",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the data encryption methods used by the Caldari State and its allies."
+  },
+  "21791": {
+    "name": "Minmatar Encryption Methods",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the data encryption methods used by the Minmatar Republic and its allies."
+  },
+  "21802": {
+    "name": "Capital Shield Operation",
+    "group": "Shields",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of capital shield boosters and other shield modules. 2% reduction in capacitor need for capital shield boosters per skill level."
+  },
+  "21803": {
+    "name": "Capital Repair Systems",
+    "group": "Armor",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of capital armor/hull repair modules. 5% reduction in capital repair systems duration per skill level."
+  },
+  "22043": {
+    "name": "Tactical Weapon Reconfiguration",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at the operation of siege modules. 25-unit reduction in strontium clathrate consumption amount for module activation per skill level."
+  },
+  "22172": {
+    "name": "TEST Drone Skill",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "This skill currently has no effect."
+  },
+  "22242": {
+    "name": "Capital Ship Construction",
+    "group": "Production",
+    "rank": 14,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of capital ships."
+  },
+  "22536": {
+    "name": "Mining Foreman",
+    "group": "Fleet Support",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at boosting the mining capabilities of allied ships. Grants a 10% bonus to the duration of Mining Foreman Burst effects per level."
+  },
+  "22541": {
+    "name": "Mining Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Advanced proficiency at controlling mining drones. 2% bonus to the mining yield and max velocity of drones requiring Mining Drone Specialization per l"
+  },
+  "22551": {
+    "name": "Exhumers",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Exhumers."
+  },
+  "22552": {
+    "name": "Mining Director",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at boosting the mining capabilities of allied ships. Increases the strength of Mining Foreman Burst effects by 10% per skill leve"
+  },
+  "22578": {
+    "name": "Mining Upgrades",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at using mining upgrades. 5% reduction per skill level in CPU penalty of mining upgrade modules."
+  },
+  "22761": {
+    "name": "Recon Ships",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Recon Ships."
+  },
+  "22806": {
+    "name": "EM Armor Compensation",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to EM resistance per level for Armor Coatings and Energized Membranes."
+  },
+  "22807": {
+    "name": "Explosive Armor Compensation",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to explosive resistance per level for Armor Coatings and Energized Membranes."
+  },
+  "22808": {
+    "name": "Kinetic Armor Compensation",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to kinetic resistance per level for Armor Coatings and Energized Membranes."
+  },
+  "22809": {
+    "name": "Thermal Armor Compensation",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "5% bonus to thermal resistance per level for Armor Coatings and Energized Membranes."
+  },
+  "23069": {
+    "name": "Fighters",
+    "group": "Drones",
+    "rank": 12,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Allows operation of fighter craft. 5% increase in fighter damage per level."
+  },
+  "23087": {
+    "name": "Amarr Encryption Methods",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the data encryption methods used by the Amarr Empire and its allies."
+  },
+  "23121": {
+    "name": "Gallente Encryption Methods",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the data encryption methods used by the Gallente Federation and its allies."
+  },
+  "23123": {
+    "name": "Takmahl Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of interfacing with Takmahl technology.\r \r The Takmahl nation excelled in cybernetics and bio-engineering.\r \r Allows the rudimenta"
+  },
+  "23124": {
+    "name": "Yan Jung Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Basic understanding of interfacing with Yan Jung technology.\r \r The Yan Jung nation possessed advanced gravitronic technology and force field theories"
+  },
+  "23566": {
+    "name": "Advanced Drone Avionics",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "This skill is required for the operation of Electronic Warfare Drones but also gives a bonus to the control range of all drones.\r \r 3,000m bonus drone"
+  },
+  "23594": {
+    "name": "Sentry Drone Interfacing",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling sentry drones. 5% bonus to Sentry Drone damage per level."
+  },
+  "23599": {
+    "name": "Propulsion Jamming Drone Interfacing",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Amarr drones. 2% bonus to advanced Amarr drone damage per level."
+  },
+  "23606": {
+    "name": "Drone Sharpshooting",
+    "group": "Drones",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Increases the weapon range of drones and fighters.\r \r 5% bonus to drone optimal range per level.\r 5% bonus to fighter optimal range per level."
+  },
+  "23618": {
+    "name": "Drone Durability",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Increases drone and fighter hit points.\r \r 5% bonus to drone shield, armor and hull hit points per level.\r 5% bonus to fighter hit points per level."
+  },
+  "23950": {
+    "name": "Command Ships",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Command Ships."
+  },
+  "24241": {
+    "name": "Light Drone Operation",
+    "group": "Drones",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling light combat drones. 5% bonus to damage of light drones per level."
+  },
+  "24242": {
+    "name": "Infomorph Psychology",
+    "group": "Neural Enhancement",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Psychological training that strengthens the pilot's mental tenacity. The reality of having one's consciousness detached from one's physical form, scat"
+  },
+  "24268": {
+    "name": "Supply Chain Management",
+    "group": "Production",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Proficiency at starting manufacturing jobs remotely. Without this skill, one can only start jobs within the solar system where one is located. Each le"
+  },
+  "24270": {
+    "name": "Scientific Networking",
+    "group": "Science",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at running research operations remotely. Without this skill, one can only start jobs within the solar system where one is located. Each level in"
+  },
+  "24311": {
+    "name": "Amarr Carrier",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr carriers."
+  },
+  "24312": {
+    "name": "Caldari Carrier",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari carriers."
+  },
+  "24313": {
+    "name": "Gallente Carrier",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente carriers."
+  },
+  "24314": {
+    "name": "Minmatar Carrier",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar carriers."
+  },
+  "24562": {
+    "name": "Jump Portal Generation",
+    "group": "Navigation",
+    "rank": 14,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill for the generation of jump portals to distant solar systems. 10% reduced material cost for jump portal activation per level."
+  },
+  "24563": {
+    "name": "Doomsday Operation",
+    "group": "Gunnery",
+    "rank": 14,
+    "primary": "will",
+    "secondary": "mem",
+    "desc": "Skill at operating titan doomsday weapons. 10% increased damage per level."
+  },
+  "24568": {
+    "name": "Capital Remote Armor Repair Systems",
+    "group": "Armor",
+    "rank": 10,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of capital sized remote armor repair systems. 5% reduced capacitor need for capital remote armor repair system modules per skill level."
+  },
+  "24571": {
+    "name": "Capital Shield Emission Systems",
+    "group": "Shields",
+    "rank": 10,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of capital sized shield transfer array and other shield emission systems. 5% reduced capacitor need for capital shield emission system modul"
+  },
+  "24572": {
+    "name": "Capital Capacitor Emission Systems",
+    "group": "Engineering",
+    "rank": 10,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of capital remote capacitor transmitters and other capacitor emission systems. 5% reduced capacitor need of capital capacitor emission syste"
+  },
+  "24606": {
+    "name": "Cloning Facility Operation",
+    "group": "Neural Enhancement",
+    "rank": 10,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Needed for use of the Clone Vat Bay module.\r \r Special: Increases a Clone Vat Bay's maximum clone capacity by 15% per skill level."
+  },
+  "24613": {
+    "name": "Fighter Hangar Management",
+    "group": "Drones",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "5% bonus to Fighter Hangar size per level."
+  },
+  "24624": {
+    "name": "Advanced Laboratory Operation",
+    "group": "Science",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Further training in the operation of multiple laboratories. Ability to run 1 additional research job per skill level."
+  },
+  "24625": {
+    "name": "Advanced Mass Production",
+    "group": "Production",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Further training in the operation of multiple factories. Ability to run 1 additional manufacturing job per skill level."
+  },
+  "24764": {
+    "name": "Fleet Command",
+    "group": "Fleet Support",
+    "rank": 12,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at projecting beneficial effects to fleetmates. Increases Command Burst and Mining Foreman Burst area of effect range by 5% per s"
+  },
+  "25233": {
+    "name": "Corporation Contracting",
+    "group": "Trade",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "You are familiar with the intricacies of formalizing contracts between your corporation and other entities. \r \r For each level of this skill the numbe"
+  },
+  "25235": {
+    "name": "Contracting",
+    "group": "Trade",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "This skill allows you to create formal agreements with other characters. \r \r For each level of this skill the number of outstanding contracts is incre"
+  },
+  "25530": {
+    "name": "Neurotoxin Recovery",
+    "group": "Neural Enhancement",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Proficiency at biofeedback techniques intended to negate the side effects typically experienced upon injection of combat boosters."
+  },
+  "25538": {
+    "name": "Neurotoxin Control",
+    "group": "Neural Enhancement",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Proficiency at reducing the severity of the side effects experienced upon injection of combat boosters."
+  },
+  "25544": {
+    "name": "Gas Cloud Harvesting",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at harvesting gas clouds. \r Allows use of one Gas Cloud Scoop per level."
+  },
+  "25718": {
+    "name": "Heavy Assault Missile Specialization",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced heavy assault missile launchers. 2% bonus per level to the rate of fire of modules requiring Heavy As"
+  },
+  "25719": {
+    "name": "Heavy Assault Missiles",
+    "group": "Missiles",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill with heavy assault missiles. Special: 5% bonus to heavy assault missile damage per skill level."
+  },
+  "25739": {
+    "name": "Astrometric Rangefinding",
+    "group": "Scanning",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill for the advanced operation of long range scanners. 5% increase to scan probe strength per level."
+  },
+  "25810": {
+    "name": "Astrometric Pinpointing",
+    "group": "Scanning",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Greater accuracy in hunting down targets found through scanning. Reduces maximum scan deviation by 5% per level."
+  },
+  "25811": {
+    "name": "Astrometric Acquisition",
+    "group": "Scanning",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at the advanced operation of long range scanners. 5% reduction in scan probe scan time per level."
+  },
+  "25863": {
+    "name": "Salvaging",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Proficiency at salvaging ship wrecks. Required skill for the use of salvager modules. 100% increase in chance of salvage retrieval per additional leve"
+  },
+  "26224": {
+    "name": "Drug Manufacturing",
+    "group": "Production",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Needed to manufacture boosters."
+  },
+  "26252": {
+    "name": "Jury Rigging",
+    "group": "Rigging",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "General understanding of the inner workings of starship components. Allows makeshift modifications to ship systems through the use of rigs. Required l"
+  },
+  "26253": {
+    "name": "Armor Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of armor systems. Allows makeshift modifications to armor systems through the use of rigs. \r \r 10% reduction in Armor Rig drawb"
+  },
+  "26254": {
+    "name": "Astronautics Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of a ships navigational systems. Allows makeshift modifications to warp drive, sub warp drive and other navigational systems th"
+  },
+  "26255": {
+    "name": "Drones Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of a ships drone control systems. Allows makeshift modifications to drone systems through the use of rigs. \r \r 10% reduction in"
+  },
+  "26256": {
+    "name": "Electronic Superiority Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of electronics systems. Allows makeshift modifications to targeting, scanning and ECM systems through the use of rigs. \r \r 10% "
+  },
+  "26257": {
+    "name": "Projectile Weapon Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of the interface between projectile weapons and the numerous ship systems. Allows makeshift modifications to ship system archit"
+  },
+  "26258": {
+    "name": "Energy Weapon Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of the interface between energy weapons and the numerous ship systems. Allows makeshift modifications to ship system architectu"
+  },
+  "26259": {
+    "name": "Hybrid Weapon Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of the interface between hybrid weapons and the numerous ship systems. Allows makeshift modifications to ship system architectu"
+  },
+  "26260": {
+    "name": "Launcher Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of the interface between Missile Launchers and the numerous ship systems. Allows makeshift modifications to ship system archite"
+  },
+  "26261": {
+    "name": "Shield Rigging",
+    "group": "Rigging",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of shield systems. Allows makeshift modifications to shield systems through the use of rigs. \r \r 10% reduction in Shield Rig dr"
+  },
+  "27902": {
+    "name": "Remote Hull Repair Systems",
+    "group": "Armor",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of remote hull repair systems. 5% reduced capacitor need for remote hull repair system modules per skill level."
+  },
+  "27906": {
+    "name": "Tactical Logistics Reconfiguration",
+    "group": "Electronic Systems",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at the operation of triage modules. 25-unit reduction in strontium clathrate consumption amount for module activation per skill level."
+  },
+  "27911": {
+    "name": "Burst Projector Operation",
+    "group": "Electronic Systems",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of Burst Projector systems. Each skill level gives a 5% reduction in module activation time."
+  },
+  "27936": {
+    "name": "Capital Remote Hull Repair Systems",
+    "group": "Armor",
+    "rank": 10,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Operation of capital class remote hull repair systems. 5% reduced capacitor need for capital class remote hull repair system modules per skill level."
+  },
+  "28073": {
+    "name": "Bomb Deployment",
+    "group": "Missiles",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Basic operation of bomb delivery systems. 10% reduction of Bomb Launcher reactivation delay per skill level."
+  },
+  "28164": {
+    "name": "Thermodynamics",
+    "group": "Engineering",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced understanding of the laws of thermodynamics. Allows you to deliberately overheat a ship's modules in order to push them beyond their intended"
+  },
+  "28261": {
+    "name": "Tax Evasion",
+    "group": "Trade",
+    "rank": 2,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Knowledge of the SCC tax regime and the ability to utilize that to one's own advantage.\r \r 2% reduction in SCC tax per level. \r \r Note: This skill doe"
+  },
+  "28373": {
+    "name": "Ore Compression",
+    "group": "Resource Processing",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": ""
+  },
+  "28374": {
+    "name": "Capital Industrial Ships",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Capital Industrial Ships."
+  },
+  "28585": {
+    "name": "Capital Industrial Reconfiguration",
+    "group": "Resource Processing",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at the operation of capital industrial core modules.\r 50-unit reduction in heavy water consumption amount for module activation per skill level."
+  },
+  "28604": {
+    "name": "Tournament Observation",
+    "group": "Electronic Systems",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at observating tournaments. +2 extra targets per skill level, up to the ship's maximum allowed number of targets locked."
+  },
+  "28609": {
+    "name": "Heavy Interdiction Cruisers",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Heavy Interdiction Cruisers."
+  },
+  "28615": {
+    "name": "Electronic Attack Ships",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Electronic Attack Frigates."
+  },
+  "28631": {
+    "name": "Imperial Navy Security Clearance",
+    "group": "Electronic Systems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Fake skill that specifies the owners security clearance for Imperial Navy facilities (e.g. acceleration gates)."
+  },
+  "28656": {
+    "name": "Black Ops",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Black Ops."
+  },
+  "28667": {
+    "name": "Marauders",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Marauders."
+  },
+  "28879": {
+    "name": "Nanite Operation",
+    "group": "Engineering",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating nanites. 5% reduction in nanite consumption per level."
+  },
+  "28880": {
+    "name": "Nanite Interfacing",
+    "group": "Engineering",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Improved control of general-purpose repair nanites, usually deployed in a paste form. 20% increase in damaged module repair amount per second."
+  },
+  "29029": {
+    "name": "Jump Freighters",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Jump Freighters."
+  },
+  "29637": {
+    "name": "Industrial Command Ships",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating industrial command ships."
+  },
+  "30324": {
+    "name": "Defensive Subsystem Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the technology used to create advanced defensive subsystems."
+  },
+  "30325": {
+    "name": "Core Subsystem Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the technology used to create advanced core subsystems."
+  },
+  "30326": {
+    "name": "Electronic Subsystem Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the technology used to create advanced electronic subsystems."
+  },
+  "30327": {
+    "name": "Offensive Subsystem Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the technology used to create advanced offensive subsystems."
+  },
+  "30532": {
+    "name": "Amarr Defensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Amarr Defensive Subsystems used on Tech III ships."
+  },
+  "30536": {
+    "name": "Amarr Electronic Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Amarr Electronic Subsystems used on Tech III ships."
+  },
+  "30537": {
+    "name": "Amarr Offensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Amarr Offensive Subsystems used on Tech III ships."
+  },
+  "30538": {
+    "name": "Amarr Propulsion Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Amarr Propulsion Subsystems used on Tech III ships."
+  },
+  "30539": {
+    "name": "Amarr Core Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Amarr Core Subsystems used on Tech III ships."
+  },
+  "30540": {
+    "name": "Gallente Defensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Gallente Defensive Subsystems used on Tech III ships."
+  },
+  "30541": {
+    "name": "Gallente Electronic Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Gallente Electronic Subsystems used on Tech III ships."
+  },
+  "30542": {
+    "name": "Caldari Electronic Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Caldari Electronic Subsystems used on Tech III ships."
+  },
+  "30543": {
+    "name": "Minmatar Electronic Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Minmatar Electronic Subsystems used on Tech III ships."
+  },
+  "30544": {
+    "name": "Caldari Defensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Caldari Defensive Subsystems used on Tech III ships."
+  },
+  "30545": {
+    "name": "Minmatar Defensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Minmatar Defensive Subsystems used on Tech III ships."
+  },
+  "30546": {
+    "name": "Gallente Core Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Gallente Core Subsystems used on Tech III ships."
+  },
+  "30547": {
+    "name": "Minmatar Core Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Minmatar Core Subsystems used on Tech III ships."
+  },
+  "30548": {
+    "name": "Caldari Core Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill in the operation of Caldari Core Subsystems used on Tech III ships."
+  },
+  "30549": {
+    "name": "Caldari Offensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Caldari Offensive Subsystems used on Tech III ships."
+  },
+  "30550": {
+    "name": "Gallente Offensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Gallente Offensive Subsystems used on Tech III ships."
+  },
+  "30551": {
+    "name": "Minmatar Offensive Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Minmatar Offensive Subsystems used on Tech III ships."
+  },
+  "30552": {
+    "name": "Caldari Propulsion Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Caldari Propulsion Subsystems used on Tech III ships."
+  },
+  "30553": {
+    "name": "Gallente Propulsion Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Gallente Propulsion Subsystems used on Tech III ships."
+  },
+  "30554": {
+    "name": "Minmatar Propulsion Systems",
+    "group": "Subsystems",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in the operation of Minmatar Propulsion Subsystems used on Tech III ships."
+  },
+  "30650": {
+    "name": "Amarr Strategic Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr Strategic Cruisers."
+  },
+  "30651": {
+    "name": "Caldari Strategic Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari Strategic Cruisers."
+  },
+  "30652": {
+    "name": "Gallente Strategic Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente Strategic Cruisers."
+  },
+  "30653": {
+    "name": "Minmatar Strategic Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar Strategic Cruisers."
+  },
+  "30788": {
+    "name": "Propulsion Subsystem Technology",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the technology used to create advanced propulsion subsystems."
+  },
+  "32339": {
+    "name": "Heavy Fighters",
+    "group": "Drones",
+    "rank": 12,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Allows operation of heavy fighter craft. 5% increase in heavy fighter damage per level."
+  },
+  "32435": {
+    "name": "XL Cruise Missiles",
+    "group": "Missiles",
+    "rank": 7,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at the handling and firing of XL Cruise Missiles. 5% bonus to XL Cruise Missile damage per skill level."
+  },
+  "32797": {
+    "name": "Resistance Phasing",
+    "group": "Engineering",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Improves control over, and flow between, nano membranes that react to damage by shifting resistances.\r \r Reduces cycle time of Reactive Armor Hardener"
+  },
+  "32856": {
+    "name": "Tactical Strike",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at Tactical Strike Accuracy.\r \r Accuracy of Tactical Strike increased by 5% per level"
+  },
+  "32918": {
+    "name": "Mining Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ORE Mining Frigates."
+  },
+  "32999": {
+    "name": "Magnetometric Sensor Compensation",
+    "group": "Targeting",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at hardening Magnetometric Sensors against hostile Electronic Counter Measure modules. 4% improved Magnetometric Sensor Strength per skill level"
+  },
+  "33000": {
+    "name": "Gravimetric Sensor Compensation",
+    "group": "Targeting",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at hardening Gravimetric Sensors against hostile Electronic Counter Measure modules. 4% improved Gravimetric Sensor Strength per skill level.\r \r"
+  },
+  "33001": {
+    "name": "Ladar Sensor Compensation",
+    "group": "Targeting",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at hardening Ladar Sensors against hostile Electronic Counter Measure modules. 4% improved Ladar Sensor Strength per skill level.\r \r Ladar Senso"
+  },
+  "33002": {
+    "name": "Radar Sensor Compensation",
+    "group": "Targeting",
+    "rank": 2,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at hardening Radar Sensors against hostile Electronic Counter Measure modules. 4% improved Radar Sensor Strength per skill level.\r \r Radar Senso"
+  },
+  "33078": {
+    "name": "Armor Layering",
+    "group": "Armor",
+    "rank": 3,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at installing upgraded armor plates efficiently and securely, reducing the impact they have on agility and speed. Grants a 5% reduction to armor"
+  },
+  "33091": {
+    "name": "Amarr Destroyer",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr destroyers."
+  },
+  "33092": {
+    "name": "Caldari Destroyer",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari destroyers."
+  },
+  "33093": {
+    "name": "Gallente Destroyer",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente destroyers."
+  },
+  "33094": {
+    "name": "Minmatar Destroyer",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar destroyers."
+  },
+  "33095": {
+    "name": "Amarr Battlecruiser",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr battlecruisers."
+  },
+  "33096": {
+    "name": "Caldari Battlecruiser",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari battlecruisers."
+  },
+  "33097": {
+    "name": "Gallente Battlecruiser",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente battlecruisers."
+  },
+  "33098": {
+    "name": "Minmatar Battlecruiser",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar battlecruisers."
+  },
+  "33399": {
+    "name": "Infomorph Synchronizing",
+    "group": "Neural Enhancement",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Psychological training that strengthens the pilot's mental tenacity. Improved ability to synchronize with new clones allows pilots to jump-clone more "
+  },
+  "33407": {
+    "name": "Advanced Infomorph Psychology",
+    "group": "Neural Enhancement",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced training for those Capsuleers who want to push clone technology to its limits.\r \r Allows 1 additional jump clone per level.\r \r Note: Clones c"
+  },
+  "33467": {
+    "name": "Customs Code Expertise",
+    "group": "Trade",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "cha",
+    "desc": "Expertise in cutting through the red tape of customs regulations. Reduces Import and Export empire tax in Customs Offices by 10% per level.\r \r This do"
+  },
+  "33699": {
+    "name": "Medium Drone Operation",
+    "group": "Drones",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling medium combat drones. 5% bonus to damage of medium drones per level."
+  },
+  "33856": {
+    "name": "Expedition Frigates",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Expedition Frigates."
+  },
+  "34327": {
+    "name": "ORE Freighter",
+    "group": "Spaceship Command",
+    "rank": 9,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ORE freighters."
+  },
+  "34390": {
+    "name": "Amarr Tactical Destroyer",
+    "group": "Spaceship Command",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr Tactical Destroyers."
+  },
+  "34533": {
+    "name": "Minmatar Tactical Destroyer",
+    "group": "Spaceship Command",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar Tactical Destroyers."
+  },
+  "35680": {
+    "name": "Caldari Tactical Destroyer",
+    "group": "Spaceship Command",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari Tactical Destroyers."
+  },
+  "35685": {
+    "name": "Gallente Tactical Destroyer",
+    "group": "Spaceship Command",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente Tactical Destroyers."
+  },
+  "37615": {
+    "name": "Command Destroyers",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Command Destroyers."
+  },
+  "37796": {
+    "name": "Structure Missile Systems",
+    "group": "Structure Management",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "will",
+    "desc": "Basic operation of structure missile launchers.\r \r 2% bonus to all structure missile and guided bomb damage per level."
+  },
+  "37797": {
+    "name": "Structure Doomsday Operation",
+    "group": "Structure Management",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "will",
+    "desc": "Specialization in operating Citadel doomsday weapons.\r \r 2% reduction in Arcing Vorton Projector duration per level."
+  },
+  "37798": {
+    "name": "Structure Electronic Systems",
+    "group": "Structure Management",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "will",
+    "desc": "Basic operation of structure electronic modules.\r \r 3% reduction in capacitor consumption of all structure electronic warfare and tackle modules per l"
+  },
+  "37799": {
+    "name": "Structure Engineering Systems",
+    "group": "Structure Management",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "will",
+    "desc": "Basic operation of structure engineering modules.\r \r 2% reduction in capacitor consumption of all structure energy neutralizers and point defense batt"
+  },
+  "40328": {
+    "name": "Logistics Frigates",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for operation of Logistics Frigates."
+  },
+  "40535": {
+    "name": "Amarr Force Auxiliary",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Amarr force auxiliaries."
+  },
+  "40536": {
+    "name": "Caldari Force Auxiliary",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Caldari force auxiliaries."
+  },
+  "40537": {
+    "name": "Gallente Force Auxiliary",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Gallente force auxiliaries."
+  },
+  "40538": {
+    "name": "Minmatar Force Auxiliary",
+    "group": "Spaceship Command",
+    "rank": 14,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Minmatar force auxiliaries."
+  },
+  "40572": {
+    "name": "Light Fighters",
+    "group": "Drones",
+    "rank": 12,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Allows operation of light fighter craft. 5% increase in light fighter velocity per level."
+  },
+  "40573": {
+    "name": "Support Fighters",
+    "group": "Drones",
+    "rank": 12,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Allows operation of support fighter craft. 5% increase in support fighter hit-points per level."
+  },
+  "41403": {
+    "name": "Capital Autocannon Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced capital autocannons. 2% Bonus per skill level to the damage of capital turrets requiring Capital Auto"
+  },
+  "41404": {
+    "name": "Capital Artillery Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced capital artillery. 2% bonus per skill level to the damage of capital turrets requiring Capital Artill"
+  },
+  "41405": {
+    "name": "Capital Blaster Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced capital blasters. 2% Bonus per skill level to the damage of capital turrets requiring Capital Blaster"
+  },
+  "41406": {
+    "name": "Capital Railgun Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced capital railguns. 2% bonus per skill level to the damage of capital turrets requiring Capital Railgun"
+  },
+  "41407": {
+    "name": "Capital Pulse Laser Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced capital pulse lasers. 2% bonus per skill level to the damage of capital turrets requiring Capital Pul"
+  },
+  "41408": {
+    "name": "Capital Beam Laser Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced capital beam lasers. 2% Bonus per skill level to the damage of capital turrets requiring Capital Beam"
+  },
+  "41409": {
+    "name": "XL Torpedo Specialization",
+    "group": "Missiles",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced XL torpedo launchers. 2% bonus per level to the rate of fire of modules requiring XL Torpedo Speciali"
+  },
+  "41410": {
+    "name": "XL Cruise Missile Specialization",
+    "group": "Missiles",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced XL cruise missile launchers. 2% bonus per level to the rate of fire of modules requiring XL Cruise Mi"
+  },
+  "41537": {
+    "name": "Doomsday Rapid Firing",
+    "group": "Gunnery",
+    "rank": 14,
+    "primary": "will",
+    "secondary": "mem",
+    "desc": "Skill at the rapid discharge of titan doomsday weapons. 4% reduction per skill level to doomsday duration."
+  },
+  "43702": {
+    "name": "Ice Harvesting Drone Operation",
+    "group": "Drones",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Skill at controlling ice harvesting drones. 5% reduction in ice harvesting drone cycle time per level."
+  },
+  "43703": {
+    "name": "Ice Harvesting Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Advanced proficiency at controlling ice harvesting drones. 2% reduction in cycle time and bonus to max velocity of drones requiring Ice Harvesting Dro"
+  },
+  "43728": {
+    "name": "Spatial Phenomena Generation",
+    "group": "Fleet Support",
+    "rank": 10,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Proficiency in operation of Titan Phenomena Generator modules. Increases the duration of Titan Phenomena Generator effects by 10% per level."
+  },
+  "44067": {
+    "name": "Invulnerability Core Operation",
+    "group": "Shields",
+    "rank": 8,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill at operating the Rorqual's Pulse Activated Nexus Invulnerability Core module. 10% increase per level to the effect duration and cycle time of th"
+  },
+  "45746": {
+    "name": "Reactions",
+    "group": "Resource Processing",
+    "rank": 1,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Allows basic operation of Reaction Service Module. 4% reduction in reaction time per skill level."
+  },
+  "45748": {
+    "name": "Mass Reactions",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Allows the operation of multiple reactions simultaneously. Ability to run 1 additional reaction job per level."
+  },
+  "45749": {
+    "name": "Advanced Mass Reactions",
+    "group": "Resource Processing",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Further training in the operation of multiple reactions. Ability to run 1 additional reaction job per skill level."
+  },
+  "45750": {
+    "name": "Remote Reactions",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Proficiency at starting reaction jobs remotely. Without this skill, one can only start jobs within the solar system where one is located. Each level i"
+  },
+  "46152": {
+    "name": "Ubiquitous Moon Ore Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in reprocessing of the most common forms of ore extracted from New Eden's moons. Allows a skilled individual to utilize reprocessing fa"
+  },
+  "46153": {
+    "name": "Common Moon Ore Processing",
+    "group": "Resource Processing",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in reprocessing of the moderately common forms of ore extracted from New Eden's moons. Allows a skilled individual to utilize reprocess"
+  },
+  "46154": {
+    "name": "Uncommon Moon Ore Processing",
+    "group": "Resource Processing",
+    "rank": 6,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in reprocessing of the less common forms of ore extracted from New Eden's moons. Allows a skilled individual to utilize reprocessing fa"
+  },
+  "46155": {
+    "name": "Rare Moon Ore Processing",
+    "group": "Resource Processing",
+    "rank": 7,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in reprocessing of the rarer forms of ore extracted from New Eden's moons. Allows a skilled individual to utilize reprocessing faciliti"
+  },
+  "46156": {
+    "name": "Exceptional Moon Ore Processing",
+    "group": "Resource Processing",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in reprocessing of the rarest and most prized forms of ore extracted from New Eden's moons. Allows a skilled individual to utilize repr"
+  },
+  "47445": {
+    "name": "Flag Cruisers",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "will",
+    "secondary": "per",
+    "desc": "Skill for the operation of Flag Cruisers"
+  },
+  "47867": {
+    "name": "Precursor Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Precursor Frigates."
+  },
+  "47868": {
+    "name": "Precursor Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Precursor Cruisers."
+  },
+  "47869": {
+    "name": "Precursor Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Precursor Battleships."
+  },
+  "47870": {
+    "name": "Small Precursor Weapon",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of small precursor weapons. 5% Bonus to small precursor weapon damage per level."
+  },
+  "47871": {
+    "name": "Medium Precursor Weapon",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of medium precursor weapons. 5% Bonus to medium precursor weapon damage per level."
+  },
+  "47872": {
+    "name": "Large Precursor Weapon",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of large precursor weapons. 5% Bonus to large precursor weapon damage per level."
+  },
+  "47873": {
+    "name": "Small Disintegrator Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Light Entropic Disintegrators. 2% bonus per skill level to the damage of small weapons requiring Smal"
+  },
+  "47874": {
+    "name": "Medium Disintegrator Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Heavy Entropic Disintegrators. 2% bonus per skill level to the damage of medium weapons requiring Med"
+  },
+  "47875": {
+    "name": "Large Disintegrator Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Supratidal Entropic Disintegrators. 2% bonus per skill level to the damage of large weapons requiring"
+  },
+  "49742": {
+    "name": "Precursor Destroyer",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Precursor Destroyers"
+  },
+  "49743": {
+    "name": "Precursor Battlecruiser",
+    "group": "Spaceship Command",
+    "rank": 6,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Precursor Battlecruisers."
+  },
+  "52307": {
+    "name": "Triglavian Quantum Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Triglavian Quantum Engineering and its use in the development of advanced technology.\r \r Used primarily in the research and man"
+  },
+  "52308": {
+    "name": "Triglavian Encryption Methods",
+    "group": "Science",
+    "rank": 4,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the data encryption methods used by the Triglavian Collective.\r \r Critical to the research and development of advanced ship designs b"
+  },
+  "52997": {
+    "name": "Precursor Dreadnought",
+    "group": "Spaceship Command",
+    "rank": 12,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating precursor dreadnoughts."
+  },
+  "52998": {
+    "name": "Capital Precursor Weapon",
+    "group": "Gunnery",
+    "rank": 7,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of capital precursor weapons. 5% Bonus to capital precursor weapon damage per level."
+  },
+  "54794": {
+    "name": "EDENCOM Battleship",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ship designs commissioned as EDENCOM battleships."
+  },
+  "54826": {
+    "name": "Large Vorton Projector",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of Large Arcing Vorton Projector turrets.\r \r 5% bonus to Large Vorton Projector damage per skill level."
+  },
+  "54827": {
+    "name": "Small Vorton Specialization",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Small Arcing Vorton Projector turrets.\r \r 2% bonus to Small Vorton projector Damage per skill level."
+  },
+  "54828": {
+    "name": "Medium Vorton Specialization",
+    "group": "Gunnery",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Medium Arcing Vorton Projector turrets.\r \r 2% bonus to Medium Vorton projector Damage per skill level"
+  },
+  "54829": {
+    "name": "Large Vorton Specialization",
+    "group": "Gunnery",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Large Arcing Vorton Projector turrets.\r \r 2% bonus to Large Vorton projector Damage per skill level."
+  },
+  "54840": {
+    "name": "Vorton Power Amplification",
+    "group": "Gunnery",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in amplifying the power of ship-based Arcing Vorton Projectors to maximize damage output.\r \r 3% bonus to Vorton Projector damage per skill level"
+  },
+  "54841": {
+    "name": "Vorton Arc Guidance",
+    "group": "Gunnery",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in tuning wave-guides of ship-based Arcing Vorton Projectors to improve strikes on fast-moving targets.\r \r 5% bonus to Vorton Projector explosio"
+  },
+  "55025": {
+    "name": "Upwell Encryption Methods",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Understanding of the data encryption methods used by the Upwell Consortium and its allies."
+  },
+  "55031": {
+    "name": "EDENCOM Frigate",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ship designs commissioned as EDENCOM frigates."
+  },
+  "55032": {
+    "name": "EDENCOM Cruiser",
+    "group": "Spaceship Command",
+    "rank": 5,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ship designs commissioned as EDENCOM cruisers."
+  },
+  "55033": {
+    "name": "Vorton Projector Operation",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Basic skill for operation of ship-based Arcing Vorton Projectors.\r \r 2% Bonus to all Vorton Projectors' rate of fire per skill level."
+  },
+  "55034": {
+    "name": "Small Vorton Projector",
+    "group": "Gunnery",
+    "rank": 1,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of Small Arcing Vorton Projector turrets.\r \r 5% Bonus to Small Vorton Projector damage per level."
+  },
+  "55035": {
+    "name": "Medium Vorton Projector",
+    "group": "Gunnery",
+    "rank": 3,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Operation of Medium Arcing Vorton Projector turrets.\r \r 5% Bonus to Medium Vorton Projector damage per level."
+  },
+  "55511": {
+    "name": "Vorton Arc Extension",
+    "group": "Gunnery",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill in extending arc-channelling of ship-based Arcing Vorton Projectors to boost effective range.\r \r 5% bonus to Vorton Projector optimal range per "
+  },
+  "56631": {
+    "name": "Bezdnacine Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Bezdnacine reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bo"
+  },
+  "56632": {
+    "name": "Talassonite Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Talassonite reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% b"
+  },
+  "56633": {
+    "name": "Rakovene Processing",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Rakovene reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bonu"
+  },
+  "57164": {
+    "name": "Salvage Drone Specialization",
+    "group": "Drones",
+    "rank": 5,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Advanced proficiency at controlling salvage drones. 2% bonus to the max velocity and salvage chance of drones requiring Salvage Drone Specialization p"
+  },
+  "57317": {
+    "name": "Fleet Formations",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Fleet support skill allowing commanders to organize and warp fleets in formation. Unlocks additional formation types at each level of training in the "
+  },
+  "57318": {
+    "name": "Fleet Coordination",
+    "group": "Fleet Support",
+    "rank": 8,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced fleet support skill allowing commanders to increase the size and spread of their fleet formations. Unlocks additional formation scaling optio"
+  },
+  "58956": {
+    "name": "Industrial Reconfiguration",
+    "group": "Resource Processing",
+    "rank": 4,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at the operation of subcapital industrial core modules.\r 20-unit reduction in heavy water consumption amount for module activation per skill lev"
+  },
+  "60377": {
+    "name": "Simple Ore Processing",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Simple Ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% bo"
+  },
+  "60378": {
+    "name": "Coherent Ore Processing",
+    "group": "Resource Processing",
+    "rank": 6,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Coherent Ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% "
+  },
+  "60379": {
+    "name": "Variegated Ore Processing",
+    "group": "Resource Processing",
+    "rank": 9,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Variegated Ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2"
+  },
+  "60380": {
+    "name": "Complex Ore Processing",
+    "group": "Resource Processing",
+    "rank": 11,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Complex Ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% b"
+  },
+  "60381": {
+    "name": "Abyssal Ore Processing",
+    "group": "Resource Processing",
+    "rank": 12,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Abyssal Ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% b"
+  },
+  "60515": {
+    "name": "Mutated Drone Specialization",
+    "group": "Drones",
+    "rank": 6,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of mutated drones created using rogue drone and Triglavian technology, applying techniques developed by ORE to pacify "
+  },
+  "62450": {
+    "name": "Shipboard Compression Technology",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "This skill enables shipboard operation of ORE's new materials compression technology. Each level unlocks specialized compressor modules for use on sub"
+  },
+  "62451": {
+    "name": "Capital Shipboard Compression Technology",
+    "group": "Resource Processing",
+    "rank": 3,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "This advanced skill enables shipboard operation of ORE's new materials compression technology. Each level unlocks specialized compressor modules for u"
+  },
+  "62452": {
+    "name": "Gas Decompression Efficiency",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "This skill improves the efficiency of the decompression process for converting compressed harvestable gases into a form usable in industrial processes"
+  },
+  "62453": {
+    "name": "Fleet Compression Logistics",
+    "group": "Fleet Support",
+    "rank": 4,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "This fleet support skill increases the range at which fleet members can use fleet compression services offered by a ship operating an industrial core "
+  },
+  "73910": {
+    "name": "Elite Infomorph Psychology",
+    "group": "Neural Enhancement",
+    "rank": 12,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced training for those Capsuleers who want to push clone technology to its limits.\r \r Allows 1 additional jump clone per level.\r \r Note: Clones c"
+  },
+  "73912": {
+    "name": "Advanced Contracting",
+    "group": "Trade",
+    "rank": 10,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "This skill allows you to create formal agreements with other characters. \r \r For each level of this skill the number of outstanding contracts is incre"
+  },
+  "77725": {
+    "name": "Advanced Capital Ship Construction",
+    "group": "Production",
+    "rank": 16,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill required for the manufacturing of certain advanced capital ships. 1% reduction in manufacturing time for all items requiring Advanced Capital Sh"
+  },
+  "77738": {
+    "name": "Lancer Dreadnoughts",
+    "group": "Spaceship Command",
+    "rank": 16,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Lancer Dreadnoughts."
+  },
+  "77739": {
+    "name": "Disruptive Lance Operation",
+    "group": "Gunnery",
+    "rank": 14,
+    "primary": "will",
+    "secondary": "mem",
+    "desc": "Skill at operating Disruptive Lance weapons.\r \r 5% reduced capacitor need of Disruption Lance weapons per skill level."
+  },
+  "81032": {
+    "name": "Upwell Hauler",
+    "group": "Spaceship Command",
+    "rank": 4,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Upwell Consortium haulers."
+  },
+  "81044": {
+    "name": "Upwell Freighter",
+    "group": "Spaceship Command",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating Upwell freighters."
+  },
+  "81050": {
+    "name": "Upwell Starship Engineering",
+    "group": "Science",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill and knowledge of Upwell Starship Engineering and its use in the development of advanced technology. \r \r Used in the research of Upwell Ships of "
+  },
+  "81363": {
+    "name": "Kerr Sequencing",
+    "group": "Sequencing",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "per",
+    "desc": ""
+  },
+  "81364": {
+    "name": "Mass Sequencing",
+    "group": "Sequencing",
+    "rank": 6,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Intermediary skill in producing multiple SKINs in a single sequencing job.\r \r Increases maximum SKINs per sequencing by an additional 25 at skill leve"
+  },
+  "81365": {
+    "name": "Industrial Sequencing",
+    "group": "Sequencing",
+    "rank": 9,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Advanced skill in producing multiple SKINs in a single sequencing job.\r \r Increases maximum SKINs per sequencing by an additional 200 at skill level 1"
+  },
+  "81366": {
+    "name": "Parallel Sequencing",
+    "group": "Sequencing",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Basic skill in running multiple concurrent sequencing jobs.\r \r Increases maximum concurrent sequencing jobs to 2 at skill level 1, and then increases "
+  },
+  "81367": {
+    "name": "Multi-thread Sequencing",
+    "group": "Sequencing",
+    "rank": 6,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Advanced skill in running multiple concurrent sequencing jobs.\r \r Increases maximum concurrent sequencing jobs by 2 per skill level."
+  },
+  "81368": {
+    "name": "Hub Promotion",
+    "group": "Sequencing",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Basic skill in listing SKINs for sale in the Paragon Hub.\r \r Increases maximum listings on the Paragon Hub by 1 per skill level."
+  },
+  "81369": {
+    "name": "Hub Algorithm Optimization",
+    "group": "Sequencing",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Advanced skill in listing SKINs for sale in the Paragon Hub.\r \r Increases maximum listings by 5 per skill level."
+  },
+  "81370": {
+    "name": "Studio Management",
+    "group": "Sequencing",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Basic skill in saving additional designs in the SKINR studio.\r \r Increases the maximum number of saved designs by 5 per level."
+  },
+  "81371": {
+    "name": "Advanced Studio Management",
+    "group": "Sequencing",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Advanced skill in saving additional designs in the SKINR studio.\r \r Increases the maximum number of saved designs by an additional 10 at level 1, 10 a"
+  },
+  "81372": {
+    "name": "Induction Efficiency",
+    "group": "Sequencing",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Intermediary skill in sequencing designs into SKINs. \r \r Reduces sequencing time by 1% at level 1, 3% at level 2, 6% at level 3, 10% at level 4, and 1"
+  },
+  "81373": {
+    "name": "Advanced Induction Efficiency",
+    "group": "Sequencing",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Advanced skill in sequencing designs into SKINs. \r \r Reduces sequencing time by 1% at level 1, 3% at level 2, 6% at level 3, 10% at level 4, and 15% a"
+  },
+  "81374": {
+    "name": "Peak Induction Acceleration",
+    "group": "Sequencing",
+    "rank": 8,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Ultimate skill in sequencing designs into SKINs. \r \r Reduces sequencing time by 1% at level 1, 3% at level 2, 6% at level 3, 10% at level 4, and 15% a"
+  },
+  "81375": {
+    "name": "Batch Sequencing",
+    "group": "Sequencing",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Basic skill at producing multiple SKINs in a single sequencing job.\r \r Increases maximum SKINs per sequencing job to 5 at level 1, 10 at level 2, 20 a"
+  },
+  "81376": {
+    "name": "Advanced Kerr Sequencing",
+    "group": "Sequencing",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "per",
+    "desc": ""
+  },
+  "81377": {
+    "name": "Basic Induction",
+    "group": "Sequencing",
+    "rank": 1,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Basic skill in sequencing designs into SKINs. \r \r Reduces sequencing time by 1% at level 1, 3% at level 2, 6% at level 3, 10% at level 4, and 15% at l"
+  },
+  "81896": {
+    "name": "Mutagenic Stabilization",
+    "group": "Science",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill and knowledge of Mutagenic Stabilization and its use in the development of advanced technology. \r \r 2% reduction in manufacturing time for all i"
+  },
+  "83094": {
+    "name": "Capital Jump Portal Generation",
+    "group": "Navigation",
+    "rank": 14,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Skill for the generation of jump portals to distant solar systems. \r \r 100% increase to the maximum number of ships that can be moved with a capital s"
+  },
+  "83464": {
+    "name": "Capital Micro Jump Drive Operation",
+    "group": "Navigation",
+    "rank": 14,
+    "primary": "mem",
+    "secondary": "per",
+    "desc": "Skill at using Capital Micro Jump Drives. \r \r 5% reduction in the capacitor usage of modules that require this skill per skill level."
+  },
+  "84217": {
+    "name": "Paragon Relations",
+    "group": "Sequencing",
+    "rank": 3,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Basic skill at negotiating lower vendor fees for sales on the Paragon Hub.\r \r Reduces Paragon Hub vendor fee percentage by 1% per level."
+  },
+  "84218": {
+    "name": "Paragon Partnership",
+    "group": "Sequencing",
+    "rank": 4,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Intermediate skill at negotiating lower vendor fees for sales on the Paragon Hub.\r \r Reduces Paragon Hub vendor fee percentage by 1% per level."
+  },
+  "84220": {
+    "name": "Executive Paragon Partnership",
+    "group": "Sequencing",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Advanced skill at negotiating lower vendor fees for sales on the Paragon Hub.\r \r Reduces Paragon Hub vendor fee percentage by 1% per level."
+  },
+  "85233": {
+    "name": "Mercenary Den Management",
+    "group": "Structure Management",
+    "rank": 8,
+    "primary": "cha",
+    "secondary": "int",
+    "desc": "Skill at using Mercenary Dens. Allows control of one structure per level, up to a maximum of five. Mercenary Dens must be placed within 10km of a temp"
+  },
+  "86260": {
+    "name": "Breacher Pod Launcher Operation",
+    "group": "Missiles",
+    "rank": 3,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Operation of breacher pod launchers. +5% to the maximum percentage of target HP damaged per second per skill level."
+  },
+  "86261": {
+    "name": "Breacher Pod Clone Efficacity",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Specialist combat training of Breacher Pod clones. +5% to the maximum damage per second cap per skill level."
+  },
+  "86262": {
+    "name": "Breacher Pod Clone Longevity",
+    "group": "Missiles",
+    "rank": 7,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Specialist research on extending the short lifespans of Breacher Pod clones. +10% to damage effect duration per skill level."
+  },
+  "86263": {
+    "name": "Breacher Pod Projection",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Specialist training in the operation of Breacher Pod Launchers. +10% to Breacher Pod maximum velocity per skill level."
+  },
+  "86264": {
+    "name": "Breacher Pod Rapid Firing",
+    "group": "Missiles",
+    "rank": 5,
+    "primary": "will",
+    "secondary": "int",
+    "desc": "Specialist training in the preparation of Breacher Pods. -10% to Breacher Pod Launcher cycle time per skill level."
+  },
+  "88377": {
+    "name": "Advanced Doomsday Operation",
+    "group": "Gunnery",
+    "rank": 14,
+    "primary": "will",
+    "secondary": "mem",
+    "desc": "Advanced understanding of titan doomsday weapons. 7.5% additional damage per level."
+  },
+  "89241": {
+    "name": "Mining Destroyer",
+    "group": "Spaceship Command",
+    "rank": 2,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating ORE Mining Destroyers"
+  },
+  "89609": {
+    "name": "Expedition Command Ships",
+    "group": "Spaceship Command",
+    "rank": 8,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Skill at operating expedition command ships."
+  },
+  "89610": {
+    "name": "Expedition Command Specialist",
+    "group": "Fleet Support",
+    "rank": 5,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Advanced proficiency at boosting the scanning and hacking capabilities of allied ships. Increases the strength of Expedition Command Burst effects by "
+  },
+  "89611": {
+    "name": "Expedition Command",
+    "group": "Fleet Support",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "will",
+    "desc": "Basic proficiency at boosting the scanning and hacking capabilities of allied ships. Grants a 10% bonus to the duration of Expedition Command Burst ef"
+  },
+  "89689": {
+    "name": "Advanced Armor Layering",
+    "group": "Armor",
+    "rank": 5,
+    "primary": "mem",
+    "secondary": "cha",
+    "desc": "Advanced skill at installing upgraded armor plates efficiently and securely, reducing the impact they have on agility and speed. Grants a 2% reduction"
+  },
+  "90040": {
+    "name": "Erratic Ore Processing",
+    "group": "Resource Processing",
+    "rank": 11,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Erratic Ore reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r \r 2% b"
+  },
+  "90398": {
+    "name": "Unrefined Minerals Processing",
+    "group": "Resource Processing",
+    "rank": 11,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Specialization in Unrefined Minerals reprocessing. Allows a skilled individual to utilize reprocessing facilities at considerably greater efficiency.\r"
+  },
+  "90727": {
+    "name": "Mining Precision",
+    "group": "Resource Processing",
+    "rank": 2,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at maximizing the chance of a mining critical success when using a mining lasers or ice harvester.\r 10% bonus to mining laser and ice harvester "
+  },
+  "90728": {
+    "name": "Mining Exploitation",
+    "group": "Resource Processing",
+    "rank": 6,
+    "primary": "cha",
+    "secondary": "mem",
+    "desc": "Skill at exploiting the benefits of mining critical successes when using a mining laser or ice harvester.\r 5% bonus to mining laser and ice harvester "
+  },
+  "91017": {
+    "name": "Freelancing",
+    "group": "Social",
+    "rank": 2,
+    "primary": "int",
+    "secondary": "per",
+    "desc": "Skill that enables accepting a greater number of Freelance jobs simultaneously.\r \r Increases the maximum number of Freelance Jobs that can be accepted"
+  },
+  "92397": {
+    "name": "Amarr Fighter Specialization",
+    "group": "Drones",
+    "rank": 14,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Amarr fighters. 2% bonus per skill level to the damage of fighters requiring Amarr Fighter Specialization."
+  },
+  "92398": {
+    "name": "Gallente Fighter Specialization",
+    "group": "Drones",
+    "rank": 14,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Gallente fighters. 2% bonus per skill level to the damage of fighters requiring Gallente Fighter Specializ"
+  },
+  "92399": {
+    "name": "Minmatar Fighter Specialization",
+    "group": "Drones",
+    "rank": 14,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Minmatar fighters. 2% bonus per skill level to the damage of fighters requiring Minmatar Fighter Specializ"
+  },
+  "92400": {
+    "name": "Caldari Fighter Specialization",
+    "group": "Drones",
+    "rank": 14,
+    "primary": "cha",
+    "secondary": "per",
+    "desc": "Specialization in the operation of advanced Caldari fighters. 2% bonus per skill level to the damage of fighters requiring Caldari Fighter Specializat"
+  },
+  "92541": {
+    "name": "Capital Disintegrator Specialization",
+    "group": "Gunnery",
+    "rank": 10,
+    "primary": "per",
+    "secondary": "will",
+    "desc": "Specialist training in the operation of advanced Ultratidal Entropic Disintegrators. 2% bonus per skill level to the damage of extra large weapons req"
+  }
+};
 
 const SKILL_CATEGORIES = {
-    'Gunnery': { id: 255, skills: [] },
-    'Missiles': { id: 256, skills: [] },
-    'Spaceship Command': { id: 257, skills: [] },
-    'Engineering': { id: 1218, skills: [] },
-    'Shields': { id: 1219, skills: [] },
-    'Armor': { id: 1220, skills: [] },
-    'Electronic Systems': { id: 1221, skills: [] },
-    'Drones': { id: 273, skills: [] },
-    'Navigation': { id: 275, skills: [] },
-    'Leadership': { id: 258, skills: [] },
-    'Neural Enhancement': { id: 1223, skills: [] },
-    'Production': { id: 268, skills: [] },
-    'Science': { id: 270, skills: [] },
-    'Scanning': { id: 269, skills: [] },
-    'Social': { id: 278, skills: [] },
-    'Trade': { id: 274, skills: [] },
-    'Resource Processing': { id: 1224, skills: [] },
-    'Planet Management': { id: 1044, skills: [] },
-    'Subsystems': { id: 1245, skills: [] }
+  "Gunnery": {
+    "id": 255,
+    "skills": [
+      3300,
+      3301,
+      3302,
+      3303,
+      3304,
+      3305,
+      3306,
+      3307,
+      3308,
+      3309,
+      3310,
+      3311,
+      3312,
+      3315,
+      3316,
+      3317,
+      11082,
+      11083,
+      11084,
+      12201,
+      12202,
+      12203,
+      12204,
+      12205,
+      12206,
+      12207,
+      12208,
+      12209,
+      12210,
+      12211,
+      12212,
+      12213,
+      12214,
+      12215,
+      20327,
+      21666,
+      21667,
+      22043,
+      24563,
+      32856,
+      41403,
+      41404,
+      41405,
+      41406,
+      41407,
+      41408,
+      41537,
+      47870,
+      47871,
+      47872,
+      47873,
+      47874,
+      47875,
+      52998,
+      54826,
+      54827,
+      54828,
+      54829,
+      54840,
+      54841,
+      55033,
+      55034,
+      55035,
+      55511,
+      77739,
+      88377,
+      92541
+    ]
+  },
+  "Missiles": {
+    "id": 256,
+    "skills": [
+      3319,
+      3320,
+      3321,
+      3322,
+      3323,
+      3324,
+      3325,
+      3326,
+      12441,
+      12442,
+      20209,
+      20210,
+      20211,
+      20212,
+      20213,
+      20312,
+      20314,
+      20315,
+      21071,
+      21668,
+      25718,
+      25719,
+      28073,
+      32435,
+      41409,
+      41410,
+      86260,
+      86261,
+      86262,
+      86263,
+      86264
+    ]
+  },
+  "Spaceship Command": {
+    "id": 257,
+    "skills": [
+      3184,
+      3327,
+      3328,
+      3329,
+      3330,
+      3331,
+      3332,
+      3333,
+      3334,
+      3335,
+      3336,
+      3337,
+      3338,
+      3339,
+      3340,
+      3341,
+      3342,
+      3343,
+      3344,
+      3345,
+      3346,
+      3347,
+      3755,
+      3758,
+      9955,
+      10264,
+      11075,
+      11078,
+      12092,
+      12093,
+      12095,
+      12096,
+      12097,
+      12098,
+      12099,
+      16591,
+      17940,
+      19430,
+      19719,
+      20342,
+      20524,
+      20525,
+      20526,
+      20527,
+      20528,
+      20530,
+      20531,
+      20532,
+      20533,
+      22551,
+      22761,
+      23950,
+      24311,
+      24312,
+      24313,
+      24314,
+      28374,
+      28609,
+      28615,
+      28656,
+      28667,
+      29029,
+      29637,
+      30650,
+      30651,
+      30652,
+      30653,
+      32918,
+      33091,
+      33092,
+      33093,
+      33094,
+      33095,
+      33096,
+      33097,
+      33098,
+      33856,
+      34327,
+      34390,
+      34533,
+      35680,
+      35685,
+      37615,
+      40328,
+      40535,
+      40536,
+      40537,
+      40538,
+      47445,
+      47867,
+      47868,
+      47869,
+      49742,
+      49743,
+      52997,
+      54794,
+      55031,
+      55032,
+      77738,
+      81032,
+      81044,
+      89241,
+      89609
+    ]
+  },
+  "Fleet Support": {
+    "id": 258,
+    "skills": [
+      3348,
+      3349,
+      3350,
+      3351,
+      3352,
+      3354,
+      11569,
+      11572,
+      11574,
+      20494,
+      20495,
+      22536,
+      22552,
+      24764,
+      43728,
+      57317,
+      57318,
+      62453,
+      89610,
+      89611
+    ]
+  },
+  "Corporation Management": {
+    "id": 266,
+    "skills": [
+      3363,
+      3364,
+      3365,
+      3366,
+      3367,
+      3368,
+      3369,
+      3370,
+      3371,
+      3372,
+      3731,
+      3732,
+      12241
+    ]
+  },
+  "Production": {
+    "id": 268,
+    "skills": [
+      3380,
+      3381,
+      3382,
+      3383,
+      3384,
+      3387,
+      3388,
+      3391,
+      3395,
+      3396,
+      3397,
+      3398,
+      3400,
+      22242,
+      24268,
+      24625,
+      26224,
+      77725
+    ]
+  },
+  "Rigging": {
+    "id": 269,
+    "skills": [
+      26252,
+      26253,
+      26254,
+      26255,
+      26256,
+      26257,
+      26258,
+      26259,
+      26260,
+      26261
+    ]
+  },
+  "Science": {
+    "id": 270,
+    "skills": [
+      3402,
+      3403,
+      3406,
+      3408,
+      3409,
+      11433,
+      11441,
+      11442,
+      11443,
+      11444,
+      11445,
+      11446,
+      11447,
+      11448,
+      11449,
+      11450,
+      11451,
+      11452,
+      11453,
+      11454,
+      11455,
+      11487,
+      11529,
+      11858,
+      12179,
+      20433,
+      21789,
+      21790,
+      21791,
+      23087,
+      23121,
+      23123,
+      23124,
+      24270,
+      24624,
+      30324,
+      30325,
+      30326,
+      30327,
+      30788,
+      52307,
+      52308,
+      55025,
+      81050,
+      81896
+    ]
+  },
+  "Electronic Systems": {
+    "id": 272,
+    "skills": [
+      3427,
+      3433,
+      3434,
+      3435,
+      4411,
+      11208,
+      11579,
+      12368,
+      19759,
+      19760,
+      19761,
+      19766,
+      19767,
+      19921,
+      19922,
+      27906,
+      27911,
+      28604,
+      28631
+    ]
+  },
+  "Drones": {
+    "id": 273,
+    "skills": [
+      3436,
+      3437,
+      3438,
+      3439,
+      3440,
+      3441,
+      3442,
+      12305,
+      12484,
+      12485,
+      12486,
+      12487,
+      22172,
+      22541,
+      23069,
+      23566,
+      23594,
+      23599,
+      23606,
+      23618,
+      24241,
+      24613,
+      32339,
+      33699,
+      40572,
+      40573,
+      43702,
+      43703,
+      57164,
+      60515,
+      92397,
+      92398,
+      92399,
+      92400
+    ]
+  },
+  "Trade": {
+    "id": 274,
+    "skills": [
+      3443,
+      3444,
+      3445,
+      3446,
+      3447,
+      3448,
+      11015,
+      12834,
+      13069,
+      13070,
+      13071,
+      13072,
+      13073,
+      13074,
+      13075,
+      16594,
+      16595,
+      16596,
+      16597,
+      16598,
+      16622,
+      18580,
+      25233,
+      25235,
+      28261,
+      33467,
+      73912
+    ]
+  },
+  "Navigation": {
+    "id": 275,
+    "skills": [
+      3449,
+      3450,
+      3451,
+      3452,
+      3453,
+      3454,
+      3455,
+      3456,
+      4385,
+      21603,
+      21610,
+      21611,
+      24562,
+      83094,
+      83464
+    ]
+  },
+  "Social": {
+    "id": 278,
+    "skills": [
+      3355,
+      3356,
+      3357,
+      3358,
+      3359,
+      3361,
+      3362,
+      3893,
+      3894,
+      3895,
+      91017
+    ]
+  },
+  "Fake Skills": {
+    "id": 505,
+    "skills": [
+      20127
+    ]
+  },
+  "Shields": {
+    "id": 1209,
+    "skills": [
+      3416,
+      3419,
+      3420,
+      3422,
+      3425,
+      11206,
+      11566,
+      12365,
+      12366,
+      12367,
+      21059,
+      21802,
+      24571,
+      44067
+    ]
+  },
+  "Armor": {
+    "id": 1210,
+    "skills": [
+      3392,
+      3393,
+      3394,
+      16069,
+      21803,
+      22806,
+      22807,
+      22808,
+      22809,
+      24568,
+      27902,
+      27936,
+      33078,
+      89689
+    ]
+  },
+  "Targeting": {
+    "id": 1213,
+    "skills": [
+      3428,
+      3429,
+      3430,
+      3431,
+      32999,
+      33000,
+      33001,
+      33002
+    ]
+  },
+  "Engineering": {
+    "id": 1216,
+    "skills": [
+      3318,
+      3413,
+      3417,
+      3418,
+      3421,
+      3423,
+      3424,
+      3426,
+      3432,
+      11204,
+      11207,
+      24572,
+      28164,
+      28879,
+      28880,
+      32797
+    ]
+  },
+  "Scanning": {
+    "id": 1217,
+    "skills": [
+      3412,
+      3551,
+      13278,
+      21718,
+      25739,
+      25810,
+      25811
+    ]
+  },
+  "Resource Processing": {
+    "id": 1218,
+    "skills": [
+      3385,
+      3386,
+      3389,
+      3390,
+      3410,
+      11395,
+      12180,
+      12181,
+      12182,
+      12183,
+      12184,
+      12185,
+      12186,
+      12187,
+      12188,
+      12189,
+      12190,
+      12191,
+      12192,
+      12193,
+      12194,
+      12195,
+      12196,
+      16281,
+      18025,
+      22578,
+      25544,
+      25863,
+      28373,
+      28585,
+      45746,
+      45748,
+      45749,
+      45750,
+      46152,
+      46153,
+      46154,
+      46155,
+      46156,
+      56631,
+      56632,
+      56633,
+      58956,
+      60377,
+      60378,
+      60379,
+      60380,
+      60381,
+      62450,
+      62451,
+      62452,
+      90040,
+      90398,
+      90727,
+      90728
+    ]
+  },
+  "Neural Enhancement": {
+    "id": 1220,
+    "skills": [
+      3405,
+      3411,
+      24242,
+      24606,
+      25530,
+      25538,
+      33399,
+      33407,
+      73910
+    ]
+  },
+  "Subsystems": {
+    "id": 1240,
+    "skills": [
+      30532,
+      30536,
+      30537,
+      30538,
+      30539,
+      30540,
+      30541,
+      30542,
+      30543,
+      30544,
+      30545,
+      30546,
+      30547,
+      30548,
+      30549,
+      30550,
+      30551,
+      30552,
+      30553,
+      30554
+    ]
+  },
+  "Planet Management": {
+    "id": 1241,
+    "skills": [
+      2403,
+      2406,
+      2495,
+      2505,
+      13279
+    ]
+  },
+  "Structure Management": {
+    "id": 1545,
+    "skills": [
+      3373,
+      11584,
+      37796,
+      37797,
+      37798,
+      37799,
+      85233
+    ]
+  },
+  "Sequencing": {
+    "id": 4734,
+    "skills": [
+      81363,
+      81364,
+      81365,
+      81366,
+      81367,
+      81368,
+      81369,
+      81370,
+      81371,
+      81372,
+      81373,
+      81374,
+      81375,
+      81376,
+      81377,
+      84217,
+      84218,
+      84220
+    ]
+  }
 };
 
-const SKILLS = {
-    // Gunnery
-    3300: { name: 'Gunnery', group: 'Gunnery', rank: 1, primary: 'per', secondary: 'will', desc: 'Basic turret operation skill.' },
-    3301: { name: 'Small Hybrid Turret', group: 'Gunnery', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3300: 1 }, desc: 'Operation of small hybrid turrets.' },
-    3302: { name: 'Small Projectile Turret', group: 'Gunnery', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3300: 1 }, desc: 'Operation of small projectile turrets.' },
-    3303: { name: 'Small Energy Turret', group: 'Gunnery', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3300: 1 }, desc: 'Operation of small energy turrets.' },
-    3304: { name: 'Medium Hybrid Turret', group: 'Gunnery', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3301: 3 }, desc: 'Operation of medium hybrid turrets.' },
-    3305: { name: 'Medium Projectile Turret', group: 'Gunnery', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3302: 3 }, desc: 'Operation of medium projectile turrets.' },
-    3306: { name: 'Medium Energy Turret', group: 'Gunnery', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3303: 3 }, desc: 'Operation of medium energy turrets.' },
-    3307: { name: 'Large Hybrid Turret', group: 'Gunnery', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3304: 5 }, desc: 'Operation of large hybrid turrets.' },
-    3308: { name: 'Large Projectile Turret', group: 'Gunnery', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3305: 5 }, desc: 'Operation of large projectile turrets.' },
-    3309: { name: 'Large Energy Turret', group: 'Gunnery', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3306: 5 }, desc: 'Operation of large energy turrets.' },
-    3310: { name: 'Rapid Firing', group: 'Gunnery', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3300: 2 }, desc: 'Increases turret rate of fire.' },
-    3311: { name: 'Sharpshooter', group: 'Gunnery', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3300: 2 }, desc: 'Increases turret optimal range.' },
-    3312: { name: 'Surgical Strike', group: 'Gunnery', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3300: 4 }, desc: 'Increases turret damage.' },
-    3315: { name: 'Controlled Bursts', group: 'Gunnery', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3300: 2 }, desc: 'Reduces capacitor need for turrets.' },
-    3316: { name: 'Trajectory Analysis', group: 'Gunnery', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3311: 4 }, desc: 'Increases turret falloff range.' },
-    3317: { name: 'Weapon Upgrades', group: 'Gunnery', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3300: 2 }, desc: 'Reduces CPU need for turrets and launchers.' },
-    3318: { name: 'Motion Prediction', group: 'Gunnery', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3300: 2 }, desc: 'Improves tracking speed against fast targets.' },
-    3319: { name: 'Advanced Weapon Upgrades', group: 'Gunnery', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3317: 5 }, desc: 'Further reduces fitting requirements.' },
-    20327: { name: 'Turret Destabilization', group: 'Gunnery', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3300: 3 }, desc: 'ECM burst turret skill.' },
-
-    // Missiles
-    3319: { name: 'Missile Launcher Operation', group: 'Missiles', rank: 1, primary: 'per', secondary: 'will', desc: 'Basic missile operation skill.' },
-    3320: { name: 'Rockets', group: 'Missiles', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3319: 1 }, desc: 'Operation of rocket launchers.' },
-    3321: { name: 'Light Missiles', group: 'Missiles', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3319: 1 }, desc: 'Operation of light missile launchers.' },
-    3322: { name: 'Auto-Targeting Missiles', group: 'Missiles', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3319: 1 }, desc: 'Auto-targeting missile operation.' },
-    3323: { name: 'Defender Missiles', group: 'Missiles', rank: 1, primary: 'per', secondary: 'will', prereqs: { 3319: 1 }, desc: 'Defender missile operation.' },
-    3324: { name: 'Heavy Missiles', group: 'Missiles', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3321: 3 }, desc: 'Operation of heavy missile launchers.' },
-    3325: { name: 'Torpedoes', group: 'Missiles', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3320: 3 }, desc: 'Operation of torpedo launchers.' },
-    3326: { name: 'Cruise Missiles', group: 'Missiles', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3324: 5 }, desc: 'Operation of cruise missile launchers.' },
-    12441: { name: 'Heavy Assault Missiles', group: 'Missiles', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3321: 3 }, desc: 'Operation of HAM launchers.' },
-    20211: { name: 'Rapid Launch', group: 'Missiles', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3319: 2 }, desc: 'Increases missile rate of fire.' },
-    20212: { name: 'Missile Bombardment', group: 'Missiles', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3319: 2 }, desc: 'Increases missile flight time.' },
-    20213: { name: 'Missile Projection', group: 'Missiles', rank: 4, primary: 'per', secondary: 'will', prereqs: { 20212: 3 }, desc: 'Increases missile velocity.' },
-    20312: { name: 'Warhead Upgrades', group: 'Missiles', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3319: 4 }, desc: 'Increases missile damage.' },
-    20314: { name: 'Guided Missile Precision', group: 'Missiles', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3319: 5 }, desc: 'Decreases explosion radius factor.' },
-    20315: { name: 'Missile Specialization', group: 'Missiles', rank: 8, primary: 'per', secondary: 'will', prereqs: { 20312: 4 }, desc: 'Specialization for T2 missiles.' },
-    22043: { name: 'Citadel Cruise Missiles', group: 'Missiles', rank: 7, primary: 'per', secondary: 'will', prereqs: { 3326: 5 }, desc: 'Operation of citadel cruise missiles.' },
-    32435: { name: 'Citadel Torpedoes', group: 'Missiles', rank: 7, primary: 'per', secondary: 'will', prereqs: { 3325: 5 }, desc: 'Operation of citadel torpedoes.' },
-
-    // Spaceship Command
-    3327: { name: 'Spaceship Command', group: 'Spaceship Command', rank: 1, primary: 'per', secondary: 'will', desc: 'Basic ship operation skill.' },
-    3328: { name: 'Gallente Frigate', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3327: 1 }, desc: 'Gallente frigate operation.' },
-    3329: { name: 'Minmatar Frigate', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3327: 1 }, desc: 'Minmatar frigate operation.' },
-    3330: { name: 'Caldari Frigate', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3327: 1 }, desc: 'Caldari frigate operation.' },
-    3331: { name: 'Amarr Frigate', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3327: 1 }, desc: 'Amarr frigate operation.' },
-    3332: { name: 'Gallente Cruiser', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3328: 3 }, desc: 'Gallente cruiser operation.' },
-    3333: { name: 'Minmatar Cruiser', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3329: 3 }, desc: 'Minmatar cruiser operation.' },
-    3334: { name: 'Caldari Cruiser', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3330: 3 }, desc: 'Caldari cruiser operation.' },
-    3335: { name: 'Amarr Cruiser', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3331: 3 }, desc: 'Amarr cruiser operation.' },
-    3336: { name: 'Gallente Battleship', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3332: 4 }, desc: 'Gallente battleship operation.' },
-    3337: { name: 'Minmatar Battleship', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3333: 4 }, desc: 'Minmatar battleship operation.' },
-    3338: { name: 'Caldari Battleship', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3334: 4 }, desc: 'Caldari battleship operation.' },
-    3339: { name: 'Amarr Battleship', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3335: 4 }, desc: 'Amarr battleship operation.' },
-    3340: { name: 'Gallente Industrial', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3328: 3 }, desc: 'Gallente industrial ship operation.' },
-    3341: { name: 'Minmatar Industrial', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3329: 3 }, desc: 'Minmatar industrial ship operation.' },
-    3342: { name: 'Caldari Industrial', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3330: 3 }, desc: 'Caldari industrial ship operation.' },
-    3343: { name: 'Amarr Industrial', group: 'Spaceship Command', rank: 3, primary: 'per', secondary: 'will', prereqs: { 3331: 3 }, desc: 'Amarr industrial ship operation.' },
-    3344: { name: 'Gallente Destroyer', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3328: 3 }, desc: 'Gallente destroyer operation.' },
-    3345: { name: 'Caldari Destroyer', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3330: 3 }, desc: 'Caldari destroyer operation.' },
-    3346: { name: 'Amarr Destroyer', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3331: 3 }, desc: 'Amarr destroyer operation.' },
-    3347: { name: 'Minmatar Destroyer', group: 'Spaceship Command', rank: 2, primary: 'per', secondary: 'will', prereqs: { 3329: 3 }, desc: 'Minmatar destroyer operation.' },
-    3348: { name: 'Gallente Battlecruiser', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3332: 3 }, desc: 'Gallente battlecruiser operation.' },
-    3349: { name: 'Caldari Battlecruiser', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3334: 3 }, desc: 'Caldari battlecruiser operation.' },
-    3350: { name: 'Amarr Battlecruiser', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3335: 3 }, desc: 'Amarr battlecruiser operation.' },
-    3351: { name: 'Minmatar Battlecruiser', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3333: 3 }, desc: 'Minmatar battlecruiser operation.' },
-    12092: { name: 'Interceptors', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3453: 3 }, desc: 'Interceptor operation.' },
-    12093: { name: 'Covert Ops', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3402: 3 }, desc: 'Covert ops operation.' },
-    12095: { name: 'Assault Frigates', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3315: 3 }, desc: 'Assault frigate operation.' },
-    12096: { name: 'Logistics Cruisers', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3412: 3 }, desc: 'Logistics cruiser operation.' },
-    16591: { name: 'Heavy Assault Cruisers', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3312: 3 }, desc: 'HAC operation.' },
-    17962: { name: 'Advanced Spaceship Command', group: 'Spaceship Command', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3327: 5 }, desc: 'Advanced ship handling.' },
-    19719: { name: 'Transport Ships', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3402: 3 }, desc: 'Transport ship operation.' },
-    19759: { name: 'Recon Ships', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3402: 3 }, desc: 'Recon ship operation.' },
-    19921: { name: 'Command Ships', group: 'Spaceship Command', rank: 8, primary: 'per', secondary: 'will', prereqs: { 3327: 5, 3350: 5 }, desc: 'Command ship operation.' },
-    21603: { name: 'Exhumers', group: 'Spaceship Command', rank: 8, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3410: 5 }, desc: 'Exhumer operation.' },
-    22551: { name: 'Marauders', group: 'Spaceship Command', rank: 8, primary: 'per', secondary: 'will', prereqs: { 3327: 5 }, desc: 'Marauder operation.' },
-    22761: { name: 'Jump Freighters', group: 'Spaceship Command', rank: 9, primary: 'per', secondary: 'will', prereqs: { 3327: 5, 21551: 3 }, desc: 'Jump freighter operation.' },
-    23950: { name: 'Titans', group: 'Spaceship Command', rank: 16, primary: 'per', secondary: 'will', prereqs: { 3327: 5 }, desc: 'Titan operation.' },
-    24311: { name: 'Interdictors', group: 'Spaceship Command', rank: 5, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3413: 3 }, desc: 'Interdictor operation.' },
-    24606: { name: 'Capital Ships', group: 'Spaceship Command', rank: 12, primary: 'per', secondary: 'will', prereqs: { 3327: 5, 17962: 3 }, desc: 'Capital ship operation.' },
-    28374: { name: 'Capital Industrial Ships', group: 'Spaceship Command', rank: 10, primary: 'per', secondary: 'will', prereqs: { 3327: 5, 17962: 3 }, desc: 'Capital industrial operation.' },
-    28609: { name: 'Electronic Attack Ships', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3432: 3 }, desc: 'EAS operation.' },
-    28615: { name: 'Heavy Interdiction Cruisers', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3413: 3 }, desc: 'HIC operation.' },
-    28656: { name: 'Black Ops', group: 'Spaceship Command', rank: 6, primary: 'per', secondary: 'will', prereqs: { 3327: 5, 3432: 3 }, desc: 'Black ops operation.' },
-    28667: { name: 'Expedition Frigates', group: 'Spaceship Command', rank: 4, primary: 'per', secondary: 'will', prereqs: { 3327: 3, 3410: 3 }, desc: 'Expedition frigate operation.' },
-
-    // Engineering
-    3380: { name: 'Engineering', group: 'Engineering', rank: 1, primary: 'int', secondary: 'mem', desc: 'Basic engineering skill.' },
-    3384: { name: 'Shield Operation', group: 'Engineering', rank: 1, primary: 'int', secondary: 'mem', prereqs: { 3380: 1 }, desc: 'Shield system operation.' },
-    3385: { name: 'Shield Management', group: 'Engineering', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3384: 3 }, desc: 'Increases shield capacity.' },
-    3386: { name: 'Shield Emission Systems', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3384: 2 }, desc: 'Remote shield boosting.' },
-    3387: { name: 'Shield Upgrades', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3380: 2 }, desc: 'Shield extender and amplifier fitting.' },
-    3390: { name: 'EM Shield Compensation', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3384: 4 }, desc: 'EM shield hardener bonus.' },
-    3392: { name: 'Explosive Shield Compensation', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3384: 4 }, desc: 'Explosive shield hardener bonus.' },
-    3393: { name: 'Kinetic Shield Compensation', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3384: 4 }, desc: 'Kinetic shield hardener bonus.' },
-    3394: { name: 'Thermal Shield Compensation', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3384: 4 }, desc: 'Thermal shield hardener bonus.' },
-    3412: { name: 'Capacitor Management', group: 'Engineering', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3380: 3 }, desc: 'Increases capacitor capacity.' },
-    3413: { name: 'Capacitor Systems Operation', group: 'Engineering', rank: 1, primary: 'int', secondary: 'mem', prereqs: { 3380: 1 }, desc: 'Capacitor recharge rate.' },
-    3416: { name: 'Weapon Upgrades', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3380: 2 }, desc: 'Weapon upgrade fitting.' },
-    3417: { name: 'Advanced Weapon Upgrades', group: 'Engineering', rank: 6, primary: 'int', secondary: 'mem', prereqs: { 3416: 5 }, desc: 'Advanced weapon upgrades.' },
-    3418: { name: 'CPU Management', group: 'Engineering', rank: 1, primary: 'int', secondary: 'mem', desc: 'Increases CPU output.' },
-    3419: { name: 'Power Grid Management', group: 'Engineering', rank: 1, primary: 'int', secondary: 'mem', desc: 'Increases power grid output.' },
-    3420: { name: 'Capacitor Emission Systems', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3413: 2 }, desc: 'Remote capacitor transfer.' },
-    3424: { name: 'Energy Grid Upgrades', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3380: 2 }, desc: 'Energy upgrade fitting.' },
-    3425: { name: 'Shield Compensation', group: 'Engineering', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3384: 3 }, desc: 'Passive shield hardening.' },
-    3426: { name: 'Thermodynamics', group: 'Engineering', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3380: 3, 3413: 4 }, desc: 'Overheating skill.' },
-    3435: { name: ' Tactical Shield Manipulation', group: 'Engineering', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3384: 4 }, desc: 'Shield booster operation.' },
-    28164: { name: 'Capacitor Capacity', group: 'Engineering', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3380: 4 }, desc: 'Increases capacitor size.' },
-
-    // Armor
-    3396: { name: 'Armor Layering', group: 'Armor', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3395: 3 }, desc: 'Armor plate fitting.' },
-    3395: { name: 'Hull Upgrades', group: 'Armor', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3398: 1 }, desc: 'Hull upgrade fitting.' },
-    3397: { name: 'Remote Armor Repair Systems', group: 'Armor', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3395: 2 }, desc: 'Remote armor repair.' },
-    3398: { name: 'Repair Systems', group: 'Armor', rank: 1, primary: 'int', secondary: 'mem', desc: 'Local armor repair.' },
-    3399: { name: 'EM Armor Compensation', group: 'Armor', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3395: 3 }, desc: 'EM armor hardener bonus.' },
-    3400: { name: 'Explosive Armor Compensation', group: 'Armor', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3395: 3 }, desc: 'Explosive armor hardener bonus.' },
-    3401: { name: 'Kinetic Armor Compensation', group: 'Armor', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3395: 3 }, desc: 'Kinetic armor hardener bonus.' },
-    3402: { name: 'Thermal Armor Compensation', group: 'Armor', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3395: 3 }, desc: 'Thermal armor hardener bonus.' },
-    22806: { name: 'Armor Resistance Phasing', group: 'Armor', rank: 6, primary: 'int', secondary: 'mem', prereqs: { 3395: 5 }, desc: 'Armor adaptive hardener bonus.' },
-
-    // Electronic Systems
-    3432: { name: 'Electronic Warfare', group: 'Electronic Systems', rank: 2, primary: 'int', secondary: 'mem', desc: 'Electronic warfare operation.' },
-    3433: { name: 'Remote Sensor Dampening', group: 'Electronic Systems', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3432: 2 }, desc: 'Sensor dampener operation.' },
-    3434: { name: 'Sensor Linking', group: 'Electronic Systems', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3432: 3 }, desc: 'Remote sensor boosting.' },
-    3436: { name: 'Weapon Disruption', group: 'Electronic Systems', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3432: 2 }, desc: 'Weapon disruptor operation.' },
-    3437: { name: 'Propulsion Jamming', group: 'Electronic Systems', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3432: 3 }, desc: 'Stasis webifier and scrambler.' },
-    3438: { name: 'Target Painting', group: 'Electronic Systems', rank: 2, primary: 'int', secondary: 'mem', prereqs: { 3432: 2 }, desc: 'Target painter operation.' },
-    3551: { name: 'Signature Analysis', group: 'Electronic Systems', rank: 1, primary: 'int', secondary: 'mem', desc: 'Targeting speed.' },
-    3553: { name: 'Frequency Modulation', group: 'Electronic Systems', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3432: 3 }, desc: 'EW falloff bonus.' },
-    3562: { name: 'Long Range Targeting', group: 'Electronic Systems', rank: 2, primary: 'int', secondary: 'mem', desc: 'Targeting range.' },
-    3579: { name: 'Turret Destabilization', group: 'Electronic Systems', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3432: 4 }, desc: 'Tracking disruptor.' },
-    3580: { name: 'Missile Guidance', group: 'Electronic Systems', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3432: 3 }, desc: 'Guidance disruptor.' },
-    19759: { name: 'Signal Suppression', group: 'Electronic Systems', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 3432: 5 }, desc: 'ECM operation.' },
-    19922: { name: 'Turret Burst', group: 'Electronic Systems', rank: 4, primary: 'int', secondary: 'mem', prereqs: { 3432: 4 }, desc: 'Weapon disruptor burst.' },
-
-    // Drones
-    3436: { name: 'Drones', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', desc: 'Basic drone operation.' },
-    3437: { name: 'Drone Avionics', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', prereqs: { 3436: 1 }, desc: 'Drone control range.' },
-    3438: { name: 'Drone Navigation', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', prereqs: { 3436: 1 }, desc: 'Drone speed.' },
-    3439: { name: 'Drone Sharpshooting', group: 'Drones', rank: 1, primary: 'mem', secondary: 'per', prereqs: { 3436: 1 }, desc: 'Drone optimal range.' },
-    3440: { name: 'Drone Durability', group: 'Drones', rank: 2, primary: 'mem', secondary: 'per', prereqs: { 3436: 2 }, desc: 'Drone HP bonus.' },
-    3441: { name: 'Drone Interfacing', group: 'Drones', rank: 3, primary: 'mem', secondary: 'per', prereqs: { 3436: 4 }, desc: 'Drone damage and mining.' },
-    3442: { name: 'Drone Navigation', group: 'Drones', rank: 4, primary: 'mem', secondary: 'per', prereqs: { 3438: 5 }, desc: 'Advanced drone speed.' },
-    12305: { name: 'Heavy Drone Operation', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'Heavy drone operation.' },
-    12484: { name: 'Amarr Drone Specialization', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'T2 Amarr drone bonus.' },
-    12485: { name: 'Caldari Drone Specialization', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'T2 Caldari drone bonus.' },
-    12486: { name: 'Gallente Drone Specialization', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'T2 Gallente drone bonus.' },
-    12487: { name: 'Minmatar Drone Specialization', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'T2 Minmatar drone bonus.' },
-    22809: { name: 'Sentry Drone Interfacing', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'Sentry drone bonus.' },
-    23566: { name: 'Electronic Warfare Drones', group: 'Drones', rank: 4, primary: 'mem', secondary: 'per', prereqs: { 3436: 4 }, desc: 'EW drone operation.' },
-    23594: { name: 'Sentry Drone Sharpshooting', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 22809: 4 }, desc: 'Sentry drone optimal.' },
-    24241: { name: 'Fighter Hangar Management', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 3436: 5 }, desc: 'Carrier fighter bonus.' },
-    24313: { name: 'Fighter Squadron Management', group: 'Drones', rank: 4, primary: 'mem', secondary: 'per', prereqs: { 24241: 3 }, desc: 'Fighter squadron bonus.' },
-    32339: { name: 'Light Fighters', group: 'Drones', rank: 4, primary: 'mem', secondary: 'per', prereqs: { 24241: 4 }, desc: 'Light fighter operation.' },
-    32340: { name: 'Support Fighters', group: 'Drones', rank: 4, primary: 'mem', secondary: 'per', prereqs: { 24241: 4 }, desc: 'Support fighter operation.' },
-    32341: { name: 'Heavy Fighters', group: 'Drones', rank: 5, primary: 'mem', secondary: 'per', prereqs: { 24241: 5 }, desc: 'Heavy fighter operation.' },
-
-    // Navigation
-    3327: { name: 'Navigation', group: 'Navigation', rank: 1, primary: 'int', secondary: 'per', desc: 'Ship velocity bonus.' },
-    3384: { name: 'Acceleration Control', group: 'Navigation', rank: 2, primary: 'int', secondary: 'per', prereqs: { 3327: 2 }, desc: 'Afterburner and MWD speed bonus.' },
-    3390: { name: 'Evasive Maneuvering', group: 'Navigation', rank: 2, primary: 'int', secondary: 'per', prereqs: { 3327: 2 }, desc: 'Ship agility bonus.' },
-    3397: { name: 'High Speed Maneuvering', group: 'Navigation', rank: 3, primary: 'int', secondary: 'per', prereqs: { 3384: 3 }, desc: 'MWD capacitor reduction.' },
-    3405: { name: 'Afterburner', group: 'Navigation', rank: 1, primary: 'int', secondary: 'per', desc: 'Afterburner duration.' },
-    3410: { name: 'Warp Drive Operation', group: 'Navigation', rank: 1, primary: 'int', secondary: 'per', desc: 'Warp capacitor reduction.' },
-    3411: { name: 'Jump Drive Operation', group: 'Navigation', rank: 5, primary: 'int', secondary: 'per', prereqs: { 3410: 5 }, desc: 'Jump drive operation.' },
-    3413: { name: 'Jump Drive Calibration', group: 'Navigation', rank: 6, primary: 'int', secondary: 'per', prereqs: { 3411: 4 }, desc: 'Jump range bonus.' },
-    3417: { name: 'Jump Fuel Conservation', group: 'Navigation', rank: 4, primary: 'int', secondary: 'per', prereqs: { 3411: 3 }, desc: 'Jump fuel reduction.' },
-    3449: { name: 'Warp Drive Operation', group: 'Navigation', rank: 2, primary: 'int', secondary: 'per', prereqs: { 3410: 2 }, desc: 'Warp speed.' },
-    3450: { name: 'Micro Jump Drive Operation', group: 'Navigation', rank: 5, primary: 'int', secondary: 'per', prereqs: { 3384: 5 }, desc: 'MJD operation.' },
-    3451: { name: 'Micro Jump Field Manipulation', group: 'Navigation', rank: 6, primary: 'int', secondary: 'per', prereqs: { 3450: 5 }, desc: 'MJFG operation.' },
-
-    // Leadership
-    3340: { name: 'Leadership', group: 'Leadership', rank: 1, primary: 'char', secondary: 'will', desc: 'Basic leadership.' },
-    3341: { name: 'Skirmish Warfare', group: 'Leadership', rank: 2, primary: 'char', secondary: 'will', prereqs: { 3340: 2 }, desc: 'Skirmish command burst.' },
-    3342: { name: 'Siege Warfare', group: 'Leadership', rank: 2, primary: 'char', secondary: 'will', prereqs: { 3340: 2 }, desc: 'Siege command burst.' },
-    3343: { name: 'Information Warfare', group: 'Leadership', rank: 2, primary: 'char', secondary: 'will', prereqs: { 3340: 2 }, desc: 'Information command burst.' },
-    3344: { name: 'Armored Warfare', group: 'Leadership', rank: 2, primary: 'char', secondary: 'will', prereqs: { 3340: 2 }, desc: 'Armored command burst.' },
-    3345: { name: 'Shield Warfare', group: 'Leadership', rank: 2, primary: 'char', secondary: 'will', prereqs: { 3340: 2 }, desc: 'Shield command burst.' },
-    3348: { name: 'Warfare Link Specialist', group: 'Leadership', rank: 5, primary: 'char', secondary: 'will', prereqs: { 3340: 5 }, desc: 'Command burst specialist.' },
-    3350: { name: 'Skirmish Warfare Specialist', group: 'Leadership', rank: 5, primary: 'char', secondary: 'will', prereqs: { 3341: 5 }, desc: 'Skirmish burst specialist.' },
-    3351: { name: 'Siege Warfare Specialist', group: 'Leadership', rank: 5, primary: 'char', secondary: 'will', prereqs: { 3342: 5 }, desc: 'Siege burst specialist.' },
-    3352: { name: 'Information Warfare Specialist', group: 'Leadership', rank: 5, primary: 'char', secondary: 'will', prereqs: { 3343: 5 }, desc: 'Information burst specialist.' },
-    3354: { name: 'Armored Warfare Specialist', group: 'Leadership', rank: 5, primary: 'char', secondary: 'will', prereqs: { 3344: 5 }, desc: 'Armored burst specialist.' },
-    3355: { name: 'Shield Warfare Specialist', group: 'Leadership', rank: 5, primary: 'char', secondary: 'will', prereqs: { 3345: 5 }, desc: 'Shield burst specialist.' },
-    12214: { name: 'Wing Command', group: 'Leadership', rank: 8, primary: 'char', secondary: 'will', prereqs: { 3340: 5 }, desc: 'Wing command.' },
-    20494: { name: 'Fleet Command', group: 'Leadership', rank: 12, primary: 'char', secondary: 'will', prereqs: { 12214: 5 }, desc: 'Fleet command.' },
-
-    // Neural Enhancement
-    3385: { name: 'Cybernetics', group: 'Neural Enhancement', rank: 3, primary: 'int', secondary: 'mem', desc: 'Implant installation.' },
-    3386: { name: 'Neural Analysis', group: 'Neural Enhancement', rank: 2, primary: 'int', secondary: 'mem', desc: 'Jump clone installation.' },
-    3411: { name: 'Infomorph Psychology', group: 'Neural Enhancement', rank: 1, primary: 'char', secondary: 'will', desc: 'Extra jump clones.' },
-    3412: { name: 'Infomorph Synchronizing', group: 'Neural Enhancement', rank: 2, primary: 'char', secondary: 'will', prereqs: { 3411: 1 }, desc: 'Jump clone cooldown reduction.' },
-    3413: { name: 'Infomorph Economics', group: 'Neural Enhancement', rank: 3, primary: 'char', secondary: 'will', prereqs: { 3412: 3 }, desc: 'Clone grade preservation.' },
-    3414: { name: 'Advanced Infomorph Psychology', group: 'Neural Enhancement', rank: 4, primary: 'char', secondary: 'will', prereqs: { 3411: 4 }, desc: 'More jump clones.' },
-    3415: { name: 'Biology', group: 'Neural Enhancement', rank: 1, primary: 'int', secondary: 'mem', desc: 'Booster duration.' },
-    3416: { name: 'Nanite Control', group: 'Neural Enhancement', rank: 4, primary: 'int', secondary: 'mem', desc: 'Booster side effect reduction.' },
-    3417: { name: 'Neurotoxin Control', group: 'Neural Enhancement', rank: 2, primary: 'int', secondary: 'mem', desc: 'Booster side effect chance reduction.' },
-    24241: { name: 'Neural Enhancement - Social', group: 'Neural Enhancement', rank: 2, primary: 'int', secondary: 'mem', desc: 'Social skill learning bonus.' },
-    30091: { name: 'Neural Enhancement - Military', group: 'Neural Enhancement', rank: 2, primary: 'int', secondary: 'mem', desc: 'Military skill learning bonus.' },
-    30092: { name: 'Neural Enhancement - Industry', group: 'Neural Enhancement', rank: 2, primary: 'int', secondary: 'mem', desc: 'Industry skill learning bonus.' },
-    30093: { name: 'Neural Enhancement - Science', group: 'Neural Enhancement', rank: 2, primary: 'int', secondary: 'mem', desc: 'Science skill learning bonus.' },
-
-    // Science
-    3402: { name: 'Science', group: 'Science', rank: 1, primary: 'int', secondary: 'mem', desc: 'Basic science skill.' },
-    3403: { name: 'Research', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3402: 1 }, desc: 'Blueprint research time.' },
-    3404: { name: 'Scientific Networking', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3403: 3 }, desc: 'Remote research.' },
-    3405: { name: 'Metallurgy', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3402: 3 }, desc: 'Material efficiency research.' },
-    3406: { name: 'Astrogeology', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3402: 3 }, desc: 'Mining crystal bonus.' },
-    3408: { name: 'Cybernetics', group: 'Science', rank: 3, primary: 'int', secondary: 'mem,', prereqs: { 3402: 3 }, desc: 'Implant manufacturing.' },
-    3410: { name: 'Biology', group: 'Science', rank: 1, primary: 'int', secondary: 'mem', desc: 'Booster manufacturing.' },
-    3413: { name: 'Laboratory Operation', group: 'Science', rank: 1, primary: 'int', secondary: 'mem', prereqs: { 3402: 1 }, desc: 'Lab slot usage.' },
-    3414: { name: 'Advanced Laboratory Operation', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', prereqs: { 3413: 3 }, desc: 'Extra lab slot.' },
-    3415: { name: 'Sleeper Technology', group: 'Science', rank: 5, primary: 'int', secondary: 'mem', desc: 'Sleeper tech usage.' },
-    3416: { name: 'Caldari Encryption Methods', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Caldari invention.' },
-    3417: { name: 'Minmatar Encryption Methods', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Minmatar invention.' },
-    3418: { name: 'Amarr Encryption Methods', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Amarr invention.' },
-    3419: { name: 'Gallente Encryption Methods', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Gallente invention.' },
-    11433: { name: 'High Energy Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'T2 component manufacturing.' },
-    11442: { name: 'Laser Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Laser-related invention.' },
-    11443: { name: 'Electromagnetic Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Hybrid invention.' },
-    11444: { name: 'Rocket Science', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Rocket invention.' },
-    11445: { name: 'Graviton Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Shield invention.' },
-    11446: { name: 'Quantum Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Electronic invention.' },
-    11447: { name: 'Molecular Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Armor invention.' },
-    11448: { name: 'Nanite Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Nanite invention.' },
-    11449: { name: 'Nuclear Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Projectile invention.' },
-    11450: { name: 'Mechanical Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Drone invention.' },
-    11451: { name: 'Hydromagnetic Physics', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Shield invention.' },
-    11452: { name: 'Amarr Starship Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Amarr T2 invention.' },
-    11453: { name: 'Caldari Starship Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Caldari T2 invention.' },
-    11454: { name: 'Gallente Starship Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Gallente T2 invention.' },
-    11455: { name: 'Minmatar Starship Engineering', group: 'Science', rank: 2, primary: 'int', secondary: 'mem', desc: 'Minmatar T2 invention.' },
-    11487: { name: 'Sleeper Encryption Methods', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', desc: 'Sleeper invention.' },
-    13278: { name: 'Archaeology', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', desc: 'Relic analyzer.' },
-    13279: { name: 'Remote Sensing', group: 'Science', rank: 1, primary: 'int', secondary: 'mem', desc: 'Planet scanning.' },
-    17852: { name: 'Hacking', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', desc: 'Data analyzer.' },
-    23087: { name: 'Astrometrics', group: 'Science', rank: 3, primary: 'int', secondary: 'mem', desc: 'Scanning strength.' },
-    25538: { name: 'Astrometric Rangefinding', group: 'Science', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 23087: 3 }, desc: 'Scanning deviation.' },
-    25539: { name: 'Astrometric Pinpointing', group: 'Science', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 23087: 3 }, desc: 'Scanning probe speed.' },
-    25739: { name: 'Astrometric Acquisition', group: 'Science', rank: 5, primary: 'int', secondary: 'mem', prereqs: { 23087: 3 }, desc: 'Scanning probe strength.' },
-
-    // Trade
-    3443: { name: 'Trade', group: 'Trade', rank: 1, primary: 'char', secondary: 'mem', desc: 'Active order limit.' },
-    3444: { name: 'Retail', group: 'Trade', rank: 2, primary: 'char', secondary: 'mem', prereqs: { 3443: 2 }, desc: 'Market order limit.' },
-    3445: { name: 'Black Market Trading', group: 'Trade', rank: 4, primary: 'char', secondary: 'mem', prereqs: { 3443: 4 }, desc: 'NPC market margin.' },
-    3446: { name: 'Broker Relations', group: 'Trade', rank: 2, primary: 'char', secondary: 'mem', prereqs: { 3443: 2 }, desc: 'Broker fee reduction.' },
-    3447: { name: 'Visibility', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 3443: 3 }, desc: 'Modify order range.' },
-    3448: { name: 'Smuggling', group: 'Trade', rank: 6, primary: 'char', secondary: 'mem', prereqs: { 3443: 3 }, desc: 'NPC detection reduction.' },
-    16597: { name: 'Accounting', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 3443: 3 }, desc: 'Sales tax reduction.' },
-    16598: { name: 'Marketing', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 3444: 3 }, desc: 'Remote order placement.' },
-    16622: { name: 'Procurement', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 16597: 3 }, desc: 'Remote buy orders.' },
-    16623: { name: 'Daytrading', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 16598: 3 }, desc: 'Remote order modification.' },
-    16624: { name: 'Wholesale', group: 'Trade', rank: 4, primary: 'char', secondary: 'mem', prereqs: { 16622: 3 }, desc: 'Order limit increase.' },
-    16625: { name: 'Margin Trading', group: 'Trade', rank: 6, primary: 'char', secondary: 'mem', prereqs: { 16623: 4 }, desc: 'Minimum ISK for buy orders.' },
-    16626: { name: 'Tycoon', group: 'Trade', rank: 6, primary: 'char', secondary: 'mem', prereqs: { 16624: 4 }, desc: 'Maximum order limit.' },
-    18580: { name: 'Contracting', group: 'Trade', rank: 1, primary: 'char', secondary: 'mem', desc: 'Contract limit.' },
-    19198: { name: 'Advanced Contracting', group: 'Trade', rank: 3, primary: 'char', secondary: 'mem', prereqs: { 18580: 3 }, desc: 'More contracts.' },
-
-    // Add more categories as needed - this covers the core skills
+const SP_TABLE = {
+  "1": 250,
+  "2": 1415,
+  "3": 8000,
+  "4": 45255,
+  "5": 256000
 };
 
-// Skill Category Names for UI
-const SKILL_GROUP_NAMES = {
-    'Gunnery': 'Gunnery',
-    'Missiles': 'Missiles', 
-    'Spaceship Command': 'Spaceship Command',
-    'Engineering': 'Engineering',
-    'Shields': 'Shields',
-    'Armor': 'Armor',
-    'Electronic Systems': 'Electronic Systems',
-    'Drones': 'Drones',
-    'Navigation': 'Navigation',
-    'Leadership': 'Leadership',
-    'Neural Enhancement': 'Neural Enhancement',
-    'Science': 'Science',
-    'Scanning': 'Scanning',
-    'Social': 'Social',
-    'Trade': 'Trade',
-    'Resource Processing': 'Resource Processing',
-    'Planet Management': 'Planet Management',
-    'Subsystems': 'Subsystems'
-};
-
-// Attribute display names
-const ATTRIBUTES = {
-    int: 'Intelligence',
-    mem: 'Memory', 
-    per: 'Perception',
-    will: 'Willpower',
-    char: 'Charisma'
-};
-
-// SP requirements for each skill level (before multiplier)
-const SP_TABLE = [
-    0,      // Level 0
-    256,    // Level 1
-    1415,   // Level 2
-    8000,   // Level 3
-    45255,  // Level 4
-    256000  // Level 5
-];
-
-// Skill Book Type IDs (for market lookup)
-// Maps skill ID to skill book type ID
 const SKILL_BOOKS = {
-    // Gunnery
-    3300: 10273, 3301: 10275, 3302: 10277, 3303: 10279, 3304: 10281,
-    3305: 10283, 3306: 10285, 3307: 10287, 3308: 10289, 3309: 10291,
-    3310: 10293, 3311: 10295, 3312: 10297, 3315: 10303, 3316: 10305,
-    3317: 10307, 3318: 10309, 3319: 10311, 20327: 21509,
-    // Missiles
-    3320: 10313, 3321: 10315, 3322: 10317, 3323: 10319, 3324: 10321,
-    3325: 10323, 3326: 10325, 3327: 10327, 3328: 12412, 3329: 12413,
-    3330: 12414, 3331: 12415, 3332: 12416, 3333: 12417, 3334: 12418,
-    3335: 12419,
-    // Navigation
-    3385: 10373, 3386: 10375, 3387: 10377, 3388: 10379, 3389: 10381,
-    3390: 10383, 3392: 10385, 3393: 10387, 3394: 10389, 3395: 10391,
-    3396: 10393, 3397: 10395, 3398: 10397,
-    // Engineering
-    3380: 10353, 3381: 10355, 3412: 10419, 3413: 10421, 3416: 10425,
-    3417: 10427, 3418: 10429, 3419: 10431, 3420: 10433, 3421: 10435,
-    3422: 10437, 3423: 10439, 3424: 10441, 3425: 10443, 3426: 10445,
-    3427: 10447, 3432: 10457, 3433: 10459, 28604: 28605,
-    // Drones
-    3436: 10467, 3437: 10469, 3438: 10471, 3439: 10473, 3440: 10475,
-    3441: 10477, 3442: 10479, 12368: 12404, 23566: 23594, 23594: 23615,
-    24241: 24242, 24613: 24622, 33608: 33609, 40535: 40536,
-    // Spaceship Command
-    33078: 33079, 33079: 33080, 33080: 33081, 33081: 33082, 33082: 33083,
-    33083: 33084, 33084: 33085, 33085: 33086, 33086: 33087, 33087: 33088,
-    33088: 33089, 33089: 33090, 33090: 33091, 33091: 33092, 33092: 33093,
-    33093: 33094, 33094: 33095, 33095: 33096, 33096: 33097, 33097: 33098,
-    33098: 33099, 33099: 33100, 33100: 33101, 33101: 33102, 33102: 33103,
-    // Armor
-    3396: 10393, 3397: 10395, 3398: 10397,
-    // Science
-    3402: 10403, 3403: 10405, 3405: 10409, 3406: 10411, 3408: 10415,
-    3409: 10417, 3410: 24268, 3411: 20494,
-    // Trade
-    3443: 10481, 3444: 10483, 3445: 10485, 3446: 10487, 3447: 10489,
-    3448: 10491, 3449: 10493, 3450: 10495, 3451: 10497, 3452: 10499,
-    3453: 10501, 3454: 10503, 3455: 10505, 3456: 10507,
-    // Social
-    3355: 10243, 3356: 10245, 3357: 10247, 3358: 10249, 3359: 10251,
-    3361: 10253, 3362: 10255, 3893: 10257, 3894: 10259,
-    // Production
-    3385: 10373, 3386: 10375, 3387: 10377, 3388: 10379, 3389: 10381,
-    3390: 10383, 3391: 10385, 3392: 10387, 3393: 10389, 3394: 10391,
-    // Scanning
-    3411: 20494, 3412: 10419, 3413: 10421,
-    // Resource Processing
-    3385: 10373, 3386: 10375, 3387: 10377,
-    // Neural Enhancement
-    3348: 10235, 3349: 10237, 3350: 10239, 3351: 10241, 24311: 24312,
-    24312: 24313, 25538: 25539,
-    // Leadership
-    3348: 10235, 3349: 10237, 3350: 10239, 3351: 10241, 3552: 10761,
-    3553: 10763, 3554: 10765, 3555: 10767, 3556: 10769, 3557: 10771,
-    3755: 10773, 3756: 10775, 3757: 10777, 3758: 10779, 3759: 10781,
-    3760: 10783,
-    // Generic fallback - many skill books share the skill ID
-    // For skills not listed, we'll try skill ID directly or common patterns
+  "3300": 242,
+  "3301": 1210,
+  "3302": 1211,
+  "3303": 1209,
+  "3304": 1213,
+  "3305": 1214,
+  "3306": 1212,
+  "3307": 1216,
+  "3308": 1217,
+  "3309": 1215,
+  "3310": 1221,
+  "3311": 1222,
+  "3312": 1223,
+  "3315": 1225,
+  "3316": 1224,
+  "3317": 1226,
+  "3318": 3318,
+  "3319": 3320,
+  "3320": 3321,
+  "3321": 3322,
+  "3324": 3324,
+  "3325": 3325,
+  "3326": 3326,
+  "3327": 3327,
+  "3328": 3328,
+  "3329": 3329,
+  "3330": 3330,
+  "3331": 3331,
+  "3332": 3332,
+  "3333": 3333,
+  "3334": 3334,
+  "3335": 3335,
+  "3336": 3336,
+  "3337": 3337,
+  "3338": 3338,
+  "3339": 3339,
+  "3340": 3340,
+  "3341": 3341,
+  "3342": 3342,
+  "3343": 3343
 };
 
-// Generate market link for a skill book
 function getSkillBookMarketLink(skillId) {
-    const bookId = SKILL_BOOKS[skillId];
-    if (!bookId) return null;
-    // Link to RustyBot market with type ID
-    return `../market/index.html?typeId=${bookId}`;
+  const bookId = SKILL_BOOKS[skillId];
+  if (!bookId) return null;
+  return `../market/index.html?typeId=${bookId}`;
 }
 
-// Check if skill book data is available
 function hasSkillBook(skillId) {
-    return !!SKILL_BOOKS[skillId];
+  return !!SKILL_BOOKS[skillId];
 }
 
-// Export for use in other modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { SKILLS, SKILL_CATEGORIES, SKILL_GROUP_NAMES, ATTRIBUTES, SP_TABLE, SKILL_BOOKS, getSkillBookMarketLink, hasSkillBook };
+const skillNameCache = {};
+
+async function getSkillName(skillId) {
+  if (SKILLS[skillId]) return SKILLS[skillId].name;
+  if (skillNameCache[skillId]) return skillNameCache[skillId];
+  return `Skill ${skillId}`;
+}
+
+const root = typeof globalThis !== "undefined" ? globalThis : (typeof window !== "undefined" ? window : undefined);
+if (root) {
+  root.SKILLS = SKILLS;
+  root.SKILL_CATEGORIES = SKILL_CATEGORIES;
+  root.SP_TABLE = SP_TABLE;
+  root.SKILL_BOOKS = SKILL_BOOKS;
+  root.getSkillBookMarketLink = getSkillBookMarketLink;
+  root.hasSkillBook = hasSkillBook;
+  root.getSkillName = getSkillName;
+}
+
+if (typeof window !== "undefined") {
+  window.SKILLS = SKILLS;
+  window.SKILL_CATEGORIES = SKILL_CATEGORIES;
+  window.SP_TABLE = SP_TABLE;
+  window.SKILL_BOOKS = SKILL_BOOKS;
+  window.getSkillBookMarketLink = getSkillBookMarketLink;
+  window.hasSkillBook = hasSkillBook;
+  window.getSkillName = getSkillName;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    SKILLS,
+    SKILL_CATEGORIES,
+    SP_TABLE,
+    SKILL_BOOKS,
+    getSkillBookMarketLink,
+    hasSkillBook,
+    getSkillName
+  };
 }
