@@ -82,6 +82,11 @@ class TrainingCalculator {
         return minutes;
     }
 
+    // Format training time from seconds (ESI skill queue format)
+    formatTrainingTime(seconds) {
+        return this.formatTime(seconds / 60);
+    }
+
     // Format time duration
     formatTime(minutes) {
         if (minutes < 1) {
