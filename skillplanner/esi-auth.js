@@ -11,8 +11,7 @@ const ESI_CONFIG = {
     scopes: [
         'esi-skills.read_skills.v1',
         'esi-skills.read_skillqueue.v1',
-        'esi-clones.read_implants.v1',
-        'esi-characters.read_attributes.v1'
+        'esi-clones.read_implants.v1'
     ]
 };
 
