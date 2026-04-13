@@ -113,6 +113,7 @@ class SkillPlannerApp {
         
         // Character switch
         this.charSwitchBtn?.addEventListener('click', () => this.toggleCharacterList());
+        document.getElementById('charLogoutBtn')?.addEventListener('click', () => this.logoutCharacter());
         
         // Quick actions
         document.getElementById('quickPlanBtn')?.addEventListener('click', () => this.switchView('skills'));
@@ -128,6 +129,7 @@ class SkillPlannerApp {
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
         document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.loadSavedPlan());
         document.getElementById('savePlanBtn')?.addEventListener('click', () => this.savePlanDialog());
+        document.getElementById('deletePlanBtn')?.addEventListener('click', () => this.deletePlan());
         document.getElementById('optimizePlanBtn')?.addEventListener('click', () => this.optimizePlan());
         document.getElementById('addSkillToPlanBtn')?.addEventListener('click', () => this.openSkillPicker());
         document.getElementById('autoFixPrereqs')?.addEventListener('click', () => this.autoFixPrereqs());
@@ -319,6 +321,42 @@ class SkillPlannerApp {
 
     toggleCharacterList() {
         this.characterList?.classList.toggle('hidden');
+    }
+
+    logoutCharacter() {
+        const charId = esiAuth.getCurrentCharacter();
+        if (!charId) return;
+        
+        const char = esiAuth.tokens[charId];
+        const charName = char?.characterName || 'Character';
+        
+        if (confirm(`Logout ${charName}?`)) {
+            esiAuth.removeCharacter(charId);
+            characterManager.removeCharacter(charId);
+            
+            // Update UI
+            this.characterInfo?.classList.add('hidden');
+            this.loginPrompt?.classList.remove('hidden');
+            this.charName.textContent = 'Character Name';
+            this.charPortrait.src = '';
+            this.charMeta.textContent = '0 SP • 0 Skills';
+            
+            // Clear dashboard stats
+            this.totalSp.textContent = '--';
+            this.skillsTrained.textContent = '--';
+            this.skillsAtFive.textContent = '--';
+            this.unallocatedSp.textContent = '--';
+            
+            // Clear queue and recent skills
+            if (this.skillQueueList) {
+                this.skillQueueList.innerHTML = '<p class="empty-hint">Login to see your active skill queue</p>';
+            }
+            if (this.recentSkillsList) {
+                this.recentSkillsList.innerHTML = '<p class="empty-hint">Login to see your recent skill training</p>';
+            }
+            
+            this.showMessage(`Logged out ${charName}`, 'success');
+        }
     }
 
     renderSkillQueue() {
@@ -553,6 +591,13 @@ class SkillPlannerApp {
                     </div>
                 </div>
                 
+                ${hasSkillBook(skillId) ? `
+                    <a href="${getSkillBookMarketLink(skillId)}" target="_blank" class="market-link-btn">
+                        <i class="fas fa-external-link-alt"></i>
+                        View Skill Book in Market
+                    </a>
+                ` : ''}
+                
                 ${inPlan ? `
                     <div class="detail-in-plan">
                         <i class="fas fa-clipboard-check"></i>
@@ -583,6 +628,8 @@ class SkillPlannerApp {
             .prereq-item.met { border-left: 3px solid var(--success-color); }
             .prereq-item.missing { border-left: 3px solid var(--warning-color); }
             .detail-in-plan { background: rgba(232, 217, 0, 0.1); border: 1px solid var(--accent-color); padding: 10px; border-radius: 6px; margin-bottom: 20px; color: var(--accent-color); }
+            .market-link-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--secondary-color); color: var(--accent-color); text-decoration: none; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; transition: background 0.2s; }
+            .market-link-btn:hover { background: var(--accent-color); color: var(--bg-color); }
         `;
         if (!document.getElementById('skill-detail-styles')) {
             style.id = 'skill-detail-styles';
@@ -626,10 +673,12 @@ class SkillPlannerApp {
             const spNeeded = trainingCalc.spNeeded(item.skillId, currentLevel, item.targetLevel);
             const time = trainingCalc.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
             
+            const marketLink = hasSkillBook(item.skillId) ? `<a href="${getSkillBookMarketLink(item.skillId)}" target="_blank" class="plan-market-link" title="View in Market"><i class="fas fa-shopping-cart"></i></a>` : '';
+            
             return `
                 <div class="plan-skill-item" data-skill-id="${item.skillId}">
                     <div class="skill-info">
-                        <div class="skill-name">${skill.name}</div>
+                        <div class="skill-name">${skill.name} ${marketLink}</div>
                         <div class="skill-prereq ${!hasPrereqIssue ? 'hidden' : ''}">
                             <i class="fas fa-exclamation-triangle"></i>
                             Missing prereqs
@@ -801,6 +850,25 @@ class SkillPlannerApp {
         if (index >= 0 && index < plans.length) {
             skillPlanner.loadNamedPlan(plans[index]);
             this.showMessage('Plan loaded', 'success');
+        }
+    }
+
+    deletePlan() {
+        const plans = skillPlanner.getSavedPlanNames();
+        if (plans.length === 0) {
+            this.showMessage('No saved plans to delete', 'warning');
+            return;
+        }
+        
+        const selected = prompt('Delete which plan?\n' + plans.map((p, i) => `${i + 1}. ${p}`).join('\n') + '\n\nEnter number to delete:');
+        const index = parseInt(selected) - 1;
+        
+        if (index >= 0 && index < plans.length) {
+            const planName = plans[index];
+            if (confirm(`Delete plan "${planName}"?`)) {
+                skillPlanner.deleteNamedPlan(planName);
+                this.showMessage(`Plan "${planName}" deleted`, 'success');
+            }
         }
     }
 

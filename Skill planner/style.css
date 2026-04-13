@@ -181,6 +181,21 @@ body {
     background: var(--secondary-color);
 }
 
+.char-logout-btn {
+    background: none;
+    border: none;
+    color: var(--text-subtle-color);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.char-logout-btn:hover {
+    color: var(--error-color);
+    background: rgba(244, 67, 54, 0.1);
+}
+
 .character-list {
     max-height: 200px;
     overflow-y: auto;
@@ -846,6 +861,25 @@ body {
     color: var(--accent-color);
 }
 
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid var(--error-color);
+    border-radius: 6px;
+    color: var(--error-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: var(--error-color);
+    color: var(--bg-color);
+    transform: translateY(-1px);
+}
+
 .btn-small {
     padding: 6px 12px;
     font-size: 0.85rem;
@@ -972,6 +1006,18 @@ body {
 .plan-skill-item .remove-btn:hover {
     color: var(--error-color);
     background: rgba(244, 67, 54, 0.1);
+}
+
+.plan-market-link {
+    color: var(--accent-color);
+    margin-left: 8px;
+    font-size: 0.85rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.plan-market-link:hover {
+    opacity: 1;
 }
 
 .plan-summary-panel {
