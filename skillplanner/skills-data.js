@@ -619,84 +619,36 @@ const SKILL_CATEGORIES = {
 };
 
 
+
 // Skill book type ID mappings (skill_id -> skill_book_type_id)
 const SKILL_BOOKS = {
-    3300: 242,      // Gunnery
-    3301: 1210,     // Small Hybrid Turret
-    3302: 1211,     // Small Projectile Turret
-    3303: 1209,     // Small Energy Turret
-    3304: 1213,     // Medium Hybrid Turret
-    3305: 1214,     // Medium Projectile Turret
-    3306: 1212,     // Medium Energy Turret
-    3307: 1216,     // Large Hybrid Turret
-    3308: 1217,     // Large Projectile Turret
-    3309: 1215,     // Large Energy Turret
-    3310: 1221,     // Rapid Firing
-    3311: 1222,     // Sharpshooter
-    3312: 1223,     // Motion Prediction
-    3315: 1225,     // Surgical Strike
-    3316: 1224,     // Controlled Bursts
-    3317: 1226,     // Trajectory Analysis
-    3318: 3318,     // Weapon Upgrades
-    3319: 3320,     // Missile Launcher Operation
-    3320: 3321,     // Rockets
-    3321: 3322,     // Light Missiles
-    3324: 3324,     // Heavy Missiles
-    3325: 3325,     // Torpedoes
-    3326: 3326,     // Cruise Missiles
-    3327: 3327,     // Spaceship Command
-    3328: 3328,     // Gallente Frigate
-    3329: 3329,     // Minmatar Frigate
-    3330: 3330,     // Caldari Frigate
-    3331: 3331,     // Amarr Frigate
-    3332: 3332,     // Gallente Cruiser
-    3333: 3333,     // Minmatar Cruiser
-    3334: 3334,     // Caldari Cruiser
-    3335: 3335,     // Amarr Cruiser
-    3336: 3336,     // Gallente Battleship
-    3337: 3337,     // Minmatar Battleship
-    3338: 3338,     // Caldari Battleship
-    3339: 3339,     // Amarr Battleship
-    3340: 3340,     // Gallente Hauler
-    3341: 3341,     // Minmatar Hauler
-    3342: 3342,     // Caldari Hauler
-    3343: 3343,     // Amarr Hauler
+    3300: 242, 3301: 1210, 3302: 1211, 3303: 1209, 3304: 1213, 3305: 1214, 3306: 1212,
+    3307: 1216, 3308: 1217, 3309: 1215, 3310: 1221, 3311: 1222, 3312: 1223,
+    3315: 1225, 3316: 1224, 3317: 1226, 3318: 3318, 3319: 3320, 3320: 3321,
+    3321: 3322, 3324: 3324, 3325: 3325, 3326: 3326, 3327: 3327, 3328: 3328,
+    3329: 3329, 3330: 3330, 3331: 3331, 3332: 3332, 3333: 3333, 3334: 3334,
+    3335: 3335, 3336: 3336, 3337: 3337, 3338: 3338, 3339: 3339, 3340: 3340,
+    3341: 3341, 3342: 3342, 3343: 3343
 };
 
-// Generate market link for a skill book
 function getSkillBookMarketLink(skillId) {
     const bookId = SKILL_BOOKS[skillId];
     if (!bookId) return null;
-    // Link to RustyBot market with type ID
     return ../market/index.html?typeId=;
 }
 
-// Check if skill book data is available
 function hasSkillBook(skillId) {
     return !!SKILL_BOOKS[skillId];
 }
 
-// Skill name cache for dynamic lookups
 const skillNameCache = {};
 
-// Get skill name - from local DB or fetch from ESI
 async function getSkillName(skillId) {
-    // Check local database first
-    if (SKILLS[skillId]) {
-        return SKILLS[skillId].name;
-    }
-    
-    // Check cache
-    if (skillNameCache[skillId]) {
-        return skillNameCache[skillId];
-    }
-    
-    // Return placeholder for now
+    if (SKILLS[skillId]) return SKILLS[skillId].name;
+    if (skillNameCache[skillId]) return skillNameCache[skillId];
     return Skill ;
 }
 
-// Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { SKILLS, SKILL_CATEGORIES, SKILL_BOOKS, getSkillBookMarketLink, hasSkillBook, getSkillName };
 }
-
