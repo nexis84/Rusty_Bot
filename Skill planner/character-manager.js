@@ -1,15 +1,6 @@
 // Character Manager Module
 // Handles fetching and caching character data from ESI
 
-// Access SKILLS from global scope
-function getSKILLS() {
-    if (typeof window !== 'undefined' && window.SKILLS) return window.SKILLS;
-    if (typeof globalThis !== 'undefined' && globalThis.SKILLS) return globalThis.SKILLS;
-    console.error('SKILLS data not loaded! Make sure skills-data.js is loaded before this script.');
-    return {};
-}
-
-const SKILLS = getSKILLS();
 const SP_TABLE = globalThis.SP_TABLE || (typeof window !== 'undefined' ? window.SP_TABLE : {}) || {
     1: 250,
     2: 1415,
@@ -175,7 +166,7 @@ class CharacterManager {
         if (!skills || !skills.skills) return 0;
         
         return skills.skills.reduce((total, skill) => {
-            const skillData = SKILLS[skill.skill_id];
+            const skillData = window.SKILLS[skill.skill_id];
             if (!skillData) return total;
             
             // Calculate SP trained for this skill

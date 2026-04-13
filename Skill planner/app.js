@@ -1,16 +1,6 @@
 // Main Application Module
 // Orchestrates all functionality and UI interactions
 
-// Access SKILLS from global scope
-function getSKILLS() {
-    if (typeof window !== 'undefined' && window.SKILLS) return window.SKILLS;
-    if (typeof globalThis !== 'undefined' && globalThis.SKILLS) return globalThis.SKILLS;
-    console.error('SKILLS data not loaded! Make sure skills-data.js is loaded before this script.');
-    return {};
-}
-
-const SKILLS = getSKILLS();
-
 class SkillPlannerApp {
     constructor() {
         this.currentView = 'dashboard';
@@ -26,7 +16,7 @@ class SkillPlannerApp {
         this.startClock();
         
         // Validate SKILLS data is loaded
-        if (!SKILLS || Object.keys(SKILLS).length === 0) {
+        if (!window.SKILLS || Object.keys(window.SKILLS).length === 0) {
             console.error('SKILLS data is empty or not loaded!');
             this.showMessage('Failed to load skill database. Please refresh the page.', 'error');
             return;
@@ -408,7 +398,7 @@ class SkillPlannerApp {
         }
         
         this.skillQueueList.innerHTML = queue.slice(0, 5).map((item, index) => {
-            const skill = SKILLS[item.skill_id];
+            const skill = window.SKILLS[item.skill_id];
             const skillName = skill ? skill.name : `Skill ${item.skill_id}`;
             const level = item.level_end;
             const position = index === 0 ? 'training' : `queue #${index + 1}`;
@@ -446,7 +436,7 @@ class SkillPlannerApp {
             .slice(0, 10);
         
         this.currentSkillsList.innerHTML = topSkills.map(skill => {
-            const skillData = SKILLS[skill.skill_id];
+            const skillData = window.SKILLS[skill.skill_id];
             const skillName = skillData ? skillData.name : `Skill ${skill.skill_id}`;
             const level = skill.trained_skill_level;
             const sp = skill.skillpoints_in_skill;
@@ -480,7 +470,7 @@ class SkillPlannerApp {
         }
         
         this.recentSkillsList.innerHTML = recentSkills.map(skill => {
-            const skillData = SKILLS[skill.skill_id];
+            const skillData = window.SKILLS[skill.skill_id];
             const skillName = skillData ? skillData.name : `Skill ${skill.skill_id}`;
             const sp = skill.skillpoints_in_skill;
             
@@ -521,7 +511,7 @@ class SkillPlannerApp {
         // Apply search
         if (search) {
             skills = skills.filter(s => {
-                const skillData = SKILLS[s.skill_id];
+                const skillData = window.SKILLS[s.skill_id];
                 const name = skillData ? skillData.name.toLowerCase() : '';
                 return name.includes(search);
             });
@@ -543,13 +533,13 @@ class SkillPlannerApp {
             if (b.trained_skill_level !== a.trained_skill_level) {
                 return b.trained_skill_level - a.trained_skill_level;
             }
-            const nameA = SKILLS[a.skill_id]?.name || '';
-            const nameB = SKILLS[b.skill_id]?.name || '';
+            const nameA = window.SKILLS[a.skill_id]?.name || '';
+            const nameB = window.SKILLS[b.skill_id]?.name || '';
             return nameA.localeCompare(nameB);
         });
         
         this.mySkillsList.innerHTML = skills.map(skill => {
-            const skillData = SKILLS[skill.skill_id];
+            const skillData = window.SKILLS[skill.skill_id];
             const skillName = skillData ? skillData.name : `Skill ${skill.skill_id}`;
             const level = skill.trained_skill_level;
             const sp = skill.skillpoints_in_skill;
@@ -660,7 +650,7 @@ class SkillPlannerApp {
 
     selectSkill(skillId) {
         this.selectedSkill = skillId;
-        const skill = SKILLS[skillId];
+        const skill = window.SKILLS[skillId];
         if (!skill) return;
         
         const currentLevel = this.getCharacterSkillLevel(skillId);
@@ -689,7 +679,7 @@ class SkillPlannerApp {
         let prereqsHtml = '';
         if (skill.prereqs) {
             const prereqs = Object.entries(skill.prereqs).map(([prereqId, level]) => {
-                const prereqSkill = SKILLS[prereqId];
+                const prereqSkill = window.SKILLS[prereqId];
                 const prereqLevel = this.getCharacterSkillLevel(parseInt(prereqId));
                 const met = prereqLevel >= level;
                 return `
@@ -807,7 +797,7 @@ class SkillPlannerApp {
         this.planName.value = skillPlanner.getName();
         
         this.planList.innerHTML = plan.map(item => {
-            const skill = SKILLS[item.skillId];
+            const skill = window.SKILLS[item.skillId];
             const currentLevel = this.getCharacterSkillLevel(item.skillId);
             
             // Check prerequisites

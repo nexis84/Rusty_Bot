@@ -1,15 +1,6 @@
 // Training Time Calculator Module
 // Calculates skill training times based on attributes and implants
 
-// Access SKILLS from global scope
-function getSKILLS() {
-    if (typeof window !== 'undefined' && window.SKILLS) return window.SKILLS;
-    if (typeof globalThis !== 'undefined' && globalThis.SKILLS) return globalThis.SKILLS;
-    console.error('SKILLS data not loaded! Make sure skills-data.js is loaded before this script.');
-    return {};
-}
-
-const SKILLS = getSKILLS();
 const SP_TABLE = globalThis.SP_TABLE || (typeof window !== 'undefined' ? window.SP_TABLE : {}) || {
     1: 250,
     2: 1415,
@@ -42,7 +33,7 @@ class TrainingCalculator {
 
     // Calculate SP needed for a skill level
     spForLevel(skillId, level) {
-        const skill = SKILLS[skillId];
+        const skill = window.SKILLS[skillId];
         if (!skill) return 0;
         
         let totalSP = 0;
@@ -58,7 +49,7 @@ class TrainingCalculator {
         
         let sp = 0;
         for (let i = currentLevel + 1; i <= targetLevel; i++) {
-            sp += SP_TABLE[i] * SKILLS[skillId].rank;
+            sp += SP_TABLE[i] * window.SKILLS[skillId].rank;
         }
         return sp;
     }
@@ -136,7 +127,7 @@ class TrainingCalculator {
 
     // Calculate training time for a specific skill
     calculateSkillTime(skillId, fromLevel, toLevel) {
-        const skill = SKILLS[skillId];
+        const skill = window.SKILLS[skillId];
         if (!skill) return 0;
         
         const spNeeded = this.spNeeded(skillId, fromLevel, toLevel);
@@ -168,7 +159,7 @@ class TrainingCalculator {
                 
                 details.push({
                     skillId: skillId,
-                    skillName: SKILLS[skillId]?.name || 'Unknown',
+                    skillName: window.SKILLS[skillId]?.name || 'Unknown',
                     fromLevel: currentLevel,
                     toLevel: targetLevel,
                     minutes: minutes,
@@ -283,7 +274,7 @@ class TrainingCalculator {
         const usage = { intelligence: 0, memory: 0, perception: 0, willpower: 0, charisma: 0 };
         
         plan.forEach(item => {
-            const skill = SKILLS[item.skillId];
+            const skill = window.SKILLS[item.skillId];
             if (!skill) return;
             
             const sp = this.spNeeded(item.skillId, 

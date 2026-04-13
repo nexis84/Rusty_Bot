@@ -1,16 +1,6 @@
 // Skill Planner Module
 // Handles skill planning, prerequisite resolution, and plan management
 
-// Access SKILLS from global scope
-function getSKILLS() {
-    if (typeof window !== 'undefined' && window.SKILLS) return window.SKILLS;
-    if (typeof globalThis !== 'undefined' && globalThis.SKILLS) return globalThis.SKILLS;
-    console.error('SKILLS data not loaded! Make sure skills-data.js is loaded before this script.');
-    return {};
-}
-
-const SKILLS = getSKILLS();
-
 class SkillPlanner {
     constructor() {
         this.plan = this.loadPlan();
@@ -69,7 +59,7 @@ class SkillPlanner {
             return { success: false, message: 'Already trained to this level' };
         }
         
-        const skillData = SKILLS[skillId];
+        const skillData = window.SKILLS[skillId];
         if (!skillData) {
             return { success: false, message: 'Skill not found' };
         }
@@ -168,7 +158,7 @@ class SkillPlanner {
 
     // Get missing prerequisites for a skill
     getMissingPrerequisites(skillId, targetLevel, currentSkills = null) {
-        const skill = SKILLS[skillId];
+        const skill = window.SKILLS[skillId];
         if (!skill || !skill.prereqs) return [];
         
         const missing = [];
@@ -190,7 +180,7 @@ class SkillPlanner {
             if (currentLevel < requiredLevel) {
                 missing.push({
                     skillId: parseInt(prereqId),
-                    skillName: SKILLS[prereqId]?.name || 'Unknown',
+                    skillName: window.SKILLS[prereqId]?.name || 'Unknown',
                     requiredLevel: requiredLevel,
                     currentLevel: currentLevel
                 });
@@ -258,7 +248,7 @@ class SkillPlanner {
         
         this.plan.forEach(item => {
             const deps = [];
-            const skill = SKILLS[item.skillId];
+            const skill = window.SKILLS[item.skillId];
             
             if (skill && skill.prereqs) {
                 Object.entries(skill.prereqs).forEach(([prereqId, level]) => {
@@ -328,7 +318,7 @@ class SkillPlanner {
             
             this.plan = data.skills.map(s => ({
                 skillId: s.skillId,
-                skillName: SKILLS[s.skillId]?.name || 'Unknown',
+                skillName: window.SKILLS[s.skillId]?.name || 'Unknown',
                 targetLevel: s.targetLevel,
                 addedAt: Date.now()
             }));
@@ -373,7 +363,7 @@ class SkillPlanner {
         const grouped = {};
         
         this.plan.forEach(item => {
-            const skill = SKILLS[item.skillId];
+            const skill = window.SKILLS[item.skillId];
             const category = skill ? skill.group : 'Unknown';
             
             if (!grouped[category]) {
@@ -405,7 +395,7 @@ class SkillPlanner {
         let accumulatedMinutes = 0;
         
         return optimized.map(item => {
-            const skill = SKILLS[item.skillId];
+            const skill = window.SKILLS[item.skillId];
             const minutes = trainingCalc.calculateSkillTime(
                 item.skillId,
                 this.getCurrentLevel(item.skillId, currentSkills),
