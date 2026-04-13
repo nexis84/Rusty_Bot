@@ -3,7 +3,7 @@
 
 const ESI_CONFIG = {
     clientId: 'ac86bbdbb05e404b85c6eb1546ed06b1', // Rusty Skill Planner
-    redirectUri: 'https://www.rustybot.co.uk/Skill planner/index.html',
+    redirectUri: 'https://www.rustybot.co.uk/skillplanner/index.html',
     authorizeUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     revokeUrl: 'https://login.eveonline.com/v2/oauth/revoke',
