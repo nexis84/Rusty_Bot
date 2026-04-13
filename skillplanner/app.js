@@ -376,12 +376,12 @@ class SkillPlannerApp {
         if (!this.skillQueueList) return;
         
         const charId = esiAuth.getCurrentCharacter();
-        if (!charId || !this.currentCharacterData?.skillQueue) {
+        if (!charId || !this.currentCharacterData?.queue) {
             this.skillQueueList.innerHTML = '<p class="empty-hint">Login to see your active skill queue</p>';
             return;
         }
         
-        const queue = this.currentCharacterData.skillQueue.data || this.currentCharacterData.skillQueue;
+        const queue = this.currentCharacterData.queue.data || this.currentCharacterData.queue;
         if (!queue || queue.length === 0) {
             this.skillQueueList.innerHTML = '<p class="empty-hint">No skills in queue</p>';
             return;
