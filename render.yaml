@@ -4,7 +4,3 @@ services:
     env: static
     rootDir: .
     staticPublishPath: .
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
