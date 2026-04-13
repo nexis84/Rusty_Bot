@@ -1151,7 +1151,12 @@ class SkillPlannerApp {
 
         const acceleratorPreset = document.getElementById('acceleratorPreset');
         if (acceleratorPreset) {
-            acceleratorPreset.value = String(trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0);
+            if (trainingCalc.cerebralAccelerator) {
+                const match = (window.CEREBRAL_ACCELERATORS || []).find(a => a.bonus === trainingCalc.acceleratorBonus);
+                acceleratorPreset.value = String(match?.typeId || 0);
+            } else {
+                acceleratorPreset.value = '0';
+            }
         }
 
         this.updateAcceleratorMarketLink();
@@ -1168,7 +1173,7 @@ class SkillPlannerApp {
         if (select) {
             select.innerHTML = `
                 <option value="0">None</option>
-                ${accelerators.map(a => `<option value="${a.bonus}">${a.name}</option>`).join('')}
+                ${accelerators.map(a => `<option value="${a.typeId}" data-bonus="${a.bonus}">${a.name}</option>`).join('')}
             `;
         }
 
@@ -1184,8 +1189,8 @@ class SkillPlannerApp {
 
     updateAcceleratorMarketLink() {
         const link = document.getElementById('acceleratorMarketLink');
-        const bonus = parseInt(document.getElementById('acceleratorPreset')?.value || 0);
-        const match = (window.CEREBRAL_ACCELERATORS || []).find(a => a.bonus === bonus);
+        const typeId = parseInt(document.getElementById('acceleratorPreset')?.value || 0);
+        const match = (window.CEREBRAL_ACCELERATORS || []).find(a => a.typeId === typeId);
 
         if (!link) return;
 
@@ -1242,7 +1247,10 @@ class SkillPlannerApp {
             9: parseInt(document.getElementById('implant9')?.value || 0),
             10: parseInt(document.getElementById('implant10')?.value || 0)
         };
-        const acceleratorBonus = parseInt(document.getElementById('acceleratorPreset')?.value || 0);
+        const acceleratorSelect = document.getElementById('acceleratorPreset');
+        const acceleratorBonus = parseInt(
+            acceleratorSelect?.selectedOptions?.[0]?.dataset?.bonus || 0
+        );
         
         // Current time
         const currentTime = trainingCalc.calculatePlanTime(skillPlanner.getPlan(), this.currentCharacterData?.skills);

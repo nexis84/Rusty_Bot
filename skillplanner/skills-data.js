@@ -5466,12 +5466,17 @@ const SKILL_BOOKS = {
 function getSkillBookMarketLink(skillId) {
   const bookId = SKILL_BOOKS[skillId];
   if (!bookId) return null;
-  return `../market/index.html?typeId=${bookId}`;
+  return `../market/index.html?type=${bookId}`;
 }
 
 function getRustyMarketSearchLink(query) {
   if (!query) return '../market/index.html';
   return `../market/index.html?search=${encodeURIComponent(query)}`;
+}
+
+function getRustyMarketTypeLink(typeId) {
+  if (!typeId) return '../market/index.html';
+  return `../market/index.html?type=${typeId}`;
 }
 
 function getSkillMarketLink(skillId) {
@@ -5490,15 +5495,19 @@ function hasSkillBook(skillId) {
 }
 
 const CEREBRAL_ACCELERATORS = [
-  { name: 'Basic Cerebral Accelerator (+2)', bonus: 2 },
-  { name: 'Standard Cerebral Accelerator (+4)', bonus: 4 },
-  { name: 'Advanced Cerebral Accelerator (+6)', bonus: 6 },
-  { name: 'Improved Cerebral Accelerator (+8)', bonus: 8 },
-  { name: 'Prototype Cerebral Accelerator (+10)', bonus: 10 },
-  { name: 'Expert Cerebral Accelerator (+12)', bonus: 12 }
+  { name: 'Master-at-Arms Cerebral Accelerator', bonus: 10, typeId: 48582 },
+  { name: 'Expert Cerebral Accelerator', bonus: 12, typeId: 55826 },
+  { name: 'Serenity Special Cerebral Accelerator', bonus: 10, typeId: 55700 },
+  { name: 'Serenity Monthly Cerebral Accelerator - 2020.7', bonus: 10, typeId: 55747 },
+  { name: 'Serenity Basic Bonding Cerebral Accelerator', bonus: 8, typeId: 57433 },
+  { name: 'Serenity Potent Bonding Cerebral Accelerator', bonus: 10, typeId: 57434 },
+  { name: 'Serenity Extended Bonding Cerebral Accelerator', bonus: 12, typeId: 57435 },
+  { name: 'Expired Basic Guri Kikhivaa Cerebral Accelerator', bonus: 8, typeId: 63633 },
+  { name: 'Expired Potent Guri Kikhivaa Cerebral Accelerator', bonus: 10, typeId: 63634 },
+  { name: 'Expired Extended Guri Kikhivaa Cerebral Accelerator', bonus: 12, typeId: 63635 }
 ].map(item => ({
   ...item,
-  marketLink: getRustyMarketSearchLink(item.name)
+  marketLink: getRustyMarketTypeLink(item.typeId)
 }));
 
 const skillNameCache = {};
@@ -5527,6 +5536,7 @@ if (root) {
   root.getSkillBookMarketLink = getSkillBookMarketLink;
   root.getSkillMarketLink = getSkillMarketLink;
   root.getRustyMarketSearchLink = getRustyMarketSearchLink;
+  root.getRustyMarketTypeLink = getRustyMarketTypeLink;
   root.hasSkillBook = hasSkillBook;
   root.CEREBRAL_ACCELERATORS = CEREBRAL_ACCELERATORS;
   root.getSkillName = getSkillName;
@@ -5542,6 +5552,7 @@ if (typeof window !== "undefined") {
   window.getSkillBookMarketLink = getSkillBookMarketLink;
   window.getSkillMarketLink = getSkillMarketLink;
   window.getRustyMarketSearchLink = getRustyMarketSearchLink;
+  window.getRustyMarketTypeLink = getRustyMarketTypeLink;
   window.hasSkillBook = hasSkillBook;
   window.CEREBRAL_ACCELERATORS = CEREBRAL_ACCELERATORS;
   window.getSkillName = getSkillName;
@@ -5557,6 +5568,7 @@ if (typeof module !== "undefined" && module.exports) {
     getSkillBookMarketLink,
     getSkillMarketLink,
     getRustyMarketSearchLink,
+    getRustyMarketTypeLink,
     hasSkillBook,
     CEREBRAL_ACCELERATORS,
     getSkillName
