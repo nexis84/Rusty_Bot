@@ -1521,6 +1521,16 @@ class SkillPlannerApp {
         this.calculateImpact();
         this.updatePlanSummary();
         this.renderPlan();
+        
+        // Apply the accelerator selection to the persistent state so dashboard displays bonus
+        if (this.calculatorOverrides?.accelerator) {
+            trainingCalc.setCerebralAccelerator(
+                this.calculatorOverrides.accelerator.enabled,
+                this.calculatorOverrides.accelerator.bonus
+            );
+            // Update dashboard attributes to show the bonus
+            this.updateCharacterUI(esiAuth.currentCharacter);
+        }
     }
 
     calculateImpact() {
