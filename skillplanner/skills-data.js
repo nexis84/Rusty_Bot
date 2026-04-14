@@ -5495,12 +5495,12 @@ function hasSkillBook(skillId) {
 }
 
 const CEREBRAL_ACCELERATORS = [
-  { name: 'Basic Cerebral Accelerator (+2)', bonus: 2, typeId: 0 },
-  { name: 'Standard Cerebral Accelerator (+4)', bonus: 4, typeId: 0 },
-  { name: 'Advanced Cerebral Accelerator (+6)', bonus: 6, typeId: 0 },
-  { name: 'Improved Cerebral Accelerator (+8)', bonus: 8, typeId: 0 },
-  { name: 'Prototype Cerebral Accelerator (+10)', bonus: 10, typeId: 48582 },
-  { name: 'Expert Cerebral Accelerator (+12)', bonus: 12, typeId: 55826 }
+  { name: 'Cerebral Accelerator (+2)', bonus: 2, typeId: 0 },
+  { name: 'Cerebral Accelerator (+4)', bonus: 4, typeId: 0 },
+  { name: 'Cerebral Accelerator (+6)', bonus: 6, typeId: 0 },
+  { name: 'Cerebral Accelerator (+8)', bonus: 8, typeId: 0 },
+  { name: 'Cerebral Accelerator (+10)', bonus: 10, typeId: 0 },
+  { name: 'Cerebral Accelerator (+12)', bonus: 12, typeId: 0 }
 ].map(item => ({
   ...item,
   marketLink: item.typeId ? getRustyMarketTypeLink(item.typeId) : '../market/index.html'
