@@ -186,12 +186,18 @@ class CharacterManager {
         }
     }
 
-    // Get full character data (skills + attributes + queue + implants + boosters + clones)
+    // Get full character data (skills + attributes + queue first, then implants/boosters/clones)
     async getFullCharacterData(characterId) {
-        const [skills, attributes, queue, implants, boosters, clones] = await Promise.all([
+        // Load critical data first (needed for immediate UI display)
+        const [skills, attributes, queue] = await Promise.all([
             this.fetchSkills(characterId),
             this.fetchAttributes(characterId),
-            this.fetchSkillQueue(characterId),
+            this.fetchSkillQueue(characterId)
+        ]);
+        
+        // Load secondary data in background (implants, boosters, clones)
+        // These are not critical for initial page load
+        const [implants, boosters, clones] = await Promise.all([
             this.fetchImplants(characterId),
             this.fetchBoosters(characterId),
             this.fetchClones(characterId)

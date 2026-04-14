@@ -282,23 +282,31 @@ class ESIAuth {
         localStorage.removeItem('esi_current_character');
     }
 
-    // ESI API helper
+    // ESI API helper with timeout
     async esiFetch(endpoint, characterId = null, options = {}, attempt = 0) {
         const token = await this.getAccessToken(characterId);
         
         const url = endpoint.startsWith('http') ? endpoint : `https://esi.evetech.net/latest${endpoint}`;
         
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
-        });
+        // Add 10 second timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        if (!response.ok) {
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
             if (response.status === 401) {
                 // Token expired, try refresh once
                 await this.refreshToken(characterId || this.currentCharacter);
@@ -318,6 +326,13 @@ class ESIAuth {
         }
         
         return response.json();
+        } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('ESI request timed out after 10 seconds');
+            }
+            throw error;
+        }
     }
 }
 
