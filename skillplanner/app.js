@@ -1470,6 +1470,11 @@ class SkillPlannerApp {
             acceleratorPreset.value = selected ? selected.name : 'None';
         }
 
+        // Initialize calculatorOverrides BEFORE calling updateCalcDisplay
+        // This ensures renderPlan has valid overrides to compare against baseline
+        this.calculatorOverrides = this.getCalculatorSettingsFromUI();
+        console.log('✓ initCalculator: calculatorOverrides initialized', this.calculatorOverrides);
+        
         this.updateCalcDisplay();
         this.updateRemapSuggestion();
     }
