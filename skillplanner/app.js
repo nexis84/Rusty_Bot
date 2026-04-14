@@ -1065,6 +1065,8 @@ class SkillPlannerApp {
             
             // Calculate time
             const spNeeded = trainingCalc.spNeeded(item.skillId, currentLevel, item.targetLevel);
+            console.log(`📌 Rendering skill: ${skill?.name}, sp=${spNeeded}, hasOverrides=${hasOverrides}`);
+            
             const baselineMinutes = this.withTrainingCalcState(() => {
                 this.applyTrainingSettings(baselineSettings);
                 return trainingCalc.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
@@ -1078,13 +1080,17 @@ class SkillPlannerApp {
                 });
                 const baselineFormatted = trainingCalc.formatTime(baselineMinutes);
                 const overrideFormatted = trainingCalc.formatTime(overrideMinutes);
+                console.log(`  baseline: ${baselineFormatted} (${baselineMinutes}m), override: ${overrideFormatted} (${overrideMinutes}m)`);
                 if (baselineFormatted !== overrideFormatted) {
                     const improved = overrideMinutes < baselineMinutes;
+                    console.log(`  ✓ SHOWING BEFORE/AFTER comparison (improved=${improved})`);
                     timeHtml = `<span class="skill-time-compare"><span class="skill-time-before">${baselineFormatted}</span><i class="fas fa-arrow-right skill-time-arrow"></i><span class="skill-time-after ${improved ? 'improved' : 'worsened'}">${overrideFormatted}</span></span>`;
                 } else {
+                    console.log(`  ❌ Times are identical, showing single time`);
                     timeHtml = `<span class="skill-time">${baselineFormatted}</span>`;
                 }
             } else {
+                console.log(`  ❌ No overrides or spNeeded=0, showing baseline only`);
                 timeHtml = `<span class="skill-time">${trainingCalc.formatTime(baselineMinutes)}</span>`;
             }
 
