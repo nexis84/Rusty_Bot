@@ -714,9 +714,10 @@ class SkillPlannerApp {
         if (name.includes('security clearance')) return false;
         if (skill.group === 'Fake Skills') return false;
         
-        // Filter out Jove and Polaris ship skills (not available to players)
+        // Filter out Jove, Polaris, and Concord ship skills (not available to players)
         if (name.startsWith('jove ')) return false;
         if (name === 'polaris') return false;
+        if (name === 'concord') return false;
         
         // Filter out dev/GM only skills
         if (name === 'omnipotent') return false;
