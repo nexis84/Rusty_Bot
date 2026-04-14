@@ -381,9 +381,12 @@ class SkillPlannerApp {
             // Display bonus in different color if present
             if (bonusValue > 0) {
                 valBonus.textContent = ' +' + bonusValue;
+                console.log(`✓ Updated ${suffix} = ${baseValue} + ${bonusValue}`);
             } else {
                 valBonus.textContent = '';
             }
+        } else {
+            console.warn(`⚠️ Missing DOM elements for attr${suffix}: bar=${!!bar}, valBase=${!!valBase}, valBonus=${!!valBonus}`);
         }
     }
 
@@ -1046,6 +1049,11 @@ class SkillPlannerApp {
 
         const baselineSettings = this.getCharacterTrainingSettings();
         const hasOverrides = this.calculatorOverrides && this.settingsDiffer(this.calculatorOverrides, baselineSettings);
+        console.log('🎯 renderPlan - hasOverrides:', hasOverrides);
+        if (hasOverrides) {
+            console.log('  baseline:', baselineSettings);
+            console.log('  overrides:', this.calculatorOverrides);
+        }
 
         this.planList.innerHTML = plan.map(item => {
             const skill = window.SKILLS[item.skillId];
@@ -1507,6 +1515,7 @@ class SkillPlannerApp {
 
     updateCalcDisplay() {
         this.calculatorOverrides = this.getCalculatorSettingsFromUI();
+        console.log('📊 Calculator updated:', this.calculatorOverrides);
 
         // Update display values
         ['Int', 'Mem', 'Per', 'Will', 'Char'].forEach(attr => {
@@ -1523,22 +1532,30 @@ class SkillPlannerApp {
         this.renderPlan();
         
         // Apply the accelerator selection to the persistent state and update dashboard attributes
-        if (this.calculatorOverrides?.accelerator) {
+        if (this.calculatorOverrides?.accelerator?.enabled) {
+            console.log('🚀 Accelerator enabled:', this.calculatorOverrides.accelerator);
             trainingCalc.setCerebralAccelerator(
-                this.calculatorOverrides.accelerator.enabled,
+                true,
                 this.calculatorOverrides.accelerator.bonus
             );
+            console.log('✓ Set trainingCalc cerebralAccelerator to', this.calculatorOverrides.accelerator.bonus);
             
             // Update dashboard to show bonus immediately
             if (this.currentCharacterData?.attributes) {
+                console.log('📝 Updating attributes with bonus');
                 const attrs = this.currentCharacterData.attributes;
-                const accelBonus = trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0;
+                const accelBonus = this.calculatorOverrides.accelerator.bonus;
                 this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus);
                 this.updateAttributeDisplay('Mem', attrs.memory, accelBonus);
                 this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
                 this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
                 this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
+            } else {
+                console.warn('⚠️ No currentCharacterData.attributes to update');
             }
+        } else {
+            console.log('❌ No accelerator selected');
+            trainingCalc.setCerebralAccelerator(false, 0);
         }
     }
 
