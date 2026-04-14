@@ -7,6 +7,85 @@ class SkillPlanner {
         this.plan = this.loadPlan();
         this.name = this.loadPlanName();
         this.listeners = [];
+        this.prereqCache = this.loadPrereqCache();
+    }
+
+    loadPrereqCache() {
+        try {
+            const raw = localStorage.getItem('skill_prereq_cache_v1');
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            console.warn('Failed to load prerequisite cache:', e);
+            return {};
+        }
+    }
+
+    savePrereqCache() {
+        try {
+            localStorage.setItem('skill_prereq_cache_v1', JSON.stringify(this.prereqCache));
+        } catch (e) {
+            console.warn('Failed to save prerequisite cache:', e);
+        }
+    }
+
+    // Load prerequisites for a skill from ESI dogma attributes when local data does not include them.
+    async fetchSkillPrerequisites(skillId) {
+        const skill = window.SKILLS[skillId];
+        if (!skill) return {};
+
+        if (skill.prereqs && Object.keys(skill.prereqs).length > 0) {
+            return skill.prereqs;
+        }
+
+        if (this.prereqCache[skillId]) {
+            skill.prereqs = this.prereqCache[skillId];
+            return skill.prereqs;
+        }
+
+        try {
+            const response = await fetch(`https://esi.evetech.net/latest/universe/types/${skillId}/`);
+            if (!response.ok) {
+                throw new Error(`ESI ${response.status}`);
+            }
+
+            const data = await response.json();
+            const attrs = Array.isArray(data.dogma_attributes) ? data.dogma_attributes : [];
+
+            const getAttrVal = (id) => {
+                const entry = attrs.find(a => a.attribute_id === id);
+                return entry ? Number(entry.value) : NaN;
+            };
+
+            const mappings = [
+                [182, 277],
+                [183, 278],
+                [184, 279],
+                [1285, 1286],
+                [1289, 1287],
+                [1290, 1288]
+            ];
+
+            const prereqs = {};
+            mappings.forEach(([skillAttrId, levelAttrId]) => {
+                const prereqSkillId = Math.trunc(getAttrVal(skillAttrId));
+                const prereqLevel = Math.trunc(getAttrVal(levelAttrId));
+
+                if (Number.isFinite(prereqSkillId) && prereqSkillId > 0 && Number.isFinite(prereqLevel) && prereqLevel > 0) {
+                    prereqs[prereqSkillId] = prereqLevel;
+                }
+            });
+
+            skill.prereqs = prereqs;
+            this.prereqCache[skillId] = prereqs;
+            this.savePrereqCache();
+            return prereqs;
+        } catch (e) {
+            console.warn(`Failed to fetch prerequisites for ${skillId}:`, e.message || e);
+            skill.prereqs = {};
+            this.prereqCache[skillId] = {};
+            this.savePrereqCache();
+            return {};
+        }
     }
 
     getScopedStorageKey(baseKey, characterId = this.activeCharacterId) {
@@ -162,7 +241,7 @@ class SkillPlanner {
     }
 
     // Add a skill and recursively add all missing prerequisites based on current skills.
-    addSkillWithPrerequisites(skillId, targetLevel, currentSkills = null) {
+    async addSkillWithPrerequisites(skillId, targetLevel, currentSkills = null) {
         const rootSkill = window.SKILLS[skillId];
         if (!rootSkill) {
             return { success: false, message: 'Skill not found', added: [], upgraded: [] };
@@ -177,7 +256,7 @@ class SkillPlanner {
         const upgraded = [];
         const visiting = new Set();
 
-        const resolveSkill = (id, requiredLevel, isRoot = false) => {
+        const resolveSkill = async (id, requiredLevel) => {
             if (visiting.has(id)) return;
 
             const skill = window.SKILLS[id];
@@ -185,10 +264,11 @@ class SkillPlanner {
 
             visiting.add(id);
 
-            if (skill.prereqs) {
-                Object.entries(skill.prereqs).forEach(([prereqId, prereqLevel]) => {
-                    resolveSkill(parseInt(prereqId), prereqLevel, false);
-                });
+            const prereqs = await this.fetchSkillPrerequisites(id);
+            if (prereqs && Object.keys(prereqs).length > 0) {
+                for (const [prereqId, prereqLevel] of Object.entries(prereqs)) {
+                    await resolveSkill(parseInt(prereqId), prereqLevel);
+                }
             }
 
             const beforeLevel = this.getEffectiveSkillLevel(id, currentSkills);
@@ -214,7 +294,7 @@ class SkillPlanner {
             visiting.delete(id);
         };
 
-        resolveSkill(skillId, targetLevel, true);
+        await resolveSkill(skillId, targetLevel);
 
         const totalChanges = added.length + upgraded.length;
         if (totalChanges === 0) {
@@ -338,7 +418,7 @@ class SkillPlanner {
     }
 
     // Auto-resolve prerequisites
-    autoResolvePrerequisites(currentSkills = null) {
+    async autoResolvePrerequisites(currentSkills = null) {
         const added = [];
         let changed = true;
         const maxIterations = 50; // Safety limit
@@ -350,6 +430,7 @@ class SkillPlanner {
             
             // Check each skill in plan
             for (const item of this.plan) {
+                await this.fetchSkillPrerequisites(item.skillId);
                 const missing = this.getMissingPrerequisites(item.skillId, item.targetLevel, currentSkills);
                 
                 for (const prereq of missing) {

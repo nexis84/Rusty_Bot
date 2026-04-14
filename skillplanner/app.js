@@ -1228,8 +1228,8 @@ class SkillPlannerApp {
         }
     }
 
-    addSkillToPlan(skillId, targetLevel) {
-        const result = skillPlanner.addSkillWithPrerequisites(skillId, targetLevel, this.currentCharacterData?.skills);
+    async addSkillToPlan(skillId, targetLevel) {
+        const result = await skillPlanner.addSkillWithPrerequisites(skillId, targetLevel, this.currentCharacterData?.skills);
 
         if (result.success) {
             const prereqChanges = Math.max(0, (result.added?.length || 0) + (result.upgraded?.length || 0) - 1);
@@ -1243,8 +1243,8 @@ class SkillPlannerApp {
         }
     }
 
-    autoFixPrereqs() {
-        const added = skillPlanner.autoResolvePrerequisites(this.currentCharacterData?.skills);
+    async autoFixPrereqs() {
+        const added = await skillPlanner.autoResolvePrerequisites(this.currentCharacterData?.skills);
         if (added.length > 0) {
             this.showMessage(`Added ${added.length} prerequisite skills`, 'success');
         } else {
