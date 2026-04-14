@@ -155,30 +155,18 @@ class CharacterManager {
 
     // Calculate total SP from skills
     calculateTotalSP(skills) {
-        if (!skills || !skills.skills) return 0;
-        if (!window.SKILLS) {
-            console.error('window.SKILLS is not defined! Skills data not loaded.');
-            return 0;
+        if (!skills) return 0;
+
+        // ESI total_sp is authoritative for trained SP.
+        const esiTotal = Number(skills.total_sp);
+        if (Number.isFinite(esiTotal) && esiTotal >= 0) {
+            return esiTotal;
         }
-        
+
+        // Fallback: sum per-skill SP when total_sp is unavailable.
+        if (!Array.isArray(skills.skills)) return 0;
         return skills.skills.reduce((total, skill) => {
-            const skillData = window.SKILLS[skill.skill_id];
-            if (!skillData) return total;
-            
-            // Calculate SP trained for this skill
-            let sp = 0;
-            for (let i = 1; i <= skill.trained_skill_level; i++) {
-                sp += SP_TABLE[i] * skillData.rank;
-            }
-            
-            // Add active skill level SP (if different from trained)
-            if (skill.active_skill_level > skill.trained_skill_level) {
-                for (let i = skill.trained_skill_level + 1; i <= skill.active_skill_level; i++) {
-                    sp += SP_TABLE[i] * skillData.rank;
-                }
-            }
-            
-            return total + sp + (skill.skillpoints_in_skill || 0);
+            return total + (Number(skill.skillpoints_in_skill) || 0);
         }, 0);
     }
 
