@@ -147,7 +147,11 @@ class CharacterManager {
             this.setCachedData(characterId, 'implants', data);
             return data;
         } catch (e) {
-            console.error('Failed to fetch implants:', e);
+            if (e.message.includes('401')) {
+                console.error('⚠ Failed to fetch implants: 401 Unauthorized - Your token may not have the "esi-clones.read_implants.v1" scope. Try logging out and back in.', e);
+            } else {
+                console.warn('Failed to fetch implants:', e);
+            }
             // Return empty array as fallback
             const empty = [];
             this.setCachedData(characterId, 'implants', empty);
@@ -172,8 +176,12 @@ class CharacterManager {
             this.setCachedData(characterId, 'clones', data);
             return data;
         } catch (e) {
-            console.error('Failed to fetch clones:', e);
-            // Return null as fallback
+            if (e.message.includes('401')) {
+                console.error('⚠ Failed to fetch clones: 401 Unauthorized - Your token may not have the "esi-clones.read_clones.v1" scope. Try logging out and back in.', e);
+            } else {
+                console.warn('Failed to fetch clones:', e);
+            }
+            // Return null as fallback - clones data is not critical
             this.setCachedData(characterId, 'clones', null);
             return null;
         }
@@ -188,22 +196,32 @@ class CharacterManager {
             this.fetchSkillQueue(characterId)
         ]);
         
-        // Load secondary data in background (implants, boosters, clones)
-        // These are not critical for initial page load
-        const [implants, boosters, clones] = await Promise.all([
-            this.fetchImplants(characterId),
-            this.fetchBoosters(characterId),
-            this.fetchClones(characterId)
-        ]);
-        
-        return {
+        // Return immediately with critical data; load secondary data in background
+        const data = {
             skills: skills,
             attributes: attributes,
             skillQueue: queue,
-            implants: implants,
-            boosters: boosters,
-            clones: clones
+            implants: null,
+            boosters: [],
+            clones: null
         };
+        
+        // Load secondary data asynchronously without blocking UI
+        // These are not critical for initial page load
+        Promise.all([
+            this.fetchImplants(characterId),
+            this.fetchBoosters(characterId),
+            this.fetchClones(characterId)
+        ]).then(([implants, boosters, clones]) => {
+            data.implants = implants;
+            data.boosters = boosters;
+            data.clones = clones;
+        }).catch(err => {
+            console.warn('Failed to load secondary character data:', err);
+            // Secondary data is not critical, so silently fail
+        });
+        
+        return data;
     }
 
     // Calculate total SP from skills
