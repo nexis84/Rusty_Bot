@@ -169,14 +169,32 @@ class CharacterManager {
         }
     }
 
-    // Get full character data (skills + attributes + queue + implants + boosters)
+    // Fetch clones from ESI
+    async fetchClones(characterId) {
+        const cached = this.getCachedData(characterId, 'clones');
+        if (cached) return cached;
+        
+        try {
+            const data = await esiAuth.esiFetch(`/characters/${characterId}/clones/`);
+            this.setCachedData(characterId, 'clones', data);
+            return data;
+        } catch (e) {
+            console.error('Failed to fetch clones:', e);
+            // Return null as fallback
+            this.setCachedData(characterId, 'clones', null);
+            return null;
+        }
+    }
+
+    // Get full character data (skills + attributes + queue + implants + boosters + clones)
     async getFullCharacterData(characterId) {
-        const [skills, attributes, queue, implants, boosters] = await Promise.all([
+        const [skills, attributes, queue, implants, boosters, clones] = await Promise.all([
             this.fetchSkills(characterId),
             this.fetchAttributes(characterId),
             this.fetchSkillQueue(characterId),
             this.fetchImplants(characterId),
-            this.fetchBoosters(characterId)
+            this.fetchBoosters(characterId),
+            this.fetchClones(characterId)
         ]);
         
         return {
@@ -184,7 +202,8 @@ class CharacterManager {
             attributes: attributes,
             skillQueue: queue,
             implants: implants,
-            boosters: boosters
+            boosters: boosters,
+            clones: clones
         };
     }
 

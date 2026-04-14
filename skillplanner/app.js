@@ -68,6 +68,8 @@ class SkillPlannerApp {
         this.skillsTrained = document.getElementById('skillsTrained');
         this.skillsAtFive = document.getElementById('skillsAtFive');
         this.unallocatedSp = document.getElementById('unallocatedSp');
+        this.activeBooster = document.getElementById('activeBooster');
+        this.cloneLocation = document.getElementById('cloneLocation');
         this.attrInt = document.getElementById('attrInt');
         this.attrMem = document.getElementById('attrMem');
         this.attrPer = document.getElementById('attrPer');
@@ -276,7 +278,8 @@ class SkillPlannerApp {
                 attributes: fullData.attributes,
                 queue: fullData.skillQueue,
                 implants: fullData.implants,
-                boosters: fullData.boosters
+                boosters: fullData.boosters,
+                clones: fullData.clones
             };
             
             // Update UI
@@ -321,6 +324,27 @@ class SkillPlannerApp {
             this.skillsTrained.textContent = summary.skillsTrained;
             this.skillsAtFive.textContent = summary.skillsAtFive;
             this.unallocatedSp.textContent = characterManager.formatSP(summary.unallocatedSP);
+        }
+        
+        // Update active booster
+        if (this.activeBooster) {
+            const boosters = this.currentCharacterData?.boosters || [];
+            const active = boosters
+                .map(b => window.CEREBRAL_ACCELERATORS?.find(a => a.typeId === b.type_id))
+                .find(Boolean);
+            this.activeBooster.textContent = active ? active.name : 'None';
+        }
+        
+        // Update clone location
+        if (this.cloneLocation) {
+            const clones = this.currentCharacterData?.clones;
+            if (clones && clones.home_location) {
+                const locationId = clones.home_location.location_id;
+                const locationType = clones.home_location.location_type;
+                this.cloneLocation.textContent = locationType === 'station' ? 'Station' : 'Structure';
+            } else {
+                this.cloneLocation.textContent = 'Unknown';
+            }
         }
         
         // Update attributes
@@ -412,6 +436,8 @@ class SkillPlannerApp {
             this.skillsTrained.textContent = '--';
             this.skillsAtFive.textContent = '--';
             this.unallocatedSp.textContent = '--';
+            if (this.activeBooster) this.activeBooster.textContent = '--';
+            if (this.cloneLocation) this.cloneLocation.textContent = '--';
             
             // Clear queue and recent skills
             if (this.skillQueueList) {
