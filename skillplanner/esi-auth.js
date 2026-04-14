@@ -12,7 +12,6 @@ const ESI_CONFIG = {
         'esi-skills.read_skills.v1',
         'esi-skills.read_skillqueue.v1',
         'esi-clones.read_implants.v1',
-        'esi-clones.read_boosters.v1',
         'esi-clones.read_clones.v1'
     ]
 };
