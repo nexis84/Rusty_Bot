@@ -1522,14 +1522,23 @@ class SkillPlannerApp {
         this.updatePlanSummary();
         this.renderPlan();
         
-        // Apply the accelerator selection to the persistent state so dashboard displays bonus
+        // Apply the accelerator selection to the persistent state and update dashboard attributes
         if (this.calculatorOverrides?.accelerator) {
             trainingCalc.setCerebralAccelerator(
                 this.calculatorOverrides.accelerator.enabled,
                 this.calculatorOverrides.accelerator.bonus
             );
-            // Update dashboard attributes to show the bonus
-            this.updateCharacterUI(esiAuth.currentCharacter);
+            
+            // Update dashboard to show bonus immediately
+            if (this.currentCharacterData?.attributes) {
+                const attrs = this.currentCharacterData.attributes;
+                const accelBonus = trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0;
+                this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus);
+                this.updateAttributeDisplay('Mem', attrs.memory, accelBonus);
+                this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
+                this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
+                this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
+            }
         }
     }
 
