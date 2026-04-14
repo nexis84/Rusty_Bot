@@ -106,50 +106,65 @@ class CharacterManager {
         }
     }
 
-    // Fetch character attributes (returns defaults if scope unavailable)
+    // Fetch character attributes from ESI
     async fetchAttributes(characterId) {
         const cached = this.getCachedData(characterId, 'attributes');
         if (cached) return cached;
         
-        // Return default attributes since scope is unavailable
-        const defaults = {
-            intelligence: 20,
-            memory: 20,
-            perception: 20,
-            willpower: 20,
-            charisma: 19,
-            bonus_remaps: 0,
-            last_remap_date: null,
-            accrued_remap_cooldown_date: null
-        };
-        
-        this.setCachedData(characterId, 'attributes', defaults);
-        return defaults;
+        try {
+            const data = await esiAuth.esiFetch(`/characters/${characterId}/attributes/`);
+            this.setCachedData(characterId, 'attributes', data);
+            return data;
+        } catch (e) {
+            console.error('Failed to fetch attributes:', e);
+            // Return defaults as fallback
+            const defaults = {
+                intelligence: 20,
+                memory: 20,
+                perception: 20,
+                willpower: 20,
+                charisma: 19,
+                bonus_remaps: 0,
+                last_remap_date: null,
+                accrued_remap_cooldown_date: null
+            };
+            this.setCachedData(characterId, 'attributes', defaults);
+            return defaults;
+        }
     }
 
-    // Fetch implants (returns empty array if scope unavailable)
+    // Fetch implants from ESI
     async fetchImplants(characterId) {
         const cached = this.getCachedData(characterId, 'implants');
         if (cached) return cached;
         
-        // Return empty array since scope is unavailable
-        const empty = [];
-        this.setCachedData(characterId, 'implants', empty);
-        return empty;
+        try {
+            const data = await esiAuth.esiFetch(`/characters/${characterId}/implants/`);
+            this.setCachedData(characterId, 'implants', data);
+            return data;
+        } catch (e) {
+            console.error('Failed to fetch implants:', e);
+            // Return empty array as fallback
+            const empty = [];
+            this.setCachedData(characterId, 'implants', empty);
+            return empty;
+        }
     }
 
-    // Get full character data (skills + attributes + queue)
+    // Get full character data (skills + attributes + queue + implants)
     async getFullCharacterData(characterId) {
-        const [skills, attributes, queue] = await Promise.all([
+        const [skills, attributes, queue, implants] = await Promise.all([
             this.fetchSkills(characterId),
             this.fetchAttributes(characterId),
-            this.fetchSkillQueue(characterId)
+            this.fetchSkillQueue(characterId),
+            this.fetchImplants(characterId)
         ]);
         
         return {
             skills: skills,
             attributes: attributes,
-            skillQueue: queue
+            skillQueue: queue,
+            implants: implants
         };
     }
 

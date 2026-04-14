@@ -705,10 +705,14 @@ class SkillPlannerApp {
         const name = skill.name.toLowerCase();
         const desc = (skill.desc || '').toLowerCase();
 
-        // Filter out fake/placeholder skills
+        // Filter out fake/placeholder/test skills
         if (desc.includes('fake skill')) return false;
         if (desc.includes('does not exist in game')) return false;
+        if (desc.includes('test skill') && desc.includes('never appear')) return false;
+        if (name === 'test') return false;
+        if (name.startsWith('test ')) return false;
         if (name.includes('security clearance')) return false;
+        if (skill.group === 'Fake Skills') return false;
 
         // Show all published skills
         return true;
