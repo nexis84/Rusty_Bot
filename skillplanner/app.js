@@ -705,7 +705,7 @@ class SkillPlannerApp {
         const name = skill.name.toLowerCase();
         const desc = (skill.desc || '').toLowerCase();
 
-        // Filter out fake/placeholder/test skills
+        // Filter out fake/placeholder/test/unpublished skills
         if (desc.includes('fake skill')) return false;
         if (desc.includes('does not exist in game')) return false;
         if (desc.includes('test skill') && desc.includes('never appear')) return false;
@@ -713,6 +713,16 @@ class SkillPlannerApp {
         if (name.startsWith('test ')) return false;
         if (name.includes('security clearance')) return false;
         if (skill.group === 'Fake Skills') return false;
+        
+        // Filter out Jove and Polaris ship skills (not available to players)
+        if (name.startsWith('jove ')) return false;
+        if (name === 'polaris') return false;
+        
+        // Filter out dev/GM only skills
+        if (name === 'omnipotent') return false;
+        
+        // Filter out skills with empty descriptions (unpublished)
+        if (!skill.desc || skill.desc.trim() === '') return false;
 
         // Show all published skills
         return true;
