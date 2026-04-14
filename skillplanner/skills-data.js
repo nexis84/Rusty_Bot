@@ -5495,12 +5495,16 @@ function hasSkillBook(skillId) {
 }
 
 const CEREBRAL_ACCELERATORS = [
-  { name: 'Cerebral Accelerator (+2)', bonus: 2, typeId: 0 },
-  { name: 'Cerebral Accelerator (+4)', bonus: 4, typeId: 0 },
-  { name: 'Cerebral Accelerator (+6)', bonus: 6, typeId: 0 },
-  { name: 'Cerebral Accelerator (+8)', bonus: 8, typeId: 0 },
-  { name: 'Cerebral Accelerator (+10)', bonus: 10, typeId: 0 },
-  { name: 'Cerebral Accelerator (+12)', bonus: 12, typeId: 0 }
+  // Permanent market items (real type IDs confirmed from EVE SDE)
+  { name: 'Standard Cerebral Accelerator (+5)',  bonus: 5,  typeId: 2838  },  // +5 all attrs, chars < 35 days
+  { name: 'Expert Cerebral Accelerator (+8)',    bonus: 8,  typeId: 55826 },  // +8 all attrs, main market item
+  { name: 'Advanced Cerebral Accelerator (+17)', bonus: 17, typeId: 33087 },  // +17 all attrs, chars < 7 days
+  // Event / seasonal variants — select manually if active (cannot be detected via ESI)
+  { name: 'Event Accelerator (+2)',  bonus: 2,  typeId: 0 },
+  { name: 'Event Accelerator (+4)',  bonus: 4,  typeId: 0 },
+  { name: 'Event Accelerator (+6)',  bonus: 6,  typeId: 0 },
+  { name: 'Event Accelerator (+10)', bonus: 10, typeId: 0 },
+  { name: 'Event Accelerator (+12)', bonus: 12, typeId: 0 }
 ].map(item => ({
   ...item,
   marketLink: item.typeId ? getRustyMarketTypeLink(item.typeId) : '../market/index.html'

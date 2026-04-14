@@ -608,6 +608,17 @@ body {
     text-align: right;
 }
 
+.attr-base {
+    color: var(--text-primary-color);
+}
+
+.attr-bonus {
+    color: #ffd700;
+    font-weight: 900;
+    margin-left: 0.25rem;
+    text-shadow: 0 0 2px rgba(255, 215, 0, 0.5);
+}
+
 /* --- Skill Queue & Recent Skills --- */
 .queue-list, .recent-list {
     display: flex;
@@ -1159,6 +1170,39 @@ body {
     opacity: 1;
 }
 
+.skill-time-compare {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    text-align: right;
+    min-width: 80px;
+    white-space: nowrap;
+}
+
+.skill-time-before {
+    color: var(--text-subtle-color);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.skill-time-arrow {
+    font-size: 0.65rem;
+    color: var(--text-subtle-color);
+}
+
+.skill-time-after {
+    font-weight: 600;
+}
+
+.skill-time-after.improved {
+    color: var(--success-color, #4caf50);
+}
+
+.skill-time-after.worsened {
+    color: var(--error-color, #f44336);
+}
+
 .plan-summary-panel {
     background: var(--primary-color);
     border: 1px solid var(--secondary-color);
@@ -1412,6 +1456,15 @@ body {
     border: 1px solid var(--tertiary-color);
     border-radius: 4px;
     color: var(--text-color);
+}
+
+.accelerator-section select {
+    padding: 8px;
+    background: var(--bg-color);
+    border: 1px solid var(--tertiary-color);
+    border-radius: 4px;
+    color: var(--text-color);
+    width: 100%;
 }
 
 .checkbox-label {

@@ -327,12 +327,10 @@ class SkillPlannerApp {
         }
         
         // Update active booster
+        // Note: active cerebral accelerators cannot be detected via ESI — set manually in Calculator
         if (this.activeBooster) {
-            const boosters = this.currentCharacterData?.boosters || [];
-            const active = boosters
-                .map(b => window.CEREBRAL_ACCELERATORS?.find(a => a.typeId === b.type_id))
-                .find(Boolean);
-            this.activeBooster.textContent = active ? active.name : 'None';
+            this.activeBooster.textContent = 'Set in Calculator';
+            this.activeBooster.title = 'Active cerebral accelerators cannot be read from ESI. Select one manually in the Training Calculator.';
         }
         
         // Update clone location
@@ -347,14 +345,15 @@ class SkillPlannerApp {
             }
         }
         
-        // Update attributes
+        // Update attributes with accelerator bonus if active
         if (this.currentCharacterData?.attributes) {
             const attrs = this.currentCharacterData.attributes;
-            this.updateAttributeDisplay('Int', attrs.intelligence);
-            this.updateAttributeDisplay('Mem', attrs.memory);
-            this.updateAttributeDisplay('Per', attrs.perception);
-            this.updateAttributeDisplay('Will', attrs.willpower);
-            this.updateAttributeDisplay('Char', attrs.charisma);
+            const accelBonus = trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0;
+            this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus);
+            this.updateAttributeDisplay('Mem', attrs.memory, accelBonus);
+            this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
+            this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
+            this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
         }
         
         // Render character list
@@ -366,13 +365,25 @@ class SkillPlannerApp {
         this.renderRecentSkills();
     }
 
-    updateAttributeDisplay(suffix, value) {
+    updateAttributeDisplay(suffix, baseValue, bonusValue = 0) {
         const bar = document.getElementById('attr' + suffix);
-        const val = document.getElementById('val' + suffix);
-        if (bar && val) {
-            const percent = ((value - 17) / 15) * 100; // 17 base, max ~32
+        const valBase = document.getElementById('val' + suffix + 'Base');
+        const valBonus = document.getElementById('val' + suffix + 'Bonus');
+        
+        if (bar && valBase && valBonus) {
+            const totalValue = baseValue + bonusValue;
+            const percent = ((totalValue - 17) / 15) * 100; // 17 base, max ~32
             bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
-            val.textContent = value;
+            
+            // Display base value
+            valBase.textContent = baseValue;
+            
+            // Display bonus in different color if present
+            if (bonusValue > 0) {
+                valBonus.textContent = ' +' + bonusValue;
+            } else {
+                valBonus.textContent = '';
+            }
         }
     }
 
@@ -1032,7 +1043,10 @@ class SkillPlannerApp {
         }
         
         this.planName.value = skillPlanner.getName();
-        
+
+        const baselineSettings = this.getCharacterTrainingSettings();
+        const hasOverrides = this.calculatorOverrides && this.settingsDiffer(this.calculatorOverrides, baselineSettings);
+
         this.planList.innerHTML = plan.map(item => {
             const skill = window.SKILLS[item.skillId];
             const currentLevel = this.getCharacterSkillLevel(item.skillId);
@@ -1043,8 +1057,29 @@ class SkillPlannerApp {
             
             // Calculate time
             const spNeeded = trainingCalc.spNeeded(item.skillId, currentLevel, item.targetLevel);
-            const time = trainingCalc.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
-            
+            const baselineMinutes = this.withTrainingCalcState(() => {
+                this.applyTrainingSettings(baselineSettings);
+                return trainingCalc.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
+            });
+
+            let timeHtml;
+            if (hasOverrides && spNeeded > 0) {
+                const overrideMinutes = this.withTrainingCalcState(() => {
+                    this.applyTrainingSettings(this.calculatorOverrides);
+                    return trainingCalc.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
+                });
+                const baselineFormatted = trainingCalc.formatTime(baselineMinutes);
+                const overrideFormatted = trainingCalc.formatTime(overrideMinutes);
+                if (baselineFormatted !== overrideFormatted) {
+                    const improved = overrideMinutes < baselineMinutes;
+                    timeHtml = `<span class="skill-time-compare"><span class="skill-time-before">${baselineFormatted}</span><i class="fas fa-arrow-right skill-time-arrow"></i><span class="skill-time-after ${improved ? 'improved' : 'worsened'}">${overrideFormatted}</span></span>`;
+                } else {
+                    timeHtml = `<span class="skill-time">${baselineFormatted}</span>`;
+                }
+            } else {
+                timeHtml = `<span class="skill-time">${trainingCalc.formatTime(baselineMinutes)}</span>`;
+            }
+
             const marketLinkUrl = getSkillMarketLink(item.skillId);
             const marketLink = marketLinkUrl ? `<a href="${marketLinkUrl}" target="_blank" class="plan-market-link" title="View in Market"><i class="fas fa-shopping-cart"></i></a>` : '';
             
@@ -1063,7 +1098,7 @@ class SkillPlannerApp {
                     <select class="level-select" data-skill-id="${item.skillId}">
                         ${[1,2,3,4,5].map(l => `<option value="${l}" ${l === item.targetLevel ? 'selected' : ''}>${l}</option>`).join('')}
                     </select>
-                    <span class="skill-time">${trainingCalc.formatTime(time)}</span>
+                    ${timeHtml}
                     <button class="remove-btn" data-skill-id="${item.skillId}">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1485,6 +1520,7 @@ class SkillPlannerApp {
         // Calculate with current plan
         this.calculateImpact();
         this.updatePlanSummary();
+        this.renderPlan();
     }
 
     calculateImpact() {

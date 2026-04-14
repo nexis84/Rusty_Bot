@@ -109,14 +109,18 @@ class CharacterManager {
     // Fetch character attributes from ESI
     async fetchAttributes(characterId) {
         const cached = this.getCachedData(characterId, 'attributes');
-        if (cached) return cached;
+        if (cached) {
+            console.log('Using cached attributes:', cached);
+            return cached;
+        }
         
         try {
             const data = await esiAuth.esiFetch(`/characters/${characterId}/attributes/`);
+            console.log('✓ Fetched real attributes from ESI:', data);
             this.setCachedData(characterId, 'attributes', data);
             return data;
         } catch (e) {
-            console.error('Failed to fetch attributes:', e);
+            console.warn('⚠ Failed to fetch attributes from ESI, using defaults:', e.message);
             // Return defaults as fallback
             const defaults = {
                 intelligence: 20,
@@ -151,22 +155,11 @@ class CharacterManager {
         }
     }
 
-    // Fetch boosters from ESI
+    // Cerebral accelerators cannot be detected via ESI.
+    // There is no /characters/{id}/boosters/ endpoint in the ESI API.
+    // Active boosters use a separate booster-slot system and are not exposed.
     async fetchBoosters(characterId) {
-        const cached = this.getCachedData(characterId, 'boosters');
-        if (cached) return cached;
-        
-        try {
-            const data = await esiAuth.esiFetch(`/characters/${characterId}/boosters/`);
-            this.setCachedData(characterId, 'boosters', data);
-            return data;
-        } catch (e) {
-            console.error('Failed to fetch boosters:', e);
-            // Return empty array as fallback
-            const empty = [];
-            this.setCachedData(characterId, 'boosters', empty);
-            return empty;
-        }
+        return [];
     }
 
     // Fetch clones from ESI
