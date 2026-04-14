@@ -381,12 +381,9 @@ class SkillPlannerApp {
             // Display bonus in different color if present
             if (bonusValue > 0) {
                 valBonus.textContent = ' +' + bonusValue;
-                console.log(`✓ Updated ${suffix} = ${baseValue} + ${bonusValue}`);
             } else {
                 valBonus.textContent = '';
             }
-        } else {
-            console.warn(`⚠️ Missing DOM elements for attr${suffix}: bar=${!!bar}, valBase=${!!valBase}, valBonus=${!!valBonus}`);
         }
     }
 
@@ -1049,11 +1046,6 @@ class SkillPlannerApp {
 
         const baselineSettings = this.getCharacterTrainingSettings();
         const hasOverrides = this.calculatorOverrides && this.settingsDiffer(this.calculatorOverrides, baselineSettings);
-        console.log('🎯 renderPlan - hasOverrides:', hasOverrides);
-        if (hasOverrides) {
-            console.log('  baseline:', baselineSettings);
-            console.log('  overrides:', this.calculatorOverrides);
-        }
 
         this.planList.innerHTML = plan.map(item => {
             const skill = window.SKILLS[item.skillId];
@@ -1065,7 +1057,6 @@ class SkillPlannerApp {
             
             // Calculate time
             const spNeeded = trainingCalc.spNeeded(item.skillId, currentLevel, item.targetLevel);
-            console.log(`📌 Rendering skill: ${skill?.name}, sp=${spNeeded}, hasOverrides=${hasOverrides}`);
             
             const baselineMinutes = this.withTrainingCalcState(() => {
                 this.applyTrainingSettings(baselineSettings);
@@ -1080,17 +1071,14 @@ class SkillPlannerApp {
                 });
                 const baselineFormatted = trainingCalc.formatTime(baselineMinutes);
                 const overrideFormatted = trainingCalc.formatTime(overrideMinutes);
-                console.log(`  baseline: ${baselineFormatted} (${baselineMinutes}m), override: ${overrideFormatted} (${overrideMinutes}m)`);
-                if (baselineFormatted !== overrideFormatted) {
+
+                if (Math.abs(overrideMinutes - baselineMinutes) >= 0.5) {
                     const improved = overrideMinutes < baselineMinutes;
-                    console.log(`  ✓ SHOWING BEFORE/AFTER comparison (improved=${improved})`);
                     timeHtml = `<span class="skill-time-compare"><span class="skill-time-before">${baselineFormatted}</span><i class="fas fa-arrow-right skill-time-arrow"></i><span class="skill-time-after ${improved ? 'improved' : 'worsened'}">${overrideFormatted}</span></span>`;
                 } else {
-                    console.log(`  ❌ Times are identical, showing single time`);
                     timeHtml = `<span class="skill-time">${baselineFormatted}</span>`;
                 }
             } else {
-                console.log(`  ❌ No overrides or spNeeded=0, showing baseline only`);
                 timeHtml = `<span class="skill-time">${trainingCalc.formatTime(baselineMinutes)}</span>`;
             }
 
@@ -1479,7 +1467,6 @@ class SkillPlannerApp {
         // Initialize calculatorOverrides BEFORE calling updateCalcDisplay
         // This ensures renderPlan has valid overrides to compare against baseline
         this.calculatorOverrides = this.getCalculatorSettingsFromUI();
-        console.log('✓ initCalculator: calculatorOverrides initialized', this.calculatorOverrides);
         
         this.updateCalcDisplay();
         this.updateRemapSuggestion();
@@ -1526,14 +1513,22 @@ class SkillPlannerApp {
 
     updateCalcDisplay() {
         this.calculatorOverrides = this.getCalculatorSettingsFromUI();
-        console.log('📊 Calculator updated:', this.calculatorOverrides);
+
+        const acceleratorBonus = this.calculatorOverrides?.accelerator?.enabled
+            ? this.calculatorOverrides.accelerator.bonus
+            : 0;
 
         // Update display values
         ['Int', 'Mem', 'Per', 'Will', 'Char'].forEach(attr => {
             const slider = document.getElementById('calc' + attr);
             const display = document.getElementById('disp' + attr);
             if (slider && display) {
-                display.textContent = slider.value;
+                const baseValue = slider.value;
+                if (acceleratorBonus > 0) {
+                    display.innerHTML = `<span class="calc-base">${baseValue}</span><span class="calc-bonus">+${acceleratorBonus}</span>`;
+                } else {
+                    display.innerHTML = `<span class="calc-base">${baseValue}</span>`;
+                }
             }
         });
         
@@ -1544,16 +1539,13 @@ class SkillPlannerApp {
         
         // Apply the accelerator selection to the persistent state and update dashboard attributes
         if (this.calculatorOverrides?.accelerator?.enabled) {
-            console.log('🚀 Accelerator enabled:', this.calculatorOverrides.accelerator);
             trainingCalc.setCerebralAccelerator(
                 true,
                 this.calculatorOverrides.accelerator.bonus
             );
-            console.log('✓ Set trainingCalc cerebralAccelerator to', this.calculatorOverrides.accelerator.bonus);
             
             // Update dashboard to show bonus immediately
             if (this.currentCharacterData?.attributes) {
-                console.log('📝 Updating attributes with bonus');
                 const attrs = this.currentCharacterData.attributes;
                 const accelBonus = this.calculatorOverrides.accelerator.bonus;
                 this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus);
@@ -1561,11 +1553,8 @@ class SkillPlannerApp {
                 this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
                 this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
                 this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
-            } else {
-                console.warn('⚠️ No currentCharacterData.attributes to update');
             }
         } else {
-            console.log('❌ No accelerator selected');
             trainingCalc.setCerebralAccelerator(false, 0);
         }
     }

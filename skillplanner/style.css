@@ -1173,10 +1173,11 @@ body {
 .skill-time-compare {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 5px;
     font-size: 0.8rem;
     text-align: right;
-    min-width: 80px;
+    min-width: 170px;
     white-space: nowrap;
 }
 
@@ -1201,6 +1202,16 @@ body {
 
 .skill-time-after.worsened {
     color: var(--error-color, #f44336);
+}
+
+.calc-base {
+    color: var(--text-color);
+}
+
+.calc-bonus {
+    color: #ffd700;
+    font-weight: 700;
+    margin-left: 6px;
 }
 
 .plan-summary-panel {

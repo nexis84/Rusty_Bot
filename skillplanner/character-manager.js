@@ -31,10 +31,16 @@ class CharacterManager {
 
     // Get cached data or null
     getCachedData(characterId, dataType) {
-        if (this.isCacheValid(characterId, dataType)) {
-            return this.characters[characterId].cache[dataType].data;
+        const char = this.characters[characterId];
+        if (!char || !char.cache || !(dataType in char.cache)) {
+            return undefined;
         }
-        return null;
+
+        if (this.isCacheValid(characterId, dataType)) {
+            return char.cache[dataType].data;
+        }
+
+        return undefined;
     }
 
     // Set cached data
@@ -57,7 +63,7 @@ class CharacterManager {
     // Fetch character public info
     async fetchCharacterInfo(characterId) {
         const cached = this.getCachedData(characterId, 'info');
-        if (cached) return cached;
+        if (cached !== undefined) return cached;
         
         const data = await esiAuth.esiFetch(`/characters/${characterId}/`);
         
@@ -79,7 +85,7 @@ class CharacterManager {
     // Fetch character skills
     async fetchSkills(characterId) {
         const cached = this.getCachedData(characterId, 'skills');
-        if (cached) return cached;
+        if (cached !== undefined) return cached;
         
         try {
             const data = await esiAuth.esiFetch(`/characters/${characterId}/skills/`);
@@ -94,7 +100,7 @@ class CharacterManager {
     // Fetch skill queue
     async fetchSkillQueue(characterId) {
         const cached = this.getCachedData(characterId, 'skillQueue');
-        if (cached) return cached;
+        if (cached !== undefined) return cached;
         
         try {
             const data = await esiAuth.esiFetch(`/characters/${characterId}/skillqueue/`);
@@ -109,18 +115,16 @@ class CharacterManager {
     // Fetch character attributes from ESI
     async fetchAttributes(characterId) {
         const cached = this.getCachedData(characterId, 'attributes');
-        if (cached) {
-            console.log('Using cached attributes:', cached);
+        if (cached !== undefined) {
             return cached;
         }
         
         try {
             const data = await esiAuth.esiFetch(`/characters/${characterId}/attributes/`);
-            console.log('✓ Fetched real attributes from ESI:', data);
             this.setCachedData(characterId, 'attributes', data);
             return data;
         } catch (e) {
-            console.warn('⚠ Failed to fetch attributes from ESI, using defaults:', e.message);
+            console.warn('Failed to fetch attributes from ESI, using defaults:', e.message);
             // Return defaults as fallback
             const defaults = {
                 intelligence: 20,
@@ -140,7 +144,7 @@ class CharacterManager {
     // Fetch implants from ESI
     async fetchImplants(characterId) {
         const cached = this.getCachedData(characterId, 'implants');
-        if (cached) return cached;
+        if (cached !== undefined) return cached;
         
         try {
             const data = await esiAuth.esiFetch(`/characters/${characterId}/implants/`);
@@ -169,7 +173,7 @@ class CharacterManager {
     // Fetch clones from ESI
     async fetchClones(characterId) {
         const cached = this.getCachedData(characterId, 'clones');
-        if (cached) return cached;
+        if (cached !== undefined) return cached;
         
         try {
             const data = await esiAuth.esiFetch(`/characters/${characterId}/clones/`);
