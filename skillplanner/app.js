@@ -111,6 +111,8 @@ class SkillPlannerApp {
         this.injCompareRow = document.getElementById('injCompareRow');
         this.injCompareText = document.getElementById('injCompareText');
         this.prereqWarning = document.getElementById('prereqWarning');
+        this.prereqBreakdownPanel = document.getElementById('prereqBreakdownPanel');
+        this.prereqBreakdownContent = document.getElementById('prereqBreakdownContent');
         
         // Calculator
         this.calcTabs = document.querySelectorAll('.calc-tab');
@@ -1221,6 +1223,13 @@ class SkillPlannerApp {
     onPlanChanged() {
         this.renderPlan();
         this.updatePlanSummary();
+
+        if (skillPlanner.getPlanLength() === 0) {
+            this.prereqBreakdownPanel?.classList.add('hidden');
+            if (this.prereqBreakdownContent) {
+                this.prereqBreakdownContent.innerHTML = '';
+            }
+        }
         
         // Refresh skill list to show icons
         if (this.currentView === 'skills') {
@@ -1228,37 +1237,39 @@ class SkillPlannerApp {
         }
     }
 
+    renderPrerequisiteBreakdown(result) {
+        if (!this.prereqBreakdownPanel || !this.prereqBreakdownContent || !result) return;
+
+        const root = result.rootChange;
+        const details = result.prerequisiteDetails || [];
+
+        const lines = [];
+        lines.push(`<div class="prereq-breakdown-line changed"><b>${root?.skillName || 'Skill'}:</b> from level ${root?.fromLevel ?? 0} to ${root?.toLevel ?? 0}</div>`);
+
+        if (details.length === 0) {
+            lines.push('<div class="prereq-breakdown-line met">No additional prerequisites required.</div>');
+        } else {
+            details.forEach(d => {
+                if (d.changed) {
+                    lines.push(`<div class="prereq-breakdown-line changed"><b>${d.skillName}</b>: from level ${d.fromLevel} to ${d.toLevel} (required ${d.requiredLevel})</div>`);
+                } else {
+                    lines.push(`<div class="prereq-breakdown-line met"><b>${d.skillName}</b>: already level ${d.fromLevel} (required ${d.requiredLevel})</div>`);
+                }
+            });
+        }
+
+        this.prereqBreakdownContent.innerHTML = lines.join('');
+        this.prereqBreakdownPanel.classList.remove('hidden');
+    }
+
     async addSkillToPlan(skillId, targetLevel) {
         const result = await skillPlanner.addSkillWithPrerequisites(skillId, targetLevel, this.currentCharacterData?.skills);
 
         if (result.success) {
-            const root = result.rootChange;
-            const details = result.prerequisiteDetails || [];
-            const changed = details.filter(d => d.changed);
-            const alreadyMet = details.filter(d => d.alreadyMet);
-
-            let message = `${root?.skillName || (window.SKILLS[skillId]?.name || 'Skill')} from level ${root?.fromLevel ?? 0} to ${root?.toLevel ?? targetLevel}`;
-
-            if (details.length > 0) {
-                message += `<br>Prerequisites (${details.length}):`;
-
-                const detailLines = details.slice(0, 8).map(d => {
-                    if (d.changed) {
-                        return `${d.skillName}: from level ${d.fromLevel} to ${d.toLevel} (required ${d.requiredLevel})`;
-                    }
-                    return `${d.skillName}: already level ${d.fromLevel} (required ${d.requiredLevel})`;
-                });
-
-                message += '<br>' + detailLines.join('<br>');
-
-                if (details.length > 8) {
-                    message += `<br>...and ${details.length - 8} more prerequisites`;
-                }
-
-                message += `<br>Updated prerequisites: ${changed.length}, already met: ${alreadyMet.length}`;
-            }
-
-            this.showMessage(message, 'success');
+            const changed = (result.prerequisiteDetails || []).filter(d => d.changed).length;
+            const total = (result.prerequisiteDetails || []).length;
+            this.renderPrerequisiteBreakdown(result);
+            this.showMessage(`Added ${window.SKILLS[skillId]?.name || 'skill'} ${targetLevel}. Prerequisites: ${changed} updated, ${total - changed} already met.`, 'success');
         } else {
             this.showMessage(result.message, 'warning');
         }

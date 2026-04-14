@@ -1308,6 +1308,40 @@ body {
     color: var(--text-subtle-color);
     margin-top: 10px;
     font-style: italic;
+
+.prereq-breakdown {
+    margin-top: 15px;
+    padding: 12px;
+    border: 1px solid var(--secondary-color);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.prereq-breakdown h4 {
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.prereq-breakdown-content {
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: var(--text-color);
+}
+
+.prereq-breakdown-line {
+    margin-bottom: 4px;
+}
+
+.prereq-breakdown-line.changed {
+    color: var(--success-color);
+}
+
+.prereq-breakdown-line.met {
+    color: var(--text-subtle-color);
+}
 }
 
 .prereq-warning {
