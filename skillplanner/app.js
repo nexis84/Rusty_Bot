@@ -705,15 +705,13 @@ class SkillPlannerApp {
         const name = skill.name.toLowerCase();
         const desc = (skill.desc || '').toLowerCase();
 
+        // Filter out fake/placeholder skills
         if (desc.includes('fake skill')) return false;
         if (desc.includes('does not exist in game')) return false;
         if (name.includes('security clearance')) return false;
 
-        // Keep trained skills visible for the logged-in character, even if no book map exists.
-        if (this.getCharacterSkillLevel(skillId) > 0) return true;
-
-        // Prefer skill-book backed skills as the default visible catalog.
-        return typeof hasSkillBook === 'function' ? hasSkillBook(skillId) : true;
+        // Show all published skills
+        return true;
     }
 
     selectSkill(skillId) {
