@@ -244,30 +244,41 @@ class SkillPlanner {
     async addSkillWithPrerequisites(skillId, targetLevel, currentSkills = null) {
         const rootSkill = window.SKILLS[skillId];
         if (!rootSkill) {
-            return { success: false, message: 'Skill not found', added: [], upgraded: [] };
+            return { success: false, message: 'Skill not found', added: [], upgraded: [], prerequisiteDetails: [] };
         }
 
         const existingLevel = this.getEffectiveSkillLevel(skillId, currentSkills);
         if (targetLevel <= existingLevel) {
-            return { success: false, message: 'Already trained to this level', added: [], upgraded: [] };
+            return { success: false, message: 'Already trained to this level', added: [], upgraded: [], prerequisiteDetails: [] };
         }
 
         const added = [];
         const upgraded = [];
         const visiting = new Set();
+        const beforeLevels = new Map();
+        const requiredPrereqLevels = new Map();
+        const rootBeforeLevel = existingLevel;
 
-        const resolveSkill = async (id, requiredLevel) => {
+        const resolveSkill = async (id, requiredLevel, isRoot = false) => {
             if (visiting.has(id)) return;
 
             const skill = window.SKILLS[id];
             if (!skill) return;
+
+            if (!beforeLevels.has(id)) {
+                beforeLevels.set(id, this.getEffectiveSkillLevel(id, currentSkills));
+            }
+            if (!isRoot) {
+                const prevRequired = requiredPrereqLevels.get(id) || 0;
+                requiredPrereqLevels.set(id, Math.max(prevRequired, requiredLevel));
+            }
 
             visiting.add(id);
 
             const prereqs = await this.fetchSkillPrerequisites(id);
             if (prereqs && Object.keys(prereqs).length > 0) {
                 for (const [prereqId, prereqLevel] of Object.entries(prereqs)) {
-                    await resolveSkill(parseInt(prereqId), prereqLevel);
+                    await resolveSkill(parseInt(prereqId), prereqLevel, false);
                 }
             }
 
@@ -294,11 +305,28 @@ class SkillPlanner {
             visiting.delete(id);
         };
 
-        await resolveSkill(skillId, targetLevel);
+        await resolveSkill(skillId, targetLevel, true);
+
+        const prerequisiteDetails = Array.from(requiredPrereqLevels.entries())
+            .map(([id, requiredLevel]) => {
+                const beforeLevel = beforeLevels.get(id) || 0;
+                const afterLevel = this.getEffectiveSkillLevel(id, currentSkills);
+                const changed = afterLevel > beforeLevel;
+                return {
+                    skillId: id,
+                    skillName: window.SKILLS[id]?.name || `Skill ${id}`,
+                    requiredLevel,
+                    fromLevel: beforeLevel,
+                    toLevel: afterLevel,
+                    changed,
+                    alreadyMet: beforeLevel >= requiredLevel
+                };
+            })
+            .sort((a, b) => a.skillName.localeCompare(b.skillName));
 
         const totalChanges = added.length + upgraded.length;
         if (totalChanges === 0) {
-            return { success: false, message: 'No prerequisite changes needed', added, upgraded };
+            return { success: false, message: 'No prerequisite changes needed', added, upgraded, prerequisiteDetails };
         }
 
         if (added.length > 0 || upgraded.length > 0) {
@@ -306,11 +334,30 @@ class SkillPlanner {
                 success: true,
                 message: `${rootSkill.name} ${targetLevel} added with ${totalChanges - 1} prerequisite changes`,
                 added,
-                upgraded
+                upgraded,
+                prerequisiteDetails,
+                rootChange: {
+                    skillId,
+                    skillName: rootSkill.name,
+                    fromLevel: rootBeforeLevel,
+                    toLevel: targetLevel
+                }
             };
         }
 
-        return { success: true, message: 'Skill added to plan', added, upgraded };
+        return {
+            success: true,
+            message: 'Skill added to plan',
+            added,
+            upgraded,
+            prerequisiteDetails,
+            rootChange: {
+                skillId,
+                skillName: rootSkill.name,
+                fromLevel: rootBeforeLevel,
+                toLevel: targetLevel
+            }
+        };
     }
 
     // Remove skill from plan

@@ -1232,12 +1232,33 @@ class SkillPlannerApp {
         const result = await skillPlanner.addSkillWithPrerequisites(skillId, targetLevel, this.currentCharacterData?.skills);
 
         if (result.success) {
-            const prereqChanges = Math.max(0, (result.added?.length || 0) + (result.upgraded?.length || 0) - 1);
-            if (prereqChanges > 0) {
-                this.showMessage(`Added ${window.SKILLS[skillId]?.name || 'skill'} ${targetLevel} with ${prereqChanges} prerequisite updates`, 'success');
-            } else {
-                this.showMessage(result.message, 'success');
+            const root = result.rootChange;
+            const details = result.prerequisiteDetails || [];
+            const changed = details.filter(d => d.changed);
+            const alreadyMet = details.filter(d => d.alreadyMet);
+
+            let message = `${root?.skillName || (window.SKILLS[skillId]?.name || 'Skill')} from level ${root?.fromLevel ?? 0} to ${root?.toLevel ?? targetLevel}`;
+
+            if (details.length > 0) {
+                message += `<br>Prerequisites (${details.length}):`;
+
+                const detailLines = details.slice(0, 8).map(d => {
+                    if (d.changed) {
+                        return `${d.skillName}: from level ${d.fromLevel} to ${d.toLevel} (required ${d.requiredLevel})`;
+                    }
+                    return `${d.skillName}: already level ${d.fromLevel} (required ${d.requiredLevel})`;
+                });
+
+                message += '<br>' + detailLines.join('<br>');
+
+                if (details.length > 8) {
+                    message += `<br>...and ${details.length - 8} more prerequisites`;
+                }
+
+                message += `<br>Updated prerequisites: ${changed.length}, already met: ${alreadyMet.length}`;
             }
+
+            this.showMessage(message, 'success');
         } else {
             this.showMessage(result.message, 'warning');
         }
