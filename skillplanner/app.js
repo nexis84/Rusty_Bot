@@ -1229,8 +1229,18 @@ class SkillPlannerApp {
     }
 
     addSkillToPlan(skillId, targetLevel) {
-        const result = skillPlanner.addSkill(skillId, targetLevel, this.currentCharacterData?.skills);
-        this.showMessage(result.message, result.success ? 'success' : 'warning');
+        const result = skillPlanner.addSkillWithPrerequisites(skillId, targetLevel, this.currentCharacterData?.skills);
+
+        if (result.success) {
+            const prereqChanges = Math.max(0, (result.added?.length || 0) + (result.upgraded?.length || 0) - 1);
+            if (prereqChanges > 0) {
+                this.showMessage(`Added ${window.SKILLS[skillId]?.name || 'skill'} ${targetLevel} with ${prereqChanges} prerequisite updates`, 'success');
+            } else {
+                this.showMessage(result.message, 'success');
+            }
+        } else {
+            this.showMessage(result.message, 'warning');
+        }
     }
 
     autoFixPrereqs() {

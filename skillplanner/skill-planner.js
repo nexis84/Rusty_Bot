@@ -144,6 +144,95 @@ class SkillPlanner {
         return { success: true, message: 'Skill added to plan' };
     }
 
+    // Get effective level from character skills plus current plan target levels
+    getEffectiveSkillLevel(skillId, currentSkills = null) {
+        let level = 0;
+
+        if (currentSkills && currentSkills.skills) {
+            const charSkill = currentSkills.skills.find(s => s.skill_id === skillId);
+            level = charSkill ? charSkill.trained_skill_level : 0;
+        }
+
+        const inPlan = this.plan.find(p => p.skillId === skillId);
+        if (inPlan && inPlan.targetLevel > level) {
+            level = inPlan.targetLevel;
+        }
+
+        return level;
+    }
+
+    // Add a skill and recursively add all missing prerequisites based on current skills.
+    addSkillWithPrerequisites(skillId, targetLevel, currentSkills = null) {
+        const rootSkill = window.SKILLS[skillId];
+        if (!rootSkill) {
+            return { success: false, message: 'Skill not found', added: [], upgraded: [] };
+        }
+
+        const existingLevel = this.getEffectiveSkillLevel(skillId, currentSkills);
+        if (targetLevel <= existingLevel) {
+            return { success: false, message: 'Already trained to this level', added: [], upgraded: [] };
+        }
+
+        const added = [];
+        const upgraded = [];
+        const visiting = new Set();
+
+        const resolveSkill = (id, requiredLevel, isRoot = false) => {
+            if (visiting.has(id)) return;
+
+            const skill = window.SKILLS[id];
+            if (!skill) return;
+
+            visiting.add(id);
+
+            if (skill.prereqs) {
+                Object.entries(skill.prereqs).forEach(([prereqId, prereqLevel]) => {
+                    resolveSkill(parseInt(prereqId), prereqLevel, false);
+                });
+            }
+
+            const beforeLevel = this.getEffectiveSkillLevel(id, currentSkills);
+            if (requiredLevel > beforeLevel) {
+                const wasInPlan = this.isInPlan(id);
+                const result = this.addSkill(id, requiredLevel, currentSkills);
+                if (result.success) {
+                    const entry = {
+                        skillId: id,
+                        skillName: skill.name,
+                        fromLevel: beforeLevel,
+                        toLevel: requiredLevel
+                    };
+
+                    if (beforeLevel > 0 || wasInPlan) {
+                        upgraded.push(entry);
+                    } else {
+                        added.push(entry);
+                    }
+                }
+            }
+
+            visiting.delete(id);
+        };
+
+        resolveSkill(skillId, targetLevel, true);
+
+        const totalChanges = added.length + upgraded.length;
+        if (totalChanges === 0) {
+            return { success: false, message: 'No prerequisite changes needed', added, upgraded };
+        }
+
+        if (added.length > 0 || upgraded.length > 0) {
+            return {
+                success: true,
+                message: `${rootSkill.name} ${targetLevel} added with ${totalChanges - 1} prerequisite changes`,
+                added,
+                upgraded
+            };
+        }
+
+        return { success: true, message: 'Skill added to plan', added, upgraded };
+    }
+
     // Remove skill from plan
     removeSkill(skillId) {
         const index = this.plan.findIndex(item => item.skillId === skillId);
@@ -264,9 +353,8 @@ class SkillPlanner {
                 const missing = this.getMissingPrerequisites(item.skillId, item.targetLevel, currentSkills);
                 
                 for (const prereq of missing) {
-                    // Add prerequisite if not already in plan
-                    if (!this.isInPlan(prereq.skillId)) {
-                        this.addSkill(prereq.skillId, prereq.requiredLevel, currentSkills);
+                    const result = this.addSkill(prereq.skillId, prereq.requiredLevel, currentSkills);
+                    if (result.success) {
                         added.push({
                             skillId: prereq.skillId,
                             skillName: prereq.skillName,
