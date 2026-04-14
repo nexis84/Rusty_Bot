@@ -37,13 +37,6 @@ class CharacterManager {
         return null;
     }
 
-    // Get cached data even if stale (used as fallback during ESI rate limits)
-    getAnyCachedData(characterId, dataType) {
-        const char = this.characters[characterId];
-        if (!char || !char.cache || !char.cache[dataType]) return null;
-        return char.cache[dataType].data;
-    }
-
     // Set cached data
     setCachedData(characterId, dataType, data) {
         if (!this.characters[characterId]) {
@@ -94,13 +87,6 @@ class CharacterManager {
             return data;
         } catch (e) {
             console.error('Failed to fetch skills:', e);
-            if (String(e.message || e).includes('429')) {
-                const stale = this.getAnyCachedData(characterId, 'skills');
-                if (stale) {
-                    console.warn('Using cached skills due to ESI rate limit');
-                    return stale;
-                }
-            }
             return null;
         }
     }
@@ -116,13 +102,6 @@ class CharacterManager {
             return data;
         } catch (e) {
             console.error('Failed to fetch skill queue:', e);
-            if (String(e.message || e).includes('429')) {
-                const stale = this.getAnyCachedData(characterId, 'skillQueue');
-                if (stale) {
-                    console.warn('Using cached skill queue due to ESI rate limit');
-                    return stale;
-                }
-            }
             return null;
         }
     }
@@ -131,8 +110,8 @@ class CharacterManager {
     async fetchAttributes(characterId) {
         const cached = this.getCachedData(characterId, 'attributes');
         if (cached) return cached;
-
-        // Fallback defaults when scope is unavailable
+        
+        // Return default attributes since scope is unavailable
         const defaults = {
             intelligence: 20,
             memory: 20,
@@ -143,78 +122,34 @@ class CharacterManager {
             last_remap_date: null,
             accrued_remap_cooldown_date: null
         };
-
-        try {
-            const data = await esiAuth.esiFetch(`/characters/${characterId}/attributes/`);
-            this.setCachedData(characterId, 'attributes', data);
-            return data;
-        } catch (e) {
-            console.warn('Failed to fetch attributes, using defaults:', e.message || e);
-            if (String(e.message || e).includes('429')) {
-                const stale = this.getAnyCachedData(characterId, 'attributes');
-                if (stale) {
-                    console.warn('Using cached attributes due to ESI rate limit');
-                    return stale;
-                }
-            }
-            this.setCachedData(characterId, 'attributes', defaults);
-            return defaults;
-        }
+        
+        this.setCachedData(characterId, 'attributes', defaults);
+        return defaults;
     }
 
     // Fetch implants (returns empty array if scope unavailable)
     async fetchImplants(characterId) {
         const cached = this.getCachedData(characterId, 'implants');
         if (cached) return cached;
-
-        try {
-            const data = await esiAuth.esiFetch(`/characters/${characterId}/implants/`);
-            this.setCachedData(characterId, 'implants', data || []);
-            return data || [];
-        } catch (e) {
-            console.warn('Failed to fetch implants, using empty list:', e.message || e);
-            if (String(e.message || e).includes('429')) {
-                const stale = this.getAnyCachedData(characterId, 'implants');
-                if (stale) {
-                    console.warn('Using cached implants due to ESI rate limit');
-                    return stale;
-                }
-            }
-            const empty = [];
-            this.setCachedData(characterId, 'implants', empty);
-            return empty;
-        }
-    }
-
-    // Fetch active boosters (includes active cerebral accelerators when present)
-    async fetchBoosters(characterId) {
-        const cached = this.getCachedData(characterId, 'boosters');
-        if (cached) return cached;
-
-        // Boosters endpoint is not reliably available on ESI for this app context.
-        // Keep cached value if present; otherwise return empty without a network call.
-        const stale = this.getAnyCachedData(characterId, 'boosters');
-        if (stale) return stale;
-
+        
+        // Return empty array since scope is unavailable
         const empty = [];
-        this.setCachedData(characterId, 'boosters', empty);
+        this.setCachedData(characterId, 'implants', empty);
         return empty;
     }
 
-    // Get full character data (skills + attributes + queue + implants + boosters)
+    // Get full character data (skills + attributes + queue)
     async getFullCharacterData(characterId) {
-        const skills = await this.fetchSkills(characterId);
-        const attributes = await this.fetchAttributes(characterId);
-        const queue = await this.fetchSkillQueue(characterId);
-        const implants = await this.fetchImplants(characterId);
-        const boosters = await this.fetchBoosters(characterId);
+        const [skills, attributes, queue] = await Promise.all([
+            this.fetchSkills(characterId),
+            this.fetchAttributes(characterId),
+            this.fetchSkillQueue(characterId)
+        ]);
         
         return {
             skills: skills,
             attributes: attributes,
-            skillQueue: queue,
-            implants: implants,
-            boosters: boosters
+            skillQueue: queue
         };
     }
 
@@ -291,6 +226,16 @@ class CharacterManager {
                 this.characters[charId].cache = {};
             }
         });
+        this.saveCharacters();
+    }
+
+    // Clear cached data for a specific character
+    clearCharacterCache(characterId) {
+        if (!this.characters[characterId] || !this.characters[characterId].cache) {
+            return;
+        }
+
+        this.characters[characterId].cache = {};
         this.saveCharacters();
     }
 

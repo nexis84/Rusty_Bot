@@ -277,12 +277,6 @@
                             <button id="renamePlanBtn"><i class="fas fa-edit"></i></button>
                         </div>
                         <div class="plan-actions">
-                            <button class="btn-secondary" id="plannerImportPlanBtn">
-                                <i class="fas fa-file-import"></i> Import
-                            </button>
-                            <button class="btn-secondary" id="plannerExportPlanBtn">
-                                <i class="fas fa-file-export"></i> Export
-                            </button>
                             <button class="btn-secondary" id="loadPlanBtn">
                                 <i class="fas fa-folder-open"></i> Load
                             </button>
@@ -322,10 +316,6 @@
                                     <span class="sum-label">Total Training Time</span>
                                     <span class="sum-value" id="sumTotalTime">--</span>
                                 </div>
-                                <div class="sum-item hidden" id="sumTotalTimeCompareRow">
-                                    <span class="sum-label">Comparison</span>
-                                    <span class="sum-value" id="sumTotalTimeCompare"></span>
-                                </div>
                                 <div class="sum-item">
                                     <span class="sum-label">Skill Points Needed</span>
                                     <span class="sum-value" id="sumSpNeeded">--</span>
@@ -342,10 +332,6 @@
                                     <div class="inj-item">
                                         <span>Large Injectors (500k)</span>
                                         <span id="injLargeCount">0</span>
-                                    </div>
-                                    <div class="inj-item hidden" id="injCompareRow">
-                                        <span>Injector Delta</span>
-                                        <span id="injCompareText"></span>
                                     </div>
                                     <div class="inj-item">
                                         <span>Cost @ 900M ISK each</span>
@@ -470,25 +456,10 @@
 
                                 <div class="accelerator-section">
                                     <h4>Cerebral Accelerator</h4>
-                                    <div class="accelerator-picker">
-                                        <label for="acceleratorPreset">Available Accelerators</label>
-                                        <select id="acceleratorPreset">
-                                            <option value="0">None</option>
-                                        </select>
-                                    </div>
-                                    <div class="accelerator-list" id="acceleratorList"></div>
-                                </div>
-
-                                <div class="calc-plan-actions">
-                                    <h4>Skill Plan</h4>
-                                    <div class="calc-plan-btns">
-                                        <button class="btn-secondary" id="calcImportPlanBtn">
-                                            <i class="fas fa-file-import"></i> Import Plan
-                                        </button>
-                                        <button class="btn-secondary" id="calcExportPlanBtn">
-                                            <i class="fas fa-file-export"></i> Export Plan
-                                        </button>
-                                    </div>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="hasAccelerator">
+                                        <span>Active Accelerator (+10 all attributes)</span>
+                                    </label>
                                 </div>
                             </div>
 
@@ -619,12 +590,12 @@
         </div>
     </div>
 
-    <script src="skills-data.js?v=20260413004"></script>
-    <script src="esi-auth.js?v=20260413004"></script>
-    <script src="character-manager.js?v=20260413004"></script>
-    <script src="training-calc.js?v=20260413004"></script>
-    <script src="injector-calc.js?v=20260413004"></script>
-    <script src="skill-planner.js?v=20260413004"></script>
-    <script src="app.js?v=20260413004"></script>
+    <script src="skills-data.js?v=20260414002"></script>
+    <script src="esi-auth.js?v=20260414002"></script>
+    <script src="character-manager.js?v=20260414002"></script>
+    <script src="training-calc.js?v=20260414002"></script>
+    <script src="injector-calc.js?v=20260414002"></script>
+    <script src="skill-planner.js?v=20260414002"></script>
+    <script src="app.js?v=20260414002"></script>
 </body>
 </html>

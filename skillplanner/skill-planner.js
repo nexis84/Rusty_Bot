@@ -3,21 +3,79 @@
 
 class SkillPlanner {
     constructor() {
+        this.activeCharacterId = window.esiAuth?.getCurrentCharacter?.() || null;
         this.plan = this.loadPlan();
-        this.name = localStorage.getItem('skill_plan_name') || 'My Skill Plan';
+        this.name = this.loadPlanName();
         this.listeners = [];
+    }
+
+    getScopedStorageKey(baseKey, characterId = this.activeCharacterId) {
+        if (!characterId) return null;
+        return `${baseKey}_${characterId}`;
+    }
+
+    // Switch active character context for plan data
+    setActiveCharacter(characterId) {
+        this.activeCharacterId = characterId || null;
+        this.plan = this.loadPlan();
+        this.name = this.loadPlanName();
+        this.notifyListeners();
+    }
+
+    // Clear in-memory plan state without deleting persisted character plans
+    clearSessionPlan() {
+        this.plan = [];
+        this.name = 'My Skill Plan';
+        this.notifyListeners();
     }
 
     // Load plan from localStorage
     loadPlan() {
-        const stored = localStorage.getItem('skill_plan');
+        const scopedKey = this.getScopedStorageKey('skill_plan');
+        if (!scopedKey) return [];
+
+        let stored = localStorage.getItem(scopedKey);
+
+        // One-time migration from legacy single-plan storage.
+        if (!stored) {
+            const legacy = localStorage.getItem('skill_plan');
+            if (legacy) {
+                localStorage.setItem(scopedKey, legacy);
+                stored = legacy;
+            }
+        }
+
         return stored ? JSON.parse(stored) : [];
+    }
+
+    loadPlanName() {
+        const scopedKey = this.getScopedStorageKey('skill_plan_name');
+        if (!scopedKey) return 'My Skill Plan';
+
+        let stored = localStorage.getItem(scopedKey);
+
+        // One-time migration from legacy single-name storage.
+        if (!stored) {
+            const legacy = localStorage.getItem('skill_plan_name');
+            if (legacy) {
+                localStorage.setItem(scopedKey, legacy);
+                stored = legacy;
+            }
+        }
+
+        return stored || 'My Skill Plan';
     }
 
     // Save plan to localStorage
     savePlan() {
-        localStorage.setItem('skill_plan', JSON.stringify(this.plan));
-        localStorage.setItem('skill_plan_name', this.name);
+        const planKey = this.getScopedStorageKey('skill_plan');
+        const nameKey = this.getScopedStorageKey('skill_plan_name');
+
+        if (planKey && nameKey) {
+            localStorage.setItem(planKey, JSON.stringify(this.plan));
+            localStorage.setItem(nameKey, this.name);
+        }
+
         this.notifyListeners();
     }
 
@@ -485,7 +543,11 @@ class SkillPlanner {
             plan: this.plan,
             savedAt: new Date().toISOString()
         };
-        localStorage.setItem('saved_plans', JSON.stringify(plans));
+
+        const savedPlansKey = this.getScopedStorageKey('saved_plans');
+        if (savedPlansKey) {
+            localStorage.setItem(savedPlansKey, JSON.stringify(plans));
+        }
     }
 
     // Load saved plan
@@ -503,7 +565,10 @@ class SkillPlanner {
 
     // Load all saved plans
     loadSavedPlans() {
-        const stored = localStorage.getItem('saved_plans');
+        const savedPlansKey = this.getScopedStorageKey('saved_plans');
+        if (!savedPlansKey) return {};
+
+        const stored = localStorage.getItem(savedPlansKey);
         return stored ? JSON.parse(stored) : {};
     }
 
@@ -511,7 +576,11 @@ class SkillPlanner {
     deleteNamedPlan(name) {
         const plans = this.loadSavedPlans();
         delete plans[name];
-        localStorage.setItem('saved_plans', JSON.stringify(plans));
+
+        const savedPlansKey = this.getScopedStorageKey('saved_plans');
+        if (savedPlansKey) {
+            localStorage.setItem(savedPlansKey, JSON.stringify(plans));
+        }
     }
 
     // Get saved plan names

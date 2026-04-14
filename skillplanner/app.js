@@ -36,6 +36,8 @@ class SkillPlannerApp {
         // Load character if authenticated
         if (esiAuth.isAuthenticated()) {
             await this.loadCharacter(esiAuth.currentCharacter);
+        } else {
+            skillPlanner.setActiveCharacter(null);
         }
         
         this.updateUI();
@@ -262,6 +264,10 @@ class SkillPlannerApp {
         try {
             this.currentCharacter = characterId;
             this.calculatorOverrides = null;
+            skillPlanner.setActiveCharacter(characterId);
+
+            // Always refresh from ESI on character load to avoid stale skill cache.
+            characterManager.clearCharacterCache(characterId);
             
             // Fetch character data through manager to avoid request bursts against ESI.
             const fullData = await characterManager.getFullCharacterData(characterId);
@@ -278,6 +284,12 @@ class SkillPlannerApp {
             
             // Load training calc attributes
             trainingCalc.loadFromCharacter(characterId);
+
+            // Re-render sections that depend on fresh character data.
+            this.renderMySkills();
+            this.renderPlan();
+            this.updatePlanSummary();
+            this.updatePlanBadge();
             
         } catch (e) {
             this.showMessage('Failed to load character: ' + e.message, 'error');
@@ -377,6 +389,14 @@ class SkillPlannerApp {
         const charName = char?.characterName || 'Character';
         
         if (confirm(`Logout ${charName}?`)) {
+            // Reset visible planner state while keeping persisted per-character plans.
+            skillPlanner.setActiveCharacter(null);
+            skillPlanner.clearSessionPlan();
+
+            this.currentCharacter = null;
+            this.currentCharacterData = null;
+            this.calculatorOverrides = null;
+
             esiAuth.removeCharacter(charId);
             characterManager.removeCharacter(charId);
             
@@ -400,6 +420,10 @@ class SkillPlannerApp {
             if (this.recentSkillsList) {
                 this.recentSkillsList.innerHTML = '<p class="empty-hint">Login to see your recent skill training</p>';
             }
+
+            this.renderMySkills();
+            this.renderPlan();
+            this.updatePlanSummary();
             
             this.showMessage(`Logged out ${charName}`, 'success');
         }
@@ -595,10 +619,13 @@ class SkillPlannerApp {
         // Group skills by category
         const groups = {};
         Object.entries(window.SKILLS).forEach(([id, skill]) => {
+            const skillId = parseInt(id);
+            if (!this.isSkillVisible(skillId, skill)) return;
+
             if (!groups[skill.group]) {
                 groups[skill.group] = [];
             }
-            groups[skill.group].push({ id: parseInt(id), ...skill });
+            groups[skill.group].push({ id: skillId, ...skill });
         });
         
         this.skillCategories.innerHTML = Object.entries(groups).map(([groupName, skills]) => {
@@ -669,6 +696,24 @@ class SkillPlannerApp {
         if (!this.currentCharacterData?.skills?.skills) return 0;
         const skill = this.currentCharacterData.skills.skills.find(s => s.skill_id === skillId);
         return skill ? skill.trained_skill_level : 0;
+    }
+    
+    isSkillVisible(skillId, skillData = null) {
+        const skill = skillData || window.SKILLS[skillId];
+        if (!skill || !skill.name) return false;
+
+        const name = skill.name.toLowerCase();
+        const desc = (skill.desc || '').toLowerCase();
+
+        if (desc.includes('fake skill')) return false;
+        if (desc.includes('does not exist in game')) return false;
+        if (name.includes('security clearance')) return false;
+
+        // Keep trained skills visible for the logged-in character, even if no book map exists.
+        if (this.getCharacterSkillLevel(skillId) > 0) return true;
+
+        // Prefer skill-book backed skills as the default visible catalog.
+        return typeof hasSkillBook === 'function' ? hasSkillBook(skillId) : true;
     }
 
     selectSkill(skillId) {
@@ -1234,7 +1279,11 @@ class SkillPlannerApp {
         const container = document.getElementById('pickerCategories');
         if (!container) return;
         
-        const groups = [...new Set(Object.values(window.SKILLS).map(s => s.group))];
+        const groups = [...new Set(
+            Object.entries(window.SKILLS)
+                .filter(([id, skill]) => this.isSkillVisible(parseInt(id), skill))
+                .map(([, skill]) => skill.group)
+        )];
         
         container.innerHTML = `
             <button class="picker-cat-btn active" data-cat="all">All</button>
@@ -1254,7 +1303,9 @@ class SkillPlannerApp {
         const container = document.getElementById('pickerSkills');
         if (!container) return;
         
-        let skills = Object.entries(window.SKILLS).map(([id, skill]) => ({ id: parseInt(id), ...skill }));
+        let skills = Object.entries(window.SKILLS)
+            .map(([id, skill]) => ({ id: parseInt(id), ...skill }))
+            .filter(skill => this.isSkillVisible(skill.id, skill));
         
         if (category !== 'all') {
             skills = skills.filter(s => s.group === category);
