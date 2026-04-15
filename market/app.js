@@ -280,6 +280,15 @@ function buildCategoryHierarchy() {
                     return matches;
                 });
                 
+                // Debug for blueprints
+                if (category.categoryKey === 'blueprints') {
+                    console.log(`Group ${groupDef.name}: ${groupItems.length} items`);
+                    if (groupItems.length === 0 && groupDef.id === 'reaction_formulas') {
+                        console.log('Sample items:', allItems.slice(0, 3));
+                        console.log('Testing filter on first item:', groupDef.filter(allItems[0]));
+                    }
+                }
+                
                 if (groupItems.length > 0 || groupDef.id.includes('other')) {
                     groups.push({
                         id: groupDef.id,
@@ -344,6 +353,18 @@ function buildFromMarketTree() {
         const treeCategory = MarketTree[treeKey];
         if (!treeCategory) return;
         
+        // Collect all items from this category and its children
+        const allItems = [];
+        function collectItems(group) {
+            if (group.items && group.items.length > 0) {
+                allItems.push(...group.items);
+            }
+            if (group.children) {
+                group.children.forEach(child => collectItems(child));
+            }
+        }
+        collectItems(treeCategory);
+        
         // Build groups from children (subcategories)
         const groups = [];
         
@@ -382,17 +403,66 @@ function buildFromMarketTree() {
             treeCategory.children.forEach(child => processGroup(child, []));
         }
         
-        // Keep only groups that have items, but still render the top-level category even if empty
-        const nonEmptyGroups = groups.filter(g => g.items && g.items.length > 0);
+        // Check if we have custom SubCategories for this category (e.g., blueprints)
+        const categoryMapping = {
+            'ships': 'Ships',
+            'modules': 'Ship Equipment',
+            'ammunition_and_charges': 'Ammunition & Charges',
+            'drones': 'Drones',
+            'implants_and_boosters': 'Implants & Boosters',
+            'skills': 'Skills',
+            'structures': 'Structures',
+            'trade_goods': 'Trade Goods',
+            'blueprints': 'Blueprints & Reactions'
+        };
+        const categoryKey = Object.keys(categoryMapping).find(key => categoryMapping[key] === treeKey) || toCategoryId(treeKey);
+        const subCatDef = SubCategories && SubCategories[categoryKey];
+        
+        // If we have SubCategories for this category, use AllMarketItems instead of MarketTree items
+        if (categoryKey && AllMarketItems && AllMarketItems[categoryKey]) {
+            const dbItems = AllMarketItems[categoryKey].items || [];
+            if (dbItems.length > 0) {
+                allItems.length = 0; // Clear the array
+                allItems.push(...dbItems); // Use database items instead
+            }
+        }
+        
+        let finalGroups;
+        if (subCatDef && subCatDef.groups && allItems.length > 0) {
+            // Use SubCategories to group items
+            const assignedItems = new Set();
+            finalGroups = [];
+            
+            subCatDef.groups.forEach(groupDef => {
+                const groupItems = allItems.filter(item => {
+                    if (assignedItems.has(item.id)) return false;
+                    const matches = groupDef.filter(item);
+                    if (matches) assignedItems.add(item.id);
+                    return matches;
+                });
+                
+                if (groupItems.length > 0 || groupDef.id.includes('other')) {
+                    finalGroups.push({
+                        id: groupDef.id,
+                        name: groupDef.name,
+                        items: groupItems
+                    });
+                }
+            });
+            
+            console.log(`Category ${treeKey}: Using SubCategories - ${finalGroups.length} groups with ${finalGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
+        } else {
+            // Use MarketTree groups
+            finalGroups = groups.filter(g => g.items && g.items.length > 0);
+            console.log(`Category ${treeKey}: Using MarketTree - ${finalGroups.length} groups with ${finalGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
+        }
 
         categories.push({
             id: toCategoryId(treeKey),
             name: treeKey,
             icon: getCategoryIcon(treeKey),
-            groups: nonEmptyGroups
+            groups: finalGroups
         });
-
-        console.log(`Category ${treeKey}: ${nonEmptyGroups.length} groups with ${nonEmptyGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
     });
 
     categories.sort((a, b) => a.name.localeCompare(b.name));
