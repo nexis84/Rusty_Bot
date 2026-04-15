@@ -42,6 +42,15 @@ function initApp() {
     console.log('Types available:', typeof Types !== 'undefined');
     console.log('MarketItems available:', typeof MarketItems !== 'undefined');
     console.log('AllMarketItems available:', typeof AllMarketItems !== 'undefined');
+    console.log('SubCategories available:', typeof SubCategories !== 'undefined');
+    if (typeof SubCategories !== 'undefined') {
+        console.log('SubCategories keys:', Object.keys(SubCategories));
+        console.log('blueprints subcat:', SubCategories.blueprints);
+    }
+    if (typeof AllMarketItems !== 'undefined') {
+        console.log('AllMarketItems.blueprints:', AllMarketItems.blueprints);
+        console.log('AllMarketItems.blueprints.items count:', AllMarketItems.blueprints?.items?.length || 0);
+    }
     
     try {
         // Build all items list for search
