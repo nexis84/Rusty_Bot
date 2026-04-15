@@ -257,6 +257,14 @@ function buildCategoryHierarchy() {
         // Check if we have subcategory definitions for this category
         const subCatDef = SubCategories && SubCategories[category.categoryKey];
         
+        // Debug for blueprints
+        if (category.categoryKey === 'blueprints') {
+            console.log('DEBUG blueprints categoryKey:', category.categoryKey);
+            console.log('DEBUG subCatDef:', subCatDef);
+            console.log('DEBUG subCatDef.groups:', subCatDef?.groups);
+            console.log('DEBUG allItems.length:', allItems.length);
+        }
+        
         let groups = [];
         
         if (subCatDef && subCatDef.groups && allItems.length > 0) {
