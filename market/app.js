@@ -939,26 +939,29 @@ async function resolveLocation(locationId, elementIdOrCallback) {
             return name;
         }
         
-        // Try structure (player-owned structures)
-        // Note: structures endpoint requires auth, so it will likely fail for public data
-        url = `${ESI_BASE}/universe/structures/${locationId}/`;
-        r = await fetch(url);
-        
-        if (r.ok) {
-            const data = await r.json();
-            name = data.name;
-            AppState.locationCache[locationId] = name;
+        // Try structure (player-owned structures) - only if not a player citadel
+        // Note: Player citadels (IDs >= 10^12) require auth and will always fail for public data
+        // Outposts (IDs < 10^12) might be accessible, so we try those
+        if (locationId < 1000000000000) {
+            url = `${ESI_BASE}/universe/structures/${locationId}/`;
+            r = await fetch(url);
             
-            if (typeof elementIdOrCallback === 'string') {
-                const element = el(elementIdOrCallback);
-                if (element) element.textContent = name;
-            } else if (typeof elementIdOrCallback === 'function') {
-                elementIdOrCallback(name);
+            if (r.ok) {
+                const data = await r.json();
+                name = data.name;
+                AppState.locationCache[locationId] = name;
+                
+                if (typeof elementIdOrCallback === 'string') {
+                    const element = el(elementIdOrCallback);
+                    if (element) element.textContent = name;
+                } else if (typeof elementIdOrCallback === 'function') {
+                    elementIdOrCallback(name);
+                }
+                return name;
             }
-            return name;
         }
         
-        // If both fail, try to get better identification
+        // If both fail, use fallback identification
         // Determine structure type based on ID range
         if (locationId < 60000000) {
             // Could be POCO, Mobile Depot, or other small structure
@@ -1020,8 +1023,9 @@ async function resolveLocationWithSystem(locationId, systemId, callback) {
         if (r.ok) {
             const data = await r.json();
             locationName = data.name;
-        } else {
-            // Try structure (will likely fail without auth)
+        } else if (locationId < 1000000000000) {
+            // Try structure (will likely fail without auth for outposts)
+            // Skip player citadels (IDs >= 10^12) as they always require auth
             url = `${ESI_BASE}/universe/structures/${locationId}/`;
             r = await fetch(url);
             
