@@ -9,7 +9,7 @@ const AppState = {
     currentView: 'home',
     currentItem: null,
     currentCategory: null,
-    currentRegion: 'major',
+    currentRegion: '0',
     favorites: JSON.parse(localStorage.getItem('marketFavorites') || '[]'),
     chart: null,
     allItems: [],
