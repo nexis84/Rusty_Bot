@@ -479,8 +479,13 @@ function renderPopularItems() {
     PopularItems.forEach(item => {
         const card = document.createElement('div');
         card.className = 'item-card';
+        // Use FontAwesome icon for blueprints as they don't have EVE image server icons
+        const isBlueprint = item.name.toLowerCase().includes('blueprint') || item.name.toLowerCase().includes('reaction formula');
+        const iconHtml = isBlueprint
+            ? '<div class="blueprint-icon"><i class="fas fa-scroll"></i></div>'
+            : `<img src="https://images.evetech.net/types/${item.id}/icon?size=64" alt="${item.name}" class="item-icon" onerror="this.src='https://images.evetech.net/types/0/icon?size=64'" />`;
         card.innerHTML = `
-            <img src="https://images.evetech.net/types/${item.id}/icon?size=64" alt="${item.name}" class="item-icon" onerror="this.src='https://images.evetech.net/types/0/icon?size=64'" />
+            ${iconHtml}
             <div class="item-name">${item.name}</div>
             <div class="item-category">${item.category}</div>
         `;
@@ -744,7 +749,13 @@ async function loadItem(typeId, name, forceRefresh = false) {
         
         // Update item icon
         const itemIconEl = el('itemIcon');
-        itemIconEl.innerHTML = `<img src="https://images.evetech.net/types/${typeId}/icon?size=128" alt="${name}" onerror="this.src='https://images.evetech.net/types/0/icon?size=128'" />`;
+        // Use FontAwesome icon for blueprints as they don't have EVE image server icons
+        const isBlueprintItem = name.toLowerCase().includes('blueprint') || name.toLowerCase().includes('reaction formula');
+        if (isBlueprintItem) {
+            itemIconEl.innerHTML = `<div class="blueprint-icon-large"><i class="fas fa-scroll"></i></div>`;
+        } else {
+            itemIconEl.innerHTML = `<img src="https://images.evetech.net/types/${typeId}/icon?size=128" alt="${name}" onerror="this.src='https://images.evetech.net/types/0/icon?size=128'" />`;
+        }
         
         // Check if favorite
         updateFavoriteButton();
