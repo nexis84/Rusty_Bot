@@ -428,7 +428,9 @@ function buildFromMarketTree() {
         }
         
         let finalGroups;
-        if (subCatDef && subCatDef.groups && allItems.length > 0) {
+        const useCustomSubCategories = subCatDef && subCatDef.groups && allItems.length > 0 && categoryKey !== 'blueprints';
+
+        if (useCustomSubCategories) {
             // Use SubCategories to group items
             const assignedItems = new Set();
             finalGroups = [];
