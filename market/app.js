@@ -23,6 +23,120 @@ const AppState = {
 function el(id) { return document.getElementById(id); }
 function fmt(n) { return n === null || n === undefined ? '—' : Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtInt(n) { return n === null || n ===undefined ? '—' : Number(n).toLocaleString(); }
+
+async function loadPublicMarketTreeFromEveOS() {
+    const groupsUrl = 'https://data.eveos.space/sdejsonl/marketGroups.jsonl';
+    const typesUrl = 'https://data.eveos.space/sdejsonl/types.jsonl';
+
+    function extractName(value) {
+        if (typeof value === 'string') return value.trim();
+        if (!value || typeof value !== 'object') return '';
+        return (
+            value['en-us'] ||
+            value['en_us'] ||
+            value.enUS ||
+            value.en ||
+            value.name ||
+            ''
+        ).toString().trim();
+    }
+
+    try {
+        const [groupsRes, typesRes] = await Promise.all([fetch(groupsUrl), fetch(typesUrl)]);
+        if (!groupsRes.ok || !typesRes.ok) {
+            throw new Error(`EVEOS data request failed: groups=${groupsRes.status}, types=${typesRes.status}`);
+        }
+
+        const [groupsText, typesText] = await Promise.all([groupsRes.text(), typesRes.text()]);
+
+        const groups = groupsText
+            .split(/\r?\n/)
+            .filter(Boolean)
+            .map(line => {
+                try { return JSON.parse(line); } catch { return null; }
+            })
+            .filter(Boolean);
+
+        const types = typesText
+            .split(/\r?\n/)
+            .filter(Boolean)
+            .map(line => {
+                try { return JSON.parse(line); } catch { return null; }
+            })
+            .filter(Boolean);
+
+        const nodes = new Map();
+
+        groups.forEach(group => {
+            const id = Number(group._key);
+            if (!Number.isFinite(id)) return;
+
+            const name = extractName(group['name_en-us']) || extractName(group.name);
+            if (!name) return;
+
+            nodes.set(id, {
+                id,
+                name,
+                parentGroupID: Number.isFinite(Number(group.parentGroupID)) ? Number(group.parentGroupID) : null,
+                children: [],
+                items: []
+            });
+        });
+
+        // Build group hierarchy links.
+        nodes.forEach(node => {
+            if (node.parentGroupID !== null && nodes.has(node.parentGroupID)) {
+                nodes.get(node.parentGroupID).children.push(node);
+            }
+        });
+
+        // Attach item types to their market groups.
+        types.forEach(type => {
+            const typeId = Number(type._key);
+            const groupId = Number(type.marketGroupID);
+            if (!Number.isFinite(typeId) || !Number.isFinite(groupId)) return;
+            if (!nodes.has(groupId)) return;
+
+            const name = extractName(type['name_en-us']) || extractName(type.name);
+            if (!name) return;
+
+            nodes.get(groupId).items.push({ id: typeId, name });
+        });
+
+        function sortNode(node) {
+            node.children.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            node.items.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            node.children.forEach(sortNode);
+        }
+
+        const topLevelNodes = [...nodes.values()]
+            .filter(node => node.parentGroupID === null || !nodes.has(node.parentGroupID))
+            .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+        topLevelNodes.forEach(sortNode);
+
+        const builtTree = {};
+        topLevelNodes.forEach(node => {
+            builtTree[node.name] = {
+                id: node.id,
+                name: node.name,
+                children: node.children,
+                items: node.items
+            };
+        });
+
+        if (Object.keys(builtTree).length > 0) {
+            MarketTree = builtTree;
+            console.log(`Loaded MarketTree from EVEOS public data (${Object.keys(builtTree).length} top-level categories)`);
+            return true;
+        }
+    } catch (err) {
+        console.warn('Falling back to bundled MarketTree data:', err);
+    }
+
+    return false;
+}
+
 function formatPrice(n) {
     if (n >= 1000000000) return (n / 1000000000).toFixed(2) + 'B';
     if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
@@ -35,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-function initApp() {
+async function initApp() {
     console.log('Initializing Market Browser...');
     
     // Check database availability
@@ -56,6 +170,9 @@ function initApp() {
         // Build all items list for search
         buildAllItemsList();
         console.log(`Built items list with ${AppState.allItems.length} items`);
+
+        // Use the EVE Ref-based MarketTree loaded from market_tree.js
+        // (loadPublicMarketTreeFromEveOS disabled to preserve EVE Ref structure)
         
         // Render category tree
         renderCategoryTree();
@@ -123,6 +240,69 @@ function renderCategoryTree() {
     
     console.log(`Rendering ${categoryGroups.length} top-level categories`);
     
+    function getGroupItemCount(group) {
+        const ownItems = Array.isArray(group.items) ? group.items.length : 0;
+        const childItems = Array.isArray(group.children)
+            ? group.children.reduce((sum, child) => sum + getGroupItemCount(child), 0)
+            : 0;
+        return ownItems + childItems;
+    }
+
+    function renderGroupNode(group) {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'group-item';
+
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'group-header';
+
+        const totalItemCount = getGroupItemCount(group);
+        groupHeader.innerHTML = `
+            <i class="fas fa-angle-right toggle"></i>
+            <span>${group.name}</span>
+            <span class="item-count">${totalItemCount}</span>
+        `;
+
+        const groupChildrenContainer = document.createElement('div');
+        groupChildrenContainer.className = 'group-children';
+
+        if (Array.isArray(group.children) && group.children.length > 0) {
+            group.children.forEach(childGroup => {
+                groupChildrenContainer.appendChild(renderGroupNode(childGroup));
+            });
+        }
+
+        if (Array.isArray(group.items) && group.items.length > 0) {
+            const sortedItems = [...group.items].sort((a, b) => a.name.localeCompare(b.name));
+            sortedItems.forEach(item => {
+                const leaf = document.createElement('div');
+                leaf.className = 'category-leaf';
+                leaf.dataset.typeId = item.id;
+                leaf.dataset.name = item.name;
+                leaf.innerHTML = `<span>${item.name}</span>`;
+                leaf.addEventListener('click', () => loadItem(item.id, item.name));
+                groupChildrenContainer.appendChild(leaf);
+            });
+        }
+
+        groupHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = groupChildrenContainer.classList.contains('expanded');
+            const toggle = groupHeader.querySelector('.toggle');
+
+            if (isExpanded) {
+                groupChildrenContainer.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            } else {
+                groupChildrenContainer.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        });
+
+        groupEl.appendChild(groupHeader);
+        groupEl.appendChild(groupChildrenContainer);
+        return groupEl;
+    }
+
     categoryGroups.forEach(category => {
         const categoryEl = document.createElement('div');
         categoryEl.className = 'category-item';
@@ -140,57 +320,10 @@ function renderCategoryTree() {
         const groupsContainer = document.createElement('div');
         groupsContainer.className = 'category-children';
         
-        // Add groups as sub-categories
-        if (category.groups && category.groups.length > 0) {
+        // Add groups as nested sub-categories
+        if (Array.isArray(category.groups) && category.groups.length > 0) {
             category.groups.forEach(group => {
-                const groupEl = document.createElement('div');
-                groupEl.className = 'group-item';
-                
-                const groupHeader = document.createElement('div');
-                groupHeader.className = 'group-header';
-                groupHeader.innerHTML = `
-                    <i class="fas fa-angle-right toggle"></i>
-                    <span>${group.name}</span>
-                    <span class="item-count">${group.items?.length || 0}</span>
-                `;
-                
-                const itemsContainer = document.createElement('div');
-                itemsContainer.className = 'group-children';
-                
-                // Add items under each group
-                if (group.items && group.items.length > 0) {
-                    // Sort items alphabetically
-                    group.items.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    group.items.forEach(item => {
-                        const leaf = document.createElement('div');
-                        leaf.className = 'category-leaf';
-                        leaf.dataset.typeId = item.id;
-                        leaf.dataset.name = item.name;
-                        leaf.innerHTML = `<span>${item.name}</span>`;
-                        leaf.addEventListener('click', () => loadItem(item.id, item.name));
-                        itemsContainer.appendChild(leaf);
-                    });
-                }
-                
-                // Toggle group expansion
-                groupHeader.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isExpanded = itemsContainer.classList.contains('expanded');
-                    const toggle = groupHeader.querySelector('.toggle');
-                    
-                    if (isExpanded) {
-                        itemsContainer.classList.remove('expanded');
-                        toggle.classList.remove('expanded');
-                    } else {
-                        itemsContainer.classList.add('expanded');
-                        toggle.classList.add('expanded');
-                    }
-                });
-                
-                groupEl.appendChild(groupHeader);
-                groupEl.appendChild(itemsContainer);
-                groupsContainer.appendChild(groupEl);
+                groupsContainer.appendChild(renderGroupNode(group));
             });
         }
         
@@ -368,25 +501,26 @@ function buildFromMarketTree() {
         // Build groups from children (subcategories)
         const groups = [];
         
-        function processGroup(group, path = []) {
+        function processGroup(group) {
             if (!group || !group.name) return;
 
-            const groupPath = [...path, group.name];
-            const groupName = groupPath.join(' > ');
-            
-            // If this group has items, add them
-            if (group.items && group.items.length > 0) {
-                groups.push({
-                    id: `group_${group.id}`,
-                    name: groupName,
-                    items: group.items
+            const childNodes = [];
+            if (Array.isArray(group.children) && group.children.length > 0) {
+                group.children.forEach(child => {
+                    const childNode = processGroup(child);
+                    if (childNode) childNodes.push(childNode);
                 });
             }
-            
-            // Process children (sub-subcategories)
-            if (group.children && group.children.length > 0) {
-                group.children.forEach(child => processGroup(child, groupPath));
-            }
+
+            const ownItems = Array.isArray(group.items) ? group.items : [];
+            if (ownItems.length === 0 && childNodes.length === 0) return null;
+
+            return {
+                id: `group_${group.id}`,
+                name: group.name,
+                items: ownItems,
+                children: childNodes
+            };
         }
 
         // Include direct items under the top-level category, if any
@@ -394,13 +528,17 @@ function buildFromMarketTree() {
             groups.push({
                 id: `group_${treeCategory.id}`,
                 name: treeKey,
-                items: treeCategory.items
+                items: treeCategory.items,
+                children: []
             });
         }
         
         // Process all children of this category
         if (treeCategory.children) {
-            treeCategory.children.forEach(child => processGroup(child, []));
+            treeCategory.children.forEach(child => {
+                const childNode = processGroup(child);
+                if (childNode) groups.push(childNode);
+            });
         }
         
         // Check if we have custom SubCategories for this category (e.g., blueprints)
@@ -428,7 +566,10 @@ function buildFromMarketTree() {
         }
         
         let finalGroups;
-        const useCustomSubCategories = subCatDef && subCatDef.groups && allItems.length > 0;
+        const marketTreeGroups = groups.filter(g => 
+            (g.items && g.items.length > 0) || (g.children && g.children.length > 0)
+        );
+        const useCustomSubCategories = marketTreeGroups.length === 0 && subCatDef && subCatDef.groups && allItems.length > 0;
 
         if (useCustomSubCategories) {
             // Use SubCategories to group items
@@ -455,8 +596,19 @@ function buildFromMarketTree() {
             console.log(`Category ${treeKey}: Using SubCategories - ${finalGroups.length} groups with ${finalGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
         } else {
             // Use MarketTree groups
-            finalGroups = groups.filter(g => g.items && g.items.length > 0);
-            console.log(`Category ${treeKey}: Using MarketTree - ${finalGroups.length} groups with ${finalGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
+            finalGroups = marketTreeGroups;
+            
+            // Count items recursively including children
+            function countAllItems(group) {
+                const ownItems = (group.items && group.items.length) || 0;
+                const childItems = (group.children && group.children.length > 0)
+                    ? group.children.reduce((sum, child) => sum + countAllItems(child), 0)
+                    : 0;
+                return ownItems + childItems;
+            }
+            const totalItems = finalGroups.reduce((sum, g) => sum + countAllItems(g), 0);
+            
+            console.log(`Category ${treeKey}: Using MarketTree - ${finalGroups.length} groups with ${totalItems} total items`);
         }
 
         categories.push({
