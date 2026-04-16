@@ -9,12 +9,15 @@ const AppState = {
     currentView: 'home',
     currentItem: null,
     currentCategory: null,
-    currentRegion: '0',
+    currentRegion: 'major',
     favorites: JSON.parse(localStorage.getItem('marketFavorites') || '[]'),
     chart: null,
     allItems: [],
     locationCache: {},
     systemCache: {},
+    regionCache: {},
+    securityCache: {},
+    allRegionIds: null,
     sellSort: { column: 'price', direction: 'asc' },
     buySort: { column: 'price', direction: 'desc' }
 };
@@ -711,6 +714,12 @@ function setupEventListeners() {
         }
     });
     
+    el('securityFilter')?.addEventListener('change', () => {
+        if (AppState.currentItem && AppState.currentItem.orders) {
+            renderOrders(AppState.currentItem.orders);
+        }
+    });
+    
     el('orderTypeFilter')?.addEventListener('change', () => {
         if (AppState.currentItem && AppState.currentItem.orders) {
             renderOrders(AppState.currentItem.orders);
@@ -877,7 +886,10 @@ function switchTab(tabName) {
 
 // Load item details
 async function loadItem(typeId, name, forceRefresh = false) {
-    showLoading('Loading market data...');
+    const loadingMessage = (AppState.currentRegion === '0' || AppState.currentRegion === 'major')
+        ? (AppState.currentRegion === '0' ? 'Loading market data from all regions in New Eden...' : 'Loading market data from major trade hubs...') 
+        : 'Loading market data...';
+    showLoading(loadingMessage);
     
     try {
         console.log(`Loading item ${name} (ID: ${typeId}) in region ${AppState.currentRegion}`);
@@ -934,7 +946,7 @@ async function loadItem(typeId, name, forceRefresh = false) {
                 // PLEX uses global market region 19000001
                 region = '19000001';
             } else {
-                region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+                region = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') ? '10000002' : AppState.currentRegion;
             }
             historyData = await fetchHistory(region, typeId, 30);
             console.log(`Fetched ${historyData.length} history entries`);
@@ -1022,21 +1034,72 @@ async function fetchOrdersForItem(typeId, region) {
         return allOrders;
     }
     
-    if (region === '0') {
-        // Fetch from all major trade hub regions
+    if (region === 'major') {
+        // Fetch from major trade hub regions (fast)
         const regions = ['10000002', '10000043', '10000032', '10000030', '10000042'];
+        console.log(`Fetching market data from ${regions.length} major trade hubs...`);
         
         for (const regionId of regions) {
             try {
                 const orders = await fetchOrders(regionId, typeId);
-                orders.forEach(o => {
-                    o.region_name = Regions[regionId]?.name || 'Unknown';
-                });
-                allOrders.push(...orders);
+                if (orders.length > 0) {
+                    const regionName = await getRegionName(regionId);
+                    orders.forEach(o => {
+                        o.region_name = regionName;
+                        o.region_id = regionId;
+                    });
+                    allOrders.push(...orders);
+                }
             } catch (err) {
                 console.warn(`Failed to fetch region ${regionId}:`, err.message || err);
             }
         }
+        console.log(`Fetched ${allOrders.length} total orders from major hubs`);
+    } else if (region === '0') {
+        // Fetch from all regions in New Eden
+        const regions = await getAllRegionIds();
+        console.log(`Fetching market data from ${regions.length} regions...`);
+        
+        // Update loading message with progress
+        const loadingEl = document.querySelector('.loading-message');
+        if (loadingEl) {
+            loadingEl.textContent = `Scanning ${regions.length} regions for market data...`;
+        }
+        
+        // Fetch orders from all regions in large parallel batches for speed
+        const batchSize = 50; // Increased from 10 for much faster loading
+        let processedCount = 0;
+        
+        for (let i = 0; i < regions.length; i += batchSize) {
+            const batch = regions.slice(i, i + batchSize);
+            const promises = batch.map(async regionId => {
+                try {
+                    const orders = await fetchOrders(regionId, typeId);
+                    if (orders.length > 0) {
+                        const regionName = await getRegionName(regionId);
+                        orders.forEach(o => {
+                            o.region_name = regionName;
+                            o.region_id = regionId;
+                        });
+                        return orders;
+                    }
+                    return [];
+                } catch (err) {
+                    // Silently skip failed regions for speed
+                    return [];
+                }
+            });
+            
+            const batchResults = await Promise.all(promises);
+            batchResults.forEach(orders => allOrders.push(...orders));
+            
+            // Update progress
+            processedCount += batch.length;
+            if (loadingEl) {
+                loadingEl.textContent = `Found ${allOrders.length} orders across ${processedCount}/${regions.length} regions...`;
+            }
+        }
+        console.log(`Fetched ${allOrders.length} total orders from ${regions.length} regions`);
     } else {
         const orders = await fetchOrders(region, typeId);
         allOrders.push(...orders);
@@ -1099,6 +1162,88 @@ async function fetchHistory(region, typeId, days) {
     }
 }
 
+// Fetch all region IDs from ESI
+async function getAllRegionIds() {
+    // Return cached value if available
+    if (AppState.allRegionIds) {
+        return AppState.allRegionIds;
+    }
+    
+    try {
+        const url = `${ESI_BASE}/universe/regions/`;
+        console.log(`Fetching all region IDs from ${url}`);
+        const r = await fetch(url);
+        if (!r.ok) {
+            throw new Error(`Failed to fetch regions: ${r.status}`);
+        }
+        const regionIds = await r.json();
+        
+        // Filter out wormhole space and other non-market regions
+        // ESI returns all regions including J-space which don't have markets
+        AppState.allRegionIds = regionIds.filter(id => id < 11000000);
+        console.log(`Found ${AppState.allRegionIds.length} market regions`);
+        return AppState.allRegionIds;
+    } catch (err) {
+        console.error(`getAllRegionIds error:`, err.message || err);
+        // Fallback to major trade hubs if fetch fails
+        return [10000002, 10000043, 10000032, 10000030, 10000042];
+    }
+}
+
+// Get region name by ID (with caching)
+async function getRegionName(regionId) {
+    // Check cache first
+    if (AppState.regionCache[regionId]) {
+        return AppState.regionCache[regionId];
+    }
+    
+    // Check hardcoded regions
+    if (Regions[regionId]) {
+        AppState.regionCache[regionId] = Regions[regionId];
+        return Regions[regionId];
+    }
+    
+    // Fetch from ESI
+    try {
+        const url = `${ESI_BASE}/universe/regions/${regionId}/`;
+        const r = await fetch(url);
+        if (!r.ok) {
+            throw new Error(`Failed to fetch region ${regionId}`);
+        }
+        const data = await r.json();
+        AppState.regionCache[regionId] = data.name;
+        return data.name;
+    } catch (err) {
+        console.error(`getRegionName error for ${regionId}:`, err.message || err);
+        return `Region ${regionId}`;
+    }
+}
+
+// Get system security status (cached)
+async function getSystemSecurity(systemId) {
+    // Check cache first
+    if (AppState.securityCache[systemId] !== undefined) {
+        return AppState.securityCache[systemId];
+    }
+    
+    try {
+        const url = `${ESI_BASE}/universe/systems/${systemId}/`;
+        const r = await fetch(url);
+        if (!r.ok) {
+            throw new Error(`Failed to fetch system ${systemId}`);
+        }
+        const data = await r.json();
+        const security = data.security_status;
+        AppState.securityCache[systemId] = security;
+        return security;
+    } catch (err) {
+        console.error(`getSystemSecurity error for ${systemId}:`, err.message || err);
+        // Default to null sec if we can't determine
+        AppState.securityCache[systemId] = -1;
+        return -1;
+    }
+}
+
 // Render market summary cards
 function renderMarketSummary(orders, history) {
     const sells = orders.filter(o => !o.is_buy_order).sort((a, b) => a.price - b.price);
@@ -1109,18 +1254,27 @@ function renderMarketSummary(orders, history) {
     
     // Check if viewing PLEX (global market)
     const isPlex = AppState.currentItem?.id === 44992;
+    const showRegion = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') && !isPlex;
     
     // Best sell
     el('bestSellPrice').textContent = bestSell ? formatPrice(bestSell.price) + ' ISK' : '—';
-    el('bestSellLocation').textContent = bestSell 
-        ? (isPlex ? 'Global Market' : 'Loading location...') 
-        : 'No sell orders';
+    if (bestSell && showRegion && bestSell.region_name) {
+        el('bestSellLocation').textContent = `${bestSell.region_name} - Loading location...`;
+    } else {
+        el('bestSellLocation').textContent = bestSell 
+            ? (isPlex ? 'Global Market' : 'Loading location...') 
+            : 'No sell orders';
+    }
     
     // Best buy
     el('bestBuyPrice').textContent = bestBuy ? formatPrice(bestBuy.price) + ' ISK' : '—';
-    el('bestBuyLocation').textContent = bestBuy 
-        ? (isPlex ? 'Global Market' : 'Loading location...') 
-        : 'No buy orders';
+    if (bestBuy && showRegion && bestBuy.region_name) {
+        el('bestBuyLocation').textContent = `${bestBuy.region_name} - Loading location...`;
+    } else {
+        el('bestBuyLocation').textContent = bestBuy 
+            ? (isPlex ? 'Global Market' : 'Loading location...') 
+            : 'No buy orders';
+    }
     
     // Spread
     if (bestSell && bestBuy) {
@@ -1146,8 +1300,30 @@ function renderMarketSummary(orders, history) {
     
     // Resolve locations (skip for PLEX since it uses global market)
     if (!isPlex) {
-        if (bestSell) resolveLocation(bestSell.location_id, 'bestSellLocation');
-        if (bestBuy) resolveLocation(bestBuy.location_id, 'bestBuyLocation');
+        if (bestSell) {
+            resolveLocation(bestSell.location_id, (locationName) => {
+                const element = el('bestSellLocation');
+                if (element) {
+                    if (showRegion && bestSell.region_name) {
+                        element.textContent = `${bestSell.region_name} - ${locationName}`;
+                    } else {
+                        element.textContent = locationName;
+                    }
+                }
+            });
+        }
+        if (bestBuy) {
+            resolveLocation(bestBuy.location_id, (locationName) => {
+                const element = el('bestBuyLocation');
+                if (element) {
+                    if (showRegion && bestBuy.region_name) {
+                        element.textContent = `${bestBuy.region_name} - ${locationName}`;
+                    } else {
+                        element.textContent = locationName;
+                    }
+                }
+            });
+        }
     }
 }
 
@@ -1432,20 +1608,43 @@ function updateSortHeaders() {
 }
 
 // Render orders tables
-function renderOrders(orders) {
+async function renderOrders(orders) {
     const minQty = parseInt(el('minQtyFilter')?.value || 0);
     const selectedSystem = el('systemFilter')?.value || 'all';
     const orderType = el('orderTypeFilter')?.value || 'all';
+    const securityFilter = el('securityFilter')?.value || 'all';
+    
+    // Pre-fetch security status for all unique systems if security filter is active
+    if (securityFilter !== 'all') {
+        const uniqueSystems = [...new Set(orders.map(o => o.system_id).filter(Boolean))];
+        await Promise.all(uniqueSystems.map(systemId => getSystemSecurity(systemId)));
+    }
     
     // Separate and apply filters
     let sells = orders.filter(o => {
         if (o.is_buy_order) return false;
         if (o.volume_remain < minQty) return false;
         
+        // System filter
+        if (selectedSystem !== 'all') {
+            const locationName = AppState.locationCache[o.location_id] || '';
+            if (!locationName.includes(selectedSystem)) return false;
+        }
+        
         // NPC/Player filter - NPC stations are in range 60000000-64000000
         const isNPC = o.location_id >= 60000000 && o.location_id < 64000000;
         if (orderType === 'npc' && !isNPC) return false;
         if (orderType === 'player' && isNPC) return false;
+        
+        // Security filter
+        if (securityFilter !== 'all' && o.system_id) {
+            const security = AppState.securityCache[o.system_id];
+            if (security !== undefined) {
+                if (securityFilter === 'highsec' && security < 0.5) return false;
+                if (securityFilter === 'lowsec' && (security < 0.1 || security >= 0.5)) return false;
+                if (securityFilter === 'nullsec' && security > 0.0) return false;
+            }
+        }
         
         return true;
     });
@@ -1454,10 +1653,26 @@ function renderOrders(orders) {
         if (!o.is_buy_order) return false;
         if (o.volume_remain < minQty) return false;
         
+        // System filter
+        if (selectedSystem !== 'all') {
+            const locationName = AppState.locationCache[o.location_id] || '';
+            if (!locationName.includes(selectedSystem)) return false;
+        }
+        
         // NPC/Player filter - NPC stations are in range 60000000-64000000
         const isNPC = o.location_id >= 60000000 && o.location_id < 64000000;
         if (orderType === 'npc' && !isNPC) return false;
         if (orderType === 'player' && isNPC) return false;
+        
+        // Security filter
+        if (securityFilter !== 'all' && o.system_id) {
+            const security = AppState.securityCache[o.system_id];
+            if (security !== undefined) {
+                if (securityFilter === 'highsec' && security < 0.5) return false;
+                if (securityFilter === 'lowsec' && (security < 0.1 || security >= 0.5)) return false;
+                if (securityFilter === 'nullsec' && security > 0.0) return false;
+            }
+        }
         
         return true;
     });
@@ -1472,6 +1687,7 @@ function renderOrders(orders) {
     
     // Check if viewing PLEX (global market item)
     const isPlex = AppState.currentItem?.id === 44992;
+    const showRegion = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') && !isPlex; // Show region when viewing all regions
     
     // Render sell orders
     const sellBody = el('sellOrdersBody');
@@ -1483,6 +1699,7 @@ function renderOrders(orders) {
         const locationCell = isPlex 
             ? '<td class="location-cell"><span class="location-name" title="PLEX can be traded from anywhere in New Eden">Global Market</span></td>'
             : `<td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
+                ${showRegion && o.region_name ? `<div class="region-name" style="font-size: 0.85em; color: #888; margin-bottom: 2px;">${o.region_name}</div>` : ''}
                 <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
             </td>`;
         return `
@@ -1506,6 +1723,7 @@ function renderOrders(orders) {
         const locationCell = isPlex 
             ? '<td class="location-cell"><span class="location-name" title="PLEX can be traded from anywhere in New Eden">Global Market</span></td>'
             : `<td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
+                ${showRegion && o.region_name ? `<div class="region-name" style="font-size: 0.85em; color: #888; margin-bottom: 2px;">${o.region_name}</div>` : ''}
                 <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
             </td>`;
         return `
@@ -1557,12 +1775,44 @@ function updateSystemFilter(orders) {
         }
     });
     
+    // Build filter with major trade hubs first
     filter.innerHTML = '<option value="all">All Systems</option>';
-    [...systems].sort().forEach(system => {
+    
+    // Add major trade hub separators
+    const majorHubs = [
+        { value: 'Jita', label: 'Jita (The Forge)' },
+        { value: 'Amarr', label: 'Amarr (Domain)' },
+        { value: 'Dodixie', label: 'Dodixie (Sinq Laison)' },
+        { value: 'Rens', label: 'Rens (Heimatar)' },
+        { value: 'Hek', label: 'Hek (Metropolis)' }
+    ];
+    
+    majorHubs.forEach(hub => {
         const option = document.createElement('option');
-        option.value = system;
-        option.textContent = system;
+        option.value = hub.value;
+        option.textContent = hub.label;
         filter.appendChild(option);
+    });
+    
+    // Add separator if there are other systems
+    if (systems.size > 0) {
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.textContent = '───────────────';
+        filter.appendChild(separator);
+    }
+    
+    // Add other systems found in orders
+    [...systems].sort().forEach(system => {
+        // Skip if it's already in the major hubs
+        const systemName = system.split(' - ')[0]; // Get system name before station
+        const isHub = majorHubs.some(hub => systemName.includes(hub.value));
+        if (!isHub) {
+            const option = document.createElement('option');
+            option.value = system;
+            option.textContent = system;
+            filter.appendChild(option);
+        }
     });
     
     filter.value = currentValue;
@@ -1835,7 +2085,7 @@ async function loadHistory(typeId, days) {
             // PLEX uses global market region 19000001
             region = '19000001';
         } else {
-            region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+            region = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') ? '10000002' : AppState.currentRegion;
         }
         const history = await fetchHistory(region, typeId, days);
         renderChart(history);

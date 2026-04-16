@@ -69,7 +69,8 @@
             <div class="region-selector">
                 <label><i class="fas fa-map-marker-alt"></i> Region:</label>
                 <select id="regionSelect">
-                    <option value="0" selected>All Regions (New Eden)</option>
+                    <option value="major" selected>Major Trade Hubs (Fast)</option>
+                    <option value="0">All Regions (New Eden - Slower)</option>
                     <option value="10000002">The Forge (Jita)</option>
                     <option value="10000043">Domain (Amarr)</option>
                     <option value="10000032">Sinq Laison (Dodixie)</option>
@@ -207,6 +208,15 @@
                                 <label>System:</label>
                                 <select id="systemFilter">
                                     <option value="all">All Systems</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Security:</label>
+                                <select id="securityFilter">
+                                    <option value="all">All Security</option>
+                                    <option value="highsec">High Sec (≥0.5)</option>
+                                    <option value="lowsec">Low Sec (0.1-0.4)</option>
+                                    <option value="nullsec">Null Sec (≤0.0)</option>
                                 </select>
                             </div>
                             <div class="filter-group">
