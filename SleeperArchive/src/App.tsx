@@ -100,7 +100,37 @@ const storeShip = (shipId: string): void => {
 
 const getActiveShip = (): string | null => {
   const userId = getUserId();
-  return localStorage.getItem(`sleeper_active_ship_${userId}`);
+  const activeShip = localStorage.getItem(`sleeper_active_ship_${userId}`);
+  const storedShipsRaw = localStorage.getItem(`sleeper_ships_${userId}`);
+  const owned = storedShipsRaw ? JSON.parse(storedShipsRaw) : [];
+  
+  // AGGRESSIVE MIGRATION: Always ensure velator is owned
+  if (!owned.includes('velator')) {
+    owned.push('velator');
+    localStorage.setItem(`sleeper_ships_${userId}`, JSON.stringify(owned));
+  }
+  
+  // AGGRESSIVE MIGRATION: If active ship is not owned (and not velator), force reset to velator
+  if (activeShip && activeShip !== 'velator' && !owned.includes(activeShip)) {
+    console.log(`[MIGRATION] Resetting active ship from "${activeShip}" to "velator" (not owned)`);
+    localStorage.setItem(`sleeper_active_ship_${userId}`, 'velator');
+    return 'velator';
+  }
+
+  // One-time migration: Reset heron-navy and heron to velator (starter ship should be velator)
+  if (activeShip === 'heron-navy' || activeShip === 'heron') {
+    console.log(`[MIGRATION] Resetting active ship from "${activeShip}" to "velator"`);
+    localStorage.setItem(`sleeper_active_ship_${userId}`, 'velator');
+    return 'velator';
+  }
+
+  // If no active ship set, default to velator
+  if (!activeShip) {
+    localStorage.setItem(`sleeper_active_ship_${userId}`, 'velator');
+    return 'velator';
+  }
+  
+  return activeShip;
 };
 
 const setActiveShip = (shipId: string | null): void => {
@@ -172,6 +202,15 @@ export default function App() {
   const [runRoundsCompleted, setRunRoundsCompleted] = useState(0);
   const [runTotalTime, setRunTotalTime] = useState(0);
   const [showDifficultyOptions, setShowDifficultyOptions] = useState(false);
+  const [cloakUsed, setCloakUsed] = useState(false);
+  const [cloakActive, setCloakActive] = useState(false);
+  const [blackOpsUses, setBlackOpsUses] = useState(0);
+  const [ghostInMachineUses, setGhostInMachineUses] = useState(0);
+  const [ghostInMachineLetter, setGhostInMachineLetter] = useState('');
+  const [showGhostInMachine, setShowGhostInMachine] = useState(false);
+  const [shapeShifterUsed, setShapeShifterUsed] = useState(false);
+  const [showShapeShifter, setShowShapeShifter] = useState(false);
+  const [adaptiveShieldUsed, setAdaptiveShieldUsed] = useState(false);
   // Track ISK at start of run
   const runStartIskRef = useRef(isk);
   const roundStartTimeRef = useRef(Date.now());
@@ -224,18 +263,30 @@ export default function App() {
   const [showRankUp, setShowRankUp] = useState(false);
   const [newRank, setNewRank] = useState<string>('');
 
-  // Ship state
-  const [ownedShips, setOwnedShips] = useState<string[]>(getStoredShips());
-  // Always persist and load the equipped ship. Default to 'heron-navy' if none set.
-  const getOrSetDefaultActiveShip = () => {
-    let id = getActiveShip();
-    if (!id) {
-      id = 'heron-navy';
-      setActiveShip(id);
+  // Ship state - ensure velator is always owned first
+  const [ownedShips, setOwnedShips] = useState<string[]>(() => {
+    const owned = getStoredShips();
+    // Ensure velator is always owned
+    if (!owned.includes('velator')) {
+      owned.push('velator');
+      storeShip('velator');
     }
-    return id;
-  };
-  const [activeShipId, setActiveShipId] = useState<string | null>(getOrSetDefaultActiveShip());
+    
+    // Migration: Check active ship and reset if not owned
+    const userId = getUserId();
+    const storedActiveShip = localStorage.getItem(`sleeper_active_ship_${userId}`);
+    if (storedActiveShip && storedActiveShip !== 'velator' && !owned.includes(storedActiveShip)) {
+      // Reset to velator if active ship is not owned
+      localStorage.setItem(`sleeper_active_ship_${userId}`, 'velator');
+    }
+    
+    return owned;
+  });
+  
+  // Get active ship (migration already done above)
+  const [activeShipId, setActiveShipId] = useState<string | null>(() => {
+    return getActiveShip();
+  });
   const [showShipMarket, setShowShipMarket] = useState(false);
   const [marketTab, setMarketTab] = useState<'hints' | 'ships'>('hints'); // Market tab state 
 
@@ -264,7 +315,10 @@ export default function App() {
   }, [activeShipId]);
 
   const isBoosterUnlocked = totalEarned >= SECURITY_CONNECTIONS_UNLOCK_THRESHOLD;
-  const isBoosterAvailable = isBoosterUnlocked && !boosterActive && gamesSinceBooster >= SECURITY_CONNECTIONS_COOLDOWN_GAMES;
+  // Loki: Cooldown reduced to 5 games
+  const cooldownReduction = activeShip?.bonuses.boosterCooldownReduction || 0;
+  const effectiveCooldown = SECURITY_CONNECTIONS_COOLDOWN_GAMES - cooldownReduction;
+  const isBoosterAvailable = isBoosterUnlocked && !boosterActive && gamesSinceBooster >= effectiveCooldown;
 
   const startNewGame = useCallback((diff: Difficulty = difficulty) => {
     const bank = WORD_BANK[diff];
@@ -282,7 +336,7 @@ export default function App() {
       }
     } else {
       // Increment games since last booster purchase (cap at cooldown limit)
-      const newCooldown = Math.min(gamesSinceBooster + 1, SECURITY_CONNECTIONS_COOLDOWN_GAMES);
+      const newCooldown = Math.min(gamesSinceBooster + 1, effectiveCooldown);
       setGamesSinceBooster(newCooldown);
       storeBooster(boosterActive, boosterRounds, newCooldown);
     }
@@ -306,9 +360,9 @@ export default function App() {
     const freeAnalyzers = activeShip?.bonuses.freeDataAnalyzer || 0;
     const freeScanners = activeShip?.bonuses.freeCargoScanner || 0;
     const freeBypasses = activeShip?.bonuses.freeEmergencyBypass || 0;
-    if (freeAnalyzers > 0) setDataAnalyzers((prev: number) => prev + freeAnalyzers);
-    if (freeScanners > 0) setCargoScanners((prev: number) => prev + freeScanners);
-    if (freeBypasses > 0) setEmergencyBypasses((prev: number) => prev + freeBypasses);
+    if (freeAnalyzers > 0) setDataAnalyzers((prev: number) => Math.max(prev, freeAnalyzers));
+    if (freeScanners > 0) setCargoScanners((prev: number) => Math.max(prev, freeScanners));
+    if (freeBypasses > 0) setEmergencyBypasses((prev: number) => Math.max(prev, freeBypasses));
     
     // Loki: Predator Instinct - auto-reveal 1 letter at game start
     if (activeShip?.bonuses.predatorInstinct) {
@@ -321,7 +375,31 @@ export default function App() {
         }, 500);
       }
     }
-    
+
+    // Reset cloak state at game start
+    setCloakUsed(false);
+    setCloakActive(false);
+
+    // Pacifier: Black Ops - set uses per game
+    const blackOpsCharges = activeShip?.bonuses.blackOps || 0;
+    setBlackOpsUses(blackOpsCharges);
+
+    // Proteus: Ghost In Machine - set uses per game
+    const ghostInMachineCharges = activeShip?.bonuses.ghostInMachine || 0;
+    setGhostInMachineUses(ghostInMachineCharges);
+    setShowGhostInMachine(false);
+    setGhostInMachineLetter('');
+
+    // Metamorphosis: Shape Shifter - reset use per game
+    setShapeShifterUsed(false);
+    setShowShapeShifter(false);
+
+    // Tengu: Adaptive Shield - check daily usage
+    const today = new Date().toDateString();
+    const lastShieldUse = localStorage.getItem('sleeper_adaptive_shield_date');
+    const canUseShield = lastShieldUse !== today;
+    setAdaptiveShieldUsed(!canUseShield);
+
     setMessage('ENCRYPTION BREACH IN PROGRESS...');
   }, [difficulty, boosterActive, boosterRounds, gamesSinceBooster, activeShip]);
 
@@ -330,6 +408,23 @@ export default function App() {
   }, []);
 
   const handleLoss = useCallback((msg: string) => {
+    // Tengu: Adaptive Shield - survive 1 failure per day
+    if (activeShip?.bonuses.adaptiveShield && !adaptiveShieldUsed) {
+      const today = new Date().toDateString();
+      localStorage.setItem('sleeper_adaptive_shield_date', today);
+      setAdaptiveShieldUsed(true);
+
+      // Remove the last wrong guess to continue playing
+      const wrongGuesses = guessedLetters.filter((l: string) => !word.includes(l));
+      if (wrongGuesses.length > 0) {
+        const lastWrong = wrongGuesses[wrongGuesses.length - 1];
+        setGuessedLetters((prev: string[]) => prev.filter((l: string) => l !== lastWrong));
+        setMessage('ADAPTIVE SHIELD ENGAGED - FAILURE ABSORBED - CONTINUING HACK');
+        setTimeout(() => setMessage('ENCRYPTION BREACH IN PROGRESS...'), 2000);
+        return;
+      }
+    }
+
     setStatus('lost');
     setShowExplosion(true);
     setMessage(msg);
@@ -337,7 +432,7 @@ export default function App() {
       setShowExplosion(false);
       setShowGameOver(true);
     }, 2000);
-  }, []);
+  }, [word, guessedLetters, activeShip, adaptiveShieldUsed]);
 
   const handleWin = useCallback((baseReward: number) => {
     const standing = getStandingLevel(totalEarned);
@@ -347,14 +442,23 @@ export default function App() {
     // Apply ship booster multiplier bonus (Legion)
     const shipBoosterMultiplier = activeShip?.bonuses.boosterMultiplier || 0;
     const effectiveBoosterMultiplier = boosterActive ? (1.25 + shipBoosterMultiplier) : 1;
-    const actualReward = Math.floor(baseReward * standing.multiplier * shipMultiplier * effectiveBoosterMultiplier);
-    
+    let actualReward = Math.floor(baseReward * standing.multiplier * shipMultiplier * effectiveBoosterMultiplier);
+
+    // Heron Navy: 15% chance to find bonus loot (extra ISK on win)
+    const bonusLootChance = activeShip?.bonuses.bonusLootChance || 0;
+    let bonusLootText = '';
+    if (bonusLootChance > 0 && Math.random() < bonusLootChance) {
+      const bonusLoot = Math.floor(actualReward * 0.5); // 50% bonus
+      actualReward += bonusLoot;
+      bonusLootText = ` BONUS LOOT: +${bonusLoot.toLocaleString()} ISK!`;
+    }
+
     // Track round completion time
     const roundEndTime = Date.now();
     const roundDuration = Math.floor((roundEndTime - roundStartTimeRef.current) / 1000);
     setRunRoundsCompleted(prev => prev + 1);
     setRunTotalTime(prev => prev + roundDuration);
-    
+
     // Check for clone rank-up before updating totalEarned
     const newTotal = totalEarned + actualReward;
     const newStanding = getStandingLevel(newTotal);
@@ -363,22 +467,25 @@ export default function App() {
       setShowRankUp(true);
       setTimeout(() => setShowRankUp(false), 5000);
     }
-    
+
     setStatus('won');
     setIsk((prev: number) => prev + actualReward);
     setTotalEarned((prev: number) => {
-      const newTotal = prev + actualReward;
+      // Imicus Navy: +10% to standing progression speed
+      const standingBonus = activeShip?.bonuses.standingProgressBonus || 0;
+      const standingBonusAmount = Math.floor(actualReward * standingBonus);
+      const newTotal = prev + actualReward + standingBonusAmount;
       localStorage.setItem('totalEarned', newTotal.toString());
       return newTotal;
     });
     const bonusText = boosterActive ? ' (Security Connections +25%)' : '';
-    setMessage(`DECRYPTION SUCCESSFUL. RECOVERED ${actualReward.toLocaleString()} ISK.${bonusText}`);
+    setMessage(`DECRYPTION SUCCESSFUL. RECOVERED ${actualReward.toLocaleString()} ISK.${bonusText}${bonusLootText}`);
     setShowSuccess(true);
     setTimeout(() => {
       setShowSuccess(false);
       setShowGameOver(true);
     }, 2002);
-  }, [totalEarned, boosterActive]);
+  }, [totalEarned, boosterActive, activeShip]);
 
   // Oxygen/Timer
   useEffect(() => {
@@ -399,7 +506,10 @@ export default function App() {
   // Apply extra attempts from ship (Astero)
   const extraAttempts = activeShip?.bonuses.extraAttempts || 0;
   const maxAttempts = currentSettings.attempts + extraAttempts;
-  const attemptsRemaining = maxAttempts - wrongGuesses.length;
+  // Pacifier: Immune to first wrong guess (no penalty)
+  const hasImmunity = activeShip?.bonuses.immuneFirstWrong || false;
+  const effectiveWrongGuesses = hasImmunity ? Math.max(0, wrongGuesses.length - 1) : wrongGuesses.length;
+  const attemptsRemaining = maxAttempts - effectiveWrongGuesses;
 
   useEffect(() => {
     if (attemptsRemaining <= 0 && status === 'playing') {
@@ -426,7 +536,52 @@ export default function App() {
 
   const handleGuess = (letter: string) => {
     if (status !== 'playing' || guessedLetters.includes(letter)) return;
+
+    // Anathema: Cloak ability - skip a wrong guess
+    if (activeShip?.bonuses.cloakAbility && !word.includes(letter) && cloakActive && !cloakUsed) {
+      setCloakActive(false);
+      setCloakUsed(true);
+      setMessage('CLOAK ENGAGED - WRONG GUESS ABSORBED');
+      setTimeout(() => setMessage('ENCRYPTION BREACH IN PROGRESS...'), 1500);
+      return; // Skip adding the wrong guess
+    }
+
     setGuessedLetters((prev: string[]) => [...prev, letter]);
+  };
+
+  const activateCloak = () => {
+    if (cloakUsed || !activeShip?.bonuses.cloakAbility) return;
+    setCloakActive(true);
+    setMessage('CLOAK READY - NEXT WRONG GUESS WILL BE ABSORBED');
+    setTimeout(() => setMessage('ENCRYPTION BREACH IN PROGRESS...'), 2000);
+  };
+
+  const useBlackOps = () => {
+    if (blackOpsUses <= 0 || status !== 'playing') return;
+    const unrevealed = word.split('').filter((l: string) => !guessedLetters.includes(l));
+    if (unrevealed.length === 0) return;
+    const randomLetter = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    setGuessedLetters((prev: string[]) => [...prev, randomLetter]);
+    setBlackOpsUses((prev: number) => prev - 1);
+  };
+
+  const checkGhostInMachine = () => {
+    if (ghostInMachineUses <= 0 || status !== 'playing' || !ghostInMachineLetter) return;
+    const isPresent = word.includes(ghostInMachineLetter.toUpperCase());
+    setGhostInMachineUses((prev: number) => prev - 1);
+    setMessage(`GHOST IN MACHINE: Letter "${ghostInMachineLetter.toUpperCase()}" is ${isPresent ? 'PRESENT' : 'NOT PRESENT'}`);
+    setTimeout(() => setMessage('ENCRYPTION BREACH IN PROGRESS...'), 2000);
+    setGhostInMachineLetter('');
+    setShowGhostInMachine(false);
+  };
+
+  const useShapeShifter = (newDifficulty: Difficulty) => {
+    if (shapeShifterUsed || !activeShip?.bonuses.shapeShifter || status !== 'playing') return;
+    setShapeShifterUsed(true);
+    setDifficulty(newDifficulty);
+    setShowShapeShifter(false);
+    setMessage(`SHAPE SHIFTER ENGAGED - DIFFICULTY CHANGED TO ${newDifficulty.toUpperCase()}`);
+    setTimeout(() => setMessage('ENCRYPTION BREACH IN PROGRESS...'), 2000);
   };
 
   // Calculate effective costs with ship bonuses
@@ -474,9 +629,12 @@ export default function App() {
     if (!isBoosterAvailable || isk < SECURITY_CONNECTIONS_COST) return;
     setIsk((prev: number) => prev - SECURITY_CONNECTIONS_COST);
     setBoosterActive(true);
-    setBoosterRounds(5);
+    // Cheetah: Booster lasts 7 rounds instead of 5
+    const boosterBonus = activeShip?.bonuses.boosterRoundsBonus || 0;
+    const rounds = 5 + boosterBonus;
+    setBoosterRounds(rounds);
     setGamesSinceBooster(0); // Reset cooldown counter
-    storeBooster(true, 5, 0);
+    storeBooster(true, rounds, 0);
   };
 
   // Use tools from inventory
@@ -484,8 +642,12 @@ export default function App() {
     if (dataAnalyzers <= 0 || status !== 'playing') return;
     const unrevealed = word.split('').filter((l: string) => !guessedLetters.includes(l));
     if (unrevealed.length === 0) return;
-    const randomLetter = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-    setGuessedLetters((prev: string[]) => [...prev, randomLetter]);
+    // Helios: Data Analyzers reveal 2 letters instead of 1
+    const bonus = activeShip?.bonuses.dataAnalyzerBonus || 0;
+    const numToReveal = 1 + bonus;
+    const shuffled = [...unrevealed].sort(() => Math.random() - 0.5);
+    const lettersToReveal = shuffled.slice(0, numToReveal);
+    setGuessedLetters((prev: string[]) => [...prev, ...lettersToReveal]);
     setDataAnalyzers((prev: number) => prev - 1);
   };
 
@@ -493,8 +655,12 @@ export default function App() {
     if (emergencyBypasses <= 0 || status !== 'playing') return;
     const unrevealed = word.split('').filter((l: string) => !guessedLetters.includes(l));
     if (unrevealed.length === 0) return;
-    const randomLetter = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-    setGuessedLetters((prev: string[]) => [...prev, randomLetter]);
+    // Loki: Emergency Bypasses reveal 2 letters instead of 1
+    const bonus = activeShip?.bonuses.emergencyBypassBonus || 0;
+    const numToReveal = 1 + bonus;
+    const shuffled = [...unrevealed].sort(() => Math.random() - 0.5);
+    const lettersToReveal = shuffled.slice(0, numToReveal);
+    setGuessedLetters((prev: string[]) => [...prev, ...lettersToReveal]);
     setEmergencyBypasses((prev: number) => prev - 1);
   };
 
@@ -503,8 +669,11 @@ export default function App() {
     const vowels = ['A', 'E', 'I', 'O', 'U'];
     const unrevealedVowels = vowels.filter(v => word.includes(v) && !guessedLetters.includes(v));
     if (unrevealedVowels.length === 0) return;
-    const randomVowel = unrevealedVowels[Math.floor(Math.random() * unrevealedVowels.length)];
-    setGuessedLetters((prev: string[]) => [...prev, randomVowel]);
+    const numToReveal = 1 + (activeShip?.bonuses.vowelScanBonus || 0);
+    // Pick up to numToReveal random unrevealed vowels
+    const shuffled = [...unrevealedVowels].sort(() => Math.random() - 0.5);
+    const vowelsToReveal = shuffled.slice(0, numToReveal);
+    setGuessedLetters((prev: string[]) => [...prev, ...vowelsToReveal]);
     setCargoScanners((prev: number) => prev - 1);
   };
 
@@ -592,7 +761,7 @@ export default function App() {
                   }}
                   className={`px-6 py-4 text-sm font-bold uppercase tracking-wide rounded-lg transition-all border-2 ${
                     difficulty === key 
-                      ? 'bg-eve-accent text-black border-eve-accent' 
+                      ? 'bg-eve-accent text-white border-eve-accent hover:bg-eve-accent/80' 
                       : 'bg-black/40 text-white border-white/20 hover:border-eve-accent/50 hover:bg-eve-accent/10'
                   }`}
                 >
@@ -672,7 +841,7 @@ export default function App() {
             <div className="mt-auto pt-4 border-t border-white/10 flex flex-col gap-1">
               <span className="text-[10px] opacity-50 uppercase">Active Hull</span>
               <span className="text-lg font-bold text-eve-accent uppercase tracking-widest">
-                {activeShip?.name || 'Heron'}
+                {activeShip?.name || 'Velator'}
               </span>
               <span className="text-base font-bold text-white/90 mt-1" style={{lineHeight: '1.3'}}>{activeShip?.description || 'Tech I Exploration Frigate'}</span>
             </div>
@@ -747,6 +916,140 @@ export default function App() {
                   </button>
                 </div>
               </div>
+
+              {/* Anathema: Cloak Ability */}
+              {activeShip?.bonuses.cloakAbility && (
+                <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-purple-400" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-purple-400">Cloak Device</span>
+                      <span className="text-[9px] opacity-50">Skip 1 wrong guess</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={activateCloak}
+                    disabled={cloakUsed || status !== 'playing'}
+                    className={`px-2 py-1 text-[9px] uppercase transition-all ${cloakActive ? 'bg-purple-400/30 border-purple-400/50 text-purple-400' : cloakUsed ? 'bg-white/10 border-white/20 text-white/30 cursor-not-allowed' : 'bg-purple-400/20 border-purple-400/50 text-purple-400 hover:bg-purple-400/30 disabled:opacity-20 disabled:cursor-not-allowed'}`}
+                  >
+                    {cloakUsed ? 'USED' : cloakActive ? 'ACTIVE' : 'ACTIVATE'}
+                  </button>
+                </div>
+              )}
+
+              {/* Pacifier: Black Ops */}
+              {activeShip?.bonuses.blackOps && activeShip.bonuses.blackOps > 0 && (
+                <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Skull className="w-4 h-4 text-red-400" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-red-400">Black Ops</span>
+                      <span className="text-[9px] opacity-50">Free letter reveal</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-display text-red-400">{blackOpsUses}</span>
+                    <button
+                      onClick={useBlackOps}
+                      disabled={blackOpsUses <= 0 || status !== 'playing'}
+                      className="px-2 py-1 text-[9px] uppercase bg-red-400/20 border border-red-400/50 text-red-400 hover:bg-red-400/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                    >
+                      USE
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Proteus: Ghost In Machine */}
+              {activeShip?.bonuses.ghostInMachine && activeShip.bonuses.ghostInMachine > 0 && (
+                <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-cyan-400" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-cyan-400">Ghost In Machine</span>
+                      <span className="text-[9px] opacity-50">Check if letter exists</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-display text-cyan-400">{ghostInMachineUses}</span>
+                    {!showGhostInMachine ? (
+                      <button
+                        onClick={() => setShowGhostInMachine(true)}
+                        disabled={ghostInMachineUses <= 0 || status !== 'playing'}
+                        className="px-2 py-1 text-[9px] uppercase bg-cyan-400/20 border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                      >
+                        USE
+                      </button>
+                    ) : (
+                      <div className="flex gap-1">
+                        <input
+                          type="text"
+                          maxLength={1}
+                          value={ghostInMachineLetter}
+                          onChange={(e) => setGhostInMachineLetter(e.target.value.toUpperCase())}
+                          className="w-8 px-1 text-center text-[10px] uppercase bg-black/50 border border-cyan-400/50 text-cyan-400 focus:outline-none focus:border-cyan-400"
+                          autoFocus
+                        />
+                        <button
+                          onClick={checkGhostInMachine}
+                          className="px-2 py-1 text-[9px] uppercase bg-cyan-400/30 border border-cyan-400/50 text-cyan-400 hover:bg-cyan-400/40 transition-all"
+                        >
+                          ✓
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Metamorphosis: Shape Shifter */}
+              {activeShip?.bonuses.shapeShifter && (
+                <div className="flex items-center justify-between p-2 bg-black/40 border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-orange-400" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase font-bold text-orange-400">Shape Shifter</span>
+                      <span className="text-[9px] opacity-50">Change difficulty</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowShapeShifter(!showShapeShifter)}
+                    disabled={shapeShifterUsed || status !== 'playing'}
+                    className={`px-2 py-1 text-[9px] uppercase transition-all ${shapeShifterUsed ? 'bg-white/10 border-white/20 text-white/30 cursor-not-allowed' : 'bg-orange-400/20 border-orange-400/50 text-orange-400 hover:bg-orange-400/30 disabled:opacity-20 disabled:cursor-not-allowed'}`}
+                  >
+                    {shapeShifterUsed ? 'USED' : showShapeShifter ? 'CLOSE' : 'USE'}
+                  </button>
+                </div>
+              )}
+
+              {showShapeShifter && activeShip?.bonuses.shapeShifter && !shapeShifterUsed && (
+                <div className="flex flex-col gap-2 p-2 bg-black/40 border border-orange-400/30">
+                  <div className="text-[9px] text-orange-400 uppercase font-bold text-center">Select Difficulty</div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => useShapeShifter('highsec')}
+                      disabled={difficulty === 'highsec'}
+                      className="flex-1 px-2 py-1 text-[8px] uppercase bg-eve-panel border border-white/20 hover:border-eve-accent/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      HIGH-SEC
+                    </button>
+                    <button
+                      onClick={() => useShapeShifter('nullsec')}
+                      disabled={difficulty === 'nullsec'}
+                      className="flex-1 px-2 py-1 text-[8px] uppercase bg-eve-panel border border-white/20 hover:border-eve-warning/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      NULL-SEC
+                    </button>
+                    <button
+                      onClick={() => useShapeShifter('wormhole')}
+                      disabled={difficulty === 'wormhole'}
+                      className="flex-1 px-2 py-1 text-[8px] uppercase bg-eve-panel border border-white/20 hover:border-eve-accent/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      WORMHOLE
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {dataAnalyzers === 0 && emergencyBypasses === 0 && cargoScanners === 0 && (
                 <div className="text-[10px] opacity-40 italic text-center py-2">
@@ -1113,9 +1416,9 @@ export default function App() {
                 </button>
               </Tooltip>
 
-              <Tooltip 
-                content={`Security Connections booster - temporarily increases ISK multiplier by 25% for the next 5 successful data breaches.${!isBoosterUnlocked ? ` Unlocks at ${SECURITY_CONNECTIONS_UNLOCK_THRESHOLD.toLocaleString()} ISK lifetime earnings.` : gamesSinceBooster < SECURITY_CONNECTIONS_COOLDOWN_GAMES ? ` Available in ${SECURITY_CONNECTIONS_COOLDOWN_GAMES - gamesSinceBooster} more games.` : ''}`}
-                subContent={boosterActive ? `${boosterRounds} rounds remaining` : isBoosterAvailable ? `${SECURITY_CONNECTIONS_COST.toLocaleString()} ISK - AVAILABLE` : !isBoosterUnlocked ? `LOCKED (${totalEarned.toLocaleString()}/${SECURITY_CONNECTIONS_UNLOCK_THRESHOLD.toLocaleString()} ISK)` : `COOLDOWN (${gamesSinceBooster}/${SECURITY_CONNECTIONS_COOLDOWN_GAMES} games)`}
+              <Tooltip
+                content={`Security Connections booster - temporarily increases ISK multiplier by 25% for the next 5 successful data breaches.${!isBoosterUnlocked ? ` Unlocks at ${SECURITY_CONNECTIONS_UNLOCK_THRESHOLD.toLocaleString()} ISK lifetime earnings.` : gamesSinceBooster < effectiveCooldown ? ` Available in ${effectiveCooldown - gamesSinceBooster} more games.` : ''}`}
+                subContent={boosterActive ? `${boosterRounds} rounds remaining` : isBoosterAvailable ? `${SECURITY_CONNECTIONS_COST.toLocaleString()} ISK - AVAILABLE` : !isBoosterUnlocked ? `LOCKED (${totalEarned.toLocaleString()}/${SECURITY_CONNECTIONS_UNLOCK_THRESHOLD.toLocaleString()} ISK)` : `COOLDOWN (${gamesSinceBooster}/${effectiveCooldown} games)`}
                 position="left"
               >
                 <button 

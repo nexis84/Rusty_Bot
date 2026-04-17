@@ -131,6 +131,15 @@ export interface Ship {
 }
 
 export const SHIPS: Ship[] = [
+  // Tier 0 - Starter Ship (Free)
+  {
+    id: 'velator',
+    name: 'Velator',
+    tier: 1,
+    cost: 0,
+    bonuses: {},
+    description: 'Standard Gallente rookie ship - no bonuses'
+  },
   // Tier 1 - Entry Level Frigates
   {
     id: 'magnate-navy',
