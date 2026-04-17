@@ -133,32 +133,96 @@ const SubCategories = {
             { id: "other_skills", name: "Other Skills", filter: (item) => true }
         ]
     },
-    // Blueprints subcategories - ordered from most specific to least specific
+    // Blueprints subcategories - ordered to match in-game market grouping
     blueprints: {
         groups: [
-            // 1. Most specific: Reaction formulas
-            { id: "reaction_formulas", name: "Reaction Formulas", filter: (item) => item.name.toLowerCase().includes('reaction formula') },
-            // 2. Structure blueprints (specific structure names)
-            { id: "structure_blueprints", name: "Structure Blueprints", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('astrahus') || item.name.toLowerCase().includes('fortizar') || item.name.toLowerCase().includes('keepstar') || item.name.toLowerCase().includes('athanor') || item.name.toLowerCase().includes('tatara') || item.name.toLowerCase().includes('azbel') || item.name.toLowerCase().includes('sotiyo') || item.name.toLowerCase().includes('raitaru') || item.name.toLowerCase().includes('poco') || item.name.toLowerCase().includes('customs office') || item.name.toLowerCase().includes('citadel') || item.name.toLowerCase().includes('refinery') || item.name.toLowerCase().includes('engineering complex') || item.name.toLowerCase().includes('prospecting array') || item.name.toLowerCase().includes('moon mining')) },
-            // 3. Component blueprints (construction components)
-            { id: "component_blueprints", name: "Component Blueprints", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('component') || item.name.toLowerCase().includes('construction') || item.name.toLowerCase().includes('fuel block') || item.name.toLowerCase().includes('capital construction') || item.name.toLowerCase().includes('tech ii component') || item.name.toLowerCase().includes('structure component')) },
-            // 4. Drone blueprints
-            { id: "drone_blueprints", name: "Drone Blueprints", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('drone') || item.name.toLowerCase().includes('fighter')) },
-            // 5. Ammunition blueprints (charges, crystals, missiles, etc.)
-            { id: "ammunition_blueprints", name: "Ammunition Blueprints", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('charge') || item.name.toLowerCase().includes('crystal') || item.name.toLowerCase().includes(' ammo') || item.name.toLowerCase().includes('missile') || item.name.toLowerCase().includes('torpedo') || item.name.toLowerCase().includes('rocket') || item.name.toLowerCase().includes('battery') || item.name.toLowerCase().includes('capacitor booster') || item.name.toLowerCase().includes('nanite paste') || item.name.toLowerCase().includes('bomb')) },
-            // 6. Module blueprints (weapons, defense, propulsion, etc.)
-            { id: "module_blueprints", name: "Module Blueprints", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('laser') || item.name.toLowerCase().includes('lance') || item.name.toLowerCase().includes('disruptive') || item.name.toLowerCase().includes('mutagen') || item.name.toLowerCase().includes('decomposer') || item.name.toLowerCase().includes('blaster') || item.name.toLowerCase().includes('railgun') || item.name.toLowerCase().includes('autocannon') || item.name.toLowerCase().includes('artillery') || item.name.toLowerCase().includes('missile launcher') || item.name.toLowerCase().includes('turret') || item.name.toLowerCase().includes('afterburner') || item.name.toLowerCase().includes('microwarpdrive') || item.name.toLowerCase().includes('shield') || item.name.toLowerCase().includes('armor') || item.name.toLowerCase().includes('repairer') || item.name.toLowerCase().includes('harden') || item.name.toLowerCase().includes('plating') || item.name.toLowerCase().includes('ecm') || item.name.toLowerCase().includes('sensor') || item.name.toLowerCase().includes('warp') || item.name.toLowerCase().includes('capacitor') || item.name.toLowerCase().includes('power diagnostic') || item.name.toLowerCase().includes('reactor control') || item.name.toLowerCase().includes('rig') || item.name.toLowerCase().includes('mining laser') || item.name.toLowerCase().includes('strip miner') || item.name.toLowerCase().includes('tractor beam') || item.name.toLowerCase().includes('salvager') || item.name.toLowerCase().includes('smartbomb') || item.name.toLowerCase().includes('vampire') || item.name.toLowerCase().includes('neutralizer') || item.name.toLowerCase().includes('atgeir') || item.name.toLowerCase().includes('grenade') || item.name.toLowerCase().includes('flux') || item.name.toLowerCase().includes('coilgun')) },
-            // 7. Ship blueprints - ship hulls that end with just "Blueprint" and don't have module keywords
-            { id: "ship_blueprints", name: "Ship Blueprints", filter: (item) => {
+            { id: "ammunition_blueprints", name: "Ammunition & Charges", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('charge') || item.name.toLowerCase().includes('crystal') || item.name.toLowerCase().includes(' ammo') || item.name.toLowerCase().includes('missile') || item.name.toLowerCase().includes('torpedo') || item.name.toLowerCase().includes('rocket') || item.name.toLowerCase().includes('battery') || item.name.toLowerCase().includes('capacitor booster') || item.name.toLowerCase().includes('nanite paste') || item.name.toLowerCase().includes('bomb')) },
+            { id: "drone_blueprints", name: "Drones", filter: (item) => {
                 const lowerName = item.name.toLowerCase();
-                // Must end with just "Blueprint" (not "Reaction Formula" or other suffixes)
-                if (!lowerName.endsWith('blueprint')) return false;
-                // Exclude if it matches any module/ammo/drone/structure keywords
-                const moduleKeywords = ['laser', 'lance', 'disruptive', 'mutagen', 'decomposer', 'blaster', 'railgun', 'autocannon', 'artillery', 'missile launcher', 'turret', 'afterburner', 'microwarpdrive', 'shield', 'armor', 'repairer', 'harden', 'plating', 'ecm', 'sensor', 'warp', 'capacitor', 'power diagnostic', 'reactor control', 'rig', 'mining laser', 'strip miner', 'tractor beam', 'salvager', 'smartbomb', 'vampire', 'neutralizer', 'atgeir', 'grenade', 'flux', 'coilgun', 'charge', 'crystal', ' ammo', 'missile', 'torpedo', 'rocket', 'battery', 'capacitor booster', 'nanite paste', 'bomb', 'drone', 'fighter', 'warrior', 'valkyrie', 'hobgoblin', 'hammerhead', 'ogre', 'berserker', 'wasp', 'praetor', 'infiltrator', 'vespa', 'hornet', 'acolyte', 'astrahus', 'fortizar', 'keepstar', 'athanor', 'tatara', 'azbel', 'sotiyo', 'raitaru', 'poco', 'customs office', 'citadel', 'refinery', 'engineering complex', 'prospecting array', 'moon mining', 'component', 'fuel block', 'capital construction', 'tech ii component', 'structure component'];
-                return !moduleKeywords.some(kw => lowerName.includes(kw));
+                const droneNames = ['warrior', 'valkyrie', 'hobgoblin', 'hammerhead', 'ogre', 'berserker', 'wasp', 'praetor', 'infiltrator', 'vespa', 'hornet', 'acolyte'];
+                return lowerName.includes('blueprint') && (lowerName.includes('drone') || lowerName.includes('fighter') || droneNames.some(n => lowerName.includes(n)));
             }},
-            // 8. Other blueprints (anything else with blueprint in name)
-            { id: "other_blueprints", name: "Other Blueprints", filter: (item) => item.name.toLowerCase().includes('blueprint') }
+            { id: "manufacture_research", name: "Manufacture & Research", filter: (item) => {
+                const lowerName = item.name.toLowerCase();
+                if (lowerName.includes('reaction formula') || lowerName.includes('standup')) return false;
+                return !lowerName.includes('blueprint')
+                    || lowerName.includes('copy')
+                    || lowerName.includes('invention')
+                    || lowerName.includes('research')
+                    || lowerName.includes('optimization')
+                    || lowerName.includes('fullerite')
+                    || lowerName.includes('cytoserocin')
+                    || lowerName.includes('mykoserocin')
+                    || lowerName.includes('tricarboxyl')
+                    || lowerName.includes('container');
+            }},
+            { id: "reaction_formulas", name: "Reaction Formulas", filter: (item) => item.name.toLowerCase().includes('reaction formula') },
+            { id: "ship_equipment_blueprints", name: "Ship Equipment", filter: (item) => {
+                const lowerName = item.name.toLowerCase();
+                return lowerName.includes('blueprint')
+                    && !lowerName.includes('standup')
+                    && !lowerName.includes('rig')
+                    && (lowerName.includes('laser') || lowerName.includes('lance') || lowerName.includes('disruptive') || lowerName.includes('mutagen') || lowerName.includes('decomposer') || lowerName.includes('blaster') || lowerName.includes('railgun') || lowerName.includes('autocannon') || lowerName.includes('artillery') || lowerName.includes('missile launcher') || lowerName.includes('turret') || lowerName.includes('afterburner') || lowerName.includes('microwarpdrive') || lowerName.includes('shield') || lowerName.includes('armor') || lowerName.includes('repairer') || lowerName.includes('harden') || lowerName.includes('plating') || lowerName.includes('ecm') || lowerName.includes('sensor') || lowerName.includes('warp') || lowerName.includes('capacitor') || lowerName.includes('power diagnostic') || lowerName.includes('reactor control') || lowerName.includes('mining laser') || lowerName.includes('strip miner') || lowerName.includes('tractor beam') || lowerName.includes('salvager') || lowerName.includes('smartbomb') || lowerName.includes('vampire') || lowerName.includes('neutralizer') || lowerName.includes('atgeir') || lowerName.includes('grenade') || lowerName.includes('flux') || lowerName.includes('coilgun'));
+            }},
+            { id: "ship_modifications", name: "Ship Modifications", filter: (item) => {
+                const lowerName = item.name.toLowerCase();
+                return lowerName.includes('blueprint') && !lowerName.includes('standup') && lowerName.includes('rig');
+            }},
+            // Ship hull blueprints exclude module/structure/utility blueprint keywords
+            { id: "ship_blueprints", name: "Ships", filter: (item) => {
+                const lowerName = item.name.toLowerCase();
+                if (!lowerName.endsWith(' blueprint')) return false;
+
+                // Primary path: exact hull-name match against known ships dataset.
+                // This is the most accurate in browser/runtime where AllMarketItems is loaded.
+                if (typeof AllMarketItems !== 'undefined' && AllMarketItems?.ships?.items) {
+                    if (typeof globalThis.__shipBlueprintNameSet === 'undefined') {
+                        globalThis.__shipBlueprintNameSet = new Set(
+                            AllMarketItems.ships.items
+                                .map(ship => String(ship.name || '').trim().toLowerCase())
+                                .filter(Boolean)
+                        );
+                    }
+
+                    const hullName = item.name.replace(/\s+blueprint$/i, '').trim().toLowerCase();
+                    return globalThis.__shipBlueprintNameSet.has(hullName);
+                }
+
+                const nonShipKeywords = [
+                    'standup', 'control tower', 'module', 'launcher', 'hardener', 'damage control',
+                    'jammer', 'disruptor', 'scrambler', 'extender', 'subcontroller', 'probe', 'booster',
+                    'laser', 'lance', 'disruptive', 'mutagen', 'decomposer', 'blaster', 'railgun',
+                    'autocannon', 'artillery', 'turret', 'afterburner', 'microwarpdrive', 'shield',
+                    'armor', 'repairer', 'harden', 'plating', 'ecm', 'sensor', 'warp', 'capacitor',
+                    'power diagnostic', 'reactor control', 'rig', 'mining laser', 'strip miner',
+                    'tractor beam', 'salvager', 'smartbomb', 'vampire', 'neutralizer', 'atgeir',
+                    'grenade', 'flux', 'coilgun', 'charge', 'crystal', ' ammo', 'missile', 'torpedo',
+                    'rocket', 'battery', 'nanite paste', 'bomb', 'drone', 'fighter', 'warrior',
+                    'valkyrie', 'hobgoblin', 'hammerhead', 'ogre', 'berserker', 'wasp', 'praetor',
+                    'infiltrator', 'vespa', 'hornet', 'acolyte', 'astrahus', 'fortizar', 'keepstar',
+                    'athanor', 'tatara', 'azbel', 'sotiyo', 'raitaru', 'poco', 'customs office',
+                    'citadel', 'refinery', 'engineering complex', 'prospecting array', 'moon mining',
+                    'component', 'fuel block', 'capital construction', 'tech ii component',
+                    'structure component'
+                ];
+
+                return !nonShipKeywords.some(kw => lowerName.includes(kw));
+            }},
+            { id: "structure_equipment", name: "Structure Equipment", filter: (item) => {
+                const lowerName = item.name.toLowerCase();
+                return lowerName.includes('blueprint')
+                    && lowerName.includes('standup')
+                    && !lowerName.includes('set')
+                    && !lowerName.includes('rig');
+            }},
+            { id: "structure_modifications", name: "Structure Modifications", filter: (item) => {
+                const lowerName = item.name.toLowerCase();
+                return lowerName.includes('blueprint')
+                    && lowerName.includes('standup')
+                    && (lowerName.includes('set') || lowerName.includes('rig'));
+            }},
+            { id: "structures", name: "Structures", filter: (item) => item.name.toLowerCase().includes('blueprint') && (item.name.toLowerCase().includes('astrahus') || item.name.toLowerCase().includes('fortizar') || item.name.toLowerCase().includes('keepstar') || item.name.toLowerCase().includes('athanor') || item.name.toLowerCase().includes('tatara') || item.name.toLowerCase().includes('azbel') || item.name.toLowerCase().includes('sotiyo') || item.name.toLowerCase().includes('raitaru') || item.name.toLowerCase().includes('poco') || item.name.toLowerCase().includes('customs office') || item.name.toLowerCase().includes('citadel') || item.name.toLowerCase().includes('refinery') || item.name.toLowerCase().includes('engineering complex') || item.name.toLowerCase().includes('prospecting array') || item.name.toLowerCase().includes('moon mining')) },
+            { id: "other_blueprints", name: "Other", filter: (item) => item.name.toLowerCase().includes('blueprint') }
         ]
     }
 };

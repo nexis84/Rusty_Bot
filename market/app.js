@@ -15,6 +15,9 @@ const AppState = {
     allItems: [],
     locationCache: {},
     systemCache: {},
+    regionCache: {},
+    securityCache: {},
+    allRegionIds: null,
     sellSort: { column: 'price', direction: 'asc' },
     buySort: { column: 'price', direction: 'desc' }
 };
@@ -23,6 +26,120 @@ const AppState = {
 function el(id) { return document.getElementById(id); }
 function fmt(n) { return n === null || n === undefined ? '—' : Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtInt(n) { return n === null || n ===undefined ? '—' : Number(n).toLocaleString(); }
+
+async function loadPublicMarketTreeFromEveOS() {
+    const groupsUrl = 'https://data.eveos.space/sdejsonl/marketGroups.jsonl';
+    const typesUrl = 'https://data.eveos.space/sdejsonl/types.jsonl';
+
+    function extractName(value) {
+        if (typeof value === 'string') return value.trim();
+        if (!value || typeof value !== 'object') return '';
+        return (
+            value['en-us'] ||
+            value['en_us'] ||
+            value.enUS ||
+            value.en ||
+            value.name ||
+            ''
+        ).toString().trim();
+    }
+
+    try {
+        const [groupsRes, typesRes] = await Promise.all([fetch(groupsUrl), fetch(typesUrl)]);
+        if (!groupsRes.ok || !typesRes.ok) {
+            throw new Error(`EVEOS data request failed: groups=${groupsRes.status}, types=${typesRes.status}`);
+        }
+
+        const [groupsText, typesText] = await Promise.all([groupsRes.text(), typesRes.text()]);
+
+        const groups = groupsText
+            .split(/\r?\n/)
+            .filter(Boolean)
+            .map(line => {
+                try { return JSON.parse(line); } catch { return null; }
+            })
+            .filter(Boolean);
+
+        const types = typesText
+            .split(/\r?\n/)
+            .filter(Boolean)
+            .map(line => {
+                try { return JSON.parse(line); } catch { return null; }
+            })
+            .filter(Boolean);
+
+        const nodes = new Map();
+
+        groups.forEach(group => {
+            const id = Number(group._key);
+            if (!Number.isFinite(id)) return;
+
+            const name = extractName(group['name_en-us']) || extractName(group.name);
+            if (!name) return;
+
+            nodes.set(id, {
+                id,
+                name,
+                parentGroupID: Number.isFinite(Number(group.parentGroupID)) ? Number(group.parentGroupID) : null,
+                children: [],
+                items: []
+            });
+        });
+
+        // Build group hierarchy links.
+        nodes.forEach(node => {
+            if (node.parentGroupID !== null && nodes.has(node.parentGroupID)) {
+                nodes.get(node.parentGroupID).children.push(node);
+            }
+        });
+
+        // Attach item types to their market groups.
+        types.forEach(type => {
+            const typeId = Number(type._key);
+            const groupId = Number(type.marketGroupID);
+            if (!Number.isFinite(typeId) || !Number.isFinite(groupId)) return;
+            if (!nodes.has(groupId)) return;
+
+            const name = extractName(type['name_en-us']) || extractName(type.name);
+            if (!name) return;
+
+            nodes.get(groupId).items.push({ id: typeId, name });
+        });
+
+        function sortNode(node) {
+            node.children.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            node.items.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            node.children.forEach(sortNode);
+        }
+
+        const topLevelNodes = [...nodes.values()]
+            .filter(node => node.parentGroupID === null || !nodes.has(node.parentGroupID))
+            .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+        topLevelNodes.forEach(sortNode);
+
+        const builtTree = {};
+        topLevelNodes.forEach(node => {
+            builtTree[node.name] = {
+                id: node.id,
+                name: node.name,
+                children: node.children,
+                items: node.items
+            };
+        });
+
+        if (Object.keys(builtTree).length > 0) {
+            MarketTree = builtTree;
+            console.log(`Loaded MarketTree from EVEOS public data (${Object.keys(builtTree).length} top-level categories)`);
+            return true;
+        }
+    } catch (err) {
+        console.warn('Falling back to bundled MarketTree data:', err);
+    }
+
+    return false;
+}
+
 function formatPrice(n) {
     if (n >= 1000000000) return (n / 1000000000).toFixed(2) + 'B';
     if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
@@ -35,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-function initApp() {
+async function initApp() {
     console.log('Initializing Market Browser...');
     
     // Check database availability
@@ -56,6 +173,9 @@ function initApp() {
         // Build all items list for search
         buildAllItemsList();
         console.log(`Built items list with ${AppState.allItems.length} items`);
+
+        // Use the EVE Ref-based MarketTree loaded from market_tree.js
+        // (loadPublicMarketTreeFromEveOS disabled to preserve EVE Ref structure)
         
         // Render category tree
         renderCategoryTree();
@@ -123,6 +243,69 @@ function renderCategoryTree() {
     
     console.log(`Rendering ${categoryGroups.length} top-level categories`);
     
+    function getGroupItemCount(group) {
+        const ownItems = Array.isArray(group.items) ? group.items.length : 0;
+        const childItems = Array.isArray(group.children)
+            ? group.children.reduce((sum, child) => sum + getGroupItemCount(child), 0)
+            : 0;
+        return ownItems + childItems;
+    }
+
+    function renderGroupNode(group) {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'group-item';
+
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'group-header';
+
+        const totalItemCount = getGroupItemCount(group);
+        groupHeader.innerHTML = `
+            <i class="fas fa-angle-right toggle"></i>
+            <span>${group.name}</span>
+            <span class="item-count">${totalItemCount}</span>
+        `;
+
+        const groupChildrenContainer = document.createElement('div');
+        groupChildrenContainer.className = 'group-children';
+
+        if (Array.isArray(group.children) && group.children.length > 0) {
+            group.children.forEach(childGroup => {
+                groupChildrenContainer.appendChild(renderGroupNode(childGroup));
+            });
+        }
+
+        if (Array.isArray(group.items) && group.items.length > 0) {
+            const sortedItems = [...group.items].sort((a, b) => a.name.localeCompare(b.name));
+            sortedItems.forEach(item => {
+                const leaf = document.createElement('div');
+                leaf.className = 'category-leaf';
+                leaf.dataset.typeId = item.id;
+                leaf.dataset.name = item.name;
+                leaf.innerHTML = `<span>${item.name}</span>`;
+                leaf.addEventListener('click', () => loadItem(item.id, item.name));
+                groupChildrenContainer.appendChild(leaf);
+            });
+        }
+
+        groupHeader.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isExpanded = groupChildrenContainer.classList.contains('expanded');
+            const toggle = groupHeader.querySelector('.toggle');
+
+            if (isExpanded) {
+                groupChildrenContainer.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            } else {
+                groupChildrenContainer.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        });
+
+        groupEl.appendChild(groupHeader);
+        groupEl.appendChild(groupChildrenContainer);
+        return groupEl;
+    }
+
     categoryGroups.forEach(category => {
         const categoryEl = document.createElement('div');
         categoryEl.className = 'category-item';
@@ -140,57 +323,10 @@ function renderCategoryTree() {
         const groupsContainer = document.createElement('div');
         groupsContainer.className = 'category-children';
         
-        // Add groups as sub-categories
-        if (category.groups && category.groups.length > 0) {
+        // Add groups as nested sub-categories
+        if (Array.isArray(category.groups) && category.groups.length > 0) {
             category.groups.forEach(group => {
-                const groupEl = document.createElement('div');
-                groupEl.className = 'group-item';
-                
-                const groupHeader = document.createElement('div');
-                groupHeader.className = 'group-header';
-                groupHeader.innerHTML = `
-                    <i class="fas fa-angle-right toggle"></i>
-                    <span>${group.name}</span>
-                    <span class="item-count">${group.items?.length || 0}</span>
-                `;
-                
-                const itemsContainer = document.createElement('div');
-                itemsContainer.className = 'group-children';
-                
-                // Add items under each group
-                if (group.items && group.items.length > 0) {
-                    // Sort items alphabetically
-                    group.items.sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    group.items.forEach(item => {
-                        const leaf = document.createElement('div');
-                        leaf.className = 'category-leaf';
-                        leaf.dataset.typeId = item.id;
-                        leaf.dataset.name = item.name;
-                        leaf.innerHTML = `<span>${item.name}</span>`;
-                        leaf.addEventListener('click', () => loadItem(item.id, item.name));
-                        itemsContainer.appendChild(leaf);
-                    });
-                }
-                
-                // Toggle group expansion
-                groupHeader.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isExpanded = itemsContainer.classList.contains('expanded');
-                    const toggle = groupHeader.querySelector('.toggle');
-                    
-                    if (isExpanded) {
-                        itemsContainer.classList.remove('expanded');
-                        toggle.classList.remove('expanded');
-                    } else {
-                        itemsContainer.classList.add('expanded');
-                        toggle.classList.add('expanded');
-                    }
-                });
-                
-                groupEl.appendChild(groupHeader);
-                groupEl.appendChild(itemsContainer);
-                groupsContainer.appendChild(groupEl);
+                groupsContainer.appendChild(renderGroupNode(group));
             });
         }
         
@@ -368,25 +504,26 @@ function buildFromMarketTree() {
         // Build groups from children (subcategories)
         const groups = [];
         
-        function processGroup(group, path = []) {
+        function processGroup(group) {
             if (!group || !group.name) return;
 
-            const groupPath = [...path, group.name];
-            const groupName = groupPath.join(' > ');
-            
-            // If this group has items, add them
-            if (group.items && group.items.length > 0) {
-                groups.push({
-                    id: `group_${group.id}`,
-                    name: groupName,
-                    items: group.items
+            const childNodes = [];
+            if (Array.isArray(group.children) && group.children.length > 0) {
+                group.children.forEach(child => {
+                    const childNode = processGroup(child);
+                    if (childNode) childNodes.push(childNode);
                 });
             }
-            
-            // Process children (sub-subcategories)
-            if (group.children && group.children.length > 0) {
-                group.children.forEach(child => processGroup(child, groupPath));
-            }
+
+            const ownItems = Array.isArray(group.items) ? group.items : [];
+            if (ownItems.length === 0 && childNodes.length === 0) return null;
+
+            return {
+                id: `group_${group.id}`,
+                name: group.name,
+                items: ownItems,
+                children: childNodes
+            };
         }
 
         // Include direct items under the top-level category, if any
@@ -394,13 +531,17 @@ function buildFromMarketTree() {
             groups.push({
                 id: `group_${treeCategory.id}`,
                 name: treeKey,
-                items: treeCategory.items
+                items: treeCategory.items,
+                children: []
             });
         }
         
         // Process all children of this category
         if (treeCategory.children) {
-            treeCategory.children.forEach(child => processGroup(child, []));
+            treeCategory.children.forEach(child => {
+                const childNode = processGroup(child);
+                if (childNode) groups.push(childNode);
+            });
         }
         
         // Check if we have custom SubCategories for this category (e.g., blueprints)
@@ -428,7 +569,12 @@ function buildFromMarketTree() {
         }
         
         let finalGroups;
-        if (subCatDef && subCatDef.groups && allItems.length > 0) {
+        const marketTreeGroups = groups.filter(g => 
+            (g.items && g.items.length > 0) || (g.children && g.children.length > 0)
+        );
+        const useCustomSubCategories = marketTreeGroups.length === 0 && subCatDef && subCatDef.groups && allItems.length > 0;
+
+        if (useCustomSubCategories) {
             // Use SubCategories to group items
             const assignedItems = new Set();
             finalGroups = [];
@@ -453,8 +599,19 @@ function buildFromMarketTree() {
             console.log(`Category ${treeKey}: Using SubCategories - ${finalGroups.length} groups with ${finalGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
         } else {
             // Use MarketTree groups
-            finalGroups = groups.filter(g => g.items && g.items.length > 0);
-            console.log(`Category ${treeKey}: Using MarketTree - ${finalGroups.length} groups with ${finalGroups.reduce((sum, g) => sum + g.items.length, 0)} total items`);
+            finalGroups = marketTreeGroups;
+            
+            // Count items recursively including children
+            function countAllItems(group) {
+                const ownItems = (group.items && group.items.length) || 0;
+                const childItems = (group.children && group.children.length > 0)
+                    ? group.children.reduce((sum, child) => sum + countAllItems(child), 0)
+                    : 0;
+                return ownItems + childItems;
+            }
+            const totalItems = finalGroups.reduce((sum, g) => sum + countAllItems(g), 0);
+            
+            console.log(`Category ${treeKey}: Using MarketTree - ${finalGroups.length} groups with ${totalItems} total items`);
         }
 
         categories.push({
@@ -552,6 +709,12 @@ function setupEventListeners() {
     }, 300));
     
     el('systemFilter')?.addEventListener('change', () => {
+        if (AppState.currentItem && AppState.currentItem.orders) {
+            renderOrders(AppState.currentItem.orders);
+        }
+    });
+    
+    el('securityFilter')?.addEventListener('change', () => {
         if (AppState.currentItem && AppState.currentItem.orders) {
             renderOrders(AppState.currentItem.orders);
         }
@@ -723,7 +886,10 @@ function switchTab(tabName) {
 
 // Load item details
 async function loadItem(typeId, name, forceRefresh = false) {
-    showLoading('Loading market data...');
+    const loadingMessage = (AppState.currentRegion === '0' || AppState.currentRegion === 'major')
+        ? (AppState.currentRegion === '0' ? 'Loading market data from all regions in New Eden...' : 'Loading market data from major trade hubs...') 
+        : 'Loading market data...';
+    showLoading(loadingMessage);
     
     try {
         console.log(`Loading item ${name} (ID: ${typeId}) in region ${AppState.currentRegion}`);
@@ -780,7 +946,7 @@ async function loadItem(typeId, name, forceRefresh = false) {
                 // PLEX uses global market region 19000001
                 region = '19000001';
             } else {
-                region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+                region = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') ? '10000002' : AppState.currentRegion;
             }
             historyData = await fetchHistory(region, typeId, 30);
             console.log(`Fetched ${historyData.length} history entries`);
@@ -868,21 +1034,72 @@ async function fetchOrdersForItem(typeId, region) {
         return allOrders;
     }
     
-    if (region === '0') {
-        // Fetch from all major trade hub regions
+    if (region === 'major') {
+        // Fetch from major trade hub regions (fast)
         const regions = ['10000002', '10000043', '10000032', '10000030', '10000042'];
+        console.log(`Fetching market data from ${regions.length} major trade hubs...`);
         
         for (const regionId of regions) {
             try {
                 const orders = await fetchOrders(regionId, typeId);
-                orders.forEach(o => {
-                    o.region_name = Regions[regionId]?.name || 'Unknown';
-                });
-                allOrders.push(...orders);
+                if (orders.length > 0) {
+                    const regionName = await getRegionName(regionId);
+                    orders.forEach(o => {
+                        o.region_name = regionName;
+                        o.region_id = regionId;
+                    });
+                    allOrders.push(...orders);
+                }
             } catch (err) {
                 console.warn(`Failed to fetch region ${regionId}:`, err.message || err);
             }
         }
+        console.log(`Fetched ${allOrders.length} total orders from major hubs`);
+    } else if (region === '0') {
+        // Fetch from all regions in New Eden
+        const regions = await getAllRegionIds();
+        console.log(`Fetching market data from ${regions.length} regions...`);
+        
+        // Update loading message with progress
+        const loadingEl = document.querySelector('.loading-message');
+        if (loadingEl) {
+            loadingEl.textContent = `Scanning ${regions.length} regions for market data...`;
+        }
+        
+        // Fetch orders from all regions in large parallel batches for speed
+        const batchSize = 50; // Increased from 10 for much faster loading
+        let processedCount = 0;
+        
+        for (let i = 0; i < regions.length; i += batchSize) {
+            const batch = regions.slice(i, i + batchSize);
+            const promises = batch.map(async regionId => {
+                try {
+                    const orders = await fetchOrders(regionId, typeId);
+                    if (orders.length > 0) {
+                        const regionName = await getRegionName(regionId);
+                        orders.forEach(o => {
+                            o.region_name = regionName;
+                            o.region_id = regionId;
+                        });
+                        return orders;
+                    }
+                    return [];
+                } catch (err) {
+                    // Silently skip failed regions for speed
+                    return [];
+                }
+            });
+            
+            const batchResults = await Promise.all(promises);
+            batchResults.forEach(orders => allOrders.push(...orders));
+            
+            // Update progress
+            processedCount += batch.length;
+            if (loadingEl) {
+                loadingEl.textContent = `Found ${allOrders.length} orders across ${processedCount}/${regions.length} regions...`;
+            }
+        }
+        console.log(`Fetched ${allOrders.length} total orders from ${regions.length} regions`);
     } else {
         const orders = await fetchOrders(region, typeId);
         allOrders.push(...orders);
@@ -945,6 +1162,88 @@ async function fetchHistory(region, typeId, days) {
     }
 }
 
+// Fetch all region IDs from ESI
+async function getAllRegionIds() {
+    // Return cached value if available
+    if (AppState.allRegionIds) {
+        return AppState.allRegionIds;
+    }
+    
+    try {
+        const url = `${ESI_BASE}/universe/regions/`;
+        console.log(`Fetching all region IDs from ${url}`);
+        const r = await fetch(url);
+        if (!r.ok) {
+            throw new Error(`Failed to fetch regions: ${r.status}`);
+        }
+        const regionIds = await r.json();
+        
+        // Filter out wormhole space and other non-market regions
+        // ESI returns all regions including J-space which don't have markets
+        AppState.allRegionIds = regionIds.filter(id => id < 11000000);
+        console.log(`Found ${AppState.allRegionIds.length} market regions`);
+        return AppState.allRegionIds;
+    } catch (err) {
+        console.error(`getAllRegionIds error:`, err.message || err);
+        // Fallback to major trade hubs if fetch fails
+        return [10000002, 10000043, 10000032, 10000030, 10000042];
+    }
+}
+
+// Get region name by ID (with caching)
+async function getRegionName(regionId) {
+    // Check cache first
+    if (AppState.regionCache[regionId]) {
+        return AppState.regionCache[regionId];
+    }
+    
+    // Check hardcoded regions
+    if (Regions[regionId]) {
+        AppState.regionCache[regionId] = Regions[regionId];
+        return Regions[regionId];
+    }
+    
+    // Fetch from ESI
+    try {
+        const url = `${ESI_BASE}/universe/regions/${regionId}/`;
+        const r = await fetch(url);
+        if (!r.ok) {
+            throw new Error(`Failed to fetch region ${regionId}`);
+        }
+        const data = await r.json();
+        AppState.regionCache[regionId] = data.name;
+        return data.name;
+    } catch (err) {
+        console.error(`getRegionName error for ${regionId}:`, err.message || err);
+        return `Region ${regionId}`;
+    }
+}
+
+// Get system security status (cached)
+async function getSystemSecurity(systemId) {
+    // Check cache first
+    if (AppState.securityCache[systemId] !== undefined) {
+        return AppState.securityCache[systemId];
+    }
+    
+    try {
+        const url = `${ESI_BASE}/universe/systems/${systemId}/`;
+        const r = await fetch(url);
+        if (!r.ok) {
+            throw new Error(`Failed to fetch system ${systemId}`);
+        }
+        const data = await r.json();
+        const security = data.security_status;
+        AppState.securityCache[systemId] = security;
+        return security;
+    } catch (err) {
+        console.error(`getSystemSecurity error for ${systemId}:`, err.message || err);
+        // Default to null sec if we can't determine
+        AppState.securityCache[systemId] = -1;
+        return -1;
+    }
+}
+
 // Render market summary cards
 function renderMarketSummary(orders, history) {
     const sells = orders.filter(o => !o.is_buy_order).sort((a, b) => a.price - b.price);
@@ -955,18 +1254,27 @@ function renderMarketSummary(orders, history) {
     
     // Check if viewing PLEX (global market)
     const isPlex = AppState.currentItem?.id === 44992;
+    const showRegion = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') && !isPlex;
     
     // Best sell
     el('bestSellPrice').textContent = bestSell ? formatPrice(bestSell.price) + ' ISK' : '—';
-    el('bestSellLocation').textContent = bestSell 
-        ? (isPlex ? 'Global Market' : 'Loading location...') 
-        : 'No sell orders';
+    if (bestSell && showRegion && bestSell.region_name) {
+        el('bestSellLocation').textContent = `${bestSell.region_name} - Loading location...`;
+    } else {
+        el('bestSellLocation').textContent = bestSell 
+            ? (isPlex ? 'Global Market' : 'Loading location...') 
+            : 'No sell orders';
+    }
     
     // Best buy
     el('bestBuyPrice').textContent = bestBuy ? formatPrice(bestBuy.price) + ' ISK' : '—';
-    el('bestBuyLocation').textContent = bestBuy 
-        ? (isPlex ? 'Global Market' : 'Loading location...') 
-        : 'No buy orders';
+    if (bestBuy && showRegion && bestBuy.region_name) {
+        el('bestBuyLocation').textContent = `${bestBuy.region_name} - Loading location...`;
+    } else {
+        el('bestBuyLocation').textContent = bestBuy 
+            ? (isPlex ? 'Global Market' : 'Loading location...') 
+            : 'No buy orders';
+    }
     
     // Spread
     if (bestSell && bestBuy) {
@@ -992,8 +1300,30 @@ function renderMarketSummary(orders, history) {
     
     // Resolve locations (skip for PLEX since it uses global market)
     if (!isPlex) {
-        if (bestSell) resolveLocation(bestSell.location_id, 'bestSellLocation');
-        if (bestBuy) resolveLocation(bestBuy.location_id, 'bestBuyLocation');
+        if (bestSell) {
+            resolveLocation(bestSell.location_id, (locationName) => {
+                const element = el('bestSellLocation');
+                if (element) {
+                    if (showRegion && bestSell.region_name) {
+                        element.textContent = `${bestSell.region_name} - ${locationName}`;
+                    } else {
+                        element.textContent = locationName;
+                    }
+                }
+            });
+        }
+        if (bestBuy) {
+            resolveLocation(bestBuy.location_id, (locationName) => {
+                const element = el('bestBuyLocation');
+                if (element) {
+                    if (showRegion && bestBuy.region_name) {
+                        element.textContent = `${bestBuy.region_name} - ${locationName}`;
+                    } else {
+                        element.textContent = locationName;
+                    }
+                }
+            });
+        }
     }
 }
 
@@ -1278,20 +1608,43 @@ function updateSortHeaders() {
 }
 
 // Render orders tables
-function renderOrders(orders) {
+async function renderOrders(orders) {
     const minQty = parseInt(el('minQtyFilter')?.value || 0);
     const selectedSystem = el('systemFilter')?.value || 'all';
     const orderType = el('orderTypeFilter')?.value || 'all';
+    const securityFilter = el('securityFilter')?.value || 'all';
+    
+    // Pre-fetch security status for all unique systems if security filter is active
+    if (securityFilter !== 'all') {
+        const uniqueSystems = [...new Set(orders.map(o => o.system_id).filter(Boolean))];
+        await Promise.all(uniqueSystems.map(systemId => getSystemSecurity(systemId)));
+    }
     
     // Separate and apply filters
     let sells = orders.filter(o => {
         if (o.is_buy_order) return false;
         if (o.volume_remain < minQty) return false;
         
+        // System filter
+        if (selectedSystem !== 'all') {
+            const locationName = AppState.locationCache[o.location_id] || '';
+            if (!locationName.includes(selectedSystem)) return false;
+        }
+        
         // NPC/Player filter - NPC stations are in range 60000000-64000000
         const isNPC = o.location_id >= 60000000 && o.location_id < 64000000;
         if (orderType === 'npc' && !isNPC) return false;
         if (orderType === 'player' && isNPC) return false;
+        
+        // Security filter
+        if (securityFilter !== 'all' && o.system_id) {
+            const security = AppState.securityCache[o.system_id];
+            if (security !== undefined) {
+                if (securityFilter === 'highsec' && security < 0.5) return false;
+                if (securityFilter === 'lowsec' && (security < 0.1 || security >= 0.5)) return false;
+                if (securityFilter === 'nullsec' && security > 0.0) return false;
+            }
+        }
         
         return true;
     });
@@ -1300,10 +1653,26 @@ function renderOrders(orders) {
         if (!o.is_buy_order) return false;
         if (o.volume_remain < minQty) return false;
         
+        // System filter
+        if (selectedSystem !== 'all') {
+            const locationName = AppState.locationCache[o.location_id] || '';
+            if (!locationName.includes(selectedSystem)) return false;
+        }
+        
         // NPC/Player filter - NPC stations are in range 60000000-64000000
         const isNPC = o.location_id >= 60000000 && o.location_id < 64000000;
         if (orderType === 'npc' && !isNPC) return false;
         if (orderType === 'player' && isNPC) return false;
+        
+        // Security filter
+        if (securityFilter !== 'all' && o.system_id) {
+            const security = AppState.securityCache[o.system_id];
+            if (security !== undefined) {
+                if (securityFilter === 'highsec' && security < 0.5) return false;
+                if (securityFilter === 'lowsec' && (security < 0.1 || security >= 0.5)) return false;
+                if (securityFilter === 'nullsec' && security > 0.0) return false;
+            }
+        }
         
         return true;
     });
@@ -1318,6 +1687,7 @@ function renderOrders(orders) {
     
     // Check if viewing PLEX (global market item)
     const isPlex = AppState.currentItem?.id === 44992;
+    const showRegion = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') && !isPlex; // Show region when viewing all regions
     
     // Render sell orders
     const sellBody = el('sellOrdersBody');
@@ -1329,6 +1699,7 @@ function renderOrders(orders) {
         const locationCell = isPlex 
             ? '<td class="location-cell"><span class="location-name" title="PLEX can be traded from anywhere in New Eden">Global Market</span></td>'
             : `<td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
+                ${showRegion && o.region_name ? `<div class="region-name" style="font-size: 0.85em; color: #888; margin-bottom: 2px;">${o.region_name}</div>` : ''}
                 <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
             </td>`;
         return `
@@ -1352,6 +1723,7 @@ function renderOrders(orders) {
         const locationCell = isPlex 
             ? '<td class="location-cell"><span class="location-name" title="PLEX can be traded from anywhere in New Eden">Global Market</span></td>'
             : `<td class="location-cell" data-location="${o.location_id}" data-system="${o.system_id || ''}">
+                ${showRegion && o.region_name ? `<div class="region-name" style="font-size: 0.85em; color: #888; margin-bottom: 2px;">${o.region_name}</div>` : ''}
                 <span class="location-name">${AppState.locationCache[o.location_id] || 'Loading...'}</span>
             </td>`;
         return `
@@ -1403,12 +1775,44 @@ function updateSystemFilter(orders) {
         }
     });
     
+    // Build filter with major trade hubs first
     filter.innerHTML = '<option value="all">All Systems</option>';
-    [...systems].sort().forEach(system => {
+    
+    // Add major trade hub separators
+    const majorHubs = [
+        { value: 'Jita', label: 'Jita (The Forge)' },
+        { value: 'Amarr', label: 'Amarr (Domain)' },
+        { value: 'Dodixie', label: 'Dodixie (Sinq Laison)' },
+        { value: 'Rens', label: 'Rens (Heimatar)' },
+        { value: 'Hek', label: 'Hek (Metropolis)' }
+    ];
+    
+    majorHubs.forEach(hub => {
         const option = document.createElement('option');
-        option.value = system;
-        option.textContent = system;
+        option.value = hub.value;
+        option.textContent = hub.label;
         filter.appendChild(option);
+    });
+    
+    // Add separator if there are other systems
+    if (systems.size > 0) {
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.textContent = '───────────────';
+        filter.appendChild(separator);
+    }
+    
+    // Add other systems found in orders
+    [...systems].sort().forEach(system => {
+        // Skip if it's already in the major hubs
+        const systemName = system.split(' - ')[0]; // Get system name before station
+        const isHub = majorHubs.some(hub => systemName.includes(hub.value));
+        if (!isHub) {
+            const option = document.createElement('option');
+            option.value = system;
+            option.textContent = system;
+            filter.appendChild(option);
+        }
     });
     
     filter.value = currentValue;
@@ -1681,7 +2085,7 @@ async function loadHistory(typeId, days) {
             // PLEX uses global market region 19000001
             region = '19000001';
         } else {
-            region = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion;
+            region = (AppState.currentRegion === '0' || AppState.currentRegion === 'major') ? '10000002' : AppState.currentRegion;
         }
         const history = await fetchHistory(region, typeId, days);
         renderChart(history);
