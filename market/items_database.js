@@ -421,6 +421,15 @@ var AllMarketItems = {
         ]
     },
 
+    // Ship SKINs
+    skins: {
+        name: "Ship SKINs",
+        icon: "fa-paint-brush",
+        items: [
+            { id: 91621, name: "Catalyst Navy Issue Media Miasma SKIN" },
+        ]
+    },
+
     // Structures
     structures: {
         name: "Structures",

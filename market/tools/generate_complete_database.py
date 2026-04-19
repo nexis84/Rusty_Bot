@@ -37,6 +37,7 @@ CATEGORY_MAPPINGS = {
     66: 'ships',          # Structure
     87: 'modules',        # Fighter
     2: 'blueprints',      # Celestial (some blueprints)
+    91: 'skins',          # SKINs
     # Add more as needed
 }
 

@@ -43,6 +43,12 @@ const MarketCategories = {
             categoryKey: "ships"
         },
         {
+            id: "ship_skins",
+            name: "Ship SKINs",
+            icon: "fa-paint-brush",
+            categoryKey: "skins"
+        },
+        {
             id: "skills",
             name: "Skills",
             icon: "fa-graduation-cap",
