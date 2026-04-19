@@ -701,6 +701,32 @@ body {
     padding: 4px;
 }
 
+.item-card .skin-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: var(--accent);
+    border: 2px solid var(--border-color);
+}
+
+.item-card .blueprint-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: var(--accent);
+    border: 2px solid var(--border-color);
+}
+
 .item-card .item-name {
     font-size: 14px;
     font-weight: 500;
@@ -820,6 +846,32 @@ body {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+.skin-icon-large {
+    width: 128px;
+    height: 128px;
+    background: var(--primary-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--accent);
+    border: 2px solid var(--border-color);
+}
+
+.blueprint-icon-large {
+    width: 128px;
+    height: 128px;
+    background: var(--primary-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: var(--accent);
+    border: 2px solid var(--border-color);
 }
 
 .item-title-section {
