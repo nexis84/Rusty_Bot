@@ -49,6 +49,42 @@ const MarketCategories = {
             categoryKey: "skins"
         },
         {
+            id: "apparel",
+            name: "Apparel",
+            icon: "fa-tshirt",
+            categoryKey: "apparel"
+        },
+        {
+            id: "deployables",
+            name: "Deployables",
+            icon: "fa-cube",
+            categoryKey: "deployables"
+        },
+        {
+            id: "subsystems",
+            name: "Subsystems",
+            icon: "fa-cogs",
+            categoryKey: "subsystems"
+        },
+        {
+            id: "special_edition",
+            name: "Special Edition",
+            icon: "fa-star",
+            categoryKey: "special_edition"
+        },
+        {
+            id: "planetary_industry",
+            name: "Planetary Industry",
+            icon: "fa-globe",
+            categoryKey: "planetary_industry"
+        },
+        {
+            id: "planetary_resources",
+            name: "Planetary Resources",
+            icon: "fa-leaf",
+            categoryKey: "planetary_resources"
+        },
+        {
             id: "skills",
             name: "Skills",
             icon: "fa-graduation-cap",
