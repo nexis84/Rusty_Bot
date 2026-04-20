@@ -1614,6 +1614,166 @@ body {
     .orders-table td {
         padding: 10px 12px;
     }
+    
+    /* Manufacturing tab mobile styles */
+    .manufacturing-section {
+        padding: 12px;
+    }
+    
+    .manufacturing-tree {
+        gap: 8px;
+    }
+    
+    .manufacturing-item {
+        padding: 10px;
+    }
+    
+    .manufacturing-item-icon {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .manufacturing-item-name {
+        font-size: 13px;
+    }
+    
+    .manufacturing-item-quantity {
+        font-size: 11px;
+    }
+    
+    .manufacturing-item-fav {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    
+    /* Market trends mobile styles */
+    .trends-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .trend-item {
+        padding: 12px;
+    }
+    
+    .trend-item-name {
+        font-size: 13px;
+    }
+    
+    .trend-item-category {
+        font-size: 11px;
+    }
+    
+    .trend-item-value {
+        font-size: 14px;
+    }
+    
+    /* Regional comparison mobile styles */
+    .regional-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .regional-card {
+        padding: 12px;
+    }
+    
+    /* Charts mobile styles */
+    .chart-container {
+        height: 250px;
+    }
+    
+    /* Tab navigation mobile */
+    .tab-nav {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    /* Favorites mobile */
+    .favorites-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    /* Search mobile */
+    .search-input {
+        font-size: 14px;
+    }
+    
+    .search-results {
+        max-height: 300px;
+    }
+    
+    /* Loading mobile */
+    .loading-overlay {
+        padding: 40px 20px;
+    }
+    
+    .loading-text {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra small phone styles */
+    .top-bar {
+        padding: 10px 12px;
+    }
+    
+    .content-wrapper {
+        padding: 12px;
+    }
+    
+    .item-icon-large {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .item-title-section h2 {
+        font-size: 16px;
+    }
+    
+    .orders-table {
+        font-size: 11px;
+    }
+    
+    .orders-table th,
+    .orders-table td {
+        padding: 8px 10px;
+    }
+    
+    .manufacturing-item {
+        padding: 8px;
+    }
+    
+    .manufacturing-item-name {
+        font-size: 12px;
+    }
+    
+    .favorites-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tab-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .quick-stats .stat-card {
+        padding: 10px;
+    }
+    
+    .quick-stats .stat-label {
+        font-size: 11px;
+    }
+    
+    .quick-stats .stat-value {
+        font-size: 14px;
+    }
 }
 
 /* Scrollbar Styling */
