@@ -1345,6 +1345,13 @@ body {
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
+    min-height: 400px;
+    position: relative;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .history-stats {
@@ -1645,6 +1652,460 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     vertical-align: middle;
+}
+
+/* Dashboard Styles */
+.nav-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+}
+
+.nav-item.active {
+    background: var(--secondary-color);
+    color: var(--text);
+}
+
+.nav-item i {
+    width: 24px;
+    margin-right: 12px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.dashboard-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--text);
+}
+
+.dashboard-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.dashboard-charts {
+    margin-bottom: 24px;
+}
+
+.chart-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.chart-card.large {
+    width: 100%;
+}
+
+.chart-header {
+    margin-bottom: 16px;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.dashboard-trends {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.trends-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.trends-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.trends-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.trends-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.trend-item:hover {
+    background: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.trend-item-info {
+    flex: 1;
+}
+
+.trend-item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.trend-item-category {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.trend-item-change {
+    text-align: right;
+}
+
+.trend-item-change.positive {
+    color: #10b981;
+}
+
+.trend-item-change.negative {
+    color: #ef4444;
+}
+
+.trend-item-value {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.trend-item-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.dashboard-categories {
+    margin-bottom: 24px;
+}
+
+.category-breakdown-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.text-success {
+    color: #10b981;
+}
+
+.text-danger {
+    color: #ef4444;
+}
+
+.text-primary {
+    color: var(--accent);
+}
+
+/* Regional Comparison Styles */
+.regional-controls {
+    margin-bottom: 16px;
+}
+
+.regional-table {
+    margin-top: 24px;
+}
+
+.regional-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.regional-comparison-table thead {
+    background: var(--primary-color);
+}
+
+.regional-comparison-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.regional-comparison-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text);
+}
+
+.regional-comparison-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.regional-comparison-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.regional-comparison-table .region-name {
+    font-weight: 600;
+}
+
+.regional-comparison-table .price-high {
+    color: #10b981;
+}
+
+.regional-comparison-table .price-low {
+    color: #ef4444;
+}
+
+/* Manufacturing Tab Styles */
+.manufacturing-content {
+    padding: 20px;
+}
+
+.manufacturing-section {
+    margin-bottom: 24px;
+}
+
+.manufacturing-section h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.manufacturing-tree {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.manufacturing-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.manufacturing-item:hover {
+    background: var(--primary-color);
+}
+
+.manufacturing-item-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    border-radius: 4px;
+    background: var(--primary-color);
+}
+
+.manufacturing-item-info {
+    flex: 1;
+}
+
+.manufacturing-item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.manufacturing-item-quantity {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.no-manufacturing {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.no-manufacturing i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.manufacturing-summary {
+    margin-top: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.manufacturing-summary h4 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.cost-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cost-row:last-child {
+    border-bottom: none;
+}
+
+.cost-row.total {
+    font-weight: 600;
+    color: var(--primary-color);
+    border-top: 2px solid var(--border-color);
+    padding-top: 12px;
+}
+
+.manufacturing-item-cost {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.small-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.manufacturing-item-fav {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    z-index: 1;
+}
+
+.manufacturing-item-fav:hover {
+    background: var(--bg-tertiary);
+    color: var(--text);
+}
+
+.manufacturing-item-fav.active {
+    color: #ffd700;
+    border-color: #ffd700;
+}
+
+.manufacturing-item-fav.active:hover {
+    background: rgba(255, 215, 0, 0.1);
+}
+
+/* Favorites Header */
+.favorites-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.favorites-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--text);
+}
+
+/* Price Alert UI */
+.favorite-item-alerts {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.alert-inputs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.alert-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-input-group label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.alert-input-group input {
+    width: 100px;
+    padding: 6px 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.alert-input-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.alert-status {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+.alert-status.triggered {
+    color: #10b981;
+    font-weight: 600;
 }
 
 .npc-badge {
