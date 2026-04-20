@@ -1395,7 +1395,7 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
         html += '<div class="manufacturing-summary">';
         html += '<h4><i class="fas fa-coins"></i> Estimated Build Cost</h4>';
         html += '<div class="cost-row">';
-        html += '<span>Calculating...</span>';
+        html += '<span>Total Cost</span>';
         html += '<span id="buildCostValue">Loading...</span>';
         html += '</div>';
         html += '</div>';
@@ -1416,8 +1416,18 @@ async function calculateBuildCost(materials, reactionMaterials, inventionMateria
         const costContainer = el('buildCostValue');
         if (!costContainer) return;
         
+        console.log('Calculating build cost...');
+        console.log('Current region:', AppState.currentRegion);
+        
         let totalCost = 0;
         const regionId = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion; // Use Jita for all regions or current region
+        console.log('Using region ID for price lookup:', regionId);
+        
+        if (!regionId || regionId === '0') {
+            console.error('Invalid region ID:', regionId);
+            costContainer.textContent = 'N/A (Invalid Region)';
+            return;
+        }
         
         // Calculate manufacturing materials cost
         if (materials.length > 0) {
