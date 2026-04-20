@@ -19,7 +19,13 @@ const AppState = {
     securityCache: {},
     allRegionIds: null,
     sellSort: { column: 'price', direction: 'asc' },
-    buySort: { column: 'price', direction: 'desc' }
+    buySort: { column: 'price', direction: 'desc' },
+    dashboardCharts: {
+        marketOverview: null,
+        categoryVolume: null
+    },
+    regionalChart: null,
+    priceAlerts: JSON.parse(localStorage.getItem('marketPriceAlerts') || '{}')
 };
 
 // Utility functions
@@ -180,8 +186,11 @@ async function initApp() {
         // Render category tree
         renderCategoryTree();
         
-        // Render popular items
-        renderPopularItems();
+        // Render popular items (now async) - force refresh to clear cache
+        await renderPopularItems(true);
+        
+        // Render favorites on home page
+        renderHomeFavorites();
         
         // Setup event listeners
         setupEventListeners();
@@ -192,6 +201,11 @@ async function initApp() {
         
         // Load favorites
         updateFavoritesView();
+        
+        // Check price alerts
+        if (Object.keys(AppState.priceAlerts).length > 0) {
+            checkPriceAlerts();
+        }
         
         // Handle URL routing
         handleRoute();
@@ -629,11 +643,13 @@ function buildFromMarketTree() {
 }
 
 // Render popular items on home page
-function renderPopularItems() {
+async function renderPopularItems(forceRefresh = false) {
     const container = el('popularItems');
     container.innerHTML = '';
     
-    PopularItems.forEach(item => {
+    const items = await fetchPopularItems(forceRefresh);
+    
+    items.forEach(item => {
         const card = document.createElement('div');
         card.className = 'item-card';
         // Use FontAwesome icon for blueprints and SKINs as they don't have EVE image server icons
@@ -648,6 +664,578 @@ function renderPopularItems() {
             ${iconHtml}
             <div class="item-name">${item.name}</div>
             <div class="item-category">${item.category}</div>
+        `;
+        card.addEventListener('click', () => loadItem(item.id, item.name));
+        container.appendChild(card);
+    });
+}
+
+// Fetch high-volume items from ESI
+async function fetchPopularItems(forceRefresh = false) {
+    try {
+        // Check cache first (24 hour cache)
+        const cached = localStorage.getItem('popularItemsCache');
+        if (cached && !forceRefresh) {
+            const { data, timestamp } = JSON.parse(cached);
+            const cacheAge = Date.now() - timestamp;
+            if (cacheAge < 24 * 60 * 60 * 1000) {
+                console.log('Using cached popular items');
+                return data;
+            }
+        }
+        
+        if (forceRefresh) {
+            console.log('Force refresh requested, clearing cache');
+            localStorage.removeItem('popularItemsCache');
+        } else {
+            console.log('No valid cache, fetching fresh data');
+        }
+        
+        // Fetch market history for The Forge (Jita) to find high-volume items
+        // We'll check a sample of popular type IDs
+        const typeIds = [34, 35, 36, 37, 38, 39, 40, 44, 24692, 22448, 24696, 24695];
+        const volumeData = [];
+        
+        for (const typeId of typeIds) {
+            try {
+                const historyUrl = `${ESI_BASE}/markets/10000002/history/?type_id=${typeId}`;
+                const response = await fetch(historyUrl);
+                if (!response.ok) {
+                    console.log(`Failed to fetch history for type ${typeId}: ${response.status}`);
+                    continue;
+                }
+                
+                const history = await response.json();
+                if (history.length > 0) {
+                    const last30Days = history.slice(0, 30);
+                    const totalVolume = last30Days.reduce((sum, day) => sum + day.volume, 0);
+                    const avgPrice = last30Days.reduce((sum, day) => sum + day.average, 0) / last30Days.length;
+                    
+                    // Find item name
+                    const itemName = getItemName(typeId);
+                    const category = getItemCategory(typeId);
+                    
+                    volumeData.push({
+                        id: typeId,
+                        name: itemName,
+                        category: category,
+                        volume30d: totalVolume,
+                        avgPrice: avgPrice
+                    });
+                    
+                    if (typeId === 29668) {
+                        console.log('PLEX data fetched:', { name: itemName, volume: totalVolume });
+                    }
+                }
+            } catch (error) {
+                console.error(`Error fetching history for type ${typeId}:`, error);
+            }
+        }
+        
+        console.log('Total items fetched:', volumeData.length);
+        console.log('Items:', volumeData.map(i => `${i.name} (${i.id})`).join(', '));
+        
+        // Sort by volume and take top 9 (leave room for PLEX)
+        let sortedItems = volumeData.sort((a, b) => b.volume30d - a.volume30d).slice(0, 9);
+        
+        // Add PLEX as a hardcoded item since it's now in a unified market
+        // PLEX (type_id 44992) is no longer in regional markets
+        const plexItem = {
+            id: 44992,
+            name: 'PLEX',
+            category: 'Trade Goods',
+            volume30d: 0,
+            avgPrice: 0
+        };
+        
+        // Add PLEX at the beginning
+        sortedItems = [plexItem, ...sortedItems.slice(0, 9)];
+        console.log('PLEX added to popular items (hardcoded for unified market)');
+        
+        // Cache the results
+        localStorage.setItem('popularItemsCache', JSON.stringify({
+            data: sortedItems,
+            timestamp: Date.now()
+        }));
+        
+        return sortedItems;
+    } catch (error) {
+        console.error('Error fetching popular items:', error);
+        // Fallback to hardcoded list
+        return PopularItems;
+    }
+}
+
+function getItemCategory(typeId) {
+    for (const category in AllMarketItems) {
+        const item = AllMarketItems[category].items.find(i => i.id === parseInt(typeId));
+        if (item) return AllMarketItems[category].name;
+    }
+    return 'Item';
+}
+
+// Manufacturing/Blueprint Functions
+async function loadManufacturingData(typeId) {
+    try {
+        const container = el('manufacturingInfo');
+        if (!container) return;
+        
+        container.innerHTML = '<p class="loading-text">Loading manufacturing data...</p>';
+        
+        // Fetch manufacturing data from Fuzzwork API (CORS-friendly)
+        const fuzzworkUrl = `https://www.fuzzwork.co.uk/blueprint/api/blueprint.php?typeid=${typeId}`;
+        console.log('Fetching from Fuzzwork:', fuzzworkUrl);
+        const response = await fetch(fuzzworkUrl);
+        
+        if (!response.ok) {
+            console.log('Fuzzwork API failed:', response.status);
+            container.innerHTML = `
+                <div class="no-manufacturing">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Manufacturing data is not available for this item via Fuzzwork.</p>
+                    <p class="small-text">Product type ID: ${typeId}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const fuzzworkData = await response.json();
+        console.log('Fuzzwork data:', fuzzworkData);
+        
+        // Display manufacturing information from Fuzzwork data
+        displayFuzzworkManufacturingInfo(fuzzworkData, typeId);
+        
+    } catch (error) {
+        console.error('Error loading manufacturing data:', error);
+        const container = el('manufacturingInfo');
+        if (container) {
+            container.innerHTML = `
+                <div class="no-manufacturing">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load manufacturing data.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+async function findBlueprintType(productTypeId) {
+    try {
+        console.log('Finding blueprint for type ID:', productTypeId);
+        
+        // First, check if the current item is already a blueprint
+        const currentTypeUrl = `${ESI_BASE}/universe/types/${productTypeId}`;
+        const currentResponse = await fetch(currentTypeUrl);
+        if (currentResponse.ok) {
+            const currentTypeData = await currentResponse.json();
+            console.log('Current item name:', currentTypeData.name);
+            if (currentTypeData.name.toLowerCase().includes('blueprint')) {
+                console.log('Item is already a blueprint');
+                return parseInt(productTypeId);
+            }
+        }
+        
+        // Search local blueprint data first
+        if (typeof AllMarketItems !== 'undefined' && AllMarketItems.blueprints) {
+            const productTypeUrl = `${ESI_BASE}/universe/types/${productTypeId}`;
+            const productResponse = await fetch(productTypeUrl);
+            if (productResponse.ok) {
+                const productTypeData = await productResponse.json();
+                const productName = productTypeData.name;
+                console.log('Product name:', productName);
+                
+                // Search for blueprint in local data
+                const blueprintName = productName + ' Blueprint';
+                const blueprint = AllMarketItems.blueprints.items.find(b => b.name === blueprintName);
+                
+                if (blueprint) {
+                    console.log('Found blueprint in local data:', blueprint.id);
+                    return blueprint.id;
+                }
+            }
+        }
+        
+        // Fallback: Try common blueprint type ID patterns
+        const attempts = [
+            parseInt(productTypeId) + 1,  // Common pattern
+            parseInt(productTypeId) - 1,  // Reverse pattern
+        ];
+        
+        for (const blueprintTypeId of attempts) {
+            try {
+                const typeUrl = `${ESI_BASE}/universe/types/${blueprintTypeId}`;
+                const response = await fetch(typeUrl);
+                
+                if (!response.ok) continue;
+                
+                const typeData = await response.json();
+                
+                // Check if this is actually a blueprint
+                if (typeData.name.toLowerCase().includes('blueprint')) {
+                    console.log('Found blueprint via pattern:', blueprintTypeId);
+                    return blueprintTypeId;
+                }
+            } catch (error) {
+                continue;
+            }
+        }
+        
+        console.log('No blueprint found');
+        return null;
+    } catch (error) {
+        console.error('Error finding blueprint type:', error);
+        return null;
+    }
+}
+
+function displayManufacturingInfo(blueprintData, productTypeId) {
+    const container = el('manufacturingInfo');
+    if (!container) return;
+    
+    const activities = blueprintData.activities;
+    if (!activities || !activities.manufacturing) {
+        container.innerHTML = `
+            <div class="no-manufacturing">
+                <i class="fas fa-industry"></i>
+                <p>No manufacturing data available for this item.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const manufacturing = activities.manufacturing;
+    const materials = manufacturing.materials || [];
+    const products = manufacturing.products || [];
+    
+    let html = '<div class="manufacturing-section">';
+    
+    // Display materials required
+    if (materials.length > 0) {
+        html += '<h4><i class="fas fa-cube"></i> Materials Required</h4>';
+        html += '<div class="manufacturing-tree">';
+        
+        materials.forEach(material => {
+            const materialName = getItemName(material.type_id);
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${material.type_id}, '${materialName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${material.type_id}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${materialName}</div>
+                        <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    // Display products
+    if (products.length > 0) {
+        html += '<h4><i class="fas fa-box"></i> Products</h4>';
+        html += '<div class="manufacturing-tree">';
+        
+        products.forEach(product => {
+            const productName = getItemName(product.type_id);
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${product.type_id}, '${productName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${product.type_id}/icon?size=32" class="manufacturing-item-icon" alt="${productName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${productName}</div>
+                        <div class="manufacturing-item-quantity">Quantity: ${product.quantity}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function displayEverefManufacturingInfo(everefData, productTypeId) {
+    const container = el('manufacturingInfo');
+    if (!container) return;
+    
+    if (!everefData || !everefData.manufacturing) {
+        container.innerHTML = `
+            <div class="no-manufacturing">
+                <i class="fas fa-industry"></i>
+                <p>No manufacturing data available for this item.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const manufacturingData = everefData.manufacturing;
+    const productData = manufacturingData[productTypeId];
+    
+    if (!productData) {
+        container.innerHTML = `
+            <div class="no-manufacturing">
+                <i class="fas fa-industry"></i>
+                <p>No manufacturing data available for this item.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const materials = productData.materials || {};
+    const materialIds = Object.keys(materials);
+    
+    let html = '<div class="manufacturing-section">';
+    
+    // Display materials required
+    if (materialIds.length > 0) {
+        html += '<h4><i class="fas fa-cube"></i> Materials Required</h4>';
+        html += '<div class="manufacturing-tree">';
+        
+        materialIds.forEach(materialId => {
+            const material = materials[materialId];
+            const materialName = getItemName(material.type_id);
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${material.type_id}, '${materialName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${material.type_id}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${materialName}</div>
+                        <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+                        ${material.cost ? `<div class="manufacturing-item-cost">Cost: ${formatISK(material.cost)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        
+        // Display total cost
+        if (productData.total_cost) {
+            html += '<div class="manufacturing-summary">';
+            html += `<h4><i class="fas fa-coins"></i> Manufacturing Cost Summary</h4>`;
+            html += `<div class="cost-row"><span>Total Material Cost:</span> <span>${formatISK(productData.total_material_cost)}</span></div>`;
+            html += `<div class="cost-row"><span>Total Job Cost:</span> <span>${formatISK(productData.total_job_cost)}</span></div>`;
+            html += `<div class="cost-row total"><span>Total Cost:</span> <span>${formatISK(productData.total_cost)}</span></div>`;
+            html += `<div class="cost-row"><span>Cost per Unit:</span> <span>${formatISK(productData.total_cost_per_unit)}</span></div>`;
+            html += '</div>';
+        }
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function formatISK(value) {
+    if (value === undefined || value === null) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'ISK',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value).replace('ISK', '').trim() + ' ISK';
+}
+
+async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
+    const container = el('manufacturingInfo');
+    if (!container) return;
+    
+    console.log('Parsing Fuzzwork data for product:', productTypeId);
+    console.log('activityMaterials:', fuzzworkData.activityMaterials);
+    
+    if (!fuzzworkData || !fuzzworkData.activityMaterials) {
+        container.innerHTML = `
+            <div class="no-manufacturing">
+                <i class="fas fa-industry"></i>
+                <p>No manufacturing data available for this item.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const activityMaterials = fuzzworkData.activityMaterials;
+    console.log('Activity materials keys:', Object.keys(activityMaterials));
+    
+    // Activity ID 1 is manufacturing - it's an array of materials, not an object with materials property
+    let materials = activityMaterials[1] || activityMaterials['1']; // Activity ID 1 is manufacturing
+    
+    console.log('Materials array:', materials);
+    
+    if (!materials || materials.length === 0) {
+        container.innerHTML = `
+            <div class="no-manufacturing">
+                <i class="fas fa-industry"></i>
+                <p>No manufacturing data available for this item.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="manufacturing-section">';
+    
+    // Display blueprint information
+    if (fuzzworkData.blueprintDetails) {
+        const blueprintDetails = fuzzworkData.blueprintDetails;
+        console.log('Blueprint details:', blueprintDetails);
+        
+        // Search for blueprint in local data
+        let blueprintTypeId = null;
+        if (typeof AllMarketItems !== 'undefined' && AllMarketItems.blueprints) {
+            const productName = blueprintDetails.productTypeName || getItemName(productTypeId);
+            const blueprintName = productName + ' Blueprint';
+            console.log('Searching for blueprint:', blueprintName);
+            
+            // Try exact match
+            let blueprint = AllMarketItems.blueprints.items.find(b => b.name === blueprintName);
+            if (blueprint) {
+                blueprintTypeId = blueprint.id;
+                console.log('Found blueprint with exact match:', blueprintTypeId, blueprintName);
+            } else {
+                // Try case-insensitive search
+                blueprint = AllMarketItems.blueprints.items.find(b => b.name.toLowerCase() === blueprintName.toLowerCase());
+                if (blueprint) {
+                    blueprintTypeId = blueprint.id;
+                    console.log('Found blueprint with case-insensitive search:', blueprintTypeId, blueprint.name);
+                } else {
+                    // Try partial match - blueprint name contains product name
+                    blueprint = AllMarketItems.blueprints.items.find(b => b.name.toLowerCase().includes(productName.toLowerCase()) && b.name.toLowerCase().includes('blueprint'));
+                    if (blueprint) {
+                        blueprintTypeId = blueprint.id;
+                        console.log('Found blueprint with partial match:', blueprintTypeId, blueprint.name);
+                    } else {
+                        console.log('Blueprint not found in local data, trying ESI search API...');
+                        // Try to get blueprint type ID from ESI search
+                        try {
+                            // Try with full blueprint name first
+                            let searchUrl = `https://esi.evetech.net/latest/search/?categories=inventory_type&search=${encodeURIComponent(blueprintName)}&strict=false`;
+                            let searchResponse = await fetch(searchUrl);
+                            if (searchResponse.ok) {
+                                const searchData = await searchResponse.json();
+                                if (searchData.inventory_type && searchData.inventory_type.length > 0) {
+                                    blueprintTypeId = searchData.inventory_type[0];
+                                    console.log('Found blueprint via ESI search:', blueprintTypeId);
+                                } else {
+                                    // Try searching for just the product name to see if there's a blueprint
+                                    searchUrl = `https://esi.evetech.net/latest/search/?categories=inventory_type&search=${encodeURIComponent(productName)}&strict=false`;
+                                    searchResponse = await fetch(searchUrl);
+                                    if (searchResponse.ok) {
+                                        const searchData = await searchResponse.json();
+                                        if (searchData.inventory_type && searchData.inventory_type.length > 0) {
+                                            // Filter for blueprints
+                                            for (const typeId of searchData.inventory_type) {
+                                                const typeResponse = await fetch(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
+                                                if (typeResponse.ok) {
+                                                    const typeData = await typeResponse.json();
+                                                    if (typeData.name.toLowerCase().includes('blueprint')) {
+                                                        blueprintTypeId = typeId;
+                                                        console.log('Found blueprint via product name search:', blueprintTypeId, typeData.name);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                console.log('ESI search returned non-OK response:', searchResponse.status);
+                            }
+                        } catch (e) {
+                            console.log('ESI search API call failed:', e);
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (blueprintTypeId) {
+            const blueprintName = getItemName(blueprintTypeId);
+            const isFav = AppState.favorites.some(f => f.id === blueprintTypeId);
+            html += '<h4><i class="fas fa-file-blueprint"></i> Blueprint Required</h4>';
+            html += '<div class="manufacturing-tree">';
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${blueprintTypeId}, '${blueprintName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${blueprintTypeId}/icon?size=32" class="manufacturing-item-icon" alt="${blueprintName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${blueprintName}</div>
+                        <div class="manufacturing-item-quantity">Blueprint</div>
+                    </div>
+                    <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${blueprintTypeId}, '${blueprintName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                        <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                    </button>
+                </div>
+            `;
+            html += '</div>';
+        } else {
+            // Blueprint not found - might be invention-only
+            html += '<h4><i class="fas fa-file-blueprint"></i> Blueprint Required</h4>';
+            html += '<div class="no-manufacturing">';
+            html += '<p>Blueprint not available on market (invention-only or not tradable)</p>';
+            html += '</div>';
+        }
+    }
+    
+    // Display materials required
+    html += '<h4><i class="fas fa-cube"></i> Materials Required</h4>';
+    html += '<div class="manufacturing-tree">';
+    
+    materials.forEach(material => {
+        console.log('Material:', material);
+        if (!material.typeid) return; // Skip materials with undefined typeid
+        
+        const materialName = getItemName(material.typeid);
+        const isFav = AppState.favorites.some(f => f.id === material.typeid);
+        html += `
+            <div class="manufacturing-item" onclick="loadItem(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')">
+                <img src="https://images.evetech.net/types/${material.typeid}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
+                <div class="manufacturing-item-info">
+                    <div class="manufacturing-item-name">${materialName}</div>
+                    <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+                </div>
+                <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    html += '</div>';
+    console.log('Generated HTML:', html);
+    container.innerHTML = html;
+}
+
+// Render favorites on home page
+function renderHomeFavorites() {
+    const container = el('homeFavorites');
+    const emptyState = el('homeFavoritesEmpty');
+    
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (AppState.favorites.length === 0) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+    }
+    
+    container.style.display = 'grid';
+    emptyState.style.display = 'none';
+    
+    AppState.favorites.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        // Use FontAwesome icon for blueprints and SKINs as they don't have EVE image server icons
+        const isBlueprint = item.name.toLowerCase().includes('blueprint') || item.name.toLowerCase().includes('reaction formula');
+        const isSkin = item.name.toLowerCase().includes('skin');
+        const iconHtml = isBlueprint
+            ? '<div class="blueprint-icon"><i class="fas fa-scroll"></i></div>'
+            : isSkin
+            ? '<div class="skin-icon"><i class="fas fa-paint-brush"></i></div>'
+            : `<img src="https://images.evetech.net/types/${item.id}/icon?size=64" alt="${item.name}" class="item-icon" onerror="this.style.display='none'" />`;
+        card.innerHTML = `
+            ${iconHtml}
+            <div class="item-name">${item.name}</div>
+            <div class="item-category">${item.category || 'Item'}</div>
         `;
         card.addEventListener('click', () => loadItem(item.id, item.name));
         container.appendChild(card);
@@ -677,6 +1265,35 @@ function setupEventListeners() {
     el('collapseAll')?.addEventListener('click', () => {
         document.querySelectorAll('.category-children').forEach(el => el.classList.remove('expanded'));
         document.querySelectorAll('.toggle').forEach(el => el.classList.remove('expanded'));
+    });
+    
+    // Dashboard link
+    el('dashboardLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadDashboard();
+    });
+    
+    // Favorites link
+    el('favoritesLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        showView('favorites');
+    });
+    
+    // Enable notifications button
+    el('enableNotifications')?.addEventListener('click', () => {
+        if (!('Notification' in window)) {
+            alert('This browser does not support desktop notifications');
+            return;
+        }
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                alert('Notifications enabled! You will receive price alerts for your favorite items.');
+                el('enableNotifications').textContent = '✓ Notifications Enabled';
+                el('enableNotifications').disabled = true;
+            } else {
+                alert('Notification permission denied. You will not receive price alerts.');
+            }
+        });
     });
     
     // Region selector
@@ -880,11 +1497,21 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
-    
+
     document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.add('hidden');
     });
     el(tabName + 'Tab')?.classList.remove('hidden');
+
+    // Load regional comparison data when regional tab is selected
+    if (tabName === 'regional' && AppState.currentItem) {
+        loadRegionalComparison(AppState.currentItem.id);
+    }
+
+    // Load manufacturing data when manufacturing tab is selected
+    if (tabName === 'manufacturing' && AppState.currentItem) {
+        loadManufacturingData(AppState.currentItem.id);
+    }
 }
 
 // Load item details
@@ -893,6 +1520,21 @@ async function loadItem(typeId, name, forceRefresh = false) {
         ? (AppState.currentRegion === '0' ? 'Loading market data from all regions in New Eden...' : 'Loading market data from major trade hubs...') 
         : 'Loading market data...';
     showLoading(loadingMessage);
+    
+    // Clear manufacturing tab when loading a new item
+    const manufacturingContainer = el('manufacturingInfo');
+    if (manufacturingContainer) {
+        manufacturingContainer.innerHTML = '';
+    }
+    
+    // Reload manufacturing data if manufacturing tab is currently active
+    const manufacturingTab = el('manufacturingTab');
+    if (manufacturingTab && !manufacturingTab.classList.contains('hidden')) {
+        // Manufacturing tab is visible, reload data for new item
+        setTimeout(() => {
+            loadManufacturingData(typeId);
+        }, 100);
+    }
     
     try {
         console.log(`Loading item ${name} (ID: ${typeId}) in region ${AppState.currentRegion}`);
@@ -2003,6 +2645,36 @@ function toggleFavorite() {
     localStorage.setItem('marketFavorites', JSON.stringify(AppState.favorites));
     updateFavoriteButton();
     updateFavoritesView();
+    renderHomeFavorites();
+}
+
+function toggleFavoriteById(id, name) {
+    const index = AppState.favorites.findIndex(f => f.id === id);
+    
+    if (index === -1) {
+        AppState.favorites.push({
+            id: id,
+            name: name,
+            added: new Date().toISOString()
+        });
+        showMessage('Added to favorites');
+    } else {
+        AppState.favorites.splice(index, 1);
+        showMessage('Removed from favorites');
+    }
+    
+    localStorage.setItem('marketFavorites', JSON.stringify(AppState.favorites));
+    updateFavoritesView();
+    renderHomeFavorites();
+    
+    // Refresh manufacturing view if it's currently displayed
+    const container = el('manufacturingInfo');
+    if (container && container.innerHTML.length > 0) {
+        const currentTypeId = AppState.currentItem?.id;
+        if (currentTypeId) {
+            loadManufacturingData(currentTypeId);
+        }
+    }
 }
 
 // Update favorite button state
@@ -2020,21 +2692,47 @@ function updateFavoritesView() {
     
     if (AppState.favorites.length === 0) {
         container.innerHTML = '<p class="empty-state">No favorite items yet. Click the star icon on any item to add it here.</p>';
+        renderHomeFavorites();
         return;
     }
     
+    const alerts = AppState.priceAlerts || {};
+    
     container.innerHTML = '<div class="item-grid">' + 
-        AppState.favorites.map(fav => `
+        AppState.favorites.map(fav => {
+            const itemAlerts = alerts[fav.id] || {};
+            return `
             <div class="item-card" data-id="${fav.id}" data-name="${fav.name}">
                 <div class="item-name">${fav.name}</div>
                 <button class="remove-fav" data-id="${fav.id}"><i class="fas fa-times"></i></button>
+                <div class="favorite-item-alerts">
+                    <div class="alert-inputs">
+                        <div class="alert-input-group">
+                            <label>Sell Above:</label>
+                            <input type="number" class="alert-input" data-id="${fav.id}" data-type="sellAbove" placeholder="—" value="${itemAlerts.sellAbove || ''}" step="0.01">
+                        </div>
+                        <div class="alert-input-group">
+                            <label>Sell Below:</label>
+                            <input type="number" class="alert-input" data-id="${fav.id}" data-type="sellBelow" placeholder="—" value="${itemAlerts.sellBelow || ''}" step="0.01">
+                        </div>
+                        <div class="alert-input-group">
+                            <label>Buy Above:</label>
+                            <input type="number" class="alert-input" data-id="${fav.id}" data-type="buyAbove" placeholder="—" value="${itemAlerts.buyAbove || ''}" step="0.01">
+                        </div>
+                        <div class="alert-input-group">
+                            <label>Buy Below:</label>
+                            <input type="number" class="alert-input" data-id="${fav.id}" data-type="buyBelow" placeholder="—" value="${itemAlerts.buyBelow || ''}" step="0.01">
+                        </div>
+                    </div>
+                </div>
             </div>
-        `).join('') + '</div>';
+        `;
+        }).join('') + '</div>';
     
     // Add click handlers
     container.querySelectorAll('.item-card').forEach(card => {
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.remove-fav')) return;
+            if (e.target.closest('.remove-fav') || e.target.classList.contains('alert-input')) return;
             loadItem(parseInt(card.dataset.id), card.dataset.name);
         });
     });
@@ -2050,6 +2748,24 @@ function updateFavoritesView() {
             updateFavoriteButton();
         });
     });
+    
+    // Add alert input handlers
+    container.querySelectorAll('.alert-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const typeId = e.target.dataset.id;
+            const alertType = e.target.dataset.type;
+            const value = e.target.value;
+            
+            if (value) {
+                savePriceAlert(typeId, alertType, value);
+            } else {
+                removePriceAlert(typeId, alertType);
+            }
+        });
+    });
+    
+    // Update home page favorites
+    renderHomeFavorites();
 }
 
 // Update breadcrumb
@@ -2189,6 +2905,367 @@ function debounce(fn, ms) {
         clearTimeout(timeout);
         timeout = setTimeout(() => fn(...args), ms);
     };
+}
+
+// Dashboard Functions
+async function loadDashboard() {
+    console.log('Loading dashboard...');
+    showView('dashboard');
+    
+    // Load dashboard data
+    await loadTrendingItems();
+    await loadDashboardCharts();
+}
+
+async function loadTrendingItems() {
+    try {
+        // Get popular items for trending
+        const popularItems = PopularItems || [];
+        
+        // Top gainers (placeholder - would need historical data)
+        const gainersContainer = el('topGainers');
+        if (gainersContainer && popularItems.length > 0) {
+            gainersContainer.innerHTML = popularItems.slice(0, 5).map((item, index) => `
+                <div class="trend-item" onclick="loadItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
+                    <div class="trend-item-info">
+                        <div class="trend-item-name">${item.name}</div>
+                        <div class="trend-item-category">${item.category}</div>
+                    </div>
+                    <div class="trend-item-change positive">
+                        <div class="trend-item-value">+${(Math.random() * 10 + 1).toFixed(2)}%</div>
+                        <div class="trend-item-label">24h</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Top losers (placeholder)
+        const losersContainer = el('topLosers');
+        if (losersContainer && popularItems.length > 0) {
+            losersContainer.innerHTML = popularItems.slice(5, 10).map((item, index) => `
+                <div class="trend-item" onclick="loadItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
+                    <div class="trend-item-info">
+                        <div class="trend-item-name">${item.name}</div>
+                        <div class="trend-item-category">${item.category}</div>
+                    </div>
+                    <div class="trend-item-change negative">
+                        <div class="trend-item-value">-${(Math.random() * 5 + 1).toFixed(2)}%</div>
+                        <div class="trend-item-label">24h</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Most traded by volume (placeholder)
+        const volumeContainer = el('topVolume');
+        if (volumeContainer && popularItems.length > 0) {
+            volumeContainer.innerHTML = popularItems.slice(0, 5).map((item, index) => `
+                <div class="trend-item" onclick="loadItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
+                    <div class="trend-item-info">
+                        <div class="trend-item-name">${item.name}</div>
+                        <div class="trend-item-category">${item.category}</div>
+                    </div>
+                    <div class="trend-item-change">
+                        <div class="trend-item-value">${fmtInt(Math.floor(Math.random() * 1000000 + 100000))}</div>
+                        <div class="trend-item-label">24h Vol</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading trending items:', error);
+    }
+}
+
+async function loadDashboardCharts() {
+    try {
+        // Market Overview Chart
+        const overviewCtx = el('marketOverviewChart');
+        if (overviewCtx && !AppState.dashboardCharts.marketOverview) {
+            AppState.dashboardCharts.marketOverview = new Chart(overviewCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [{
+                        label: 'Market Activity',
+                        data: [65, 59, 80, 81, 56, 55, 72],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Category Volume Chart
+        const categoryCtx = el('categoryVolumeChart');
+        if (categoryCtx && !AppState.dashboardCharts.categoryVolume) {
+            const categories = Object.keys(AllMarketItems);
+            const categoryData = categories.map(cat => ({
+                name: AllMarketItems[cat].name,
+                count: AllMarketItems[cat].items.length
+            })).sort((a, b) => b.count - a.count).slice(0, 10);
+            
+            AppState.dashboardCharts.categoryVolume = new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryData.map(d => d.name),
+                    datasets: [{
+                        label: 'Item Count',
+                        data: categoryData.map(d => d.count),
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error loading dashboard charts:', error);
+    }
+}
+
+async function loadRegionalComparison(typeId) {
+    try {
+        const regions = [
+            { id: 10000002, name: 'The Forge (Jita)' },
+            { id: 10000043, name: 'Domain (Amarr)' },
+            { id: 10000032, name: 'Sinq Laison (Dodixie)' },
+            { id: 10000030, name: 'Heimatar (Rens)' },
+            { id: 10000042, name: 'Metropolis (Hek)' }
+        ];
+
+        const regionalData = [];
+        
+        for (const region of regions) {
+            try {
+                // Fetch orders for this region
+                const ordersUrl = `${ESI_BASE}/markets/${region.id}/orders/?type_id=${typeId}`;
+                const response = await fetch(ordersUrl);
+                if (!response.ok) continue;
+                
+                const orders = await response.json();
+                
+                const sellOrders = orders.filter(o => o.is_buy_order === false);
+                const buyOrders = orders.filter(o => o.is_buy_order === true);
+                
+                const bestSell = sellOrders.length > 0 ? Math.min(...sellOrders.map(o => o.price)) : null;
+                const bestBuy = buyOrders.length > 0 ? Math.max(...buyOrders.map(o => o.price)) : null;
+                
+                // Fetch history for average price
+                const historyUrl = `${ESI_BASE}/markets/${region.id}/history/?type_id=${typeId}`;
+                const historyResponse = await fetch(historyUrl);
+                let avgPrice = null;
+                let totalVolume = 0;
+                
+                if (historyResponse.ok) {
+                    const history = await historyResponse.json();
+                    if (history.length > 0) {
+                        const thirtyDays = history.slice(0, 30);
+                        const totalAvg = thirtyDays.reduce((sum, day) => sum + day.average, 0);
+                        avgPrice = totalAvg / thirtyDays.length;
+                        totalVolume = thirtyDays.reduce((sum, day) => sum + day.volume, 0);
+                    }
+                }
+                
+                regionalData.push({
+                    region: region.name,
+                    regionId: region.id,
+                    bestSell,
+                    bestBuy,
+                    spread: bestSell && bestBuy ? ((bestSell - bestBuy) / bestBuy * 100) : null,
+                    volume30d: totalVolume,
+                    avgPrice
+                });
+            } catch (error) {
+                console.error(`Error fetching data for ${region.name}:`, error);
+            }
+        }
+        
+        // Update table
+        const tableBody = el('regionalTableBody');
+        if (tableBody) {
+            tableBody.innerHTML = regionalData.map(data => `
+                <tr>
+                    <td class="region-name">${data.region}</td>
+                    <td>${data.bestSell ? fmt(data.bestSell) : '—'}</td>
+                    <td>${data.bestBuy ? fmt(data.bestBuy) : '—'}</td>
+                    <td>${data.spread ? fmt(data.spread) + '%' : '—'}</td>
+                    <td>${fmtInt(data.volume30d)}</td>
+                    <td>${data.avgPrice ? fmt(data.avgPrice) : '—'}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Update chart
+        await loadRegionalChart(regionalData);
+        
+    } catch (error) {
+        console.error('Error loading regional comparison:', error);
+    }
+}
+
+async function loadRegionalChart(regionalData) {
+    try {
+        const ctx = el('regionalChart');
+        if (!ctx) return;
+        
+        // Destroy existing chart
+        if (AppState.regionalChart) {
+            AppState.regionalChart.destroy();
+        }
+        
+        AppState.regionalChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: regionalData.map(d => d.region),
+                datasets: [
+                    {
+                        label: 'Best Sell',
+                        data: regionalData.map(d => d.bestSell),
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.1,
+                        fill: false
+                    },
+                    {
+                        label: 'Best Buy',
+                        data: regionalData.map(d => d.bestBuy),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.1,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading regional chart:', error);
+    }
+}
+
+// Price Alert Functions
+function savePriceAlert(typeId, alertType, threshold) {
+    if (!AppState.priceAlerts[typeId]) {
+        AppState.priceAlerts[typeId] = {};
+    }
+    AppState.priceAlerts[typeId][alertType] = parseFloat(threshold);
+    localStorage.setItem('marketPriceAlerts', JSON.stringify(AppState.priceAlerts));
+}
+
+function removePriceAlert(typeId, alertType) {
+    if (AppState.priceAlerts[typeId]) {
+        delete AppState.priceAlerts[typeId][alertType];
+        if (Object.keys(AppState.priceAlerts[typeId]).length === 0) {
+            delete AppState.priceAlerts[typeId];
+        }
+        localStorage.setItem('marketPriceAlerts', JSON.stringify(AppState.priceAlerts));
+    }
+}
+
+async function checkPriceAlerts() {
+    for (const typeId in AppState.priceAlerts) {
+        try {
+            const alerts = AppState.priceAlerts[typeId];
+            const ordersUrl = `${ESI_BASE}/markets/10000002/orders/?type_id=${typeId}`;
+            const response = await fetch(ordersUrl);
+            if (!response.ok) continue;
+            
+            const orders = await response.json();
+            const sellOrders = orders.filter(o => o.is_buy_order === false);
+            const buyOrders = orders.filter(o => o.is_buy_order === true);
+            
+            const bestSell = sellOrders.length > 0 ? Math.min(...sellOrders.map(o => o.price)) : null;
+            const bestBuy = buyOrders.length > 0 ? Math.max(...buyOrders.map(o => o.price)) : null;
+            
+            // Check sell price alerts
+            if (alerts.sellAbove && bestSell && bestSell > alerts.sellAbove) {
+                sendNotification(`Price Alert: Sell price above ${fmt(alerts.sellAbove)}`, `${getItemName(typeId)} is now ${fmt(bestSell)} ISK`);
+            }
+            if (alerts.sellBelow && bestSell && bestSell < alerts.sellBelow) {
+                sendNotification(`Price Alert: Sell price below ${fmt(alerts.sellBelow)}`, `${getItemName(typeId)} is now ${fmt(bestSell)} ISK`);
+            }
+            
+            // Check buy price alerts
+            if (alerts.buyAbove && bestBuy && bestBuy > alerts.buyAbove) {
+                sendNotification(`Price Alert: Buy price above ${fmt(alerts.buyAbove)}`, `${getItemName(typeId)} is now ${fmt(bestBuy)} ISK`);
+            }
+            if (alerts.buyBelow && bestBuy && bestBuy < alerts.buyBelow) {
+                sendNotification(`Price Alert: Buy price below ${fmt(alerts.buyBelow)}`, `${getItemName(typeId)} is now ${fmt(bestBuy)} ISK`);
+            }
+        } catch (error) {
+            console.error(`Error checking alerts for type ${typeId}:`, error);
+        }
+    }
+}
+
+function sendNotification(title, body) {
+    if (!('Notification' in window)) {
+        console.log('This browser does not support desktop notification');
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: 'https://www.rustybot.co.uk/rusty_bot.png' });
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                new Notification(title, { body, icon: 'https://www.rustybot.co.uk/rusty_bot.png' });
+            }
+        });
+    }
+}
+
+function getItemName(typeId) {
+    // Search through all categories to find the item name
+    for (const category in AllMarketItems) {
+        const item = AllMarketItems[category].items.find(i => i.id === parseInt(typeId));
+        if (item) return item.name;
+    }
+    return `Item ${typeId}`;
 }
 
 // Expose some functions globally for debugging
