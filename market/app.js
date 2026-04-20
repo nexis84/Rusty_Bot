@@ -1087,6 +1087,83 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
     
     let html = '<div class="manufacturing-section">';
     
+    // Display T2 items that can be invented from this T1 blueprint
+    if (fuzzworkData.blueprintSkills && fuzzworkData.blueprintSkills['8']) {
+        // This blueprint has invention activity, so it can be invented to T2
+        const productName = fuzzworkData.blueprintDetails.productTypeName || getItemName(productTypeId);
+        console.log('Searching for T2 variants of:', productName);
+        
+        // Try to find T2 variants by searching for the name with " II"
+        const t2Variants = [];
+        
+        // Search for T2 variant with " II" suffix
+        try {
+            const t2Name = productName + ' II';
+            const searchUrl = `https://esi.evetech.net/latest/search/?categories=inventory_type&search=${encodeURIComponent(t2Name)}&strict=true`;
+            const searchResponse = await fetch(searchUrl);
+            if (searchResponse.ok) {
+                const searchData = await searchResponse.json();
+                if (searchData.inventory_type && searchData.inventory_type.length > 0) {
+                    const t2TypeId = searchData.inventory_type[0];
+                    const t2Name = getItemName(t2TypeId);
+                    t2Variants.push({ id: t2TypeId, name: t2Name });
+                }
+            }
+        } catch (e) {
+            console.log('ESI search for T2 variant failed:', e);
+        }
+        
+        // Also try searching for the base name to see if there are T2 variants
+        try {
+            const searchUrl = `https://esi.evetech.net/latest/search/?categories=inventory_type&search=${encodeURIComponent(productName)}&strict=false`;
+            const searchResponse = await fetch(searchUrl);
+            if (searchResponse.ok) {
+                const searchData = await searchResponse.json();
+                if (searchData.inventory_type && searchData.inventory_type.length > 0) {
+                    // Filter for items that might be T2 variants (contain " II" or are known T2 ships)
+                    for (const typeId of searchData.inventory_type) {
+                        if (typeId === productTypeId) continue; // Skip the original item
+                        const typeResponse = await fetch(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
+                        if (typeResponse.ok) {
+                            const typeData = await typeResponse.json();
+                            if (typeData.name.includes(' II') || typeData.name.includes('Navy') || typeData.name.includes('Federation') || typeData.name.includes('Cruor') || typeData.name.includes('Phantasm') || typeData.name.includes('Vigilant') || typeData.name.includes('Ashimmu') || typeData.name.includes('Bhaalgorn') || typeData.name.includes('Nightmare') || typeData.name.includes('Machariel') || typeData.name.includes('Vindicator') || typeData.name.includes('Rattlesnake') || typeData.name.includes('Chimera') || typeData.name.includes('Nidhoggur') || typeData.name.includes('Thanatos') || typeData.name.includes('Archon') || typeData.name.includes('Aeon') || typeData.name.includes('Wyvern') || typeData.name.includes('Hel') || typeData.name.includes('Nyx') || typeData.name.includes('Revelation') || typeData.name.includes('Moros') || typeData.name.includes('Naglfar') || typeData.name.includes('Phoenix') || typeData.name.includes('Dreadnought')) {
+                                // Check if this is not already in the list
+                                if (!t2Variants.some(v => v.id === typeId)) {
+                                    t2Variants.push({ id: typeId, name: typeData.name });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('ESI search for T2 variants failed:', e);
+        }
+        
+        if (t2Variants.length > 0) {
+            html += '<h4><i class="fas fa-arrow-up"></i> Can Be Invented To</h4>';
+            html += '<div class="manufacturing-tree">';
+            
+            t2Variants.forEach(variant => {
+                const isFav = AppState.favorites.some(f => f.id === variant.id);
+                html += `
+                    <div class="manufacturing-item" onclick="loadItem(${variant.id}, '${variant.name.replace(/'/g, "\\'")}')">
+                        <img src="https://images.evetech.net/types/${variant.id}/icon?size=32" class="manufacturing-item-icon" alt="${variant.name}" onerror="this.style.display='none'">
+                        <div class="manufacturing-item-info">
+                            <div class="manufacturing-item-name">${variant.name}</div>
+                            <div class="manufacturing-item-quantity">T2 Variant</div>
+                        </div>
+                        <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${variant.id}, '${variant.name.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                            <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+        }
+    }
+    
     // Display precursor T1 blueprint for T2 items
     if (fuzzworkData.blueprintDetails && fuzzworkData.blueprintDetails.precursorTypeId) {
         const precursorTypeId = fuzzworkData.blueprintDetails.precursorTypeId;
@@ -1312,8 +1389,105 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
     }
     
     html += '</div>';
+    
+    // Calculate and display full build cost
+    if (materials.length > 0 || reactionMaterials.length > 0 || inventionMaterials.length > 0) {
+        html += '<div class="manufacturing-summary">';
+        html += '<h4><i class="fas fa-coins"></i> Estimated Build Cost</h4>';
+        html += '<div class="cost-row">';
+        html += '<span>Calculating...</span>';
+        html += '<span id="buildCostValue">Loading...</span>';
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    html += '</div>';
     console.log('Generated HTML:', html);
     container.innerHTML = html;
+    
+    // Calculate build cost after rendering
+    if (materials.length > 0 || reactionMaterials.length > 0 || inventionMaterials.length > 0) {
+        calculateBuildCost(materials, reactionMaterials, inventionMaterials);
+    }
+}
+
+async function calculateBuildCost(materials, reactionMaterials, inventionMaterials) {
+    try {
+        const costContainer = el('buildCostValue');
+        if (!costContainer) return;
+        
+        let totalCost = 0;
+        const regionId = AppState.currentRegion === '0' ? '10000002' : AppState.currentRegion; // Use Jita for all regions or current region
+        
+        // Calculate manufacturing materials cost
+        if (materials.length > 0) {
+            for (const material of materials) {
+                if (!material.typeid) continue;
+                const price = await getMarketPrice(material.typeid, regionId);
+                totalCost += price * material.quantity;
+            }
+        }
+        
+        // Calculate reaction materials cost
+        if (reactionMaterials.length > 0) {
+            for (const material of reactionMaterials) {
+                if (!material.typeid) continue;
+                const price = await getMarketPrice(material.typeid, regionId);
+                totalCost += price * material.quantity;
+            }
+        }
+        
+        // Calculate invention materials cost
+        if (inventionMaterials.length > 0) {
+            for (const material of inventionMaterials) {
+                if (!material.typeid) continue;
+                const price = await getMarketPrice(material.typeid, regionId);
+                totalCost += price * material.quantity;
+            }
+        }
+        
+        costContainer.textContent = formatISK(totalCost);
+        costContainer.style.fontWeight = '600';
+        costContainer.style.color = 'var(--accent)';
+    } catch (error) {
+        console.error('Error calculating build cost:', error);
+        const costContainer = el('buildCostValue');
+        if (costContainer) {
+            costContainer.textContent = 'N/A';
+        }
+    }
+}
+
+async function getMarketPrice(typeId, regionId) {
+    try {
+        // Try to get sell orders from the region
+        const ordersUrl = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${typeId}&order_type=sell`;
+        const response = await fetch(ordersUrl);
+        if (response.ok) {
+            const orders = await response.json();
+            if (orders.length > 0) {
+                // Get the lowest sell order
+                const lowestSell = orders.reduce((min, order) => order.price < min.price ? order : min, orders[0]);
+                return lowestSell.price;
+            }
+        }
+    } catch (e) {
+        console.error(`Error fetching price for type ${typeId}:`, e);
+    }
+    
+    // Fallback to adjusted price if market orders fail
+    try {
+        const typeUrl = `${ESI_BASE}/universe/types/${typeId}/`;
+        const response = await fetch(typeUrl);
+        if (response.ok) {
+            const typeData = await response.json();
+            return typeData.adjusted_price || 0;
+        }
+    } catch (e) {
+        console.error(`Error fetching adjusted price for type ${typeId}:`, e);
+    }
+    
+    return 0;
 }
 
 // Render favorites on home page
