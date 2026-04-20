@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EVE Market Browser - RustyBot</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,6 +45,17 @@
             </div>
             <div id="categoryTree" class="category-tree"></div>
         </nav>
+
+        <div class="nav-section">
+            <a href="#" id="dashboardLink" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Market Trends</span>
+            </a>
+            <a href="#" id="favoritesLink" class="nav-item">
+                <i class="fas fa-star"></i>
+                <span>Favorite Items</span>
+            </a>
+        </div>
         
         <div class="sidebar-footer">
             <div class="eve-time-display">
@@ -89,27 +100,88 @@
                     <p>Browse market data for any item in New Eden. Select a category from the sidebar or search for an item.</p>
                 </div>
                 
-                <div class="quick-stats">
-                    <div class="stat-card">
-                        <i class="fas fa-fire"></i>
-                        <div class="stat-info">
-                            <span class="stat-value" id="topVolumeItem">—</span>
-                            <span class="stat-label">Top Volume (24h)</span>
-                        </div>
+                <div class="popular-items">
+                    <h3><i class="fas fa-star"></i> Favorite Items</h3>
+                    <div class="item-grid" id="homeFavorites">
+                        <!-- Favorite items will be loaded here -->
                     </div>
-                    <div class="stat-card">
-                        <i class="fas fa-chart-line"></i>
-                        <div class="stat-info">
-                            <span class="stat-value" id="marketMovement">—</span>
-                            <span class="stat-label">Market Movement</span>
-                        </div>
-                    </div>
+                    <p class="empty-state" id="homeFavoritesEmpty" style="display: none;">No favorite items yet. Click the star icon on any item to add it here.</p>
                 </div>
                 
                 <div class="popular-items">
-                    <h3><i class="fas fa-star"></i> Popular Items</h3>
+                    <h3><i class="fas fa-fire"></i> Popular Items</h3>
                     <div class="item-grid" id="popularItems">
                         <!-- Popular items will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard View -->
+            <section id="dashboardView" class="view hidden">
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-chart-line"></i> Market Trends</h2>
+                    <div class="dashboard-controls">
+                        <button id="refreshDashboard" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="dashboard-charts">
+                    <div class="chart-card large">
+                        <div class="chart-header">
+                            <h3>Market Overview (7 Days)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="marketOverviewChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trending Items -->
+                <div class="dashboard-trends">
+                    <div class="trends-column">
+                        <div class="trends-card gainers">
+                            <div class="trends-header">
+                                <h3><i class="fas fa-arrow-up text-success"></i> Top Gainers (24h)</h3>
+                            </div>
+                            <div class="trends-list" id="topGainers">
+                                <!-- Gainers will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trends-column">
+                        <div class="trends-card losers">
+                            <div class="trends-header">
+                                <h3><i class="fas fa-arrow-down text-danger"></i> Top Losers (24h)</h3>
+                            </div>
+                            <div class="trends-list" id="topLosers">
+                                <!-- Losers will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trends-column">
+                        <div class="trends-card volume">
+                            <div class="trends-header">
+                                <h3><i class="fas fa-chart-line text-primary"></i> Most Traded (24h)</h3>
+                            </div>
+                            <div class="trends-list" id="topVolume">
+                                <!-- Volume leaders will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="dashboard-categories">
+                    <div class="category-breakdown-card">
+                        <div class="chart-header">
+                            <h3>Volume by Category</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="categoryVolumeChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -189,6 +261,12 @@
                     </button>
                     <button class="tab-btn" data-tab="history">
                         <i class="fas fa-history"></i> Price History
+                    </button>
+                    <button class="tab-btn" data-tab="regional">
+                        <i class="fas fa-map-marker-alt"></i> Regional Comparison
+                    </button>
+                    <button class="tab-btn" data-tab="manufacturing">
+                        <i class="fas fa-industry"></i> Manufacturing
                     </button>
                     <button class="tab-btn" data-tab="details">
                         <i class="fas fa-info-circle"></i> Details
@@ -296,6 +374,37 @@
                         </div>
                     </div>
 
+                    <!-- Regional Comparison Tab -->
+                    <div id="regionalTab" class="tab-pane hidden">
+                        <div class="regional-controls">
+                            <div class="time-range">
+                                <button class="range-btn" data-range="7">7 Days</button>
+                                <button class="range-btn active" data-range="30">30 Days</button>
+                                <button class="range-btn" data-range="90">3 Months</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="regionalChart"></canvas>
+                        </div>
+                        <div class="regional-table">
+                            <table class="regional-comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>Region</th>
+                                        <th>Best Sell</th>
+                                        <th>Best Buy</th>
+                                        <th>Spread</th>
+                                        <th>30d Volume</th>
+                                        <th>Avg Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="regionalTableBody">
+                                    <!-- Regional data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Details Tab -->
                     <div id="detailsTab" class="tab-pane hidden">
                         <div class="details-grid">
@@ -313,12 +422,26 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Manufacturing Tab -->
+                    <div id="manufacturingTab" class="tab-pane hidden">
+                        <div class="manufacturing-content">
+                            <div id="manufacturingInfo">
+                                <p class="loading-text">Loading manufacturing data...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <!-- Favorites View -->
             <section id="favoritesView" class="view hidden">
-                <h2><i class="fas fa-star"></i> Favorite Items</h2>
+                <div class="favorites-header">
+                    <h2><i class="fas fa-star"></i> Favorite Items</h2>
+                    <button id="enableNotifications" class="action-btn">
+                        <i class="fas fa-bell"></i> Enable Notifications
+                    </button>
+                </div>
                 <div id="favoritesList" class="favorites-list">
                     <p class="empty-state">No favorite items yet. Click the star icon on any item to add it here.</p>
                 </div>
