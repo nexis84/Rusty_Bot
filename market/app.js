@@ -1088,6 +1088,9 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
     let html = '<div class="manufacturing-section">';
     
     // Display T2 items that can be invented from this T1 blueprint
+    console.log('Checking for invention activity:', fuzzworkData.blueprintSkills);
+    console.log('Activity 8 present:', fuzzworkData.blueprintSkills && fuzzworkData.blueprintSkills['8']);
+    
     if (fuzzworkData.blueprintSkills && fuzzworkData.blueprintSkills['8']) {
         // This blueprint has invention activity, so it can be invented to T2
         const productName = fuzzworkData.blueprintDetails.productTypeName || getItemName(productTypeId);
@@ -1099,13 +1102,16 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
         // Search for T2 variant with " II" suffix
         try {
             const t2Name = productName + ' II';
+            console.log('Searching for:', t2Name);
             const searchUrl = `https://esi.evetech.net/latest/search/?categories=inventory_type&search=${encodeURIComponent(t2Name)}&strict=true`;
             const searchResponse = await fetch(searchUrl);
             if (searchResponse.ok) {
                 const searchData = await searchResponse.json();
+                console.log('Search result for', t2Name, ':', searchData);
                 if (searchData.inventory_type && searchData.inventory_type.length > 0) {
                     const t2TypeId = searchData.inventory_type[0];
                     const t2Name = getItemName(t2TypeId);
+                    console.log('Found T2 variant:', t2Name, 'ID:', t2TypeId);
                     t2Variants.push({ id: t2TypeId, name: t2Name });
                 }
             }
@@ -1139,6 +1145,8 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
         } catch (e) {
             console.log('ESI search for T2 variants failed:', e);
         }
+        
+        console.log('T2 variants found:', t2Variants);
         
         if (t2Variants.length > 0) {
             html += '<h4><i class="fas fa-arrow-up"></i> Can Be Invented To</h4>';
