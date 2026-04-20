@@ -1055,34 +1055,47 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
     const activityMaterials = fuzzworkData.activityMaterials;
     console.log('Activity materials keys:', Object.keys(activityMaterials));
     
-    // Activity ID 1 is manufacturing - it's an array of materials, not an object with materials property
+    // Activity ID 1 is manufacturing, Activity ID 11 is reactions
     let materials = activityMaterials[1] || activityMaterials['1']; // Activity ID 1 is manufacturing
+    let reactionMaterials = activityMaterials[11] || activityMaterials['11']; // Activity ID 11 is reactions
     
     console.log('Materials array:', materials);
+    console.log('Reaction materials array:', reactionMaterials);
     
     if (!materials || materials.length === 0) {
-        container.innerHTML = `
-            <div class="no-manufacturing">
-                <i class="fas fa-industry"></i>
-                <p>No manufacturing data available for this item.</p>
-            </div>
-        `;
-        return;
+        if (!reactionMaterials || reactionMaterials.length === 0) {
+            container.innerHTML = `
+                <div class="no-manufacturing">
+                    <i class="fas fa-industry"></i>
+                    <p>No manufacturing or reaction data available for this item.</p>
+                </div>
+            `;
+            return;
+        }
+        // If only reaction materials exist, use those
+        materials = [];
+    }
+    
+    if (!reactionMaterials || reactionMaterials.length === 0) {
+        reactionMaterials = [];
     }
     
     let html = '<div class="manufacturing-section">';
     
-    // Display blueprint information
+    // Display blueprint/reaction formula information
     if (fuzzworkData.blueprintDetails) {
         const blueprintDetails = fuzzworkData.blueprintDetails;
         console.log('Blueprint details:', blueprintDetails);
         
-        // Search for blueprint in local data
+        // Check if this is a reaction (activity 11) or manufacturing (activity 1)
+        const isReaction = fuzzworkData.blueprintSkills && fuzzworkData.blueprintSkills['11'];
+        
+        // Search for blueprint/reaction formula in local data
         let blueprintTypeId = null;
         if (typeof AllMarketItems !== 'undefined' && AllMarketItems.blueprints) {
             const productName = blueprintDetails.productTypeName || getItemName(productTypeId);
-            const blueprintName = productName + ' Blueprint';
-            console.log('Searching for blueprint:', blueprintName);
+            const blueprintName = productName + (isReaction ? ' Reaction Formula' : ' Blueprint');
+            console.log('Searching for blueprint/reaction formula:', blueprintName);
             
             // Try exact match
             let blueprint = AllMarketItems.blueprints.items.find(b => b.name === blueprintName);
@@ -1097,7 +1110,11 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
                     console.log('Found blueprint with case-insensitive search:', blueprintTypeId, blueprint.name);
                 } else {
                     // Try partial match - blueprint name contains product name
-                    blueprint = AllMarketItems.blueprints.items.find(b => b.name.toLowerCase().includes(productName.toLowerCase()) && b.name.toLowerCase().includes('blueprint'));
+                    const searchTerms = isReaction ? ['reaction', 'formula'] : ['blueprint'];
+                    blueprint = AllMarketItems.blueprints.items.find(b => 
+                        b.name.toLowerCase().includes(productName.toLowerCase()) && 
+                        searchTerms.some(term => b.name.toLowerCase().includes(term))
+                    );
                     if (blueprint) {
                         blueprintTypeId = blueprint.id;
                         console.log('Found blueprint with partial match:', blueprintTypeId, blueprint.name);
@@ -1120,12 +1137,13 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
                                     if (searchResponse.ok) {
                                         const searchData = await searchResponse.json();
                                         if (searchData.inventory_type && searchData.inventory_type.length > 0) {
-                                            // Filter for blueprints
+                                            // Filter for blueprints or reaction formulas
                                             for (const typeId of searchData.inventory_type) {
                                                 const typeResponse = await fetch(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
                                                 if (typeResponse.ok) {
                                                     const typeData = await typeResponse.json();
-                                                    if (typeData.name.toLowerCase().includes('blueprint')) {
+                                                    const searchTerms = isReaction ? ['reaction', 'formula'] : ['blueprint'];
+                                                    if (searchTerms.some(term => typeData.name.toLowerCase().includes(term))) {
                                                         blueprintTypeId = typeId;
                                                         console.log('Found blueprint via product name search:', blueprintTypeId, typeData.name);
                                                         break;
@@ -1149,14 +1167,17 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
         if (blueprintTypeId) {
             const blueprintName = getItemName(blueprintTypeId);
             const isFav = AppState.favorites.some(f => f.id === blueprintTypeId);
-            html += '<h4><i class="fas fa-file-blueprint"></i> Blueprint Required</h4>';
+            const iconClass = isReaction ? 'fa-flask' : 'fa-file-blueprint';
+            const label = isReaction ? 'Reaction Formula Required' : 'Blueprint Required';
+            const quantityLabel = isReaction ? 'Reaction Formula' : 'Blueprint';
+            html += `<h4><i class="fas ${iconClass}"></i> ${label}</h4>`;
             html += '<div class="manufacturing-tree">';
             html += `
                 <div class="manufacturing-item" onclick="loadItem(${blueprintTypeId}, '${blueprintName.replace(/'/g, "\\'")}')">
                     <img src="https://images.evetech.net/types/${blueprintTypeId}/icon?size=32" class="manufacturing-item-icon" alt="${blueprintName}" onerror="this.style.display='none'">
                     <div class="manufacturing-item-info">
                         <div class="manufacturing-item-name">${blueprintName}</div>
-                        <div class="manufacturing-item-quantity">Blueprint</div>
+                        <div class="manufacturing-item-quantity">${quantityLabel}</div>
                     </div>
                     <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${blueprintTypeId}, '${blueprintName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                         <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
@@ -1165,39 +1186,75 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
             `;
             html += '</div>';
         } else {
-            // Blueprint not found - might be invention-only
-            html += '<h4><i class="fas fa-file-blueprint"></i> Blueprint Required</h4>';
+            // Blueprint/reaction formula not found - might be invention-only or not tradable
+            const iconClass = isReaction ? 'fa-flask' : 'fa-file-blueprint';
+            const label = isReaction ? 'Reaction Formula Required' : 'Blueprint Required';
+            const message = isReaction 
+                ? 'Reaction formula not available on market (not tradable)' 
+                : 'Blueprint not available on market (invention-only or not tradable)';
+            html += `<h4><i class="fas ${iconClass}"></i> ${label}</h4>`;
             html += '<div class="no-manufacturing">';
-            html += '<p>Blueprint not available on market (invention-only or not tradable)</p>';
+            html += `<p>${message}</p>`;
             html += '</div>';
         }
     }
     
-    // Display materials required
-    html += '<h4><i class="fas fa-cube"></i> Materials Required</h4>';
-    html += '<div class="manufacturing-tree">';
-    
-    materials.forEach(material => {
-        console.log('Material:', material);
-        if (!material.typeid) return; // Skip materials with undefined typeid
+    // Display materials required (manufacturing)
+    if (materials.length > 0) {
+        html += '<h4><i class="fas fa-cube"></i> Manufacturing Materials Required</h4>';
+        html += '<div class="manufacturing-tree">';
         
-        const materialName = getItemName(material.typeid);
-        const isFav = AppState.favorites.some(f => f.id === material.typeid);
-        html += `
-            <div class="manufacturing-item" onclick="loadItem(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')">
-                <img src="https://images.evetech.net/types/${material.typeid}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
-                <div class="manufacturing-item-info">
-                    <div class="manufacturing-item-name">${materialName}</div>
-                    <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+        materials.forEach(material => {
+            console.log('Material:', material);
+            if (!material.typeid) return; // Skip materials with undefined typeid
+            
+            const materialName = getItemName(material.typeid);
+            const isFav = AppState.favorites.some(f => f.id === material.typeid);
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${material.typeid}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${materialName}</div>
+                        <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+                    </div>
+                    <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                        <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                    </button>
                 </div>
-                <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
-                    <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
-                </button>
-            </div>
-        `;
-    });
+            `;
+        });
+        
+        html += '</div>';
+    }
     
-    html += '</div>';
+    // Display reaction materials if available
+    if (reactionMaterials.length > 0) {
+        html += '<h4><i class="fas fa-flask"></i> Reaction Materials Required</h4>';
+        html += '<div class="manufacturing-tree">';
+        
+        reactionMaterials.forEach(material => {
+            console.log('Reaction Material:', material);
+            if (!material.typeid) return; // Skip materials with undefined typeid
+            
+            const materialName = getItemName(material.typeid);
+            const isFav = AppState.favorites.some(f => f.id === material.typeid);
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${material.typeid}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${materialName}</div>
+                        <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+                    </div>
+                    <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                        <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
     html += '</div>';
     console.log('Generated HTML:', html);
     container.innerHTML = html;
