@@ -1055,9 +1055,10 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
     const activityMaterials = fuzzworkData.activityMaterials;
     console.log('Activity materials keys:', Object.keys(activityMaterials));
     
-    // Activity ID 1 is manufacturing, Activity ID 11 is reactions
+    // Activity ID 1 is manufacturing, Activity ID 8 is invention, Activity ID 11 is reactions
     let materials = activityMaterials[1] || activityMaterials['1']; // Activity ID 1 is manufacturing
     let reactionMaterials = activityMaterials[11] || activityMaterials['11']; // Activity ID 11 is reactions
+    let inventionMaterials = activityMaterials[8] || activityMaterials['8']; // Activity ID 8 is invention
     
     console.log('Materials array:', materials);
     console.log('Reaction materials array:', reactionMaterials);
@@ -1080,7 +1081,34 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
         reactionMaterials = [];
     }
     
+    if (!inventionMaterials || inventionMaterials.length === 0) {
+        inventionMaterials = [];
+    }
+    
     let html = '<div class="manufacturing-section">';
+    
+    // Display precursor T1 blueprint for T2 items
+    if (fuzzworkData.blueprintDetails && fuzzworkData.blueprintDetails.precursorTypeId) {
+        const precursorTypeId = fuzzworkData.blueprintDetails.precursorTypeId;
+        const precursorName = getItemName(precursorTypeId);
+        const isFav = AppState.favorites.some(f => f.id === precursorTypeId);
+        
+        html += '<h4><i class="fas fa-level-up-alt"></i> Invented From T1 Blueprint</h4>';
+        html += '<div class="manufacturing-tree">';
+        html += `
+            <div class="manufacturing-item" onclick="loadItem(${precursorTypeId}, '${precursorName.replace(/'/g, "\\'")}')">
+                <img src="https://images.evetech.net/types/${precursorTypeId}/icon?size=32" class="manufacturing-item-icon" alt="${precursorName}" onerror="this.style.display='none'">
+                <div class="manufacturing-item-info">
+                    <div class="manufacturing-item-name">${precursorName}</div>
+                    <div class="manufacturing-item-quantity">T1 Blueprint</div>
+                </div>
+                <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${precursorTypeId}, '${precursorName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                </button>
+            </div>
+        `;
+        html += '</div>';
+    }
     
     // Display blueprint/reaction formula information
     if (fuzzworkData.blueprintDetails) {
@@ -1234,6 +1262,34 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
         
         reactionMaterials.forEach(material => {
             console.log('Reaction Material:', material);
+            if (!material.typeid) return; // Skip materials with undefined typeid
+            
+            const materialName = getItemName(material.typeid);
+            const isFav = AppState.favorites.some(f => f.id === material.typeid);
+            html += `
+                <div class="manufacturing-item" onclick="loadItem(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')">
+                    <img src="https://images.evetech.net/types/${material.typeid}/icon?size=32" class="manufacturing-item-icon" alt="${materialName}" onerror="this.style.display='none'">
+                    <div class="manufacturing-item-info">
+                        <div class="manufacturing-item-name">${materialName}</div>
+                        <div class="manufacturing-item-quantity">Quantity: ${material.quantity}</div>
+                    </div>
+                    <button class="manufacturing-item-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavoriteById(${material.typeid}, '${materialName.replace(/'/g, "\\'")}')" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                        <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+    }
+    
+    // Display invention materials if available
+    if (inventionMaterials.length > 0) {
+        html += '<h4><i class="fas fa-lightbulb"></i> Invention Materials Required</h4>';
+        html += '<div class="manufacturing-tree">';
+        
+        inventionMaterials.forEach(material => {
+            console.log('Invention Material:', material);
             if (!material.typeid) return; // Skip materials with undefined typeid
             
             const materialName = getItemName(material.typeid);
@@ -2979,52 +3035,109 @@ async function loadTrendingItems() {
         // Get popular items for trending
         const popularItems = PopularItems || [];
         
-        // Top gainers (placeholder - would need historical data)
+        // Fetch price change data for all popular items
+        const priceChangePromises = popularItems.slice(0, 10).map(async (item) => {
+            try {
+                // Use Jita (10000002) as the reference region for price data
+                const historyUrl = `${ESI_BASE}/markets/10000002/history/?type_id=${item.id}`;
+                const response = await fetch(historyUrl);
+                if (response.ok) {
+                    const history = await response.json();
+                    if (history.length >= 2) {
+                        const latest = history[history.length - 1];
+                        const previous = history[history.length - 2];
+                        const avgPriceChange = ((latest.average - previous.average) / previous.average) * 100;
+                        return {
+                            ...item,
+                            priceChange: avgPriceChange
+                        };
+                    }
+                }
+            } catch (e) {
+                console.error(`Error fetching price change for ${item.name}:`, e);
+            }
+            return { ...item, priceChange: 0 };
+        });
+
+        const itemsWithPriceChange = await Promise.all(priceChangePromises);
+        
+        // Sort by absolute price change (most trended at top)
+        itemsWithPriceChange.sort((a, b) => Math.abs(b.priceChange) - Math.abs(a.priceChange));
+        
+        // Top gainers (highest positive price changes)
         const gainersContainer = el('topGainers');
-        if (gainersContainer && popularItems.length > 0) {
-            gainersContainer.innerHTML = popularItems.slice(0, 5).map((item, index) => `
+        if (gainersContainer && itemsWithPriceChange.length > 0) {
+            const gainers = itemsWithPriceChange.filter(item => item.priceChange > 0).slice(0, 5);
+            gainersContainer.innerHTML = gainers.map((item, index) => `
                 <div class="trend-item" onclick="loadItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
                     <div class="trend-item-info">
                         <div class="trend-item-name">${item.name}</div>
                         <div class="trend-item-category">${item.category}</div>
                     </div>
                     <div class="trend-item-change positive">
-                        <div class="trend-item-value">+${(Math.random() * 10 + 1).toFixed(2)}%</div>
-                        <div class="trend-item-label">24h</div>
+                        <div class="trend-item-value">+${item.priceChange.toFixed(2)}%</div>
+                        <div class="trend-item-label">Jita 24h</div>
                     </div>
                 </div>
             `).join('');
         }
         
-        // Top losers (placeholder)
+        // Top losers (lowest negative price changes)
         const losersContainer = el('topLosers');
-        if (losersContainer && popularItems.length > 0) {
-            losersContainer.innerHTML = popularItems.slice(5, 10).map((item, index) => `
+        if (losersContainer && itemsWithPriceChange.length > 0) {
+            const losers = itemsWithPriceChange.filter(item => item.priceChange < 0).slice(0, 5);
+            losersContainer.innerHTML = losers.map((item, index) => `
                 <div class="trend-item" onclick="loadItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
                     <div class="trend-item-info">
                         <div class="trend-item-name">${item.name}</div>
                         <div class="trend-item-category">${item.category}</div>
                     </div>
                     <div class="trend-item-change negative">
-                        <div class="trend-item-value">-${(Math.random() * 5 + 1).toFixed(2)}%</div>
-                        <div class="trend-item-label">24h</div>
+                        <div class="trend-item-value">${item.priceChange.toFixed(2)}%</div>
+                        <div class="trend-item-label">Jita 24h</div>
                     </div>
                 </div>
             `).join('');
         }
         
-        // Most traded by volume (placeholder)
+        // Most traded by volume - fetch real data from ESI
         const volumeContainer = el('topVolume');
         if (volumeContainer && popularItems.length > 0) {
-            volumeContainer.innerHTML = popularItems.slice(0, 5).map((item, index) => `
+            // Fetch volume data for each popular item
+            const volumePromises = popularItems.slice(0, 5).map(async (item) => {
+                try {
+                    // Use Jita (10000002) as the reference region for volume
+                    const historyUrl = `${ESI_BASE}/markets/10000002/history/?type_id=${item.id}`;
+                    const response = await fetch(historyUrl);
+                    if (response.ok) {
+                        const history = await response.json();
+                        // Get the most recent day's volume
+                        const latestEntry = history[history.length - 1];
+                        return {
+                            ...item,
+                            volume: latestEntry ? latestEntry.volume : 0
+                        };
+                    }
+                } catch (e) {
+                    console.error(`Error fetching volume for ${item.name}:`, e);
+                }
+                return { ...item, volume: 0 };
+            });
+
+            const itemsWithVolume = await Promise.all(volumePromises);
+            
+            // Sort by volume and display
+            itemsWithVolume.sort((a, b) => b.volume - a.volume);
+            
+            volumeContainer.innerHTML = itemsWithVolume.map((item, index) => `
                 <div class="trend-item" onclick="loadItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">
                     <div class="trend-item-info">
                         <div class="trend-item-name">${item.name}</div>
                         <div class="trend-item-category">${item.category}</div>
                     </div>
                     <div class="trend-item-change">
-                        <div class="trend-item-value">${fmtInt(Math.floor(Math.random() * 1000000 + 100000))}</div>
-                        <div class="trend-item-label">24h Vol</div>
+                        <div class="trend-item-value">${fmtInt(item.volume)}</div>
+                        <div class="trend-item-label">Jita 24h Vol</div>
                     </div>
                 </div>
             `).join('');
