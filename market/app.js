@@ -1508,6 +1508,215 @@ async function getMarketPrice(typeId, regionId) {
     return 0;
 }
 
+// Calculate bulk buy cost
+async function calculateBulkCost() {
+    const quantity = parseInt(el('bulkQuantity')?.value || 0);
+    const bulkRegion = el('bulkRegion')?.value || 'major';
+    const bulkResults = el('bulkResults');
+    
+    if (!bulkResults) return;
+    
+    if (!quantity || quantity <= 0) {
+        bulkResults.innerHTML = '<p class="error-message">Please enter a valid quantity.</p>';
+        return;
+    }
+    
+    if (!AppState.currentItem) {
+        bulkResults.innerHTML = '<p class="error-message">No item data available. Please select an item first.</p>';
+        return;
+    }
+    
+    bulkResults.innerHTML = '<p class="loading-text">Calculating bulk buy cost...</p>';
+    
+    try {
+        const typeId = AppState.currentItem.id;
+        const itemName = AppState.currentItem.name;
+        
+        // Define major trade hub regions
+        const majorRegions = [
+            { id: '10000002', name: 'Jita' },
+            { id: '10000043', name: 'Amarr' },
+            { id: '10000032', name: 'Dodixie' },
+            { id: '10000030', name: 'Hek' },
+            { id: '10000042', name: 'Rens' }
+        ];
+        
+        // PLEX type ID
+        const PLEX_TYPE_ID = 44992;
+        
+        // Check if current item is PLEX
+        const isPLEX = typeId === PLEX_TYPE_ID;
+        
+        // Determine regions to fetch
+        let regionsToFetch = [];
+        if (isPLEX) {
+            regionsToFetch = [{ id: '19000001', name: 'PLEX (Global)' }];
+        } else if (bulkRegion === 'major') {
+            regionsToFetch = majorRegions;
+        } else {
+            const regionName = majorRegions.find(r => r.id === bulkRegion)?.name || bulkRegion;
+            regionsToFetch = [{ id: bulkRegion, name: regionName }];
+        }
+        
+        // Fetch orders from selected regions (both sell and buy)
+        let regionData = {};
+        
+        for (const region of regionsToFetch) {
+            try {
+                // Fetch sell orders
+                const sellUrl = `${ESI_BASE}/markets/${region.id}/orders/?type_id=${typeId}&order_type=sell`;
+                const sellResponse = await fetch(sellUrl);
+                let sellOrders = [];
+                if (sellResponse.ok) {
+                    sellOrders = await sellResponse.json();
+                }
+                
+                // Fetch buy orders
+                const buyUrl = `${ESI_BASE}/markets/${region.id}/orders/?type_id=${typeId}&order_type=buy`;
+                const buyResponse = await fetch(buyUrl);
+                let buyOrders = [];
+                if (buyResponse.ok) {
+                    buyOrders = await buyResponse.json();
+                }
+                
+                // Calculate sell cost for quantity
+                let sellCost = 0;
+                let sellAvailable = 0;
+                let sellQtyNeeded = quantity;
+                
+                const sortedSellOrders = sellOrders.sort((a, b) => a.price - b.price);
+                for (const order of sortedSellOrders) {
+                    if (sellQtyNeeded <= 0) break;
+                    const qtyToTake = Math.min(sellQtyNeeded, order.volume_remain);
+                    sellCost += qtyToTake * order.price;
+                    sellQtyNeeded -= qtyToTake;
+                }
+                
+                sellAvailable = sellOrders.reduce((sum, o) => sum + o.volume_remain, 0);
+                
+                // Calculate buy cost for quantity
+                let buyCost = 0;
+                let buyAvailable = 0;
+                let buyQtyNeeded = quantity;
+                
+                const sortedBuyOrders = buyOrders.sort((a, b) => b.price - a.price);
+                for (const order of sortedBuyOrders) {
+                    if (buyQtyNeeded <= 0) break;
+                    const qtyToTake = Math.min(buyQtyNeeded, order.volume_remain);
+                    buyCost += qtyToTake * order.price;
+                    buyQtyNeeded -= qtyToTake;
+                }
+                
+                buyAvailable = buyOrders.reduce((sum, o) => sum + o.volume_remain, 0);
+                
+                // Calculate actual quantities that can be filled
+                const sellQty = quantity - sellQtyNeeded;
+                const buyQty = quantity - buyQtyNeeded;
+                
+                regionData[region.name] = {
+                    sellCost: sellCost,
+                    sellAvailable: sellAvailable,
+                    sellQty: sellQty,
+                    sellAvgPrice: sellQty > 0 ? sellCost / sellQty : 0,
+                    buyCost: buyCost,
+                    buyAvailable: buyAvailable,
+                    buyQty: buyQty,
+                    buyAvgPrice: buyQty > 0 ? buyCost / buyQty : 0
+                };
+            } catch (e) {
+                console.error(`Error fetching orders from ${region.name}:`, e);
+                regionData[region.name] = {
+                    sellCost: 0,
+                    sellAvailable: 0,
+                    sellQty: 0,
+                    sellAvgPrice: 0,
+                    buyCost: 0,
+                    buyAvailable: 0,
+                    buyQty: 0,
+                    buyAvgPrice: 0,
+                    error: true
+                };
+            }
+        }
+        
+        // Display results
+        let html = `
+            <div class="bulk-header">
+                <h3>Market Orders for "${itemName}" ×${fmtInt(quantity)}</h3>
+                <p class="bulk-subtitle">Real-time market prices from major trade hubs</p>
+            </div>
+            <div class="bulk-regions-list">
+        `;
+        
+        // Sort regions by cheapest sell price at the top
+        const sortedRegionNames = Object.keys(regionData).sort((a, b) => {
+            const dataA = regionData[a];
+            const dataB = regionData[b];
+            if (dataA.error && dataB.error) return 0;
+            if (dataA.error) return 1;
+            if (dataB.error) return -1;
+            return dataA.sellCost - dataB.sellCost;
+        });
+        
+        sortedRegionNames.forEach(regionName => {
+            const data = regionData[regionName];
+            
+            if (data.error) {
+                html += `
+                    <div class="bulk-region-card bulk-region-error">
+                        <div class="bulk-region-name">${regionName}</div>
+                        <p class="error-text">Error fetching market data</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const sellWarning = data.sellAvailable < quantity ? 
+                `<div class="bulk-warning-inline"><i class="fas fa-exclamation-triangle"></i> Only ${fmtInt(data.sellAvailable)} available</div>` : '';
+            
+            const buyWarning = data.buyAvailable < quantity ? 
+                `<div class="bulk-warning-inline"><i class="fas fa-exclamation-triangle"></i> Only ${fmtInt(data.buyAvailable)} available</div>` : '';
+            
+            // Calculate unit prices (avoid division by zero)
+            const sellUnitPrice = data.sellQty > 0 ? data.sellCost / data.sellQty : 0;
+            const buyUnitPrice = data.buyQty > 0 ? data.buyCost / data.buyQty : 0;
+            
+            html += `
+                <div class="bulk-region-card">
+                    <div class="bulk-region-name">${regionName.toUpperCase()}</div>
+                    <div class="bulk-region-prices">
+                        <div class="bulk-price-row">
+                            <span class="bulk-price-label">Sell:</span>
+                            <span class="bulk-price-value">${formatISK(data.sellCost)}</span>
+                        </div>
+                        <div class="bulk-price-row unit-price">
+                            <span class="bulk-price-label">Per Unit:</span>
+                            <span class="bulk-price-value">${formatISK(sellUnitPrice)}</span>
+                        </div>
+                        ${sellWarning}
+                        <div class="bulk-price-row">
+                            <span class="bulk-price-label">Buy:</span>
+                            <span class="bulk-price-value">${formatISK(data.buyCost)}</span>
+                        </div>
+                        <div class="bulk-price-row unit-price">
+                            <span class="bulk-price-label">Per Unit:</span>
+                            <span class="bulk-price-value">${formatISK(buyUnitPrice)}</span>
+                        </div>
+                        ${buyWarning}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        bulkResults.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error calculating bulk cost:', error);
+        bulkResults.innerHTML = '<p class="error-message">Error calculating bulk cost. Please try again.</p>';
+    }
+}
+
 // Render favorites on home page
 function renderHomeFavorites() {
     const container = el('homeFavorites');
@@ -1627,12 +1836,6 @@ function setupEventListeners() {
     });
     
     // Order filters
-    el('minQtyFilter')?.addEventListener('input', debounce(() => {
-        if (AppState.currentItem && AppState.currentItem.orders) {
-            renderOrders(AppState.currentItem.orders);
-        }
-    }, 300));
-    
     el('systemFilter')?.addEventListener('change', () => {
         if (AppState.currentItem && AppState.currentItem.orders) {
             renderOrders(AppState.currentItem.orders);
@@ -1650,6 +1853,30 @@ function setupEventListeners() {
             renderOrders(AppState.currentItem.orders);
         }
     });
+    
+    // Advanced filters
+    el('minQtyPerOrder')?.addEventListener('input', debounce(() => {
+        if (AppState.currentItem && AppState.currentItem.orders) {
+            renderOrders(AppState.currentItem.orders);
+        }
+    }, 300));
+    
+    el('maxQtyPerOrder')?.addEventListener('input', debounce(() => {
+        if (AppState.currentItem && AppState.currentItem.orders) {
+            renderOrders(AppState.currentItem.orders);
+        }
+    }, 300));
+    
+    // Toggle advanced filters
+    el('toggleAdvanced')?.addEventListener('click', () => {
+        const advancedFilters = el('advancedFilters');
+        if (advancedFilters) {
+            advancedFilters.classList.toggle('hidden');
+        }
+    });
+    
+    // Calculate bulk buy cost
+    el('calculateBulk')?.addEventListener('click', calculateBulkCost);
     
     // Refresh button
     el('refreshOrders')?.addEventListener('click', () => {
@@ -1817,6 +2044,38 @@ function switchTab(tabName) {
     if (tabName === 'manufacturing' && AppState.currentItem) {
         loadManufacturingData(AppState.currentItem.id);
     }
+    
+    // Clear bulk results when bulk tab is selected
+    if (tabName === 'bulk') {
+        const bulkResults = el('bulkResults');
+        if (bulkResults) {
+            bulkResults.innerHTML = '<p class="empty-state">Enter a quantity and click Calculate to see the bulk buy cost.</p>';
+        }
+        
+        // Update region dropdown based on current item
+        const bulkRegion = el('bulkRegion');
+        if (bulkRegion && AppState.currentItem) {
+            const PLEX_TYPE_ID = 44992;
+            const isPLEX = AppState.currentItem.id === PLEX_TYPE_ID;
+            
+            if (isPLEX) {
+                bulkRegion.innerHTML = `
+                    <option value="19000001">PLEX (Global)</option>
+                `;
+                bulkRegion.value = '19000001';
+            } else {
+                bulkRegion.innerHTML = `
+                    <option value="major">Major Trade Hubs</option>
+                    <option value="10000002">Jita</option>
+                    <option value="10000043">Amarr</option>
+                    <option value="10000032">Dodixie</option>
+                    <option value="10000030">Hek</option>
+                    <option value="10000042">Rens</option>
+                `;
+                bulkRegion.value = 'major';
+            }
+        }
+    }
 }
 
 // Load item details
@@ -1827,9 +2086,19 @@ async function loadItem(typeId, name, forceRefresh = false) {
     showLoading(loadingMessage);
     
     // Clear manufacturing tab when loading a new item
-    const manufacturingContainer = el('manufacturingInfo');
-    if (manufacturingContainer) {
-        manufacturingContainer.innerHTML = '';
+    const manufacturingInfo = el('manufacturingInfo');
+    if (manufacturingInfo) {
+        manufacturingInfo.innerHTML = '<p class="loading-text">Loading manufacturing data...</p>';
+    }
+    
+    // Clear bulk buy tab when loading a new item
+    const bulkResults = el('bulkResults');
+    if (bulkResults) {
+        bulkResults.innerHTML = '<p class="empty-state">Enter a quantity and click Calculate to see the bulk buy cost.</p>';
+    }
+    const bulkQuantity = el('bulkQuantity');
+    if (bulkQuantity) {
+        bulkQuantity.value = '1';
     }
     
     // Reload manufacturing data if manufacturing tab is currently active
@@ -1846,6 +2115,36 @@ async function loadItem(typeId, name, forceRefresh = false) {
         
         // Update state
         AppState.currentItem = { id: typeId, name: name };
+        
+        // Switch to Orders tab as default when loading new item
+        switchTab('orders');
+        
+        // Update bulk region dropdown based on item type (PLEX or regular)
+        const bulkRegion = el('bulkRegion');
+        if (bulkRegion) {
+            const PLEX_TYPE_ID = 44992;
+            const isPLEX = typeId === PLEX_TYPE_ID;
+            
+            if (isPLEX) {
+                bulkRegion.innerHTML = `
+                    <option value="19000001">PLEX (Global)</option>
+                `;
+                bulkRegion.value = '19000001';
+            } else {
+                // Only update if not already set to prevent overwriting user selection
+                if (bulkRegion.value === '19000001') {
+                    bulkRegion.innerHTML = `
+                        <option value="major">Major Trade Hubs</option>
+                        <option value="10000002">Jita</option>
+                        <option value="10000043">Amarr</option>
+                        <option value="10000032">Dodixie</option>
+                        <option value="10000030">Hek</option>
+                        <option value="10000042">Rens</option>
+                    `;
+                    bulkRegion.value = 'major';
+                }
+            }
+        }
         
         // Update URL
         const url = `?type=${typeId}&region=${AppState.currentRegion}`;
@@ -2067,9 +2366,17 @@ async function fetchOrders(region, typeId) {
     const maxPages = 50;
     
     try {
-        const firstUrl = `${ESI_BASE}/markets/${region}/orders/?page=1&type_id=${typeId}`;
+        // Add cache-busting timestamp for live prices
+        const cacheBuster = Date.now();
+        const firstUrl = `${ESI_BASE}/markets/${region}/orders/?page=1&type_id=${typeId}&_=${cacheBuster}`;
         console.log(`Fetching orders from ${firstUrl}`);
-        let r = await fetch(firstUrl);
+        let r = await fetch(firstUrl, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
         
         if (!r.ok) {
             throw new Error(`Orders fetch failed: ${r.status} ${r.statusText}`);
@@ -2082,8 +2389,14 @@ async function fetchOrders(region, typeId) {
         if (totalPages > maxPages) totalPages = maxPages;
         
         for (let p = 2; p <= totalPages; p++) {
-            const url = `${ESI_BASE}/markets/${region}/orders/?page=${p}&type_id=${typeId}`;
-            r = await fetch(url);
+            const url = `${ESI_BASE}/markets/${region}/orders/?page=${p}&type_id=${typeId}&_=${cacheBuster}`;
+            r = await fetch(url, {
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
             if (!r.ok) break;
             chunk = await r.json();
             if (!chunk || chunk.length === 0) break;
@@ -2562,10 +2875,11 @@ function updateSortHeaders() {
 
 // Render orders tables
 async function renderOrders(orders) {
-    const minQty = parseInt(el('minQtyFilter')?.value || 0);
     const selectedSystem = el('systemFilter')?.value || 'all';
     const orderType = el('orderTypeFilter')?.value || 'all';
     const securityFilter = el('securityFilter')?.value || 'all';
+    const minQtyPerOrder = parseInt(el('minQtyPerOrder')?.value || 0);
+    const maxQtyPerOrder = parseInt(el('maxQtyPerOrder')?.value || 0);
     
     // Pre-fetch security status for all unique systems if security filter is active
     if (securityFilter !== 'all') {
@@ -2576,7 +2890,10 @@ async function renderOrders(orders) {
     // Separate and apply filters
     let sells = orders.filter(o => {
         if (o.is_buy_order) return false;
-        if (o.volume_remain < minQty) return false;
+        
+        // Advanced quantity per order filters
+        if (minQtyPerOrder > 0 && o.volume_remain < minQtyPerOrder) return false;
+        if (maxQtyPerOrder > 0 && o.volume_remain > maxQtyPerOrder) return false;
         
         // System filter
         if (selectedSystem !== 'all') {
@@ -2604,7 +2921,10 @@ async function renderOrders(orders) {
     
     let buys = orders.filter(o => {
         if (!o.is_buy_order) return false;
-        if (o.volume_remain < minQty) return false;
+        
+        // Advanced quantity per order filters
+        if (minQtyPerOrder > 0 && o.volume_remain < minQtyPerOrder) return false;
+        if (maxQtyPerOrder > 0 && o.volume_remain > maxQtyPerOrder) return false;
         
         // System filter
         if (selectedSystem !== 'all') {

@@ -1089,6 +1089,322 @@ body {
     border-color: var(--accent);
 }
 
+.filter-btn {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.filter-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent);
+}
+
+.advanced-filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.advanced-filters.hidden {
+    display: none;
+}
+
+/* Bulk Buy Cost Tab */
+.bulk-content {
+    padding: 20px;
+}
+
+.bulk-input-section {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.bulk-input-section .filter-group {
+    flex: 1;
+}
+
+.bulk-input-section .filter-group input,
+.bulk-input-section .filter-group select {
+    width: 100%;
+    height: 40px;
+}
+
+.bulk-input-section .action-btn {
+    height: 40px;
+    width: auto;
+    padding: 0 24px;
+    background: var(--accent);
+    color: #1a1a1a;
+    border: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bulk-input-section .action-btn:hover {
+    background: #ff9d5c;
+    color: #1a1a1a;
+    border: none;
+}
+
+.bulk-results {
+    min-height: 200px;
+}
+
+.bulk-header {
+    margin-bottom: 24px;
+}
+
+.bulk-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    color: var(--text);
+}
+
+.bulk-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.bulk-regions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bulk-region-card {
+    padding: 16px 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.bulk-region-error {
+    border-color: var(--danger);
+    background: rgba(244, 67, 54, 0.1);
+}
+
+.bulk-region-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bulk-region-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bulk-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bulk-price-row.unit-price {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.bulk-price-row.unit-price .bulk-price-label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.bulk-price-row.unit-price .bulk-price-value {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.bulk-price-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.bulk-price-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.bulk-warning-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--warning);
+    margin-top: 4px;
+}
+
+.bulk-warning-inline i {
+    font-size: 12px;
+}
+
+.error-text {
+    color: var(--danger);
+    margin: 0;
+}
+
+.bulk-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.bulk-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bulk-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.bulk-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.bulk-summary h4 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.bulk-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bulk-order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.bulk-order-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bulk-order-location {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.bulk-order-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bulk-order-price {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.bulk-order-qty {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.bulk-order-cost {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 16px;
+}
+
+.bulk-error {
+    padding: 20px;
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.bulk-error i {
+    font-size: 32px;
+    color: var(--danger);
+    margin-bottom: 12px;
+}
+
+.bulk-error p {
+    margin: 4px 0;
+    color: var(--text);
+}
+
+.bulk-warning {
+    padding: 16px;
+    background: rgba(255, 152, 0, 0.1);
+    border: 1px solid var(--warning);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.bulk-warning i {
+    font-size: 24px;
+    color: var(--warning);
+    margin-bottom: 8px;
+}
+
+.bulk-warning p {
+    margin: 4px 0;
+    color: var(--text);
+}
+
+.error-message {
+    color: var(--danger);
+    padding: 16px;
+    background: rgba(244, 67, 54, 0.1);
+    border-radius: 6px;
+    border: 1px solid var(--danger);
+}
+
 .refresh-btn {
     height: 36px;
     padding: 0 16px;
