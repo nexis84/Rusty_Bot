@@ -4,3 +4,17 @@ services:
     env: static
     rootDir: .
     staticPublishPath: .
+
+  - type: web
+    name: one-time-download
+    env: python
+    rootDir: one-time-download
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn one_time_download:app
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: TARGET_URL
+        value: https://github.com/nexis84/Rusty-Client/releases/download/2.0.45/RustyBot_Setup_v2.0.45.0.exe
+      - key: PYTHON_VERSION
+        value: 3.11.0
