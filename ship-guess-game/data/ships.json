@@ -1,0 +1,4675 @@
+[
+  {
+    "name": "Abaddon",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to all armor resistances",
+      "bonus to Large Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Absolution",
+    "race": "Amarr",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armored Command and Information Command burst strength and duration",
+      "bonus to Medium Energy Turret damage",
+      "bonus to all armor resistances",
+      "reduction in Medium Energy Turret activation cost"
+    ]
+  },
+  {
+    "name": "Adrestia",
+    "race": "Gallente",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "bonus to Medium Hybrid Turret tracking speed",
+      "bonus to ship max velocity",
+      "bonus to Medium Hybrid Turret falloff",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range"
+    ]
+  },
+  {
+    "name": "Aeon",
+    "race": "Amarr",
+    "class": "Supercarrier",
+    "bonuses": [
+      "Can fit Networked Sensor Array",
+      "Can fit Burst Projectors",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Heavy Fighters",
+      "Can lock at extended ranges",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Remote Sensor Dampener resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to all armor resistances",
+      "bonus to ship warp core strength",
+      "reduction in Weapon Disruption Burst Projector cycle time",
+      "bonus to Armored Command and Information Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Algos",
+    "race": "Gallente",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Drone max velocity",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Small Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Alligator",
+    "race": "Caldari",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Drone microwarp velocity",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Combat Drone hitpoints",
+      "bonus to Medium Combat Drone damage",
+      "Bonus to all shield resistances",
+      "bonus to kinetic and thermal Heavy Missile and Heavy Assault Missile damage"
+    ]
+  },
+  {
+    "name": "Amarr Shuttle",
+    "race": "Amarr",
+    "class": "Shuttle",
+    "bonuses": [
+      "Immune to Interdiction Sphere Launcher, Warp Disruption Field Generator and Mobile Small, Medium and Large Warp Disruptor",
+      "reduction to effective distance traveled for jump fatigue"
+    ]
+  },
+  {
+    "name": "Anathema",
+    "race": "Amarr",
+    "class": "Covert Ops",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to warp speed and warp acceleration",
+      "reduction to Core and Combat Scanner Probe deviation",
+      "reduction in warp drive capacitor need",
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in time required for Survey Probe scans"
+    ]
+  },
+  {
+    "name": "Anshar",
+    "race": "Gallente",
+    "class": "Jump Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier",
+      "bonus to ship armor and hull hitpoints",
+      "reduction in jump fuel requirement"
+    ]
+  },
+  {
+    "name": "Apocalypse",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Energy Turret optimal range",
+      "reduction to Large Energy Turret activation cost",
+      "bonus to Large Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Apocalypse Navy Issue",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Energy Turret optimal range",
+      "reduction to Large Energy Turret activation cost",
+      "bonus to Large Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Apostle",
+    "race": "Amarr",
+    "class": "Force Auxiliary",
+    "bonuses": [
+      "Can fit a Triage module",
+      "Can use two Command Burst modules",
+      "Can only online one Capacitor Booster module",
+      "penalty to Entosis Link duration",
+      "reduction in CPU requirements for Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Logistics Drone transfer amount",
+      "bonus to Armored Command and Information Command burst strength and duration",
+      "bonus to all armor resistances",
+      "bonus to Remote Capacitor Transmitter and Capital Remote Armor Repairer amount"
+    ]
+  },
+  {
+    "name": "Apotheosis",
+    "race": "Jove",
+    "class": "Shuttle",
+    "bonuses": [
+      "Immune to Interdiction Sphere Launcher, Warp Disruption Field Generator and Mobile Small, Medium and Large Warp Disruptor",
+      "reduction to effective distance traveled for jump fatigue"
+    ]
+  },
+  {
+    "name": "Arazu",
+    "race": "Gallente",
+    "class": "Force Recon Ship",
+    "bonuses": [
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator liquid ozone consumption",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "Can fit Covert Ops Cloaking Device, Cynosural Field Generator, and Covert Cynosural Field Generator modules",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Remote Sensor Dampener effectiveness",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Arbitrator",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Drone hitpoints, damage and mining yield"
+    ]
+  },
+  {
+    "name": "Archon",
+    "race": "Amarr",
+    "class": "Carrier",
+    "bonuses": [
+      "Can fit Integrated Sensor Array",
+      "Can fit Capital Micro Jump Drive and Capital Micro Jump Field Generator",
+      "Can fit two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Support Fighters",
+      "Can lock at extended ranges",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to all armor resistances",
+      "bonus to Cenobite Support Fighter neutralization optimal range",
+      "bonus to Cenobite Support Fighter neutralization strength",
+      "bonus to Armored Command and Information Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Ares",
+    "race": "Gallente",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "reduction in Interdiction Nullifier reactivation delay, max lock range penalty, and scan resolution penalty",
+      "bonus to Interdiction Nullifier duration",
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Ark",
+    "race": "Amarr",
+    "class": "Jump Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier",
+      "bonus to ship armor and hull hitpoints",
+      "reduction in jump fuel requirement"
+    ]
+  },
+  {
+    "name": "Armageddon",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range"
+    ]
+  },
+  {
+    "name": "Armageddon Navy Issue",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Energy Turret, Rapid Heavy Missile, Cruise Missile and Torpedo damage",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range"
+    ]
+  },
+  {
+    "name": "Ashimmu",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret damage",
+      "Energy Nosferatu fitted to this ship will drain targeted ship's capacitor regardless of your own capacitor level",
+      "bonus to Stasis Webifier range",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range"
+    ]
+  },
+  {
+    "name": "Astarte",
+    "race": "Gallente",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armored Command and Skirmish Command burst strength and duration",
+      "bonus to Medium Hybrid Turret rate of fire",
+      "bonus to Medium Hybrid Turret falloff",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Armor Repairer amount"
+    ]
+  },
+  {
+    "name": "Astero",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "bonus to Drone hitpoints",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Atron",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to Small Hybrid Turret falloff",
+      "bonus to Small Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Augoror",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Remote Capacitor Transmitter range",
+      "bonus to Remote Capacitor Transmitter transfer amount",
+      "bonus to Remote Armor Repairer optimal range and falloff",
+      "bonus to Remote Armor Repairer amount",
+      "reduction in Remote Armor Repairer activation cost"
+    ]
+  },
+  {
+    "name": "Augoror Navy Issue",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret damage",
+      "bonus to ship armor hitpoints"
+    ]
+  },
+  {
+    "name": "Avalanche",
+    "race": "Upwell",
+    "class": "Freighter",
+    "bonuses": [
+      "Unable to use Cloaking Device modules",
+      "can link to Orbital Skyhook Reagent Silos bypassing the normal ship class restrictions",
+      "reduction to effective distance traveled for jump fatigue",
+      "reduction in Capital Flex Shield Hardener capacitor activation cost and powergrid requirements",
+      "bonus to missile damage",
+      "bonus to ship infrastructure hold capacity",
+      "bonus to Auto-Targeting missile damage"
+    ]
+  },
+  {
+    "name": "Avatar",
+    "race": "Amarr",
+    "class": "Titan",
+    "bonuses": [
+      "Can fit a Doomsday module",
+      "Can fit a Phenomena Generator module",
+      "Can fit a Jump Portal Generator module",
+      "Can fit a Clone Vat Bay module",
+      "Can use three Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Sensor Dampener resistance",
+      "bonus to Weapon Disruption resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "penalty to Entosis Link duration",
+      "bonus to Capital Energy Turret damage",
+      "reduction in Capital Energy Turret activation cost",
+      "bonus to ship warp core strength"
+    ]
+  },
+  {
+    "name": "Babaroga",
+    "race": "Triglavian",
+    "class": "Marauder",
+    "bonuses": [
+      "bonus to Remote Armor Repairer range",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Tractor Beam range and velocity",
+      "Can fit Bastion modules",
+      "bonus to Armor Repairer amount",
+      "bonus to Supratidal Entropic Disintegrator maximum damage multiplier bonus",
+      "bonus to Supratidal Entropic Disintegrator maximum range",
+      "bonus to Supratidal Entropic Disintegrator tracking speed"
+    ]
+  },
+  {
+    "name": "Badger",
+    "race": "Caldari",
+    "class": "Hauler",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier"
+    ]
+  },
+  {
+    "name": "Bantam",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Remote Shield Booster falloff",
+      "bonus to Remote Shield Booster amount",
+      "reduction in Remote Shield Booster activation cost"
+    ]
+  },
+  {
+    "name": "Barghest",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "penalty to missile flight time",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to missile velocity",
+      "bonus to Warp Scrambler and Warp Disruptor maximum range",
+      "bonus to missile damage"
+    ]
+  },
+  {
+    "name": "Basilisk",
+    "race": "Caldari",
+    "class": "Logistics",
+    "bonuses": [
+      "reduction in Remote Shield Booster CPU requirement",
+      "reduction in Remote Capacitor Transmitter powergrid requirement",
+      "bonus to Remote Capacitor Transmitter range",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Remote Shield Booster optimal range and falloff",
+      "reduction in Remote Capacitor Transmitter activation cost",
+      "reduction in Remote Shield Booster activation cost",
+      "bonus to Shield Extender hitpoints"
+    ]
+  },
+  {
+    "name": "Bellicose",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Target Painter effectiveness",
+      "bonus to Heavy Missile and Heavy Assault Missile explosion velocity"
+    ]
+  },
+  {
+    "name": "Bestower",
+    "race": "Amarr",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Bhaalgorn",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "Energy Nosferatu fitted to this ship will drain targeted ship's capacitor regardless of your own capacitor level",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Large Energy Turret damage",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Stasis Webifier optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount"
+    ]
+  },
+  {
+    "name": "Bifrost",
+    "race": "Minmatar",
+    "class": "Command Destroyer",
+    "bonuses": [
+      "Can fit Micro Jump Field Generators",
+      "Can use one Command Burst module",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduction in reactivation delay for Defender Launcher",
+      "reduction in powergrid requirements for Command Bursts",
+      "bonus to all shield resistances",
+      "bonus to Light Missile and Rocket damage",
+      "bonus to Shield Command and Skirmish Command Burst effect strength and duration",
+      "reduction in Micro Jump Field Generator spool up time"
+    ]
+  },
+  {
+    "name": "Blackbird",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to ECM Target Jammer strength",
+      "bonus to ECM Target Jammer optimal range and falloff"
+    ]
+  },
+  {
+    "name": "Bowhead",
+    "race": "ORE",
+    "class": "Freighter",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship inertia modifier",
+      "bonus to ship maintenance bay capacity"
+    ]
+  },
+  {
+    "name": "Breacher",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Light Missile and Rocket rate of fire",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Broadsword",
+    "race": "Minmatar",
+    "class": "Heavy Interdiction Cruiser",
+    "bonuses": [
+      "Can fit Warp Disruption Field Generator and Cynosural Field Generator modules",
+      "bonus to all shield resistances",
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Medium Projectile Turret damage",
+      "bonus to Medium Projectile Turret falloff",
+      "bonus to Warp Disruption Field Generator range"
+    ]
+  },
+  {
+    "name": "Brutix",
+    "race": "Gallente",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Hybrid Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armor Repairer amount",
+      "bonus to Medium Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Brutix Navy Issue",
+    "race": "Gallente",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Hybrid Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Hybrid Turret tracking speed",
+      "bonus to Medium Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Burst",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Remote Shield Booster falloff",
+      "bonus to Remote Shield Booster amount",
+      "reduction in Remote Shield Booster activation cost"
+    ]
+  },
+  {
+    "name": "Bustard",
+    "race": "Caldari",
+    "class": "Deep Space Transport",
+    "bonuses": [
+      "bonus to ship warp core strength",
+      "bonus to the benefits of overheating Afterburners, Microwarpdrives, Local Repair Modules, and Resistance Modules",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to Shield Booster amount",
+      "bonus to ship max velocity",
+      "bonus to fleet hangar capacity",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Buzzard",
+    "race": "Caldari",
+    "class": "Covert Ops",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to warp speed and warp acceleration",
+      "reduction to Core and Combat Scanner Probe deviation",
+      "reduction in warp drive capacitor need",
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in time required for Survey Probe scans"
+    ]
+  },
+  {
+    "name": "Caldari Navy Hookbill",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to kinetic Light Missile and Rocket damage",
+      "bonus to EM, explosive, thermal Light Missile and Rocket damage",
+      "bonus to Light Missile and Rocket max velocity"
+    ]
+  },
+  {
+    "name": "Caldari Shuttle",
+    "race": "Caldari",
+    "class": "Shuttle",
+    "bonuses": [
+      "Immune to Interdiction Sphere Launcher, Warp Disruption Field Generator and Mobile Small, Medium and Large Warp Disruptor",
+      "reduction to effective distance traveled for jump fatigue"
+    ]
+  },
+  {
+    "name": "Caracal",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity"
+    ]
+  },
+  {
+    "name": "Caracal Navy Issue",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Heavy Missile and Heavy Assault Missile explosion radius",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire"
+    ]
+  },
+  {
+    "name": "Catalyst",
+    "race": "Gallente",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Hybrid Turret falloff"
+    ]
+  },
+  {
+    "name": "Catalyst Navy Issue",
+    "race": "Gallente",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Hybrid Turret optimal range and falloff",
+      "bonus to Armor Repairer amount",
+      "bonus to Small Hybrid Turret damage",
+      "reduction to Armor Plate mass penalty"
+    ]
+  },
+  {
+    "name": "Celestis",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Remote Sensor Dampener effectiveness",
+      "bonus to Remote Sensor Dampener optimal range and falloff"
+    ]
+  },
+  {
+    "name": "Cenotaph",
+    "race": "Pirate",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "bonus to Medium Projectile Turret and Heavy Assault Missile damage",
+      "Can use one Command Burst module",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Projectile Turret optimal range and falloff and Missile velocity",
+      "Can fit one Medium Breacher Pod Launcher",
+      "Can fit Covert Ops Cloaking Device",
+      "reduction in Cloaking Devices CPU requirement",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "Immune to all Cargo Scanners",
+      "bonus to Shield Booster amount",
+      "bonus to ship Stasis Webifier resistance"
+    ]
+  },
+  {
+    "name": "Cerberus",
+    "race": "Caldari",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to Heavy Assault Missile max velocity",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Charon",
+    "race": "Caldari",
+    "class": "Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Cheetah",
+    "race": "Minmatar",
+    "class": "Covert Ops",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "reduction in warp drive capacitor need",
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in time required for Survey Probe scans"
+    ]
+  },
+  {
+    "name": "Chimera",
+    "race": "Caldari",
+    "class": "Carrier",
+    "bonuses": [
+      "Can fit Integrated Sensor Array",
+      "Can fit Capital Micro Jump Drive and Capital Micro Jump Field Generator",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Support Fighters",
+      "Can lock at extended ranges",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to all shield resistances",
+      "bonus to Scarab Support Fighter ECM optimal range",
+      "bonus to Scarab Support Fighter ECM strength",
+      "bonus to Shield Command and Information Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Claw",
+    "race": "Minmatar",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to the benefits of overheating Afterburners and Microwarpdrives",
+      "bonus to Small Projectile Turret rate of fire",
+      "bonus to Small Projectile Turret tracking speed",
+      "bonus to Small Projectile Turret damage",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Claymore",
+    "race": "Minmatar",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Shield Command and Skirmish Command burst strength and duration",
+      "bonus to Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Heavy Missile and Heavy Assault Missile velocity",
+      "bonus to all shield resistances",
+      "bonus to Heavy Missile and Heavy Assault Missile Launcher rate of fire"
+    ]
+  },
+  {
+    "name": "Coercer",
+    "race": "Amarr",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Energy Turret optimal range",
+      "bonus to Small Energy Turret tracking speed",
+      "reduction in Small Energy Turret activation cost"
+    ]
+  },
+  {
+    "name": "Coercer Navy Issue",
+    "race": "Amarr",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Energy Turret optimal range and falloff",
+      "bonus to ship armor hitpoints",
+      "bonus to Small Energy Turret damage",
+      "reduction to Small Energy Turret activation cost",
+      "reduction to Energy Neutralizer activation cost",
+      "bonus to Energy Neutralizer strength"
+    ]
+  },
+  {
+    "name": "Condor",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to kinetic Light Missile and Rocket damage"
+    ]
+  },
+  {
+    "name": "Confessor",
+    "race": "Amarr",
+    "class": "Tactical Destroyer",
+    "bonuses": [
+      "bonus to Small Energy Turret damage",
+      "reduction in Small Energy Turret activation cost",
+      "reduction in module heat damage amount taken"
+    ]
+  },
+  {
+    "name": "Corax",
+    "race": "Caldari",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Light Missile and Rocket max velocity",
+      "bonus to kinetic Light Missile and Rocket damage",
+      "bonus to Light Missile and Rocket explosion velocity"
+    ]
+  },
+  {
+    "name": "Cormorant",
+    "race": "Caldari",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Cormorant Navy Issue",
+    "race": "Caldari",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Hybrid Turret optimal range and falloff",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Covetor",
+    "race": "ORE",
+    "class": "Mining Barge",
+    "bonuses": [
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner duration and activation cost",
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "to Strip Miner and Ice Harvester range"
+    ]
+  },
+  {
+    "name": "Crane",
+    "race": "Caldari",
+    "class": "Blockade Runner",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "Immune to all Cargo Scanners",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Crow",
+    "race": "Caldari",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "reduction in Interdiction Nullifier reactivation delay, max lock range penalty, and scan resolution penalty",
+      "bonus to Interdiction Nullifier duration",
+      "bonus to shield hitpoints",
+      "bonus to Light Missile and Rocket max velocity",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Crucifier",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Weapon Disruptor optimal range"
+    ]
+  },
+  {
+    "name": "Crucifier Navy Issue",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "penalty to Weapon Disruptor optimal range and falloff",
+      "reduction in Weapon Disruptor activation cost and CPU requirements",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Small Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Cruor",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Energy Turret damage",
+      "Energy Nosferatu fitted to this ship will drain targeted ship's capacitor regardless of your own capacitor level",
+      "bonus to Stasis Webifier range",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range"
+    ]
+  },
+  {
+    "name": "Crusader",
+    "race": "Amarr",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to the benefits of overheating Afterburners and Microwarpdrives",
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Small Energy Turret damage",
+      "bonus to Small Energy Turret tracking speed",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Curse",
+    "race": "Amarr",
+    "class": "Combat Recon Ship",
+    "bonuses": [
+      "Cannot be detected by directional scanners",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount"
+    ]
+  },
+  {
+    "name": "Cyclone",
+    "race": "Minmatar",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Missile velocity",
+      "bonus to Command Burst area of effect range",
+      "bonus to Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Cyclone Fleet Issue",
+    "race": "Minmatar",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Command Burst area of effect range",
+      "bonus to Missile velocity",
+      "bonus to Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Heavy Missile and Heavy Assault Missile explosion velocity",
+      "reduction to ship signature radius"
+    ]
+  },
+  {
+    "name": "Cynabal",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Medium Projectile Turret falloff",
+      "bonus to Medium Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Damavik",
+    "race": "Triglavian",
+    "class": "Frigate",
+    "bonuses": [
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to all armor resistances",
+      "bonus to Light Entropic Disintegrator damage"
+    ]
+  },
+  {
+    "name": "Damnation",
+    "race": "Amarr",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armored Command and Information Command burst strength and duration",
+      "bonus to ship armor hitpoints",
+      "bonus to Heavy Missile and Heavy Assault Missile damage",
+      "bonus to all armor resistances",
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity"
+    ]
+  },
+  {
+    "name": "Daredevil",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret falloff",
+      "bonus to Stasis Webifier effectiveness"
+    ]
+  },
+  {
+    "name": "Deacon",
+    "race": "Amarr",
+    "class": "Logistics Frigate",
+    "bonuses": [
+      "bonus to Remote Armor Repairer optimal range",
+      "bonus to Remote Armor Repairer falloff",
+      "bonus to Remote Armor Repairer amount",
+      "reduction in Remote Armor Repairer activation cost",
+      "reduction in Remote Armor Repairer duration and activation cost",
+      "bonus to armor hitpoints"
+    ]
+  },
+  {
+    "name": "Deimos",
+    "race": "Gallente",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Armor Repairer amount",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret falloff"
+    ]
+  },
+  {
+    "name": "Deluge",
+    "race": "Upwell",
+    "class": "Blockade Runner",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "Immune to all Cargo Scanners",
+      "can link to Orbital Skyhook Reagent Silos bypassing the normal ship class restrictions",
+      "reduction to Heavy Missile, Heavy Assault Missile and Rapid Light Missile Launcher cpu and powergrid fitting requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to ship infrastructure hold capacity",
+      "bonus to missile damage"
+    ]
+  },
+  {
+    "name": "Devoter",
+    "race": "Amarr",
+    "class": "Heavy Interdiction Cruiser",
+    "bonuses": [
+      "Can fit Warp Disruption Field Generator and Cynosural Field Generator modules",
+      "bonus to all armor resistances",
+      "reduction in Medium Energy Turret activation cost",
+      "bonus to Medium Energy Turret damage",
+      "bonus to Medium Energy Turret optimal range",
+      "bonus to Warp Disruption Field Generator range"
+    ]
+  },
+  {
+    "name": "Dominix",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Drone optimal range and tracking speed",
+      "bonus to Drone hitpoints and damage"
+    ]
+  },
+  {
+    "name": "Dominix Navy Issue",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Armor Repairer amount",
+      "bonus to Drone hitpoints, damage and tracking"
+    ]
+  },
+  {
+    "name": "Dragoon",
+    "race": "Amarr",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Drone max velocity",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range"
+    ]
+  },
+  {
+    "name": "Drake",
+    "race": "Caldari",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Missile velocity",
+      "bonus to Command Burst area of effect range",
+      "bonus to all shield resistances",
+      "bonus to kinetic Heavy Missile and Heavy Assault Missile damage"
+    ]
+  },
+  {
+    "name": "Drake Navy Issue",
+    "race": "Caldari",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Missile velocity",
+      "bonus to Command Burst area of effect range",
+      "bonus to Heavy Missile and Heavy Assault Missile explosion radius",
+      "bonus to Heavy Missile and Heavy Assault Missile damage"
+    ]
+  },
+  {
+    "name": "Dramiel",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret tracking speed",
+      "bonus to Small Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Draugur",
+    "race": "Triglavian",
+    "class": "Command Destroyer",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "Can fit Micro Jump Field Generators",
+      "reduction in reactivation delay for Defender Launcher",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "reduction in powergrid requirements for Command Bursts",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Skirmish Command and Information Command Burst effect strength and duration",
+      "reduction in Micro Jump Field Generator spool up time",
+      "bonus to Light Entropic Disintegrator damage",
+      "bonus to Light Entropic Disintegrator optimal range"
+    ]
+  },
+  {
+    "name": "Drekavac",
+    "race": "Triglavian",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Heavy Entropic Disintegrator optimal range",
+      "bonus to Command Burst area of effect range",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to all armor resistances",
+      "bonus to Heavy Entropic Disintegrator damage"
+    ]
+  },
+  {
+    "name": "Eagle",
+    "race": "Caldari",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to all shield resistances",
+      "bonus to Medium Hybrid Turret optimal range",
+      "bonus to Medium Hybrid Turret tracking speed",
+      "bonus to Medium Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Echelon",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "Can fit Purloined Sansha Data Analyzer"
+    ]
+  },
+  {
+    "name": "Endurance",
+    "race": "ORE",
+    "class": "Expedition Frigate",
+    "bonuses": [
+      "bonus to Ore Mining yield",
+      "reduction in Ice Harvesting duration",
+      "reduction in Cloaking Devices CPU requirement",
+      "Cloak reactivation delay and targeting delay reduced to 5 seconds",
+      "No penalty to ship max velocity when using Cloaking Devices",
+      "reduction in Ice Harvesting duration",
+      "bonus to Ore Mining yield",
+      "reduction in Ice Harvesting duration",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Enforcer",
+    "race": "Unknown",
+    "class": "Force Recon Ship",
+    "bonuses": [
+      "reduction in Cloaking Devices CPU requirement",
+      "Can fit Covert Ops Cloaking Device, Cynosural Field Generator, and Covert Cynosural Field Generator modules",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator liquid ozone consumption",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "bonus to security status gains from destruction of non-capsuleer pirates while flying this ship",
+      "Armor Repairer and Shield Booster effectiveness increased by a percentage equal to 10x pilot security status, with a floor of 0% and ceiling of 50%",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret tracking speed",
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Medium Projectile Turret falloff",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Heavy Missile and Heavy Assault Missile flight time",
+      "bonus to Medium Energy Turret damage",
+      "bonus to Medium Energy Turret optimal range",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "bonus to Stasis Webifier optimal range",
+      "bonus to warp speed and acceleration"
+    ]
+  },
+  {
+    "name": "Enyo",
+    "race": "Gallente",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Eos",
+    "race": "Gallente",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Heavy Drone, Medium Drone and Light Drone tracking speed",
+      "bonus to Sentry Drone tracking speed",
+      "bonus to Drone optimal range",
+      "bonus to Armored Command and Skirmish Command burst strength and duration",
+      "bonus to Heavy Drone, Medium Drone and Light Drone hitpoints and damage",
+      "bonus to Sentry Drone hitpoints and damage",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Epithal",
+    "race": "Gallente",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship planetary commodity hold capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Erebus",
+    "race": "Gallente",
+    "class": "Titan",
+    "bonuses": [
+      "Can fit a Doomsday module",
+      "Can fit a Phenomena Generator module",
+      "Can fit a Jump Portal Generator module",
+      "Can fit a Clone Vat Bay module",
+      "Can use three Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Sensor Dampener resistance",
+      "bonus to Weapon Disruption resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "penalty to Entosis Link duration",
+      "bonus to Capital Hybrid Turret damage",
+      "bonus to Capital Hybrid Turret rate of fire",
+      "bonus to ship warp core strength"
+    ]
+  },
+  {
+    "name": "Eris",
+    "race": "Gallente",
+    "class": "Interdictor",
+    "bonuses": [
+      "Can fit Interdiction Sphere Launcher",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduction in Armor Plate mass penalty",
+      "bonus to Small Hybrid Turret rate of fire",
+      "bonus to Small Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Executioner",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Propulsion Jamming systems activation cost",
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Small Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Exequror",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Remote Armor Repairer optimal range and falloff",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Remote Armor Repairer amount",
+      "reduction in Remote Armor Repairer activation cost"
+    ]
+  },
+  {
+    "name": "Exequror Navy Issue",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret falloff",
+      "reduction in Armor Plate mass penalty"
+    ]
+  },
+  {
+    "name": "Falcon",
+    "race": "Caldari",
+    "class": "Force Recon Ship",
+    "bonuses": [
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator liquid ozone consumption",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "Can fit Covert Ops Cloaking Device, Cynosural Field Generator, and Covert Cynosural Field Generator modules",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to Medium Hybrid Turret damage",
+      "reduction in ECM Target Jammer activation cost",
+      "bonus to ECM Target Jammer strength",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Federation Navy Comet",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Fenrir",
+    "race": "Minmatar",
+    "class": "Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Ferox",
+    "race": "Caldari",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Hybrid Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Ferox Navy Issue",
+    "race": "Caldari",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Hybrid Turret optimal range and falloff",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret tracking speed",
+      "bonus to Shield Booster activation cost",
+      "reduction in Shield Booster power and CPU requirements"
+    ]
+  },
+  {
+    "name": "Fiend",
+    "race": "Amarr",
+    "class": "Heavy Interdiction Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret damage",
+      "bonus to all shield resistances",
+      "Can fit Warp Disruption Field Generator and Cynosural Field Generator modules",
+      "Unaffected by Warp Disruption Field Generator mass & speed effects",
+      "bonus to Afterburner velocity bonus",
+      "bonus to Medium Energy Turret tracking speed",
+      "bonus to Warp Disruption Field Generator range"
+    ]
+  },
+  {
+    "name": "Flycatcher",
+    "race": "Caldari",
+    "class": "Interdictor",
+    "bonuses": [
+      "Can fit Interdiction Sphere Launcher",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to shield hitpoints",
+      "bonus to Light Missile and Rocket kinetic damage",
+      "bonus to Light Missile and Rocket max velocity"
+    ]
+  },
+  {
+    "name": "Gallente Shuttle",
+    "race": "Gallente",
+    "class": "Shuttle",
+    "bonuses": [
+      "Immune to Interdiction Sphere Launcher, Warp Disruption Field Generator and Mobile Small, Medium and Large Warp Disruptor",
+      "reduction to effective distance traveled for jump fatigue"
+    ]
+  },
+  {
+    "name": "Garmur",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "penalty to missile flight time",
+      "bonus to missile velocity",
+      "bonus to Warp Scrambler and Warp Disruptor maximum range",
+      "bonus to missile damage"
+    ]
+  },
+  {
+    "name": "Gila",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Combat Drone hitpoints",
+      "bonus to Medium Combat Drone damage",
+      "bonus to kinetic and thermal missile damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Gnosis",
+    "race": "Jove",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Energy Turret, Medium Hybrid Turret and Medium Projectile Turret damage",
+      "bonus to Heavy Missile and Heavy Assault Missile damage",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Command Burst area of effect range",
+      "bonus to Drone hitpoints and damage"
+    ]
+  },
+  {
+    "name": "Golem",
+    "race": "Caldari",
+    "class": "Marauder",
+    "bonuses": [
+      "bonus to Heavy Missile, Cruise Missile and Torpedo damage",
+      "bonus to Tractor Beam range and velocity",
+      "Can fit Bastion modules",
+      "bonus to Cruise Missile and Torpedo max velocity",
+      "bonus to Cruise Missile and Torpedo explosion velocity",
+      "bonus to Shield Booster amount",
+      "bonus to Target Painter effectiveness"
+    ]
+  },
+  {
+    "name": "Griffin",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to ECM Target Jammer strength",
+      "reduction in ECM Target Jammer activation cost"
+    ]
+  },
+  {
+    "name": "Griffin Navy Issue",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to ECM Drone jam duration",
+      "bonus to Small Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Guardian",
+    "race": "Amarr",
+    "class": "Logistics",
+    "bonuses": [
+      "reduction in Remote Armor Repairer powergrid requirement",
+      "reduction in Remote Capacitor Transmitter powergrid requirement",
+      "bonus to Remote Capacitor Transmitter range",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Remote Armor Repairer optimal range and falloff",
+      "reduction in Remote Capacitor Transmitter activation cost",
+      "reduction in Remote Armor Repairer activation cost",
+      "bonus to Armor Plate hitpoints"
+    ]
+  },
+  {
+    "name": "Harbinger",
+    "race": "Amarr",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Energy Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "reduction in Medium Energy Turret activation cost",
+      "bonus to Medium Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Harbinger Navy Issue",
+    "race": "Amarr",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Energy Turret optimal range and falloff",
+      "bonus to Medium Energy Turret tracking speed",
+      "bonus to Medium Energy Turret damage",
+      "reduction in Medium Energy Turret activation cost"
+    ]
+  },
+  {
+    "name": "Harpy",
+    "race": "Caldari",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to all shield resistances",
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Hawk",
+    "race": "Caldari",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Light Missile and Rocket Launcher rate of fire",
+      "bonus to kinetic Light Missile and Rocket damage",
+      "bonus to Shield Booster amount",
+      "bonus to Light Missile and Rocket max velocity"
+    ]
+  },
+  {
+    "name": "Hecate",
+    "race": "Gallente",
+    "class": "Tactical Destroyer",
+    "bonuses": [
+      "bonus to Small Hybrid Turret rate of fire",
+      "reduction in module heat damage amount taken",
+      "bonus to Small Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Hel",
+    "race": "Minmatar",
+    "class": "Supercarrier",
+    "bonuses": [
+      "Can fit Networked Sensor Array",
+      "Can fit Burst Projectors",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Heavy Fighters",
+      "Can lock at extended ranges",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Remote Sensor Dampener resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to Fighter velocity",
+      "bonus to ship warp core strength",
+      "reduction in Target Illumination Burst Projector cycle time",
+      "bonus to Shield Command and Skirmish Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Helios",
+    "race": "Gallente",
+    "class": "Covert Ops",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "reduction in warp drive capacitor need",
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in time required for Survey Probe scans"
+    ]
+  },
+  {
+    "name": "Heretic",
+    "race": "Amarr",
+    "class": "Interdictor",
+    "bonuses": [
+      "Can fit Interdiction Sphere Launcher",
+      "bonus to warp speed and warp acceleration",
+      "bonus to all armor resistances",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Light Missile launcher and Rocket launcher rate of fire",
+      "bonus to armor hitpoints"
+    ]
+  },
+  {
+    "name": "Heron",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in Salvager duration"
+    ]
+  },
+  {
+    "name": "Heron Navy Issue",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "reduction in Scan Probe Launcher CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Light Missile and Rocket damage"
+    ]
+  },
+  {
+    "name": "Hoarder",
+    "race": "Minmatar",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship max velocity",
+      "bonus to ship ammo bay capacity",
+      "bonus to ship Gas hold capacity"
+    ]
+  },
+  {
+    "name": "Hound",
+    "race": "Minmatar",
+    "class": "Stealth Bomber",
+    "bonuses": [
+      "No targeting delay after Cloaking Device deactivation",
+      "Can fit Covert Ops Cloaking Device, Covert Cynosural Field Generator and Bomb Launcher",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "reduction in Cloaking Devices CPU requirement",
+      "reduction in Torpedo Launcher powergrid requirement",
+      "bonus to Torpedo flight time",
+      "bonus to Torpedo max velocity",
+      "bonus to explosive Bomb damage",
+      "bonus to explosive Torpedo damage"
+    ]
+  },
+  {
+    "name": "Huginn",
+    "race": "Minmatar",
+    "class": "Combat Recon Ship",
+    "bonuses": [
+      "Cannot be detected by directional scanners",
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Target Painter effectiveness",
+      "bonus to Stasis Webifier optimal range",
+      "bonus to Medium Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Hulk",
+    "race": "ORE",
+    "class": "Exhumer",
+    "bonuses": [
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Ice Harvester activation cost",
+      "in Strip Miner activation cost",
+      "in Strip Miner duration",
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "bonus to Strip Miner and Ice Harvester range",
+      "in Ice Harvester duration",
+      "in Strip Miner duration",
+      "in Gas Harvester duration",
+      "bonus to all shield resistances",
+      "in Strip Miner yield"
+    ]
+  },
+  {
+    "name": "Hurricane",
+    "race": "Minmatar",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Projectile Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Projectile Turret damage",
+      "bonus to Medium Projectile Turret rate of fire"
+    ]
+  },
+  {
+    "name": "Hurricane Fleet Issue",
+    "race": "Minmatar",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Projectile Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Projectile Turret damage",
+      "bonus to Medium Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Hyena",
+    "race": "Minmatar",
+    "class": "Electronic Attack Ship",
+    "bonuses": [
+      "bonus to Target Painter optimal range",
+      "bonus to Target Painter effectiveness",
+      "bonus to Stasis Webifier optimal range",
+      "reduction in ship signature radius"
+    ]
+  },
+  {
+    "name": "Hyperion",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Repairer amount",
+      "bonus to Large Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Ibis",
+    "race": "Caldari",
+    "class": "Corvette",
+    "bonuses": [
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to kinetic Light Missile and Rocket damage",
+      "bonus to ECM Target Jammer strength",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Ikitursa",
+    "race": "Triglavian",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Heavy Entropic Disintegrator maximum range",
+      "bonus to Heavy Entropic Disintegrator maximum damage multiplier bonus",
+      "bonus to Heavy Entropic Disintegrator damage",
+      "bonus to Heavy Entropic Disintegrator tracking speed"
+    ]
+  },
+  {
+    "name": "Imicus",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in Salvager duration"
+    ]
+  },
+  {
+    "name": "Imicus Navy Issue",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "reduction in Scan Probe Launcher CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Drone hitpoints and tracking speed"
+    ]
+  },
+  {
+    "name": "Impairor",
+    "race": "Amarr",
+    "class": "Corvette",
+    "bonuses": [
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Small Energy Turret damage",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Impel",
+    "race": "Amarr",
+    "class": "Deep Space Transport",
+    "bonuses": [
+      "bonus to ship warp core strength",
+      "bonus to the benefits of overheating Afterburners, Microwarpdrives, Local Repair Modules, and Resistance Modules",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to Armor Repairer amount",
+      "bonus to ship max velocity",
+      "bonus to fleet hangar capacity",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Imperial Navy Slicer",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Energy Turret optimal range",
+      "bonus to Small Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Incursus",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Armor Repairer amount",
+      "bonus to Small Hybrid Turret damage"
+    ]
+  },
+  {
+    "name": "Inquisitor",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Remote Armor Repairer optimal range",
+      "bonus to Remote Armor Repairer falloff",
+      "bonus to Remote Armor Repairer amount",
+      "reduction in Remote Armor Repairer activation cost"
+    ]
+  },
+  {
+    "name": "Ishkur",
+    "race": "Gallente",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Drone hitpoints",
+      "bonus to Armor Repairer amount",
+      "bonus to Small Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Ishtar",
+    "race": "Gallente",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Sentry Drone hitpoints and damage",
+      "bonus to Heavy Drone max velocity and tracking speed",
+      "bonus to Light Drone, Medium Drone, and Heavy Drone hitpoints and damage",
+      "bonus to Sentry Drone optimal range and tracking speed",
+      "bonus to Drone operation range"
+    ]
+  },
+  {
+    "name": "Iteron Mark V",
+    "race": "Gallente",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Jackdaw",
+    "race": "Caldari",
+    "class": "Tactical Destroyer",
+    "bonuses": [
+      "bonus to Light Missile launcher and Rocket launcher rate of fire",
+      "reduction in module heat damage amount taken",
+      "reduction in missile launcher reload time"
+    ]
+  },
+  {
+    "name": "Jaguar",
+    "race": "Minmatar",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Light Missile and Rocket Launcher rate of fire",
+      "bonus to Shield Booster amount",
+      "bonus to Light Missile and Rocket explosion velocity",
+      "bonus to Light Missile and Rocket damage"
+    ]
+  },
+  {
+    "name": "Keres",
+    "race": "Gallente",
+    "class": "Electronic Attack Ship",
+    "bonuses": [
+      "bonus to Remote Sensor Dampener effectiveness",
+      "reduction in Remote Sensor Dampener activation cost",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "reduction in Warp Scrambler and Warp Disruptor activation cost"
+    ]
+  },
+  {
+    "name": "Kestrel",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Light Missile and Rocket damage",
+      "bonus to Light Missile and Rocket max velocity"
+    ]
+  },
+  {
+    "name": "Khizriel",
+    "race": "Pirate",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Medium Projectile Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Projectile Turret falloff",
+      "bonus to Medium Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Kikimora",
+    "race": "Triglavian",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Light Entropic Disintegrator optimal range",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Light Entropic Disintegrator optimal range",
+      "bonus to Light Entropic Disintegrator damage"
+    ]
+  },
+  {
+    "name": "Kirin",
+    "race": "Caldari",
+    "class": "Logistics Frigate",
+    "bonuses": [
+      "bonus to Remote Shield Booster falloff",
+      "bonus to Remote Shield Booster amount",
+      "reduction in Remote Shield Booster activation cost",
+      "reduction in Remote Shield Booster duration and activation cost",
+      "bonus to shield hitpoints"
+    ]
+  },
+  {
+    "name": "Kitsune",
+    "race": "Caldari",
+    "class": "Electronic Attack Ship",
+    "bonuses": [
+      "bonus to ECM Target Jammer strength",
+      "reduction in ECM Target Jammer activation cost",
+      "bonus to ECM Target Jammer optimal range",
+      "bonus to ship capacitor capacity"
+    ]
+  },
+  {
+    "name": "Kronos",
+    "race": "Gallente",
+    "class": "Marauder",
+    "bonuses": [
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Tractor Beam range and velocity",
+      "Can fit Bastion modules",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Large Hybrid Turret falloff",
+      "bonus to Armor Repairer amount",
+      "bonus to Large Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Kryos",
+    "race": "Gallente",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship max velocity",
+      "bonus to ship mineral hold capacity",
+      "bonus to ship Ice hold capacity"
+    ]
+  },
+  {
+    "name": "Lachesis",
+    "race": "Gallente",
+    "class": "Combat Recon Ship",
+    "bonuses": [
+      "Cannot be detected by directional scanners",
+      "bonus to Medium Hybrid Turret tracking",
+      "bonus to Remote Sensor Dampener effectiveness",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "bonus to Medium Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Legion",
+    "race": "Amarr",
+    "class": "Strategic Cruiser",
+    "bonuses": [
+      "Rigs may be removed from this ship without being destroyed",
+      "reduction in Scan Probe Launcher CPU requirements",
+      "bonus to all Amarr Defensive Systems effectiveness",
+      "bonus to all Amarr Offensive Systems effectiveness",
+      "bonus to all Amarr Propulsion Systems effectiveness",
+      "bonus to all Amarr Core Systems effectiveness",
+      "reduction in module damage from overheating",
+      "bonus to nanite repair paste repair speed"
+    ]
+  },
+  {
+    "name": "Leopard",
+    "race": "Minmatar",
+    "class": "Shuttle",
+    "bonuses": [
+      "Immune to Interdiction Sphere Launcher, Warp Disruption Field Generator and Mobile Small, Medium and Large Warp Disruptor",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration"
+    ]
+  },
+  {
+    "name": "Leshak",
+    "race": "Triglavian",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Supratidal Entropic Disintegrator damage",
+      "bonus to Supratidal Entropic Disintegrator rate of fire"
+    ]
+  },
+  {
+    "name": "Leviathan",
+    "race": "Caldari",
+    "class": "Titan",
+    "bonuses": [
+      "Can fit a Doomsday module",
+      "Can fit a Phenomena Generator module",
+      "Can fit a Jump Portal Generator module",
+      "Can fit a Clone Vat Bay module",
+      "Can use three Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Sensor Dampener resistance",
+      "bonus to Weapon Disruption resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "penalty to Entosis Link duration",
+      "bonus to kinetic XL Cruise and XL Torpedo damage",
+      "bonus to EM, explosive and thermal XL Cruise and XL Torpedo damage",
+      "bonus to XL Cruise Missile Launchers and XL Torpedo Launchers rate of fire",
+      "bonus to ship warp core strength"
+    ]
+  },
+  {
+    "name": "Lif",
+    "race": "Minmatar",
+    "class": "Force Auxiliary",
+    "bonuses": [
+      "Can fit a Triage module",
+      "Can use two Command Burst modules",
+      "Can only online one Capacitor Booster module",
+      "penalty to Entosis Link duration",
+      "reduction in CPU requirements for Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Logistics Drone transfer amount",
+      "bonus to Shield Command and Skirmish Command burst strength and duration",
+      "bonus to Capital Remote Armor Repairer and Capital Remote Shield Booster cycle time",
+      "bonus to Shield Booster and Capacitor Booster amount"
+    ]
+  },
+  {
+    "name": "Loggerhead",
+    "race": "Caldari",
+    "class": "Force Auxiliary",
+    "bonuses": [
+      "Can fit a Triage module",
+      "Can use two Command Burst modules",
+      "Can only online one Capacitor Booster module",
+      "penalty to Entosis Link duration",
+      "reduction in CPU requirements for Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Logistics Drone transfer amount and hitpoints",
+      "bonus to all shield resistances",
+      "bonus to Capital Remote Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Loki",
+    "race": "Minmatar",
+    "class": "Strategic Cruiser",
+    "bonuses": [
+      "Rigs may be removed from this ship without being destroyed",
+      "reduction in Scan Probe Launcher CPU requirements",
+      "bonus to all Minmatar Defensive Systems effectiveness",
+      "bonus to all Minmatar Core Systems effectiveness",
+      "bonus to all Minmatar Offensive Systems effectiveness",
+      "bonus to all Minmatar Propulsion Systems effectiveness",
+      "reduction in module damage from overheating",
+      "bonus to nanite repair paste repair speed"
+    ]
+  },
+  {
+    "name": "Machariel",
+    "race": "Minmatar",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Projectile Turret rate of fire",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Projectile Turret falloff",
+      "bonus to Large Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Mackinaw",
+    "race": "ORE",
+    "class": "Exhumer",
+    "bonuses": [
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner duration",
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "bonus to ship ore hold capacity",
+      "in Gas Harvester duration",
+      "bonus to ship ore hold capacity",
+      "bonus to all shield resistances",
+      "in Strip Miner yield"
+    ]
+  },
+  {
+    "name": "Maelstrom",
+    "race": "Minmatar",
+    "class": "Battleship",
+    "bonuses": [
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Projectile Turret damage",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Magnate",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in Salvager duration"
+    ]
+  },
+  {
+    "name": "Magnate Navy Issue",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "reduction in Scan Probe Launcher CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Small Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Magus",
+    "race": "Gallente",
+    "class": "Command Destroyer",
+    "bonuses": [
+      "Can fit Micro Jump Field Generators",
+      "Can use one Command Burst module",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduction in reactivation delay for Defender Launcher",
+      "reduction in powergrid requirements for Command Bursts",
+      "bonus to all armor resistances",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Armored Command and Skirmish Command Burst effect strength and duration",
+      "reduction in Micro Jump Field Generator spool up time"
+    ]
+  },
+  {
+    "name": "Malediction",
+    "race": "Amarr",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "reduction in Interdiction Nullifier reactivation delay, max lock range penalty, and scan resolution penalty",
+      "bonus to Interdiction Nullifier duration",
+      "bonus to all armor resistances",
+      "bonus to Rocket Launcher rate of fire",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Malice",
+    "race": "Amarr",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "bonus to Small Energy Turret optimal range",
+      "bonus to Small Energy Turret damage",
+      "bonus to all armor resistances",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range"
+    ]
+  },
+  {
+    "name": "Maller",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret damage",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Mammoth",
+    "race": "Minmatar",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Manticore",
+    "race": "Caldari",
+    "class": "Stealth Bomber",
+    "bonuses": [
+      "No targeting delay after Cloaking Device deactivation",
+      "Can fit Covert Ops Cloaking Device, Covert Cynosural Field Generator and Bomb Launcher",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "reduction in Cloaking Devices CPU requirement",
+      "reduction in Torpedo Launcher powergrid requirement",
+      "bonus to Torpedo flight time",
+      "bonus to Torpedo max velocity",
+      "bonus to kinetic Bomb damage",
+      "bonus to kinetic Torpedo damage"
+    ]
+  },
+  {
+    "name": "Marshal",
+    "race": "Unknown",
+    "class": "Black Ops",
+    "bonuses": [
+      "Can fit Cynosural Field Generator, Covert Cynosural Field Generator, and Covert Jump Portal Generator modules",
+      "No targeting delay after Cloaking Device deactivation",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to security status gains from destruction of non-capsuleer pirates while flying this ship",
+      "Armor Repairer and Shield Booster effectiveness increased by a percentage equal to 10x pilot security status, with a floor of 0% and ceiling of 50%",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Large Hybrid Turret tracking speed",
+      "bonus to Large Projectile Turret rate of fire",
+      "bonus to Large Projectile Turret falloff",
+      "bonus to Rapid Heavy Missile, Cruise Missile and Torpedo Launcher rate of fire",
+      "bonus to Cruise Missile and Torpedo flight time",
+      "bonus to Large Energy Turret damage",
+      "bonus to Large Energy Turret optimal range",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "bonus to Stasis Webifier optimal range",
+      "bonus to warp speed and acceleration"
+    ]
+  },
+  {
+    "name": "Mastodon",
+    "race": "Minmatar",
+    "class": "Deep Space Transport",
+    "bonuses": [
+      "bonus to ship warp core strength",
+      "bonus to the benefits of overheating Afterburners, Microwarpdrives, Local Repair Modules, and Resistance Modules",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to Shield Booster amount",
+      "bonus to ship max velocity",
+      "bonus to fleet hangar capacity",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Maulus",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Remote Sensor Dampener effectiveness",
+      "reduction in Remote Sensor Dampener activation cost"
+    ]
+  },
+  {
+    "name": "Maulus Navy Issue",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Drone hitpoints and tracking speed",
+      "bonus to Warp Scrambler optimal range"
+    ]
+  },
+  {
+    "name": "Megathron",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Hybrid Turret rate of fire",
+      "bonus to Large Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Megathron Navy Issue",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Hybrid Turret rate of fire",
+      "bonus to Large Hybrid Turret tracking speed",
+      "reduction in Armor Plate mass penalty"
+    ]
+  },
+  {
+    "name": "Mekubal",
+    "race": "Pirate",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret falloff",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Small Projectile Turret tracking speed",
+      "bonus to Small Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Merlin",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Hybrid Turret damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Metamorphosis",
+    "race": "Jove",
+    "class": "Frigate",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "bonus to ship warp core strength",
+      "bonus to Relic and Data Analyzer virus strength",
+      "bonus to Core Scanner Probe strength",
+      "reduction to Core Scanner Probe scan deviation",
+      "bonus to Drone hitpoints",
+      "bonus to Small Energy Turret, Small Hybrid Turret and Small Projectile Turret damage",
+      "bonus to Light Missile and Rockets damage",
+      "reduction in Cloaking Device, Probe Launcher, Relic Analyzer, and Data Analyzer CPU requirements"
+    ]
+  },
+  {
+    "name": "Miasmos",
+    "race": "Gallente",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship max velocity",
+      "bonus to ship mining hold capacity"
+    ]
+  },
+  {
+    "name": "Minokawa",
+    "race": "Caldari",
+    "class": "Force Auxiliary",
+    "bonuses": [
+      "Can fit a Triage module",
+      "Can use two Command Burst modules",
+      "Can only online one Capacitor Booster module",
+      "penalty to Entosis Link duration",
+      "reduction in CPU requirements for Command Burst modules",
+      "bonus to Logistics Drone transfer amount",
+      "bonus to Command Burst area of effect range",
+      "bonus to Shield Command and Information Command burst strength and duration",
+      "bonus to all shield resistances",
+      "bonus to Remote Capacitor Transmitter and Capital Remote Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Moa",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Monitor",
+    "race": "Unknown",
+    "class": "Flag Cruiser",
+    "bonuses": [
+      "Can use Medium Micro Jump Drive modules",
+      "resistance to sensor dampener, target painter, energy neutralizer, and energy nosferatu effects",
+      "reduction in powergrid and cpu requirements for Afterburner, Microwarpdrive, and Micro Jump Drive modules",
+      "reduction in Target Painter effectiveness",
+      "reduction in powergrid and cpu requirements for Scan Probe Launcher and Target Painter modules",
+      "resistance to ECM effects",
+      "bonus to Target Painter optimal range",
+      "bonus to ship agility",
+      "reduction in ship signature radius",
+      "bonus to ship shield hitpoints",
+      "bonus to ship armor hitpoints",
+      "bonus to all armor, shield, and hull resistances"
+    ]
+  },
+  {
+    "name": "Moros",
+    "race": "Gallente",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to Capital Hybrid Turret damage",
+      "bonus to Capital Hybrid Turret rate of fire",
+      "bonus to Armor Repairer cycle time"
+    ]
+  },
+  {
+    "name": "Moros Navy Issue",
+    "race": "Gallente",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to Capital Hybrid Turret rate of fire and optimal range",
+      "bonus to Armor Repairer amount and cycle time",
+      "bonus to Capital Hybrid Turret damage",
+      "bonus to Warp Scrambler and Warp Disruptor strength and optimal range"
+    ]
+  },
+  {
+    "name": "Muninn",
+    "race": "Minmatar",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to all shield and armor resistances",
+      "bonus to Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to Heavy Missile and Heavy Assault Missile explosion velocity",
+      "bonus to Light Missile, Heavy Missile and Heavy Assault Missile launcher rate of fire"
+    ]
+  },
+  {
+    "name": "Myrmidon",
+    "race": "Gallente",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Drone microwarp velocity",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armor Repairer amount",
+      "bonus to Drone hitpoints and damage"
+    ]
+  },
+  {
+    "name": "Myrmidon Navy Issue",
+    "race": "Gallente",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Command Burst area of effect range",
+      "bonus to Medium Hybrid Turret optimal range and falloff",
+      "bonus to Drone microwarp velocity",
+      "bonus to Drone hitpoints, tracking and damage",
+      "bonus to Stasis Webifier Drone factor of velocity decrease and hitpoints",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Armor Repairer amount"
+    ]
+  },
+  {
+    "name": "Naga",
+    "race": "Caldari",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Hybrid Turret powergrid requirement",
+      "reduction in Large Hybrid Turret CPU requirement",
+      "reduction in Large Hybrid Turret activation cost",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Large Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Naglfar",
+    "race": "Minmatar",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to Capital Projectile Turret damage",
+      "bonus to Capital Projectile Turret rate of fire",
+      "bonus to Shield Booster cycle time"
+    ]
+  },
+  {
+    "name": "Naglfar Fleet Issue",
+    "race": "Minmatar",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to Capital Projectile Turret rate of fire",
+      "bonus to Capital Projectile Turret damage",
+      "bonus to Shield Booster and Armor Repairer amount",
+      "bonus to Heavy Stasis Grappler falloff range"
+    ]
+  },
+  {
+    "name": "Navitas",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Remote Armor Repairer optimal range",
+      "bonus to Remote Armor Repairer falloff",
+      "bonus to Remote Armor Repairer amount",
+      "reduction in Remote Armor Repairer activation cost"
+    ]
+  },
+  {
+    "name": "Nemesis",
+    "race": "Gallente",
+    "class": "Stealth Bomber",
+    "bonuses": [
+      "No targeting delay after Cloaking Device deactivation",
+      "Can fit Covert Ops Cloaking Device, Covert Cynosural Field Generator and Bomb Launcher",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "reduction in Cloaking Devices CPU requirement",
+      "reduction in Torpedo Launcher powergrid requirement",
+      "bonus to Torpedo flight time",
+      "bonus to Torpedo max velocity",
+      "bonus to thermal Bomb damage",
+      "bonus to thermal Torpedo damage"
+    ]
+  },
+  {
+    "name": "Nereus",
+    "race": "Gallente",
+    "class": "Hauler",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier"
+    ]
+  },
+  {
+    "name": "Nergal",
+    "race": "Triglavian",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Light Entropic Disintegrator maximum range",
+      "bonus to Light Entropic Disintegrator maximum damage multiplier bonus",
+      "bonus to all armor resistances",
+      "bonus to Light Entropic Disintegrator damage"
+    ]
+  },
+  {
+    "name": "Nestor",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Relic and Data Analyzer virus strength",
+      "bonus to Large Energy Turret optimal range",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Remote Armor Repairer amount",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Remote Armor Repairer optimal range and falloff",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Drone hitpoints and damage",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Nidhoggur",
+    "race": "Minmatar",
+    "class": "Carrier",
+    "bonuses": [
+      "Can fit Integrated Sensor Array",
+      "Can fit Capital Micro Jump Drive and Capital Micro Jump Field Generator",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Support Fighters",
+      "Can lock at extended ranges",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to Fighter velocity",
+      "bonus to Dromi Support Fighter stasis webification range",
+      "bonus to Dromi Support Fighter stasis webification strength",
+      "bonus to Shield Command and Skirmish Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Nighthawk",
+    "race": "Caldari",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Shield Command and Information Command burst strength and duration",
+      "bonus to Heavy Missile and Heavy Assault Missile explosion radius",
+      "bonus to Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to all shield resistances",
+      "bonus to kinetic Heavy Missile and Heavy Assault Missile damage"
+    ]
+  },
+  {
+    "name": "Nightmare",
+    "race": "Amarr",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Energy Turret damage",
+      "bonus to Afterburner velocity bonus",
+      "bonus to Large Energy Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Ninazu",
+    "race": "Gallente",
+    "class": "Force Auxiliary",
+    "bonuses": [
+      "Can fit a Triage module",
+      "Can use two Command Burst modules",
+      "Can only online one Capacitor Booster module",
+      "penalty to Entosis Link duration",
+      "reduction in CPU requirements for Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Logistics Drone transfer amount",
+      "bonus to Armored Command and Skirmish Command burst strength and duration",
+      "bonus to Capital Remote Armor Repairer and Capital Remote Shield Booster cycle time",
+      "bonus to Armor Repairer and Capacitor Booster amount"
+    ]
+  },
+  {
+    "name": "Noctis",
+    "race": "ORE",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "reduction in Tractor Beam duration",
+      "bonus to Tractor Beam range and velocity",
+      "reduction in Salvager duration"
+    ]
+  },
+  {
+    "name": "Nomad",
+    "race": "Minmatar",
+    "class": "Jump Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier",
+      "bonus to ship shield and hull hitpoints",
+      "reduction in jump fuel requirement"
+    ]
+  },
+  {
+    "name": "Nyx",
+    "race": "Gallente",
+    "class": "Supercarrier",
+    "bonuses": [
+      "Can fit Networked Sensor Array",
+      "Can fit Burst Projectors",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Heavy Fighters",
+      "Can lock at extended ranges",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Remote Sensor Dampener resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to Fighter hitpoints",
+      "bonus to ship warp core strength",
+      "reduction in Sensor Dampening Burst Projector cycle time",
+      "bonus to Armored Command and Skirmish Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Obelisk",
+    "race": "Gallente",
+    "class": "Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Occator",
+    "race": "Gallente",
+    "class": "Deep Space Transport",
+    "bonuses": [
+      "bonus to ship warp core strength",
+      "bonus to the benefits of overheating Afterburners, Microwarpdrives, Local Repair Modules, and Resistance Modules",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to Armor Repairer amount",
+      "bonus to ship max velocity",
+      "bonus to fleet hangar capacity",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Odysseus",
+    "race": "Gallente",
+    "class": "Expedition Command Ship",
+    "bonuses": [
+      "bonus to Expedition Command Burst effect duration",
+      "reduction in Gas Cloud Scoop CPU requirement",
+      "bonus to Medium Energy Turret optimal range",
+      "bonus to Command Burst area of effect range",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can use two Command Burst modules",
+      "Can fit Covert Ops Cloaking Device",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "Can fit Zero-Point Mass Entangler",
+      "This ship can receive bonus effects depending on the environment.",
+      "bonus to all armor resistances",
+      "bonus to Heavy Drone, Medium Drone and Light Drone hitpoints and damage",
+      "bonus to Relic and Data Analyzer range",
+      "reduction in Gas Cloud Scoop duration",
+      "bonus to Expedition Command Burst effect strength and duration",
+      "bonus to Armor Command Burst effect strength and duration"
+    ]
+  },
+  {
+    "name": "Omen",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "reduction in Medium Energy Turret activation cost",
+      "bonus to Medium Energy Turret rate of fire"
+    ]
+  },
+  {
+    "name": "Omen Navy Issue",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret damage",
+      "bonus to Medium Energy Turret optimal range"
+    ]
+  },
+  {
+    "name": "Oneiros",
+    "race": "Gallente",
+    "class": "Logistics",
+    "bonuses": [
+      "reduction in Remote Armor Repairer powergrid requirement",
+      "bonus to Remote Tracking Computer falloff",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Remote Armor Repairer optimal range and falloff",
+      "reduction in Remote Armor Repairer activation cost",
+      "bonus to Remote Tracking Computer effectiveness",
+      "reduction in Armor Plate mass penalty"
+    ]
+  },
+  {
+    "name": "Onyx",
+    "race": "Caldari",
+    "class": "Heavy Interdiction Cruiser",
+    "bonuses": [
+      "Can fit Warp Disruption Field Generator and Cynosural Field Generator modules",
+      "bonus to all shield resistances",
+      "bonus to kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity",
+      "bonus to Warp Disruption Field Generator range"
+    ]
+  },
+  {
+    "name": "Oracle",
+    "race": "Amarr",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Energy Turret powergrid requirement",
+      "reduction in Large Energy Turret CPU requirement",
+      "reduction in Large Energy Turret activation cost",
+      "reduction in Large Energy Turret activation cost",
+      "bonus to Large Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Orca",
+    "race": "ORE",
+    "class": "Industrial Command Ship",
+    "bonuses": [
+      "Can fit Large Industrial Core",
+      "bonus to Drone damage",
+      "bonus to Remote Shield Booster optimal range",
+      "reduction to effective distance traveled for jump fatigue",
+      "Can fit three Command Burst modules",
+      "bonus to Command and Mining Foreman Burst area of effect range",
+      "bonus to Tractor Beam range",
+      "bonus to Tractor Beam velocity",
+      "can connect to Mobile Phase Anchor deployables, providing <b>50</b> points of power",
+      "bonus to ship cargo and ore hold capacity",
+      "reduction in fuel consumption for Large Industrial Core",
+      "bonus to Mining Foreman Burst effect strength and duration",
+      "bonus to Shield Command Burst effect strength and duration",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Drone ore mining yield",
+      "reduction in Drone ice harvesting cycle time",
+      "bonus in Mining Foreman Burst range"
+    ]
+  },
+  {
+    "name": "Orthrus",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "penalty to missile flight time",
+      "bonus to missile velocity",
+      "bonus to Warp Scrambler and Warp Disruptor maximum range",
+      "bonus to missile damage"
+    ]
+  },
+  {
+    "name": "Osprey",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Remote Capacitor Transmitter range",
+      "bonus to Remote Capacitor Transmitter transfer amount",
+      "bonus to Remote Shield Booster optimal range and falloff",
+      "bonus to Remote Shield Booster amount",
+      "reduction in Remote Shield Booster activation cost"
+    ]
+  },
+  {
+    "name": "Osprey Navy Issue",
+    "race": "Caldari",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity",
+      "bonus to EM, explosive, thermal Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage"
+    ]
+  },
+  {
+    "name": "Outrider",
+    "race": "ORE",
+    "class": "Command Destroyer",
+    "bonuses": [
+      "reduction in powergrid requirements for Command Bursts",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduction in reactivation delay for Defender Launcher",
+      "Can fit Micro Jump Field Generators",
+      "Can use one Command Burst module",
+      "bonus to Tractor Beam range",
+      "bonus to Tractor Beam velocity",
+      "reduction in Micro Jump Field Generator spool up time",
+      "bonus to Shield Command and Mining Foreman Burst effect strength and duration",
+      "bonus to Mining yield",
+      "bonus to Drone hitpoints and damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Pacifier",
+    "race": "Unknown",
+    "class": "Covert Ops",
+    "bonuses": [
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to security status gains from destruction of non-capsuleer pirates while flying this ship",
+      "Armor Repairer and Shield Booster effectiveness increased by a percentage equal to 10x pilot security status, with a floor of 0% and ceiling of 50%",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Projectile Turret rate of fire",
+      "bonus to Small Projectile Turret falloff",
+      "bonus to Light Missile and Rocket Launcher rate of fire",
+      "bonus to Light Missile and Rocket flight time",
+      "bonus to Small Energy Turret damage",
+      "bonus to Small Energy Turret optimal range",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in Survey Probe flight time",
+      "bonus to warp speed and acceleration"
+    ]
+  },
+  {
+    "name": "Paladin",
+    "race": "Amarr",
+    "class": "Marauder",
+    "bonuses": [
+      "bonus to Large Energy Turret damage",
+      "bonus to Tractor Beam range and velocity",
+      "Can fit Bastion modules",
+      "reduction in Large Energy Turret activation cost",
+      "bonus to Large Energy Turret optimal range",
+      "bonus to Armor Repairer amount",
+      "bonus to Large Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Panther",
+    "race": "Minmatar",
+    "class": "Black Ops",
+    "bonuses": [
+      "Can fit Cynosural Field Generator, Covert Cynosural Field Generator, and Covert Jump Portal Generator modules",
+      "No targeting delay after Cloaking Device deactivation",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction to effective distance traveled for jump fatigue",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Projectile Turret rate of fire",
+      "bonus to Large Projectile Turret damage",
+      "bonus to Large Projectile Turret tracking",
+      "bonus to Large Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Perseverance",
+    "race": "ORE",
+    "class": "Destroyer",
+    "bonuses": [
+      "Can fit Ice Mining Laser modules",
+      "bonus to Ice Harvesting module critical hit chance",
+      "bonus to Ice Harvesting module range",
+      "bonus to Ice Harvesting module critical hit chance",
+      "bonus to Ice Harvesting module critical hit yield"
+    ]
+  },
+  {
+    "name": "Phantasm",
+    "race": "Amarr",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret damage",
+      "bonus to Afterburner velocity bonus",
+      "bonus to Medium Energy Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Phobos",
+    "race": "Gallente",
+    "class": "Heavy Interdiction Cruiser",
+    "bonuses": [
+      "Can fit Warp Disruption Field Generator and Cynosural Field Generator modules",
+      "bonus to all armor resistances",
+      "bonus to Medium Hybrid Turret rate of fire",
+      "bonus to Medium Hybrid Turret tracking speed",
+      "bonus to Medium Hybrid Turret optimal range",
+      "bonus to Warp Disruption Field Generator range"
+    ]
+  },
+  {
+    "name": "Phoenix",
+    "race": "Caldari",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to all shield resistances",
+      "bonus to XL Cruise, XL Torpedo and Torpedo damage",
+      "reduction in Missile Launcher reload time"
+    ]
+  },
+  {
+    "name": "Phoenix Navy Issue",
+    "race": "Caldari",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to all shield resistances",
+      "bonus to XL Cruise, XL Torpedo and Torpedo damage",
+      "bonus to Target Painter effectiveness",
+      "reduction in Missile Launcher reload time"
+    ]
+  },
+  {
+    "name": "Pilgrim",
+    "race": "Amarr",
+    "class": "Force Recon Ship",
+    "bonuses": [
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator liquid ozone consumption",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "Can fit Covert Ops Cloaking Device, Cynosural Field Generator, and Covert Cynosural Field Generator modules",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Pioneer",
+    "race": "ORE",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Mining yield",
+      "reduction in Gas Cloud Scoop duration",
+      "bonus to Mining range",
+      "bonus to Mining yield",
+      "reduction in Gas Cloud Scoop duration"
+    ]
+  },
+  {
+    "name": "Pioneer Consortium Issue",
+    "race": "ORE",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Mining yield",
+      "bonus to Mining critical hit chance",
+      "reduction in Gas Cloud Scoop duration",
+      "bonus to Salvage Drone salvage chance",
+      "bonus to Mining range",
+      "bonus to Mining yield",
+      "bonus to Shield Booster amount",
+      "reduction in Gas Cloud Scoop duration"
+    ]
+  },
+  {
+    "name": "Pontifex",
+    "race": "Amarr",
+    "class": "Command Destroyer",
+    "bonuses": [
+      "Can fit Micro Jump Field Generators",
+      "Can use one Command Burst module",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduction in reactivation delay for Defender Launcher",
+      "reduction in powergrid requirements for Command Bursts",
+      "bonus to all armor resistances",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Armored Command and Information Command Burst effect strength and duration",
+      "reduction in Micro Jump Field Generator spool up time"
+    ]
+  },
+  {
+    "name": "Porpoise",
+    "race": "ORE",
+    "class": "Industrial Command Ship",
+    "bonuses": [
+      "can fit Medium Industrial Core",
+      "bonus to Remote Shield Booster optimal range",
+      "reduction in powergrid requirements for Command and Mining Foreman Burst Modules",
+      "reduction to effective distance traveled for jump fatigue",
+      "Can use two Command Burst modules",
+      "bonus to Tractor Beam range",
+      "bonus to Tractor Beam velocity",
+      "can connect to Mobile Phase Anchor deployables, providing <b>35</b> points of power",
+      "bonus to ship cargo and ore hold capacity",
+      "bonus to Mining Foreman Burst effect strength and duration",
+      "bonus to Drone hitpoints, damage and ore mining yield",
+      "reduction in Drone ice harvesting cycle time",
+      "bonus in Mining Foreman Burst range"
+    ]
+  },
+  {
+    "name": "Praxis",
+    "race": "Jove",
+    "class": "Battleship",
+    "bonuses": [
+      "bonus to Large Hybrid Turret, Large Energy Turret and Large Projectile Turret damage",
+      "bonus to Heavy Missile, Cruise Missile and Torpedo damage",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Drone hitpoints and damage"
+    ]
+  },
+  {
+    "name": "Primae",
+    "race": "ORE",
+    "class": "Hauler",
+    "bonuses": [
+      "Has a bay for holding Planetary Commodities"
+    ]
+  },
+  {
+    "name": "Probe",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in Salvager duration"
+    ]
+  },
+  {
+    "name": "Probe Fleet Issue",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Relic and Data Analyzer virus strength",
+      "reduction in Scan Probe Launcher CPU requirement",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Light Missile and Rocket rate of fire"
+    ]
+  },
+  {
+    "name": "Procurer",
+    "race": "ORE",
+    "class": "Mining Barge",
+    "bonuses": [
+      "bonus to drone damage and hitpoints",
+      "Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "bonus to ship shield hitpoints"
+    ]
+  },
+  {
+    "name": "Prophecy",
+    "race": "Amarr",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Drone microwarp velocity",
+      "bonus to Command Burst area of effect range",
+      "bonus to all armor resistances",
+      "bonus to Drone hitpoints and damage"
+    ]
+  },
+  {
+    "name": "Prophecy Navy Issue",
+    "race": "Amarr",
+    "class": "Combat Battlecruiser",
+    "bonuses": [
+      "Can use one Command Burst module",
+      "bonus to Drone microwarp velocity",
+      "bonus to Medium Energy Turret optimal range and falloff",
+      "bonus to Command Burst area of effect range",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Medium Energy Turret damage",
+      "bonus to Medium Energy Turret optimal range",
+      "bonus to ship armor hitpoints"
+    ]
+  },
+  {
+    "name": "Prorator",
+    "race": "Amarr",
+    "class": "Blockade Runner",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "Immune to all Cargo Scanners",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Prospect",
+    "race": "ORE",
+    "class": "Expedition Frigate",
+    "bonuses": [
+      "bonus to Mining and Gas Cloud Scoop yield",
+      "reduction in Cloaking Devices CPU requirement",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to Mining yield",
+      "reduction in Gas Cloud Scoop duration",
+      "bonus to Mining yield",
+      "reduction in ship signature radius"
+    ]
+  },
+  {
+    "name": "Proteus",
+    "race": "Gallente",
+    "class": "Strategic Cruiser",
+    "bonuses": [
+      "Rigs may be removed from this ship without being destroyed",
+      "reduction in Scan Probe Launcher CPU requirements",
+      "bonus to all Gallente Defensive Systems effectiveness",
+      "bonus to all Gallente Core Systems effectiveness",
+      "bonus to all Gallente Offensive Systems effectiveness",
+      "bonus to all Gallente Propulsion Systems effectiveness",
+      "reduction in module damage from overheating",
+      "bonus to nanite repair paste repair speed"
+    ]
+  },
+  {
+    "name": "Providence",
+    "race": "Amarr",
+    "class": "Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Prowler",
+    "race": "Minmatar",
+    "class": "Blockade Runner",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "Immune to all Cargo Scanners",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Punisher",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Small Energy Turret activation cost",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Purifier",
+    "race": "Amarr",
+    "class": "Stealth Bomber",
+    "bonuses": [
+      "No targeting delay after Cloaking Device deactivation",
+      "Can fit Covert Ops Cloaking Device, Covert Cynosural Field Generator and Bomb Launcher",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "reduction in Cloaking Devices CPU requirement",
+      "reduction in Torpedo Launcher powergrid requirement",
+      "bonus to Torpedo flight time",
+      "bonus to Torpedo max velocity",
+      "bonus to EM Bomb damage",
+      "bonus to EM Torpedo damage"
+    ]
+  },
+  {
+    "name": "Ragnarok",
+    "race": "Minmatar",
+    "class": "Titan",
+    "bonuses": [
+      "Can fit a Doomsday module",
+      "Can fit a Phenomena Generator module",
+      "Can fit a Jump Portal Generator module",
+      "Can fit a Clone Vat Bay module",
+      "Can use three Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Sensor Dampener resistance",
+      "bonus to Weapon Disruption resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "penalty to Entosis Link duration",
+      "bonus to Capital Projectile Turret damage",
+      "bonus to Capital Projectile Turret rate of fire",
+      "bonus to ship warp core strength"
+    ]
+  },
+  {
+    "name": "Raiju",
+    "race": "Caldari",
+    "class": "Electronic Attack Ship",
+    "bonuses": [
+      "penalty to missile flight time",
+      "bonus to missile velocity",
+      "bonus to Remote Sensor Dampener effectiveness",
+      "reduction in Remote Sensor Dampener activation cost",
+      "bonus to missile damage",
+      "reduction in Warp Scrambler and Warp Disruptor activation cost",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range"
+    ]
+  },
+  {
+    "name": "Rapier",
+    "race": "Minmatar",
+    "class": "Force Recon Ship",
+    "bonuses": [
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator liquid ozone consumption",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "Can fit Covert Ops Cloaking Device, Cynosural Field Generator, and Covert Cynosural Field Generator modules",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to Target Painter effectiveness",
+      "bonus to Stasis Webifier optimal range",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Raptor",
+    "race": "Caldari",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to the benefits of overheating Afterburners and Microwarpdrives",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to all shield resistances",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Rattlesnake",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Sentry Drone and Heavy Drone damage and hitpoints",
+      "bonus to kinetic and thermal missile damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Raven",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Rapid Heavy Missile, Cruise Missile and Torpedo Launcher rate of fire",
+      "bonus to Cruise Missile and Torpedo max velocity"
+    ]
+  },
+  {
+    "name": "Raven Navy Issue",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Cruise Missile and Torpedo explosion radius",
+      "bonus to Cruise Missile and Torpedo max velocity"
+    ]
+  },
+  {
+    "name": "Reaper",
+    "race": "Minmatar",
+    "class": "Corvette",
+    "bonuses": [
+      "bonus to ship max velocity",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Target Painter effectiveness",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Redeemer",
+    "race": "Amarr",
+    "class": "Black Ops",
+    "bonuses": [
+      "Can fit Cynosural Field Generator, Covert Cynosural Field Generator, and Covert Jump Portal Generator modules",
+      "No targeting delay after Cloaking Device deactivation",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction to effective distance traveled for jump fatigue",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "reduction in Large Energy Turret activation cost",
+      "bonus to Large Energy Turret rate of fire",
+      "bonus to Large Energy Turret tracking speed",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount"
+    ]
+  },
+  {
+    "name": "Republic Fleet Firetail",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Projectile Turret falloff",
+      "bonus to Small Projectile Turret tracking speed",
+      "bonus to Small Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Retribution",
+    "race": "Amarr",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Small Energy Turret rate of fire",
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Small Energy Turret damage",
+      "bonus to Small Energy Turret optimal range"
+    ]
+  },
+  {
+    "name": "Retriever",
+    "race": "ORE",
+    "class": "Mining Barge",
+    "bonuses": [
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "in Ice Harvester duration",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "bonus to ship ore hold capacity"
+    ]
+  },
+  {
+    "name": "Revelation",
+    "race": "Amarr",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to all armor resistances",
+      "bonus to Capital Energy Turret damage",
+      "reduction in Capital Energy Turret activation cost"
+    ]
+  },
+  {
+    "name": "Revelation Navy Issue",
+    "race": "Amarr",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "bonus to all armor resistances",
+      "bonus to Capital Energy Turret damage",
+      "reduction in Capital Energy Turret activation cost",
+      "bonus to Energy Nosferatu drain amount and range"
+    ]
+  },
+  {
+    "name": "Revenant",
+    "race": "Pirate",
+    "class": "Supercarrier",
+    "bonuses": [
+      "Can fit Networked Sensor Array",
+      "Can fit Burst Projectors",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Heavy Fighters",
+      "Can lock at extended ranges",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Remote Sensor Dampener resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to Fighter weapon explosion radius and explosion velocity",
+      "bonus to ship warp core strength",
+      "bonus to Fighter damage",
+      "bonus to Afterburner velocity bonus",
+      "bonus to ship warp core strength"
+    ]
+  },
+  {
+    "name": "Rhea",
+    "race": "Caldari",
+    "class": "Jump Freighter",
+    "bonuses": [
+      "reduction in Reinforced Bulkhead CPU requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier",
+      "bonus to ship shield and hull hitpoints",
+      "reduction in jump fuel requirement"
+    ]
+  },
+  {
+    "name": "Rifter",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Projectile Turret rate of fire",
+      "bonus to Small Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Rodiva",
+    "race": "Triglavian",
+    "class": "Cruiser",
+    "bonuses": [
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "reduced Remote Capacitor Transfer capacitor need",
+      "bonus to Remote Capacitor Transfer range",
+      "bonus to Mutadaptive Remote Armor Repairer range",
+      "reduced Mutadaptive Remote Armor Repairer capacitor need",
+      "bonus to Mutadaptive Remote Armor Repairer amount"
+    ]
+  },
+  {
+    "name": "Rokh",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to all shield resistances",
+      "bonus to Large Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Rook",
+    "race": "Caldari",
+    "class": "Combat Recon Ship",
+    "bonuses": [
+      "Cannot be detected by directional scanners",
+      "bonus to kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "reduction in ECM Target Jammer activation cost",
+      "bonus to ECM Target Jammer strength",
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity"
+    ]
+  },
+  {
+    "name": "Rorqual",
+    "race": "ORE",
+    "class": "Capital Industrial Ship",
+    "bonuses": [
+      "bonus to Remote Shield Booster optimal range",
+      "reduction to effective distance traveled for jump fatigue",
+      "Can fit Capital Industrial Core",
+      "Can fit Clone Vat Bay",
+      "Can operate 'Excavator' Drones",
+      "Can fit three Command Burst modules",
+      "Can fit one Pulse Activated Nexus Invulnerability Core module",
+      "bonus to Command and Mining Foreman Burst area of effect range",
+      "penalty to Entosis Link cycle time",
+      "bonus to Cargo Scanners range",
+      "can connect to Mobile Phase Anchor deployables, providing <b>100</b> points of power",
+      "bonus to Mining Foreman Burst effect strength and duration",
+      "bonus to Shield Command Burst effect strength and duration",
+      "reduction in fuel consumption for Capital Industrial Core",
+      "bonus to Drone hitpoints and damage",
+      "bonus in Drone ore mining yield",
+      "reduction in Drone ice harvesting cycle time",
+      "bonus in Mining Foreman Burst range"
+    ]
+  },
+  {
+    "name": "Rupture",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Projectile Turret damage",
+      "bonus to Medium Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Sabre",
+    "race": "Minmatar",
+    "class": "Interdictor",
+    "bonuses": [
+      "Can fit Interdiction Sphere Launcher",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Small Projectile Turret falloff",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Sacrilege",
+    "race": "Amarr",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Heavy Missile and Heavy Assault Missile damage",
+      "bonus to all armor resistances",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity"
+    ]
+  },
+  {
+    "name": "Sarathiel",
+    "race": "Minmatar",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "Can move at <b>10%</b> normal ship velocity while in siege mode",
+      "Can fit a Capital Micro Jump Drive",
+      "Can activate Capital Micro Jump Drive while in siege mode",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Capital Projectile Turret damage",
+      "penalty to Entosis Link cycle time",
+      "bonus to Capital Projectile Turret falloff",
+      "bonus to Capital Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Scalpel",
+    "race": "Minmatar",
+    "class": "Logistics Frigate",
+    "bonuses": [
+      "bonus to Remote Shield Booster falloff",
+      "bonus to Remote Shield Booster amount",
+      "reduction in Remote Shield Booster activation cost",
+      "reduction in Remote Shield Booster duration and activation cost",
+      "reduction in signature radius"
+    ]
+  },
+  {
+    "name": "Scimitar",
+    "race": "Minmatar",
+    "class": "Logistics",
+    "bonuses": [
+      "reduction in Remote Shield Booster CPU requirement",
+      "bonus to Remote Tracking Computer falloff",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Remote Shield Booster optimal range and falloff",
+      "bonus to Remote Tracking Computer effectiveness",
+      "reduction in Remote Shield Booster activation cost",
+      "reduction in Shield Extender signature radius penalty"
+    ]
+  },
+  {
+    "name": "Scorpion",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to ECM Target Jammer and ECM Burst Jammer strength",
+      "bonus to ECM Target Jammer and ECM Burst Jammer optimal range and falloff"
+    ]
+  },
+  {
+    "name": "Scorpion Navy Issue",
+    "race": "Caldari",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to all shield resistances",
+      "bonus to Rapid Heavy Missile, Cruise Missile and Torpedo Launcher rate of fire"
+    ]
+  },
+  {
+    "name": "Scythe",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Remote Shield Booster optimal range and falloff",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Remote Shield Booster amount",
+      "reduction in Remote Shield Booster activation cost"
+    ]
+  },
+  {
+    "name": "Scythe Fleet Issue",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Light Missile, Heavy Missile and Heavy Assault Missile damage"
+    ]
+  },
+  {
+    "name": "Sentinel",
+    "race": "Amarr",
+    "class": "Electronic Attack Ship",
+    "bonuses": [
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "reduction in ship capacitor recharge time"
+    ]
+  },
+  {
+    "name": "Sidewinder",
+    "race": "Unknown",
+    "class": "Covert Ops",
+    "bonuses": [
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "No targeting delay after Cloaking Device deactivation",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "bonus to Light Combat Drone damage and hitpoints",
+      "Small Hybrid Turret, Small Projectile Turret, Small Energy Turret, Light Missile, and Rocket damage increased by a percentage equal to -7.5x pilot negative security status, with a floor of 0% and ceiling of 75%",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Projectile Turret falloff",
+      "bonus to Light Missile and Rocket flight time",
+      "bonus to all shield resistances",
+      "bonus to Small Energy Turret optimal range",
+      "bonus to Core and Combat Scanner Probe strength",
+      "reduction in Survey Probe flight time",
+      "bonus to warp speed and acceleration"
+    ]
+  },
+  {
+    "name": "Sigil",
+    "race": "Amarr",
+    "class": "Hauler",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier"
+    ]
+  },
+  {
+    "name": "Silver Magnate",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Energy Turret optimal range",
+      "bonus to all Armor Resistances",
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Small Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Sin",
+    "race": "Gallente",
+    "class": "Black Ops",
+    "bonuses": [
+      "Can fit Cynosural Field Generator, Covert Cynosural Field Generator, and Covert Jump Portal Generator modules",
+      "No targeting delay after Cloaking Device deactivation",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction to effective distance traveled for jump fatigue",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "Sin bonuses do not apply to Warp Disruptors",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Warp Scrambler range",
+      "bonus to Drone tracking and optimal range",
+      "scramble strength to all Warp Scramblers"
+    ]
+  },
+  {
+    "name": "Skiff",
+    "race": "ORE",
+    "class": "Exhumer",
+    "bonuses": [
+      "bonus to drone damage and hitpoints",
+      "in Ice Harvester duration",
+      "in Strip Miner yield",
+      "bonus to ship shield hitpoints",
+      "in Gas Harvester duration",
+      "in Strip Miner yield",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Skybreaker",
+    "race": "Upwell",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Vorton Projector damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Slasher",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Sleipnir",
+    "race": "Minmatar",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Shield Command and Skirmish Command burst strength and duration",
+      "bonus to Medium Projectile Turret damage",
+      "bonus to Medium Projectile Turret falloff",
+      "bonus to Shield Booster amount",
+      "bonus to Medium Projectile Turret damage"
+    ]
+  },
+  {
+    "name": "Squall",
+    "race": "Upwell",
+    "class": "Hauler",
+    "bonuses": [
+      "can link to Orbital Skyhook Reagent Silos bypassing the normal ship class restrictions",
+      "reduction to Heavy Missile, Heavy Assault Missile and Rapid Light Missile Launcher cpu and powergrid fitting requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship infrastructure hold capacity",
+      "bonus to missile damage"
+    ]
+  },
+  {
+    "name": "Stabber",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Medium Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Stabber Fleet Issue",
+    "race": "Minmatar",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Projectile Turret falloff",
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Medium Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Stiletto",
+    "race": "Minmatar",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "reduction in Interdiction Nullifier reactivation delay, max lock range penalty, and scan resolution penalty",
+      "bonus to Interdiction Nullifier duration",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret tracking speed",
+      "bonus to Warp Scrambler and Warp Disruptor optimal range",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Stork",
+    "race": "Caldari",
+    "class": "Command Destroyer",
+    "bonuses": [
+      "Can fit Micro Jump Field Generators",
+      "Can use one Command Burst module",
+      "reduction in Microwarpdrive signature radius penalty",
+      "reduction in reactivation delay for Defender Launcher",
+      "reduction in powergrid requirements for Command Bursts",
+      "bonus to all shield resistances",
+      "bonus to Light Missile and Rocket damage",
+      "bonus to Shield Command and Information Command Burst effect strength and duration",
+      "reduction in Micro Jump Field Generator spool up time"
+    ]
+  },
+  {
+    "name": "Stormbringer",
+    "race": "Upwell",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Vorton Projector optimal range",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Stratios",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Energy Turret optimal range and damage",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Relic and Data Analyzer virus strength",
+      "Can fit Covert Ops Cloaking Device",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "bonus to Drone hitpoints and damage",
+      "bonus to all armor resistances"
+    ]
+  },
+  {
+    "name": "Succubus",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Energy Turret damage",
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Afterburner velocity bonus",
+      "bonus to Small Energy Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Sunesis",
+    "race": "Jove",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Energy Turret, Small Hybrid Turret and Small Projectile Turret damage",
+      "bonus to Light Missile and Rockets damage",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Drone hitpoints and damage"
+    ]
+  },
+  {
+    "name": "Svipul",
+    "race": "Minmatar",
+    "class": "Tactical Destroyer",
+    "bonuses": [
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret optimal range",
+      "reduction in module heat damage amount taken"
+    ]
+  },
+  {
+    "name": "Taipan",
+    "race": "Pirate",
+    "class": "Corvette",
+    "bonuses": [
+      "bonus to Light Missile and Rocket max velocity",
+      "bonus to all shield resistances",
+      "bonus to Drone hitpoints, damage and mining yield",
+      "bonus to Drone max velocity"
+    ]
+  },
+  {
+    "name": "Talos",
+    "race": "Gallente",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Hybrid Turret powergrid requirement",
+      "reduction in Large Hybrid Turret CPU requirement",
+      "reduction in Large Hybrid Turret activation cost",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Large Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Talwar",
+    "race": "Minmatar",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Light Missile and Rocket max velocity",
+      "bonus to explosive Light Missile and Rocket damage",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Taranis",
+    "race": "Gallente",
+    "class": "Interceptor",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction in Propulsion Jamming systems activation cost",
+      "bonus to the benefits of overheating Afterburners and Microwarpdrives",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret tracking speed",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Tayra",
+    "race": "Caldari",
+    "class": "Hauler",
+    "bonuses": [
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity"
+    ]
+  },
+  {
+    "name": "Tempest",
+    "race": "Minmatar",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Projectile Turret damage",
+      "bonus to Large Projectile Turret rate of fire"
+    ]
+  },
+  {
+    "name": "Tempest Fleet Issue",
+    "race": "Minmatar",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Projectile Turret damage",
+      "bonus to Large Projectile Turret rate of fire"
+    ]
+  },
+  {
+    "name": "Tengu",
+    "race": "Caldari",
+    "class": "Strategic Cruiser",
+    "bonuses": [
+      "Rigs may be removed from this ship without being destroyed",
+      "reduction in Scan Probe Launcher CPU requirements",
+      "bonus to all Caldari Defensive Systems effectiveness",
+      "bonus to all Caldari Core Systems effectiveness",
+      "bonus to all Caldari Offensive Systems effectiveness",
+      "bonus to all Caldari Propulsion Systems effectiveness",
+      "reduction in module damage from overheating",
+      "bonus to nanite repair paste repair speed"
+    ]
+  },
+  {
+    "name": "Thalia",
+    "race": "Gallente",
+    "class": "Logistics Frigate",
+    "bonuses": [
+      "bonus to Remote Armor Repairer optimal range",
+      "bonus to Remote Armor Repairer falloff",
+      "bonus to Remote Armor Repairer amount",
+      "reduction in Remote Armor Repairer activation cost",
+      "reduction in Remote Armor Repairer duration and activation cost",
+      "reduction in signature radius"
+    ]
+  },
+  {
+    "name": "Thanatos",
+    "race": "Gallente",
+    "class": "Carrier",
+    "bonuses": [
+      "Can fit Integrated Sensor Array",
+      "Can fit Capital Micro Jump Drive and Capital Micro Jump Field Generator",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Support Fighters",
+      "Can lock at extended ranges",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to Fighter hitpoints",
+      "bonus to Siren Support Fighter warp disruption range",
+      "bonus to Siren Support Fighter afterburner speed bonus",
+      "bonus to Armored Command and Skirmish Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Tholos",
+    "race": "Pirate",
+    "class": "Destroyer",
+    "bonuses": [
+      "Can fit one Small Breacher Pod Launcher",
+      "Can fit Covert Ops Cloaking Device",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "Immune to all Cargo Scanners",
+      "reduction in Cloaking Devices CPU requirement",
+      "bonus to Small Projectile Turret and Rocket damage",
+      "bonus to Shield Booster amount",
+      "bonus to ship Stasis Webifier resistance"
+    ]
+  },
+  {
+    "name": "Thorax",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Thrasher",
+    "race": "Minmatar",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Projectile Turret optimal range",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Thrasher Fleet Issue",
+    "race": "Minmatar",
+    "class": "Destroyer",
+    "bonuses": [
+      "bonus to Small Projectile Turret optimal range and falloff",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret rate of fire",
+      "reduction to Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
+    "name": "Thunderchild",
+    "race": "Upwell",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Vorton Projector damage",
+      "bonus to Large Vorton Projector rate of fire"
+    ]
+  },
+  {
+    "name": "Tiamat",
+    "race": "Triglavian",
+    "class": "Force Recon Ship",
+    "bonuses": [
+      "bonus to Remote Armor Repairer range",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "Can fit Covert Ops Cloaking Device, Cynosural Field Generator, and Covert Cynosural Field Generator modules",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator liquid ozone consumption",
+      "reduction in Cloaking Devices CPU requirement",
+      "additional bonus to Heavy Entropic Disintegrator damage multiplier bonus per cycle",
+      "bonus to Core and Combat Scanner Probe strength",
+      "bonus to Heavy Entropic Disintegrator damage",
+      "bonus to Heavy Entropic Disintegrator tracking speed"
+    ]
+  },
+  {
+    "name": "Tormentor",
+    "race": "Amarr",
+    "class": "Frigate",
+    "bonuses": [
+      "reduction in Small Energy Turret activation cost",
+      "bonus to Small Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Tornado",
+    "race": "Minmatar",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Projectile Turret powergrid requirement",
+      "reduction in Large Projectile Turret CPU requirement",
+      "bonus to Large Projectile Turret rate of fire",
+      "bonus to Large Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Torrent",
+    "race": "Upwell",
+    "class": "Deep Space Transport",
+    "bonuses": [
+      "can link to Orbital Skyhook Reagent Silos bypassing the normal ship class restrictions",
+      "bonus to ship warp core strength",
+      "reduction to Heavy Missile, Heavy Assault Missile and Rapid Light Missile Launcher cpu and powergrid fitting requirements",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to the benefits of overheating Afterburners, Microwarpdrives, Local Repair Modules, Resistance Modules, Nosferatu Modules and Energy Neutralizer Modules",
+      "bonus to all shield resistances",
+      "bonus to fleet hangar capacity",
+      "bonus to ship infrastructure hold capacity",
+      "bonus to missile damage"
+    ]
+  },
+  {
+    "name": "Tristan",
+    "race": "Gallente",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Drone hitpoints and tracking speed"
+    ]
+  },
+  {
+    "name": "Typhoon",
+    "race": "Minmatar",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Rapid Heavy Missile, Cruise Missile and Torpedo Launcher rate of fire",
+      "bonus to Cruise Missile and Torpedo explosion velocity"
+    ]
+  },
+  {
+    "name": "Typhoon Fleet Issue",
+    "race": "Minmatar",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Heavy Missile, Cruise Missile and Torpedo damage",
+      "bonus to Cruise Missile and Torpedo explosion velocity",
+      "bonus to Large Projectile Turret rate of fire and tracking speed"
+    ]
+  },
+  {
+    "name": "Vagabond",
+    "race": "Minmatar",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Medium Projectile Turret rate of fire",
+      "bonus to Shield Booster amount",
+      "bonus to Medium Projectile Turret damage",
+      "bonus to Medium Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Vargur",
+    "race": "Minmatar",
+    "class": "Marauder",
+    "bonuses": [
+      "bonus to Large Projectile Turret damage",
+      "bonus to Tractor Beam range and velocity",
+      "Can fit Bastion modules",
+      "bonus to Large Projectile Turret damage",
+      "bonus to Large Projectile Turret falloff",
+      "bonus to Shield Booster and Armor Repairer amount",
+      "bonus to Large Projectile Turret tracking speed"
+    ]
+  },
+  {
+    "name": "Vedmak",
+    "race": "Triglavian",
+    "class": "Cruiser",
+    "bonuses": [
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Heavy Entropic Disintegrator damage",
+      "bonus to Heavy Entropic Disintegrator optimal range"
+    ]
+  },
+  {
+    "name": "Vehement",
+    "race": "Gallente",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "bonus to Capital Hybrid Turret damage",
+      "penalty to Entosis Link cycle time",
+      "bonus to Capital Hybrid Turret rate of fire",
+      "bonus to Stasis Webifier effectiveness"
+    ]
+  },
+  {
+    "name": "Velator",
+    "race": "Gallente",
+    "class": "Corvette",
+    "bonuses": [
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Drone hitpoints, damage and mining yield",
+      "bonus to Remote Sensor Dampener effectiveness",
+      "bonus to Armor Repairer amount"
+    ]
+  },
+  {
+    "name": "Vendetta",
+    "race": "Gallente",
+    "class": "Supercarrier",
+    "bonuses": [
+      "Can fit Networked Sensor Array",
+      "Can fit Burst Projectors",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Heavy Fighters",
+      "Can lock at extended ranges",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Remote Sensor Dampener resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to Fighter hitpoints",
+      "bonus to ship warp core strength",
+      "bonus to Fighter velocity",
+      "bonus to Stasis Webification Burst Projector effectiveness",
+      "bonus to ship warp core strength"
+    ]
+  },
+  {
+    "name": "Vengeance",
+    "race": "Amarr",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Light Missile and Rocket Launcher rate of fire",
+      "bonus to Rocket damage",
+      "bonus to all armor resistances",
+      "bonus to ship capacitor recharge rate"
+    ]
+  },
+  {
+    "name": "Venture",
+    "race": "ORE",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to ship warp core strength",
+      "reduction in Industrial Cynosural Field Generator liquid ozone consumption",
+      "bonus to Mining and Gas Cloud Scoop yield",
+      "bonus to Mining yield",
+      "reduction in Gas Cloud Scoop duration"
+    ]
+  },
+  {
+    "name": "Venture Consortium Issue",
+    "race": "ORE",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Mining and Gas Cloud Scoop yield",
+      "bonus to Mining critical hit chance",
+      "bonus to ship warp core strength",
+      "reduction in Industrial Cynosural Field Generator liquid ozone consumption",
+      "bonus to Salvage Drone salvage chance",
+      "bonus to Mining yield",
+      "reduction in Gas Cloud Scoop duration",
+      "bonus to Shield Booster amount"
+    ]
+  },
+  {
+    "name": "Vexor",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Drone hitpoints, damage and mining yield"
+    ]
+  },
+  {
+    "name": "Vexor Navy Issue",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Armor Repairer amount",
+      "bonus to Drone hitpoints, damage, and tracking speed",
+      "bonus to Medium Hybrid Turret damage and tracking speed"
+    ]
+  },
+  {
+    "name": "Viator",
+    "race": "Gallente",
+    "class": "Blockade Runner",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device and Covert Cynosural Field Generator",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "Immune to all Cargo Scanners",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to warp speed and warp acceleration",
+      "bonus to ship cargo capacity",
+      "bonus to ship max velocity",
+      "bonus to warp speed and warp acceleration",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Victorieux Luxury Yacht",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device",
+      "reduction in Interdiction Nullifier reactivation delay and max lock range penalty",
+      "bonus to warp speed and warp acceleration",
+      "bonus to Interdiction Nullifier duration",
+      "reduction in Cloaking Devices CPU requirement"
+    ]
+  },
+  {
+    "name": "Vigil",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Target Painter effectiveness",
+      "bonus to Target Painter optimal range"
+    ]
+  },
+  {
+    "name": "Vigil Fleet Issue",
+    "race": "Minmatar",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Rocket explosion velocity",
+      "bonus to explosive Rocket damage",
+      "bonus to EM, kinetic, thermal Rocket damage"
+    ]
+  },
+  {
+    "name": "Vigilant",
+    "race": "Gallente",
+    "class": "Cruiser",
+    "bonuses": [
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to Medium Hybrid Turret falloff",
+      "bonus to Stasis Webifier effectiveness"
+    ]
+  },
+  {
+    "name": "Vindicator",
+    "race": "Gallente",
+    "class": "Battleship",
+    "bonuses": [
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Large Hybrid Turret tracking speed",
+      "bonus to Stasis Webifier effectiveness"
+    ]
+  },
+  {
+    "name": "Violator",
+    "race": "Pirate",
+    "class": "Corvette",
+    "bonuses": [
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Hybrid Turret falloff",
+      "bonus to Stasis Webifier max velocity factor"
+    ]
+  },
+  {
+    "name": "Virtuoso",
+    "race": "Gallente",
+    "class": "Stealth Bomber",
+    "bonuses": [
+      "No targeting delay after Cloaking Device deactivation",
+      "Can fit Covert Ops Cloaking Device, Covert Cynosural Field Generator and Bomb Launcher",
+      "Cloak reactivation delay reduced to 15 seconds",
+      "reduction in the potency of booster side effects",
+      "bonus to Torpedo Launcher rate of fire",
+      "reduction in Torpedo Launcher CPU requirement",
+      "reduction in Torpedo Launcher powergrid requirement",
+      "reduction in Cloaking Devices CPU requirement",
+      "reduction in Bomb Launcher powergrid and CPU requirements",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to Small Hybrid Turret falloff",
+      "bonus to Torpedo max velocity",
+      "bonus to Stasis Webifier effectiveness",
+      "bonus to Torpedo explosion velocity and flight time",
+      "bonus to thermal and explosive Bomb damage",
+      "bonus to Armor Repairer effectiveness",
+      "bonus to Small Hybrid Turret damage",
+      "bonus to thermal and explosive Torpedo damage"
+    ]
+  },
+  {
+    "name": "Vulture",
+    "race": "Caldari",
+    "class": "Command Ship",
+    "bonuses": [
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "bonus to Shield Command and Information Command burst strength and duration",
+      "bonus to shield hitpoints",
+      "bonus to Medium Hybrid Turret damage",
+      "bonus to all shield resistances",
+      "bonus to Medium Hybrid Turret optimal range"
+    ]
+  },
+  {
+    "name": "Widow",
+    "race": "Caldari",
+    "class": "Black Ops",
+    "bonuses": [
+      "Can fit Cynosural Field Generator, Covert Cynosural Field Generator, and Covert Jump Portal Generator modules",
+      "No targeting delay after Cloaking Device deactivation",
+      "Cloak reactivation delay reduced to 5 seconds",
+      "reduction to effective distance traveled for jump fatigue",
+      "reduction in Cynosural Field Generator and Covert Cynosural Field Generator duration",
+      "bonus to ship max velocity when using Cloaking Devices",
+      "bonus to Shield Extender hitpoints",
+      "bonus to Armor Plate hitpoints",
+      "additional bonus to Reinforced Bulkhead hitpoints",
+      "bonus to Rapid Heavy Missile, Cruise Missile and Torpedo Launcher rate of fire",
+      "bonus to Cruise Missile and Torpedo max velocity",
+      "bonus to ECM Target Jammer and ECM Burst Jammer strength",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Wolf",
+    "race": "Minmatar",
+    "class": "Assault Frigate",
+    "bonuses": [
+      "Can fit Assault Damage Controls",
+      "reduction in Microwarpdrive signature radius penalty",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret tracking speed",
+      "bonus to Small Projectile Turret damage",
+      "bonus to Small Projectile Turret falloff"
+    ]
+  },
+  {
+    "name": "Worm",
+    "race": "Caldari",
+    "class": "Frigate",
+    "bonuses": [
+      "bonus to Light Combat Drone damage and hitpoints",
+      "bonus to kinetic and thermal missile damage",
+      "bonus to all shield resistances"
+    ]
+  },
+  {
+    "name": "Wreathe",
+    "race": "Minmatar",
+    "class": "Hauler",
+    "bonuses": [
+      "bonus to warp speed and warp acceleration",
+      "reduction to effective distance traveled for jump fatigue",
+      "bonus to ship cargo capacity",
+      "bonus to ship inertia modifier"
+    ]
+  },
+  {
+    "name": "Wyvern",
+    "race": "Caldari",
+    "class": "Supercarrier",
+    "bonuses": [
+      "Can fit Networked Sensor Array",
+      "Can fit Burst Projectors",
+      "Can use two Command Burst modules",
+      "bonus to Command Burst area of effect range",
+      "Can launch Light and Heavy Fighters",
+      "Can lock at extended ranges",
+      "bonus to Armor Plates and Shield Extenders",
+      "bonus to Remote Sensor Dampener resistance",
+      "bonus to Stasis effect resistance",
+      "increase to Remote Electronic Assistance impedance",
+      "Conduit Jump capable",
+      "penalty to Entosis Link duration",
+      "bonus to Fighter damage",
+      "bonus to all shield resistances",
+      "bonus to ship warp core strength",
+      "reduction in ECM Jammer Burst Projector cycle time",
+      "bonus to Shield Command and Information Command burst strength and duration"
+    ]
+  },
+  {
+    "name": "Zarmazd",
+    "race": "Triglavian",
+    "class": "Logistics",
+    "bonuses": [
+      "bonus Remote Capacitor Transfer range",
+      "reduced Remote Capacitor Transfer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "reduced Energy Neutralizer capacitor need",
+      "bonus to Mutadaptive Remote Armor Repairer amount",
+      "reduced Mutadaptive Remote Armor Repairer capacitor need",
+      "bonus to Armor Plate hitpoints",
+      "bonus to Logistic Drone transfer amount",
+      "bonus to Mutadaptive Remote Armor Repairer range"
+    ]
+  },
+  {
+    "name": "Zealot",
+    "race": "Amarr",
+    "class": "Heavy Assault Cruiser",
+    "bonuses": [
+      "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
+      "reduction in Medium Energy Turret activation cost",
+      "bonus to Medium Energy Turret damage",
+      "bonus to Medium Energy Turret optimal range",
+      "bonus to Medium Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Zephyr",
+    "race": "Gallente",
+    "class": "Prototype Exploration Ship",
+    "bonuses": [
+      "Can fit Prototype Iris Probe Launcher",
+      "Will not be targeted by Sleeper Drones in Wormhole Systems"
+    ]
+  },
+  {
+    "name": "Zirnitra",
+    "race": "Triglavian",
+    "class": "Dreadnought",
+    "bonuses": [
+      "Can fit a Siege module",
+      "penalty to Entosis Link cycle time",
+      "reduced Energy Neutralizer capacitor need",
+      "reduced Remote Armor Repairer capacitor need",
+      "reduced Smart Bomb capacitor need",
+      "bonus to Remote Armor Repairer range",
+      "bonus to Ultratidal Entropic Disintegrator rate of fire",
+      "bonus to all armor resistances",
+      "bonus to Ultratidal Entropic Disintegrator damage"
+    ]
+  }
+]

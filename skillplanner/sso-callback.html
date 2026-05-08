@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVE SSO Callback - Rusty Skill Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .callback-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(22, 27, 34, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .callback-container h1 {
+            color: #ffa500;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        .callback-container p {
+            color: #c9d1d9;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 165, 0, 0.3);
+            border-top-color: #ffa500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        .success-message {
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #ffa500;
+            color: #0d1117;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #ff8c00;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div id="loading-state">
+            <div class="loading-spinner"></div>
+            <h1>Processing SSO Login</h1>
+            <p>Authenticating with EVE Online...</p>
+        </div>
+        
+        <div id="error-state" style="display: none;">
+            <h1>Authentication Failed</h1>
+            <p id="error-message" class="error-message"></p>
+            <a href="index.html" class="btn">Return to Skill Planner</a>
+        </div>
+        
+        <div id="success-state" style="display: none;">
+            <h1>Login Successful!</h1>
+            <p id="success-message" class="success-message"></p>
+            <a href="index.html" class="btn">Go to Skill Planner</a>
+        </div>
+    </div>
+
+    <script>
+        // EVE SSO Configuration - client-side token exchange
+        const CLIENT_ID = 'ac86bbdbb05e404b85c6eb1546ed06b1';
+        const TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
+        
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+        
+        const loadingState = document.getElementById('loading-state');
+        const errorState = document.getElementById('error-state');
+        const successState = document.getElementById('success-state');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+        
+        // Show appropriate state
+        function showState(state) {
+            loadingState.style.display = 'none';
+            errorState.style.display = 'none';
+            successState.style.display = 'none';
+            
+            if (state === 'loading') loadingState.style.display = 'block';
+            if (state === 'error') errorState.style.display = 'block';
+            if (state === 'success') successState.style.display = 'block';
+        }
+        
+        // Decode JWT token
+        function decodeJWT(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+        
+        // Handle authentication
+        async function handleAuthentication() {
+            // Check for OAuth errors
+            if (error) {
+                showState('error');
+                errorMessage.textContent = `EVE SSO Error: ${error} - ${errorDescription || 'Unknown error'}`;
+                return;
+            }
+            
+            // Check if we have an authorization code
+            if (!code) {
+                showState('error');
+                errorMessage.textContent = 'No authorization code received from EVE SSO.';
+                return;
+            }
+            
+            try {
+                // Verify state parameter to prevent CSRF attacks
+                const savedState = localStorage.getItem('esi_state');
+                if (state !== savedState) {
+                    throw new Error('Invalid state parameter. Possible CSRF attack.');
+                }
+                
+                // Clear the state from storage
+                localStorage.removeItem('esi_state');
+                
+                // Exchange authorization code for tokens directly with EVE SSO
+                const response = await fetch(TOKEN_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        grant_type: 'authorization_code',
+                        code: code,
+                        client_id: CLIENT_ID
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Token exchange error:', response.status, errorText);
+                    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+                }
+                
+                const tokenData = await response.json();
+                
+                // Decode JWT to get character info
+                const characterInfo = decodeJWT(tokenData.access_token);
+                const characterId = characterInfo.sub.split(':')[2];
+                const characterName = characterInfo.name;
+                
+                // Store tokens in skillplanner format (compatible with esi-auth.js)
+                const tokens = JSON.parse(localStorage.getItem('esi_tokens') || '{}');
+                tokens[characterId] = {
+                    characterId: characterId,
+                    characterName: characterName,
+                    accessToken: tokenData.access_token,
+                    refreshToken: tokenData.refresh_token,
+                    expiresAt: Date.now() + (tokenData.expires_in * 1000)
+                };
+                localStorage.setItem('esi_tokens', JSON.stringify(tokens));
+                localStorage.setItem('esi_current_character', characterId);
+                
+                showState('success');
+                successMessage.textContent = `Welcome, ${characterName}! Successfully authenticated with EVE Online.`;
+                
+                // Redirect back to the main app
+                setTimeout(() => {
+                    window.location.replace('index.html');
+                }, 2000);
+                
+            } catch (err) {
+                showState('error');
+                errorMessage.textContent = `Authentication error: ${err.message}`;
+                console.error('SSO Error:', err);
+            }
+        }
+        
+        // Start authentication process
+        handleAuthentication();
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# EVE Online Static Dump data files (too large for GitHub)
+ship-guess-game/Static Dump/
+market/sde.zip
+SDE/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+market/sde/fsd/types.yaml
+market/tools/sde/fsd/types.yaml

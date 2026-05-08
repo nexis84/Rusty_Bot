@@ -1,0 +1,114 @@
+SLEEPER ARCHIVE - SHIP ROLE BONUSES
+====================================
+
+FRIGATES (Tier 1 - Entry Level)
+----------------------------------
+
+1. Magnate Navy Issue
+   - +10% ISK reward per successful hack
+   - +5 seconds to oxygen timer
+   Cost: 50,000,000 ISK
+
+2. Heron Navy Issue
+   - +15% chance to find bonus loot (extra ISK on win)
+   - Data Analyzer cost reduced by 20%
+   Cost: 60,000,000 ISK
+
+3. Imicus Navy Issue
+   - +1 free Data Analyzer at start of each game
+   - +10% to standing multiplier progression speed
+   Cost: 60,000,000 ISK
+
+4. Probe Fleet Issue
+   - Vowel scans reveal 2 vowels instead of 1
+   - +5 seconds to timer per round
+   Cost: 55,000,000 ISK
+
+
+COVERT OPS FRIGATES (Tier 2 - Advanced)
+----------------------------------------
+
+5. Anathema
+   - Cloak ability: 1x per game - skip a wrong guess
+   - +20% ISK reward per successful hack
+   Cost: 150,000,000 ISK
+
+6. Buzzard
+   - +15 seconds to timer on all difficulties
+   - +1 free Cargo Scanner at start of each game
+   Cost: 150,000,000 ISK
+
+7. Helios
+   - Data Analyzers reveal 2 letters instead of 1
+   - Emergency Bypass cost reduced by 30%
+   Cost: 160,000,000 ISK
+
+8. Cheetah
+   - Security Connections booster lasts 7 rounds instead of 5
+   - +10% to all ISK rewards
+   Cost: 150,000,000 ISK
+
+
+EXPEDITION FRIGATES (Tier 3 - Elite)
+---------------------------------------
+
+9. Astero
+   - +15% ISK reward per successful hack
+   - +1 maximum wrong attempts on all difficulties
+   - Start with 1x free Emergency Bypass
+   Cost: 400,000,000 ISK
+
+10. Stratios
+    - +15% ISK reward per successful hack
+    - All tool costs reduced by 25%
+    - +10 seconds to timer on all difficulties
+    Cost: 600,000,000 ISK
+
+11. Metamorphosis
+    - Upgraded Scanner: Once per game, change difficulty mid-hack (keeps progress)
+    - +15% ISK reward per successful hack
+    - +1 free use of any tool per game
+    Cost: 750,000,000 ISK
+
+12. Pacifier
+    - Black Ops: 2x per game - reveal any letter with no cost
+    - +20% ISK reward per successful hack
+    - Immune to first wrong guess (no penalty)
+    Cost: 800,000,000 ISK
+
+
+STRATEGIC CRUISERS (Tier 4 - Endgame)
+--------------------------------------
+
+13. Legion
+    - +25% ISK reward per successful hack
+    - Security Connections booster +30% instead of +25%
+    - Start every game with 1 Data Analyzer + 1 Cargo Scanner
+    Cost: 1,500,000,000 ISK
+
+14. Tengu
+    - +25% ISK reward per successful hack
+    - Adaptive shield: Can survive 1 hack failure per day (continue playing)
+    - +15 seconds to oxygen timer
+    Cost: 1,800,000,000 ISK
+
+15. Proteus
+    - +30% ISK reward per successful hack
+    - Upgraded Subsystem: 3x per game - see if a letter is in the word before guessing
+    - All tool costs reduced by 40%
+    Cost: 1,600,000,000 ISK
+
+16. Loki
+    - +35% ISK reward per successful hack
+    - Upgraded Subsystem: Auto-reveals 1 random letter at game start
+    - Emergency Bypasses reveal 2 letters instead of 1
+    - Security Connections cooldown reduced to 5 games
+    Cost: 1,500,000,000 ISK
+
+
+====================================
+NOTES:
+- Ships are permanent unlocks (buy once, keep forever)
+- Only one ship can be active at a time
+- Ship bonuses stack with standing multipliers and Security Connections
+- Ships unlock progressively as you earn lifetime ISK
