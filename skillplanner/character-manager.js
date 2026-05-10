@@ -314,17 +314,24 @@ class CharacterManager {
         if (!char || !char.cache || !char.cache.skills) return null;
         
         const skills = char.cache.skills.data;
-        console.log('ESI Skills data:', skills); // Debug
-        console.log('Unallocated SP field:', skills.unallocated_skill_points); // Debug
+        if (!skills) {
+            console.warn('Skills data is null or undefined for character:', characterId);
+            return null;
+        }
+        
         const totalSP = this.calculateTotalSP(skills);
         const maxedSkills = this.getMaxedSkillsCount(skills);
+        
+        // Handle both possible field names for unallocated SP
+        const unallocatedSP = Number(skills.unallocated_skill_points) || 
+                            Number(skills.unallocated_sp) || 0;
         
         return {
             characterId: characterId,
             totalSP: totalSP,
             skillsTrained: skills.skills ? skills.skills.length : 0,
             skillsAtFive: maxedSkills,
-            unallocatedSP: skills.unallocated_skill_points || skills.unallocated_sp || 0
+            unallocatedSP: unallocatedSP
         };
     }
 }

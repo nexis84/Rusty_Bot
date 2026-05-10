@@ -25,12 +25,24 @@ class TrainingCalculator {
 
     // Calculate SP needed for a skill level
     spForLevel(skillId, level) {
+        if (!window.SKILLS || !window.SP_TABLE) {
+            console.error('SKILLS or SP_TABLE not loaded');
+            return 0;
+        }
+        
         const skill = window.SKILLS[skillId];
-        if (!skill) return 0;
+        if (!skill) {
+            console.warn(`Skill ${skillId} not found in database`);
+            return 0;
+        }
         
         let totalSP = 0;
         for (let i = 1; i <= level; i++) {
-            totalSP += SP_TABLE[i] * skill.rank;
+            if (!window.SP_TABLE[i]) {
+                console.warn(`SP_TABLE missing level ${i}`);
+                continue;
+            }
+            totalSP += window.SP_TABLE[i] * skill.rank;
         }
         return totalSP;
     }
@@ -39,9 +51,24 @@ class TrainingCalculator {
     spNeeded(skillId, currentLevel, targetLevel) {
         if (targetLevel <= currentLevel) return 0;
         
+        if (!window.SKILLS || !window.SP_TABLE) {
+            console.error('SKILLS or SP_TABLE not loaded');
+            return 0;
+        }
+        
+        const skill = window.SKILLS[skillId];
+        if (!skill) {
+            console.warn(`Skill ${skillId} not found in database`);
+            return 0;
+        }
+        
         let sp = 0;
         for (let i = currentLevel + 1; i <= targetLevel; i++) {
-            sp += SP_TABLE[i] * window.SKILLS[skillId].rank;
+            if (!window.SP_TABLE[i]) {
+                console.warn(`SP_TABLE missing level ${i}`);
+                continue;
+            }
+            sp += window.SP_TABLE[i] * skill.rank;
         }
         return sp;
     }
@@ -124,13 +151,29 @@ class TrainingCalculator {
 
     // Calculate training time for a specific skill
     calculateSkillTime(skillId, fromLevel, toLevel) {
+        if (!window.SKILLS || !window.ATTRIBUTES) {
+            console.error('SKILLS or ATTRIBUTES not loaded');
+            return 0;
+        }
+        
         const skill = window.SKILLS[skillId];
-        if (!skill) return 0;
+        if (!skill) {
+            console.warn(`Skill ${skillId} not found in database`);
+            return 0;
+        }
         
         const spNeeded = this.spNeeded(skillId, fromLevel, toLevel);
         if (spNeeded === 0) return 0;
         
-        return this.calculateTime(spNeeded, ATTRIBUTES[skill.primary], ATTRIBUTES[skill.secondary]);
+        const primaryAttr = window.ATTRIBUTES[skill.primary];
+        const secondaryAttr = window.ATTRIBUTES[skill.secondary];
+        
+        if (!primaryAttr || !secondaryAttr) {
+            console.warn(`Invalid attributes for skill ${skillId}:`, skill.primary, skill.secondary);
+            return 0;
+        }
+        
+        return this.calculateTime(spNeeded, primaryAttr, secondaryAttr);
     }
 
     // Calculate total training time for a plan
@@ -282,19 +325,30 @@ class TrainingCalculator {
 
     // Optimize attributes for a plan (remap calculator)
     optimizeAttributes(plan, currentSkills = null) {
+        if (!window.SKILLS || !window.ATTRIBUTES) {
+            console.error('SKILLS or ATTRIBUTES not loaded for optimization');
+            return { intelligence: 20, memory: 20, perception: 20, willpower: 20, charisma: 19 };
+        }
+        
         // Calculate primary and secondary attribute usage for plan
         const usage = { intelligence: 0, memory: 0, perception: 0, willpower: 0, charisma: 0 };
         
         plan.forEach(item => {
             const skill = window.SKILLS[item.skillId];
-            if (!skill) return;
+            if (!skill) {
+                console.warn(`Skill ${item.skillId} not found in optimization`);
+                return;
+            }
             
             const sp = this.spNeeded(item.skillId, 
                 this.getCurrentLevel(item.skillId, currentSkills), 
                 item.targetLevel);
             
-            usage[ATTRIBUTES[skill.primary]] += sp;
-            usage[ATTRIBUTES[skill.secondary]] += sp * 0.5; // Secondary counts half
+            const primaryAttr = window.ATTRIBUTES[skill.primary];
+            const secondaryAttr = window.ATTRIBUTES[skill.secondary];
+            
+            if (primaryAttr) usage[primaryAttr] += sp;
+            if (secondaryAttr) usage[secondaryAttr] += sp * 0.5; // Secondary counts half
         });
         
         // Sort attributes by usage
