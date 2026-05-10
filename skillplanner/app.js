@@ -144,6 +144,7 @@ class SkillPlannerApp {
         // Quick actions
         document.getElementById('quickPlanBtn')?.addEventListener('click', () => this.switchView('skills'));
         document.getElementById('quickImportBtn')?.addEventListener('click', () => this.importPlan());
+        document.getElementById('quickImportQueueBtn')?.addEventListener('click', () => this.importFromQueue());
         document.getElementById('quickExportBtn')?.addEventListener('click', () => this.exportPlan());
         document.getElementById('quickClearBtn')?.addEventListener('click', () => this.clearPlan());
         
@@ -486,7 +487,7 @@ class SkillPlannerApp {
         this.skillQueueList.innerHTML = queue.slice(0, 5).map((item, index) => {
             const skill = window.SKILLS[item.skill_id];
             const skillName = skill ? skill.name : `Skill ${item.skill_id}`;
-            const level = item.level_end;
+            const level = item.finish_level;
             const position = index === 0 ? 'training' : `queue #${index + 1}`;
             const time = trainingCalc.formatTrainingTime(item.training_time_remaining || 0);
             
@@ -1337,6 +1338,40 @@ class SkillPlannerApp {
         };
         
         input.click();
+    }
+
+    importFromQueue() {
+        const charId = esiAuth.getCurrentCharacter();
+        if (!charId) {
+            this.showMessage('Please login with EVE SSO first', 'error');
+            return;
+        }
+
+        const queue = this.currentCharacterData?.queue;
+        if (!queue || queue.length === 0) {
+            this.showMessage('No skills in your current queue', 'error');
+            return;
+        }
+
+        // Convert queue to plan format
+        const queueData = Array.isArray(queue) ? queue : queue.data || [];
+        const planSkills = queueData.map(item => ({
+            skillId: item.skill_id,
+            targetLevel: item.finish_level || item.level_end
+        }));
+
+        // Import as plan
+        const json = JSON.stringify({ skills: planSkills });
+        const result = skillPlanner.importPlan(json);
+
+        if (result.success) {
+            this.showMessage(`Imported ${planSkills.length} skills from your queue`, 'success');
+            this.renderPlan();
+            this.updatePlanSummary();
+            this.updatePlanBadge();
+        } else {
+            this.showMessage(result.message, 'error');
+        }
     }
 
     savePlanDialog() {

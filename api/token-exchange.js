@@ -3,11 +3,15 @@
 
 const express = require('express');
 const fetch = require('node-fetch');
+const path = require('path');
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the project root
+app.use(express.static(path.join(__dirname, '..')));
 
 // CORS middleware
 app.use((req, res, next) => {

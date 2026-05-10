@@ -218,11 +218,11 @@ class TrainingCalculator {
                 // Parse implant type to determine bonus
                 const typeId = implant.type_id;
                 // Common attribute implant ranges
-                // 9956-9960: +1 to +5 Int (slot 6)
-                // 9961-9965: +1 to +5 Mem (slot 7)
-                // 9966-9970: +1 to +5 Per/Will (slot 8)
-                // 9971-9975: +1 to +5 Will/Per (slot 9)
-                // 9976-9980: +1 to +5 Char (slot 10)
+                // 9956-9960: +1 to +5 Intelligence (slot 1)
+                // 9961-9965: +1 to +5 Memory (slot 2)
+                // 9966-9970: +1 to +5 Perception (slot 3)
+                // 9971-9975: +1 to +5 Willpower (slot 4)
+                // 9976-9980: +1 to +5 Charisma (slot 5)
                 
                 let slot = 0;
                 let bonus = 0;

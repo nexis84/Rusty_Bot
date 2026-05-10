@@ -202,7 +202,14 @@
                 };
                 localStorage.setItem('esi_tokens', JSON.stringify(tokens));
                 localStorage.setItem('esi_current_character', characterId);
-                
+
+                // Clear cached character data to ensure fresh skill data is fetched after login
+                const characterData = JSON.parse(localStorage.getItem('character_data') || '{}');
+                if (characterData[characterId]) {
+                    delete characterData[characterId];
+                    localStorage.setItem('character_data', JSON.stringify(characterData));
+                }
+
                 showState('success');
                 successMessage.textContent = `Welcome, ${characterName}! Successfully authenticated with EVE Online.`;
                 
