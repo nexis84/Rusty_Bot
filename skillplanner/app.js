@@ -321,11 +321,13 @@ class SkillPlannerApp {
         if (summary) {
             this.charMeta.textContent = `${characterManager.formatSP(summary.totalSP)} SP • ${summary.skillsTrained} Skills`;
             
-            // Dashboard stats
+            // Dashboard stats - show exact SP on hover
             this.totalSp.textContent = characterManager.formatSP(summary.totalSP);
+            this.totalSp.title = characterManager.formatSPExact(summary.totalSP) + ' SP (real-time)';
             this.skillsTrained.textContent = summary.skillsTrained;
             this.skillsAtFive.textContent = summary.skillsAtFive;
             this.unallocatedSp.textContent = characterManager.formatSP(summary.unallocatedSP);
+            this.unallocatedSp.title = characterManager.formatSPExact(summary.unallocatedSP) + ' Unallocated SP';
         }
         
         // Update active booster

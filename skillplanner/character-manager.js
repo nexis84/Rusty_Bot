@@ -243,6 +243,73 @@ class CharacterManager {
         return trained + unallocated;
     }
 
+    // Calculate real-time SP by adding progress from the active skill queue
+    calculateRealtimeSP(skills, queue) {
+        const baseSP = this.calculateTotalSP(skills);
+        if (!queue || !Array.isArray(queue) || queue.length === 0) return baseSP;
+
+        const now = new Date();
+
+        // Find the currently training skill (first item with start_date in the past)
+        for (const item of queue) {
+            const start = item.start_date ? new Date(item.start_date) : null;
+            const finish = item.finish_date ? new Date(item.finish_date) : null;
+
+            if (!start || !finish) continue;
+
+            // If this skill is currently training
+            if (now >= start && now < finish) {
+                const totalMs = finish.getTime() - start.getTime();
+                const elapsedMs = now.getTime() - start.getTime();
+                const progress = elapsedMs / totalMs;
+
+                // Calculate SP gained in this skill so far
+                const startSP = Number(item.level_start_sp) || 0;
+                const endSP = Number(item.level_end_sp) || 0;
+                const spGained = (endSP - startSP) * progress;
+
+                // The ESI snapshot already includes SP up to the snapshot time,
+                // but the snapshot may be slightly stale. We add the difference
+                // between real-time progress and what the snapshot captured.
+                // Since ESI total_sp is a point-in-time value, we estimate the
+                // additional SP earned since the snapshot by using the queue progress.
+                // The simplest accurate approach: add SP gained since snapshot.
+                // We use the skill's SP/min rate from attributes.
+                const skillData = window.SKILLS[item.skill_id];
+                if (skillData) {
+                    const primaryAttr = window.ATTRIBUTES?.[skillData.primary];
+                    const secondaryAttr = window.ATTRIBUTES?.[skillData.secondary];
+                    if (primaryAttr) {
+                        const attrs = trainingCalc.getEffectiveAttributes();
+                        const spPerMin = attrs[primaryAttr] + (attrs[secondaryAttr] || 0) / 2;
+                        // Estimate seconds since the skills endpoint was called
+                        const skillsTimestamp = this.getSkillsTimestamp();
+                        const secondsSinceSnapshot = skillsTimestamp
+                            ? (now.getTime() - skillsTimestamp) / 1000
+                            : 0;
+                        if (secondsSinceSnapshot > 0 && secondsSinceSnapshot < 600) {
+                            return Math.round(baseSP + (spPerMin * secondsSinceSnapshot / 60));
+                        }
+                    }
+                }
+
+                return baseSP;
+            }
+
+            // If start date is in the future, no active training
+            if (start > now) break;
+        }
+
+        return baseSP;
+    }
+
+    // Get the timestamp of when skills data was last fetched from ESI
+    getSkillsTimestamp() {
+        const charId = esiAuth?.getCurrentCharacter?.();
+        if (!charId || !this.characters[charId]?.cache?.skills) return null;
+        return this.characters[charId].cache.skills.timestamp || null;
+    }
+
     // Get skills at level 5 count
     getMaxedSkillsCount(skills) {
         if (!skills || !skills.skills) return 0;
@@ -268,16 +335,21 @@ class CharacterManager {
         return queue.findIndex(entry => entry.skill_id === skillId);
     }
 
-    // Format SP number
+    // Format SP number with full precision
     formatSP(sp) {
         if (sp >= 1000000000) {
-            return (sp / 1000000000).toFixed(2) + 'B';
+            return (sp / 1000000000).toFixed(3) + 'B';
         } else if (sp >= 1000000) {
-            return (sp / 1000000).toFixed(2) + 'M';
+            return (sp / 1000000).toFixed(3) + 'M';
         } else if (sp >= 1000) {
             return (sp / 1000).toFixed(1) + 'K';
         }
         return sp.toString();
+    }
+
+    // Format SP with exact number and commas
+    formatSPExact(sp) {
+        return Number(sp).toLocaleString();
     }
 
     // Clear all cached data
@@ -317,7 +389,9 @@ class CharacterManager {
             return null;
         }
         
-        const totalSP = this.calculateTotalSP(skills);
+        // Use real-time SP calculation (accounts for active training)
+        const queue = char.cache.skillQueue?.data || null;
+        const totalSP = this.calculateRealtimeSP(skills, queue);
         const maxedSkills = this.getMaxedSkillsCount(skills);
         
         // Handle both possible field names for unallocated SP
