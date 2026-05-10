@@ -220,21 +220,27 @@ class CharacterManager {
         return data;
     }
 
-    // Calculate total SP from skills
+    // Calculate total SP from skills (trained + unallocated)
     calculateTotalSP(skills) {
         if (!skills) return 0;
 
         // ESI total_sp is authoritative for trained SP.
+        let trained = 0;
         const esiTotal = Number(skills.total_sp);
         if (Number.isFinite(esiTotal) && esiTotal >= 0) {
-            return esiTotal;
+            trained = esiTotal;
+        } else if (Array.isArray(skills.skills)) {
+            // Fallback: sum per-skill SP when total_sp is unavailable.
+            trained = skills.skills.reduce((total, skill) => {
+                return total + (Number(skill.skillpoints_in_skill) || 0);
+            }, 0);
         }
 
-        // Fallback: sum per-skill SP when total_sp is unavailable.
-        if (!Array.isArray(skills.skills)) return 0;
-        return skills.skills.reduce((total, skill) => {
-            return total + (Number(skill.skillpoints_in_skill) || 0);
-        }, 0);
+        // Include unallocated SP to match in-game total
+        const unallocated = Number(skills.unallocated_skill_points) ||
+                          Number(skills.unallocated_sp) || 0;
+
+        return trained + unallocated;
     }
 
     // Get skills at level 5 count
@@ -318,9 +324,13 @@ class CharacterManager {
         const unallocatedSP = Number(skills.unallocated_skill_points) || 
                             Number(skills.unallocated_sp) || 0;
         
+        // Trained SP only (totalSP includes unallocated)
+        const trainedSP = totalSP - unallocatedSP;
+        
         return {
             characterId: characterId,
             totalSP: totalSP,
+            trainedSP: trainedSP,
             skillsTrained: skills.skills ? skills.skills.length : 0,
             skillsAtFive: maxedSkills,
             unallocatedSP: unallocatedSP
