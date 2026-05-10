@@ -271,8 +271,7 @@ class SkillPlannerApp {
             this.calculatorOverrides = null;
             skillPlanner.setActiveCharacter(characterId);
 
-            // Always refresh from ESI on character load to avoid stale skill cache.
-            characterManager.clearCharacterCache(characterId);
+            // Cache reads are disabled - all fetches hit ESI directly for live data.
             
             // Fetch character data through manager to avoid request bursts against ESI.
             const fullData = await characterManager.getFullCharacterData(characterId);

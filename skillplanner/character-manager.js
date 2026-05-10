@@ -30,16 +30,8 @@ class CharacterManager {
     }
 
     // Get cached data or null
+    // Always returns undefined to force live ESI data fetches
     getCachedData(characterId, dataType) {
-        const char = this.characters[characterId];
-        if (!char || !char.cache || !(dataType in char.cache)) {
-            return undefined;
-        }
-
-        if (this.isCacheValid(characterId, dataType)) {
-            return char.cache[dataType].data;
-        }
-
         return undefined;
     }
 
