@@ -1,0 +1,15 @@
+{
+  "hash": "e0506c7b",
+  "configHash": "b6e4b2b1",
+  "lockfileHash": "e3b0c442",
+  "browserHash": "15330388",
+  "optimized": {
+    "@emotion/is-prop-valid": {
+      "src": "../../SleeperArchive/node_modules/@emotion/is-prop-valid/dist/emotion-is-prop-valid.esm.js",
+      "file": "@emotion_is-prop-valid.js",
+      "fileHash": "245f5ed6",
+      "needsInterop": false
+    }
+  },
+  "chunks": {}
+}

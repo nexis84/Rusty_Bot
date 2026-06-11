@@ -2978,7 +2978,8 @@ async function renderOrders(orders) {
         // System filter
         if (selectedSystem !== 'all') {
             const locationName = AppState.locationCache[o.location_id] || '';
-            if (!locationName.includes(selectedSystem)) return false;
+            const systemName = AppState.systemCache[o.system_id] || '';
+            if (!locationName.includes(selectedSystem) && !systemName.includes(selectedSystem)) return false;
 }
         
         // NPC/Player filter - NPC stations are in range 60000000-64000000
@@ -3009,7 +3010,8 @@ async function renderOrders(orders) {
         // System filter
         if (selectedSystem !== 'all') {
             const locationName = AppState.locationCache[o.location_id] || '';
-            if (!locationName.includes(selectedSystem)) return false;
+            const systemName = AppState.systemCache[o.system_id] || '';
+            if (!locationName.includes(selectedSystem) && !systemName.includes(selectedSystem)) return false;
 }
         
         // NPC/Player filter - NPC stations are in range 60000000-64000000
@@ -3126,6 +3128,9 @@ function updateSystemFilter(orders) {
         if (AppState.locationCache[o.location_id]) {
             systems.add(AppState.locationCache[o.location_id]);
 }
+        if (o.system_id && AppState.systemCache[o.system_id]) {
+            systems.add(AppState.systemCache[o.system_id]);
+}
     });
     
     // Build filter with major trade hubs first
@@ -3137,7 +3142,8 @@ function updateSystemFilter(orders) {
         { value: 'Amarr', label: 'Amarr (Domain)' },
         { value: 'Dodixie', label: 'Dodixie (Sinq Laison)' },
         { value: 'Rens', label: 'Rens (Heimatar)' },
-        { value: 'Hek', label: 'Hek (Metropolis)' }
+        { value: 'Hek', label: 'Hek (Metropolis)' },
+        { value: 'Manifest', label: 'Manifest (Exordium)' }
     ];
     
     majorHubs.forEach(hub => {
