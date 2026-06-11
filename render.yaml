@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: rustybot
+    runtime: node
+    repo: https://github.com/nexis84/Rusty_Bot.git
+    branch: main
+    buildCommand: npm install
+    startCommand: node api/token-exchange.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: EVE_CLIENT_ID
+        sync: false
+      - key: EVE_CLIENT_SECRET
+        sync: false
+
+  - type: web
+    name: rustybot-frontend
+    runtime: static
+    repo: https://github.com/nexis84/Rusty_Bot.git
+    branch: main
+    buildCommand: ""
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /Killboard/index.html

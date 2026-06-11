@@ -1,0 +1,22 @@
+{
+  "name": "rustybot",
+  "version": "1.0.0",
+  "description": "EVE Online tools including Market Browser, Killboard, SSO, and Skin Analyzer",
+  "main": "api/token-exchange.js",
+  "scripts": {
+    "start": "node api/token-exchange.js",
+    "dev": "node api/token-exchange.js",
+    "build": "npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.9",
+    "ws": "^8.20.1"
+  },
+  "keywords": ["eve-online", "market", "killboard", "sso", "skins"],
+  "author": "RustyBot",
+  "license": "MIT"
+}

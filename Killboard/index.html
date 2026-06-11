@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Killboard - RustyBot</title>
+    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="icon" type="image/png" href="rusty_bot.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app">
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <a href="../index.html" class="back-link" title="Back to Hub"><i class="fas fa-arrow-left"></i></a>
+            <img src="rusty_bot.png" alt="RustyBot" class="logo">
+            <h1 class="site-title">Kill<span class="accent">board</span></h1>
+        </div>
+        <div class="top-bar-center">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search pilot, corp, alliance, ship, or system..." autocomplete="off">
+                    <button id="searchZkbBtn" class="search-zkb-btn" title="Search zKillboard"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="searchSuggestions" class="search-suggestions hidden"></div>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <button id="liveIndicator" class="live-indicator" title="Pause/Resume live feed">
+                <span class="live-dot"></span>
+                <span class="live-text" aria-hidden="true"></span>
+            </button>
+            <span id="pollStatus" class="poll-status"></span>
+            <button id="refreshBtn" class="btn-icon" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section id="feedView" class="view">
+            <div class="feed-toolbar">
+                <div class="filter-group">
+                    <label for="filterTime">Time:</label>
+                    <select id="filterTime">
+                        <option value="5">5m</option>
+                        <option value="10">10m</option>
+                        <option value="30" selected>30m</option>
+                        <option value="30">30m</option>
+                        <option value="60">1h</option>
+                        <option value="120">2h</option>
+                    </select>
+                </div>
+                <div class="min-value-filter">
+                    <label for="minValue">Min ISK:</label>
+                    <select id="minValue">
+                        <option value="0">0</option>
+                        <option value="10000000" selected>10M</option>
+                        <option value="50000000">50M</option>
+                        <option value="100000000">100M</option>
+                        <option value="500000000">500M</option>
+                        <option value="1000000000">1B</option>
+                        <option value="5000000000">5B</option>
+                        <option value="10000000000">10B</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterSec">Sec:</label>
+                    <select id="filterSec">
+                        <option value="all">All</option>
+                        <option value="high">High</option>
+                        <option value="low">Low</option>
+                        <option value="null">Null</option>
+                        <option value="wormhole">Wormhole</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterAttackers">Gang:</label>
+                    <select id="filterAttackers">
+                        <option value="all">All</option>
+                        <option value="solo">Solo</option>
+                        <option value="small">2-5</option>
+                        <option value="fleet">6-10</option>
+                        <option value="large">11+</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterSort">Sort:</label>
+                    <select id="filterSort">
+                        <option value="date">Date</option>
+                        <option value="isk">ISK</option>
+                        <option value="ship">Ship</option>
+                        <option value="system">System</option>
+                    </select>
+                </div>
+                <div class="feed-controls">
+                    <span class="result-count" id="resultCount"></span>
+                </div>
+            </div>
+            <div id="topKillsSection" class="top-kills-section hidden">
+                <div class="top-kills-header">
+                    <h2><i class="fas fa-trophy"></i> Top Kills</h2>
+                    <span id="topKillsTimer" class="top-kills-timer"></span>
+                </div>
+                <div id="topKillsGrid" class="top-kills-grid"></div>
+            </div>
+            <div id="searchBanner" class="tab-banner hidden"></div>
+            <div id="newKillsBanner" class="new-kills-banner hidden"></div>
+            <div id="killGrid" class="kill-grid"></div>
+            <div id="feedLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading kills...</p>
+            </div>
+            <div id="feedEmpty" class="empty-state hidden">
+                <i class="fas fa-crosshairs"></i>
+                <h3>No kills found</h3>
+                <p>Try a different search or check back later.</p>
+            </div>
+            <div id="feedError" class="error-state hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Something went wrong</h3>
+                <p id="feedErrorMsg">Could not load kills.</p>
+                <button id="retryBtn" class="action-btn">Retry</button>
+            </div>
+            <div class="load-more-wrapper">
+                <button id="loadMoreBtn" class="load-more-btn hidden">Load More</button>
+            </div>
+        </section>
+
+        <section id="characterView" class="view hidden">
+            <div class="char-top-bar">
+                <button id="backFromCharBtn" class="back-to-feed"><i class="fas fa-arrow-left"></i> Back to Feed</button>
+                <div class="char-top-right">
+                    <button id="charSearchAgainBtn" class="search-zkb-btn" title="Search another character"><i class="fas fa-search"></i> Search</button>
+                    <a id="zkbCharLink" class="ext-link" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> zKillboard</a>
+                </div>
+            </div>
+            <div id="charLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading character data...</p>
+            </div>
+            <div id="charError" class="error-state hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Failed to load character data</h3>
+                <p id="charErrorMsg"></p>
+                <button id="retryCharBtn" class="action-btn">Retry</button>
+            </div>
+            <div id="charContent" class="hidden">
+                <div id="charInfo" class="char-info-panel"></div>
+                <div id="charStats" class="char-stats-panel"></div>
+                <div class="char-kill-split">
+                    <div class="char-kill-column">
+                        <div class="char-section-label kills-label"><i class="fas fa-crosshairs"></i> Kills <span id="charKillsCount" class="char-count-badge"></span></div>
+                        <div id="charKillsGrid" class="kill-grid"></div>
+                        <div id="charKillsEmpty" class="empty-state hidden">
+                            <i class="fas fa-crosshairs"></i>
+                            <h3>No kills found</h3>
+                            <p>This character has no kills on record.</p>
+                        </div>
+                        <div class="load-more-wrapper">
+                            <button id="charKillsLoadMore" class="load-more-btn hidden" data-type="kills">Load More</button>
+                        </div>
+                    </div>
+                    <div class="char-kill-column">
+                        <div class="char-section-label losses-label"><i class="fas fa-skull"></i> Losses <span id="charLossesCount" class="char-count-badge"></span></div>
+                        <div id="charLossesGrid" class="kill-grid"></div>
+                        <div id="charLossesEmpty" class="empty-state hidden">
+                            <i class="fas fa-skull"></i>
+                            <h3>No losses found</h3>
+                            <p>This character has no losses on record.</p>
+                        </div>
+                        <div class="load-more-wrapper">
+                            <button id="charLossesLoadMore" class="load-more-btn hidden" data-type="losses">Load More</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="detailView" class="view hidden">
+            <button id="backToFeed" class="back-to-feed"><i class="fas fa-arrow-left"></i> Back to kills</button>
+            <div id="killDetailLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading kill details...</p>
+            </div>
+            <div id="killDetailContent" class="hidden"></div>
+            <div id="killDetailError" class="error-state hidden">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Failed to load kill details</h3>
+                <p id="killDetailErrorMsg">The killmail could not be retrieved.</p>
+                <button id="retryDetailBtn" class="action-btn">Retry</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+        <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a> &amp; <a href="https://zkillboard.com/" target="_blank">zKillboard</a></p>
+    </footer>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js?v=32"></script>
+</body>
+</html>

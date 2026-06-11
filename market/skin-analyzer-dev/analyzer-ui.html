@@ -1,0 +1,41 @@
+<!-- Sidebar Button -->
+<button id="skinAnalyzerBtn" class="skin-analyzer-btn" onclick="analyzeSkins()">
+    <i class="fas fa-paint-brush"></i> Skin Analyzer
+</button>
+
+<!-- Main Section Content -->
+<div class="popular-items skin-analyzer-section">
+    <h3><i class="fas fa-robot"></i> Skin Analyzer</h3>
+    <div class="skin-analyzer-home-content">
+        <div class="analyzer-header">
+            <div id="analyzerLoginPrompt" class="analyzer-login-prompt">
+                <p class="analyzer-description">
+                    <strong>Missing a skin?</strong> Log in with EVE SSO to analyze your character's ships and skins across New Eden. 
+                    Rusty will scan your ships and owned skins, then identify exactly which skins you can use but don't own yet.
+                </p>
+                <button class="sso-button-large" onclick="initiateSSOLogin()">
+                    <i class="fab fa-eve"></i> Login with EVE Online
+                </button>
+                <p class="login-note" style="margin-top: 15px; font-size: 11px; color: var(--text-muted);">Your data is only used to analyze your inventory. We never store or share your information.</p>
+            </div>
+            <div id="analyzerControls" class="analyzer-controls" style="display: none;">
+                <div class="analyzer-actions" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
+                    <button class="analyze-btn" onclick="analyzeSkins()">
+                        <i class="fas fa-sync-alt"></i> Analyze My Skins
+                    </button>
+                    <div class="analyzer-search-box" style="flex: 1; min-width: 250px; position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                        <input type="text" id="skinSearch" placeholder="Filter by ship or skin name..." oninput="filterSkinResults()" style="width: 100%; padding: 10px 10px 10px 35px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text); font-size: 14px;">
+                    </div>
+                    <span id="lastAnalysisTime" class="last-analysis"></span>
+                </div>
+            </div>
+        </div>
+        <div id="skinAnalyzerResults" class="analyzer-results">
+            <div class="analyzer-placeholder">
+                <i class="fas fa-paint-brush"></i>
+                <p>Click "Analyze My Skins" to see what you're missing!</p>
+            </div>
+        </div>
+    </div>
+</div>
