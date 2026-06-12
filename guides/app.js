@@ -260,9 +260,8 @@
 
   function cleanMissionLine(line) {
     const t = (line || '').trim();
-    // Filter wiki category lines
     if (/^Category\w/i.test(t)) return null;
-    // Fix corrupted apostrophe mojibake
+    if (/^Last edited by/i.test(t)) return null;
     return t.replace(/\uFFFD/g, "'").replace(/�/g, "'").replace(/\\uFFFD/g, "'");
   }
 
@@ -577,11 +576,14 @@
           if (pocket.level === 'h5') continue;
 
           if (pocket.lines && pocket.lines.length) {
-            html += '<div class="npc-group">';
-            for (const line of pocket.lines) {
-              html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
+            const filteredLines = pocket.lines.filter(l => !/^Last edited by/i.test(l.trim()));
+            if (filteredLines.length) {
+              html += '<div class="npc-group">';
+              for (const line of filteredLines) {
+                html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
+              }
+              html += '</div>';
             }
-            html += '</div>';
           }
         }
         html += '</div>';
