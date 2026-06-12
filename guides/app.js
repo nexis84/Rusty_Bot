@@ -76,13 +76,12 @@
     window.addEventListener('hashchange', applyHash);
   }
 
-  // ===== TABS =====
+  // ===== TABS & ROUTING =====
   function initTabs() {
     $$('.tab-bar .tab').forEach(t => {
       t.addEventListener('click', e => {
         e.preventDefault();
         window.location.hash = t.dataset.tab;
-        activateTab(t.dataset.tab);
       });
     });
   }
@@ -92,8 +91,56 @@
     $$('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
   }
 
+  function showListView(tab) {
+    if (tab === 'missions') { $('#missionDetailView').style.display = 'none'; $('#missionListView').style.display = 'block'; }
+    if (tab === 'anomalies') { $('#anomalyDetailView').style.display = 'none'; $('#anomalyListView').style.display = 'block'; }
+    if (tab === 'burners') { $('#burnerDetailView').style.display = 'none'; $('#burnerListView').style.display = 'block'; }
+    if (tab === 'agents') { $('#agentDetailView').style.display = 'none'; $('#agentListView').style.display = 'block'; }
+  }
+
   function applyHash() {
-    activateTab(window.location.hash.replace('#', '') || 'missions');
+    const hash = window.location.hash.replace('#', '') || 'missions';
+    const parts = hash.split('/');
+    const tab = parts[0];
+
+    if (!tab) return;
+    activateTab(tab);
+
+    if (parts[1] === 'detail' && parts[2]) {
+      // Detail view
+      if (tab === 'missions' && parts[3]) {
+        const level = parseInt(parts[2], 10);
+        const pageName = parts.slice(3).join('/');
+        const mission = findMissionByPage(pageName);
+        if (mission && mission.levels[level]) {
+          showMissionDetail(mission, level, pageName);
+        }
+      } else if (tab === 'anomalies') {
+        const pageName = parts.slice(2).join('/');
+        const entry = findEntryByPage(pageName);
+        if (entry) showAnomalyDetail(entry);
+      } else if (tab === 'burners') {
+        const pageName = parts.slice(2).join('/');
+        const entry = burnersData[pageName];
+        if (entry) showBurnerDetail(entry);
+      } else if (tab === 'agents') {
+        const cid = parseInt(parts[2], 10);
+        const agent = agentsData.find(a => a.characterID === cid);
+        if (agent) showAgentDetail(agent);
+      }
+    } else {
+      // List view
+      showListView(tab);
+    }
+  }
+
+  function findMissionByPage(pageName) {
+    for (const m of missionsIndex) {
+      for (const lvl of Object.keys(m.levels)) {
+        if (m.levels[lvl] === pageName) return m;
+      }
+    }
+    return null;
   }
 
   function showLoading(v) {
@@ -107,7 +154,7 @@
     $('#searchInput').addEventListener('input', renderMissionList);
     $('#levelFilter').addEventListener('change', renderMissionList);
     $('#factionFilter').addEventListener('change', renderMissionList);
-    $('#backToMissionList').addEventListener('click', showMissionList);
+    $('#backToMissionList').addEventListener('click', function() { window.location.hash = '#missions'; });
   }
 
   function populateFactionFilter() {
@@ -184,7 +231,7 @@
         badge.classList.add('active');
         badge.addEventListener('click', e => {
           e.stopPropagation();
-          showMissionDetail(mission, lvl, pageName);
+          window.location.hash = '#missions/detail/' + lvl + '/' + encodeURIComponent(pageName);
         });
       }
       levelsEl.appendChild(badge);
@@ -195,7 +242,7 @@
     row.addEventListener('click', () => {
       const levels = Object.keys(mission.levels).map(Number).sort((a, b) => a - b);
       if (levels.length > 0) {
-        showMissionDetail(mission, levels[0], mission.levels[levels[0]]);
+        window.location.hash = '#missions/detail/' + levels[0] + '/' + encodeURIComponent(mission.levels[levels[0]]);
       }
     });
 
@@ -324,7 +371,7 @@
     renderAnomalyList();
     $('#anomalySearchInput').addEventListener('input', renderAnomalyList);
     $('#anomalyFactionFilter').addEventListener('change', renderAnomalyList);
-    $('#backToAnomalyList').addEventListener('click', showAnomalyList);
+    $('#backToAnomalyList').addEventListener('click', function() { window.location.hash = '#anomalies'; });
   }
 
   function populateAnomalyFactionFilter() {
@@ -394,7 +441,10 @@
     container.querySelectorAll('.anomaly-card').forEach(card => {
       card.addEventListener('click', () => {
         const idx = parseInt(card.dataset.filteredIdx, 10);
-        showAnomalyDetail(currentFilteredAnomalies[idx]);
+        const entry = currentFilteredAnomalies[idx];
+        if (entry && entry.page) {
+          window.location.hash = '#anomalies/detail/' + encodeURIComponent(entry.page);
+        }
       });
     });
 
@@ -405,8 +455,8 @@
         const escPage = el.dataset.escPage;
         if (!escPage) return;
         const target = findEntryByPage(escPage);
-        if (target) {
-          showAnomalyDetail(target);
+        if (target && target.page) {
+          window.location.hash = '#anomalies/detail/' + encodeURIComponent(target.page);
         } else {
           window.open('https://wiki.eveuniversity.org/' + encodeURIComponent(escPage), '_blank');
         }
@@ -651,12 +701,10 @@
         e.preventDefault();
         const escPage = escLink.dataset.escPage;
         if (!escPage) return;
-        // Find the escalated entry in anomaliesIndex by page name
         const target = findEntryByPage(escPage);
-        if (target) {
-          showAnomalyDetail(target);
+        if (target && target.page) {
+          window.location.hash = '#anomalies/detail/' + encodeURIComponent(target.page);
         } else {
-          // Fallback: open UniWiki page
           window.open('https://wiki.eveuniversity.org/' + encodeURIComponent(escPage), '_blank');
         }
       });
@@ -716,7 +764,7 @@
     $('#burnerSearchInput').addEventListener('input', renderBurnerList);
     $('#burnerTypeFilter').addEventListener('change', renderBurnerList);
     $('#burnerFactionFilter').addEventListener('change', renderBurnerList);
-    $('#backToBurnerList').addEventListener('click', showBurnerList);
+    $('#backToBurnerList').addEventListener('click', function() { window.location.hash = '#burners'; });
   }
 
   function populateBurnerFactionFilter() {
@@ -787,8 +835,7 @@
     container.querySelectorAll('.anomaly-card').forEach(card => {
       card.addEventListener('click', () => {
         const page = card.dataset.page;
-        const entry = burnersData[page];
-        if (entry) showBurnerDetail(entry);
+        if (page) window.location.hash = '#burners/detail/' + encodeURIComponent(page);
       });
     });
   }
@@ -920,7 +967,7 @@
     $('#agentSearchInput').addEventListener('input', renderAgentList);
     $('#agentDivisionFilter').addEventListener('change', renderAgentList);
     $('#agentLevelFilter').addEventListener('change', renderAgentList);
-    $('#backToAgentList').addEventListener('click', showAgentList);
+    $('#backToAgentList').addEventListener('click', function() { window.location.hash = '#agents'; });
   }
 
   function renderAgentList() {
@@ -990,12 +1037,10 @@
 
     container.innerHTML = html;
 
-    // Wire click handlers
     container.querySelectorAll('.agent-row').forEach(row => {
       row.addEventListener('click', () => {
-        const cid = parseInt(row.dataset.cid, 10);
-        const agent = agentsData.find(a => a.characterID === cid);
-        if (agent) showAgentDetail(agent);
+        const cid = row.dataset.cid;
+        if (cid) window.location.hash = '#agents/detail/' + cid;
       });
     });
 
@@ -1087,39 +1132,29 @@
 
     container.innerHTML = html;
 
-    // Wire agent-row clicks in same-corp list
     container.querySelectorAll('.agent-row').forEach(row => {
       row.addEventListener('click', () => {
-        const cid = parseInt(row.dataset.cid, 10);
-        const ca = agentsData.find(a => a.characterID === cid);
-        if (ca) showAgentDetail(ca);
+        const cid = row.dataset.cid;
+        if (cid) window.location.hash = '#agents/detail/' + cid;
       });
     });
 
-    // Wire mission pill clicks
     container.querySelectorAll('.mission-pill').forEach(pill => {
       pill.addEventListener('click', () => {
-        const name = pill.dataset.mission;
-        const level = parseInt(pill.dataset.level, 10);
+        const level = pill.dataset.level;
         const page = pill.dataset.page;
-        const mission = missionsIndex.find(m => m.name === name);
-        if (mission && page) {
-          activateTab('missions');
-          showMissionDetail(mission, level, page);
+        if (page) {
+          window.location.hash = '#missions/detail/' + level + '/' + encodeURIComponent(page);
         }
       });
     });
 
-    // Wire browse link
     const browseLink = container.querySelector('.browse-link');
     if (browseLink) {
       browseLink.addEventListener('click', (e) => {
         e.preventDefault();
-        const level = browseLink.dataset.level;
-        activateTab('missions');
-        $('#searchInput').value = '';
-        $('#levelFilter').value = String(level);
-        $('#factionFilter').value = '';
+        window.location.hash = '#missions';
+        $('#levelFilter').value = browseLink.dataset.level;
         renderMissionList();
       });
     }
