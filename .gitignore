@@ -30,3 +30,22 @@ RENDER_SETUP.md
 # Debug/temp files
 Killboard/*.txt
 Killboard/swagger*.json
+
+# Vite cache
+.vite/
+
+# Build output
+dist-sleeper/
+
+# Token/secret files
+download_tokens.json
+
+# Market temp/backup files
+market/MARKET.txt
+market/categorized_items.txt
+market/items_database.js.backup
+market/updates.txt
+
+# Mission wiki log files
+mission wiki/server.log
+mission wiki/server.err

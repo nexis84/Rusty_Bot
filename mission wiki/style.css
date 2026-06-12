@@ -1,0 +1,800 @@
+:root {
+  --bg-color: #121212;
+  --primary-color: #1e1e1e;
+  --secondary-color: #2a2a2a;
+  --text-color: #e0e0e0;
+  --text-subtle-color: #aaa;
+  --header-font: 'Titillium Web', sans-serif;
+  --accent-color: #e8d900;
+  --accent-color-hover: #f5e53b;
+  --danger-color: #ff6b6b;
+  --success-color: #51cf66;
+  --info-color: #339af0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--header-font);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+}
+
+.back-link {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: var(--text-subtle-color);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.back-link:hover {
+  color: var(--accent-color);
+}
+
+header {
+  text-align: center;
+  padding: 3rem 1rem 1.5rem;
+}
+
+.logo {
+  max-width: 100px;
+  margin-bottom: 1rem;
+}
+
+header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+
+header h1 span {
+  color: var(--accent-color);
+}
+
+header .subtitle {
+  font-size: 1.1rem;
+  color: var(--text-subtle-color);
+}
+
+/* --- Tab Bar --- */
+.tab-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 1.5rem 0;
+  border-bottom: 2px solid var(--secondary-color);
+}
+
+.tab {
+  padding: 10px 28px;
+  color: var(--text-subtle-color);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text-color);
+}
+
+.tab.active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.2s ease;
+}
+
+/* --- Anomaly List --- */
+.tier-group {
+  margin-bottom: 2rem;
+}
+
+.tier-header {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.anomaly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.anomaly-card {
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.anomaly-card:hover {
+  border-color: var(--accent-color);
+  background: var(--secondary-color);
+}
+
+.anomaly-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.anomaly-faction {
+  font-size: 0.8rem;
+  color: var(--text-subtle-color);
+  font-weight: 600;
+}
+
+.anomaly-level-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--secondary-color);
+  color: var(--text-subtle-color);
+  font-weight: 700;
+}
+
+.anomaly-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.anomaly-card-space {
+  display: flex;
+  gap: 4px;
+}
+
+.space-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.space-high {
+  background: #2b8a3e;
+  color: #fff;
+}
+
+.space-low {
+  background: #e67700;
+  color: #fff;
+}
+
+.space-null {
+  background: #c92a2a;
+  color: #fff;
+}
+
+.anomaly-card-escalation {
+  font-size: 0.75rem;
+  color: var(--info-color);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* --- Search & Filter --- */
+.controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1rem 0 2rem;
+}
+
+.controls input,
+.controls select {
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  color: var(--text-color);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-family: var(--header-font);
+  font-size: 0.95rem;
+}
+
+.controls input {
+  flex: 1 1 300px;
+  min-width: 200px;
+}
+
+.controls input:focus,
+.controls select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.controls select {
+  cursor: pointer;
+}
+
+/* --- Stats bar --- */
+.stats {
+  text-align: center;
+  color: var(--text-subtle-color);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* --- Mission List --- */
+#missionList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mission-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.mission-row:hover {
+  border-color: var(--accent-color);
+  background: var(--secondary-color);
+}
+
+.mission-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.mission-faction {
+  color: var(--text-subtle-color);
+  font-size: 0.85rem;
+  flex: 0 0 200px;
+  text-align: right;
+}
+
+.mission-levels {
+  display: flex;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--secondary-color);
+  color: var(--text-subtle-color);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.level-badge:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.level-badge.active {
+  background: var(--accent-color);
+  color: #111;
+}
+
+/* --- Detail View --- */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  flex: 1;
+}
+
+.detail-header .detail-level-badge {
+  font-size: 1rem;
+  padding: 4px 14px;
+  border-radius: 6px;
+  background: var(--accent-color);
+  color: #111;
+  font-weight: 700;
+}
+
+.detail-header .detail-faction {
+  color: var(--text-subtle-color);
+  font-size: 0.95rem;
+}
+
+.detail-back {
+  color: var(--accent-color);
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.detail-back:hover {
+  text-decoration: underline;
+}
+
+/* --- Info table --- */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+
+.info-card .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-subtle-color);
+  margin-bottom: 4px;
+}
+
+.info-card .value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.info-card .value.video-link a {
+  color: var(--info-color);
+  text-decoration: none;
+}
+
+.info-card .value.video-link a:hover {
+  text-decoration: underline;
+}
+
+/* --- Pockets --- */
+.pocket-section {
+  margin-bottom: 1.5rem;
+}
+
+.pocket-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.pocket-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 1rem 0 0.5rem;
+}
+
+.npc-group {
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 0.5rem;
+}
+
+.npc-group .npc-line {
+  font-size: 0.9rem;
+  padding: 1px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.npc-line .tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 4px;
+  font-weight: 700;
+  font-family: var(--header-font);
+}
+
+.tag-trigger {
+  background: var(--danger-color);
+  color: #fff;
+}
+
+.tag-web, .tag-scramble {
+  background: #f59f00;
+  color: #111;
+}
+
+.tag-painter {
+  background: #748ffc;
+  color: #fff;
+}
+
+.tag-ewar {
+  background: #da77f2;
+  color: #fff;
+}
+
+.pocket-desc {
+  color: var(--text-subtle-color);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Tips / Loot / Blob --- */
+.detail-section {
+  margin-top: 1.5rem;
+  padding: 16px;
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px;
+}
+
+.detail-section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--accent-color);
+}
+
+.detail-section p, .detail-section div {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  line-height: 1.7;
+}
+
+/* --- UniWiki content --- */
+.uniwiki-content {
+  max-height: 500px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.uniwiki-content .npc-line {
+  margin-bottom: 4px;
+}
+
+.uniwiki-npc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.uniwiki-npc-table th {
+  background: var(--secondary-color);
+  color: var(--text-subtle-color);
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.uniwiki-npc-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--secondary-color);
+  color: var(--text-color);
+}
+.uniwiki-npc-table tr:hover td {
+  background: var(--secondary-color);
+}
+
+/* --- Escalation --- */
+.escalation-hint {
+  color: var(--text-subtle-color);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+.anomaly-detail-escalation {
+  color: var(--info-color);
+  font-weight: 700;
+}
+
+/* --- External link (anomaly detail) --- */
+.external-link {
+  text-align: center;
+}
+.external-link a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+.external-link a:hover {
+  text-decoration: underline;
+}
+
+/* --- Empty state --- */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-subtle-color);
+}
+
+/* --- Loading --- */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-subtle-color);
+}
+
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--secondary-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Footer --- */
+footer {
+  text-align: center;
+  padding: 2rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--secondary-color);
+  color: #777;
+  font-size: 0.85rem;
+}
+
+footer a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+/* --- Responsive --- */
+/* --- Agent List --- */
+.corp-group {
+  margin-bottom: 1.5rem;
+}
+
+.corp-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 10px 14px;
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 6px 6px 0 0;
+  border-bottom: none;
+  cursor: default;
+}
+
+.corp-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.corp-faction {
+  font-size: 0.8rem;
+  color: var(--text-subtle-color);
+  font-weight: 600;
+}
+
+.corp-count {
+  font-size: 0.8rem;
+  color: var(--text-subtle-color);
+  background: var(--secondary-color);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.agent-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 8px 14px;
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-top: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.agent-row:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.agent-row:hover {
+  background: var(--secondary-color);
+}
+
+.agent-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.agent-division {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.badge-security {
+  background: #c92a2a;
+  color: #fff;
+}
+
+.badge-distribution {
+  background: #2b8a3e;
+  color: #fff;
+}
+
+.badge-mining {
+  background: #e67700;
+  color: #fff;
+}
+
+.badge-r&d {
+  background: #748ffc;
+  color: #fff;
+}
+
+.agent-level {
+  flex: 0 0 auto;
+  min-width: 24px;
+  text-align: center;
+}
+
+.agent-location {
+  font-size: 0.85rem;
+  color: var(--text-subtle-color);
+  flex: 0 0 140px;
+  text-align: right;
+}
+
+.agent-security {
+  flex: 0 0 auto;
+}
+
+/* --- Agent detail: corp agent list --- */
+.corp-agent-list {
+  margin-top: 0.75rem;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.corp-agent-list .agent-row:first-child {
+  border-top: 1px solid var(--secondary-color);
+}
+
+.corp-agent-list .agent-row:last-child {
+  border-radius: 0;
+}
+
+/* --- Related missions in agent detail --- */
+.mission-ref p {
+  margin: 0.5rem 0;
+}
+
+.related-missions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.mission-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--secondary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.mission-pill:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.mission-pill-more {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  color: var(--text-subtle-color);
+}
+
+.browse-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.browse-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .mission-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .mission-faction {
+    flex: 1 1 100%;
+    text-align: left;
+    font-size: 0.8rem;
+  }
+
+  .mission-levels {
+    flex: 1 1 100%;
+  }
+
+  .detail-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .back-link {
+    position: static;
+    display: block;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+}

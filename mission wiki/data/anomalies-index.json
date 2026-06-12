@@ -1,0 +1,2325 @@
+[
+  {
+    "name": "Angel Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Blood Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hideaway",
+    "escalation": {
+      "name": "Guristas Scout Outpost",
+      "page": "Guristas_Scout_Outpost"
+    }
+  },
+  {
+    "name": "Sansha Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Hideaway",
+    "escalation": {
+      "name": "Sansha's Command Relay Outpost",
+      "page": "Sansha%27s_Command_Relay_Outpost"
+    }
+  },
+  {
+    "name": "Serpentis Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Hideaway",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    }
+  },
+  {
+    "name": "Drone Cluster",
+    "faction": "Rogue Drones",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Cluster",
+    "escalation": null
+  },
+  {
+    "name": "Angel Hidden Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Hidden_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Blood Hidden Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Hidden_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Hidden Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hidden_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Sansha Hidden Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Hidden_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Hidden Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Hidden_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Angel Forsaken Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Forsaken_Hideaway",
+    "escalation": {
+      "name": "Angel Repurposed Outpost",
+      "page": "Angel_Repurposed_Outpost"
+    }
+  },
+  {
+    "name": "Blood Forsaken Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Forsaken_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Forsaken Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Forsaken_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Sansha Forsaken Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Forsaken_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Forsaken Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Forsaken_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Angel Forlorn Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Forlorn_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Blood Forlorn Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Forlorn_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Forlorn Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Forlorn_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Sansha Forlorn Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Forlorn_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Forlorn Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Forlorn_Hideaway",
+    "escalation": null
+  },
+  {
+    "name": "Angel Burrow",
+    "faction": "Angel Cartel",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Angel_Burrow",
+    "escalation": null
+  },
+  {
+    "name": "Blood Burrow",
+    "faction": "Blood Raiders",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Blood_Burrow",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Burrow",
+    "faction": "Guristas Pirates",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Guristas_Burrow",
+    "escalation": null
+  },
+  {
+    "name": "Sansha Burrow",
+    "faction": "Sansha's Nation",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Sansha_Burrow",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Burrow",
+    "faction": "Serpentis",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Serpentis_Burrow",
+    "escalation": null
+  },
+  {
+    "name": "Drone Collection",
+    "faction": "Rogue Drones",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Drone_Collection",
+    "escalation": null
+  },
+  {
+    "name": "Angel Refuge",
+    "faction": "Angel Cartel",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Refuge",
+    "escalation": {
+      "name": "Angel's Red Light District",
+      "page": "Angel%27s_Red_Light_District"
+    }
+  },
+  {
+    "name": "Blood Refuge",
+    "faction": "Blood Raiders",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Refuge",
+    "escalation": {
+      "name": "Mul-Zatah Monastery",
+      "page": "Mul-Zatah_Monastery"
+    }
+  },
+  {
+    "name": "Guristas Refuge",
+    "faction": "Guristas Pirates",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Refuge",
+    "escalation": {
+      "name": "Guristas Scout Outpost",
+      "page": "Guristas_Scout_Outpost"
+    }
+  },
+  {
+    "name": "Sansha Refuge",
+    "faction": "Sansha's Nation",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Refuge",
+    "escalation": {
+      "name": "Sansha's Command Relay Outpost",
+      "page": "Sansha%27s_Command_Relay_Outpost"
+    }
+  },
+  {
+    "name": "Serpentis Refuge",
+    "faction": "Serpentis",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Refuge",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    }
+  },
+  {
+    "name": "Drone Assembly",
+    "faction": "Rogue Drones",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Assembly",
+    "escalation": {
+      "name": "Rogue Drone Asteroid Infestation",
+      "page": "Rogue_Drone_Asteroid_Infestation"
+    }
+  },
+  {
+    "name": "Angel Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Den",
+    "escalation": {
+      "name": "Angel's Red Light District",
+      "page": "Angel%27s_Red_Light_District"
+    }
+  },
+  {
+    "name": "Blood Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Den",
+    "escalation": {
+      "name": "Blood Raider Psychotropics Depot",
+      "page": "Blood_Raider_Psychotropics_Depot"
+    }
+  },
+  {
+    "name": "Guristas Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Den",
+    "escalation": {
+      "name": "Guristas Hallucinogen Supply Waypoint",
+      "page": "Guristas_Hallucinogen_Supply_Waypoint"
+    }
+  },
+  {
+    "name": "Sansha Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Den",
+    "escalation": {
+      "name": "Sansha's Nation Neural Paralytic Facility",
+      "page": "Sansha%27s_Nation_Neural_Paralytic_Facility"
+    }
+  },
+  {
+    "name": "Serpentis Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Den",
+    "escalation": {
+      "name": "Serpentis Corporation Hydroponics Site",
+      "page": "Serpentis_Corporation_Hydroponics_Site"
+    }
+  },
+  {
+    "name": "Drone Gathering",
+    "faction": "Rogue Drones",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Gathering",
+    "escalation": {
+      "name": "Rogue Drone Asteroid Infestation",
+      "page": "Rogue_Drone_Asteroid_Infestation"
+    }
+  },
+  {
+    "name": "Angel Hidden Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hidden_Den",
+    "escalation": null
+  },
+  {
+    "name": "Blood Hidden Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hidden_Den",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Hidden Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hidden_Den",
+    "escalation": {
+      "name": "Guristas Troop Reinvigoration Camp",
+      "page": "Guristas_Troop_Reinvigoration_Camp"
+    }
+  },
+  {
+    "name": "Sansha Hidden Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hidden_Den",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Hidden Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hidden_Den",
+    "escalation": null
+  },
+  {
+    "name": "Angel Forsaken Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Den",
+    "escalation": {
+      "name": "Angel Military Operations Complex",
+      "page": "Angel_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Blood Forsaken Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Den",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Forsaken Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Den",
+    "escalation": {
+      "name": "Gurista Military Operations Complex",
+      "page": "Gurista_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Sansha Forsaken Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Den",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Forsaken Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Den",
+    "escalation": {
+      "name": "Serpentis Paramilitary Complex",
+      "page": "Serpentis_Paramilitary_Complex"
+    }
+  },
+  {
+    "name": "Angel Forlorn Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forlorn_Den",
+    "escalation": {
+      "name": "Angel Military Operations Complex",
+      "page": "Angel_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Blood Forlorn Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forlorn_Den",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Forlorn Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forlorn_Den",
+    "escalation": {
+      "name": "Gurista Military Operations Complex",
+      "page": "Gurista_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Sansha Forlorn Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forlorn_Den",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Forlorn Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forlorn_Den",
+    "escalation": null
+  },
+  {
+    "name": "Angel Yard",
+    "faction": "Angel Cartel",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Yard",
+    "escalation": {
+      "name": "Angel's Red Light District",
+      "page": "Angel%27s_Red_Light_District"
+    }
+  },
+  {
+    "name": "Blood Yard",
+    "faction": "Blood Raiders",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Yard",
+    "escalation": {
+      "name": "Crimson Hand Supply Depot",
+      "page": "Crimson_Hand_Supply_Depot"
+    }
+  },
+  {
+    "name": "Guristas Yard",
+    "faction": "Guristas Pirates",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Yard",
+    "escalation": {
+      "name": "Guristas Hallucinogen Supply Waypoint",
+      "page": "Guristas_Hallucinogen_Supply_Waypoint"
+    }
+  },
+  {
+    "name": "Sansha Yard",
+    "faction": "Sansha's Nation",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Yard",
+    "escalation": {
+      "name": "Sansha War Supply Complex",
+      "page": "Sansha_War_Supply_Complex"
+    }
+  },
+  {
+    "name": "Serpentis Yard",
+    "faction": "Serpentis",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Yard",
+    "escalation": {
+      "name": "Serpentis Logistical Outpost",
+      "page": "Serpentis_Logistical_Outpost"
+    }
+  },
+  {
+    "name": "Drone Surveillance",
+    "faction": "Rogue Drones",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Surveillance",
+    "escalation": {
+      "name": "Rogue Drone Asteroid Infestation",
+      "page": "Rogue_Drone_Asteroid_Infestation"
+    }
+  },
+  {
+    "name": "Angel Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Rally_Point",
+    "escalation": {
+      "name": "Angel Mineral Acquisition Outpost",
+      "page": "Angel_Mineral_Acquisition_Outpost"
+    }
+  },
+  {
+    "name": "Blood Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Rally_Point",
+    "escalation": {
+      "name": "Crimson Hand Supply Depot",
+      "page": "Crimson_Hand_Supply_Depot"
+    }
+  },
+  {
+    "name": "Guristas Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Rally_Point",
+    "escalation": {
+      "name": "Guristas Troop Reinvigoration Camp",
+      "page": "Guristas_Troop_Reinvigoration_Camp"
+    }
+  },
+  {
+    "name": "Sansha Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Rally_Point",
+    "escalation": {
+      "name": "Sansha War Supply Complex",
+      "page": "Sansha_War_Supply_Complex"
+    }
+  },
+  {
+    "name": "Serpentis Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Rally_Point",
+    "escalation": {
+      "name": "Serpentis Logistical Outpost",
+      "page": "Serpentis_Logistical_Outpost"
+    }
+  },
+  {
+    "name": "Drone Menagerie",
+    "faction": "Rogue Drones",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Drone_Menagerie",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (5/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(5/10)"
+    }
+  },
+  {
+    "name": "Angel Hidden Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hidden_Rally_Point",
+    "escalation": {
+      "name": "Angel Mineral Acquisition Outpost",
+      "page": "Angel_Mineral_Acquisition_Outpost"
+    }
+  },
+  {
+    "name": "Blood Hidden Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hidden_Rally_Point",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Hidden Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hidden_Rally_Point",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Sansha Hidden Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hidden_Rally_Point",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point",
+      "page": "True_Sansha_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Serpentis Hidden Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hidden_Rally_Point",
+    "escalation": {
+      "name": "Capital Staging",
+      "page": "Serpentis_Capital_Staging"
+    }
+  },
+  {
+    "name": "Angel Forsaken Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Cartel Prisoner Retention",
+      "page": "Cartel_Prisoner_Retention"
+    }
+  },
+  {
+    "name": "Blood Forsaken Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Blood Raider Prison Camp",
+      "page": "Blood_Raider_Prison_Camp"
+    }
+  },
+  {
+    "name": "Guristas Forsaken Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Pith's Penal Complex",
+      "page": "Pith%27s_Penal_Complex"
+    }
+  },
+  {
+    "name": "Sansha Forsaken Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Sansha Prison Camp",
+      "page": "Sansha_Prison_Camp"
+    }
+  },
+  {
+    "name": "Serpentis Forsaken Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Serpentis Prison Camp",
+      "page": "Serpentis_Prison_Camp"
+    }
+  },
+  {
+    "name": "Angel Forlorn Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forlorn_Rally_Point",
+    "escalation": null
+  },
+  {
+    "name": "Blood Forlorn Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Blood Raider Prison Camp",
+      "page": "Blood_Raider_Prison_Camp"
+    }
+  },
+  {
+    "name": "Guristas Forlorn Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Pith's Penal Complex",
+      "page": "Pith%27s_Penal_Complex"
+    }
+  },
+  {
+    "name": "Sansha Forlorn Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Sansha Prison Camp",
+      "page": "Sansha_Prison_Camp"
+    }
+  },
+  {
+    "name": "Serpentis Forlorn Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Serpentis Prison Camp",
+      "page": "Serpentis_Prison_Camp"
+    }
+  },
+  {
+    "name": "Angel Port",
+    "faction": "Angel Cartel",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Port",
+    "escalation": {
+      "name": "Angel Military Operations Complex",
+      "page": "Angel_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Blood Port",
+    "faction": "Blood Raiders",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Port",
+    "escalation": {
+      "name": "Blood Raider Coordination Center",
+      "page": "Blood_Raider_Coordination_Center"
+    }
+  },
+  {
+    "name": "Guristas Port",
+    "faction": "Guristas Pirates",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Port",
+    "escalation": {
+      "name": "Gurista Military Operations Complex",
+      "page": "Gurista_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Sansha Port",
+    "faction": "Sansha's Nation",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Port",
+    "escalation": {
+      "name": "Sansha Military Operations Complex",
+      "page": "Sansha_Military_Operations_Complex"
+    }
+  },
+  {
+    "name": "Serpentis Port",
+    "faction": "Serpentis",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Port",
+    "escalation": {
+      "name": "Serpentis Paramilitary Complex",
+      "page": "Serpentis_Paramilitary_Complex"
+    }
+  },
+  {
+    "name": "Drone Herd",
+    "faction": "Rogue Drones",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Drone_Herd",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (5/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(5/10)"
+    }
+  },
+  {
+    "name": "Angel Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hub",
+    "escalation": {
+      "name": "Cartel Prisoner Retention",
+      "page": "Cartel_Prisoner_Retention"
+    }
+  },
+  {
+    "name": "Blood Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hub",
+    "escalation": {
+      "name": "Blood Raider Prison Camp",
+      "page": "Blood_Raider_Prison_Camp"
+    }
+  },
+  {
+    "name": "Guristas Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hub",
+    "escalation": {
+      "name": "Pith's Penal Complex",
+      "page": "Pith%27s_Penal_Complex"
+    }
+  },
+  {
+    "name": "Sansha Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hub",
+    "escalation": {
+      "name": "Sansha Prison Camp",
+      "page": "Sansha_Prison_Camp"
+    }
+  },
+  {
+    "name": "Serpentis Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hub",
+    "escalation": {
+      "name": "Serpentis Prison Camp",
+      "page": "Serpentis_Prison_Camp"
+    }
+  },
+  {
+    "name": "Drone Squad",
+    "faction": "Rogue Drones",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Drone_Squad",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (10/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(10/10)"
+    }
+  },
+  {
+    "name": "Angel Hidden Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hidden_Hub",
+    "escalation": {
+      "name": "Angel Domination Fleet Staging Point",
+      "page": "Angel_Domination_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Blood Hidden Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hidden_Hub",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Hidden Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hidden_Hub",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Sansha Hidden Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hidden_Hub",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Hidden Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hidden_Hub",
+    "escalation": null
+  },
+  {
+    "name": "Angel Forsaken Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Hub",
+    "escalation": {
+      "name": "Angel Domination Fleet Staging Point",
+      "page": "Angel_Domination_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Blood Forsaken Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Hub",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Forsaken Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Hub",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Sansha Forsaken Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Hub",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point",
+      "page": "True_Sansha_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Serpentis Forsaken Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Hub",
+    "escalation": {
+      "name": "Shadow Serpentis Fleet Staging Point",
+      "page": "Shadow_Serpentis_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Angel Forlorn Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forlorn_Hub",
+    "escalation": {
+      "name": "Angel Domination Fleet Staging Point",
+      "page": "Angel_Domination_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Blood Forlorn Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forlorn_Hub",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Forlorn Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forlorn_Hub",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Sansha Forlorn Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forlorn_Hub",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point",
+      "page": "True_Sansha_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Serpentis Forlorn Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forlorn_Hub",
+    "escalation": {
+      "name": "Shadow Serpentis Fleet Staging Point",
+      "page": "Shadow_Serpentis_Fleet_Staging_Point"
+    }
+  },
+  {
+    "name": "Angel Haven",
+    "faction": "Angel Cartel",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Haven",
+    "escalation": {
+      "name": "Angel Cartel Naval Shipyard",
+      "page": "Angel_Cartel_Naval_Shipyard"
+    }
+  },
+  {
+    "name": "Blood Haven",
+    "faction": "Blood Raiders",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Haven",
+    "escalation": {
+      "name": "Blood Raider Naval Shipyard",
+      "page": "Blood_Raider_Naval_Shipyard"
+    }
+  },
+  {
+    "name": "Guristas Haven",
+    "faction": "Guristas Pirates",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guristas_Haven",
+    "escalation": {
+      "name": "The Maze",
+      "page": "The_Maze"
+    }
+  },
+  {
+    "name": "Sansha Haven",
+    "faction": "Sansha's Nation",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Haven",
+    "escalation": {
+      "name": "Centus Assembly T.P. Co.",
+      "page": "Centus_Assembly_T.P._Co."
+    }
+  },
+  {
+    "name": "Serpentis Haven",
+    "faction": "Serpentis",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Haven",
+    "escalation": {
+      "name": "Serpentis Fleet Shipyard",
+      "page": "Serpentis_Fleet_Shipyard"
+    }
+  },
+  {
+    "name": "Drone Patrol",
+    "faction": "Rogue Drones",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Drone_Patrol",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (10/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(10/10)"
+    }
+  },
+  {
+    "name": "Angel Sanctum",
+    "faction": "Angel Cartel",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Sanctum",
+    "escalation": null
+  },
+  {
+    "name": "Blood Sanctum",
+    "faction": "Blood Raiders",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Sanctum",
+    "escalation": {
+      "name": "Blood Raider Naval Shipyard",
+      "page": "Blood_Raider_Naval_Shipyard"
+    }
+  },
+  {
+    "name": "Guristas Sanctum",
+    "faction": "Guristas Pirates",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guristas_Sanctum",
+    "escalation": {
+      "name": "The Maze",
+      "page": "The_Maze"
+    }
+  },
+  {
+    "name": "Sansha Sanctum",
+    "faction": "Sansha's Nation",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Sanctum",
+    "escalation": {
+      "name": "Centus Assembly T.P. Co.",
+      "page": "Centus_Assembly_T.P._Co."
+    }
+  },
+  {
+    "name": "Serpentis Sanctum",
+    "faction": "Serpentis",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Sanctum",
+    "escalation": {
+      "name": "Serpentis Fleet Shipyard",
+      "page": "Serpentis_Fleet_Shipyard"
+    }
+  },
+  {
+    "name": "Drone Horde",
+    "faction": "Rogue Drones",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Drone_Horde",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (10/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(10/10)"
+    }
+  },
+  {
+    "name": "Sansha Forsaken Sanctum",
+    "faction": "Sansha's Nation",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Sanctum",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Forsaken Sanctum",
+    "faction": "Serpentis",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Sanctum",
+    "escalation": {
+      "name": "Serpentis Fleet Shipyard",
+      "page": "Serpentis_Fleet_Shipyard"
+    }
+  },
+  {
+    "name": "Guristas Scout Outpost",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Scout_Outpost",
+    "escalation": null
+  },
+  {
+    "name": "Sansha's Command Relay Outpost",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Command_Relay_Outpost",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Narcotic Warehouses",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Narcotic_Warehouses",
+    "escalation": null
+  },
+  {
+    "name": "Angel Repurposed Outpost",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Repurposed_Outpost",
+    "escalation": null
+  },
+  {
+    "name": "Angel's Red Light District",
+    "faction": "Angel Cartel",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel%27s_Red_Light_District",
+    "escalation": null
+  },
+  {
+    "name": "Mul-Zatah Monastery",
+    "faction": "Blood Raiders",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Mul-Zatah_Monastery",
+    "escalation": null
+  },
+  {
+    "name": "Rogue Drone Asteroid Infestation",
+    "faction": "Rogue Drones",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Rogue_Drone_Asteroid_Infestation",
+    "escalation": null
+  },
+  {
+    "name": "Blood Raider Psychotropics Depot",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Psychotropics_Depot",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Hallucinogen Supply Waypoint",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hallucinogen_Supply_Waypoint",
+    "escalation": null
+  },
+  {
+    "name": "Sansha's Nation Neural Paralytic Facility",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Nation_Neural_Paralytic_Facility",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Corporation Hydroponics Site",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Corporation_Hydroponics_Site",
+    "escalation": null
+  },
+  {
+    "name": "Guristas Troop Reinvigoration Camp",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Troop_Reinvigoration_Camp",
+    "escalation": null
+  },
+  {
+    "name": "Angel Military Operations Complex",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Military_Operations_Complex",
+    "escalation": null
+  },
+  {
+    "name": "Gurista Military Operations Complex",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Gurista_Military_Operations_Complex",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Paramilitary Complex",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Paramilitary_Complex",
+    "escalation": null
+  },
+  {
+    "name": "Crimson Hand Supply Depot",
+    "faction": "Blood Raiders",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Crimson_Hand_Supply_Depot",
+    "escalation": null
+  },
+  {
+    "name": "Sansha War Supply Complex",
+    "faction": "Sansha's Nation",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_War_Supply_Complex",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Logistical Outpost",
+    "faction": "Serpentis",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Logistical_Outpost",
+    "escalation": null
+  },
+  {
+    "name": "Angel Mineral Acquisition Outpost",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Mineral_Acquisition_Outpost",
+    "escalation": null
+  },
+  {
+    "name": "Outgrowth Rogue Drone Hive (5/10)",
+    "faction": "Rogue Drones",
+    "tier": 6,
+    "level": 5,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Outgrowth_Rogue_Drone_Hive_(5/10)",
+    "escalation": null
+  },
+  {
+    "name": "Dread Guristas Fleet Staging Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Dread_Guristas_Fleet_Staging_Point",
+    "escalation": null
+  },
+  {
+    "name": "True Sansha Fleet Staging Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "True_Sansha_Fleet_Staging_Point",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Capital Staging",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Capital_Staging",
+    "escalation": null
+  },
+  {
+    "name": "Cartel Prisoner Retention",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Cartel_Prisoner_Retention",
+    "escalation": null
+  },
+  {
+    "name": "Blood Raider Prison Camp",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Prison_Camp",
+    "escalation": null
+  },
+  {
+    "name": "Pith's Penal Complex",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Pith%27s_Penal_Complex",
+    "escalation": null
+  },
+  {
+    "name": "Sansha Prison Camp",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Prison_Camp",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Prison Camp",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Prison_Camp",
+    "escalation": null
+  },
+  {
+    "name": "Blood Raider Coordination Center",
+    "faction": "Blood Raiders",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Coordination_Center",
+    "escalation": null
+  },
+  {
+    "name": "Sansha Military Operations Complex",
+    "faction": "Sansha's Nation",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Military_Operations_Complex",
+    "escalation": null
+  },
+  {
+    "name": "Outgrowth Rogue Drone Hive (10/10)",
+    "faction": "Rogue Drones",
+    "tier": 8,
+    "level": 10,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Outgrowth_Rogue_Drone_Hive_(10/10)",
+    "escalation": null
+  },
+  {
+    "name": "Angel Domination Fleet Staging Point",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Domination_Fleet_Staging_Point",
+    "escalation": null
+  },
+  {
+    "name": "Shadow Serpentis Fleet Staging Point",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Shadow_Serpentis_Fleet_Staging_Point",
+    "escalation": null
+  },
+  {
+    "name": "Angel Cartel Naval Shipyard",
+    "faction": "Angel Cartel",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Cartel_Naval_Shipyard",
+    "escalation": null
+  },
+  {
+    "name": "Blood Raider Naval Shipyard",
+    "faction": "Blood Raiders",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Naval_Shipyard",
+    "escalation": null
+  },
+  {
+    "name": "The Maze",
+    "faction": "Guristas Pirates",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "The_Maze",
+    "escalation": null
+  },
+  {
+    "name": "Centus Assembly T.P. Co.",
+    "faction": "Sansha's Nation",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Centus_Assembly_T.P._Co.",
+    "escalation": null
+  },
+  {
+    "name": "Serpentis Fleet Shipyard",
+    "faction": "Serpentis",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Fleet_Shipyard",
+    "escalation": null
+  }
+]

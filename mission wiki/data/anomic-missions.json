@@ -1,0 +1,742 @@
+{
+  "Anomic_Agent_(Angel)": {
+    "page": "Anomic_Agent_(Angel)",
+    "name": "Anomic Agent (Angel)",
+    "type": "Agent",
+    "faction": "Angel",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won’t penalize you if you decline it. A single individual, a rogue element of the Angel Cartel, has struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger. This pirate will be flying a shield boosted Dramiel frigate, with an extremely small signature radius. He tends to deal most of his damage with Domination Fusion ammo, supplemented with Mjolnir rockets. Survivors of his previous attacks claim that he likes to orbit his opponents at very close range at high speed to make himself hard to hit. He always flies with a Stasis Webifier and Warp Scrambler fit. A word of warning: this rogue pirate is extremely dangerous and has proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Frigate Burner Dramiel"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Dramiel  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Agent_(Blood_Raider)": {
+    "page": "Anomic_Agent_(Blood_Raider)",
+    "name": "Anomic Agent (Blood Raider)",
+    "type": "Agent",
+    "faction": "Blood Raiders",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won’t penalize you if you decline it. A single individual, a rogue element of the Blood Raider Covenant, has struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger. This pirate will be flying an armor tanked Cruor frigate, with extremely effective Nosferatu modules. She destroys her enemies using pulse lasers loaded with Conflagration frequency crystals. Survivors of her previous attacks claim that she likes to orbit her opponents at around 5km while draining their capacitor dry. She always flies with a long-range Stasis Webifier and a Warp Scrambler fit. A word of warning: this rogue pirate is extremely dangerous and has proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Frigate Burner Cruor"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "Cruor neuts 18 GJ/s and has an extremely strong armor buffer tank (9k HP, lowest resist 67% Explosive).\n\n\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Cruor  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Agent_(Guristas)": {
+    "page": "Anomic_Agent_(Guristas)",
+    "name": "Anomic Agent (Guristas)",
+    "type": "Agent",
+    "faction": "Guristas",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won’t penalize you if you decline it. A single individual, a rogue element of the Guristas Pirates, has struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger. This pirate will be flying a shield boosted Worm frigate designed to operate at long range. She prefers using Dread Guristas Scourge Light Missiles to deal damage. Survivors of her previous attacks claim that she likes to orbit her opponents at beyond 30km using her high speed to keep range. She always flies with a Warp Disruptor fit. A word of warning: this rogue pirate is extremely dangerous and has proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Frigate Burner Worm"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Worm  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Agent_(Sansha%27s_Nation)": {
+    "page": "Anomic_Agent_(Sansha%27s_Nation)",
+    "name": "Anomic Agent (Sansha)",
+    "type": "Agent",
+    "faction": "Sansha's Nation",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won't penalize you if you decline it. A single individual, a rogue element of Sansha's Nation, has struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don't try to bring anything bigger. This pirate will be flying an extremely fast, shield boosted Succubus frigate. He uses lasers loaded with Scorch frequency crystals. Survivors of his previous attacks claim that he likes to orbit his opponents at around 15km at extremely high speeds. He always flies with a Stasis Webifier and a Warp Scrambler fit. A word of warning: this rogue pirate is extremely dangerous and has proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Frigate Burner Succubus"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Succubus  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Agent_(Serpentis)": {
+    "page": "Anomic_Agent_(Serpentis)",
+    "name": "Anomic Agent (Serpentis)",
+    "type": "Agent",
+    "faction": "Serpentis",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won’t penalize you if you decline it. A single individual, a rogue element of the Serpentis Corporation, has struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger. This pirate will be flying an armor tanked Daredevil frigate, with an extremely effective Stasis Webifier. He tends to deal his damage using railguns loaded with Shadow Antimatter ammo. Survivors of his previous attacks claim that he likes to orbit his opponents at around 10km while holding them in place. He always flies with a powerfully boosted Stasis Webifier and a Warp Scrambler fit. A word of warning: this rogue pirate is extremely dangerous and has proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Frigate Burner Daredevil"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "Warning: contrarily to most frigate burners, you will land directly on top of the Daredevil. Expect not to move very much - burner has -90% web.\n\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Daredevil  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Base_(Angel)": {
+    "page": "Anomic_Base_(Angel)",
+    "name": "Anomic Base (Angel)",
+    "type": "Base",
+    "faction": "Angel",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional and extremely difficult mission for you, we won’t penalize you if you decline it. A team of thugs that have spent the past few years recruiting and transporting clone soldiers for the Angel Cartel have gone rogue and appear to be massing their ground forces for an operation nearby. We cannot allow this operation to go forward. They have all scans open, so we can't go there in force. If you accept this mission, it's you against them. Only medium sized ships can gain entry to the hideout, so don’t try to bring anything bigger. These rogue pirates are flying four Dramiel frigates with strong shield tanks and extremely small signatures. They deal most of their damage using Domination Fusion ammo, supplemented with Mjolnir rockets. Survivors of their previous attacks claim that they like to orbit their opponents at very close range at high speed to make themselves hard to hit. They always fly with Stasis Webifiers and Warp Scramblers fit. To prevent their attack you will need to kill all four Dramiels as well as their nearby transport ship. A word of warning: these rogue pirates are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "4 x Elite Frigate Burner Escort Dramiel"
+          ],
+          [
+            "1 x Industrial Burner Clone Soldier Transport"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "Dramiels have a very similar damage and resist profile to the anomic agent Angel burner - deals mostly EM and Explosive damage + some Kinetic, with slightly increased tank. Strong faction or deadspace-grade tank modules and high volley damage + webs to quickly win the DPS race is highly recommended.\n\n\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  4 x Elite Frigate  Burner Escort Dramiel  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Industrial  Burner Clone Soldier Transport  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Base_(Blood_Raider)": {
+    "page": "Anomic_Base_(Blood_Raider)",
+    "name": "Anomic Base (Blood Raider)",
+    "type": "Base",
+    "faction": "Blood Raiders",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional and extremely difficult mission for you, we won’t penalize you if you decline it. It appears that some local Blood Raider conflicts over Sani Sabik religions doctrine have boiled over and caused a prominent pirate captain to declare herself independent from the rest of the Covenant. This particular pirate seems obsessed with the Drifters and is collecting capsuleer bodies to use as some sort of “bait” for attracting them. She has started to collect her own fanatical followers and this could get out of hand quickly if not dealt with soon. They have all scans open, so we can't go there in force. If you accept this mission, it's you against them. Only medium sized ships can gain entry to the hideout, so don’t try to bring anything bigger. This rogue pirate is flying an extremely well fitted Ashimmu cruiser sporting powerful Nosferatu modules and long-range Stasis Webifiers. Our intelligence reports indicate that she is armed with beam lasers that deal EM and Thermal damage. She also has two wingmen flying Sentinel class Electronic Attack Frigates. The Sentinel wingmen are equipped with autocannons loaded with Barrage ammo. They also sport extremely effective tracking disruptors and have been seen supporting their leader by destroying any hostile drones they see. These pirates always fly with a Warp Scrambler and long-range Stasis Webifiers fit. A word of warning: these rogue pirates are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "2 x Elite Frigate Burner Sentinel"
+          ],
+          [
+            "1 x Elite Cruiser Burner Ashimmu"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "The combined neuting (without factoring cap warfare resists) is ~90 GJ/s. The Sentinels deal purely Kinetic and Explosive and are weakest to Thermal damage. The Ashimmu does 360 DPS EM/Thermal with strong emphasis on EM, has a strong armor buffer tank and is weakest to Kinetic damage.\n\n\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  2 x Elite Frigate  Burner Sentinel  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Elite Cruiser  Burner Ashimmu  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Base_(Caldari)": {
+    "page": "Anomic_Base_(Caldari)",
+    "name": "Anomic Base (Caldari)",
+    "type": "Base",
+    "faction": "Caldari",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional and extremely difficult mission for you, we won’t penalize you if you decline it. The Wyvern-class Supercarrier Antero was recently stolen from the Caldari by a group of hijackers funded by the Guristas. They seem to have somehow double-crossed their employers, and now both the Caldari Navy and the Guristas are after them. Their Supercarrier is severely damaged, but still commands a powerful contingent of heavily modified fighters. I wouldn’t normally care too much about this ship, except that it just showed up outside a nearby repair depot demanding repairs and threatening violence. If they damage that depot I’m going to personally lose a significant investment, and we can’t let that happen. If you accept this mission, you’ll need to get over there and convince them that there are better depots to hold up than mine. There’s no way that you’ll be able to kill it, but if you wipe out enough of its fighters I’m sure they’ll get the hint. Only medium sized ships can gain entry to the repair yard, so don’t try to bring anything bigger. These rogue pirates have waves of heavily modified fighters and fighter bombers with strong shield tanks and small signatures. They deal all four damage types, with their modified Dragonfly fighters spewing Explosive, Kinetic and Thermal at close range, and their modified Mantis fighter-bombers lobbing EM damage from longer ranges. They always fly with Stasis Webifiers and Warp Scramblers fit. To save my repair depot you’ll need to keep destroying waves of fighters until the Wyvern decides to cut its losses and leave. A word of warning: these rogue pirates are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "Wave 1 - Fighters"
+          ],
+          [
+            "3 x Fighter Burner Dragonfly"
+          ],
+          [
+            "Wave 2 - Fighter-bombers"
+          ],
+          [
+            "3 x Fighter Burner Mantis"
+          ],
+          [
+            "Wave 3 - Fighters"
+          ],
+          [
+            "3 x Fighter Burner Dragonfly"
+          ],
+          [
+            "Wave 4 - Fighter-bombers"
+          ],
+          [
+            "3 x Fighter Burner Mantis"
+          ],
+          [
+            "Wave 5 - Fighters"
+          ],
+          [
+            "3 x Fighter Burner Dragonfly"
+          ],
+          [
+            "Wave 6 - Fighter-bombers"
+          ],
+          [
+            "3 x Fighter Burner Mantis"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Supercarrier Burner Antero"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "Dragonflies deal mostly Thermal and Explosive damage with some Kinetic. The Mantis waves' torpedoes have extremely high EM damage alpha but they have the explosion radius and velocity of battleships. As long as you stay constantly moving their damage should be mitigated a significant amount. It may be a good idea to avoid automatic orbit or keep at range commands and prioritize manual piloting to kill them so you won't slow down after destroying one if you're using an automatic orbit maneuver (and therefore become vulnerable to being volleyed through your tank due to your reduced speed).\n\n\nWaves of Fighters\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\nWave 1 - Fighters\n\n\n  \n \n\n  3 x Fighter  Burner Dragonfly  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\nWave 2 - Fighter-bombers\n\n\n  \n \n\n  3 x Fighter  Burner Mantis  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\nWave 3 - Fighters\n\n\n  \n \n\n  3 x Fighter  Burner Dragonfly  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\nWave 4 - Fighter-bombers\n\n\n  \n \n\n  3 x Fighter  Burner Mantis  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\nWave 5 - Fighters\n\n\n  \n \n\n  3 x Fighter  Burner Dragonfly  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\nWave 6 - Fighter-bombers\n\n\n  \n \n\n  3 x Fighter  Burner Mantis  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nSupercarrier\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Supercarrier  Burner Antero  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Base_(Serpentis)": {
+    "page": "Anomic_Base_(Serpentis)",
+    "name": "Anomic Base (Serpentis)",
+    "type": "Base",
+    "faction": "Serpentis",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional and extremely difficult mission for you, we won’t penalize you if you decline it. It appears that a small group of Serpentis corporation test pilots have absconded with some prototype battlecruisers being developed for smuggling operations. We’ve located three of these pilots in a base they’ve established not far from here. They have all scans open, so we can't go there in force. If you accept this mission, it's you against them. Only medium sized ships can gain entry to the hideout, so don’t try to bring anything bigger. These rogue pirates are flying advanced prototype battlecruisers capable of dealing damage at long range. Our intelligence reports indicate that they are armed with railguns loaded with Spike ammunition. Survivors of our last failed attack against their compound indicate that they use long ranges combined with powerful sensor dampeners to avoid danger. Their base is also equipped with a huge minefield of proximity-activated autoturrets. These turrets deal EM damage and will cause you problems if they activate, but they remain dormant unless a ship enters within 10km of them. Fly carefully to avoid the turrets. These pirates always fly with a Warp Disruptors fit. A word of warning: these rogue pirates are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "180 x Friendly Sentry Inert Proximity-activated Autoturret"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Cruiser Burner Talos"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Cruiser Burner Talos"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Elite Cruiser Burner Talos"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "The main danger of this mission is the sheer distance you will be required to travel in order to kill the Burner Talos trio. Their railguns have poor tracking but 330km range and each deal 800 DPS Kinetic/Thermal. The sentries activate within 10km distance of your ship and each do 50 DPS EM damage out to 300 km. The most common method to complete this mission is using a brawling-fit Assault Frigate and relying completely on speed tanking to avoid the Talos' fire, since they cannot hold up to one or two lucky hits.\n\n\n6x6x5 grid of turrets spaced 65 km apart\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  180 x Friendly Sentry  Inert Proximity-activated Autoturret  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nWest\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Cruiser  Burner Talos  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nNorth\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Cruiser  Burner Talos  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nEast\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x Elite Cruiser  Burner Talos  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Team_(Amarr)": {
+    "page": "Anomic_Team_(Amarr)",
+    "name": "Anomic Team (Amarr)",
+    "type": "Team",
+    "faction": "Amarr",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won't penalize you if you decline it. A crack commando team, former members of the Imperial Navy, have struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don't try to bring anything bigger. The leader of this gang flies a very sturdy Vengeance-class Assault Frigate. He deals his damage through Rocket Launchers armed with Mjolnir Rockets and he always fits a Stasis Webifier and Warp Scrambler. He is joined by two allies in Inquisitor-class Support Frigates, which can use Remote Armor Repairers to keep themselves and their leader alive. I advise you to do everything in your power to eliminate the Inquisitors early in the fight. A word of warning: these soldiers of fortune are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "2 x Frigate Burner Inquisitor"
+          ],
+          [
+            "1 x Elite Frigate Burner Vengeance"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  2 x Frigate  Burner Inquisitor  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Vengeance  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Team_(Caldari)": {
+    "page": "Anomic_Team_(Caldari)",
+    "name": "Anomic Team (Caldari)",
+    "type": "Team",
+    "faction": "Caldari",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won’t penalize you if you decline it. A crack commando team, former members of the Caldari Navy, have struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don't try to bring anything bigger. The leader of this gang flies a Hawk-class Assault Frigate. She deals her damage through Rocket Launchers armed with Caldari Navy Scourge Rockets and she always fits a Stasis Webifier and Warp Scrambler. She is backed up by two allies in Bantam-class Support Frigates, which can use Remote Shield Transporters to keep themselves and their leader alive. I advise you to do everything in your power to eliminate the Bantams early in the fight. A word of warning: these soldiers of fortune are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "2 x Frigate Burner Bantam"
+          ],
+          [
+            "1 x Elite Frigate Burner Hawk"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  2 x Frigate  Burner Bantam  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Hawk  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Team_(Gallente)": {
+    "page": "Anomic_Team_(Gallente)",
+    "name": "Anomic Team (Gallente)",
+    "type": "Team",
+    "faction": "Gallente",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won't penalize you if you decline it. A crack commando team, former members of the Federation Navy, have struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger. The leader of this gang flies an Enyo-class Assault Frigate, fit with high damage blaster cannons, a Stasis Webifier and Warp Scrambler. He is backed up by two allies in Navitas-class Support Frigates, which can use Remote Armor Repairers to keep themselves and their leader alive. I advise you to do everything in your power to eliminate the Navitas’ early in the fight. A word of warning: these soldiers of fortune are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "2 x Frigate Burner Navitas"
+          ],
+          [
+            "1 x Elite Frigate Burner Enyo"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "Elite Frigates (40 km)\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  2 x Frigate  Burner Navitas  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Enyo  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  },
+  "Anomic_Team_(Minmatar)": {
+    "page": "Anomic_Team_(Minmatar)",
+    "name": "Anomic Team (Minmatar)",
+    "type": "Team",
+    "faction": "Minmatar",
+    "npcTables": [
+      {
+        "type": "table",
+        "rows": [
+          [
+            "Mission briefing"
+          ],
+          [
+            "I have a special optional mission for you, we won’t penalize you if you decline it. A crack commando team, former members of the Republic Fleet, have struck out on their own. We don't know why, but we want you to hunt them down. They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them. Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger. The leader of this gang flies a Jaguar-class Assault Frigate. She fits her ship with Autocannons loaded with Republic Fleet Fusion ammo, carries a Rocket Launcher armed with Mjolnir Rockets, and never leaves home without a Stasis Webifier and Warp Scrambler. She is backed up by two allies in Burst-class Support Frigates, which can use Remote Shield Transporters to keep themselves and their leader alive. I advise you to do everything in your power to eliminate the Bursts early in the fight. A word of warning: these soldiers of fortune are extremely dangerous and have proven very capable of destroying capsuleer ships. If you choose to decline this mission or if you fail to complete it, you will not lose any standings."
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "1 x Acceleration Gate"
+          ]
+        ]
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "2 x Frigate Burner Burst"
+          ],
+          [
+            "1 x Elite Frigate Burner Jaguar"
+          ]
+        ]
+      }
+    ],
+    "sections": {
+      "Warp-in": "Structures\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  1 x  Acceleration Gate",
+      "1st Room": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  2 x Frigate  Burner Burst  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Elite Frigate  Burner Jaguar  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\nv · t · e\nAnomic MissionsAgent\nAngel - Dramiel\nBlood Raiders - Cruor\nGuristas - Worm\nSansha - Succubus\nSerpentis - Daredevil\nBase\nAngel - Wreathe Industrial and four Dramiels\nBlood Raiders - Ashimmu and two Sentinels\nCaldari - Wyvern Supercarrier\nSerpentis - Three Talos\nTeam\nAmarr - Vengeance and two Inquisitors\nCaldari - Hawk and two Bantams\nGallente - Enyo and two Navitas\nMinmatar - Jaguar and two Bursts"
+    }
+  }
+}
