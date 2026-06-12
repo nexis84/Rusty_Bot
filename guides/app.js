@@ -632,11 +632,12 @@
         if (item.type === 'table') {
           const firstRow = item.rows && item.rows[0];
           const header = firstRow ? firstRow.join(' ') : '';
-          if (header === 'DED Complexes' || header.startsWith('Angel Cartel') || header.startsWith('Blood Raiders') ||
-              header.startsWith('Guristas Pirates') || header.startsWith('Sansha') || header.startsWith('Serpentis') ||
-              header.startsWith('Rogue Drones')) {
-            continue; // Skip DED chain navigation tables
-          }
+        if (header === 'DED Complexes' || header === 'Combat Anomalies' ||
+            header === 'Angel Cartel' || header === 'Blood Raiders' ||
+            header === 'Guristas Pirates' || header === "Sansha's Nation" ||
+            header === 'Serpentis Corporation' || header === 'Rogue Drones') {
+          continue; // Skip navigation tables
+        }
         }
 
         if (item.type === 'desc') {
