@@ -46,6 +46,6 @@ market/categorized_items.txt
 market/items_database.js.backup
 market/updates.txt
 
-# Mission wiki log files
-mission wiki/server.log
-mission wiki/server.err
+# Guides log files
+guides/server.log
+guides/server.err
