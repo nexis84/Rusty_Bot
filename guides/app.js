@@ -334,9 +334,9 @@
           html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
         } else if (pocket.level === 'h4') {
           html += '<div class="pocket-subtitle">' + escapeHtml(heading) + '</div>';
+        } else if (pocket.level === 'h5') {
+          html += '<div class="pocket-subgroup">' + escapeHtml(heading) + '</div>';
         }
-
-        if (pocket.level === 'h5') continue;
 
         if (pocket.lines && pocket.lines.length) {
           const cleanLines = pocket.lines.map(cleanMissionLine).filter(Boolean);
