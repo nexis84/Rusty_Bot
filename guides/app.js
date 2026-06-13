@@ -342,7 +342,7 @@
         const lowerHeading = heading.toLowerCase();
         const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
-        if (/^tip(s)?$/.test(heading) && detail.tips) continue;
+        if (/^tip(s)?$/i.test(heading) && detail.tips) continue;
 
         if (isBriefing) {
           html += '<div class="briefing-section">';
@@ -619,7 +619,7 @@
           const lowerHeading = heading.toLowerCase();
           const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
-          if (/^tip(s)?$/.test(heading) && survival.tips) continue;
+          if (/^tip(s)?$/i.test(heading) && survival.tips) continue;
 
           if (isBriefing) {
             html += '<div class="briefing-section">';
