@@ -298,7 +298,6 @@
       ['Recommended damage', getInfoValue(info, 'Recommended damage dealing')],
       ['Web / Scramble', getInfoValue(info, 'Web/Scramble')],
       ['Recommended ships', getInfoValue(info, 'Recommended ship classes')],
-      ['Blitz', getInfoValue(info, 'Blitz')],
     ].filter(([, v]) => v && v.trim());
 
     if (infoFields.length) {
@@ -315,6 +314,12 @@
         html += '<div class="info-card"><div class="label">Video</div><div class="value">' + escapeHtml(videoInfo) + '</div></div>';
       }
       html += '</div>';
+    }
+
+    // Blitz instructions
+    const blitzText = getInfoValue(info, 'Blitz');
+    if (blitzText) {
+      html += '<div class="detail-section"><h3>Blitz</h3><div>' + escapeHtml(blitzText) + '</div></div>';
     }
 
     // Pockets
