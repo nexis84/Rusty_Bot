@@ -38505,7 +38505,8 @@
       "Mission type": "Reconnaissance",
       "Space type": "Deadspace",
       "Damage dealt": "Omni (All types)",
-      "Recommended damage dealing": "Kinetic/Thermal"
+      "Recommended damage dealing": "Kinetic/Thermal",
+      "Blitz": "Use frigate or interceptor to MWD toward gate. Around 10km from gate, enemies will spawn. Immediately warp out."
     },
     "pockets": [
       {
@@ -38623,7 +38624,8 @@
       "Space type": "Gated MWD: Yes",
       "Damage dealt": "exp/kin",
       "Web/scramble": "",
-      "Recommended damage dealing": "exp/kin"
+      "Recommended damage dealing": "exp/kin",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -38688,7 +38690,8 @@
       "Mission type": "Encounter",
       "Space type": "Deadspace",
       "Damage dealt": "Em/Thermal",
-      "Recommended damage dealing": "Em/Thermal"
+      "Recommended damage dealing": "Em/Thermal",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -39076,7 +39079,8 @@
       "Mission Type": "Deadspace",
       "Damage Dealt": "Kinetic/Thermal",
       "Web/scramble": "None",
-      "Recommended damage dealing": "Kinetic/Thermal"
+      "Recommended damage dealing": "Kinetic/Thermal",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -39190,7 +39194,8 @@
     "info": {
       "Faction": "Sansha's Nation",
       "Mission Type": "Encounter",
-      "Space type": "Deadspace 2e pocket warpdisrupting cloud (dont use slow ships with turrets!!)"
+      "Space type": "Deadspace 2e pocket warpdisrupting cloud (dont use slow ships with turrets!!)",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
