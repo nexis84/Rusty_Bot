@@ -287,6 +287,8 @@
     html += '<div class="detail-header">';
     html += '<h2>' + escapeHtml(detail.title || mission.name) + '</h2>';
     html += '<span class="detail-level-badge">Level ' + level + '</span>';
+    var blitzVal = getInfoValue(info, 'Blitz');
+    if (blitzVal) html += '<span class="detail-blitz-badge">Blitzable</span>';
     html += '<span class="detail-faction">' + escapeHtml(getInfoValue(info, 'Faction') || mission.faction) + '</span>';
     html += '</div>';
 

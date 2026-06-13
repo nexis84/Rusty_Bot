@@ -345,6 +345,15 @@ header .subtitle {
   font-weight: 700;
 }
 
+.detail-header .detail-blitz-badge {
+  font-size: 1rem;
+  padding: 4px 14px;
+  border-radius: 6px;
+  background: #2ecc71;
+  color: #111;
+  font-weight: 700;
+}
+
 .detail-header .detail-faction {
   color: var(--text-subtle-color);
   font-size: 0.95rem;
