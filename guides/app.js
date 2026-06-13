@@ -120,7 +120,7 @@
       // Detail view
       if (tab === 'missions' && parts[3]) {
         const level = parseInt(parts[2], 10);
-        const pageName = parts.slice(3).join('/');
+        const pageName = decodeURIComponent(parts.slice(3).join('/'));
         const mission = findMissionByPage(pageName);
         if (mission && mission.levels[level]) {
           showMissionDetail(mission, level, pageName);
@@ -130,8 +130,10 @@
         const entry = findEntryByPage(pageName);
         if (entry) showAnomalyDetail(entry);
       } else if (tab === 'burners') {
-        const pageName = parts.slice(2).join('/');
-        const entry = burnersData[pageName];
+        const rawPageName = parts.slice(2).join('/');
+        let pageName = rawPageName;
+        try { pageName = decodeURIComponent(rawPageName); } catch (e) { /* skip */ }
+        const entry = burnersData[pageName] || burnersData[rawPageName];
         if (entry) showBurnerDetail(entry);
       } else if (tab === 'agents') {
         const cid = parseInt(parts[2], 10);
