@@ -3302,7 +3302,8 @@
       "Space type": "Deadspace (MWD works)",
       "Damage dealt": "Explosive/ Kinetic",
       "Recommended damage dealing": "Explosive",
-      "Video": "Golem, Apocalypse Imperial Issue"
+      "Video": "Golem, Apocalypse Imperial Issue",
+      "Blitz": "Gates are not locked. Kill frigates in 2nd room as they will disrupt (MWD away and blap them, or use precision ammo). In last room, kill only left-most spawn, then warp out. Use Plasma or Inferno."
     },
     "pockets": [
       {
@@ -3471,7 +3472,8 @@
       "Web/Scramble": "Elite Frigates",
       "Recommended damage dealing": "Kinetic/ Thermal",
       "Recommended ship classes": "Battleship, Command Ship, HAC.",
-      "Video": "Golem, Apocalypse Imperial Issue"
+      "Video": "Golem, Apocalypse Imperial Issue",
+      "Blitz": "Gates are not locked. Kill frigates in 2nd room as they will disrupt (MWD away and blap them, or use precision ammo). In last room, kill only left-most spawn, then warp out. Use Plasma or Inferno."
     },
     "pockets": [
       {
@@ -3769,7 +3771,8 @@
       "Space type": "Deadspace with gates",
       "Damage dealt": "Thermal/ Kinetic",
       "Recommended damage dealing": "Kinetic/ Thermal",
-      "Video": "Dominix, Vargur, Golem, Apocalypse Imperial Issue (Sniper)"
+      "Video": "Dominix, Vargur, Golem, Apocalypse Imperial Issue (Sniper)",
+      "Blitz": "Gates are not locked. Kill frigates in 2nd room as they will disrupt (MWD away and blap them, or use precision ammo). In last room, kill only left-most spawn, then warp out. Use Plasma or Inferno."
     },
     "pockets": [
       {
@@ -9959,7 +9962,8 @@
       "Web/Scramble": "Elite Frigate/ Destroyer",
       "Recommended damage dealing": "EM/ Thermal",
       "Recommended ship classes": "Battleship, Command Ship, Battlecruiser, HAC, Recon, Faction Cruiser (Blitz: fast Frigate or Shuttle)",
-      "Video": "Blitz"
+      "Video": "Blitz",
+      "Blitz": "Use frigate or interceptor to MWD to can. Loot can, then warp out."
     },
     "pockets": [
       {
@@ -10085,7 +10089,8 @@
       "Damage dealt": "Kinetic/ Thermal",
       "Web/ scramble": "Frigates",
       "Recommended damage dealing": "Kinetic (best), Thermal (secondary)",
-      "Recommended ship classes": "Battleship, Command Ship, Battlecruiser, HAC, Faction Cruiser, T3 Cruiser (Blitz:T3 Destroyer or simply fit an MWD)"
+      "Recommended ship classes": "Battleship, Command Ship, Battlecruiser, HAC, Faction Cruiser, T3 Cruiser (Blitz:T3 Destroyer or simply fit an MWD)",
+      "Blitz": "Use frigate or interceptor to MWD to can. Loot can, then warp out."
     },
     "pockets": [
       {
@@ -10179,7 +10184,8 @@
       "Space type": "Deadspace (MWD works)",
       "Damage Dealt": "Thermal/ Kinetic",
       "Recommended damage dealing": "Kinetic/ Thermal",
-      "Recommended ship classes": "Battleship, Command Ship, Battlecruiser, HAC, Recon, Faction Cruiser (Blitz: destroyer, frigate or  shuttle)"
+      "Recommended ship classes": "Battleship, Command Ship, Battlecruiser, HAC, Recon, Faction Cruiser (Blitz: destroyer, frigate or  shuttle)",
+      "Blitz": "Use frigate or interceptor to MWD to can. Loot can, then warp out."
     },
     "pockets": [
       {
@@ -14075,7 +14081,8 @@
       "Space type": "Normal Space",
       "Damage Dealt": "Varies with Faction (Omni Tank), EM/ Thermal from Anire Scarlet",
       "Recommended damage dealing": "Explosive (Angel Cartel), Kinetic/ Thermal (Guristas & Serpentis), EM (Blood Raiders)",
-      "Video": "Ishtar (Blitz) Raven Navy Issue"
+      "Video": "Ishtar (Blitz) Raven Navy Issue",
+      "Blitz": "If you do not have the Gate Key, kill the initial spawn to get it (key is not consumed — keep it for future runs). MWD to gate and activate it. In 2nd room, if arty fit, blap Scarlet. MWD to gate and activate. In 3rd room, kill Scarlet if not already, then loot her implant. Warp out. Use EMP or Mjolnir."
     },
     "pockets": [
       {
@@ -35521,7 +35528,8 @@
       "Damage dealt": "Explosive/ Kinetic, Thermal (Gist Saint)",
       "Web/Scramble": "Elite Frigates (low occurrence)",
       "Recommended damage dealing": "Explosive/ Kinetic",
-      "Video": "Dominix, Vargur, Rattlesnake"
+      "Video": "Dominix, Vargur, Rattlesnake",
+      "Blitz": "MWD or MJD to Carrier Wreckage. Kill that spawn only, then warp out. Be aware of potentially scramming NPC frigates. Use Fusion / Hail or Nova."
     },
     "pockets": [
       {
@@ -35656,7 +35664,8 @@
       "Damage dealt": "EM/Therm",
       "Web/scramble": "Elite Frigates",
       "Recommended damage dealing": "EM (best), Therm (secondary)",
-      "Video": "[[http://youtu.be/H4HgNzfuRvE | Navy Raven]]VargurRattlesnakeCNR"
+      "Video": "[[http://youtu.be/H4HgNzfuRvE | Navy Raven]]VargurRattlesnakeCNR",
+      "Blitz": "MWD or MJD to Carrier Wreckage. Kill that spawn only, then warp out. Be aware of potentially scramming NPC frigates. Use Fusion / Hail or Nova."
     },
     "pockets": [
       {
@@ -38888,7 +38897,8 @@
       "Damage dealt": "All types",
       "Web/Scramble": "Mercenary Wingman",
       "Recommended damage dealing": "N/A",
-      "Video": "Ishtar blitz, Kronos Part 1,2 & 3"
+      "Video": "Ishtar blitz, Kronos Part 1,2 & 3",
+      "Blitz": "Use frigate or interceptor to MWD toward gate. Around 10km from gate, enemies will spawn. Immediately warp out."
     },
     "pockets": [
       {
@@ -39243,7 +39253,8 @@
       "Damage Dealt": "Kinetic/Thermal",
       "Web/scramble": "Dire Pithi Invader",
       "Recommended damage dealing": "Kinetic/Thermal",
-      "Video": "Kronos Part 1,2 & 3"
+      "Video": "Kronos Part 1,2 & 3",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -39375,7 +39386,8 @@
       "Web/Scramble": "Elite Frigates",
       "Recommended damage dealing": "EM, Thermal",
       "Recommended ship classes": "Battleship, Command Ship, Strategic Cruiser, HAC. (or fast frigate, shuttle etc for blitz)",
-      "Video": "Sentry Domi + Salvager , Kronos Part 1,2 & 3"
+      "Video": "Sentry Domi + Salvager , Kronos Part 1,2 & 3",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -39543,7 +39555,8 @@
       "Damage dealt": "all types (Pocket 1: Exp 46%/Kin 23%/therm 19%/EM 10%, Pocket 2: All types, but varies on percentages )",
       "Web/scramble": "arch gistii frigates",
       "Recommended damage dealing": "exp/kin",
-      "Video": "http://youtu.be/iFXWXufOONA , Kronos Part 1,2 & 3"
+      "Video": "http://youtu.be/iFXWXufOONA , Kronos Part 1,2 & 3",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -39768,7 +39781,8 @@
       "Damage Dealt": "Kinetic/ Thermal",
       "Web/Scramble": "Guardian Frigates",
       "Recommended damage dealing": "Kinetic/ Thermal",
-      "Video": "Kronos Part 1, 2 & 3"
+      "Video": "Kronos Part 1, 2 & 3",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -39895,7 +39909,8 @@
       "Damage dealt": "EM/Therm",
       "Web/Scramble": "Elite Frigates",
       "Recommended damage dealing": "EM, Thermal",
-      "Video": "Kronos Part 1,2 & 3"
+      "Video": "Kronos Part 1,2 & 3",
+      "Blitz": "Use frigate or interceptor to MWD to gate, take gate to next room, then warp out."
     },
     "pockets": [
       {
@@ -40826,7 +40841,8 @@
       "Web/ scramble": "Frigates",
       "Recommended damage dealing": "Thermal/ Kinetic",
       "Recommended ship classes": "Battleship, Command Ship, HAC",
-      "Video": "Ishtar (Blitz), Nightmare, Apocalypse Navy Issue, Dominix, Raven Navy Issue"
+      "Video": "Ishtar (Blitz), Nightmare, Apocalypse Navy Issue, Dominix, Raven Navy Issue",
+      "Blitz": "On landing, burn straight at Zor and kill only the ships spawning close to him (the cruiser and battleship). Align out and destroy the indicated structure. Remember to loot Zor before warping as he may drop an expensive implant. Use Plasma or Inferno."
     },
     "pockets": [
       {
@@ -41758,7 +41774,8 @@
       "Damage dealt": "EM, Thermal.",
       "Recommended damage dealing": "EM, Thermal.",
       "Recommended ship classes": "Battleship, Command Ship, HAC, Strategic Cruiser.",
-      "Video": "Raven Navy Issue."
+      "Video": "Raven Navy Issue.",
+      "Blitz": "Part 1: Warp to site, immediately MWD down. Kill slave pens and tractor the dropped can. Loot the can, then warp out. Part 2: Kill all ships, take gate. Align to outgate. Kill only the Sansha Slaver cruisers, then warp out."
     },
     "pockets": [
       {
@@ -49332,7 +49349,8 @@
       "Space type": "Normal space",
       "Damage dealt": "Thermal (49.86%), Kinetic (25.36%), EM (16.85%), Explosive (7.93%)",
       "Web/ scramble": "Frigates",
-      "Recommended damage dealing": "Thermal/ Kinetic"
+      "Recommended damage dealing": "Thermal/ Kinetic",
+      "Blitz": "On landing, turn on MWD and manually burn away from Overlord for just one cycle of MWD. Lock and kill Overlord. Align to the system outgate (or your station). Lock and kill Shadow, then warp out. Buy 'Reports' from NPCs. Use Plasma or Inferno."
     },
     "pockets": [
       {
