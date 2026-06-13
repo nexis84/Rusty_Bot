@@ -536,6 +536,8 @@
     "name": "Anomic Team (Amarr)",
     "type": "Team",
     "faction": "Amarr",
+    "bestDamageToDeal": "EM Th",
+    "damageToResist": "EM Th",
     "npcTables": [
       {
         "type": "table",
@@ -588,6 +590,8 @@
     "name": "Anomic Team (Caldari)",
     "type": "Team",
     "faction": "Caldari",
+    "bestDamageToDeal": "EM Ex",
+    "damageToResist": "Kin",
     "npcTables": [
       {
         "type": "table",
@@ -640,6 +644,8 @@
     "name": "Anomic Team (Gallente)",
     "type": "Team",
     "faction": "Gallente",
+    "bestDamageToDeal": "Ex EM",
+    "damageToResist": "Kin Th",
     "npcTables": [
       {
         "type": "table",
@@ -692,6 +698,8 @@
     "name": "Anomic Team (Minmatar)",
     "type": "Team",
     "faction": "Minmatar",
+    "bestDamageToDeal": "Ex Kin",
+    "damageToResist": "Ex Kin",
     "npcTables": [
       {
         "type": "table",

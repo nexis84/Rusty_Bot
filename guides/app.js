@@ -865,10 +865,12 @@
     const shipRestrict = entry.type === 'Base' ? 'Battlecruiser' : 'Frigate';
     let infoGrid = [
       ['Faction', entry.faction],
+      ['Best damage to deal', entry.bestDamageToDeal],
+      ['Damage to resist', entry.damageToResist],
       ['Ship restriction', shipRestrict],
       ['Mission type', 'Encounter'],
       ['Space type', 'Deadspace'],
-    ];
+    ].filter(([, v]) => v && v.trim());
 
     let html = '';
 
