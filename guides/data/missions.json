@@ -41774,11 +41774,17 @@
       {
         "heading": "Ship Detail",
         "level": "h4",
-        "lines": [
-          "Qty\nName\nOrbit(km)\nVelocity(m/s)\n\nShield(hp)\nArmor(hp)\n\n\n\nShield Resistance (%)\n\nArmor Resistance (%)\n\nDPS (hp/s)\n\n\nEM\nExp\nKin\nTh\n\nEM\nExp\nKin\nTh\n\nEM\nExp\nKin\nTh\n\n\n\n2\nSeven Deathguard\n5\n500\n300\n225\n\n\n15\n50\n45\n30\n\n60\n-\n25\n35\n\n-\n16\n16\n19\n\n\t\n\t\n\n3\nSeven Assassin\n15\n400\n1,600\n1,150\n\n\n55\n50\n55\n55\n\n60\n-\n25\n35\n\n18\n25\n7\n-\n\n\t\n\t\n\n3\nSeven Bodyguard\n20\n400\n1,700\n1,200\n\n\n-\n60\n40\n20\n\n68\n50\n55\n55\n\n17\n13\n28\n-\n\n\t\n\t\n\n1\nElena Gazky\n15\n400\n1,200\n1,800\n\n\n-\n60\n40\n20\n\n50\n10\n25\n35\n\n22\n-\n6\n28\n\n\t\n\t\n\n1\nMercenary Overlord\n3\n400\n3,975\n3,500\n\n\n-\n60\n40\n20\n\n60\n-\n25\n35\n\n-\n-\n42\n96\n\n\t\n\t\n\n4\nMercenary Wingman\n8\n900\n325\n325\n\n\n15\n50\n45\n30\n\n70\n10\n25\n25\n\n10\n11\n4\n-\n\n\t\n\t\n\n1\nZor\n20\n400\n5,800\n4,575\n\n\n-\n60\n40\n20\n\n60\n10\n25\n25\n\n-\n-\n-\n180\n\n\t\n\t\n\n15 ships total\nAverage/ Total\n22,775\n18,675\n\n\n\n12.8\n57.1\n43.6\n28.2\n\n61.2\n13.7\n30.8\n35.7\n\n163\n193\n201\n342",
-          "CategoryMissions",
-          "CategoryLevel4"
-        ]
+          "lines": [
+            "Qty  Name  Orbit(km)  Velocity(m/s)  Shield(hp)  Armor(hp)  Shield Resist(%): EM/Exp/Kin/Th  Armor Resist(%): EM/Exp/Kin/Th  DPS: EM/Exp/Kin/Th",
+            "2  Seven Deathguard  5  500  300  225  15/50/45/30  60/-/25/35  -/16/16/19",
+            "3  Seven Assassin  15  400  1,600  1,150  55/50/55/55  60/-/25/35  18/25/7/-",
+            "3  Seven Bodyguard  20  400  1,700  1,200  -/60/40/20  68/50/55/55  17/13/28/-",
+            "1  Elena Gazky  15  400  1,200  1,800  -/60/40/20  50/10/25/35  22/-/6/28",
+            "1  Mercenary Overlord  3  400  3,975  3,500  -/60/40/20  60/-/25/35  -/-/42/96",
+            "4  Mercenary Wingman  8  900  325  325  15/50/45/30  70/10/25/25  10/11/4/-",
+            "1  Zor  20  400  5,800  4,575  -/60/40/20  60/10/25/25  -/-/-/180",
+            "15 ships total  Average/Total  22,775  18,675  12.8/57.1/43.6/28.2  61.2/13.7/30.8/35.7  163/193/201/342"
+          ]
       }
     ],
     "videoLinks": [
@@ -41804,7 +41810,7 @@
       }
     ],
     "blob": "",
-    "tips": "Zor\nZbikoki's Hacker Card\nWorlds Collide\n\nZor\nZor's Custom Navigation Hyper-Link",
+    "tips": "Incoming DPS will get intense at close range, make sure your ship is tanked properly or fitted with MJD to jump to sniper range if needed.\nZor drops Zbikoki's Hacker Card, which is used to blitz the Worlds Collide L4 mission.\nZor occasionally drops Zor's Custom Navigation Hyper-Link - a ~80 mil implant.\nZor deals long range damage, so some tank is needed even on sniper fitted ships.\nThe frigates will web and may kill T2 small drones, best to use T1 drones.",
     "loot": "~5.1 to 6.2 mil",
     "categories": [
       "CategoryMissions",
