@@ -74,6 +74,16 @@
     initAgentControls();
     applyHash();
     window.addEventListener('hashchange', applyHash);
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.briefing-toggle');
+      if (!btn) return;
+      var section = btn.closest('.briefing-section');
+      if (!section) return;
+      var content = section.querySelector('.briefing-content');
+      if (!content) return;
+      var isExpanded = content.classList.toggle('expanded');
+      btn.textContent = isExpanded ? 'Show less' : 'Show more';
+    });
   }
 
   // ===== TABS & ROUTING =====
@@ -333,8 +343,9 @@
         const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
         if (isBriefing) {
-          html += '<details class="briefing-section">';
-          html += '<summary class="briefing-summary">' + escapeHtml(heading) + '</summary>';
+          html += '<div class="briefing-section">';
+          html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
+          html += '<div class="briefing-content">';
         } else if (pocket.level === 'h3') {
           html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
         } else if (pocket.level === 'h4') {
@@ -369,7 +380,9 @@
         }
 
         if (isBriefing) {
-          html += '</details>';
+          html += '</div>';
+          html += '<button class="briefing-toggle">Show more</button>';
+          html += '</div>';
         }
       }
       html += '</div>';
@@ -602,8 +615,9 @@
           const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
           if (isBriefing) {
-            html += '<details class="briefing-section">';
-            html += '<summary class="briefing-summary">' + escapeHtml(heading) + '</summary>';
+            html += '<div class="briefing-section">';
+            html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
+            html += '<div class="briefing-content">';
           } else if (pocket.level === 'h3') {
             html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
           } else if (pocket.level === 'h4') {
@@ -624,7 +638,9 @@
           }
 
           if (isBriefing) {
-            html += '</details>';
+            html += '</div>';
+            html += '<button class="briefing-toggle">Show more</button>';
+            html += '</div>';
           }
         }
         html += '</div>';
@@ -975,7 +991,11 @@
     }
 
     if (briefing) {
-      html += '<details class="briefing-section"><summary class="briefing-summary">Mission briefing</summary><div class="detail-section"><div>' + escapeHtml(briefing) + '</div></div></details>';
+      html += '<div class="briefing-section">';
+      html += '<div class="briefing-heading">Mission briefing</div>';
+      html += '<div class="briefing-content"><div class="detail-section"><div>' + escapeHtml(briefing) + '</div></div></div>';
+      html += '<button class="briefing-toggle">Show more</button>';
+      html += '</div>';
     }
 
     if (pocketGroups.length) {
