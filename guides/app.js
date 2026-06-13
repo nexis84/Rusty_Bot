@@ -975,7 +975,7 @@
     }
 
     if (briefing) {
-      html += '<div class="detail-section"><h3>Mission briefing</h3><div><p>' + escapeHtml(briefing) + '</p></div></div>';
+      html += '<details class="briefing-section"><summary class="briefing-summary">Mission briefing</summary><div class="detail-section"><div>' + escapeHtml(briefing) + '</div></div></details>';
     }
 
     if (pocketGroups.length) {
