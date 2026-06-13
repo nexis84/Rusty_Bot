@@ -334,11 +334,25 @@
         if (pocket.lines && pocket.lines.length) {
           const cleanLines = pocket.lines.map(cleanMissionLine).filter(Boolean);
           if (cleanLines.length) {
-            html += '<div class="npc-group">';
-            for (const line of cleanLines) {
-              html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
+            if (heading === 'Ship Detail') {
+              html += '<div class="npc-group"><table class="uniwiki-npc-table">';
+              for (let li = 0; li < cleanLines.length; li++) {
+                const cells = cleanLines[li].split(/\s{2,}/);
+                html += '<tr>';
+                for (const cell of cells) {
+                  if (li === 0) html += '<th>' + escapeHtml(cell) + '</th>';
+                  else html += '<td>' + escapeHtml(cell) + '</td>';
+                }
+                html += '</tr>';
+              }
+              html += '</table></div>';
+            } else {
+              html += '<div class="npc-group">';
+              for (const line of cleanLines) {
+                html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
+              }
+              html += '</div>';
             }
-            html += '</div>';
           }
         }
       }
