@@ -342,6 +342,8 @@
         const lowerHeading = heading.toLowerCase();
         const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
+        if (/^tip(s)?$/.test(heading) && detail.tips) continue;
+
         if (isBriefing) {
           html += '<div class="briefing-section">';
           html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
@@ -389,12 +391,15 @@
     }
 
     // Tips and loot
-    const extraSections = [];
-    if (detail.tips) extraSections.push({ title: 'Tips', content: detail.tips });
-    if (detail.loot) extraSections.push({ title: 'Loot & Bounty', content: detail.loot });
-
-    for (const section of extraSections) {
-      html += '<div class="detail-section"><h3>' + section.title + '</h3><div>' + escapeHtml(section.content) + '</div></div>';
+    if (detail.tips) {
+      html += '<div class="briefing-section">';
+      html += '<div class="briefing-heading">Tips</div>';
+      html += '<div class="briefing-content"><div class="detail-section"><div>' + escapeHtml(detail.tips) + '</div></div></div>';
+      html += '<button class="briefing-toggle">Show more</button>';
+      html += '</div>';
+    }
+    if (detail.loot) {
+      html += '<div class="detail-section"><h3>Loot & Bounty</h3><div>' + escapeHtml(detail.loot) + '</div></div>';
     }
 
     container.innerHTML = html;
@@ -614,6 +619,8 @@
           const lowerHeading = heading.toLowerCase();
           const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
+          if (/^tip(s)?$/.test(heading) && survival.tips) continue;
+
           if (isBriefing) {
             html += '<div class="briefing-section">';
             html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
@@ -646,7 +653,13 @@
         html += '</div>';
       }
 
-      if (survival.tips) html += '<div class="detail-section"><h3>Tips</h3><div>' + escapeHtml(survival.tips) + '</div></div>';
+      if (survival.tips) {
+        html += '<div class="briefing-section">';
+        html += '<div class="briefing-heading">Tips</div>';
+        html += '<div class="briefing-content"><div class="detail-section"><div>' + escapeHtml(survival.tips) + '</div></div></div>';
+        html += '<button class="briefing-toggle">Show more</button>';
+        html += '</div>';
+      }
       if (survival.loot) html += '<div class="detail-section"><h3>Loot & Bounty</h3><div>' + escapeHtml(survival.loot) + '</div></div>';
     }
 
