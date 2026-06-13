@@ -593,11 +593,12 @@
             html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
           } else if (pocket.level === 'h4') {
             html += '<div class="pocket-subtitle">' + escapeHtml(heading) + '</div>';
+          } else if (pocket.level === 'h5') {
+            html += '<div class="pocket-subgroup">' + escapeHtml(heading) + '</div>';
           }
-          if (pocket.level === 'h5') continue;
 
           if (pocket.lines && pocket.lines.length) {
-            const filteredLines = pocket.lines.filter(l => !/^Last edited by/i.test(l.trim()));
+            const filteredLines = pocket.lines.map(cleanMissionLine).filter(Boolean);
             if (filteredLines.length) {
               html += '<div class="npc-group">';
               for (const line of filteredLines) {
@@ -936,7 +937,7 @@
 
     for (var ti = 0; ti < tables.length; ti++) {
       var tbl = tables[ti];
-      if (!tbl.type === 'table' || !tbl.rows || tbl.rows.length < 1) continue;
+      if (tbl.type !== 'table' || !tbl.rows || tbl.rows.length < 1) continue;
 
       var sectionName = (secIdx < secKeys.length) ? secKeys[secIdx] : 'Room ' + (ti + 1);
       var rows = [];
@@ -1196,7 +1197,7 @@
     const trimmed = line.trim();
     const lower = trimmed.toLowerCase();
 
-    if (lower === 'trigger') {
+    if (/^trigger\b/i.test(lower)) {
       return '<span class="tag tag-trigger">TRIGGER</span>';
     }
     if (lower.includes('web') && lower.includes('scramble')) {
