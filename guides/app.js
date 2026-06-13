@@ -329,8 +329,13 @@
       html += '<div class="pocket-section">';
       for (const pocket of detail.pockets) {
         const heading = pocket.heading;
+        const lowerHeading = heading.toLowerCase();
+        const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
 
-        if (pocket.level === 'h3') {
+        if (isBriefing) {
+          html += '<details class="briefing-section">';
+          html += '<summary class="briefing-summary">' + escapeHtml(heading) + '</summary>';
+        } else if (pocket.level === 'h3') {
           html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
         } else if (pocket.level === 'h4') {
           html += '<div class="pocket-subtitle">' + escapeHtml(heading) + '</div>';
@@ -361,6 +366,10 @@
               html += '</div>';
             }
           }
+        }
+
+        if (isBriefing) {
+          html += '</details>';
         }
       }
       html += '</div>';
