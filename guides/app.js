@@ -1025,9 +1025,13 @@
           var dmgTag = '';
           for (var shipName in shipDamage) {
             if (line.toLowerCase().includes(shipName.toLowerCase())) {
-              var dmgVal = shipDamage[shipName];
-              var dmgClass = dmgVal.toLowerCase().replace(/\s+/g, '-');
-              dmgTag = '<span class="tag tag-dmg tag-dmg-' + dmgClass + '">' + dmgVal + '</span>';
+              var dmgTypes = shipDamage[shipName].split(/\s+/);
+              var tags = [];
+              for (var t = 0; t < dmgTypes.length; t++) {
+                var cls = dmgTypes[t].toLowerCase();
+                tags.push('<span class="tag tag-dmg tag-dmg-' + cls + '">deal ' + dmgTypes[t] + '</span>');
+              }
+              dmgTag = ' ' + tags.join(' ');
               break;
             }
           }
