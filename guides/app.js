@@ -1014,13 +1014,22 @@
     }
 
     if (pocketGroups.length) {
+      var shipDamage = entry.shipDamage || {};
       html += '<div class="pocket-section">';
       for (var gi = 0; gi < pocketGroups.length; gi++) {
         var group = pocketGroups[gi];
         html += '<div class="pocket-title">' + escapeHtml(group.title) + '</div>';
         html += '<div class="npc-group">';
         for (var li = 0; li < group.lines.length; li++) {
-          html += '<div class="npc-line">' + renderNpcLine(group.lines[li]) + '</div>';
+          var line = group.lines[li];
+          var dmgTag = '';
+          for (var shipName in shipDamage) {
+            if (line.toLowerCase().includes(shipName.toLowerCase())) {
+              dmgTag = '<span class="tag tag-dmg tag-dmg-' + shipDamage[shipName].toLowerCase() + '">' + shipDamage[shipName] + '</span>';
+              break;
+            }
+          }
+          html += '<div class="npc-line">' + renderNpcLine(line) + dmgTag + '</div>';
         }
         html += '</div>';
       }
