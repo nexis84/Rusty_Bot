@@ -651,7 +651,8 @@
     "faction": "Mercenaries",
     "levels": {
       "2": "DamselinDistress2",
-      "3": "DamselinDistress3"
+      "3": "DamselinDistress3",
+      "4": "DamselinDistress4"
     }
   },
   {

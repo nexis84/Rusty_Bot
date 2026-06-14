@@ -8643,7 +8643,8 @@
       "Damage dealt": "EM/ Thermal",
       "Recommended damage dealing": "EM/ Thermal",
       "Recommended ship classes": "Battleship, Command Ship, HAC",
-      "Web/Scramble": "Scramble"
+      "Web/Scramble": "Scramble",
+      "Blitz": "Killing group 3 will flag mission completion."
     },
     "pockets": [
       {
@@ -12832,6 +12833,115 @@
     "categories": [
       "CategoryMissions",
       "CategoryLevel3"
+    ]
+  },
+  "DamselinDistress4": {
+    "pageName": "DamselinDistress4",
+    "title": "The Damsel in Distress, Level 4",
+    "info": {
+      "Faction": "Mercenaries",
+      "Mission type": "Encounter",
+      "Space type": "Normal space",
+      "Damage dealt": "Thermal/ Kinetic",
+      "Recommended damage dealing": "Thermal/ Kinetic",
+      "Web/Scramble": "Spider Drone",
+      "Recommended ship classes": "Battleship, Battlecruiser",
+      "Blitz": "Destroy Kruul's Pleasure Garden, loot the Damsel, return to Station."
+    },
+    "pockets": [
+      {
+        "heading": "Tip",
+        "level": "h5",
+        "lines": [
+          "Snipers can [Fleet] warp to preferred distance.",
+          "Destroy the farthest Kruul's Pleasure Garden from the beacon to recover the Damsel.",
+          "Beware as it emits a 30 to 40km blast that inflicts 3,000 explosive damage to ship and drones."
+        ]
+      },
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": []
+      },
+      {
+        "heading": "Initial Formation (22- 37km)",
+        "level": "h4",
+        "lines": [
+          "Auto aggro.",
+          "2x Frigate (Kruul's Henchman)",
+          "4x Cruiser (Pleasure Hub Guardian)",
+          "3x Battleship (Pleasure Hub Sentinel)",
+          "1x Cruiser (Kruul) TRIGGER Attacked"
+        ]
+      },
+      {
+        "heading": "1st Spawn (27- 34km)",
+        "level": "h4",
+        "lines": [
+          "Triggered when Kruul is attacked.",
+          "6x Battleship (Pleasure Hub Sentinel)"
+        ]
+      },
+      {
+        "heading": "2nd Spawn (15- 24km)",
+        "level": "h4",
+        "lines": [
+          "Triggered when Kruul's Pleasure Garden is damaged to ~75% armor.",
+          "Half of the spawn's ships arrive a bit delayed.",
+          "2x Wasp (Spider Drone I) WEB",
+          "4x Cruiser (Pleasure Hub Guardian)",
+          "4x Battleship (Pleasure Hub Sentinel)"
+        ]
+      },
+      {
+        "heading": "3rd Spawn (19- 30km)",
+        "level": "h4",
+        "lines": [
+          "Triggered when Kruul's Pleasure Garden is damaged to ~40% hull.",
+          "5x Frigate (Seven Death Dealer)",
+          "3x Cruiser (Seven Assassin)",
+          "1x Battleship (Zor)"
+        ]
+      },
+      {
+        "heading": "Blitz",
+        "level": "h5",
+        "lines": [
+          "Destroy Kruul's Pleasure Garden, loot the Damsel (if she isn't already in your Cargo), return to Station.",
+          "Beware of significant damage from spawns."
+        ]
+      },
+      {
+        "heading": "Structure",
+        "level": "h5",
+        "lines": [
+          "Kruul's Casino drops trade goods (20x Spirits and Tourists)."
+        ]
+      },
+      {
+        "heading": "Loot and Bounty",
+        "level": "h5",
+        "lines": [
+          "Zor always drops a Zbiboki's Hacker Card, a low grade implant and may occasionally drop a second higher grade implant.",
+          "Loot + Salvage: ~10 mil",
+          "Bounty: ~4.9 mil"
+        ]
+      }
+    ],
+    "videoLinks": [
+      { "text": "Ishtar", "url": "http://youtu.be/hC9POj9KrLU" },
+      { "text": "Tengu", "url": "http://www.youtube.com/watch?v=d5-TTWbVnLg" },
+      { "text": "Golem", "url": "http://www.youtube.com/watch?v=1VpGw8Kfnw0" },
+      { "text": "Machariel", "url": "http://www.youtube.com/watch?v=0J4_jwAlO88" },
+      { "text": "Kronos", "url": "https://www.youtube.com/watch?v=f51p5Vmdbhg" },
+      { "text": "Raven Navy Issue", "url": "https://youtu.be/LwMLvZ0MMO0" }
+    ],
+    "blob": "",
+    "tips": "Snipers can [Fleet] warp to preferred distance. Destroy the farthest Kruul's Pleasure Garden from the beacon to recover the Damsel. Beware as it emits a 30 to 40km blast that inflicts 3,000 explosive damage to ship and drones.",
+    "loot": "Zor always drops a Zbiboki's Hacker Card, a low grade implant and may occasionally drop a second higher grade implant. Loot + Salvage: ~10 mil. Bounty: ~4.9 mil",
+    "categories": [
+      "CategoryMissions",
+      "CategoryLevel4"
     ]
   },
   "DataMining2am": {
