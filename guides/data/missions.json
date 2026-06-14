@@ -53777,6 +53777,7 @@
       "Damage dealt": "EM/Therm",
       "Recommended damage dealing": "EM",
       "Web/Scramble": "Scramble",
+      "Blitz": "Kill all rats in first two pockets. In Pocket 3 kill only Corpus Oracle from group 1 to trigger group 2, then kill every rat in group 2.",
       "Recommended ship classes": "Battlecruiser, Battleship"
     },
     "pockets": [
@@ -54497,6 +54498,7 @@
       "Web/Scramble": "Guardian Veteran",
       "Recommended damage dealing": "Kinetic/ Thermal",
       "Video": "Golem, Maelstrom, Kronos (Bastion), Dominix (Blitz)",
+      "Blitz": "Destroy all ships in 1st and 2nd pocket to unlock gates. In 3rd pocket destroy only the 3rd group.",
       "Recommended ship classes": "Frigate, Cruiser, Battlecruiser, Battleship"
     },
     "pockets": [
