@@ -1025,7 +1025,9 @@
           var dmgTag = '';
           for (var shipName in shipDamage) {
             if (line.toLowerCase().includes(shipName.toLowerCase())) {
-              dmgTag = '<span class="tag tag-dmg tag-dmg-' + shipDamage[shipName].toLowerCase() + '">' + shipDamage[shipName] + '</span>';
+              var dmgVal = shipDamage[shipName];
+              var dmgClass = dmgVal.toLowerCase().replace(/\s+/g, '-');
+              dmgTag = '<span class="tag tag-dmg tag-dmg-' + dmgClass + '">' + dmgVal + '</span>';
               break;
             }
           }
