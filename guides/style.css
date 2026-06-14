@@ -546,9 +546,9 @@ header .subtitle {
   margin-left: 4px;
   vertical-align: middle;
 }
-.tag-dmg-em { background: #9c27b0; color: #fff; }
+.tag-dmg-em { background: #1e88e5; color: #fff; }
 .tag-dmg-th { background: #e53935; color: #fff; }
-.tag-dmg-kin { background: #1e88e5; color: #fff; }
+.tag-dmg-kin { background: #78909c; color: #fff; }
 .tag-dmg-ex { background: #ff8f00; color: #111; }
 
 .pocket-desc {
