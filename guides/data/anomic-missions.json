@@ -4,6 +4,8 @@
     "name": "Anomic Agent (Angel)",
     "type": "Agent",
     "faction": "Angel",
+    "bestDamageToDeal": "Ex Kin",
+    "damageToResist": "Ex Kin",
     "npcTables": [
       {
         "type": "table",
@@ -53,6 +55,8 @@
     "name": "Anomic Agent (Blood Raider)",
     "type": "Agent",
     "faction": "Blood Raiders",
+    "bestDamageToDeal": "EM Th",
+    "damageToResist": "EM Th",
     "npcTables": [
       {
         "type": "table",
@@ -102,6 +106,8 @@
     "name": "Anomic Agent (Guristas)",
     "type": "Agent",
     "faction": "Guristas",
+    "bestDamageToDeal": "Kin Th",
+    "damageToResist": "Kin Th",
     "npcTables": [
       {
         "type": "table",
@@ -151,6 +157,8 @@
     "name": "Anomic Agent (Sansha)",
     "type": "Agent",
     "faction": "Sansha's Nation",
+    "bestDamageToDeal": "EM Th",
+    "damageToResist": "EM Th",
     "npcTables": [
       {
         "type": "table",
@@ -200,6 +208,8 @@
     "name": "Anomic Agent (Serpentis)",
     "type": "Agent",
     "faction": "Serpentis",
+    "bestDamageToDeal": "Kin Th",
+    "damageToResist": "Kin Th",
     "npcTables": [
       {
         "type": "table",
@@ -249,6 +259,8 @@
     "name": "Anomic Base (Angel)",
     "type": "Base",
     "faction": "Angel",
+    "bestDamageToDeal": "Ex Kin",
+    "damageToResist": "Ex EM",
     "npcTables": [
       {
         "type": "table",
@@ -301,6 +313,8 @@
     "name": "Anomic Base (Blood Raider)",
     "type": "Base",
     "faction": "Blood Raiders",
+    "bestDamageToDeal": "EM Th",
+    "damageToResist": "EM Th",
     "npcTables": [
       {
         "type": "table",
@@ -353,6 +367,8 @@
     "name": "Anomic Base (Caldari)",
     "type": "Base",
     "faction": "Caldari",
+    "bestDamageToDeal": "Kin Th",
+    "damageToResist": "Kin Th",
     "npcTables": [
       {
         "type": "table",
@@ -448,6 +464,8 @@
     "name": "Anomic Base (Serpentis)",
     "type": "Base",
     "faction": "Serpentis",
+    "bestDamageToDeal": "Kin Th",
+    "damageToResist": "Kin Th",
     "npcTables": [
       {
         "type": "table",
@@ -536,7 +554,7 @@
     "name": "Anomic Team (Amarr)",
     "type": "Team",
     "faction": "Amarr",
-    "bestDamageToDeal": "EM Th",
+    "bestDamageToDeal": "Th Ex",
     "damageToResist": "EM Th",
     "npcTables": [
       {
