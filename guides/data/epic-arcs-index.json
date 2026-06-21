@@ -1,0 +1,521 @@
+[
+  {
+    "id": "the-blood-stained-stars",
+    "name": "The Blood-Stained Stars",
+    "faction": "Sisters of EVE",
+    "level": 1,
+    "startingAgent": "Sister Alitura",
+    "startingSystem": "Arnon",
+    "region": "Essence",
+    "standingsRequired": "None",
+    "additionalRequirements": "None",
+    "description": "The Blood-Stained Stars Epic Arc is a series of 50 missions divided into 7 chapters designed to allow a new pilot to experience the world of EVE and learn about the different type of missions, Pirate Factions and Empire space.",
+    "chapters": [
+      {
+        "name": "Quality Of Mercy",
+        "order": 1,
+        "pageName": "QualityOfMercy1epic",
+        "missions": [
+          "QualityOfMercy1epic_ABeaconBeckons",
+          "QualityOfMercy1epic_AgentInquiry",
+          "QualityOfMercy1epic_OfInterest",
+          "QualityOfMercy1epic_RetrievingRed",
+          "QualityOfMercy1epic_AlertingAlitura",
+          "QualityOfMercy1epic_JetCanningaJanitor",
+          "QualityOfMercy1epic_ChivvyingaChef",
+          "QualityOfMercy1epic_DeliveringaDoctor",
+          "QualityOfMercy1epic_EngineeringaRescue",
+          "QualityOfMercy1epic_GoingGallente"
+        ]
+      },
+      {
+        "name": "Automation Impediment",
+        "order": 2,
+        "pageName": "AutomatonImpediment1epic",
+        "missions": [
+          "AutomatonImpediment1epic_StudyingtheScene",
+          "AutomatonImpediment1epic_RenderingAssistance",
+          "AutomatonImpediment1epic_LairoftheSnakes",
+          "AutomatonImpediment1epic_DataRetrieval",
+          "AutomatonImpediment1epic_CrossingEnemyLines"
+        ]
+      },
+      {
+        "name": "Shadow Puppets",
+        "order": 3,
+        "pageName": "ShadowPuppets1epic",
+        "missions": [
+          "ShadowPuppets1epic_PassiveObservation",
+          "ShadowPuppets1epic_HouseofRecords",
+          "ShadowPuppets1epic_MercenaryDistractions",
+          "ShadowPuppets1epic_AnEconomyUnderThreat",
+          "ShadowPuppets1epic_EveryDroneInside",
+          "ShadowPuppets1epic_ASenseofDread"
+        ]
+      },
+      {
+        "name": "Queens And Drones",
+        "order": 4,
+        "pageName": "QueensAndDrones1epic",
+        "missions": [
+          "QueensAndDrones1epic_RoyalJelly",
+          "QueensAndDrones1epic_NaturePictures",
+          "QueensAndDrones1epic_TrackingorScanning",
+          "QueensAndDrones1epic_BurningDowntheHive",
+          "QueensAndDrones1epic_ItsNotOverYet"
+        ]
+      },
+      {
+        "name": "Shifting Foundations",
+        "order": 5,
+        "pageName": "ShiftingFoundations1epic",
+        "missions": [
+          "ShiftingFoundations1epic_AnEyeonEverything",
+          "ShiftingFoundations1epic_TheUsesofForce",
+          "ShiftingFoundations1epic_GoadingtheLeader",
+          "ShiftingFoundations1epic_HuntingtheLieutenants",
+          "ShiftingFoundations1epic_ValuableCargo",
+          "ShiftingFoundations1epic_MarkedforDeath",
+          "ShiftingFoundations1epic_ThwartingtheSuccession",
+          "ShiftingFoundations1epic_CertificateofDeath"
+        ]
+      },
+      {
+        "name": "A Breach Of Trust",
+        "order": 6,
+        "pageName": "ABreachOfTrust1epic",
+        "missions": [
+          "ABreachOfTrust1epic_AMatterofDecorum",
+          "ABreachOfTrust1epic_NewFriends",
+          "ABreachOfTrust1epic_Recovery",
+          "ABreachOfTrust1epic_OfQuietNightsLongPast",
+          "ABreachOfTrust1epic_Revelations",
+          "ABreachOfTrust1epic_ACalltoTrial",
+          "ABreachOfTrust1epic_BrothersandSisters"
+        ]
+      },
+      {
+        "name": "Closing In",
+        "order": 7,
+        "pageName": "ClosingIn1epic",
+        "missions": [
+          "ClosingIn1epic_AStrangersFace",
+          "ClosingIn1epic_TheSistersandtheSpy",
+          "ClosingIn1epic_SealingtheDeal",
+          "ClosingIn1epic_ChasingShadows",
+          "ClosingIn1epic_TheMissingPiece",
+          "ClosingIn1epic_TheAmarrCaldariGallenteMinmatarCommander",
+          "ClosingIn1epic_OurManDagan",
+          "ClosingIn1epic_DalSegnoalFine"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "angel-sound",
+    "name": "Angel Sound",
+    "faction": "Angel Cartel",
+    "level": 3,
+    "startingAgent": "Katar Erand (or other Angel Cartel agents)",
+    "startingSystem": "Multiple",
+    "region": "Multiple (low-sec)",
+    "standingsRequired": "None (Angel Cartel epic arc)",
+    "additionalRequirements": "None",
+    "description": "",
+    "chapters": [
+      {
+        "name": "Rapture",
+        "order": 1,
+        "pageName": "AngelSound3p1",
+        "missions": [
+          "AngelSound3p1_Mission1TheBalanceofPowerMistakenIdentityHeadhunted",
+          "AngelSound3p1_Mission2NewOpportunities",
+          "AngelSound3p1_Mission3FightorFlightStoryArcBranch"
+        ]
+      },
+      {
+        "name": "Utopia",
+        "order": 2,
+        "pageName": "AngelSound3p2",
+        "missions": [
+          "AngelSound3p2_Mission6NaturalConsequences",
+          "AngelSound3p2_Mission7CleartheWay",
+          "AngelSound3p2_Mission8SalvageHeist",
+          "AngelSound3p2_Mission9RabbitTrap",
+          "AngelSound3p2_Mission10Dominus"
+        ]
+      },
+      {
+        "name": "Heaven",
+        "order": 2,
+        "pageName": "AngelSound3p2b",
+        "missions": [
+          "AngelSound3p2b_Mission6SerpentisFillIn",
+          "AngelSound3p2b_Mission7RidetotheRescue",
+          "AngelSound3p2b_Mission8TheBestKindofRevenge",
+          "AngelSound3p2b_Mission9WrathofAngels",
+          "AngelSound3p2b_Mission10Dominus"
+        ]
+      },
+      {
+        "name": "Paradise",
+        "order": 3,
+        "pageName": "AngelSound3p3",
+        "missions": [
+          "AngelSound3p3_Mission11TheLesserofTwo",
+          "AngelSound3p3_Mission12aSituationNormal",
+          "AngelSound3p3_Mission121aBreakingtheLock",
+          "AngelSound3p3_Mission12bDataDestruction",
+          "AngelSound3p3_Mission13FearofAngels"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "smash-and-grab",
+    "name": "Smash and Grab",
+    "faction": "Guristas Pirates",
+    "level": 3,
+    "startingAgent": "Multiple Guristas agents",
+    "startingSystem": "Multiple",
+    "region": "Multiple (null-sec)",
+    "standingsRequired": "None (Guristas epic arc)",
+    "additionalRequirements": "None",
+    "description": "",
+    "chapters": [
+      {
+        "name": "Probationary",
+        "order": 1,
+        "pageName": "SmashAndGrab3p1",
+        "missions": [
+          "SmashAndGrab3p1_Mission1AEnemyofmyEnemy",
+          "SmashAndGrab3p1_Mission1BRecruitmentDrive",
+          "SmashAndGrab3p1_Mission1CTurningCoat",
+          "SmashAndGrab3p1_Mission2IntelligenceMining",
+          "SmashAndGrab3p1_Mission3PlanningtheOperation",
+          "SmashAndGrab3p1_Mission4ASabotage101",
+          "SmashAndGrab3p1_Mission4BBrassyFacedBastard",
+          "SmashAndGrab3p1_Mission5UpwardMomentum"
+        ]
+      },
+      {
+        "name": "For Fun and Profit",
+        "order": 2,
+        "pageName": "SmashAndGrab3p2",
+        "missions": [
+          "SmashAndGrab3p2_Mission6Miscommunication",
+          "SmashAndGrab3p2_Mission7FuelGauge",
+          "SmashAndGrab3p2_Mission8KnockoutPunch"
+        ]
+      },
+      {
+        "name": "Internal Security",
+        "order": 3,
+        "pageName": "SmashAndGrab3p3",
+        "missions": [
+          "SmashAndGrab3p3_Mission9CullingtheWeakStoryArcBranch",
+          "SmashAndGrab3p3_Mission10AThreatAssessmentIrichiPath",
+          "SmashAndGrab3p3_Mission10BSmokeandMirrorsKoriPath",
+          "SmashAndGrab3p3_Mission11ADreadPiratesIrichiPath",
+          "SmashAndGrab3p3_Mission11BFoxfireKoriPath",
+          "SmashAndGrab3p3_Mission12ARabbitHoleIrichiPath",
+          "SmashAndGrab3p3_Mission12BSpyGamesKoriPath",
+          "SmashAndGrab3p3_Mission13APassingtheBuckIrichiPath",
+          "SmashAndGrab3p3_Reward"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "right-to-rule",
+    "name": "Right to Rule",
+    "faction": "Amarr Empire",
+    "level": 4,
+    "startingAgent": "Karde Romu",
+    "startingSystem": "Kor-Azor Prime",
+    "region": "Kor-Azor",
+    "standingsRequired": "+5.0 Amarr Empire or Ministry of Internal Order",
+    "additionalRequirements": "Hacking III (skill), Data Analyzer (module)",
+    "description": "",
+    "chapters": [
+      {
+        "name": "Interference",
+        "order": 1,
+        "pageName": "RightToRule4p1",
+        "missions": [
+          "RightToRule4p1_Mission1AidinganInvestigator",
+          "RightToRule4p1_Mission2LateReports",
+          "RightToRule4p1_Mission3TheOutclassedOutpost",
+          "RightToRule4p1_Mission4RagingSansha",
+          "RightToRule4p1_Mission5CowardlyCommander"
+        ]
+      },
+      {
+        "name": "Spiderweb Politics",
+        "order": 2,
+        "pageName": "RightToRule4p2",
+        "missions": [
+          "RightToRule4p2_Mission6AralinJick",
+          "RightToRule4p2_Mission7BackgroundCheck",
+          "RightToRule4p2_Mission8LongingLeman",
+          "RightToRule4p2_Mission9LanguishingLord",
+          "RightToRule4p2_Mission10RazingtheOutpost",
+          "RightToRule4p2_Mission11AscendingNobles",
+          "RightToRule4p2_Mission12HuntingtheHunter",
+          "RightToRule4p2_Mission13FateofaMadman"
+        ]
+      },
+      {
+        "name": "The Old Guard",
+        "order": 3,
+        "pageName": "RightToRule4p3",
+        "missions": [
+          "RightToRule4p3_Mission14InterrogationCatchingtheScent",
+          "RightToRule4p3_Mission15FallingintoPlace",
+          "RightToRule4p3_Mission16MakinganArrest",
+          "RightToRule4p3_Mission17AnUnfortunateEnd",
+          "RightToRule4p3_Mission18PanicResponse",
+          "RightToRule4p3_Mission19TheRighttoRuleFinalMission"
+        ]
+      },
+      {
+        "name": "Alike Minds",
+        "order": 3,
+        "pageName": "RightToRule4p3b",
+        "missions": [
+          "RightToRule4p3b_Mission14SilenceRahsaTheNationsPath",
+          "RightToRule4p3b_Mission15AHumanBody",
+          "RightToRule4p3b_Mission16AMetalMind",
+          "RightToRule4p3b_Mission17ADigitalSoul",
+          "RightToRule4p3b_Mission18RegalReplacement"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "penumbra",
+    "name": "Penumbra",
+    "faction": "Caldari State",
+    "level": 4,
+    "startingAgent": "Aursa Kunivuri",
+    "startingSystem": "Josameto",
+    "region": "The Forge",
+    "standingsRequired": "+5.0 Caldari State or Expert Distribution",
+    "additionalRequirements": "Hacking III (skill), Data Analyzer (module)",
+    "description": "",
+    "chapters": [
+      {
+        "name": "Proof of Intent",
+        "order": 1,
+        "pageName": "Penumbra4p1",
+        "missions": [
+          "Penumbra4p1_Mission1TheIntermediary",
+          "Penumbra4p1_Mission2TrustAndDiscretion",
+          "Penumbra4p1_Mission3TheirLossOurProfit",
+          "Penumbra4p1_Mission4EpicArcBranchThePathsThatAreHidden",
+          "Penumbra4p1_Mission5ATwoStepsIntoHell",
+          "Penumbra4p1_Mission5BPlayingItSafer",
+          "Penumbra4p1_Mission5CPart1AnHonorableBetrayal",
+          "Penumbra4p1_Mission5CPart2ProofofIntent",
+          "Penumbra4p1_Mission5CPart3ReturntoIsha",
+          "Penumbra4p1_Mission5CPart4ReexaminingOptions",
+          "Penumbra4p1_Mission6AlmostUnmasked",
+          "Penumbra4p1_Mission7Part1SomeLightTheatrics",
+          "Penumbra4p1_Mission7Part2Untouchable",
+          "Penumbra4p1_Mission6TooCloseforComfort",
+          "Penumbra4p1_Mission7ATheCrimsonDecoy",
+          "Penumbra4p1_Mission7BPreEmptiveOpportunities",
+          "Penumbra4p1_Mission8AGeneralsBestFriend"
+        ]
+      },
+      {
+        "name": "Blackness Rising",
+        "order": 2,
+        "pageName": "Penumbra4p2",
+        "missions": [
+          "Penumbra4p2_Mission9MeetSinas",
+          "Penumbra4p2_Mission10RightToolfortheJob",
+          "Penumbra4p2_Mission11TheBreakout",
+          "Penumbra4p2_Mission12WhisperofaConspiracy",
+          "Penumbra4p2_Mission13PracticalSolutions",
+          "Penumbra4p2_Mission14Forewarning"
+        ]
+      },
+      {
+        "name": "The Bottom Line",
+        "order": 3,
+        "pageName": "Penumbra4p3",
+        "missions": [
+          "Penumbra4p3_Mission15TheKnowledgetoActStoryArcBranch",
+          "Penumbra4p3_Mission16SlippingAway",
+          "Penumbra4p3_Mission17AcrosstheLine",
+          "Penumbra4p3_Mission15ADifferenceofOpinionStoryArcBranch",
+          "Penumbra4p3_Mission16LearningbyDoing",
+          "Penumbra4p3_Mission17ThePriceofSilence",
+          "Penumbra4p3_Mission16HomeInPeace"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "syndication",
+    "name": "Syndication",
+    "faction": "Gallente Federation",
+    "level": 4,
+    "startingAgent": "Brus Colterne",
+    "startingSystem": "Dodixie",
+    "region": "Sinq Laison",
+    "standingsRequired": "+5.0 Gallente Federation or Federal Intelligence Office",
+    "additionalRequirements": "Hacking III (skill), Data Analyzer (module)",
+    "description": "",
+    "chapters": [
+      {
+        "name": "Impetus",
+        "order": 1,
+        "pageName": "Syndication4p1",
+        "missions": [
+          "Syndication4p1_Mission1Impetus",
+          "Syndication4p1_Mission2TheTolleScar",
+          "Syndication4p1_Mission3PriorityOne",
+          "Syndication4p1_Mission4TheAveronExchange",
+          "Syndication4p1_Mission5ADifferentKindofDirector",
+          "Syndication4p1_Mission6Assistance",
+          "Syndication4p1_Mission7TheHighorLowRoad"
+        ]
+      },
+      {
+        "name": "Eagle Grip",
+        "order": 2,
+        "pageName": "Syndication4p2",
+        "missions": [
+          "Syndication4p2_Mission8IntotheBlack",
+          "Syndication4p2_Mission9PoorMansShakedown",
+          "Syndication4p2_Mission10UndergroundCircus",
+          "Syndication4p2_Mission11IntakiChase",
+          "Syndication4p2_Mission12RatinaCorner"
+        ]
+      },
+      {
+        "name": "Scoping The Scene",
+        "order": 2,
+        "pageName": "Syndication4p2b",
+        "missions": [
+          "Syndication4p2b_Mission8OutsideTheScope",
+          "Syndication4p2b_Mission9HiddenCamera",
+          "Syndication4p2b_Mission10Rendezvous",
+          "Syndication4p2b_Mission11Handoff",
+          "Syndication4p2b_Mission12WithAuthority"
+        ]
+      },
+      {
+        "name": "Inertia",
+        "order": 3,
+        "pageName": "Syndication4p3",
+        "missions": [
+          "Syndication4p3_Mission13PlacestoHide",
+          "Syndication4p3_Mission14ALittleFingers",
+          "Syndication4p3_Mission14BOldestProfession",
+          "Syndication4p3_Mission14COctometPlantation",
+          "Syndication4p3_Mission15CarryOn",
+          "Syndication4p3_Mission16Studio1",
+          "Syndication4p3_Mission17Showtime",
+          "Syndication4p3_Mission18WherestheLine",
+          "Syndication4p3_Mission19AEverybodyHasaPrice",
+          "Syndication4p3_Mission19BSafeReturn"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wildfire",
+    "name": "Wildfire",
+    "faction": "Minmatar Republic",
+    "level": 4,
+    "startingAgent": "Hiva Shesheva",
+    "startingSystem": "Frarn",
+    "region": "Heimatar",
+    "standingsRequired": "+5.0 Minmatar Republic or Krusual Tribe",
+    "additionalRequirements": "Hacking III (skill), Archaeology III (skill), Data Analyzer, Relic Analyzer",
+    "description": "",
+    "chapters": [
+      {
+        "name": "The Passage",
+        "order": 1,
+        "pageName": "Wildfire4p1",
+        "missions": [
+          "Wildfire4p1_Mission1ADemonstration",
+          "Wildfire4p1_Mission2TheCostofPreservation",
+          "Wildfire4p1_Mission3WrittenByTheVictors",
+          "Wildfire4p1_Mission4GlowingEmbers",
+          "Wildfire4p1_Mission5FromWayAbove",
+          "Wildfire4p1_Mission6FriendsInHighPlaces",
+          "Wildfire4p1_Mission7MyLittleEye"
+        ]
+      },
+      {
+        "name": "Songs of the Past",
+        "order": 2,
+        "pageName": "Wildfire4p2",
+        "missions": [
+          "Wildfire4p2_Mission1DeadEndIntercept",
+          "Wildfire4p2_Mission2Surfacing",
+          "Wildfire4p2_Mission3WhoArtinHeaven",
+          "Wildfire4p2_Mission4PlayingAllTheirCards",
+          "Wildfire4p2_Mission5HistoryInTheMaking"
+        ]
+      },
+      {
+        "name": "Revelation",
+        "order": 3,
+        "pageName": "Wildfire4p3",
+        "missions": [
+          "Wildfire4p3_Mission1ChurchOfTheObsidian",
+          "Wildfire4p3_Mission2Heresiology",
+          "Wildfire4p3_Mission3Wildfire",
+          "Wildfire4p3_Mission4Stillwater",
+          "Wildfire4p3_Mission5WithGreatPower",
+          "Wildfire4p3_Mission5aRevelation",
+          "Wildfire4p3_Mission5bRetraction"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vision-of-greatness",
+    "name": "Vision of Greatness",
+    "faction": "Association for Interdisciplinary Research",
+    "level": 1,
+    "startingAgent": "AIR Representative",
+    "startingSystem": "Manifest",
+    "region": "Exordium",
+    "standingsRequired": "None",
+    "additionalRequirements": "None",
+    "description": "Relive four defining moments in New Eden's history, with one hyper-real simulation for each empire. New players can better understand faction identities and allegiances, while veterans can experience legendary events long known through EVE lore.",
+    "chapters": [
+      {
+        "name": "Amarr Simulation",
+        "order": 1,
+        "pageName": "",
+        "missions": []
+      },
+      {
+        "name": "Caldari Simulation",
+        "order": 2,
+        "pageName": "",
+        "missions": []
+      },
+      {
+        "name": "Gallente Simulation",
+        "order": 3,
+        "pageName": "",
+        "missions": []
+      },
+      {
+        "name": "Minmatar Simulation",
+        "order": 4,
+        "pageName": "",
+        "missions": []
+      }
+    ]
+  }
+]

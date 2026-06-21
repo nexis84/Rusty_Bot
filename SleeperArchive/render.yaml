@@ -1,0 +1,9 @@
+services:
+  - type: static
+    name: sleeper-archive
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - path: /*
+        destination: /index.html

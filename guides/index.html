@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Missions and Anomalies - RustyBot</title>
+  <link rel="stylesheet" href="../Style.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="../index.html">&larr; Back</a>
+
+    <header>
+      <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
+      <h1><span>RustyBot</span> Guides</h1>
+      <p class="subtitle">EVE Online mission reports, anomaly guides, and more.</p>
+    </header>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <a class="tab active" data-tab="missions" href="#missions">Missions</a>
+      <a class="tab" data-tab="burners" href="#burners">Burners</a>
+      <a class="tab" data-tab="anomalies" href="#anomalies">Anomalies</a>
+      <a class="tab" data-tab="agents" href="#agents">Agents</a>
+      <a class="tab" data-tab="epicarcs" href="#epicarcs">Epic Arcs</a>
+      <a class="tab" data-tab="npcs" href="#npcs">NPCs</a>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="loading" style="display:none;">
+      <div class="spinner"></div>
+      <p>Loading data...</p>
+    </div>
+
+    <!-- ========== MISSIONS TAB ========== -->
+    <div id="tab-missions" class="tab-content active">
+      <!-- List View -->
+      <div id="missionListView">
+        <div class="controls">
+          <input type="text" id="searchInput" placeholder="Search missions or factions..." autocomplete="off">
+          <select id="levelFilter">
+            <option value="">All Levels</option>
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+          </select>
+          <select id="factionFilter">
+            <option value="">All Factions</option>
+          </select>
+        </div>
+
+        <div id="stats" class="stats">Loading...</div>
+        <div id="missionList"></div>
+      </div>
+
+      <!-- Detail View -->
+      <div id="missionDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToMissionList" class="detail-back">&larr; Back to mission list</a>
+        </div>
+        <div id="missionDetailContent"></div>
+      </div>
+    </div>
+
+    <!-- ========== BURNERS TAB ========== -->
+    <div id="tab-burners" class="tab-content">
+      <div id="burnerListView">
+        <div class="controls">
+          <input type="text" id="burnerSearchInput" placeholder="Search burner missions..." autocomplete="off">
+          <select id="burnerTypeFilter">
+            <option value="">All Types</option>
+            <option value="Agent">Agent</option>
+            <option value="Base">Base</option>
+            <option value="Team">Team</option>
+          </select>
+          <select id="burnerFactionFilter">
+            <option value="">All Factions</option>
+          </select>
+        </div>
+        <div id="burnerStats" class="stats">Loading...</div>
+        <div id="burnerList"></div>
+      </div>
+
+      <div id="burnerDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToBurnerList" class="detail-back">&larr; Back to burner list</a>
+        </div>
+        <div id="burnerDetailContent"></div>
+      </div>
+    </div>
+
+    <!-- ========== ANOMALIES TAB ========== -->
+    <div id="tab-anomalies" class="tab-content">
+      <!-- List View -->
+      <div id="anomalyListView">
+        <div class="anomaly-subtabs">
+          <button class="anomaly-subtab active" data-type="green">&#9733; Green Sites</button>
+          <button class="anomaly-subtab" data-type="scanable">&#9762; Scanable Sites</button>
+          <button class="anomaly-subtab" data-type="escalation">&#9878; Escalations</button>
+          <button class="anomaly-subtab" data-type="expedition">&#9881; Expeditions</button>
+          <button class="anomaly-subtab" data-type="favorites">&#9733; Favorites</button>
+        </div>
+        <div class="controls">
+          <input type="text" id="anomalySearchInput" placeholder="Search anomaly types..." autocomplete="off">
+          <select id="anomalyFactionFilter">
+            <option value="">All Factions</option>
+          </select>
+          <select id="anomalyVariantFilter">
+            <option value="">All Variants</option>
+            <option value="Normal">Normal</option>
+            <option value="Hidden">Hidden</option>
+            <option value="Forsaken">Forsaken</option>
+            <option value="Forlorn">Forlorn</option>
+          </select>
+          <select id="anomalySpaceFilter">
+            <option value="">All Spaces</option>
+            <option value="high">High-Sec</option>
+            <option value="low">Low-Sec</option>
+            <option value="null">Null-Sec</option>
+          </select>
+          <select id="anomalyTierFilter">
+            <option value="">All Tiers</option>
+            <option value="1-3">Tier 1-3 (Basic)</option>
+            <option value="4-5">Tier 4-5 (Standard)</option>
+            <option value="6-8">Tier 6-8 (Escalation)</option>
+            <option value="9-10">Tier 9-10 (Endgame)</option>
+            <option value="0">Special (Tier 0)</option>
+          </select>
+        </div>
+        <div id="anomalyStats" class="stats">Loading...</div>
+        <div id="anomalyList"></div>
+      </div>
+
+      <!-- Detail View -->
+      <div id="anomalyDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToAnomalyList" class="detail-back">&larr; Back to anomaly list</a>
+        </div>
+        <div id="anomalyDetailContent"></div>
+      </div>
+    </div>
+
+    <!-- ========== AGENTS TAB ========== -->
+    <div id="tab-agents" class="tab-content">
+      <div id="agentListView">
+        <div class="controls">
+          <input type="text" id="agentSearchInput" placeholder="Search agents, corporations, or systems..." autocomplete="off">
+          <select id="agentDivisionFilter">
+            <option value="">All Divisions</option>
+            <option value="Security">Security</option>
+            <option value="Distribution">Distribution</option>
+            <option value="Mining">Mining</option>
+          </select>
+          <select id="agentLevelFilter">
+            <option value="">All Levels</option>
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+          </select>
+        </div>
+        <div id="agentStats" class="stats">Loading...</div>
+        <div id="agentList"></div>
+      </div>
+
+      <div id="agentDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToAgentList" class="detail-back">&larr; Back to agent list</a>
+        </div>
+        <div id="agentDetailContent"></div>
+      </div>
+    </div>
+
+    <!-- ========== EPIC ARCS TAB ========== -->
+    <div id="tab-epicarcs" class="tab-content">
+      <div id="epicArcListView">
+        <div class="controls">
+          <input type="text" id="epicArcSearchInput" placeholder="Search epic arcs..." autocomplete="off">
+        </div>
+        <div id="epicArcStats" class="stats">Loading...</div>
+        <div id="epicArcList"></div>
+      </div>
+
+      <div id="epicArcDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToEpicArcList" class="detail-back">&larr; Back to epic arcs</a>
+        </div>
+        <div id="epicArcDetailContent"></div>
+      </div>
+
+      <div id="epicArcMissionDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToEpicArcDetail" class="detail-back">&larr; Back to arc detail</a>
+        </div>
+        <div id="epicArcMissionDetailContent"></div>
+      </div>
+    </div>
+
+    <!-- ========== NPC FACTIONS TAB ========== -->
+    <div id="tab-npcs" class="tab-content">
+      <div id="npcListView">
+        <div class="controls">
+          <input type="text" id="npcSearchInput" placeholder="Search factions..." autocomplete="off">
+          <select id="npcCategoryFilter">
+            <option value="">All Categories</option>
+            <option value="Empire">Empire</option>
+            <option value="Pirate">Pirate</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div id="npcStats" class="stats">Loading...</div>
+        <div id="npcList"></div>
+      </div>
+
+      <div id="npcDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToNpcList" class="detail-back">&larr; Back to faction list</a>
+        </div>
+        <div id="npcDetailContent"></div>
+      </div>
+    </div>
+
+    <footer>
+      <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+      <p>Data sourced from <a href="https://eve-survival.org/?wakka=MissionReports" target="_blank">EVE-Survival</a> and <a href="https://wiki.eveuniversity.org/" target="_blank">EVE University Wiki</a>.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
