@@ -623,6 +623,7 @@ function buyLife() {
 function updateHeader() {
   document.getElementById('streak-count').textContent = state.streak;
   document.getElementById('ships-seen').textContent = state.history.length + 1;
+  document.getElementById('round-count').textContent = state.roundNum;
   document.getElementById('reward-total').textContent = state.totalReward.toLocaleString('en-US');
   const badge = document.getElementById('streak-badge');
   badge.textContent = `🔥 ${state.streak}`;
@@ -660,6 +661,7 @@ async function startGame() {
   document.getElementById('feedback').textContent = '';
   document.getElementById('streak-count').textContent = '0';
   document.getElementById('ships-seen').textContent = '0';
+  document.getElementById('round-count').textContent = '0';
   document.getElementById('reward-total').textContent = '0';
   document.getElementById('streak-badge').textContent = '🔥 0';
   const livesElStart = document.getElementById('lives-display');
