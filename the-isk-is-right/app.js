@@ -136,6 +136,15 @@ function getMinPriceDiff(streak) {
   return 0.03;
 }
 
+function getMaxPrice(streak) {
+  if (streak <= 10) return 200000000;
+  if (streak <= 15) return 500000000;
+  if (streak <= 20) return 2000000000;
+  if (streak <= 25) return 10000000000;
+  if (streak <= 30) return 50000000000;
+  return Infinity;
+}
+
 async function fetchShipPrice(typeId) {
   // Check memory cache first
   if (priceCache.has(typeId)) {
@@ -208,41 +217,42 @@ function isRecent(id) {
 function getChallenger(currentShip, prices, streak) {
   const currentPrice = prices[currentShip.id];
   const minDiff = getMinPriceDiff(streak);
+  const tierCap = getMaxPrice(streak);
   const minPrice = currentPrice * (1 - minDiff);
-  const maxPrice = currentPrice * (1 + minDiff);
+  const maxPrice = Math.min(currentPrice * (1 + minDiff), tierCap);
 
   let pool = SHIPS.filter(s => {
     if (s.id === currentShip.id) return false;
     if (isRecent(s.id)) return false;
     const p = prices[s.id];
-    return p != null && p > 0 && p >= minPrice && p <= maxPrice;
+    return p != null && p > 0 && p >= minPrice && p <= maxPrice && p <= tierCap;
   });
 
   // Second attempt: 50% to 200% range
   if (pool.length < 2) {
     const wideMin = currentPrice * 0.5;
-    const wideMax = currentPrice * 2;
+    const wideMax = Math.min(currentPrice * 2, tierCap);
     pool = SHIPS.filter(s => {
       if (s.id === currentShip.id) return false;
       if (isRecent(s.id)) return false;
       const p = prices[s.id];
-      return p != null && p > 0 && p >= wideMin && p <= wideMax;
+      return p != null && p > 0 && p >= wideMin && p <= wideMax && p <= tierCap;
     });
   }
 
   // Third attempt: 30% to 300% range
   if (pool.length < 2) {
     const wideMin = currentPrice * 0.3;
-    const wideMax = currentPrice * 3;
+    const wideMax = Math.min(currentPrice * 3, tierCap);
     pool = SHIPS.filter(s => {
       if (s.id === currentShip.id) return false;
       if (isRecent(s.id)) return false;
       const p = prices[s.id];
-      return p != null && p > 0 && p >= wideMin && p <= wideMax;
+      return p != null && p > 0 && p >= wideMin && p <= wideMax && p <= tierCap;
     });
   }
 
-  // Final fallback: ignore recency with progressive ratio steps
+  // Final fallback: ignore recency, apply tier cap with progressive ratio
   if (pool.length < 2) {
     const ratios = [3, 5, 10, Infinity];
     for (const maxRatio of ratios) {
@@ -251,6 +261,7 @@ function getChallenger(currentShip, prices, streak) {
           if (s.id === currentShip.id) return false;
           const p = prices[s.id];
           if (p == null || p <= 0) return false;
+          if (p > tierCap) return false;
           if (!isFinite(maxRatio)) return true;
           const ratio = Math.max(p, currentPrice) / Math.min(p, currentPrice);
           return ratio <= maxRatio;
@@ -676,8 +687,9 @@ async function startGame() {
   // Pre-load more ships in background for better challenger variety
   loadMoreShips();
   
-  // Pick first two from the loaded ships
-  const validShips = Object.keys(state.prices).map(Number).filter(id => loadedShipIds.has(id)).map(id => SHIPS.find(s => s.id === id)).filter(Boolean);
+  // Pick first two from the loaded ships within the starting price tier
+  const tierCap = getMaxPrice(0);
+  const validShips = Object.keys(state.prices).map(Number).filter(id => loadedShipIds.has(id)).map(id => SHIPS.find(s => s.id === id)).filter(s => s && state.prices[s.id] <= tierCap);
   if (validShips.length < 2) {
     document.getElementById('game-area').innerHTML =
       `<div class="error-msg">Could not load prices. <button class="retry-btn" onclick="startGame()">RETRY</button></div>`;
