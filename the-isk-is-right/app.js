@@ -242,25 +242,28 @@ function getChallenger(currentShip, prices, streak) {
     });
   }
 
-  // Final fallback: ignore recency but keep ships within 3x price ratio
+  // Final fallback: ignore recency with progressive ratio steps
   if (pool.length < 2) {
-    const sorted = SHIPS
-      .filter(s => {
-        if (s.id === currentShip.id) return false;
-        const p = prices[s.id];
-        if (p == null || p <= 0) return false;
-        const ratio = Math.max(p, currentPrice) / Math.min(p, currentPrice);
-        return ratio <= 3;
-      })
-      .sort((a, b) => Math.abs(prices[a.id] - currentPrice) - Math.abs(prices[b.id] - currentPrice));
-    pool = sorted.slice(0, 20);
+    const ratios = [3, 5, 10, Infinity];
+    for (const maxRatio of ratios) {
+      const sorted = SHIPS
+        .filter(s => {
+          if (s.id === currentShip.id) return false;
+          const p = prices[s.id];
+          if (p == null || p <= 0) return false;
+          if (!isFinite(maxRatio)) return true;
+          const ratio = Math.max(p, currentPrice) / Math.min(p, currentPrice);
+          return ratio <= maxRatio;
+        })
+        .sort((a, b) => Math.abs(prices[a.id] - currentPrice) - Math.abs(prices[b.id] - currentPrice));
+      if (sorted.length >= 2) {
+        pool = sorted.slice(0, 20);
+        break;
+      }
+    }
   }
 
   pool = pool.filter(s => s.id !== currentShip.id);
-
-  if (!pool.length) {
-    console.warn('getChallenger: no candidates found', { currentShip: currentShip.name, price: currentPrice, streak, loadedCount: loadedShipIds.size });
-  }
 
   return pool.length > 0 ? pickRandom(pool) : null;
 }
