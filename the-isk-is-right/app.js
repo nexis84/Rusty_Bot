@@ -7,14 +7,13 @@ let priceCache = new Map();
 let loadedShipIds = new Set();
 const CACHE_TTL = 3600000; // 1 hour in ms
 const FETCH_TIMEOUT = 10000; // 10s abort timeout
-const BUY_LIFE_BASE = 5000000; // 5M base ISK to buy a life, scales up
 const MAX_ROUNDS = 50;
 
 function getBuyLifeCost() {
   const x = state.livesBought;
-  const tiers = [5, 50, 90, 150];
-  if (x < 4) return tiers[x] * 1000000;
-  return (10 * x * x + 10 * x + 30) * 1000000;
+  const tiers = [1, 25, 50, 90, 150, 250, 300];
+  if (x < 7) return tiers[x] * 1000000;
+  return 300000000;
 }
 
 function loadPriceFromCache(typeId) {
@@ -370,7 +369,8 @@ function renderButtons() {
     const livesMsg = state.livesUsed > 0 ? ` • ${state.livesUsed} life${state.livesUsed > 1 ? 's' : ''} saved` : '';
     const topTier = getTierCap(state.roundNum);
     container.innerHTML = `<div class="game-over-panel">
-      <div class="go-title win">🎉 YOU WIN!</div>
+      <div class="go-title win">You Win</div>
+      <div class="go-label">You have successfully finished all ${MAX_ROUNDS} rounds</div>
       <div class="go-streak">${state.streak}</div>
       <div class="go-label">${state.streak} correct • ${state.history.length} ships seen • ${formatISKShort(state.totalReward)} ISK earned${livesMsg}</div>
       <div class="go-history">
