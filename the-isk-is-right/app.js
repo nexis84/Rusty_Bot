@@ -237,23 +237,23 @@ function getChallenger(currentShip, prices, streak) {
     });
   }
 
-  // Final fallback: pick from closest ships but filter by a max ratio
+  // Final fallback: any loaded ship sorted by closest price
   if (pool.length < 2) {
     const sorted = SHIPS
       .filter(s => {
         if (s.id === currentShip.id) return false;
-        if (isRecent(s.id)) return false;
         const p = prices[s.id];
-        if (p == null || p <= 0) return false;
-        // Keep only ships within 1:10 ratio at most
-        const ratio = Math.max(p, currentPrice) / Math.min(p, currentPrice);
-        return ratio <= 10;
+        return p != null && p > 0;
       })
       .sort((a, b) => Math.abs(prices[a.id] - currentPrice) - Math.abs(prices[b.id] - currentPrice));
     pool = sorted.slice(0, 20);
   }
 
   pool = pool.filter(s => s.id !== currentShip.id);
+
+  if (!pool.length) {
+    console.warn('getChallenger: no candidates found', { currentShip: currentShip.name, price: currentPrice, streak, loadedCount: loadedShipIds.size });
+  }
 
   return pool.length > 0 ? pickRandom(pool) : null;
 }
