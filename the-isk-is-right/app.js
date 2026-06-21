@@ -541,11 +541,13 @@ async function refreshPriceFromESI(typeId) {
 }
 
 function getTierCap(roundNum) {
-  if (roundNum <= 5) return 20000000;
-  if (roundNum <= 10) return 200000000;
-  if (roundNum <= 15) return 1000000000;
-  if (roundNum <= 20) return 10000000000;
-  if (roundNum <= 25) return 50000000000;
+  if (roundNum <= 2) return 20000000;
+  if (roundNum <= 6) return 50000000;
+  if (roundNum <= 11) return 100000000;
+  if (roundNum <= 16) return 500000000;
+  if (roundNum <= 21) return 2000000000;
+  if (roundNum <= 26) return 10000000000;
+  if (roundNum <= 31) return 50000000000;
   return Infinity;
 }
 
