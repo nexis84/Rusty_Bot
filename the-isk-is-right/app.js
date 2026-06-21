@@ -6,9 +6,6 @@ let state = null;
 let priceCache = new Map();
 let loadedShipIds = new Set();
 const CACHE_TTL = 3600000; // 1 hour in ms
-const BATCH_SIZE = 20;
-const MAX_CONCURRENT = 12;
-const THROTTLE_MS = 100;
 const FETCH_TIMEOUT = 10000; // 10s abort timeout
 const BUY_LIFE_BASE = 5000000; // 5M base ISK to buy a life, scales up
 
@@ -136,14 +133,7 @@ function getMinPriceDiff(streak) {
   return 0.03;
 }
 
-function getMaxPrice(streak) {
-  if (streak <= 10) return 200000000;
-  if (streak <= 15) return 500000000;
-  if (streak <= 20) return 2000000000;
-  if (streak <= 25) return 10000000000;
-  if (streak <= 30) return 50000000000;
-  return Infinity;
-}
+
 
 async function fetchShipPrice(typeId) {
   // Check memory cache first
@@ -158,6 +148,9 @@ async function fetchShipPrice(typeId) {
     priceCache.set(typeId, { price: cachedPrice, ts: Date.now() });
     return cachedPrice;
   }
+
+  // Static reference data as fallback
+  const staticPrice = PRICE_DATA && PRICE_DATA.prices[typeId];
   
   try {
     const controller = new AbortController();
@@ -169,31 +162,16 @@ async function fetchShipPrice(typeId) {
       headers: { 'Cache-Control': 'no-cache' }
     });
     clearTimeout(timeout);
-    if (!res.ok) return null;
+    if (!res.ok) return staticPrice || null;
     const orders = await res.json();
-    if (!orders.length) return null;
+    if (!orders.length) return staticPrice || null;
     const price = Math.min(...orders.map(o => o.price));
     priceCache.set(typeId, { price, ts: Date.now() });
     savePriceToCache(typeId, price);
     return price;
   } catch (e) {
-    return null;
+    return staticPrice || null;
   }
-}
-
-async function fetchPricesForShips(ships) {
-  const prices = {};
-  for (let i = 0; i < ships.length; i += MAX_CONCURRENT) {
-    const batch = ships.slice(i, i + MAX_CONCURRENT);
-    const results = await Promise.allSettled(batch.map(s => fetchShipPrice(s.id)));
-    for (let j = 0; j < batch.length; j++) {
-      prices[batch[j].id] = results[j].status === 'fulfilled' ? results[j].value : null;
-    }
-    if (i + MAX_CONCURRENT < ships.length) {
-      await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
-    }
-  }
-  return prices;
 }
 
 function addRecent(id) {
@@ -217,7 +195,7 @@ function isRecent(id) {
 function getChallenger(currentShip, prices, streak) {
   const currentPrice = prices[currentShip.id];
   const minDiff = getMinPriceDiff(streak);
-  const tierCap = getMaxPrice(streak);
+  const tierCap = getTierCap(streak);
   const minPrice = currentPrice * (1 - minDiff);
   const maxPrice = Math.min(currentPrice * (1 + minDiff), tierCap);
 
@@ -432,8 +410,6 @@ function handleGuess(guessedCurrentIsHigher) {
     state.lastReward = Math.round(state.prices[winner.id] * getRewardRate(state.streak));
     state.totalReward += state.lastReward;
     showFeedback(true, winner, state.prices[winner.id], state.lastReward);
-    // Lazy-load 4 more ships after a correct guess
-    loadMoreShips();
     if (state.streak > 0 && state.streak % 5 === 0) {
       SoundFX.streak();
     } else {
@@ -519,19 +495,58 @@ function startCountdown() {
   }, 1000);
 }
 
-async function loadMoreShips() {
-  // Find the first BATCH_SIZE ships from allShuffled that don't have prices yet
-  const unloaded = state.allShuffled.filter(s => !loadedShipIds.has(s.id)).slice(0, BATCH_SIZE);
-  if (unloaded.length === 0) return;
-  
-  const prices = await fetchPricesForShips(unloaded);
-  
-  for (const s of unloaded) {
-    if (prices[s.id] != null && prices[s.id] > 0) {
-      state.prices[s.id] = prices[s.id];
-      loadedShipIds.add(s.id);
+let currentRefreshCap = 0;
+
+async function refreshTier(cap) {
+  const toRefresh = state.allShuffled.filter(s => {
+    const staticPrice = PRICE_DATA && PRICE_DATA.prices[s.id];
+    return staticPrice != null && staticPrice > 0 && staticPrice <= cap;
+  });
+  let offset = 0;
+  while (offset < toRefresh.length) {
+    const batch = toRefresh.slice(offset, offset + 6);
+    offset += 6;
+    const results = await Promise.allSettled(batch.map(s => refreshPriceFromESI(s.id)));
+    for (let i = 0; i < batch.length; i++) {
+      const price = results[i].status === 'fulfilled' ? results[i].value : null;
+      if (price != null && price > 0) {
+        state.prices[batch[i].id] = price;
+        priceCache.set(batch[i].id, { price, ts: Date.now() });
+      }
+    }
+    if (offset < toRefresh.length) {
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
+}
+
+async function refreshPriceFromESI(typeId) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+    const url = `${ESI_BASE}/markets/${JITA_REGION}/orders/?type_id=${typeId}&order_type=sell&_=${Date.now()}`;
+    const res = await fetch(url, {
+      signal: controller.signal,
+      cache: 'no-cache',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const orders = await res.json();
+    if (!orders.length) return null;
+    return Math.min(...orders.map(o => o.price));
+  } catch (e) {
+    return null;
+  }
+}
+
+function getTierCap(streak) {
+  if (streak <= 10) return 20000000;
+  if (streak <= 15) return 500000000;
+  if (streak <= 20) return 2000000000;
+  if (streak <= 25) return 10000000000;
+  if (streak <= 30) return 50000000000;
+  return Infinity;
 }
 
 async function nextRound() {
@@ -546,15 +561,14 @@ async function nextRound() {
   }
   state.winnerSide = null;
 
-  let challenger = getChallenger(state.currentShip, state.prices, state.streak);
-  
-  // If we can't find a challenger, keep loading more ships until we do or run out
-  let attempts = 0;
-  while (!challenger && loadedShipIds.size < state.allShuffled.length && attempts < 5) {
-    await loadMoreShips();
-    challenger = getChallenger(state.currentShip, state.prices, state.streak);
-    attempts++;
+  // Expand ESI refresh if we crossed into a higher price tier
+  const newTierCap = getTierCap(state.streak);
+  if (newTierCap > currentRefreshCap) {
+    currentRefreshCap = newTierCap;
+    refreshTier(currentRefreshCap).catch(() => {});
   }
+
+  let challenger = getChallenger(state.currentShip, state.prices, state.streak);
   
   if (!challenger) {
     state.gameOver = true;
@@ -644,17 +658,6 @@ async function startGame() {
   }
   document.getElementById('feedback').className = 'feedback';
   document.getElementById('feedback').textContent = '';
-  document.getElementById('game-area').innerHTML =
-    `<div class="loading">
-      <div class="load-ring">
-        <div class="ring"></div>
-        <div class="ring"></div>
-        <div class="ring"></div>
-        <div class="center-dot"></div>
-      </div>
-      <div class="load-text">Scanning New Eden markets...</div>
-      <div class="load-count" id="load-count">0 / 40 ships priced</div>
-    </div>`;
   document.getElementById('streak-count').textContent = '0';
   document.getElementById('ships-seen').textContent = '0';
   document.getElementById('reward-total').textContent = '0';
@@ -666,30 +669,24 @@ async function startGame() {
   state.allShuffled = shuffled;
   state.prices = {};
   loadedShipIds = new Set();
-  
-  // Keep loading batches until we have enough ships for good price spread
-  const minShips = 40;
-  let offset = 0;
-  const countEl = document.getElementById('load-count');
-  
-  while (loadedShipIds.size < minShips && offset < shuffled.length) {
-    const batch = shuffled.slice(offset, offset + BATCH_SIZE);
-    offset += BATCH_SIZE;
-    const batchPrices = await fetchPricesForShips(batch);
-    for (const s of batch) {
-      if (batchPrices[s.id] != null && batchPrices[s.id] > 0) {
-        state.prices[s.id] = batchPrices[s.id];
-        loadedShipIds.add(s.id);
-      }
+
+  // Load all prices from static reference data for instant start
+  for (const ship of SHIPS) {
+    const price = PRICE_DATA && PRICE_DATA.prices[ship.id];
+    if (price != null && price > 0) {
+      state.prices[ship.id] = price;
+      priceCache.set(ship.id, { price, ts: Date.now() });
+      loadedShipIds.add(ship.id);
     }
-    if (countEl) countEl.textContent = `${loadedShipIds.size} / 40 ships priced`;
   }
-  // Pre-load more ships in background for better challenger variety
-  loadMoreShips();
+
+  // Background ESI refresh for current tier's ships only
+  currentRefreshCap = getTierCap(0);
+  refreshTier(currentRefreshCap).catch(() => {});
   
   // Pick first two from the loaded ships within the starting price tier
-  const tierCap = getMaxPrice(0);
-  const validShips = Object.keys(state.prices).map(Number).filter(id => loadedShipIds.has(id)).map(id => SHIPS.find(s => s.id === id)).filter(s => s && state.prices[s.id] <= tierCap);
+  const tierCap = getTierCap(0);
+  const validShips = state.allShuffled.filter(s => loadedShipIds.has(s.id) && state.prices[s.id] <= tierCap);
   if (validShips.length < 2) {
     document.getElementById('game-area').innerHTML =
       `<div class="error-msg">Could not load prices. <button class="retry-btn" onclick="startGame()">RETRY</button></div>`;
