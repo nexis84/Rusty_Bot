@@ -192,10 +192,10 @@ function isRecent(id) {
   return state.roundNum - seen < 15;
 }
 
-function getChallenger(currentShip, prices, streak) {
+function getChallenger(currentShip, prices, streak, roundNum) {
   const currentPrice = prices[currentShip.id];
   const minDiff = getMinPriceDiff(streak);
-  const tierCap = getTierCap(streak);
+  const tierCap = getTierCap(roundNum);
   const minPrice = currentPrice * (1 - minDiff);
   const maxPrice = Math.min(currentPrice * (1 + minDiff), tierCap);
 
@@ -540,12 +540,12 @@ async function refreshPriceFromESI(typeId) {
   }
 }
 
-function getTierCap(streak) {
-  if (streak <= 5) return 20000000;
-  if (streak <= 10) return 200000000;
-  if (streak <= 15) return 1000000000;
-  if (streak <= 20) return 10000000000;
-  if (streak <= 25) return 50000000000;
+function getTierCap(roundNum) {
+  if (roundNum <= 5) return 20000000;
+  if (roundNum <= 10) return 200000000;
+  if (roundNum <= 15) return 1000000000;
+  if (roundNum <= 20) return 10000000000;
+  if (roundNum <= 25) return 50000000000;
   return Infinity;
 }
 
@@ -562,13 +562,13 @@ async function nextRound() {
   state.winnerSide = null;
 
   // Expand ESI refresh if we crossed into a higher price tier
-  const newTierCap = getTierCap(state.streak);
+  const newTierCap = getTierCap(state.roundNum);
   if (newTierCap > currentRefreshCap) {
     currentRefreshCap = newTierCap;
     refreshTier(currentRefreshCap).catch(() => {});
   }
 
-  let challenger = getChallenger(state.currentShip, state.prices, state.streak);
+  let challenger = getChallenger(state.currentShip, state.prices, state.streak, state.roundNum);
   
   if (!challenger) {
     state.gameOver = true;
