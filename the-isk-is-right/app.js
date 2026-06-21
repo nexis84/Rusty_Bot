@@ -128,7 +128,12 @@ function pickRandom(arr) {
 }
 
 function getMinPriceDiff(streak) {
-  return Math.max(0.02, 0.30 - (streak * 0.012));
+  if (streak <= 5) return 0.30;
+  if (streak <= 10) return 0.22;
+  if (streak <= 15) return 0.15;
+  if (streak <= 20) return 0.10;
+  if (streak <= 30) return 0.06;
+  return 0.03;
 }
 
 async function fetchShipPrice(typeId) {
