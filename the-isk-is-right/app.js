@@ -541,11 +541,11 @@ async function refreshPriceFromESI(typeId) {
 }
 
 function getTierCap(streak) {
-  if (streak <= 10) return 20000000;
-  if (streak <= 15) return 500000000;
-  if (streak <= 20) return 2000000000;
-  if (streak <= 25) return 10000000000;
-  if (streak <= 30) return 50000000000;
+  if (streak <= 5) return 20000000;
+  if (streak <= 10) return 200000000;
+  if (streak <= 15) return 1000000000;
+  if (streak <= 20) return 10000000000;
+  if (streak <= 25) return 50000000000;
   return Infinity;
 }
 
