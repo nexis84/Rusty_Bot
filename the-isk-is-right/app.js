@@ -8,6 +8,7 @@ let loadedShipIds = new Set();
 const CACHE_TTL = 3600000; // 1 hour in ms
 const FETCH_TIMEOUT = 10000; // 10s abort timeout
 const BUY_LIFE_BASE = 5000000; // 5M base ISK to buy a life, scales up
+const MAX_ROUNDS = 50;
 
 function getBuyLifeCost() {
   const x = state.livesBought;
@@ -93,6 +94,12 @@ const SoundFX = {
     this._play(660, 0.1, 'sine');
     setTimeout(() => this._play(880, 0.1, 'sine'), 80);
     setTimeout(() => this._play(1100, 0.15, 'sine'), 160);
+  },
+  victory() {
+    this._play(523, 0.1, 'sine');
+    setTimeout(() => this._play(659, 0.1, 'sine'), 100);
+    setTimeout(() => this._play(784, 0.12, 'sine'), 200);
+    setTimeout(() => this._play(1047, 0.3, 'sine'), 300);
   }
 };
 
@@ -274,6 +281,7 @@ function initGame() {
     history: [],
     resolved: false,
     gameOver: false,
+    won: false,
     winnerSide: null,
     roundNum: 0,
     recentIds: {},
@@ -358,6 +366,18 @@ function renderButtons() {
   
   if (state.resolved && state.lifeSaved) {
     container.innerHTML = `<div class="life-saved-area"><span class="next-round-msg">Continuing in...</span><span class="countdown-number" id="life-countdown">2</span></div>`;
+  } else if (state.won) {
+    const livesMsg = state.livesUsed > 0 ? ` • ${state.livesUsed} life${state.livesUsed > 1 ? 's' : ''} saved` : '';
+    const topTier = getTierCap(state.roundNum);
+    container.innerHTML = `<div class="game-over-panel">
+      <div class="go-title win">🎉 YOU WIN!</div>
+      <div class="go-streak">${state.streak}</div>
+      <div class="go-label">${state.streak} correct • ${state.history.length} ships seen • ${formatISKShort(state.totalReward)} ISK earned${livesMsg}</div>
+      <div class="go-history">
+        <div class="history-item"><span class="h-name">Final ship:</span><span class="h-price">${state.currentShip.name}</span></div>
+        <div class="history-item"><span class="h-name">Tier reached:</span><span class="h-price">${formatISKShort(topTier)}</span></div>
+      </div><button class="result-btn" id="restart-btn">PLAY AGAIN</button></div>`;
+    document.getElementById('restart-btn').addEventListener('click', startGame);
   } else if (state.gameOver) {
     const totalISK = state.history.reduce((sum, h) => sum + (h.price || 0), 0);
     const livesMsg = state.livesUsed > 0 ? ` • ${state.livesUsed} life${state.livesUsed > 1 ? 's' : ''} saved` : '';
@@ -410,6 +430,18 @@ function handleGuess(guessedCurrentIsHigher) {
     state.lastReward = Math.round(state.prices[winner.id] * getRewardRate(state.streak));
     state.totalReward += state.lastReward;
     showFeedback(true, winner, state.prices[winner.id], state.lastReward);
+
+    if (state.roundNum >= MAX_ROUNDS) {
+      state.won = true;
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+      if (lifeTimer) { clearInterval(lifeTimer); lifeTimer = null; }
+      SoundFX.victory();
+      renderGame();
+      updateHeader();
+      renderButtons();
+      return;
+    }
+
     if (state.streak > 0 && state.streak % 5 === 0) {
       SoundFX.streak();
     } else {

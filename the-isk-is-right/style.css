@@ -318,7 +318,10 @@ body {
 }
 
 .go-title.lose { color: var(--danger); }
-.go-title.win { color: var(--success); }
+.go-title.win {
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(232, 217, 0, 0.5), 0 0 40px rgba(232, 217, 0, 0.3);
+}
 
 .go-streak {
   font-size: 2.8rem;
