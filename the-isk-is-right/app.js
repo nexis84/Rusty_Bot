@@ -574,13 +574,24 @@ async function refreshPriceFromESI(typeId) {
 
 function getTierCap(roundNum) {
   if (roundNum <= 2) return 20000000;
-  if (roundNum <= 6) return 50000000;
-  if (roundNum <= 11) return 100000000;
-  if (roundNum <= 16) return 500000000;
-  if (roundNum <= 21) return 2000000000;
-  if (roundNum <= 26) return 10000000000;
-  if (roundNum <= 31) return 50000000000;
+  if (roundNum <= 7) return 50000000;
+  if (roundNum <= 12) return 100000000;
+  if (roundNum <= 17) return 500000000;
+  if (roundNum <= 22) return 2000000000;
+  if (roundNum <= 27) return 10000000000;
+  if (roundNum <= 32) return 50000000000;
   return Infinity;
+}
+
+function getTierMinPrice(roundNum) {
+  if (roundNum <= 2) return 0;
+  if (roundNum <= 7) return 5000000;
+  if (roundNum <= 12) return 20000000;
+  if (roundNum <= 17) return 100000000;
+  if (roundNum <= 22) return 500000000;
+  if (roundNum <= 27) return 2000000000;
+  if (roundNum <= 32) return 10000000000;
+  return 50000000000;
 }
 
 async function nextRound() {
@@ -594,6 +605,19 @@ async function nextRound() {
     state.currentShip = state.challengerShip;
   }
   state.winnerSide = null;
+
+  // Force ramp: if current ship is below this tier's minimum, swap to a ship in range
+  const tierMin = getTierMinPrice(state.roundNum);
+  if (state.prices[state.currentShip.id] < tierMin) {
+    const candidates = state.allShuffled.filter(s => {
+      const p = state.prices[s.id];
+      return p != null && p > 0 && p >= tierMin && p <= getTierCap(state.roundNum) && !isRecent(s.id);
+    });
+    if (candidates.length > 0) {
+      state.currentShip = pickRandom(candidates);
+      state.history.push({ name: state.currentShip.name, price: state.prices[state.currentShip.id] });
+    }
+  }
 
   // Expand ESI refresh if we crossed into a higher price tier
   const newTierCap = getTierCap(state.roundNum);
