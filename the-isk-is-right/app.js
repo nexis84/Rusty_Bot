@@ -6,7 +6,7 @@ let state = null;
 let priceCache = new Map();
 let loadedShipIds = new Set();
 const CACHE_TTL = 3600000; // 1 hour in ms
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 20;
 const MAX_CONCURRENT = 12;
 const THROTTLE_MS = 100;
 const FETCH_TIMEOUT = 10000; // 10s abort timeout
@@ -237,13 +237,15 @@ function getChallenger(currentShip, prices, streak) {
     });
   }
 
-  // Final fallback: any loaded ship sorted by closest price
+  // Final fallback: ignore recency but keep ships within 3x price ratio
   if (pool.length < 2) {
     const sorted = SHIPS
       .filter(s => {
         if (s.id === currentShip.id) return false;
         const p = prices[s.id];
-        return p != null && p > 0;
+        if (p == null || p <= 0) return false;
+        const ratio = Math.max(p, currentPrice) / Math.min(p, currentPrice);
+        return ratio <= 3;
       })
       .sort((a, b) => Math.abs(prices[a.id] - currentPrice) - Math.abs(prices[b.id] - currentPrice));
     pool = sorted.slice(0, 20);
@@ -631,8 +633,8 @@ async function startGame() {
         <div class="ring"></div>
         <div class="center-dot"></div>
       </div>
-      <div class="load-text">Scanning New Eden...</div>
-      <div class="load-count" id="load-count">0 ships priced</div>
+      <div class="load-text">Scanning New Eden markets...</div>
+      <div class="load-count" id="load-count">0 / 40 ships priced</div>
     </div>`;
   document.getElementById('streak-count').textContent = '0';
   document.getElementById('ships-seen').textContent = '0';
@@ -646,8 +648,8 @@ async function startGame() {
   state.prices = {};
   loadedShipIds = new Set();
   
-  // Keep loading batches until we have at least 4 ships with prices
-  const minShips = 4;
+  // Keep loading batches until we have enough ships for good price spread
+  const minShips = 40;
   let offset = 0;
   const countEl = document.getElementById('load-count');
   
@@ -661,8 +663,10 @@ async function startGame() {
         loadedShipIds.add(s.id);
       }
     }
-    if (countEl) countEl.textContent = `${loadedShipIds.size} ships priced`;
+    if (countEl) countEl.textContent = `${loadedShipIds.size} / 40 ships priced`;
   }
+  // Pre-load more ships in background for better challenger variety
+  loadMoreShips();
   
   // Pick first two from the loaded ships
   const validShips = Object.keys(state.prices).map(Number).filter(id => loadedShipIds.has(id)).map(id => SHIPS.find(s => s.id === id)).filter(Boolean);
