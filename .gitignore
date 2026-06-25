@@ -1,0 +1,54 @@
+# EVE Online Static Dump data files (too large for GitHub)
+ship-guess-game/Static Dump/
+market/sde.zip
+SDE/
+sde/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Node modules
+node_modules/
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+market/sde/fsd/types.yaml
+market/tools/sde/fsd/types.yaml
+
+# Local Render setup docs (not for GitHub)
+RENDER_SETUP.md
+
+# Debug/temp files
+Killboard/*.txt
+Killboard/swagger*.json
+
+# Vite cache
+.vite/
+
+# Build output
+dist-sleeper/
+
+# Token/secret files
+download_tokens.json
+
+# Market temp/backup files
+market/MARKET.txt
+market/categorized_items.txt
+market/items_database.js.backup
+market/updates.txt
+
+# Guides log files
+guides/server.log
+guides/server.err
+
+# D-Scan NPC Analyzer (local-only tool, not for GitHub)
+guides/dscan-tool/

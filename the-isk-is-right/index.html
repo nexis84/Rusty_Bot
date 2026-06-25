@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The ISK is Right! — EVE Ship Price Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../rusty_bot.png">
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="../index.html">&larr; Back</a>
+
+    <header class="tool-header">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+      <h1>The ISK is <span>Right!</span></h1>
+      <p class="subtitle">Guess which EVE ship costs more. Chain as many as you can!</p>
+    </header>
+
+    <div class="header-stats">
+      <span>Streak: <strong id="streak-count">0</strong></span>
+      <span class="streak-badge" id="streak-badge">🔥 0</span>
+      <span>Round: <strong id="round-count">0</strong></span>
+      <span>Ships: <strong id="ships-seen">0</strong></span>
+      <span class="lives-display" id="lives-display"></span>
+      <span class="buy-life-btn" id="buy-life-btn">🛒 Buy Life</span>
+    </div>
+
+    <div class="reward-bar">
+      <span id="reward-total">0</span> ISK
+    </div>
+
+    <div id="game-area" class="game-area">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div>Fetching ship prices from Jita...</div>
+      </div>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div id="guess-buttons" class="guess-buttons"></div>
+
+    <div class="footer-bar">
+      <span>Prices from Jita • The Forge</span>
+      <span>Data via ESI</span>
+    </div>
+  </div>
+
+  <script src="ships.js"></script>
+  <script src="prices.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

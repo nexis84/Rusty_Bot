@@ -1,0 +1,6946 @@
+[
+  {
+    "name": "Angel Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Hideaway",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Hideaway",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hideaway",
+    "escalation": {
+      "name": "Guristas Scout Outpost",
+      "page": "Guristas_Scout_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Hideaway",
+    "escalation": {
+      "name": "Sansha's Command Relay Outpost",
+      "page": "Sansha%27s_Command_Relay_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Hideaway",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Cluster",
+    "faction": "Rogue Drones",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Cluster",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Hidden Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Hidden_Hideaway",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Hidden Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Hidden_Hideaway",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Hidden Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hidden_Hideaway",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Hidden Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Hidden_Hideaway",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Hidden Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Hidden_Hideaway",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forsaken Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Forsaken_Hideaway",
+    "escalation": {
+      "name": "Angel Repurposed Outpost",
+      "page": "Angel_Repurposed_Outpost"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forsaken Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Forsaken_Hideaway",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forsaken Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Forsaken_Hideaway",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forsaken Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Forsaken_Hideaway",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forsaken Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Forsaken_Hideaway",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forlorn Hideaway",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Forlorn_Hideaway",
+    "escalation": null,
+    "variant": "Forlorn",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forlorn Hideaway",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Forlorn_Hideaway",
+    "escalation": null,
+    "variant": "Forlorn",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forlorn Hideaway",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Forlorn_Hideaway",
+    "escalation": null,
+    "variant": "Forlorn",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forlorn Hideaway",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Forlorn_Hideaway",
+    "escalation": null,
+    "variant": "Forlorn",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forlorn Hideaway",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Forlorn_Hideaway",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Hideaway",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Burrow",
+    "faction": "Angel Cartel",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Angel_Burrow",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Burrow",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Burrow",
+    "faction": "Blood Raiders",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Blood_Burrow",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Burrow",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Burrow",
+    "faction": "Guristas Pirates",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Guristas_Burrow",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Burrow",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Burrow",
+    "faction": "Sansha's Nation",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Sansha_Burrow",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Burrow",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Burrow",
+    "faction": "Serpentis",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Serpentis_Burrow",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Burrow",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Collection",
+    "faction": "Rogue Drones",
+    "tier": 2,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "Drone_Collection",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Refuge",
+    "faction": "Angel Cartel",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Refuge",
+    "escalation": {
+      "name": "Angel's Red Light District",
+      "page": "Angel%27s_Red_Light_District"
+    },
+    "variant": "Normal",
+    "anomalyType": "Refuge",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Refuge",
+    "faction": "Blood Raiders",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Refuge",
+    "escalation": {
+      "name": "Mul-Zatah Monastery",
+      "page": "Mul-Zatah_Monastery"
+    },
+    "variant": "Normal",
+    "anomalyType": "Refuge",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Refuge",
+    "faction": "Guristas Pirates",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Refuge",
+    "escalation": {
+      "name": "Guristas Scout Outpost",
+      "page": "Guristas_Scout_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Refuge",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Refuge",
+    "faction": "Sansha's Nation",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Refuge",
+    "escalation": {
+      "name": "Sansha's Command Relay Outpost",
+      "page": "Sansha%27s_Command_Relay_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Refuge",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Refuge",
+    "faction": "Serpentis",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Refuge",
+    "escalation": {
+      "name": "Serpentis Narcotic Warehouses",
+      "page": "Serpentis_Narcotic_Warehouses"
+    },
+    "variant": "Normal",
+    "anomalyType": "Refuge",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Assembly",
+    "faction": "Rogue Drones",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Assembly",
+    "escalation": {
+      "name": "Rogue Drone Asteroid Infestation",
+      "page": "Rogue_Drone_Asteroid_Infestation"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Den",
+    "escalation": {
+      "name": "Angel's Red Light District",
+      "page": "Angel%27s_Red_Light_District"
+    },
+    "variant": "Normal",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Den",
+    "escalation": {
+      "name": "Blood Raider Psychotropics Depot",
+      "page": "Blood_Raider_Psychotropics_Depot"
+    },
+    "variant": "Normal",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Den",
+    "escalation": {
+      "name": "Guristas Hallucinogen Supply Waypoint",
+      "page": "Guristas_Hallucinogen_Supply_Waypoint"
+    },
+    "variant": "Normal",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Den",
+    "escalation": {
+      "name": "Sansha's Nation Neural Paralytic Facility",
+      "page": "Sansha%27s_Nation_Neural_Paralytic_Facility"
+    },
+    "variant": "Normal",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Den",
+    "escalation": {
+      "name": "Serpentis Corporation Hydroponics Site",
+      "page": "Serpentis_Corporation_Hydroponics_Site"
+    },
+    "variant": "Normal",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Gathering",
+    "faction": "Rogue Drones",
+    "tier": 4,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Gathering",
+    "escalation": {
+      "name": "Rogue Drone Asteroid Infestation",
+      "page": "Rogue_Drone_Asteroid_Infestation"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Hidden Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hidden_Den",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Hidden Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hidden_Den",
+    "escalation": {
+      "name": "Crimson Hand Supply Depot",
+      "page": "Crimson_Hand_Supply_Depot"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Hidden Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hidden_Den",
+    "escalation": {
+      "name": "Guristas Troop Reinvigoration Camp",
+      "page": "Guristas_Troop_Reinvigoration_Camp"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Hidden Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hidden_Den",
+    "escalation": {
+      "page": "Sansha_War_Supply_Complex",
+      "name": "Sansha War Supply Complex"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Hidden Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hidden_Den",
+    "escalation": {
+      "name": "Serpentis Corporation Hydroponics Site",
+      "page": "Serpentis_Corporation_Hydroponics_Site"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forsaken Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Den",
+    "escalation": {
+      "name": "Angel Military Operations Complex",
+      "page": "Angel_Military_Operations_Complex"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forsaken Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Den",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forsaken Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Den",
+    "escalation": {
+      "name": "Gurista Military Operations Complex",
+      "page": "Gurista_Military_Operations_Complex"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forsaken Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Den",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forsaken Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Den",
+    "escalation": {
+      "name": "Serpentis Paramilitary Complex",
+      "page": "Serpentis_Paramilitary_Complex"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forlorn Den",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forlorn_Den",
+    "escalation": {
+      "name": "Angel Military Operations Complex",
+      "page": "Angel_Military_Operations_Complex"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forlorn Den",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forlorn_Den",
+    "escalation": null,
+    "variant": "Forlorn",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forlorn Den",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forlorn_Den",
+    "escalation": {
+      "name": "Gurista Military Operations Complex",
+      "page": "Gurista_Military_Operations_Complex"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forlorn Den",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forlorn_Den",
+    "escalation": {
+      "page": "Sansha_War_Supply_Complex",
+      "name": "Sansha War Supply Complex"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forlorn Den",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forlorn_Den",
+    "escalation": null,
+    "variant": "Forlorn",
+    "anomalyType": "Den",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Yard",
+    "faction": "Angel Cartel",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Yard",
+    "escalation": {
+      "name": "Angel's Red Light District",
+      "page": "Angel%27s_Red_Light_District"
+    },
+    "variant": "Normal",
+    "anomalyType": "Yard",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Yard",
+    "faction": "Blood Raiders",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Yard",
+    "escalation": {
+      "name": "Crimson Hand Supply Depot",
+      "page": "Crimson_Hand_Supply_Depot"
+    },
+    "variant": "Normal",
+    "anomalyType": "Yard",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Yard",
+    "faction": "Guristas Pirates",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Yard",
+    "escalation": {
+      "name": "Guristas Hallucinogen Supply Waypoint",
+      "page": "Guristas_Hallucinogen_Supply_Waypoint"
+    },
+    "variant": "Normal",
+    "anomalyType": "Yard",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Yard",
+    "faction": "Sansha's Nation",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Yard",
+    "escalation": {
+      "name": "Sansha War Supply Complex",
+      "page": "Sansha_War_Supply_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Yard",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Yard",
+    "faction": "Serpentis",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Yard",
+    "escalation": {
+      "name": "Serpentis Logistical Outpost",
+      "page": "Serpentis_Logistical_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Yard",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Surveillance",
+    "faction": "Rogue Drones",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Surveillance",
+    "escalation": {
+      "name": "Rogue Drone Asteroid Infestation",
+      "page": "Rogue_Drone_Asteroid_Infestation"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Rally_Point",
+    "escalation": {
+      "name": "Angel Mineral Acquisition Outpost",
+      "page": "Angel_Mineral_Acquisition_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Rally_Point",
+    "escalation": {
+      "name": "Crimson Hand Supply Depot",
+      "page": "Crimson_Hand_Supply_Depot"
+    },
+    "variant": "Normal",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Rally_Point",
+    "escalation": {
+      "name": "Guristas Troop Reinvigoration Camp",
+      "page": "Guristas_Troop_Reinvigoration_Camp"
+    },
+    "variant": "Normal",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Rally_Point",
+    "escalation": {
+      "name": "Sansha War Supply Complex",
+      "page": "Sansha_War_Supply_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Rally_Point",
+    "escalation": {
+      "name": "Serpentis Logistical Outpost",
+      "page": "Serpentis_Logistical_Outpost"
+    },
+    "variant": "Normal",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Menagerie",
+    "faction": "Rogue Drones",
+    "tier": 6,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Drone_Menagerie",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (5/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(5/10)"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Hidden Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hidden_Rally_Point",
+    "escalation": {
+      "name": "Angel Mineral Acquisition Outpost",
+      "page": "Angel_Mineral_Acquisition_Outpost"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Hidden Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hidden_Rally_Point",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Hidden Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hidden_Rally_Point",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Hidden Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hidden_Rally_Point",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point",
+      "page": "True_Sansha_Fleet_Staging_Point"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Hidden Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hidden_Rally_Point",
+    "escalation": {
+      "name": "Capital Staging",
+      "page": "Serpentis_Capital_Staging"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forsaken Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Cartel Prisoner Retention",
+      "page": "Cartel_Prisoner_Retention"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forsaken Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Blood Raider Prison Camp",
+      "page": "Blood_Raider_Prison_Camp"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forsaken Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Pith's Penal Complex",
+      "page": "Pith%27s_Penal_Complex"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forsaken Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Sansha Prison Camp",
+      "page": "Sansha_Prison_Camp"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forsaken Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Rally_Point",
+    "escalation": {
+      "name": "Serpentis Prison Camp",
+      "page": "Serpentis_Prison_Camp"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forlorn Rally Point",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Cartel Prisoner Retention",
+      "page": "Cartel_Prisoner_Retention"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forlorn Rally Point",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Blood Raider Prison Camp",
+      "page": "Blood_Raider_Prison_Camp"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forlorn Rally Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Pith's Penal Complex",
+      "page": "Pith%27s_Penal_Complex"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forlorn Rally Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Sansha Prison Camp",
+      "page": "Sansha_Prison_Camp"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forlorn Rally Point",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forlorn_Rally_Point",
+    "escalation": {
+      "name": "Serpentis Prison Camp",
+      "page": "Serpentis_Prison_Camp"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Rally Point",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Port",
+    "faction": "Angel Cartel",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Port",
+    "escalation": {
+      "name": "Angel Military Operations Complex",
+      "page": "Angel_Military_Operations_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Port",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Port",
+    "faction": "Blood Raiders",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Port",
+    "escalation": {
+      "name": "Blood Raider Coordination Center",
+      "page": "Blood_Raider_Coordination_Center"
+    },
+    "variant": "Normal",
+    "anomalyType": "Port",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Port",
+    "faction": "Guristas Pirates",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Port",
+    "escalation": {
+      "name": "Gurista Military Operations Complex",
+      "page": "Gurista_Military_Operations_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Port",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Port",
+    "faction": "Sansha's Nation",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Port",
+    "escalation": {
+      "name": "Sansha Military Operations Complex",
+      "page": "Sansha_Military_Operations_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Port",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Port",
+    "faction": "Serpentis",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Port",
+    "escalation": {
+      "name": "Serpentis Paramilitary Complex",
+      "page": "Serpentis_Paramilitary_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Port",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Herd",
+    "faction": "Rogue Drones",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Drone_Herd",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (5/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(5/10)"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hub",
+    "escalation": {
+      "name": "Cartel Prisoner Retention",
+      "page": "Cartel_Prisoner_Retention"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hub",
+    "escalation": {
+      "name": "Blood Raider Prison Camp",
+      "page": "Blood_Raider_Prison_Camp"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hub",
+    "escalation": {
+      "name": "Pith's Penal Complex",
+      "page": "Pith%27s_Penal_Complex"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hub",
+    "escalation": {
+      "name": "Sansha Prison Camp",
+      "page": "Sansha_Prison_Camp"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hub",
+    "escalation": {
+      "name": "Serpentis Prison Camp",
+      "page": "Serpentis_Prison_Camp"
+    },
+    "variant": "Normal",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Squad",
+    "faction": "Rogue Drones",
+    "tier": 8,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Drone_Squad",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (10/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(10/10)"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Hidden Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Hidden_Hub",
+    "escalation": {
+      "name": "Angel Domination Fleet Staging Point",
+      "page": "Angel_Domination_Fleet_Staging_Point"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Hidden Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Hidden_Hub",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Hidden Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Hidden_Hub",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    },
+    "variant": "Hidden",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Hidden Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Hidden_Hub",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Hidden Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Hidden_Hub",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forsaken Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Hub",
+    "escalation": {
+      "name": "Angel Domination Fleet Staging Point",
+      "page": "Angel_Domination_Fleet_Staging_Point"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forsaken Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Hub",
+    "escalation": {
+      "name": "Blood Raider Naval Shipyard (9/10)",
+      "page": null,
+      "dedRating": 9
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forsaken Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Hub",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forsaken Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Hub",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point",
+      "page": "True_Sansha_Fleet_Staging_Point"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forsaken Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 3,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Hub",
+    "escalation": {
+      "name": "Shadow Serpentis Fleet Staging Point",
+      "page": "Shadow_Serpentis_Fleet_Staging_Point"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Forlorn Hub",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Forlorn_Hub",
+    "escalation": {
+      "name": "Angel Domination Fleet Staging Point",
+      "page": "Angel_Domination_Fleet_Staging_Point"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forlorn Hub",
+    "faction": "Blood Raiders",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Forlorn_Hub",
+    "escalation": {
+      "name": "Blood Raider Naval Shipyard (9/10)",
+      "page": null,
+      "dedRating": 9
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forlorn Hub",
+    "faction": "Guristas Pirates",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Forlorn_Hub",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point",
+      "page": "Dread_Guristas_Fleet_Staging_Point"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forlorn Hub",
+    "faction": "Sansha's Nation",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Forlorn_Hub",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point",
+      "page": "True_Sansha_Fleet_Staging_Point"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forlorn Hub",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": 4,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Forlorn_Hub",
+    "escalation": {
+      "name": "Shadow Serpentis Fleet Staging Point",
+      "page": "Shadow_Serpentis_Fleet_Staging_Point"
+    },
+    "variant": "Forlorn",
+    "anomalyType": "Hub",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Haven",
+    "faction": "Angel Cartel",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Haven",
+    "escalation": {
+      "name": "Angel Cartel Naval Shipyard",
+      "page": "Angel_Cartel_Naval_Shipyard"
+    },
+    "variant": "Normal",
+    "anomalyType": "Haven",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Haven",
+    "faction": "Blood Raiders",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Haven",
+    "escalation": {
+      "name": "Blood Raider Naval Shipyard",
+      "page": "Blood_Raider_Naval_Shipyard"
+    },
+    "variant": "Normal",
+    "anomalyType": "Haven",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Haven",
+    "faction": "Guristas Pirates",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guristas_Haven",
+    "escalation": {
+      "name": "The Maze",
+      "page": "The_Maze"
+    },
+    "variant": "Normal",
+    "anomalyType": "Haven",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Haven",
+    "faction": "Sansha's Nation",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Haven",
+    "escalation": {
+      "name": "Centus Assembly T.P. Co.",
+      "page": "Centus_Assembly_T.P._Co."
+    },
+    "variant": "Normal",
+    "anomalyType": "Haven",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Haven",
+    "faction": "Serpentis",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Haven",
+    "escalation": {
+      "name": "Serpentis Fleet Shipyard",
+      "page": "Serpentis_Fleet_Shipyard"
+    },
+    "variant": "Normal",
+    "anomalyType": "Haven",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Patrol",
+    "faction": "Rogue Drones",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Drone_Patrol",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (10/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(10/10)"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Sanctum",
+    "faction": "Angel Cartel",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Sanctum",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Sanctum",
+    "faction": "Blood Raiders",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Sanctum",
+    "escalation": {
+      "name": "Blood Raider Naval Shipyard",
+      "page": "Blood_Raider_Naval_Shipyard"
+    },
+    "variant": "Normal",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Sanctum",
+    "faction": "Guristas Pirates",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guristas_Sanctum",
+    "escalation": {
+      "name": "The Maze",
+      "page": "The_Maze"
+    },
+    "variant": "Normal",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Sanctum",
+    "faction": "Sansha's Nation",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Sanctum",
+    "escalation": {
+      "name": "Centus Assembly T.P. Co.",
+      "page": "Centus_Assembly_T.P._Co."
+    },
+    "variant": "Normal",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Sanctum",
+    "faction": "Serpentis",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Sanctum",
+    "escalation": {
+      "name": "Serpentis Fleet Shipyard",
+      "page": "Serpentis_Fleet_Shipyard"
+    },
+    "variant": "Normal",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Drone Horde",
+    "faction": "Rogue Drones",
+    "tier": 10,
+    "level": 1,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Drone_Horde",
+    "escalation": {
+      "name": "Outgrowth Rogue Drone Hive (10/10)",
+      "page": "Outgrowth_Rogue_Drone_Hive_(10/10)"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Sansha Forsaken Sanctum",
+    "faction": "Sansha's Nation",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Forsaken_Sanctum",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Serpentis Forsaken Sanctum",
+    "faction": "Serpentis",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Forsaken_Sanctum",
+    "escalation": {
+      "name": "Serpentis Fleet Shipyard",
+      "page": "Serpentis_Fleet_Shipyard"
+    },
+    "variant": "Forsaken",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Scout Outpost",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Scout_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha's Command Relay Outpost",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Command_Relay_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Narcotic Warehouses",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Narcotic_Warehouses",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel Repurposed Outpost",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Repurposed_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel's Red Light District",
+    "faction": "Angel Cartel",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel%27s_Red_Light_District",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Mul-Zatah Monastery",
+    "faction": "Blood Raiders",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Mul-Zatah_Monastery",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Rogue Drone Asteroid Infestation",
+    "faction": "Rogue Drones",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Rogue_Drone_Asteroid_Infestation",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Psychotropics Depot",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Psychotropics_Depot",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Guristas Hallucinogen Supply Waypoint",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hallucinogen_Supply_Waypoint",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Sansha's Nation Neural Paralytic Facility",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Nation_Neural_Paralytic_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Corporation Hydroponics Site",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Corporation_Hydroponics_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Guristas Troop Reinvigoration Camp",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Troop_Reinvigoration_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel Military Operations Complex",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Military_Operations_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Gurista Military Operations Complex",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Gurista_Military_Operations_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Paramilitary Complex",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Paramilitary_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Crimson Hand Supply Depot",
+    "faction": "Blood Raiders",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Crimson_Hand_Supply_Depot",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Sansha War Supply Complex",
+    "faction": "Sansha's Nation",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_War_Supply_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Logistical Outpost",
+    "faction": "Serpentis",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Logistical_Outpost",
+    "escalation": {
+      "page": "Serpentis_Logistical_Outpost_Part_2",
+      "name": "Serpentis Logistical Outpost Part 2"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel Mineral Acquisition Outpost",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Mineral_Acquisition_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Outgrowth Rogue Drone Hive (5/10)",
+    "faction": "Rogue Drones",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Outgrowth_Rogue_Drone_Hive_(5/10)",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "dedRating": 5,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Dread Guristas Fleet Staging Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Dread_Guristas_Fleet_Staging_Point",
+    "escalation": {
+      "name": "Dread Guristas Fleet Staging Point 2",
+      "page": "Dread_Guristas_Fleet_Staging_Point_2"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "True Sansha Fleet Staging Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "True_Sansha_Fleet_Staging_Point",
+    "escalation": {
+      "name": "True Sansha Fleet Staging Point 2",
+      "page": "True_Sansha_Fleet_Staging_Point_2"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Capital Staging",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Capital_Staging",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Cartel Prisoner Retention",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Cartel_Prisoner_Retention",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Blood Raider Prison Camp",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Prison_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Pith's Penal Complex",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Pith%27s_Penal_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Sansha Prison Camp",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Prison_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Prison Camp",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Prison_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Blood Raider Coordination Center",
+    "faction": "Blood Raiders",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Coordination_Center",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Sansha Military Operations Complex",
+    "faction": "Sansha's Nation",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Military_Operations_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Outgrowth Rogue Drone Hive (10/10)",
+    "faction": "Rogue Drones",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Outgrowth_Rogue_Drone_Hive_(10/10)",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "dedRating": 10,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel Domination Fleet Staging Point",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Domination_Fleet_Staging_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Shadow Serpentis Fleet Staging Point",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Shadow_Serpentis_Fleet_Staging_Point",
+    "escalation": {
+      "page": "Shadow_Serpentis_Fleet_Staging_Point_2",
+      "name": "Shadow Serpentis Fleet Staging Point 2"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel Cartel Naval Shipyard",
+    "faction": "Angel Cartel",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Cartel_Naval_Shipyard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Blood Raider Naval Shipyard",
+    "faction": "Blood Raiders",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Naval_Shipyard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "The Maze",
+    "faction": "Guristas Pirates",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "The_Maze",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Centus Assembly T.P. Co.",
+    "faction": "Sansha's Nation",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Centus_Assembly_T.P._Co.",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Serpentis Fleet Shipyard",
+    "faction": "Serpentis",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Fleet_Shipyard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "escalation"
+  },
+  {
+    "name": "Angel Forsaken Sanctum",
+    "faction": "Angel Cartel",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Forsaken_Sanctum",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Blood Forsaken Sanctum",
+    "faction": "Blood Raiders",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Forsaken_Sanctum",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Guristas Forsaken Sanctum",
+    "faction": "Guristas Pirates",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guristas_Forsaken_Sanctum",
+    "escalation": null,
+    "variant": "Forsaken",
+    "anomalyType": "Sanctum",
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Teeming Drone Horde",
+    "faction": "Rogue Drones",
+    "tier": 10,
+    "level": 2,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Teeming_Drone_Horde",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Hideout",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Hideout",
+    "escalation": {
+      "page": "Blue_Pill",
+      "name": "Blue Pill"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Hideout",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Hideout",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Hideout",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Gurista_Hideout",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Hideout",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Hideout",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Hideout",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Hideout",
+    "escalation": {
+      "name": "Mindflood",
+      "page": "Mindflood"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Lookout",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Lookout",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Mindflood",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Mindflood",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Blood Lookout",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Lookout",
+    "escalation": {
+      "name": "Following the Blood",
+      "page": "Following_the_Blood"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Lookout",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Gurista_Lookout",
+    "escalation": {
+      "name": "Trap",
+      "page": "Trap"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Lookout",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Lookout",
+    "escalation": {
+      "name": "Slave Breeding Plants",
+      "page": "Slave_Breeding_Plants"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Lookout",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Lookout",
+    "escalation": {
+      "name": "Angel Kickbacks",
+      "page": "Angel_Kickbacks"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Watch",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Watch",
+    "escalation": {
+      "page": "The_Nuclear_Small_Arms_Project",
+      "name": "The Nuclear Small Arms Project"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Watch",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Watch",
+    "escalation": {
+      "name": "Medical Twilight",
+      "page": "Medical_Twilight"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Watch",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Watch",
+    "escalation": {
+      "name": "Terrorist Plot",
+      "page": "Terrorist_Plot"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Watch",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Watch",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Watch",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Watch",
+    "escalation": {
+      "name": "Jet-Set Hooligans",
+      "page": "Jet-Set_Hooligans"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Vigil",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Vigil",
+    "escalation": {
+      "page": "The_Big_Blue",
+      "name": "The Big Blue"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Vigil",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Vigil",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Vigil",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Vigil",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Vigil",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Vigil",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Vigil",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Vigil",
+    "escalation": {
+      "name": "Booster R&D",
+      "page": "Booster_R%26D"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Provisional Angel Outpost",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Provisional_Angel_Outpost",
+    "escalation": {
+      "page": "Domination_Surveillance_Squad",
+      "name": "Domination Surveillance Squad"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Provisional Blood Outpost",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Provisional_Blood_Outpost",
+    "escalation": {
+      "page": "Blood_Surveillance_Squad",
+      "name": "Blood Surveillance Squad"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Provisional Gurista Outpost",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Provisional_Gurista_Outpost",
+    "escalation": {
+      "name": "Gurista Surveillance Squad",
+      "page": "Gurista_Surveillance_Squad"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Provisional Sansha Outpost",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Provisional_Sansha_Outpost",
+    "escalation": {
+      "page": "Sansha_Surveillance_Squad",
+      "name": "Sansha Surveillance Squad"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Provisional Serpentis Outpost",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Provisional_Serpentis_Outpost",
+    "escalation": {
+      "name": "Guardian Angels Surveillance Squad",
+      "page": "Guardian_Angels_Surveillance_Squad"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Outpost",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Outpost",
+    "escalation": {
+      "name": "Salvation Angel's Shipment",
+      "page": "Salvation_Angel%27s_Shipment"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Outpost",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Outpost",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Outpost",
+    "escalation": {
+      "name": "Gurista Productions Shipment",
+      "page": "Gurista_Productions_Shipment"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Outpost",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Outpost",
+    "escalation": {
+      "name": "Hidden Riches",
+      "page": "Hidden_Riches"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Outpost",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Outpost",
+    "escalation": {
+      "name": "Elite Playground",
+      "page": "Elite_Playground"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Minor Angel Annex",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Minor_Angel_Annex",
+    "escalation": {
+      "name": "Angel Owned Station",
+      "page": "Angel_Owned_Station"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Minor Blood Annex",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Minor_Blood_Annex",
+    "escalation": {
+      "name": "Blood Owned Station",
+      "page": "Blood_Owned_Station"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Minor Guristas Annex",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Minor_Guristas_Annex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Minor Sansha Annex",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Minor_Sansha_Annex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Minor Serpentis Annex",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Minor_Serpentis_Annex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Annex",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Annex",
+    "escalation": {
+      "page": "Angel_Powergrid",
+      "name": "Angel Powergrid"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Annex",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Annex",
+    "escalation": {
+      "name": "Blood Raider Powergrid",
+      "page": "Blood_Raider_Powergrid"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Annex",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guristas_Annex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Annex",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Annex",
+    "escalation": {
+      "name": "Sansha Powergrid",
+      "page": "Sansha_Powergrid"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Annex",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Annex",
+    "escalation": {
+      "name": "Serpentis Powergrid",
+      "page": "Serpentis_Powergrid"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Base",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Base",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Base",
+    "escalation": {
+      "name": "Religious Fury",
+      "page": "Religious_Fury"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Base",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Base",
+    "escalation": {
+      "name": "Consequences Smonsequences",
+      "page": "Consequences_Smonsequences"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Base",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Base",
+    "escalation": {
+      "name": "True Power HQ",
+      "page": "True_Power_HQ"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Base",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Base",
+    "escalation": {
+      "name": "Contract Killers",
+      "page": "Contract_Killers"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Fortress",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Fortress",
+    "escalation": {
+      "name": "Operation Spring Cleaning",
+      "page": "Operation_Spring_Cleaning"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Fortress",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Fortress",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Fortress",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Fortress",
+    "escalation": {
+      "name": "Hired Gun",
+      "page": "Hired_Gun"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Fortress",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Fortress",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Fortress",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Fortress",
+    "escalation": {
+      "name": "Suspicious Job",
+      "page": "Suspicious_Job"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Military Complex",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Military_Complex",
+    "escalation": {
+      "name": "Pioneers Peril",
+      "page": "Pioneers_Peril"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Military Complex",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Military_Complex",
+    "escalation": {
+      "name": "Frontier in Flames",
+      "page": "Frontier_in_Flames"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Military Complex",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Military_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Military Complex",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Military_Complex",
+    "escalation": {
+      "name": "David V Goliath",
+      "page": "David_V_Goliath"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Military Complex",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Military_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Provincial HQ",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Provincial_HQ",
+    "escalation": {
+      "name": "Special Forces",
+      "page": "Special_Forces"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Provincial HQ",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Provincial_HQ",
+    "escalation": {
+      "name": "Fountain of Youth",
+      "page": "Fountain_of_Youth"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Gurista Provincial HQ",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Provincial_HQ",
+    "escalation": {
+      "name": "No Quarter",
+      "page": "No_Quarter"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Provincial HQ",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Provincial_HQ",
+    "escalation": {
+      "page": "The_Ancient_City",
+      "name": "The Ancient City"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Provincial HQ",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Provincial_HQ",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Dark Blood Fleet Staging Point",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Dark_Blood_Fleet_Staging_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Haunted Yard",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Haunted_Yard",
+    "escalation": {
+      "name": "Pulverize the Pioneers",
+      "page": "Pulverize_the_Pioneers"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Desolate Site",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Desolate_Site",
+    "escalation": {
+      "name": "Mare Sargassum",
+      "page": "Mare_Sargassum"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Chemical Yard",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Chemical_Yard",
+    "escalation": {
+      "name": "Hunting the Drudge Factory",
+      "page": "Hunting_the_Drudge_Factory"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Rogue Trial Yard",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Rogue_Trial_Yard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Dirty Site",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Dirty_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Ruins",
+    "escalation": {
+      "name": "Menacing Mechanics",
+      "page": "Menacing_Mechanics"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Independence",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Independence",
+    "escalation": {
+      "page": "The_Drone_Roulette",
+      "name": "The Drone Roulette"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Radiance",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Radiance",
+    "escalation": {
+      "name": "Molting Season",
+      "page": "Molting_Season"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Hierarchy",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Hierarchy",
+    "escalation": {
+      "name": "Trouble in Paradise",
+      "page": "Trouble_in_Paradise"
+    },
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Minmatar Contracted Bio-Farm",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Minmatar_Contracted_Bio-Farm",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Old Meanie - Cultivation Center",
+    "faction": "Blood Raiders",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Old_Meanie_-_Cultivation_Center",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Pith Robux Asteroid Mining & Co.",
+    "faction": "Guristas Pirates",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Pith_Robux_Asteroid_Mining_%26_Co.",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Military Outpost",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Military_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Drug Outlet",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": 1,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Drug_Outlet",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Creo-Corp Mining",
+    "faction": "Angel Cartel",
+    "tier": 2,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Creo-Corp_Mining",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Human Farm",
+    "faction": "Blood Raiders",
+    "tier": 2,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Human_Farm",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Pith Merchant Depot",
+    "faction": "Guristas Pirates",
+    "tier": 2,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Pith_Merchant_Depot",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Acclimatization Facility",
+    "faction": "Sansha's Nation",
+    "tier": 2,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Acclimatization_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Live Cargo Distribution Facilities",
+    "faction": "Serpentis",
+    "tier": 2,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Live_Cargo_Distribution_Facilities",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Rogue Drone Infestation Sprout",
+    "faction": "Rogue Drones",
+    "tier": 2,
+    "level": 2,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Rogue_Drone_Infestation_Sprout",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Intelligence Collection Point",
+    "faction": "Blood Raiders",
+    "tier": 3,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Intelligence_Collection_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Guerilla Grounds",
+    "faction": "Guristas Pirates",
+    "tier": 3,
+    "level": 3,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Guerilla_Grounds",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Cartel Occupied Mining Colony",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Cartel_Occupied_Mining_Colony",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha's Nation Occupied Mining Colony",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Nation_Occupied_Mining_Colony",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Phi-Outpost",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Phi-Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Drone Infested Mine",
+    "faction": "Rogue Drones",
+    "tier": 4,
+    "level": 4,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Drone_Infested_Mine",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Stellar Fleet Deployment Site",
+    "faction": "Triglavian",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Stellar_Fleet_Deployment_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "World Ark Deployment Site",
+    "faction": "Triglavian",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "World_Ark_Deployment_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Besieged Covert Research Facility",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Besieged_Covert_Research_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Angel Chemical Lab",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Chemical_Lab",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Gas Processing Site",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Gas_Processing_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Elohim Sooth Sayer Distribution Base",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Elohim_Sooth_Sayer_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Elohim X-Instinct Distribution Base",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Elohim_X-Instinct_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Elohim Sooth Sayer Production Facility",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Elohim_Sooth_Sayer_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Elohim X-Instinct Production Facility",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Elohim_X-Instinct_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Matrix",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Matrix",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Network",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Network",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Chemical Lab",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Chemical_Lab",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Gas Processing Site",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Gas_Processing_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "CHAIN Mindflood Distribution Base",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "CHAIN_Mindflood_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "CHAIN Mindflood Production Facility",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "CHAIN_Mindflood_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Complex",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Chemical Lab",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Chemical_Lab",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Gas Processing Site",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Gas_Processing_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "H-PA Crew Blue Pill Distribution Base",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "H-PA_Crew_Blue_Pill_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "H-PA Crew Crash Distribution Base",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "H-PA_Crew_Crash_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "H-PA Crew Blue Pill Production Facility",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "H-PA_Crew_Blue_Pill_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "H-PA Crew Crash Production Facility",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "H-PA_Crew_Crash_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Plexus",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Plexus",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Convolution",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Convolution",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Chemical Lab",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Chemical_Lab",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Gas Processing Site",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_Gas_Processing_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "PDW-09FX Frentix Distribution Base",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "PDW-09FX_Frentix_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "PDW-09FX Frentix Production Facility",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "PDW-09FX_Frentix_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Circuitry",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Circuitry",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Chemical Lab",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Chemical_Lab",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Gas Processing Site",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Gas_Processing_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Core Runner Drop Distribution",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Core_Runner_Drop_Distribution",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Core Runner Exile Distribution Base",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Core_Runner_Exile_Distribution_Base",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Core Runner Drop Production Facility",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Core_Runner_Drop_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Core Runner Exile Production Facility",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Core_Runner_Exile_Production_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Compound",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Compound",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Digital Tessellation",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Digital_Tessellation",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Ancient Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Ancient_Ruins",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Bloated Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Bloated_Ruins",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Crumbling Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Crumbling_Ruins",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Festering Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Festering_Ruins",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Forgotten Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Forgotten_Ruins",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Hidden Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Hidden_Ruins",
+    "escalation": null,
+    "variant": "Hidden",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Wispy Ruins",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Wispy_Ruins",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Temple Complex",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Temple_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Temple Complex (The Inner Sanctum)",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Temple_Complex_(The_Inner_Sanctum)",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "ISHAEKA Tactical Response HQ",
+    "faction": "CONCORD",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": false,
+      "null": false
+    },
+    "page": "ISHAEKA_Tactical_Response_HQ",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blue Pill",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blue_Pill",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Following the Blood",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Following_the_Blood",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Trap",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Trap",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Slave Breeding Plants",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Slave_Breeding_Plants",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Angel Kickbacks",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Kickbacks",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "The Nuclear Small Arms Project",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "The_Nuclear_Small_Arms_Project",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Medical Twilight",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Medical_Twilight",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Terrorist Plot",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Terrorist_Plot",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Jet-Set Hooligans",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Jet-Set_Hooligans",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "The Big Blue",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "The_Big_Blue",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Booster R&D",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Booster_R%26D",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Domination Surveillance Squad",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Domination_Surveillance_Squad",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Blood Surveillance Squad",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Surveillance_Squad",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Gurista Surveillance Squad",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Surveillance_Squad",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Sansha Surveillance Squad",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Surveillance_Squad",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Guardian Angels Surveillance Squad",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Guardian_Angels_Surveillance_Squad",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Salvation Angel's Shipment",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Salvation_Angel%27s_Shipment",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Gurista Productions Shipment",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Gurista_Productions_Shipment",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Hidden Riches",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Hidden_Riches",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Elite Playground",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Elite_Playground",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Angel Owned Station",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Owned_Station",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Blood Owned Station",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Owned_Station",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Angel Powergrid",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Powergrid",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Blood Raider Powergrid",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Powergrid",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Sansha Powergrid",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Sansha_Powergrid",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Serpentis Powergrid",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Powergrid",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Religious Fury",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Religious_Fury",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Consequences Smonsequences",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Consequences_Smonsequences",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "True Power HQ",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "True_Power_HQ",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Contract Killers",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Contract_Killers",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Operation Spring Cleaning",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Operation_Spring_Cleaning",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Hired Gun",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Hired_Gun",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Suspicious Job",
+    "faction": "Serpentis",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Suspicious_Job",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Pioneers Peril",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Pioneers_Peril",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Frontier in Flames",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Frontier_in_Flames",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "David V Goliath",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "David_V_Goliath",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Special Forces",
+    "faction": "Angel Cartel",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Special_Forces",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Fountain of Youth",
+    "faction": "Blood Raiders",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Fountain_of_Youth",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "No Quarter",
+    "faction": "Guristas Pirates",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "No_Quarter",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "The Ancient City",
+    "faction": "Sansha's Nation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "The_Ancient_City",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Pulverize the Pioneers",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Pulverize_the_Pioneers",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Hunting the Drudge Factory",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Hunting_the_Drudge_Factory",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Menacing Mechanics",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Menacing_Mechanics",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "The Drone Roulette",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "The_Drone_Roulette",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Molting Season",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Molting_Season",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Trouble in Paradise",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Trouble_in_Paradise",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "name": "Mare Sargassum",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Mare_Sargassum",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "expedition"
+  },
+  {
+    "anomalyType": null,
+    "anomalySubtype": "escalation",
+    "escalation": null,
+    "siteType": "combat_complex",
+    "variant": "Normal",
+    "level": null,
+    "page": "Guristas_Scout_Outpost",
+    "name": "Guristas Scout Outpost",
+    "tier": 1,
+    "space": {
+      "low": true,
+      "null": false,
+      "high": true
+    },
+    "faction": "Guristas Pirates"
+  },
+  {
+    "name": "Sansha's Command Relay Outpost",
+    "faction": "Sansha's Nation",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Command_Relay_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Narcotic Warehouses",
+    "faction": "Serpentis",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Narcotic_Warehouses",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Repurposed Outpost",
+    "faction": "Angel Cartel",
+    "tier": 1,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel_Repurposed_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel's Red Light District",
+    "faction": "Angel Cartel",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Angel%27s_Red_Light_District",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Mul-Zatah Monastery",
+    "faction": "Blood Raiders",
+    "tier": 3,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Mul-Zatah_Monastery",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Psychotropics Depot",
+    "faction": "Blood Raiders",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Blood_Raider_Psychotropics_Depot",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Hallucinogen Supply Waypoint",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Guristas_Hallucinogen_Supply_Waypoint",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha's Nation Neural Paralytic Facility",
+    "faction": "Sansha's Nation",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha%27s_Nation_Neural_Paralytic_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Corporation Hydroponics Site",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Corporation_Hydroponics_Site",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Guristas Troop Reinvigoration Camp",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Guristas_Troop_Reinvigoration_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Military Operations Complex",
+    "faction": "Angel Cartel",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Military_Operations_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Gurista Military Operations Complex",
+    "faction": "Guristas Pirates",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Gurista_Military_Operations_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Paramilitary Complex",
+    "faction": "Serpentis",
+    "tier": 4,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Paramilitary_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Crimson Hand Supply Depot",
+    "faction": "Blood Raiders",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Crimson_Hand_Supply_Depot",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha War Supply Complex",
+    "faction": "Sansha's Nation",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Sansha_War_Supply_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Logistical Outpost",
+    "faction": "Serpentis",
+    "tier": 5,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": false
+    },
+    "page": "Serpentis_Logistical_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Mineral Acquisition Outpost",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Mineral_Acquisition_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Outgrowth Rogue Drone Hive (5/10)",
+    "faction": "Rogue Drones",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Outgrowth_Rogue_Drone_Hive_(5/10)",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Dread Guristas Fleet Staging Point",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Dread_Guristas_Fleet_Staging_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "True Sansha Fleet Staging Point",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "True_Sansha_Fleet_Staging_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Capital Staging",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Capital_Staging",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Cartel Prisoner Retention",
+    "faction": "Angel Cartel",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Cartel_Prisoner_Retention",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Prison Camp",
+    "faction": "Blood Raiders",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Prison_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Pith's Penal Complex",
+    "faction": "Guristas Pirates",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Pith%27s_Penal_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Prison Camp",
+    "faction": "Sansha's Nation",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Prison_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Prison Camp",
+    "faction": "Serpentis",
+    "tier": 6,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Serpentis_Prison_Camp",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Coordination Center",
+    "faction": "Blood Raiders",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Blood_Raider_Coordination_Center",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Sansha Military Operations Complex",
+    "faction": "Sansha's Nation",
+    "tier": 7,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Sansha_Military_Operations_Complex",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Outgrowth Rogue Drone Hive (10/10)",
+    "faction": "Rogue Drones",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Outgrowth_Rogue_Drone_Hive_(10/10)",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Domination Fleet Staging Point",
+    "faction": "Angel Cartel",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Angel_Domination_Fleet_Staging_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Shadow Serpentis Fleet Staging Point",
+    "faction": "Serpentis",
+    "tier": 8,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": true,
+      "null": true
+    },
+    "page": "Shadow_Serpentis_Fleet_Staging_Point",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Angel Cartel Naval Shipyard",
+    "faction": "Angel Cartel",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Angel_Cartel_Naval_Shipyard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Blood Raider Naval Shipyard",
+    "faction": "Blood Raiders",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Blood_Raider_Naval_Shipyard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "The Maze",
+    "faction": "Guristas Pirates",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "The_Maze",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Centus Assembly T.P. Co.",
+    "faction": "Sansha's Nation",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Centus_Assembly_T.P._Co.",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Serpentis Fleet Shipyard",
+    "faction": "Serpentis",
+    "tier": 9,
+    "level": null,
+    "space": {
+      "high": false,
+      "low": false,
+      "null": true
+    },
+    "page": "Serpentis_Fleet_Shipyard",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  }
+]

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PI Chain Visualizer - RustyBot</title>
+    <link rel="stylesheet" href="pi-style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="../rusty_bot.png">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="top-bar">
+            <a href="../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+            <div class="logo-section">
+                <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+                <h1>PI <span class="accent">Chain Visualizer</span></h1>
+            </div>
+            <div class="region-selector">
+                <label><i class="fas fa-map-marker-alt"></i> Market:</label>
+                <select id="regionSelect">
+                    <option value="10000002" selected>The Forge (Jita)</option>
+                    <option value="10000043">Domain (Amarr)</option>
+                    <option value="10000032">Sinq Laison (Dodixie)</option>
+                    <option value="10000030">Heimatar (Rens)</option>
+                    <option value="10000042">Metropolis (Hek)</option>
+                    <option value="10001004">Exordium (Manifest)</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <!-- Sidebar Controls -->
+            <aside class="sidebar">
+                <div class="panel tabs-panel">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="system"><i class="fas fa-search"></i> System</button>
+                        <button class="tab-btn" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
+                        <button class="tab-btn" data-tab="template"><i class="fas fa-cog"></i> Template</button>
+                    </div>
+                </div>
+
+                <!-- System Checker Tab -->
+                <div class="panel tab-content active" id="tab-system">
+                    <h3><i class="fas fa-search"></i> System Checker</h3>
+                    <p class="hint">Enter a system to see what it can produce</p>
+                    <div class="system-search">
+                        <input type="text" id="systemInput" placeholder="Enter system name..." class="form-input">
+                        <button id="checkSystem" class="calc-btn">
+                            <i class="fas fa-search"></i> Check System
+                        </button>
+                    </div>
+                    <div class="system-results hidden" id="systemResults">
+                        <div class="system-planets" id="systemPlanets"></div>
+                        <div class="producible-header">Can Produce Locally:</div>
+                        <div class="producible-p2" id="producibleP2"></div>
+                        <div class="producible-p3" id="producibleP3"></div>
+                    </div>
+                </div>
+
+                <!-- Reference Tab -->
+                <div class="panel tab-content" id="tab-ref">
+                    <h3><i class="fas fa-book"></i> Reference</h3>
+                    <p class="hint">Quick reference for PI materials</p>
+                    
+                    <div class="ref-section">
+                        <h4>P1 Materials</h4>
+                        <div class="ref-grid" id="refP1"></div>
+                    </div>
+                    
+                    <div class="ref-section">
+                        <h4>P2 Materials</h4>
+                        <div class="ref-grid" id="refP2"></div>
+                    </div>
+                    
+                    <div class="ref-section">
+                        <h4>P3 Materials</h4>
+                        <div class="ref-grid" id="refP3"></div>
+                    </div>
+                </div>
+
+                <!-- Template Builder Tab -->
+                <div class="panel tab-content" id="tab-template">
+                    <h3><i class="fas fa-cog"></i> Template Builder</h3>
+                    <p class="hint">Design PI colony layouts and export to game</p>
+                    <p class="hint" style="color: #e8d900;"><i class="fas fa-info-circle"></i> Use the Template button in the toolbar above to switch to template mode</p>
+                    
+                    <div class="template-controls">
+                        <div class="control-group">
+                            <label>Template Name</label>
+                            <input type="text" id="templateName" placeholder="My Template" class="form-input">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Planet Type</label>
+                            <select id="templatePlanetType" class="form-input">
+                                <option value="2016">Barren</option>
+                                <option value="2017">Gas</option>
+                                <option value="2018">Ice</option>
+                                <option value="2019">Lava</option>
+                                <option value="2020">Oceanic</option>
+                                <option value="2021">Plasma</option>
+                                <option value="2022">Shattered</option>
+                                <option value="2023">Storm</option>
+                                <option value="2024">Temperate</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Command Center Level</label>
+                            <select id="templateCmdLevel" class="form-input">
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
+                                <option value="4">Level 4</option>
+                                <option value="5" selected>Level 5</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="facility-palette">
+                        <h4>Facilities</h4>
+                        <div class="facility-buttons">
+                            <button class="facility-btn" data-type="command" title="Command Center">
+                                <i class="fas fa-home"></i> Command
+                            </button>
+                            <button class="facility-btn" data-type="extractor" title="Extractor">
+                                <i class="fas fa-database"></i> Extractor
+                            </button>
+                            <button class="facility-btn" data-type="basic" title="Basic Industry">
+                                <i class="fas fa-industry"></i> Basic
+                            </button>
+                            <button class="facility-btn" data-type="advanced" title="Advanced Industry">
+                                <i class="fas fa-industry"></i> Advanced
+                            </button>
+                            <button class="facility-btn" data-type="hitech" title="High-Tech Industry">
+                                <i class="fas fa-industry"></i> Hi-Tech
+                            </button>
+                            <button class="facility-btn" data-type="storage" title="Storage Facility">
+                                <i class="fas fa-warehouse"></i> Storage
+                            </button>
+                            <button class="facility-btn" data-type="launchpad" title="Launchpad">
+                                <i class="fas fa-rocket"></i> Launchpad
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="template-actions">
+                        <button id="clearTemplate" class="calc-btn secondary">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                        <button id="exportTemplate" class="calc-btn">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                    
+                    <div class="template-info">
+                        <p class="hint"><i class="fas fa-info-circle"></i> Click a facility type, then click on the planet to place it. Drag to move pins.</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3><i class="fas fa-industry"></i> Target Product</h3>
+                    <p class="hint">Select what you want to produce</p>
+                    <select id="targetProduct" class="product-select">
+                        <option value="">-- Select a product --</option>
+                        <optgroup label="P4 (Advanced Commodities)">
+                            <option value="2867">Broadcast Node</option>
+                            <option value="2868">Integrity Response Drones</option>
+                            <option value="2869">Nano-Factory</option>
+                            <option value="2870">Organic Mortar Applicators</option>
+                            <option value="2871">Recursive Computing Module</option>
+                            <option value="2872">Self-Harmonizing Power Core</option>
+                            <option value="2875">Sterile Conduits</option>
+                            <option value="2876">Wetware Mainframe</option>
+                        </optgroup>
+                        <optgroup label="P3 (Specialized Commodities)">
+                            <option value="2399">Biotech Research Reports</option>
+                            <option value="2400">Camera Drones</option>
+                            <option value="2401">Condensates</option>
+                            <option value="2402">Cryoprotectant Solution</option>
+                            <option value="2403">Data Chips</option>
+                            <option value="2404">Guidance Systems</option>
+                            <option value="2405">Hermetic Membranes</option>
+                            <option value="2406">Hazmat Detection Systems</option>
+                            <option value="2407">Industrial Explosives</option>
+                            <option value="2408">Neocoms</option>
+                            <option value="2409">Nuclear Reactors</option>
+                            <option value="2410">Planetary Vehicles</option>
+                            <option value="2411">Robotics</option>
+                            <option value="2412">Smartfab Units</option>
+                            <option value="2413">Supercomputers</option>
+                            <option value="2414">Synthetic Synapses</option>
+                            <option value="2415">Transcranial Microcontrollers</option>
+                            <option value="2416">Ukomi Superconductors</option>
+                        </optgroup>
+                        <optgroup label="P2 (Refined Commodities)">
+                            <option value="2329">Biocells</option>
+                            <option value="2330">Construction Blocks</option>
+                            <option value="2331">Consumer Electronics</option>
+                            <option value="2332">Coolant</option>
+                            <option value="2333">Enriched Uranium</option>
+                            <option value="2334">Fertilizer</option>
+                            <option value="2335">Genetically Enhanced Livestock</option>
+                            <option value="2336">Livestock</option>
+                            <option value="2337">Mechanical Parts</option>
+                            <option value="2338">Microfiber Shielding</option>
+                            <option value="2339">Miniature Electronics</option>
+                            <option value="2340">Nanites</option>
+                            <option value="2341">Oxides</option>
+                            <option value="2342">Polyaramids</option>
+                            <option value="2343">Polytextiles</option>
+                            <option value="2344">Rocket Fuel</option>
+                            <option value="2345">Silicate Glass</option>
+                            <option value="2346">Superconductors</option>
+                            <option value="2347">Supertensile Plastics</option>
+                            <option value="2348">Synthetic Oil</option>
+                            <option value="2349">Test Cultures</option>
+                            <option value="2350">Transmitter</option>
+                            <option value="2351">Viral Agent</option>
+                            <option value="2352">Water-Cooled CPU</option>
+                        </optgroup>
+                    </select>
+                    <button id="calculateChain" class="calc-btn">
+                        <i class="fas fa-calculator"></i> Calculate Chain
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <h3><i class="fas fa-cog"></i> Controls</h3>
+                    <div class="control-buttons">
+                        <button id="clearCanvas" class="control-btn danger">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button id="autoLayout" class="control-btn">
+                            <i class="fas fa-magic"></i> Auto Layout
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel market-panel" id="marketPanel">
+                    <h3><i class="fas fa-chart-line"></i> Market Data</h3>
+                    <div class="market-loading" id="marketLoading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading prices...
+                    </div>
+                    <div class="market-content hidden" id="marketContent">
+                        <div class="profit-summary">
+                            <div class="profit-item">
+                                <span class="label">Output Value:</span>
+                                <span class="value isk" id="outputValue">—</span>
+                            </div>
+                            <div class="profit-item">
+                                <span class="label">Input Cost:</span>
+                                <span class="value isk" id="inputCost">—</span>
+                            </div>
+                            <div class="profit-item highlight">
+                                <span class="label">Profit/Loss:</span>
+                                <span class="value isk" id="profitValue">—</span>
+                            </div>
+                            <div class="profit-item">
+                                <span class="label">Margin:</span>
+                                <span class="value" id="profitMargin">—</span>
+                            </div>
+                        </div>
+                        <div class="price-list" id="priceList"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <div class="canvas-container">
+                    <div class="canvas-toolbar">
+                        <div class="toolbar-section">
+                            <button id="backToRef" class="toolbar-btn hidden">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <span class="toolbar-label">View:</span>
+                            <button id="viewReference" class="toolbar-btn active">
+                                <i class="fas fa-th"></i> Reference
+                            </button>
+                            <button id="viewChain" class="toolbar-btn">
+                                <i class="fas fa-project-diagram"></i> Chain
+                            </button>
+                            <button id="viewPlanets" class="toolbar-btn">
+                                <i class="fas fa-globe"></i> Planets
+                            </button>
+                            <button id="viewTemplate" class="toolbar-btn">
+                                <i class="fas fa-cog"></i> Template
+                            </button>
+                        </div>
+                        <div class="toolbar-section">
+                            <span class="toolbar-label">Target:</span>
+                            <select id="targetProduct" class="toolbar-select">
+                                <option value="">Select Product...</option>
+                            </select>
+                            <button id="calculateChain" class="toolbar-btn">
+                                <i class="fas fa-calculator"></i> Calculate
+                            </button>
+                        </div>
+                        <div class="toolbar-section">
+                            <span class="toolbar-label">Zoom:</span>
+                            <button id="zoomOut" class="toolbar-btn"><i class="fas fa-minus"></i></button>
+                            <span id="zoomLevel" class="zoom-display">100%</span>
+                            <button id="zoomIn" class="toolbar-btn"><i class="fas fa-plus"></i></button>
+                            <button id="fitView" class="toolbar-btn"><i class="fas fa-compress"></i> Fit</button>
+                        </div>
+                        <div class="toolbar-section legend">
+                            <span class="legend-item"><span class="dot p0"></span> Raw (P0)</span>
+                            <span class="legend-item"><span class="dot p1"></span> P1</span>
+                            <span class="legend-item"><span class="dot p2"></span> P2</span>
+                            <span class="legend-item"><span class="dot p3"></span> P3</span>
+                            <span class="legend-item"><span class="dot p4"></span> P4</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Product Breakdown Panel -->
+                    <div class="product-breakdown hidden" id="productBreakdown">
+                        <h4><i class="fas fa-list"></i> Material Requirements</h4>
+                        <div id="breakdownContent"></div>
+                    </div>
+                </div>
+                <canvas id="piCanvas" class="pi-canvas"></canvas>
+                <div class="canvas-help">
+                    <p><i class="fas fa-info-circle"></i> Click any material to view its production chain • Use System Checker to scout systems</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Load scripts with timestamp to bypass cache
+        const timestamp = new Date().getTime();
+        const script1 = document.createElement('script');
+        script1.src = 'pi-data.js?t=' + timestamp;
+        document.body.appendChild(script1);
+        
+        script1.onload = function() {
+            const script2 = document.createElement('script');
+            script2.src = 'pi-visualizer.js?t=' + timestamp;
+            document.body.appendChild(script2);
+        };
+    </script>
+</body>
+</html>
