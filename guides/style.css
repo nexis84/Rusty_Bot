@@ -1239,6 +1239,193 @@ header .subtitle {
   color: var(--text-subtle-color);
 }
 
+/* --- Mining Views --- */
+.mineral-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  font-size: 0.8rem;
+}
+.mineral-bar-label {
+  width: 80px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-subtle-color);
+  font-size: 0.75rem;
+}
+.mineral-bar-bg {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.mineral-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.mineral-bar-em { background: #1e88e5; }
+.mineral-bar-th { background: #e53935; }
+.mineral-bar-kin { background: #78909c; }
+.mineral-bar-ex { background: #ff8f00; }
+.mineral-bar-tritanium { background: #78909c; }
+.mineral-bar-pyerite { background: #42a5f5; }
+.mineral-bar-mexallon { background: #ab47bc; }
+.mineral-bar-isogen { background: #66bb6a; }
+.mineral-bar-nocxium { background: #ef5350; }
+.mineral-bar-zydrine { background: #ffa726; }
+.mineral-bar-megacyte { background: #ec407a; }
+.mineral-bar-morphite { background: #26c6da; }
+
+.mineral-value {
+  width: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-color);
+  text-align: right;
+}
+
+.mining-card {
+  background: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-left: 3px solid var(--secondary-color);
+  border-radius: 6px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.mining-card:hover {
+  border-color: var(--accent-color);
+  border-left-color: var(--accent-color);
+  background: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+.mining-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.mining-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mining-card-meta {
+  font-size: 0.8rem;
+  color: var(--text-subtle-color);
+}
+
+.mining-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.mining-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  background: var(--secondary-color);
+  color: var(--text-subtle-color);
+  border: 1px solid var(--secondary-color);
+}
+
+.mining-tag-ore {
+  background: #1a2a3a;
+  color: #60a5fa;
+  border-color: #1e3a5f;
+}
+
+.mining-tag-high {
+  background: #0a3a1a;
+  color: #4ade80;
+  border-color: #166534;
+}
+
+.mining-tag-low {
+  background: #2a1a0a;
+  color: #fbbf24;
+  border-color: #5f3a1e;
+}
+
+.mining-tag-null {
+  background: #3a0a0a;
+  color: #f87171;
+  border-color: #5f1a1a;
+}
+
+.mining-tag-wormhole {
+  background: #1a1a3a;
+  color: #a78bfa;
+  border-color: #2e1a5f;
+}
+
+.mining-tag-border {
+  background: #1a2a1a;
+  color: #34d399;
+  border-color: #166534;
+}
+
+.mining-variant-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+  margin-right: 3px;
+}
+
+.variant-ii { background: #2a3a1a; color: #a3e635; }
+.variant-iii { background: #2a2a1a; color: #facc15; }
+.variant-iv { background: #2a1a1a; color: #f87171; }
+
+.mining-detail-back {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* --- Mining Sub-tab Bar --- */
+.mining-subtabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  gap: 0;
+}
+.mining-subtabs .mining-subtab {
+  padding: 8px 18px;
+  background: var(--bg-color);
+  border: 1px solid var(--secondary-color);
+  color: var(--text-subtle-color);
+  font-family: var(--header-font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.mining-subtabs .mining-subtab:not(:last-child) {
+  border-right: none;
+}
+.mining-subtabs .mining-subtab:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.mining-subtabs .mining-subtab:last-child {
+  border-radius: 0 6px 6px 0;
+}
+.mining-subtabs .mining-subtab.active {
+  background: var(--accent-color);
+  color: #000;
+}
+
 /* --- Footer --- */
 footer {
   text-align: center;

@@ -108,11 +108,18 @@
     <div id="tab-anomalies" class="tab-content">
       <div class="anomaly-subtabs">
         <button class="anomaly-subtab" data-type="probescan">&#128269; Probe Scan</button>
+        <button class="anomaly-subtab" data-type="mining">&#9881; Mining</button>
         <button class="anomaly-subtab active" data-type="green">&#9733; Green Sites</button>
         <button class="anomaly-subtab" data-type="scanable">&#9762; Scanable Sites</button>
         <button class="anomaly-subtab" data-type="escalation">&#9878; Escalations</button>
         <button class="anomaly-subtab" data-type="expedition">&#9881; Expeditions</button>
         <button class="anomaly-subtab" data-type="favorites">&#9733; Favorites</button>
+      </div>
+      <div class="mining-subtabs" id="miningSubtabBar" style="display:none;">
+        <button class="mining-subtab active" data-mining-type="ores">Ore Types</button>
+        <button class="mining-subtab" data-mining-type="sites">Ore Sites</button>
+        <button class="mining-subtab" data-mining-type="ice">Ice</button>
+        <button class="mining-subtab" data-mining-type="gas">Gas</button>
       </div>
 
       <!-- Probe Scan View -->
@@ -131,6 +138,89 @@
           </div>
           <div id="probeScanStats" class="stats"></div>
           <div id="probeScanResults"></div>
+        </div>
+      </div>
+
+      <!-- Mining: Ore Types View -->
+      <div id="miningOresView" style="display:none;">
+        <div class="controls">
+          <input type="text" id="miningOreSearchInput" placeholder="Search ore types..." autocomplete="off">
+          <select id="miningOreSpaceFilter">
+            <option value="">All Spaces</option>
+            <option value="high">High-Sec</option>
+            <option value="low">Low-Sec</option>
+            <option value="null">Null-Sec</option>
+          </select>
+        </div>
+        <div id="miningOreStats" class="stats"></div>
+        <div id="miningOreList"></div>
+        <div id="miningOreDetail" style="display:none;">
+          <div style="margin-bottom:1rem;">
+            <a class="mining-detail-back detail-back">&larr; Back to ore list</a>
+          </div>
+          <div id="miningOreDetailContent"></div>
+        </div>
+      </div>
+
+      <!-- Mining: Ore Sites View -->
+      <div id="miningSitesView" style="display:none;">
+        <div class="controls">
+          <input type="text" id="miningSiteSearchInput" placeholder="Search ore sites..." autocomplete="off">
+          <select id="miningSiteSpaceFilter">
+            <option value="">All Spaces</option>
+            <option value="high">High-Sec</option>
+            <option value="low">Low-Sec</option>
+            <option value="null">Null-Sec</option>
+          </select>
+        </div>
+        <div id="miningSiteStats" class="stats"></div>
+        <div id="miningSiteList"></div>
+        <div id="miningSiteDetail" style="display:none;">
+          <div style="margin-bottom:1rem;">
+            <a class="mining-detail-back detail-back">&larr; Back to site list</a>
+          </div>
+          <div id="miningSiteDetailContent"></div>
+        </div>
+      </div>
+
+      <!-- Mining: Ice View -->
+      <div id="miningIceView" style="display:none;">
+        <div class="controls">
+          <input type="text" id="miningIceSearchInput" placeholder="Search ice types..." autocomplete="off">
+          <select id="miningIceCategoryFilter">
+            <option value="">All Categories</option>
+            <option value="Faction">Faction</option>
+            <option value="Enriched">Enriched</option>
+            <option value="Standard">Standard</option>
+          </select>
+        </div>
+        <div id="miningIceStats" class="stats"></div>
+        <div id="miningIceList"></div>
+        <div id="miningIceDetail" style="display:none;">
+          <div style="margin-bottom:1rem;">
+            <a class="mining-detail-back detail-back">&larr; Back to ice list</a>
+          </div>
+          <div id="miningIceDetailContent"></div>
+        </div>
+      </div>
+
+      <!-- Mining: Gas View -->
+      <div id="miningGasView" style="display:none;">
+        <div class="controls">
+          <input type="text" id="miningGasSearchInput" placeholder="Search gas types..." autocomplete="off">
+          <select id="miningGasCategoryFilter">
+            <option value="">All Types</option>
+            <option value="Mykoserocin">Mykoserocin</option>
+            <option value="Fullerenes">Fullerenes</option>
+          </select>
+        </div>
+        <div id="miningGasStats" class="stats"></div>
+        <div id="miningGasList"></div>
+        <div id="miningGasDetail" style="display:none;">
+          <div style="margin-bottom:1rem;">
+            <a class="mining-detail-back detail-back">&larr; Back to gas list</a>
+          </div>
+          <div id="miningGasDetailContent"></div>
         </div>
       </div>
 

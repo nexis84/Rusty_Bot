@@ -16,6 +16,12 @@
   let anomalyFavorites = [];
   let anomalyNameMap = {};
   let probeScanAuto = false;
+  let miningActiveTab = 'ores';
+  let miningOres = [];
+  let miningSites = {};
+  let miningIce = [];
+  let miningGas = [];
+  let miningSiteIndex = [];
 
   const FAVORITES_KEY = 'rustybot_anomaly_favorites';
 
@@ -67,7 +73,7 @@
   async function init() {
     showLoading(true);
     try {
-      const [a, b, c, d, e, f, g, h, i, j, k] = await Promise.all([
+      const [a, b, c, d, e, f, g, h, i, j, k, mo, mi, ms, mg] = await Promise.all([
         fetch('data/missions-index.json'),
         fetch('data/missions.json'),
         fetch('data/anomalies-index.json'),
@@ -78,7 +84,11 @@
         fetch('data/agents-index.json'),
         fetch('data/epic-arcs-index.json'),
         fetch('data/epic-arcs.json'),
-        fetch('data/npc-factions.json')
+        fetch('data/npc-factions.json'),
+        fetch('data/mining-ores.json'),
+        fetch('data/mining-ice.json'),
+        fetch('data/mining-sites.json'),
+        fetch('data/mining-gas.json')
       ]);
       missionsIndex = await a.json();
       missionsDetails = await b.json();
@@ -91,6 +101,27 @@
       epicArcsIndex = await i.json();
       epicArcsDetails = await j.json();
       npcFactionsData = (await k.json()).factions || [];
+      const miningOresData = await mo.json();
+      miningOres = miningOresData.ores || [];
+      miningSites = await ms.json() || {};
+      miningIce = await mi.json() || [];
+      miningGas = await mg.json() || [];
+      // Build mining site index
+      miningSiteIndex = [];
+      for (const ore of miningOres) {
+        for (const siteName of ore.siteNames) {
+          if (!miningSiteIndex.find(s => s.name === siteName)) {
+            miningSiteIndex.push({ name: siteName, page: siteName.replace(/\s+/g, '_') });
+          }
+        }
+      }
+      // Add sites from miningSites that aren't in the index
+      for (const page of Object.keys(miningSites)) {
+        const site = miningSites[page];
+        if (!miningSiteIndex.find(s => s.name === site.name)) {
+          miningSiteIndex.push({ name: site.name, page });
+        }
+      }
       loadFavorites();
       buildAnomalyNameMap();
 
@@ -167,10 +198,21 @@
       document.querySelectorAll('.anomaly-subtab').forEach(b => b.classList.toggle('active', b.dataset.type === anomalyActiveTab));
       $('#anomalyDetailView').style.display = 'none';
       if (anomalyActiveTab === 'probescan') {
+        $('#miningSubtabBar').style.display = 'none';
+        hideAllMiningViews();
         $('#anomalyListView').style.display = 'none';
         $('#probeScanView').style.display = 'block';
         if (probeScanAuto) analyzeProbeScan();
+      } else if (anomalyActiveTab === 'mining') {
+        $('#anomalyListView').style.display = 'none';
+        $('#probeScanView').style.display = 'none';
+        hideAllMiningViews();
+        $('#miningSubtabBar').style.display = 'flex';
+        document.querySelectorAll('.mining-subtab').forEach(b => b.classList.toggle('active', b.dataset.miningType === miningActiveTab));
+        renderMiningView('mining-' + miningActiveTab);
       } else {
+        $('#miningSubtabBar').style.display = 'none';
+        hideAllMiningViews();
         $('#probeScanView').style.display = 'none';
         $('#anomalyListView').style.display = 'block';
       }
@@ -198,6 +240,19 @@
         if (mission && mission.levels[level]) {
           showMissionDetail(mission, level, pageName);
         }
+      } else if (tab === 'anomalies' && parts[1] === 'sitedetail') {
+        const pageName = decodeURIComponent(parts.slice(2).join('/'));
+        activateTab('anomalies');
+        anomalyActiveTab = 'mining';
+        miningActiveTab = 'sites';
+        document.querySelectorAll('.anomaly-subtab').forEach(b => b.classList.toggle('active', b.dataset.type === anomalyActiveTab));
+        document.querySelectorAll('.mining-subtab').forEach(b => b.classList.toggle('active', b.dataset.miningType === miningActiveTab));
+        hideAllAnomalyViews();
+        $('#miningSubtabBar').style.display = 'flex';
+        $('#miningSitesView').style.display = 'block';
+        renderMiningSiteList();
+        const siteEntry = miningSiteIndex.find(s => s.page === pageName || s.name === pageName.replace(/_/g, ' '));
+        if (siteEntry) showMiningSiteDetail(siteEntry.name);
       } else if (tab === 'anomalies') {
         const pageName = parts.slice(2).join('/');
         const entry = findEntryByPage(pageName);
@@ -518,11 +573,22 @@
         btn.classList.add('active');
         anomalyActiveTab = btn.dataset.type;
         if (anomalyActiveTab === 'probescan') {
-          $('#anomalyListView').style.display = 'none';
-          $('#anomalyDetailView').style.display = 'none';
+          $('#miningSubtabBar').style.display = 'none';
+          hideAllAnomalyViews();
           $('#probeScanView').style.display = 'block';
           if (probeScanAuto) analyzeProbeScan();
+        } else if (anomalyActiveTab === 'mining') {
+          $('#anomalyListView').style.display = 'none';
+          $('#anomalyDetailView').style.display = 'none';
+          $('#probeScanView').style.display = 'none';
+          hideAllMiningViews();
+          $('#miningSubtabBar').style.display = 'flex';
+          miningActiveTab = 'ores';
+          document.querySelectorAll('.mining-subtab').forEach(b => b.classList.toggle('active', b.dataset.miningType === miningActiveTab));
+          renderMiningView('mining-' + miningActiveTab);
         } else {
+          $('#miningSubtabBar').style.display = 'none';
+          hideAllMiningViews();
           $('#probeScanView').style.display = 'none';
           renderAnomalyList();
         }
@@ -539,6 +605,21 @@
         analyzeProbeScan();
       }
     });
+    // Wire mining sub-tab buttons
+    document.querySelectorAll('.mining-subtab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mining-subtab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        miningActiveTab = btn.dataset.miningType;
+        hideAllMiningViews();
+        renderMiningView('mining-' + miningActiveTab);
+      });
+    });
+    // Init mining controls
+    initMiningOreControls();
+    initMiningSiteControls();
+    initMiningIceControls();
+    initMiningGasControls();
   }
 
   function populateAnomalyFactionFilter() {
@@ -553,7 +634,7 @@
   }
 
   function renderAnomalyList() {
-    if (anomalyActiveTab === 'probescan') return;
+    if (anomalyActiveTab === 'probescan' || anomalyActiveTab === 'mining') return;
     const query = $('#anomalySearchInput').value.toLowerCase().trim();
     const faction = $('#anomalyFactionFilter').value;
     const variant = $('#anomalyVariantFilter').value;
@@ -2176,7 +2257,15 @@
         }
       }
 
-      const match = name && anomalyNameMap[name] ? anomalyNameMap[name] : null;
+      let match = name && anomalyNameMap[name] ? anomalyNameMap[name] : null;
+      let matchType = match ? 'anomaly' : null;
+      if (!match && name) {
+        const miningMatch = miningSiteIndex.find(s => s.name === name);
+        if (miningMatch) {
+          match = miningMatch;
+          matchType = 'mining';
+        }
+      }
 
       results.push({
         id: id,
@@ -2186,7 +2275,8 @@
         pct: pct,
         distance: distance,
         classification: classification,
-        match: match
+        match: match,
+        matchType: matchType
       });
     }
 
@@ -2221,6 +2311,7 @@
         distance: first.distance,
         classification: first.classification,
         match: first.match,
+        matchType: first.matchType || null,
         distances: g.entries.map(e => e.distance)
       };
     });
@@ -2293,8 +2384,13 @@
     container.querySelectorAll('.probe-scan-result-row.has-guide').forEach(row => {
       row.addEventListener('click', function () {
         const page = this.dataset.page;
+        const matchType = this.dataset.matchType;
         if (page) {
-          window.location.hash = '#anomalies/detail/' + encodeURIComponent(page);
+          if (matchType === 'mining') {
+            window.location.hash = '#anomalies/sitedetail/' + encodeURIComponent(page);
+          } else {
+            window.location.hash = '#anomalies/detail/' + encodeURIComponent(page);
+          }
         }
       });
     });
@@ -2322,7 +2418,7 @@
     const rowClass = g.match ? 'probe-scan-result-row has-guide' : 'probe-scan-result-row';
     const displayName = g.name || '\u2014';
 
-    let html = '<div class="' + rowClass + '"' + (g.match ? ' data-page="' + escapeHtml(g.match.page) + '"' : '') + '>';
+    let html = '<div class="' + rowClass + '"' + (g.match ? ' data-page="' + escapeHtml(g.match.page) + '" data-match-type="' + (g.matchType || 'anomaly') + '"' : '') + '>';
     html += '<span class="probe-scan-result-id">' + escapeHtml(g.id) + '</span>';
     html += '<span class="probe-scan-result-name">' + escapeHtml(displayName) + '</span>';
     html += '<span class="probe-scan-result-distance">' + escapeHtml(g.distance) + '</span>';
@@ -2333,6 +2429,581 @@
     html += '</div>';
 
     return html;
+  }
+
+  // ===== MINING VIEWS =====
+
+  const mineralDisplayNames = {
+    tritanium: 'Tritanium', pyerite: 'Pyerite', mexallon: 'Mexallon',
+    isogen: 'Isogen', nocxium: 'Nocxium', zydrine: 'Zydrine',
+    megacyte: 'Megacyte', morphite: 'Morphite'
+  };
+  const mineralColors = {
+    tritanium: 'tritanium', pyerite: 'pyerite', mexallon: 'mexallon',
+    isogen: 'isogen', nocxium: 'nocxium', zydrine: 'zydrine',
+    megacyte: 'megacyte', morphite: 'morphite'
+  };
+  const spaceLabels = {
+    high: 'High-Sec', low: 'Low-Sec', null: 'Null-Sec',
+    wormhole: 'Wormhole', pochven: 'Pochven', border: 'Border'
+  };
+  const spaceTagClasses = {
+    high: 'mining-tag-high', low: 'mining-tag-low', null: 'mining-tag-null',
+    wormhole: 'mining-tag-wormhole', pochven: 'mining-tag-border', border: 'mining-tag-border'
+  };
+
+  function hideAllMiningViews() {
+    $('#miningOresView').style.display = 'none';
+    $('#miningSitesView').style.display = 'none';
+    $('#miningIceView').style.display = 'none';
+    $('#miningGasView').style.display = 'none';
+  }
+
+  function hideAllAnomalyViews() {
+    $('#miningSubtabBar').style.display = 'none';
+    hideAllMiningViews();
+    $('#anomalyListView').style.display = 'none';
+    $('#anomalyDetailView').style.display = 'none';
+    $('#probeScanView').style.display = 'none';
+  }
+
+  function renderMiningView(type) {
+    hideAllMiningViews();
+    if (type === 'mining-ores') { $('#miningOresView').style.display = 'block'; renderMiningOreList(); }
+    else if (type === 'mining-sites') { $('#miningSitesView').style.display = 'block'; renderMiningSiteList(); }
+    else if (type === 'mining-ice') { $('#miningIceView').style.display = 'block'; renderMiningIceList(); }
+    else if (type === 'mining-gas') { $('#miningGasView').style.display = 'block'; renderMiningGasList(); }
+  }
+
+  // ---- ORE TYPES ----
+
+  function initMiningOreControls() {
+    $('#miningOreSearchInput').addEventListener('input', renderMiningOreList);
+    $('#miningOreSpaceFilter').addEventListener('change', renderMiningOreList);
+    $('#miningOresView').querySelector('.mining-detail-back').addEventListener('click', function () {
+      $('#miningOreDetail').style.display = 'none';
+      $('#miningOreList').style.display = 'block';
+      $('#miningOreStats').style.display = 'block';
+    });
+  }
+
+  function renderMiningOreList() {
+    const query = $('#miningOreSearchInput').value.toLowerCase().trim();
+    const spaceFilter = $('#miningOreSpaceFilter').value;
+
+    let filtered = miningOres;
+    if (query) {
+      filtered = filtered.filter(o => o.name.toLowerCase().includes(query) || o.mineralNames.some(m => m.toLowerCase().includes(query)));
+    }
+    if (spaceFilter) {
+      filtered = filtered.filter(o => {
+        const siteNames = o.siteNames.map(s => s.toLowerCase());
+        const oreName = o.name.toLowerCase();
+        return siteNames.some(s => s.includes(' ' + spaceFilter)) || oreName.includes('merk') && spaceFilter === 'null';
+      });
+    }
+
+    const container = $('#miningOreList');
+    container.innerHTML = '';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">No ore types match your filters.</div>';
+      $('#miningOreStats').textContent = 'Showing 0 ore types';
+      return;
+    }
+
+    let html = '<div class="anomaly-grid">';
+    for (const ore of filtered) {
+      html += '<div class="mining-card" data-ore="' + escapeHtml(ore.name) + '">';
+      html += '<div class="mining-card-header">';
+      html += '<span class="anomaly-faction">' + escapeHtml(ore.name) + '</span>';
+      html += '<span class="anomaly-level-badge ded-low">' + ore.volume + ' m\u00B3</span>';
+      html += '</div>';
+      html += '<div style="margin-bottom:8px;">';
+      if (ore.variants && ore.variants.length) {
+        for (const v of ore.variants) {
+          html += '<span class="mining-variant-badge variant-' + v.grade.toLowerCase() + '">' + v.grade + '</span>';
+        }
+      }
+      html += '</div>';
+      html += '<div class="mining-card-meta">Minerals:</div>';
+      const mineralKeys = Object.keys(ore.minerals);
+      if (mineralKeys.length) {
+        const maxVal = Math.max(...mineralKeys.map(k => ore.minerals[k]));
+        for (const key of mineralKeys) {
+          const val = ore.minerals[key];
+          const pct = Math.round((val / maxVal) * 100);
+          html += '<div class="mineral-bar-row">';
+          html += '<span class="mineral-bar-label">' + mineralDisplayNames[key] + '</span>';
+          html += '<div class="mineral-bar-bg"><div class="mineral-bar mineral-bar-' + mineralColors[key] + '" style="width:' + pct + '%"></div></div>';
+          html += '<span class="mineral-value">' + val + '</span>';
+          html += '</div>';
+        }
+      }
+      html += '<div class="mining-card-tags">';
+      const spaces = new Set();
+      for (const siteName of ore.siteNames) {
+        for (const [key, label] of Object.entries(spaceLabels)) {
+          if (siteName.toLowerCase().includes(key)) spaces.add(key);
+        }
+      }
+      for (const s of spaces) {
+        html += '<span class="mining-tag ' + (spaceTagClasses[s] || '') + '">' + spaceLabels[s] + '</span>';
+      }
+      html += '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
+    $('#miningOreStats').textContent = 'Showing ' + filtered.length + ' of ' + miningOres.length + ' ore types';
+
+    container.querySelectorAll('.mining-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const oreName = this.dataset.ore;
+        showMiningOreDetail(oreName);
+      });
+    });
+  }
+
+  function showMiningOreDetail(oreName) {
+    const ore = miningOres.find(o => o.name === oreName);
+    if (!ore) return;
+
+    $('#miningOreList').style.display = 'none';
+    $('#miningOreStats').style.display = 'none';
+    $('#miningOreDetail').style.display = 'block';
+    window.scrollTo(0, 0);
+
+    const container = $('#miningOreDetailContent');
+    let html = '<div class="detail-header">';
+    html += '<h2>' + escapeHtml(ore.name) + '</h2>';
+    html += '<span class="anomaly-level-badge ded-low">' + ore.volume + ' m\u00B3</span>';
+    html += '</div>';
+
+    // Info grid
+    html += '<div class="info-grid">';
+    html += '<div class="info-card"><div class="label">Volume</div><div class="value">' + ore.volume + ' m\u00B3</div></div>';
+    html += '<div class="info-card"><div class="label">Compressed</div><div class="value">' + (ore.volume * 0.01) + ' m\u00B3</div></div>';
+    if (ore.variants && ore.variants.length) {
+      html += '<div class="info-card"><div class="label">Variants</div><div class="value">' + ore.variants.map(v => '+' + ((v.multiplier - 1) * 100).toFixed(0) + '% (' + v.grade + ')').join(', ') + '</div></div>';
+    }
+    html += '</div>';
+
+    // Minerals
+    const mineralKeys = Object.keys(ore.minerals);
+    if (mineralKeys.length) {
+      html += '<div class="detail-section"><h3>Minerals per Unit</h3><div class="info-grid">';
+      for (const key of mineralKeys) {
+        html += '<div class="info-card"><div class="label">' + mineralDisplayNames[key] + '</div><div class="value">' + ore.minerals[key] + '</div></div>';
+      }
+      html += '</div></div>';
+
+      // Variant comparison
+      if (ore.variants && ore.variants.length) {
+        html += '<div class="detail-section"><h3>Variant Yields</h3>';
+        html += '<div class="info-grid">';
+        for (const v of ore.variants) {
+          const gradeLabel = ore.name.includes(' ') ? v.name : v.name + ' (' + v.grade + ')';
+          html += '<div class="info-card"><div class="label">' + escapeHtml(v.name) + '</div><div class="value">+' + ((v.multiplier - 1) * 100).toFixed(0) + '%</div></div>';
+        }
+        html += '</div></div>';
+      }
+    }
+
+    // Space
+    const spaces = ore.siteNames.reduce((acc, sn) => {
+      for (const key of Object.keys(spaceLabels)) {
+        if (sn.toLowerCase().includes(key)) acc.add(key);
+      }
+      return acc;
+    }, new Set());
+    if (spaces.size) {
+      html += '<div class="detail-section"><h3>Found In</h3><div>';
+      for (const s of spaces) {
+        html += '<span class="mining-tag ' + (spaceTagClasses[s] || '') + '">' + spaceLabels[s] + '</span> ';
+      }
+      html += '</div></div>';
+    }
+
+    // Sites containing this ore
+    if (ore.siteNames && ore.siteNames.length) {
+      html += '<div class="detail-section"><h3>Mining Sites</h3>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">';
+      for (const siteName of ore.siteNames) {
+        html += '<span class="mission-pill" data-site="' + escapeHtml(siteName) + '">' + escapeHtml(siteName) + '</span>';
+      }
+      html += '</div></div>';
+    }
+
+    // External link
+    html += '<div class="detail-section external-link">';
+    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/Asteroids_and_ore') + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    // Wire site pill clicks to switch to ore sites tab
+    container.querySelectorAll('.mission-pill').forEach(pill => {
+      pill.addEventListener('click', function () {
+        const siteName = this.dataset.site;
+        const site = miningSiteIndex.find(s => s.name === siteName);
+        if (site) {
+          anomalyActiveTab = 'mining-sites';
+          document.querySelectorAll('.anomaly-subtab').forEach(b => b.classList.toggle('active', b.dataset.type === anomalyActiveTab));
+          hideAllAnomalyViews();
+          $('#miningSitesView').style.display = 'block';
+          renderMiningSiteList(siteName);
+        }
+      });
+    });
+  }
+
+  // ---- ORE SITES ----
+
+  function initMiningSiteControls() {
+    $('#miningSiteSearchInput').addEventListener('input', function () { renderMiningSiteList(); });
+    $('#miningSiteSpaceFilter').addEventListener('change', function () { renderMiningSiteList(); });
+    $('#miningSitesView').querySelector('.mining-detail-back').addEventListener('click', function () {
+      $('#miningSiteDetail').style.display = 'none';
+      $('#miningSiteList').style.display = 'block';
+      $('#miningSiteStats').style.display = 'block';
+    });
+  }
+
+  function renderMiningSiteList(filterToSite) {
+    const query = $('#miningSiteSearchInput').value.toLowerCase().trim();
+    const spaceFilter = $('#miningSiteSpaceFilter').value;
+
+    let sites = miningSiteIndex;
+    if (filterToSite) {
+      sites = sites.filter(s => s.name === filterToSite);
+    }
+    if (query) {
+      sites = sites.filter(s => s.name.toLowerCase().includes(query));
+    }
+    if (spaceFilter) {
+      sites = sites.filter(s => s.name.toLowerCase().includes(' ' + spaceFilter));
+    }
+
+    const container = $('#miningSiteList');
+    container.innerHTML = '';
+
+    if (sites.length === 0) {
+      container.innerHTML = '<div class="empty-state">No ore sites match your filters.</div>';
+      $('#miningSiteStats').textContent = 'Showing 0 ore sites';
+      return;
+    }
+
+    // Sort by size order
+    const sizeOrder = ['Small', 'Hidden', 'Medium', 'Average', 'Large', 'Enormous', 'Colossal'];
+    const sortKey = s => {
+      const idx = sizeOrder.findIndex(sz => s.name.startsWith(sz));
+      return idx >= 0 ? idx : 99;
+    };
+    sites.sort((a, b) => sortKey(a) - sortKey(b) || a.name.localeCompare(b.name));
+
+    let html = '<div class="anomaly-grid">';
+    for (const site of sites) {
+      const detail = miningSites[site.page];
+      const ores = detail && detail.ores ? detail.ores : [];
+      const space = detail && detail.space ? detail.space : 'Unknown';
+
+      html += '<div class="mining-card" data-site="' + escapeHtml(site.name) + '">';
+      html += '<div class="mining-card-name">' + escapeHtml(site.name) + '</div>';
+      if (ores.length) {
+        html += '<div class="mining-card-tags">';
+        for (const ore of ores) {
+          html += '<span class="mining-tag mining-tag-ore">' + escapeHtml(ore) + '</span>';
+        }
+        html += '</div>';
+      }
+      html += '<div class="mining-card-meta" style="margin-top:6px;">';
+      html += '<span class="space-badge space-null">' + escapeHtml(space) + '</span>';
+      html += '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
+    $('#miningSiteStats').textContent = 'Showing ' + sites.length + ' of ' + miningSiteIndex.length + ' ore sites';
+
+    container.querySelectorAll('.mining-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const siteName = this.dataset.site;
+        showMiningSiteDetail(siteName);
+      });
+    });
+  }
+
+  function showMiningSiteDetail(siteName) {
+    const entry = miningSiteIndex.find(s => s.name === siteName);
+    if (!entry) return;
+
+    $('#miningSiteList').style.display = 'none';
+    $('#miningSiteStats').style.display = 'none';
+    $('#miningSiteDetail').style.display = 'block';
+    window.scrollTo(0, 0);
+
+    const detail = miningSites[entry.page];
+    const container = $('#miningSiteDetailContent');
+
+    let html = '<div class="detail-header">';
+    html += '<h2>' + escapeHtml(entry.name) + '</h2>';
+    html += '</div>';
+
+    if (detail) {
+      if (detail.info && Object.keys(detail.info).length) {
+        html += '<div class="info-grid">';
+        for (const [key, val] of Object.entries(detail.info)) {
+          if (val) html += '<div class="info-card"><div class="label">' + escapeHtml(key) + '</div><div class="value">' + escapeHtml(val) + '</div></div>';
+        }
+        html += '</div>';
+      }
+
+      if (detail.description) {
+        html += '<div class="detail-section"><h3>Description</h3><div>' + escapeHtml(detail.description) + '</div></div>';
+      }
+
+      if (detail.ores && detail.ores.length) {
+        html += '<div class="detail-section"><h3>Ore Types</h3><div class="mining-card-tags">';
+        for (const ore of detail.ores) {
+          html += '<span class="mining-tag mining-tag-ore" data-ore="' + escapeHtml(ore) + '">' + escapeHtml(ore) + '</span>';
+        }
+        html += '</div></div>';
+      }
+
+      if (detail.totalVolume) {
+        html += '<div class="detail-section"><h3>Total Volume</h3><div>' + detail.totalVolume.toLocaleString() + ' m\u00B3</div></div>';
+      }
+    } else {
+      html += '<div class="empty-state">No detailed guide data available for this site.</div>';
+    }
+
+    html += '<div class="detail-section external-link">';
+    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/' + entry.page) + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('.mining-tag-ore').forEach(tag => {
+      tag.addEventListener('click', function () {
+        const oreName = this.dataset.ore;
+        anomalyActiveTab = 'mining-ores';
+        document.querySelectorAll('.anomaly-subtab').forEach(b => b.classList.toggle('active', b.dataset.type === anomalyActiveTab));
+        hideAllAnomalyViews();
+        $('#miningOresView').style.display = 'block';
+        showMiningOreDetail(oreName);
+      });
+    });
+  }
+
+  // ---- ICE ----
+
+  function initMiningIceControls() {
+    $('#miningIceSearchInput').addEventListener('input', renderMiningIceList);
+    $('#miningIceCategoryFilter').addEventListener('change', renderMiningIceList);
+    $('#miningIceView').querySelector('.mining-detail-back').addEventListener('click', function () {
+      $('#miningIceDetail').style.display = 'none';
+      $('#miningIceList').style.display = 'block';
+      $('#miningIceStats').style.display = 'block';
+    });
+  }
+
+  function renderMiningIceList() {
+    const query = $('#miningIceSearchInput').value.toLowerCase().trim();
+    const catFilter = $('#miningIceCategoryFilter').value;
+
+    let filtered = miningIce;
+    if (query) filtered = filtered.filter(i => i.name.toLowerCase().includes(query));
+    if (catFilter) filtered = filtered.filter(i => i.category === catFilter);
+
+    const container = $('#miningIceList');
+    container.innerHTML = '';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">No ice types match your filters.</div>';
+      $('#miningIceStats').textContent = 'Showing 0 ice types';
+      return;
+    }
+
+    // Group by category
+    const byCat = {};
+    filtered.forEach(i => {
+      if (!byCat[i.category]) byCat[i.category] = [];
+      byCat[i.category].push(i);
+    });
+
+    let html = '';
+    const catOrder = ['Faction', 'Enriched', 'Standard'];
+    for (const cat of catOrder) {
+      const items = byCat[cat];
+      if (!items) continue;
+      html += '<div class="tier-group">';
+      html += '<div class="tier-header">' + cat + ' <span class="tier-count">' + items.length + '</span></div>';
+      html += '<div class="anomaly-grid" style="grid-template-columns:1fr;">';
+      for (const ice of items) {
+        html += '<div class="mining-card" data-ice="' + escapeHtml(ice.name) + '">';
+        html += '<div class="mining-card-header"><span class="mining-card-name">' + escapeHtml(ice.name) + '</span><span class="space-badge space-null">' + escapeHtml(ice.space) + '</span></div>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.5rem;margin-top:8px;">';
+        html += '<div class="info-card" style="padding:6px 10px;"><div class="label" style="font-size:0.65rem;">Heavy Water</div><div class="value" style="font-size:0.9rem;">' + ice.heavyWater + '</div></div>';
+        html += '<div class="info-card" style="padding:6px 10px;"><div class="label" style="font-size:0.65rem;">Liquid Ozone</div><div class="value" style="font-size:0.9rem;">' + ice.liquidOzone + '</div></div>';
+        html += '<div class="info-card" style="padding:6px 10px;"><div class="label" style="font-size:0.65rem;">Strontium</div><div class="value" style="font-size:0.9rem;">' + ice.strontium + '</div></div>';
+        if (ice.isotopes) {
+          html += '<div class="info-card" style="padding:6px 10px;"><div class="label" style="font-size:0.65rem;">' + escapeHtml(ice.isotopes.type) + ' Isotopes</div><div class="value" style="font-size:0.9rem;">' + ice.isotopes.amount + '</div></div>';
+        }
+        html += '</div></div>';
+      }
+      html += '</div></div>';
+    }
+
+    container.innerHTML = html;
+    $('#miningIceStats').textContent = 'Showing ' + filtered.length + ' of ' + miningIce.length + ' ice types';
+
+    container.querySelectorAll('.mining-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const iceName = this.dataset.ice;
+        showMiningIceDetail(iceName);
+      });
+    });
+  }
+
+  function showMiningIceDetail(iceName) {
+    const ice = miningIce.find(i => i.name === iceName);
+    if (!ice) return;
+
+    $('#miningIceList').style.display = 'none';
+    $('#miningIceStats').style.display = 'none';
+    $('#miningIceDetail').style.display = 'block';
+    window.scrollTo(0, 0);
+
+    const container = $('#miningIceDetailContent');
+    let html = '<div class="detail-header"><h2>' + escapeHtml(ice.name) + '</h2><span class="detail-level-badge">' + escapeHtml(ice.category) + '</span></div>';
+
+    html += '<div class="info-grid">';
+    html += '<div class="info-card"><div class="label">Category</div><div class="value">' + escapeHtml(ice.category) + '</div></div>';
+    html += '<div class="info-card"><div class="label">Space</div><div class="value">' + escapeHtml(ice.space) + '</div></div>';
+    html += '</div>';
+
+    html += '<div class="detail-section"><h3>Refining Yields (0% Waste)</h3>';
+    html += '<div class="info-grid">';
+    html += '<div class="info-card"><div class="label">Heavy Water</div><div class="value">' + ice.heavyWater + '</div></div>';
+    html += '<div class="info-card"><div class="label">Liquid Ozone</div><div class="value">' + ice.liquidOzone + '</div></div>';
+    html += '<div class="info-card"><div class="label">Strontium Clathrates</div><div class="value">' + ice.strontium + '</div></div>';
+    if (ice.isotopes) {
+      html += '<div class="info-card"><div class="label">' + escapeHtml(ice.isotopes.type) + ' Isotopes</div><div class="value">' + ice.isotopes.amount + '</div></div>';
+    }
+    html += '</div></div>';
+
+    html += '<div class="detail-section external-link">';
+    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/Ice_harvesting') + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  // ---- GAS ----
+
+  function initMiningGasControls() {
+    $('#miningGasSearchInput').addEventListener('input', renderMiningGasList);
+    $('#miningGasCategoryFilter').addEventListener('change', renderMiningGasList);
+    $('#miningGasView').querySelector('.mining-detail-back').addEventListener('click', function () {
+      $('#miningGasDetail').style.display = 'none';
+      $('#miningGasList').style.display = 'block';
+      $('#miningGasStats').style.display = 'block';
+    });
+  }
+
+  function renderMiningGasList() {
+    const query = $('#miningGasSearchInput').value.toLowerCase().trim();
+    const catFilter = $('#miningGasCategoryFilter').value;
+
+    let filtered = miningGas;
+    if (query) filtered = filtered.filter(g => g.name.toLowerCase().includes(query) || (g.booster || '').toLowerCase().includes(query) || (g.flavor || '').toLowerCase().includes(query));
+    if (catFilter) filtered = filtered.filter(g => g.gasCategory === catFilter);
+
+    const container = $('#miningGasList');
+    container.innerHTML = '';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">No gas types match your filters.</div>';
+      $('#miningGasStats').textContent = 'Showing 0 gas types';
+      return;
+    }
+
+    const byCat = {};
+    filtered.forEach(g => {
+      if (!byCat[g.gasCategory]) byCat[g.gasCategory] = [];
+      byCat[g.gasCategory].push(g);
+    });
+
+    let html = '';
+    const catOrder = ['Mykoserocin', 'Fullerenes'];
+    for (const cat of catOrder) {
+      const items = byCat[cat];
+      if (!items) continue;
+      html += '<div class="tier-group">';
+      html += '<div class="tier-header">' + cat + ' <span class="tier-count">' + items.length + '</span></div>';
+      html += '<div class="anomaly-grid" style="grid-template-columns:1fr;">';
+      for (const gas of items) {
+        html += '<div class="mining-card" data-gas="' + escapeHtml(gas.name) + '">';
+        html += '<div class="mining-card-header"><span class="mining-card-name">' + escapeHtml(gas.name) + '</span>';
+        if (gas.value) html += '<span class="anomaly-level-badge ded-medium">' + escapeHtml(gas.value) + '</span>';
+        html += '</div>';
+        if (gas.booster) html += '<div class="mining-card-meta">Booster: ' + escapeHtml(gas.booster) + '</div>';
+        if (gas.location) html += '<div class="mining-card-meta">' + escapeHtml(gas.location) + '</div>';
+        if (gas.foundIn) html += '<div class="mining-card-meta">Found in: ' + escapeHtml(gas.foundIn) + '</div>';
+        if (gas.space) html += '<div class="mining-card-meta" style="margin-top:4px;"><span class="space-badge space-null">' + escapeHtml(gas.space) + '</span></div>';
+        html += '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    container.innerHTML = html;
+    $('#miningGasStats').textContent = 'Showing ' + filtered.length + ' of ' + miningGas.length + ' gas types';
+
+    container.querySelectorAll('.mining-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const gasName = this.dataset.gas;
+        showMiningGasDetail(gasName);
+      });
+    });
+  }
+
+  function showMiningGasDetail(gasName) {
+    const gas = miningGas.find(g => g.name === gasName);
+    if (!gas) return;
+
+    $('#miningGasList').style.display = 'none';
+    $('#miningGasStats').style.display = 'none';
+    $('#miningGasDetail').style.display = 'block';
+    window.scrollTo(0, 0);
+
+    const container = $('#miningGasDetailContent');
+    let html = '<div class="detail-header"><h2>' + escapeHtml(gas.name) + '</h2><span class="detail-level-badge">' + escapeHtml(gas.gasCategory) + '</span></div>';
+
+    html += '<div class="info-grid">';
+    if (gas.gasCategory !== 'Fullerenes') {
+      if (gas.flavor) html += '<div class="info-card"><div class="label">Flavor</div><div class="value">' + escapeHtml(gas.flavor) + '</div></div>';
+      if (gas.booster) html += '<div class="info-card"><div class="label">Booster</div><div class="value">' + escapeHtml(gas.booster) + '</div></div>';
+      if (gas.unitsPerCloud) html += '<div class="info-card"><div class="label">Units per Cloud</div><div class="value">' + escapeHtml(gas.unitsPerCloud) + '</div></div>';
+    }
+    if (gas.volume) html += '<div class="info-card"><div class="label">Volume (m\u00B3)</div><div class="value">' + gas.volume + '</div></div>';
+    if (gas.value) html += '<div class="info-card"><div class="label">Value</div><div class="value">' + escapeHtml(gas.value) + '</div></div>';
+    html += '</div>';
+
+    if (gas.location || gas.foundIn) {
+      html += '<div class="detail-section"><h3>Location</h3><div>' + escapeHtml(gas.location || gas.foundIn) + '</div></div>';
+    }
+    if (gas.space) {
+      html += '<div class="detail-section"><h3>Space</h3><div>' + escapeHtml(gas.space) + '</div></div>';
+    }
+
+    html += '<div class="detail-section external-link">';
+    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/Gas_cloud_harvesting') + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
+    html += '</div>';
+
+    container.innerHTML = html;
   }
 
   document.addEventListener('DOMContentLoaded', init);

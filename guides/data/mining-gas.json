@@ -1,0 +1,243 @@
+[
+  {
+    "name": "Lime Mykoserocin (Sister Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Lime",
+    "booster": "Frentix",
+    "location": "Aridia, Curse, Derelik, Kador, Khanid, Kor-Azor, Omist, Solitude, Wicked Creek",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Lime_Mykoserocin"
+  },
+  {
+    "name": "Lime Mykoserocin (Helix Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Lime",
+    "booster": "Frentix",
+    "location": "Aridia, Curse, Derelik, Khanid, Kor-Azor, Solitude",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Lime_Mykoserocin"
+  },
+  {
+    "name": "Malachite Mykoserocin (Wild Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Malachite",
+    "booster": "Mindflood",
+    "location": "Aridia, Insmother, Kor-Azor, Curse, Omist, Solitude, Tash-Murkon",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Malachite_Mykoserocin"
+  },
+  {
+    "name": "Malachite Mykoserocin (Blackeye Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Malachite",
+    "booster": "Mindflood",
+    "location": "Aridia, Curse, Khanid, Kor-Azor, Omist, Solitude",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Malachite_Mykoserocin"
+  },
+  {
+    "name": "Amber Mykoserocin (Sunspark Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Amber",
+    "booster": "Blue Pill",
+    "location": "Black Rise, Lonetrek, Outer Passage, Sinq Laison, The Citadel, The Forge, The Spire",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Amber_Mykoserocin"
+  },
+  {
+    "name": "Amber Mykoserocin (Diablo Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Amber",
+    "booster": "Blue Pill",
+    "location": "Black Rise, Everyshore, Lonetrek, Outer Passage, Sinq Laison, The Citadel, The Forge, Vale of the Silent",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Amber_Mykoserocin"
+  },
+  {
+    "name": "Golden Mykoserocin (Smoking Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Golden",
+    "booster": "Crash",
+    "location": "Black Rise, Etherium Reach, Everyshore, Lonetrek, Outer Passage, Perrigen Falls, Sinq Laison, The Citadel, The Spire",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Golden_Mykoserocin"
+  },
+  {
+    "name": "Golden Mykoserocin (Ring Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Golden",
+    "booster": "Crash",
+    "location": "Black Rise, Etherium Reach, Everyshore, Lonetrek, Malpais, Outer Passage, Perrigen Falls, Sinq Laison, The Citadel",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Golden_Mykoserocin"
+  },
+  {
+    "name": "Celadon Mykoserocin (Calabash Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Celadon",
+    "booster": "Exile",
+    "location": "Domain, Genesis, Placid, Solitude, Fountain (Pegasus)",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Celadon_Mykoserocin"
+  },
+  {
+    "name": "Celadon Mykoserocin (Glass Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Celadon",
+    "booster": "Exile",
+    "location": "Domain, Solitude, Pure Blind, Placid, Genesis",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Celadon_Mykoserocin"
+  },
+  {
+    "name": "Viridian Mykoserocin (Bright Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Viridian",
+    "booster": "Drop",
+    "location": "Essence, Fountain, Placid, Tenal, Venal",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Viridian_Mykoserocin"
+  },
+  {
+    "name": "Viridian Mykoserocin (Sparking Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Viridian",
+    "booster": "Drop",
+    "location": "Domain, Essence, Fountain, Genesis, Placid, Pure Blind, Tenal",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Viridian_Mykoserocin"
+  },
+  {
+    "name": "Azure Mykoserocin (Ghost Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Azure",
+    "booster": "Sooth Sayer",
+    "location": "Curse, Derelik, Devoid, The Bleak Lands, Heimatar, Molden Heath",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Azure_Mykoserocin"
+  },
+  {
+    "name": "Azure Mykoserocin (Eagle Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Azure",
+    "booster": "Sooth Sayer",
+    "location": "Curse, Derelik, The Bleak Lands, Devoid, Heimatar, Insmother, Metropolis, Molden Heath, Tenerifis",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Azure_Mykoserocin"
+  },
+  {
+    "name": "Vermillion Mykoserocin (Flame Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Vermillion",
+    "booster": "X-Instinct",
+    "location": "Curse, Derelik, Devoid, The Bleak Lands, Great Wildlands, Detorid, Heimatar, Insmother, Metropolis, Omist, Tenerifis",
+    "unitsPerCloud": "1000",
+    "space": "High/Low Sec",
+    "page": "Vermillion_Mykoserocin"
+  },
+  {
+    "name": "Vermillion Mykoserocin (Pipe Nebula)",
+    "gasCategory": "Mykoserocin",
+    "flavor": "Vermillion",
+    "booster": "X-Instinct",
+    "location": "Curse, Derelik, Devoid, The Bleak Lands, Heimatar, Immensea, Metropolis, Tenerifis",
+    "unitsPerCloud": "2000",
+    "space": "High/Low Sec",
+    "page": "Vermillion_Mykoserocin"
+  },
+  {
+    "name": "C50",
+    "gasCategory": "Fullerenes",
+    "volume": 1,
+    "foundIn": "Barren Perimeter Reservoir / Sizable Perimeter Reservoir",
+    "value": "Low",
+    "space": "Wormhole",
+    "page": "C50"
+  },
+  {
+    "name": "C60",
+    "gasCategory": "Fullerenes",
+    "volume": 1,
+    "foundIn": "Token Perimeter Reservoir / Barren Perimeter Reservoir",
+    "value": "Low",
+    "space": "Wormhole",
+    "page": "C60"
+  },
+  {
+    "name": "C70",
+    "gasCategory": "Fullerenes",
+    "volume": 1,
+    "foundIn": "Minor Perimeter Reservoir / Token Perimeter Reservoir",
+    "value": "Mid",
+    "space": "Wormhole",
+    "page": "C70"
+  },
+  {
+    "name": "C72",
+    "gasCategory": "Fullerenes",
+    "volume": 2,
+    "foundIn": "Ordinary Perimeter Reservoir / Minor Perimeter Reservoir",
+    "value": "Mid",
+    "space": "Wormhole",
+    "page": "C72"
+  },
+  {
+    "name": "C84",
+    "gasCategory": "Fullerenes",
+    "volume": 2,
+    "foundIn": "Sizable Perimeter Reservoir / Ordinary Perimeter Reservoir",
+    "value": "Low",
+    "space": "Wormhole",
+    "page": "C84"
+  },
+  {
+    "name": "C28",
+    "gasCategory": "Fullerenes",
+    "volume": 2,
+    "foundIn": "Bountiful Frontier Reservoir / Vast Frontier Reservoir",
+    "value": "Mid",
+    "space": "Wormhole",
+    "page": "C28"
+  },
+  {
+    "name": "C32",
+    "gasCategory": "Fullerenes",
+    "volume": 5,
+    "foundIn": "Vast Frontier Reservoir / Bountiful Frontier Reservoir",
+    "value": "Low",
+    "space": "Wormhole",
+    "page": "C32"
+  },
+  {
+    "name": "C320",
+    "gasCategory": "Fullerenes",
+    "volume": 5,
+    "foundIn": "Instrumental Core Reservoir / Vital Core Reservoir",
+    "value": "High",
+    "space": "Wormhole (C5/C6)",
+    "page": "C320"
+  },
+  {
+    "name": "C540",
+    "gasCategory": "Fullerenes",
+    "volume": 10,
+    "foundIn": "Vital Core Reservoir / Instrumental Core Reservoir",
+    "value": "High",
+    "space": "Wormhole (C5/C6)",
+    "page": "C540"
+  }
+]

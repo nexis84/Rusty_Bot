@@ -1,0 +1,1505 @@
+{
+  "ores": [
+    {
+      "name": "Veldspar",
+      "volume": 0.1,
+      "minerals": {
+        "tritanium": 1000
+      },
+      "mineralNames": [
+        "tritanium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Concentrated Veldspar",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Dense Veldspar",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Stable Veldspar",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Veldspar Deposit",
+        "Large Veldspar Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Scordite",
+      "volume": 0.15,
+      "minerals": {
+        "tritanium": 833,
+        "pyerite": 416
+      },
+      "mineralNames": [
+        "tritanium",
+        "pyerite"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Condensed Scordite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Massive Scordite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Glossy Scordite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Pyroxeres",
+      "volume": 0.3,
+      "minerals": {
+        "pyerite": 844,
+        "mexallon": 120
+      },
+      "mineralNames": [
+        "pyerite",
+        "mexallon"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Solid Pyroxeres",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Viscous Pyroxeres",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Opulent Pyroxeres",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Plagioclase",
+      "volume": 0.35,
+      "minerals": {
+        "tritanium": 107,
+        "mexallon": 107
+      },
+      "mineralNames": [
+        "tritanium",
+        "mexallon"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Azure Plagioclase",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Rich Plagioclase",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Sparkling Plagioclase",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Omber",
+      "volume": 0.6,
+      "minerals": {
+        "pyerite": 100,
+        "isogen": 85
+      },
+      "mineralNames": [
+        "pyerite",
+        "isogen"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Silvery Omber",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Golden Omber",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Platinoid Omber",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Omber Deposit",
+        "Hidden Omber Deposit",
+        "Average Omber Deposit",
+        "Large Omber Deposit",
+        "Small Kernite and Omber Deposit",
+        "Average Kernite and Omber Deposit",
+        "Large Kernite and Omber Deposit",
+        "Average Omber, Dark Ochre and Gneiss Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Kernite",
+      "volume": 1.2,
+      "minerals": {
+        "mexallon": 386,
+        "isogen": 386
+      },
+      "mineralNames": [
+        "mexallon",
+        "isogen"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Luminous Kernite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Fiery Kernite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Resplendant Kernite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Kernite and Omber Deposit",
+        "Average Kernite and Omber Deposit",
+        "Large Kernite and Omber Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Jaspet",
+      "volume": 2,
+      "minerals": {
+        "mexallon": 350,
+        "nocxium": 75
+      },
+      "mineralNames": [
+        "mexallon",
+        "nocxium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Pure Jaspet",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Pristine Jaspet",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Immaculate Jaspet",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Hedbergite, Hemorphite and Jaspet Deposit",
+        "Average Hedbergite, Hemorphite and Jaspet Deposit",
+        "Large Hedbergite, Hemorphite and Jaspet Deposit",
+        "Average Jaspet Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Hemorphite",
+      "volume": 3,
+      "minerals": {
+        "isogen": 100,
+        "nocxium": 100
+      },
+      "mineralNames": [
+        "isogen",
+        "nocxium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Vivid Hemorphite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Radiant Hemorphite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Scintillating Hemorphite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Hedbergite, Hemorphite and Jaspet Deposit",
+        "Average Hedbergite, Hemorphite and Jaspet Deposit",
+        "Large Hedbergite, Hemorphite and Jaspet Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Hedbergite",
+      "volume": 3,
+      "minerals": {
+        "pyerite": 100,
+        "nocxium": 100
+      },
+      "mineralNames": [
+        "pyerite",
+        "nocxium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Vitric Hedbergite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Glazed Hedbergite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Lustrous Hedbergite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Hedbergite, Hemorphite and Jaspet Deposit",
+        "Average Hedbergite, Hemorphite and Jaspet Deposit",
+        "Large Hedbergite, Hemorphite and Jaspet Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Gneiss",
+      "volume": 5,
+      "minerals": {
+        "pyerite": 1100,
+        "mexallon": 220,
+        "isogen": 110
+      },
+      "mineralNames": [
+        "pyerite",
+        "mexallon",
+        "isogen"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Iridescent Gneiss",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Prismatic Gneiss",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Brilliant Gneiss",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Gneiss Deposit",
+        "Hidden Gneiss Deposit",
+        "Average Gneiss Deposit",
+        "Large Gneiss Deposit",
+        "Small Dark Ochre and Gneiss Deposit",
+        "Hidden Dark Ochre and Gneiss Deposit",
+        "Average Dark Ochre and Gneiss Deposit",
+        "Large Dark Ochre and Gneiss Deposit",
+        "Small Crokite, Dark Ochre and Gneiss Deposit",
+        "Average Crokite, Dark Ochre and Gneiss Deposit",
+        "Large Crokite, Dark Ochre and Gneiss Deposit",
+        "Hidden Crokite, Dark Ochre and Gneiss Deposit",
+        "Average Omber, Dark Ochre and Gneiss Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Dark Ochre",
+      "volume": 8,
+      "minerals": {
+        "mexallon": 350,
+        "isogen": 350,
+        "nocxium": 100
+      },
+      "mineralNames": [
+        "mexallon",
+        "isogen",
+        "nocxium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Onyx Ochre",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Obsidian Ochre",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Jet Ochre",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Dark Ochre and Gneiss Deposit",
+        "Hidden Dark Ochre and Gneiss Deposit",
+        "Average Dark Ochre and Gneiss Deposit",
+        "Large Dark Ochre and Gneiss Deposit",
+        "Small Crokite and Dark Ochre Deposit",
+        "Average Crokite and Dark Ochre Deposit",
+        "Large Crokite and Dark Ochre Deposit",
+        "Small Crokite, Dark Ochre and Gneiss Deposit",
+        "Average Crokite, Dark Ochre and Gneiss Deposit",
+        "Large Crokite, Dark Ochre and Gneiss Deposit",
+        "Hidden Crokite, Dark Ochre and Gneiss Deposit",
+        "Average Omber, Dark Ochre and Gneiss Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Crokite",
+      "volume": 16,
+      "minerals": {
+        "pyerite": 700,
+        "mexallon": 350,
+        "nocxium": 35
+      },
+      "mineralNames": [
+        "pyerite",
+        "mexallon",
+        "nocxium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Sharp Crokite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Crystalline Crokite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Pellucid Crokite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Crokite and Dark Ochre Deposit",
+        "Average Crokite and Dark Ochre Deposit",
+        "Large Crokite and Dark Ochre Deposit",
+        "Small Crokite, Dark Ochre and Gneiss Deposit",
+        "Average Crokite, Dark Ochre and Gneiss Deposit",
+        "Large Crokite, Dark Ochre and Gneiss Deposit",
+        "Hidden Crokite, Dark Ochre and Gneiss Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Spodumain",
+      "volume": 16,
+      "minerals": {
+        "tritanium": 560,
+        "isogen": 120,
+        "nocxium": 21,
+        "zydrine": 8,
+        "megacyte": 4
+      },
+      "mineralNames": [
+        "tritanium",
+        "isogen",
+        "nocxium",
+        "zydrine",
+        "megacyte"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Bright Spodumain",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Gleaming Spodumain",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Dazzling Spodumain",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Arkonor",
+      "volume": 16,
+      "minerals": {
+        "pyerite": 300,
+        "mexallon": 300,
+        "megacyte": 300
+      },
+      "mineralNames": [
+        "pyerite",
+        "mexallon",
+        "megacyte"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Crimson Arkonor",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Prime Arkonor",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Flawless Arkonor",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Arkonor and Bistot Deposit",
+        "Medium Arkonor and Bistot Deposit",
+        "Average Arkonor and Bistot Deposit",
+        "Large Arkonor and Bistot Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Bistot",
+      "volume": 16,
+      "minerals": {
+        "pyerite": 300,
+        "mexallon": 300,
+        "zydrine": 300
+      },
+      "mineralNames": [
+        "pyerite",
+        "mexallon",
+        "zydrine"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Triclinic Bistot",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Monoclinic Bistot",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Cubic Bistot",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Arkonor and Bistot Deposit",
+        "Medium Arkonor and Bistot Deposit",
+        "Average Arkonor and Bistot Deposit",
+        "Large Arkonor and Bistot Deposit",
+        "Small Bistot Deposit",
+        "Average Bistot Deposit",
+        "Large Bistot Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Mercoxit",
+      "volume": 40,
+      "minerals": {
+        "morphite": 300
+      },
+      "mineralNames": [
+        "morphite"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Magma Mercoxit",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Vitreous Mercoxit",
+          "multiplier": 1.1
+        }
+      ],
+      "siteNames": [
+        "Small Mercoxit Deposit",
+        "Average Mercoxit Deposit",
+        "Large Mercoxit Deposit",
+        "Enormous Mercoxit Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Ducinium",
+      "volume": 16,
+      "minerals": {
+        "megacyte": 300
+      },
+      "mineralNames": [
+        "megacyte"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Noble Ducinium",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Royal Ducinium",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Imperial Ducinium",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Eifyrium",
+      "volume": 16,
+      "minerals": {
+        "zydrine": 300
+      },
+      "mineralNames": [
+        "zydrine"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Doped Eifyrium",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Boosted Eifyrium",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Augmented Eifyrium",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Mordunium",
+      "volume": 0.1,
+      "minerals": {
+        "pyerite": 1000
+      },
+      "mineralNames": [
+        "pyerite"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Plum Mordunium",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Prize Mordunium",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Plunder Mordunium",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Mordunium Deposit",
+        "Mordunium Deposit",
+        "Large Mordunium Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Ytirium",
+      "volume": 0.6,
+      "minerals": {
+        "isogen": 850
+      },
+      "mineralNames": [
+        "isogen"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Bootleg Ytirium",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Firewater Ytirium",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Moonshine Ytirium",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Bezdnacine",
+      "volume": 16,
+      "minerals": {
+        "tritanium": 420,
+        "isogen": 310,
+        "megacyte": 110
+      },
+      "mineralNames": [
+        "tritanium",
+        "isogen",
+        "megacyte"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Abyssal Bezdnacine",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Hadal Bezdnacine",
+          "multiplier": 1.1
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Rakovene",
+      "volume": 16,
+      "minerals": {
+        "tritanium": 420,
+        "isogen": 310,
+        "zydrine": 110
+      },
+      "mineralNames": [
+        "tritanium",
+        "isogen",
+        "zydrine"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Abyssal Rakovene",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Hadal Rakovene",
+          "multiplier": 1.1
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Talassonite",
+      "volume": 16,
+      "minerals": {
+        "tritanium": 410,
+        "nocxium": 280,
+        "megacyte": 110
+      },
+      "mineralNames": [
+        "tritanium",
+        "nocxium",
+        "megacyte"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Abyssal Talassonite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Hadal Talassonite",
+          "multiplier": 1.1
+        }
+      ],
+      "siteNames": [],
+      "note": ""
+    },
+    {
+      "name": "Griemeer",
+      "volume": 0.8,
+      "minerals": {
+        "tritanium": 500,
+        "isogen": 300
+      },
+      "mineralNames": [
+        "tritanium",
+        "isogen"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Clear Griemeer",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Inky Griemeer",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Opaque Griemeer",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Griemeer Deposit",
+        "Large Griemeer Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Hezorime",
+      "volume": 5,
+      "minerals": {
+        "tritanium": 200,
+        "isogen": 120,
+        "zydrine": 50
+      },
+      "mineralNames": [
+        "tritanium",
+        "isogen",
+        "zydrine"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Dull Hezorime",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Serrated Hezorime",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Sharp Hezorime",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Hezorime Deposit",
+        "Hezorime Deposit",
+        "Large Hezorime Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Kylixium",
+      "volume": 1.2,
+      "minerals": {
+        "tritanium": 300,
+        "pyerite": 200,
+        "mexallon": 100
+      },
+      "mineralNames": [
+        "tritanium",
+        "pyerite",
+        "mexallon"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Kaolin Kylixium",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Argil Kylixium",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Adobe Kylixium",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Kylixium Deposit",
+        "Large Kylixium Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Nocxite",
+      "volume": 4,
+      "minerals": {
+        "tritanium": 250,
+        "pyerite": 150,
+        "nocxium": 80
+      },
+      "mineralNames": [
+        "tritanium",
+        "pyerite",
+        "nocxium"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Fragrant Nocxite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Intoxicating Nocxite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Ambrosial Nocxite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Nocxite Deposit",
+        "Large Nocxite Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Ueganite",
+      "volume": 5,
+      "minerals": {
+        "tritanium": 300,
+        "megacyte": 50
+      },
+      "mineralNames": [
+        "tritanium",
+        "megacyte"
+      ],
+      "variants": [
+        {
+          "grade": "II",
+          "name": "Foggy Ueganite",
+          "multiplier": 1.05
+        },
+        {
+          "grade": "III",
+          "name": "Overcast Ueganite",
+          "multiplier": 1.1
+        },
+        {
+          "grade": "IV",
+          "name": "Stormy Ueganite",
+          "multiplier": 1.15
+        }
+      ],
+      "siteNames": [
+        "Small Ueganite Deposit",
+        "Ueganite Deposit",
+        "Large Ueganite Deposit"
+      ],
+      "note": ""
+    },
+    {
+      "name": "Prismaticite",
+      "volume": 40,
+      "minerals": {
+        "tritanium": 100,
+        "pyerite": 100,
+        "mexallon": 100,
+        "isogen": 100,
+        "nocxium": 100,
+        "zydrine": 50,
+        "megacyte": 50,
+        "morphite": 10
+      },
+      "mineralNames": [
+        "tritanium",
+        "pyerite",
+        "mexallon",
+        "isogen",
+        "nocxium",
+        "zydrine",
+        "megacyte",
+        "morphite"
+      ],
+      "variants": [],
+      "siteNames": [],
+      "note": ""
+    }
+  ],
+  "anomalies": [
+    {
+      "name": "Small Arkonor and Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Medium Arkonor and Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Average Arkonor and Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Arkonor and Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Small Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Average Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Bistot Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Small Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Hidden Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Large Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Small Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Hidden Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Large Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Small Crokite and Dark Ochre Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Crokite and Dark Ochre Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Large Crokite and Dark Ochre Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Small Crokite, Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Crokite, Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Large Crokite, Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Hidden Crokite, Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Small Hedbergite, Hemorphite and Jaspet Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Hedbergite, Hemorphite and Jaspet Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Large Hedbergite, Hemorphite and Jaspet Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Jaspet Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Small Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Hidden Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Average Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Large Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Small Kernite and Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Average Kernite and Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Large Kernite and Omber Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Small Mordunium Deposit",
+      "space": "high"
+    },
+    {
+      "name": "Mordunium Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Large Mordunium Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Small Mercoxit Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Average Mercoxit Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Mercoxit Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Enormous Mercoxit Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Small Asteroid Cluster",
+      "space": "null"
+    },
+    {
+      "name": "Medium Asteroid Cluster",
+      "space": "null"
+    },
+    {
+      "name": "Large Asteroid Cluster",
+      "space": "null"
+    },
+    {
+      "name": "Enormous Asteroid Cluster",
+      "space": "null"
+    },
+    {
+      "name": "Colossal Asteroid Cluster",
+      "space": "null"
+    },
+    {
+      "name": "Griemeer Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Griemeer Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Kylixium Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Kylixium Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Small Ueganite Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Ueganite Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Ueganite Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Nocxite Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Nocxite Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Veldspar Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Veldspar Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Small Hezorime Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Hezorime Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Large Hezorime Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Empire Border Rare Asteroids",
+      "space": "border"
+    },
+    {
+      "name": "Nullsec Border Rare Asteroids",
+      "space": "null"
+    },
+    {
+      "name": "Nullsec Blue A0 Rare Asteroids",
+      "space": "null"
+    },
+    {
+      "name": "W-Space Blue A0 Rare Asteroids",
+      "space": "wormhole"
+    },
+    {
+      "name": "Interstitial Ore Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Veiled Asteroid Field",
+      "space": "null"
+    },
+    {
+      "name": "Shattered Debris Field",
+      "space": "wormhole"
+    },
+    {
+      "name": "Average Omber, Dark Ochre and Gneiss Deposit",
+      "space": "low"
+    },
+    {
+      "name": "Average Frontier Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Common Perimeter Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Exceptional Core Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Infrequent Core Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Isolated Core Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Ordinary Perimeter Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Rarified Core Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Uncommon Core Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Unexceptional Frontier Deposit",
+      "space": "null"
+    },
+    {
+      "name": "Unusual Core Deposit",
+      "space": "null"
+    }
+  ],
+  "oreToSiteMap": {
+    "Veldspar Deposit": [
+      "Veldspar"
+    ],
+    "Large Veldspar Deposit": [
+      "Veldspar"
+    ],
+    "Small Omber Deposit": [
+      "Omber"
+    ],
+    "Hidden Omber Deposit": [
+      "Omber"
+    ],
+    "Average Omber Deposit": [
+      "Omber"
+    ],
+    "Large Omber Deposit": [
+      "Omber"
+    ],
+    "Small Kernite and Omber Deposit": [
+      "Omber",
+      "Kernite"
+    ],
+    "Average Kernite and Omber Deposit": [
+      "Omber",
+      "Kernite"
+    ],
+    "Large Kernite and Omber Deposit": [
+      "Omber",
+      "Kernite"
+    ],
+    "Average Omber, Dark Ochre and Gneiss Deposit": [
+      "Omber",
+      "Gneiss",
+      "Dark Ochre"
+    ],
+    "Small Hedbergite, Hemorphite and Jaspet Deposit": [
+      "Jaspet",
+      "Hemorphite",
+      "Hedbergite"
+    ],
+    "Average Hedbergite, Hemorphite and Jaspet Deposit": [
+      "Jaspet",
+      "Hemorphite",
+      "Hedbergite"
+    ],
+    "Large Hedbergite, Hemorphite and Jaspet Deposit": [
+      "Jaspet",
+      "Hemorphite",
+      "Hedbergite"
+    ],
+    "Average Jaspet Deposit": [
+      "Jaspet"
+    ],
+    "Small Gneiss Deposit": [
+      "Gneiss"
+    ],
+    "Hidden Gneiss Deposit": [
+      "Gneiss"
+    ],
+    "Average Gneiss Deposit": [
+      "Gneiss"
+    ],
+    "Large Gneiss Deposit": [
+      "Gneiss"
+    ],
+    "Small Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre"
+    ],
+    "Hidden Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre"
+    ],
+    "Average Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre"
+    ],
+    "Large Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre"
+    ],
+    "Small Crokite, Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Average Crokite, Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Large Crokite, Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Hidden Crokite, Dark Ochre and Gneiss Deposit": [
+      "Gneiss",
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Small Crokite and Dark Ochre Deposit": [
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Average Crokite and Dark Ochre Deposit": [
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Large Crokite and Dark Ochre Deposit": [
+      "Dark Ochre",
+      "Crokite"
+    ],
+    "Small Arkonor and Bistot Deposit": [
+      "Arkonor",
+      "Bistot"
+    ],
+    "Medium Arkonor and Bistot Deposit": [
+      "Arkonor",
+      "Bistot"
+    ],
+    "Average Arkonor and Bistot Deposit": [
+      "Arkonor",
+      "Bistot"
+    ],
+    "Large Arkonor and Bistot Deposit": [
+      "Arkonor",
+      "Bistot"
+    ],
+    "Small Bistot Deposit": [
+      "Bistot"
+    ],
+    "Average Bistot Deposit": [
+      "Bistot"
+    ],
+    "Large Bistot Deposit": [
+      "Bistot"
+    ],
+    "Small Mercoxit Deposit": [
+      "Mercoxit"
+    ],
+    "Average Mercoxit Deposit": [
+      "Mercoxit"
+    ],
+    "Large Mercoxit Deposit": [
+      "Mercoxit"
+    ],
+    "Enormous Mercoxit Deposit": [
+      "Mercoxit"
+    ],
+    "Small Mordunium Deposit": [
+      "Mordunium"
+    ],
+    "Mordunium Deposit": [
+      "Mordunium"
+    ],
+    "Large Mordunium Deposit": [
+      "Mordunium"
+    ],
+    "Griemeer Deposit": [
+      "Griemeer"
+    ],
+    "Large Griemeer Deposit": [
+      "Griemeer"
+    ],
+    "Small Hezorime Deposit": [
+      "Hezorime"
+    ],
+    "Hezorime Deposit": [
+      "Hezorime"
+    ],
+    "Large Hezorime Deposit": [
+      "Hezorime"
+    ],
+    "Kylixium Deposit": [
+      "Kylixium"
+    ],
+    "Large Kylixium Deposit": [
+      "Kylixium"
+    ],
+    "Nocxite Deposit": [
+      "Nocxite"
+    ],
+    "Large Nocxite Deposit": [
+      "Nocxite"
+    ],
+    "Small Ueganite Deposit": [
+      "Ueganite"
+    ],
+    "Ueganite Deposit": [
+      "Ueganite"
+    ],
+    "Large Ueganite Deposit": [
+      "Ueganite"
+    ]
+  }
+}
