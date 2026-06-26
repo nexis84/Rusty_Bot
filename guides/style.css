@@ -1273,11 +1273,11 @@ header .subtitle {
 .mineral-bar-tritanium { background: #78909c; }
 .mineral-bar-pyerite { background: #42a5f5; }
 .mineral-bar-mexallon { background: #ab47bc; }
-.mineral-bar-isogen { background: #66bb6a; }
+.mineral-bar-isogen { background: #1e88e5; }
 .mineral-bar-nocxium { background: #ef5350; }
-.mineral-bar-zydrine { background: #ffa726; }
-.mineral-bar-megacyte { background: #ec407a; }
-.mineral-bar-morphite { background: #26c6da; }
+.mineral-bar-zydrine { background: #43a047; }
+.mineral-bar-megacyte { background: #d81b60; }
+.mineral-bar-morphite { background: #c62828; }
 
 .mineral-value {
   width: 50px;
