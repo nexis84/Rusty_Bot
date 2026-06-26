@@ -590,6 +590,7 @@
           $('#miningSubtabBar').style.display = 'none';
           hideAllMiningViews();
           $('#probeScanView').style.display = 'none';
+          $('#anomalyListView').style.display = 'block';
           renderAnomalyList();
         }
       });
