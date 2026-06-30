@@ -176,9 +176,8 @@ body.hub-page header h1 {
     border-top: none;
 }
 
-/* Games section gets a top border to visually separate it */
 .games-section {
-    border-top: 1px solid var(--secondary-color);
+    border-top: none;
     margin-top: 0;
 }
 
