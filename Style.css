@@ -275,6 +275,84 @@ body.hub-page header h1 {
     color: var(--text-color);
 }
 
+/* --- Contact Cards --- */
+.contact-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.contact-card {
+    background-color: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.contact-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-color);
+}
+
+.contact-card-icon {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+    margin-bottom: 4px;
+}
+
+.contact-card-name {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.contact-card-value {
+    font-size: 1rem;
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+.contact-card-ign {
+    grid-column: 1 / -1;
+    justify-self: center;
+    max-width: 180px;
+    width: 100%;
+    border-color: var(--accent-color);
+}
+
+.contact-card-ign:hover {
+    border-color: var(--accent-color-hover);
+}
+
+/* --- Support Section --- */
+.support-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.support-content p {
+    font-size: 1.15rem;
+    color: var(--text-subtle-color);
+    margin: 0.5rem 0;
+    line-height: 1.7;
+}
+
+.support-content p:first-of-type {
+    margin-top: 0;
+}
+
 /* --- Back Link --- */
 .back-link {
     position: absolute;
