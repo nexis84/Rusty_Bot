@@ -1848,48 +1848,63 @@ export default function App() {
               )}
 
               {marketTab === 'blueprints' && (
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-theme">
+                <div className="space-y-4 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-theme">
                   <div className="flex flex-col gap-1 pb-3 border-b border-white/10">
                     <span className="text-[10px] opacity-50 uppercase">Current Balance:</span>
                     <span className="text-lg text-eve-accent font-bold">{isk.toLocaleString()} ISK</span>
                   </div>
-                  {BLUEPRINTS.map(bp => {
-                    const isOwned = ownedBlueprints.includes(bp.id);
-                    const canAfford = isk >= bp.cost;
-                    const implant = IMPLANTS.find(i => i.id === bp.implantId);
+                  {([1, 2, 3, 4, 5] as const).map(slot => {
+                    const slotBlueprints = BLUEPRINTS.filter(bp => {
+                      const implant = IMPLANTS.find(i => i.id === bp.implantId);
+                      return implant?.slot === slot;
+                    });
+                    if (slotBlueprints.length === 0) return null;
                     return (
-                      <div key={bp.id} className={`p-3 border transition-all ${isOwned ? 'border-eve-accent/30 bg-eve-accent/5' : canAfford ? 'border-white/10 bg-black/40 hover:border-eve-accent/50' : 'border-white/5 bg-black/20 opacity-50'}`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-eve-accent">{implant?.name || bp.name}</span>
-                            {implant && <span className="text-[8px] text-white/40">S{implant.slot}</span>}
-                          </div>
-                          {isOwned && <span className="text-[8px] text-eve-accent uppercase">Owned</span>}
+                      <div key={slot}>
+                        <div className="text-[9px] uppercase font-bold text-eve-accent/60 mb-2 tracking-wider">
+                          Slot {slot} — {slotNames[slot]}
                         </div>
-                        <div className="text-[9px] opacity-60 mb-2">{implant?.description || bp.description}</div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex flex-wrap gap-1">
-                            {bp.materials.map(m => {
-                              const mat = MATERIALS.find(mt => mt.id === m.materialId);
-                              const has = getMaterialCount(m.materialId);
-                              return (
-                                <span key={m.materialId} className={`text-[8px] px-1 border ${has >= m.amount ? 'border-eve-success/30 text-eve-success' : 'border-eve-danger/30 text-eve-danger'}`}>
-                                  {mat?.icon || '?'} {m.amount}
-                                </span>
-                              );
-                            })}
-                          </div>
-                          {isOwned ? (
-                            <span className="text-[9px] text-white/40">CRAFT IN MANUFACTURING</span>
-                          ) : (
-                            <button
-                              onClick={() => buyBlueprint(bp)}
-                              disabled={!canAfford}
-                              className="px-2 py-1 text-[9px] uppercase border border-eve-accent/50 text-eve-accent hover:bg-eve-accent/10 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-                            >
-                              {bp.cost.toLocaleString()} ISK
-                            </button>
-                          )}
+                        <div className="space-y-2">
+                          {slotBlueprints.map(bp => {
+                            const isOwned = ownedBlueprints.includes(bp.id);
+                            const canAfford = isk >= bp.cost;
+                            const implant = IMPLANTS.find(i => i.id === bp.implantId);
+                            return (
+                              <div key={bp.id} className={`p-3 border transition-all ${isOwned ? 'border-eve-accent/30 bg-eve-accent/5' : canAfford ? 'border-white/10 bg-black/40 hover:border-eve-accent/50' : 'border-white/5 bg-black/20 opacity-50'}`}>
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-eve-accent">{implant?.name || bp.name}</span>
+                                  </div>
+                                  {isOwned && <span className="text-[8px] text-eve-accent uppercase">Owned</span>}
+                                </div>
+                                <div className="text-[9px] opacity-60 mb-2">{implant?.description || bp.description}</div>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex flex-wrap gap-1">
+                                    {bp.materials.map(m => {
+                                      const mat = MATERIALS.find(mt => mt.id === m.materialId);
+                                      const has = getMaterialCount(m.materialId);
+                                      return (
+                                        <span key={m.materialId} className={`text-[8px] px-1 border ${has >= m.amount ? 'border-eve-success/30 text-eve-success' : 'border-eve-danger/30 text-eve-danger'}`}>
+                                          {mat?.icon || '?'} {m.amount}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                  {isOwned ? (
+                                    <span className="text-[9px] text-white/40">CRAFT IN MANUFACTURING</span>
+                                  ) : (
+                                    <button
+                                      onClick={() => buyBlueprint(bp)}
+                                      disabled={!canAfford}
+                                      className="px-2 py-1 text-[9px] uppercase border border-eve-accent/50 text-eve-accent hover:bg-eve-accent/10 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+                                    >
+                                      {bp.cost.toLocaleString()} ISK
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -2629,53 +2644,69 @@ export default function App() {
 
                 {/* Blueprint List */}
                 {manufacturingTab === 'blueprints' && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="text-sm uppercase font-bold text-cyan-400 mb-2">Owned Blueprints</div>
                     {ownedBlueprints.length === 0 ? (
                       <div className="text-xs text-white/30 italic text-center py-4">
                         No blueprints owned. Purchase them from The Market.
                       </div>
-                    ) : ownedBlueprints.map(bpId => {
-                      const bp = BLUEPRINTS.find(b => b.id === bpId);
-                      if (!bp) return null;
-                      const implant = IMPLANTS.find(i => i.id === bp.implantId);
-                      const canCraft = bp.materials.every(m => getMaterialCount(m.materialId) >= m.amount);
-                      const alreadyOwned = implant ? ownedImplants.includes(implant.id) : false;
+                    ) : ([1, 2, 3, 4, 5] as const).map(slot => {
+                      const slotBps = ownedBlueprints
+                        .map(bpId => BLUEPRINTS.find(b => b.id === bpId))
+                        .filter((bp) => {
+                          if (!bp) return false;
+                          const implant = IMPLANTS.find(i => i.id === bp.implantId);
+                          return implant?.slot === slot;
+                        }) as typeof BLUEPRINTS;
+                      if (slotBps.length === 0) return null;
                       return (
-                        <div key={bp.id} className="bg-black/40 border border-white/10 p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-base font-bold text-cyan-400">{implant?.name || bp.name}</span>
-                              {implant && <span className="text-[10px] text-white/40">Slot {implant.slot} — {slotNames[implant.slot]}</span>}
-                            </div>
-                            {alreadyOwned && <span className="text-[10px] text-eve-success uppercase">Already Owned</span>}
+                        <div key={slot}>
+                          <div className="text-[10px] uppercase font-bold text-cyan-400/60 mb-2 tracking-wider">
+                            Slot {slot} — {slotNames[slot]}
                           </div>
-                          <div className="text-xs text-white/60 mb-3">{implant?.description || bp.description}</div>
-
-                          {/* Materials required */}
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {bp.materials.map(m => {
-                              const mat = MATERIALS.find(mt => mt.id === m.materialId);
-                              const has = getMaterialCount(m.materialId);
+                          <div className="space-y-3">
+                            {slotBps.map(bp => {
+                              const implant = IMPLANTS.find(i => i.id === bp.implantId);
+                              const canCraft = bp.materials.every(m => getMaterialCount(m.materialId) >= m.amount);
+                              const alreadyOwned = implant ? ownedImplants.includes(implant.id) : false;
                               return (
-                                <div key={m.materialId} className={`px-3 py-1.5 border text-xs ${has >= m.amount ? 'border-eve-success/30 bg-eve-success/5' : 'border-eve-danger/30 bg-eve-danger/5'}`}>
-                                  <span className={has >= m.amount ? 'text-eve-success' : 'text-eve-danger'}>{mat?.icon || '?'}</span>{' '}
-                                  <span className="text-white/70">{mat?.name || m.materialId}</span>{' '}
-                                  <span className={has >= m.amount ? 'text-eve-success font-bold' : 'text-eve-danger font-bold'}>
-                                    {has.toLocaleString()} / {m.amount.toLocaleString()}
-                                  </span>
+                                <div key={bp.id} className="bg-black/40 border border-white/10 p-4">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-base font-bold text-cyan-400">{implant?.name || bp.name}</span>
+                                    </div>
+                                    {alreadyOwned && <span className="text-[10px] text-eve-success uppercase">Already Owned</span>}
+                                  </div>
+                                  <div className="text-xs text-white/60 mb-3">{implant?.description || bp.description}</div>
+
+                                  {/* Materials required */}
+                                  <div className="flex flex-wrap gap-2 mb-3">
+                                    {bp.materials.map(m => {
+                                      const mat = MATERIALS.find(mt => mt.id === m.materialId);
+                                      const has = getMaterialCount(m.materialId);
+                                      return (
+                                        <div key={m.materialId} className={`px-3 py-1.5 border text-xs ${has >= m.amount ? 'border-eve-success/30 bg-eve-success/5' : 'border-eve-danger/30 bg-eve-danger/5'}`}>
+                                          <span className={has >= m.amount ? 'text-eve-success' : 'text-eve-danger'}>{mat?.icon || '?'}</span>{' '}
+                                          <span className="text-white/70">{mat?.name || m.materialId}</span>{' '}
+                                          <span className={has >= m.amount ? 'text-eve-success font-bold' : 'text-eve-danger font-bold'}>
+                                            {has.toLocaleString()} / {m.amount.toLocaleString()}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  <button
+                                    onClick={() => craftImplant(bp)}
+                                    disabled={!canCraft || alreadyOwned}
+                                    className={`px-4 py-2 text-xs uppercase font-bold border transition-all ${canCraft && !alreadyOwned ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30' : 'border-white/10 text-white/30 cursor-not-allowed'}`}
+                                  >
+                                    {alreadyOwned ? 'Already Fabricated' : canCraft ? 'Manufacture Implant' : 'Insufficient Materials'}
+                                  </button>
                                 </div>
                               );
                             })}
                           </div>
-
-                          <button
-                            onClick={() => craftImplant(bp)}
-                            disabled={!canCraft || alreadyOwned}
-                            className={`px-4 py-2 text-xs uppercase font-bold border transition-all ${canCraft && !alreadyOwned ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30' : 'border-white/10 text-white/30 cursor-not-allowed'}`}
-                          >
-                            {alreadyOwned ? 'Already Fabricated' : canCraft ? 'Manufacture Implant' : 'Insufficient Materials'}
-                          </button>
                         </div>
                       );
                     })}
@@ -2736,7 +2767,7 @@ export default function App() {
 
       {/* Version */}
       <div className="fixed bottom-2 left-2 text-[9px] font-mono text-white/20 select-none z-50 pointer-events-none">
-        v1.0.5
+        v1.0.6
       </div>
 
       {/* Background Nebula Overlay */}
