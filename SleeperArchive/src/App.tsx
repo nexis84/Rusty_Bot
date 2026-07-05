@@ -681,11 +681,11 @@ export default function App() {
   }, [attemptsRemaining, status, handleLoss]);
 
   useEffect(() => {
-    if (word && word.split('').every((l: string) => guessedLetters.includes(l)) && status === 'playing') {
+    if (word && word.split('').every((l: string) => guessedLetters.includes(l)) && status === 'playing' && attemptsRemaining > 0) {
       const baseReward = currentSettings.reward;
       handleWin(baseReward);
     }
-  }, [guessedLetters, word, status, currentSettings.reward, handleWin]);
+  }, [guessedLetters, word, status, currentSettings.reward, handleWin, attemptsRemaining]);
 
   // Persist ISK to localStorage
   useEffect(() => {
@@ -1968,22 +1968,43 @@ export default function App() {
               <div className="h-1 w-full bg-eve-accent shadow-[0_0_15px_rgba(0,255,255,0.5)]" />
               <div className="p-8 md:p-12 space-y-8">
                 <div className="flex flex-col items-center text-center space-y-4">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
-                  >
-                    <div className="p-4 rounded-full bg-eve-success/10 border border-eve-success/30">
-                      <Trophy className="w-16 h-16 text-eve-success" />
-                    </div>
-                  </motion.div>
-                  
-                  <div className="space-y-1">
-                    <h2 className="font-display text-5xl md:text-6xl uppercase tracking-tighter text-eve-success">Mission Success</h2>
-                    <div className="text-[10px] uppercase tracking-[0.4em] opacity-40 font-bold">
-                      Aura Tactical Intelligence Report // Ref: {Math.random().toString(16).slice(2, 10).toUpperCase()}
-                    </div>
-                  </div>
+                  {status === 'won' ? (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
+                      >
+                        <div className="p-4 rounded-full bg-eve-success/10 border border-eve-success/30">
+                          <Trophy className="w-16 h-16 text-eve-success" />
+                        </div>
+                      </motion.div>
+                      <div className="space-y-1">
+                        <h2 className="font-display text-5xl md:text-6xl uppercase tracking-tighter text-eve-success">Mission Success</h2>
+                        <div className="text-[10px] uppercase tracking-[0.4em] opacity-40 font-bold">
+                          Aura Tactical Intelligence Report // Ref: {Math.random().toString(16).slice(2, 10).toUpperCase()}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.2 }}
+                      >
+                        <div className="p-4 rounded-full bg-eve-danger/10 border border-eve-danger/30">
+                          <Skull className="w-16 h-16 text-eve-danger" />
+                        </div>
+                      </motion.div>
+                      <div className="space-y-1">
+                        <h2 className="font-display text-5xl md:text-6xl uppercase tracking-tighter text-eve-danger">Hull Breach</h2>
+                        <div className="text-[10px] uppercase tracking-[0.4em] opacity-40 font-bold">
+                          CONCORD Incident Report // Case #{Math.floor(Math.random() * 90000 + 10000)}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Main Content: The Word */}
