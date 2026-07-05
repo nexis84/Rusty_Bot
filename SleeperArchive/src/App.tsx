@@ -2580,29 +2580,29 @@ export default function App() {
                     <h2 className="font-display text-3xl uppercase tracking-tighter text-cyan-400">
                       Manufacturing
                     </h2>
-                    <p className="text-[10px] opacity-50 uppercase tracking-wider">
+                    <p className="text-xs opacity-50 uppercase tracking-wider">
                       Blueprint Assembly & Implant Fabrication
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] opacity-50 uppercase">Blueprint Count</div>
+                    <div className="text-xs opacity-50 uppercase">Blueprint Count</div>
                     <div className="text-lg font-bold text-cyan-400">{ownedBlueprints.length}</div>
                   </div>
                 </div>
 
                 {/* Material Inventory */}
                 <div className="bg-black/40 border border-white/10 p-4">
-                  <div className="text-[10px] uppercase font-bold text-cyan-400 mb-3">Material Inventory</div>
+                  <div className="text-sm uppercase font-bold text-cyan-400 mb-3">Material Inventory</div>
                   <div className="flex flex-wrap gap-2">
                     {MATERIALS.filter(m => getMaterialCount(m.id) > 0).map(mat => (
-                      <div key={mat.id} className="px-2 py-1 border border-white/10 bg-black/40 text-[9px]">
+                      <div key={mat.id} className="px-3 py-1.5 border border-white/10 bg-black/40 text-xs">
                         <span className="text-cyan-400">{mat.icon}</span>{' '}
                         <span className="text-white/80">{mat.name}</span>{' '}
                         <span className="text-cyan-400 font-bold">{getMaterialCount(mat.id)}</span>
                       </div>
                     ))}
                     {MATERIALS.every(m => getMaterialCount(m.id) === 0) && (
-                      <div className="text-[10px] text-white/30 italic">No materials yet. Complete hacks to gather materials.</div>
+                      <div className="text-xs text-white/30 italic">No materials yet. Complete hacks to gather materials.</div>
                     )}
                   </div>
                 </div>
@@ -2611,7 +2611,7 @@ export default function App() {
                 <div className="flex gap-1 border-b border-white/10 pb-0">
                   <button
                     onClick={() => setManufacturingTab('blueprints')}
-                    className={`px-4 py-2 text-[9px] uppercase tracking-wider font-bold transition-all border-t border-l border-r rounded-t ${
+                    className={`px-4 py-2 text-xs uppercase tracking-wider font-bold transition-all border-t border-l border-r rounded-t ${
                       manufacturingTab === 'blueprints'
                         ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-400 -mb-px'
                         : 'border-transparent text-white/40 hover:text-white/70'
@@ -2621,7 +2621,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => setManufacturingTab('sources')}
-                    className={`px-4 py-2 text-[9px] uppercase tracking-wider font-bold transition-all border-t border-l border-r rounded-t ${
+                    className={`px-4 py-2 text-xs uppercase tracking-wider font-bold transition-all border-t border-l border-r rounded-t ${
                       manufacturingTab === 'sources'
                         ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-400 -mb-px'
                         : 'border-transparent text-white/40 hover:text-white/70'
@@ -2634,9 +2634,9 @@ export default function App() {
                 {/* Blueprint List */}
                 {manufacturingTab === 'blueprints' && (
                   <div className="space-y-3">
-                    <div className="text-[10px] uppercase font-bold text-cyan-400 mb-2">Owned Blueprints</div>
+                    <div className="text-sm uppercase font-bold text-cyan-400 mb-2">Owned Blueprints</div>
                     {ownedBlueprints.length === 0 ? (
-                      <div className="text-[10px] text-white/30 italic text-center py-4">
+                      <div className="text-xs text-white/30 italic text-center py-4">
                         No blueprints owned. Purchase them from The Market.
                       </div>
                     ) : ownedBlueprints.map(bpId => {
@@ -2649,12 +2649,12 @@ export default function App() {
                         <div key={bp.id} className="bg-black/40 border border-white/10 p-4">
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-cyan-400">{implant?.name || bp.name}</span>
-                              {implant && <span className="text-[8px] text-white/40">Slot {implant.slot} — {slotNames[implant.slot]}</span>}
+                              <span className="text-base font-bold text-cyan-400">{implant?.name || bp.name}</span>
+                              {implant && <span className="text-[10px] text-white/40">Slot {implant.slot} — {slotNames[implant.slot]}</span>}
                             </div>
-                            {alreadyOwned && <span className="text-[8px] text-eve-success uppercase">Already Owned</span>}
+                            {alreadyOwned && <span className="text-[10px] text-eve-success uppercase">Already Owned</span>}
                           </div>
-                          <div className="text-[9px] text-white/60 mb-3">{implant?.description || bp.description}</div>
+                          <div className="text-xs text-white/60 mb-3">{implant?.description || bp.description}</div>
 
                           {/* Materials required */}
                           <div className="flex flex-wrap gap-2 mb-3">
@@ -2662,7 +2662,7 @@ export default function App() {
                               const mat = MATERIALS.find(mt => mt.id === m.materialId);
                               const has = getMaterialCount(m.materialId);
                               return (
-                                <div key={m.materialId} className={`px-2 py-1 border text-[9px] ${has >= m.amount ? 'border-eve-success/30 bg-eve-success/5' : 'border-eve-danger/30 bg-eve-danger/5'}`}>
+                                <div key={m.materialId} className={`px-3 py-1.5 border text-xs ${has >= m.amount ? 'border-eve-success/30 bg-eve-success/5' : 'border-eve-danger/30 bg-eve-danger/5'}`}>
                                   <span className={has >= m.amount ? 'text-eve-success' : 'text-eve-danger'}>{mat?.icon || '?'}</span>{' '}
                                   <span className="text-white/70">{mat?.name || m.materialId}</span>{' '}
                                   <span className={has >= m.amount ? 'text-eve-success font-bold' : 'text-eve-danger font-bold'}>
@@ -2676,7 +2676,7 @@ export default function App() {
                           <button
                             onClick={() => craftImplant(bp)}
                             disabled={!canCraft || alreadyOwned}
-                            className={`px-4 py-2 text-[10px] uppercase font-bold border transition-all ${canCraft && !alreadyOwned ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30' : 'border-white/10 text-white/30 cursor-not-allowed'}`}
+                            className={`px-4 py-2 text-xs uppercase font-bold border transition-all ${canCraft && !alreadyOwned ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30' : 'border-white/10 text-white/30 cursor-not-allowed'}`}
                           >
                             {alreadyOwned ? 'Already Fabricated' : canCraft ? 'Manufacture Implant' : 'Insufficient Materials'}
                           </button>
@@ -2688,7 +2688,7 @@ export default function App() {
 
                 {/* Material Sources Tab */}
                 {manufacturingTab === 'sources' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {MATERIALS.map(mat => {
                       const sources: { diff: string; label: string; rarity: string }[] = [];
                       for (const [diff, drops] of Object.entries(MATERIAL_DROPS)) {
@@ -2699,14 +2699,14 @@ export default function App() {
                         }
                       }
                       return (
-                        <div key={mat.id} className="flex items-start gap-2 px-2 py-1.5 border border-white/5 bg-black/40">
-                          <span className="text-cyan-400 text-[10px] mt-0.5">{mat.icon}</span>
+                        <div key={mat.id} className="flex items-start gap-2 px-3 py-2 border border-white/5 bg-black/40">
+                          <span className="text-cyan-400 text-sm mt-0.5">{mat.icon}</span>
                           <div>
-                            <div className="text-[9px] text-white/80 font-bold">{mat.name}</div>
+                            <div className="text-xs text-white/80 font-bold">{mat.name}</div>
                             <div className="flex flex-wrap gap-1 mt-0.5">
-                              {sources.length === 0 && <span className="text-[8px] text-white/20">Not currently obtainable</span>}
+                              {sources.length === 0 && <span className="text-[10px] text-white/20">Not currently obtainable</span>}
                               {sources.map(s => (
-                                <span key={s.diff + s.rarity} className={`text-[7px] px-1 py-0.5 rounded uppercase tracking-wider ${
+                                <span key={s.diff + s.rarity} className={`text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider ${
                                   s.rarity === 'common' ? 'bg-eve-success/10 text-eve-success border border-eve-success/20' :
                                   s.rarity === 'uncommon' ? 'bg-eve-accent/10 text-eve-accent border border-eve-accent/20' :
                                   'bg-purple-500/10 text-purple-400 border border-purple-500/20'
@@ -2725,7 +2725,7 @@ export default function App() {
                 <div className="flex justify-end pt-4 border-t border-white/10">
                   <button
                     onClick={() => setShowManufacturing(false)}
-                    className="px-6 py-3 text-[10px] uppercase border border-white/20 hover:bg-white/10 transition-all"
+                    className="px-6 py-3 text-xs uppercase border border-white/20 hover:bg-white/10 transition-all"
                   >
                     Close Manufacturing
                   </button>
