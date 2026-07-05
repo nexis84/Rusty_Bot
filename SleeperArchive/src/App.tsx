@@ -2738,6 +2738,11 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Version */}
+      <div className="fixed bottom-2 left-2 text-[9px] font-mono text-white/20 select-none z-50 pointer-events-none">
+        v1.0.0
+      </div>
+
       {/* Background Nebula Overlay */}
       <div className="fixed inset-0 nebula-gradient pointer-events-none opacity-40 -z-5" />
     </div>
