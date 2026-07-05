@@ -220,7 +220,7 @@ export const SHIPS: Ship[] = [
     name: 'Heron Navy Issue',
     tier: 1,
     cost: 60_000_000,
-    bonuses: { bonusLootChance: 0.15, toolCostReduction: 0.20 },
+    bonuses: { bonusLootChance: 0.15 },
     description: '+15% chance to find bonus loot (extra ISK on win), Data Analyzer cost reduced by 20%'
   },
   {
@@ -261,7 +261,7 @@ export const SHIPS: Ship[] = [
     name: 'Helios',
     tier: 2,
     cost: 160_000_000,
-    bonuses: { dataAnalyzerBonus: 1, toolCostReduction: 0.30 },
+    bonuses: { dataAnalyzerBonus: 1 },
     description: 'Data Analyzers reveal 2 letters instead of 1, Emergency Bypass cost reduced by 30%'
   },
   {

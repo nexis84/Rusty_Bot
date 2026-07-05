@@ -1635,10 +1635,10 @@ export default function App() {
                 <span className="text-[10px] opacity-50 uppercase">ISK Multiplier:</span>
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-display text-white">
-                    x{(getStandingLevel(totalEarned).multiplier * (boosterActive ? 1.25 : 1) * (totalBonuses.iskMultiplier || 1)).toFixed(2)}
+                    x{(getStandingLevel(totalEarned).multiplier * (boosterActive ? (1.25 + (totalBonuses.boosterMultiplier || 0)) : 1) * (totalBonuses.iskMultiplier || 1)).toFixed(2)}
                   </span>
                   {boosterActive && (
-                    <span className="text-[10px] text-eve-success">(+25% Security Connections)</span>
+                    <span className="text-[10px] text-eve-success">(+{Math.round((1.25 + (totalBonuses.boosterMultiplier || 0) - 1) * 100)}% Security Connections)</span>
                   )}
                   {totalBonuses.iskMultiplier && activeShip.bonuses.iskMultiplier > 1 && (
                     <span className="text-[10px] text-eve-accent">(+{Math.round((activeShip.bonuses.iskMultiplier - 1) * 100)}% Ship)</span>
@@ -1726,7 +1726,7 @@ export default function App() {
 
               <Tooltip 
                 content="Deploy a specialized data analyzer to decrypt a random unrevealed letter in the target payload. Stores in inventory for later use."
-                subContent={`Cost: ${effectiveHintCost.toLocaleString()} ISK${totalBonuses.toolCostReduction ? ` (${Math.round((1 - (activeShip?.id === 'heron-navy' ? 0.8 : 1 - totalBonuses.toolCostReduction)) * 100)}% ship discount)` : ''}`}
+                subContent={`Cost: ${effectiveHintCost.toLocaleString()} ISK${totalBonuses.toolCostReduction || activeShip?.id === 'heron-navy' ? ` (${Math.round((1 - (activeShip?.id === 'heron-navy' ? 0.8 : 1 - totalBonuses.toolCostReduction)) * 100)}% ship discount)` : ''}`}
                 position="left"
               >
                 <button 
@@ -1777,7 +1777,7 @@ export default function App() {
                     </span>
                   </div>
                   <span className={`text-[11px] font-bold ${boosterActive ? 'text-eve-success' : isBoosterAvailable ? 'text-eve-accent' : 'text-white/50'}`}>
-                    {boosterActive ? `${boosterRounds} ROUNDS` : isBoosterAvailable ? `${SECURITY_CONNECTIONS_COST.toLocaleString()} ISK` : !isBoosterUnlocked ? 'LOCKED' : `${gamesSinceBooster}/${SECURITY_CONNECTIONS_COOLDOWN_GAMES}`}
+                    {boosterActive ? `${boosterRounds} ROUNDS` : isBoosterAvailable ? `${SECURITY_CONNECTIONS_COST.toLocaleString()} ISK` : !isBoosterUnlocked ? 'LOCKED' : `${gamesSinceBooster}/${effectiveCooldown}`}
                   </span>
                 </button>
               </Tooltip>
