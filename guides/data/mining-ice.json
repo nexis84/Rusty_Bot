@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Clear Icicle",
+    "category": "Faction",
+    "heavyWater": 69,
+    "liquidOzone": 35,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Helium",
+      "amount": 414
+    },
+    "space": "High Sec",
+    "page": "Clear_Icicle"
+  },
+  {
+    "name": "White Glaze",
+    "category": "Faction",
+    "heavyWater": 69,
+    "liquidOzone": 35,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Nitrogen",
+      "amount": 414
+    },
+    "space": "High Sec",
+    "page": "White_Glaze"
+  },
+  {
+    "name": "Blue Ice",
+    "category": "Faction",
+    "heavyWater": 69,
+    "liquidOzone": 35,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Oxygen",
+      "amount": 414
+    },
+    "space": "High Sec",
+    "page": "Blue_Ice"
+  },
+  {
+    "name": "Glacial Mass",
+    "category": "Faction",
+    "heavyWater": 69,
+    "liquidOzone": 35,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Hydrogen",
+      "amount": 414
+    },
+    "space": "High Sec",
+    "page": "Glacial_Mass"
+  },
+  {
+    "name": "Enriched Clear Icicle",
+    "category": "Enriched",
+    "heavyWater": 104,
+    "liquidOzone": 55,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Helium",
+      "amount": 483
+    },
+    "space": "Null Sec",
+    "page": "Enriched_Clear_Icicle"
+  },
+  {
+    "name": "Pristine White Glaze",
+    "category": "Enriched",
+    "heavyWater": 104,
+    "liquidOzone": 55,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Nitrogen",
+      "amount": 483
+    },
+    "space": "Null Sec",
+    "page": "Pristine_White_Glaze"
+  },
+  {
+    "name": "Thick Blue Ice",
+    "category": "Enriched",
+    "heavyWater": 104,
+    "liquidOzone": 55,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Oxygen",
+      "amount": 483
+    },
+    "space": "Null Sec",
+    "page": "Thick_Blue_Ice"
+  },
+  {
+    "name": "Smooth Glacial Mass",
+    "category": "Enriched",
+    "heavyWater": 104,
+    "liquidOzone": 55,
+    "strontium": 1,
+    "isotopes": {
+      "type": "Hydrogen",
+      "amount": 483
+    },
+    "space": "Null Sec",
+    "page": "Smooth_Glacial_Mass"
+  },
+  {
+    "name": "Glare Crust",
+    "category": "Standard",
+    "heavyWater": 1381,
+    "liquidOzone": 691,
+    "strontium": 35,
+    "isotopes": null,
+    "space": "Low Sec",
+    "page": "Glare_Crust"
+  },
+  {
+    "name": "Dark Glitter",
+    "category": "Standard",
+    "heavyWater": 691,
+    "liquidOzone": 1381,
+    "strontium": 69,
+    "isotopes": null,
+    "space": "Low Sec",
+    "page": "Dark_Glitter"
+  },
+  {
+    "name": "Gelidus",
+    "category": "Standard",
+    "heavyWater": 345,
+    "liquidOzone": 691,
+    "strontium": 104,
+    "isotopes": null,
+    "space": "Null Sec",
+    "page": "Gelidus"
+  },
+  {
+    "name": "Krystallos",
+    "category": "Standard",
+    "heavyWater": 173,
+    "liquidOzone": 691,
+    "strontium": 173,
+    "isotopes": null,
+    "space": "Null Sec",
+    "page": "Krystallos"
+  }
+]

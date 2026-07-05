@@ -1,0 +1,105 @@
+/* Search Term Highlighting */
+.search-highlight {
+    background-color: rgba(255, 212, 59, 0.3);
+    color: #ffd43b;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+/* Skin Analyzer Collapsible Sections */
+.skin-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.skin-section-panel {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.skin-section-toggle {
+    width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.skin-section-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.skin-section-toggle.open {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skin-section-badge {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-left: 10px;
+}
+
+.badge-owned {
+    background: rgba(81, 207, 102, 0.2);
+    color: #51cf66;
+}
+
+.badge-missing {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff6b6b;
+}
+
+.skin-chevron {
+    transition: transform 0.3s ease;
+}
+
+.skin-section-toggle.open .skin-chevron {
+    transform: rotate(180deg);
+}
+
+.skin-section-body {
+    padding: 20px;
+}
+
+.skin-total-cost {
+    font-size: 0.9rem;
+    color: #ffd43b;
+    margin-left: auto;
+    margin-right: 15px;
+}
+
+.skin-empty-note {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.skin-owned {
+    opacity: 0.8;
+    border-color: rgba(81, 207, 102, 0.2);
+}
+
+.skin-owned:hover {
+    opacity: 1;
+    border-color: rgba(81, 207, 102, 0.5);
+}
+
+.skin-owned .skin-icon i {
+    color: #51cf66;
+}

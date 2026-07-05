@@ -1,0 +1,3506 @@
+[
+  {
+    "name": "After The Seven",
+    "faction": "Serpentis & Mercenaries",
+    "levels": {
+      "1": "AfterTheSeven1"
+    }
+  },
+  {
+    "name": "Against The Empire",
+    "faction": "Amarr Empire",
+    "levels": {
+      "3": "AgainsttheEmpire3am"
+    }
+  },
+  {
+    "name": "Air Show!",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "AirShow1"
+    }
+  },
+  {
+    "name": "Alluring Emanations",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "AlluringEmanations1",
+      "2": "AlluringEmanations2",
+      "3": "AlluringEmanations3",
+      "5": "AlluringEmanations5"
+    }
+  },
+  {
+    "name": "Amarr Excavators",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "AmarrExcavators4"
+    }
+  },
+  {
+    "name": "Amarrian Tyrants",
+    "faction": "Amarr Empire",
+    "levels": {
+      "1": "AmarrianTyrants1",
+      "2": "AmarrianTyrants2",
+      "3": "AmarrianTyrants3"
+    }
+  },
+  {
+    "name": "Ambush the Convoy",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "AmbushtheConvoy4br"
+    }
+  },
+  {
+    "name": "Ambush the Convoy",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "AmbushtheConvoy3",
+      "4": "AmbushtheConvoy4"
+    }
+  },
+  {
+    "name": "Ambushed Ally",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "AmbushedAlly2ga"
+    }
+  },
+  {
+    "name": "Ammatar Detective Spotted",
+    "faction": "Ammatar Mandate",
+    "levels": {
+      "3": "AmmatarDetectiveSpotted"
+    }
+  },
+  {
+    "name": "Ammatar Scouts Spotted",
+    "faction": "Ammatar Mandate",
+    "levels": {
+      "2": "AmmatarScoutsSpotted2at"
+    }
+  },
+  {
+    "name": "An Advantageous Catastrophe",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "AnAdvantageousCatastrophe4ga"
+    }
+  },
+  {
+    "name": "Ancient Roster, An",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "AncientRoster1"
+    }
+  },
+  {
+    "name": "The Angel Cartel Spies",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "AngelCartelSpies1",
+      "2": "AngelCartelSpies2",
+      "3": "AngelCartelSpies3",
+      "4": "AngelCartelSpies4"
+    }
+  },
+  {
+    "name": "Angel Extravaganza",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "AngelExtragavanza3",
+      "4": "AngelExtragavanza4"
+    }
+  },
+  {
+    "name": "Angel Strike Part 1-4",
+    "faction": "Common",
+    "levels": {
+      "3": "AngelStrike3"
+    }
+  },
+  {
+    "name": "Angel Strike Part 5-10",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "AngelStrike3br"
+    }
+  },
+  {
+    "name": "Angel Strike Part 5-10",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "AngelStrike3gu"
+    }
+  },
+  {
+    "name": "Angel Strike Part 5-10",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "3": "AngelStrike3sa"
+    }
+  },
+  {
+    "name": "The Anomaly",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "Anomaly4"
+    }
+  },
+  {
+    "name": "Another Slave Rescue",
+    "faction": "Amarr Empire",
+    "levels": {
+      "3": "AnotherSlaveRescue3am"
+    }
+  },
+  {
+    "name": "Are You Receiving?",
+    "faction": "Angel Cartel & Amarr",
+    "levels": {
+      "4": "AreYouReceiving4am"
+    }
+  },
+  {
+    "name": "Artifact Recovery",
+    "faction": "",
+    "levels": {
+      "2": "ArtifactRecovery2"
+    }
+  },
+  {
+    "name": "The Assault",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "Assault4gu"
+    }
+  },
+  {
+    "name": "The Assault",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "Assault4mi"
+    }
+  },
+  {
+    "name": "The Assault",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "Assault4se"
+    }
+  },
+  {
+    "name": "Athran Exigency",
+    "faction": "Khanid Kingdom & Minmatar",
+    "levels": {
+      "1": "AthranExigency1"
+    }
+  },
+  {
+    "name": "Attack of the Drones",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "AttackoftheDrones4"
+    }
+  },
+  {
+    "name": "Attack the Angel Hideout",
+    "faction": "Angel Cartel",
+    "levels": {
+      "2": "AttackTheAngelHideout2an"
+    }
+  },
+  {
+    "name": "Augumene Allergen",
+    "faction": "Amarr Empire",
+    "levels": {
+      "1": "AugumeneAllergen1am"
+    }
+  },
+  {
+    "name": "Avenge a Fallen Comrade",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "AvengeaFallenComrade1an",
+      "2": "AvengeaFallenComrade2an"
+    }
+  },
+  {
+    "name": "Avenge a Fallen Comrade",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "AvengeaFallenComrade1br",
+      "2": "AvengeaFallenComrade2br"
+    }
+  },
+  {
+    "name": "Avenge a Fallen Comrade",
+    "faction": "DED",
+    "levels": {
+      "1": "AvengeaFallenComrade1cc",
+      "2": "AvengeaFallenComrade2cc"
+    }
+  },
+  {
+    "name": "Avenge a Fallen Comrade",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "AvengeaFallenComrade1gu",
+      "2": "AvengeaFallenComrade2gu"
+    }
+  },
+  {
+    "name": "Avenge a Fallen Comrade",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "AvengeaFallenComrade1se",
+      "2": "AvengeaFallenComrade2se"
+    }
+  },
+  {
+    "name": "Beware They Live",
+    "faction": "",
+    "levels": {
+      "3": "BewareTheyLive3"
+    }
+  },
+  {
+    "name": "The Big Sting",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "BigSting5am"
+    }
+  },
+  {
+    "name": "The Big Sting",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "BigSting5ca"
+    }
+  },
+  {
+    "name": "The Black Market Hub",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "BlackMarketHub3"
+    }
+  },
+  {
+    "name": "The Blockade",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "Blockade1an",
+      "2": "Blockade2an",
+      "3": "Blockade3an",
+      "4": "Blockade4an"
+    }
+  },
+  {
+    "name": "The Blockade",
+    "faction": "Blood Raiders",
+    "levels": {
+      "2": "Blockade2br",
+      "3": "Blockade3br",
+      "4": "Blockade4br"
+    }
+  },
+  {
+    "name": "The Blockade",
+    "faction": "DED",
+    "levels": {
+      "1": "Blockade1dd",
+      "4": "Blockade4dd"
+    }
+  },
+  {
+    "name": "The Blockade",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "Blockade1gu",
+      "2": "Blockade2gu",
+      "3": "Blockade3gu"
+    }
+  },
+  {
+    "name": "The Blockade",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "Blockade1sa",
+      "2": "Blockade2sa",
+      "3": "Blockade3sa",
+      "4": "Blockade4sa"
+    }
+  },
+  {
+    "name": "The Blockade",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "Blockade1se",
+      "2": "Blockade2se",
+      "3": "Blockade3se",
+      "4": "Blockade4se"
+    }
+  },
+  {
+    "name": "The Blood of Angry Men",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "BloodOfAngryMenThe4am"
+    }
+  },
+  {
+    "name": "Blood Farm",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "BloodFarm4br"
+    }
+  },
+  {
+    "name": "The Blood Raider Spies",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "BloodRaiderSpies1br",
+      "2": "BloodRaiderSpies2",
+      "3": "BloodRaiderSpies3",
+      "4": "BloodRaiderSpies4"
+    }
+  },
+  {
+    "name": "Break The Slave Trade",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "BreakTheSlaveTrade2am"
+    }
+  },
+  {
+    "name": "Break Their Will",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "BreakTheirWill1an",
+      "2": "BreakTheirWill2an",
+      "3": "BreakTheirWill3an"
+    }
+  },
+  {
+    "name": "Break Their Will",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "BreaktheirWill1br",
+      "2": "BreakTheirWill3br"
+    }
+  },
+  {
+    "name": "Break Their Will",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "BreakTheirWill1gu",
+      "3": "BreakTheirWill3gu"
+    }
+  },
+  {
+    "name": "Break Their Will",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "BreakTheirWill1sa",
+      "3": "BreakTheirWill3sa"
+    }
+  },
+  {
+    "name": "Break Their Will",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "BreakTheirWill1se",
+      "3": "BreakTheirWill3se"
+    }
+  },
+  {
+    "name": "Breeding Facility",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "BreedingFacility5"
+    }
+  },
+  {
+    "name": "Buzz Kill",
+    "faction": "Angel Cartel",
+    "levels": {
+      "4": "BuzzKill4an"
+    }
+  },
+  {
+    "name": "Caldari Beacons",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "CaldariBeacons5"
+    }
+  },
+  {
+    "name": "Cargo Delivery",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "CargoDelivery1an",
+      "2": "CargoDelivery2an"
+    }
+  },
+  {
+    "name": "Cargo Delivery",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "CargoDelivery1br",
+      "2": "CargoDelivery2br",
+      "3": "CargoDelivery3br",
+      "4": "CargoDelivery4br"
+    }
+  },
+  {
+    "name": "Cargo Delivery",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "4": "CargoDelivery4sa"
+    }
+  },
+  {
+    "name": "Cargo Delivery",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "CargoDelivery3se",
+      "4": "CargoDelivery4se"
+    }
+  },
+  {
+    "name": "Carrying AIMED's",
+    "faction": "Mercenaries",
+    "levels": {
+      "1": "CarryingAIMEDs1"
+    }
+  },
+  {
+    "name": "Case of Kidnapping, A",
+    "faction": "EoM & Mercenaries",
+    "levels": {
+      "1": "CaseofKidnapping1",
+      "4": "CaseofKidnapping4"
+    }
+  },
+  {
+    "name": "Chain Reaction",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "ChainReaction3ga"
+    }
+  },
+  {
+    "name": "Cleaning House",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "5": "CleaningHouse5sa"
+    }
+  },
+  {
+    "name": "Cleansing Fire",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "CleansingFire5am"
+    }
+  },
+  {
+    "name": "Clear the traderoute",
+    "faction": "Deadspace Droneswarm",
+    "levels": {
+      "1": "CleartheTraderoute1"
+    }
+  },
+  {
+    "name": "Clearing a Path",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "ClearingaPath2ga"
+    }
+  },
+  {
+    "name": "Closing the Gate",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "ClosingtheGate1se"
+    }
+  },
+  {
+    "name": "Codename : Redress",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "5": "CodenameRedress5mi"
+    }
+  },
+  {
+    "name": "Communications Cold War",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "CommunicationsColdWar2ga"
+    }
+  },
+  {
+    "name": "CONCORD Scout Spotted",
+    "faction": "Concord",
+    "levels": {
+      "1": "ConcordScoutSpotted1"
+    }
+  },
+  {
+    "name": "Convoy Attack",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "ConvoyAttack5ga"
+    }
+  },
+  {
+    "name": "Convoy Attack",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "5": "ConvoyAttack5mi"
+    }
+  },
+  {
+    "name": "Convoy Attack",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "ConvoyAttack5am"
+    }
+  },
+  {
+    "name": "Convoy Attack",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "ConvoyAttack5ca"
+    }
+  },
+  {
+    "name": "Corporate Records",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "CorporateRecords"
+    }
+  },
+  {
+    "name": "The Cost of Greener Grass",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "CostOfGreenerGrass2Gallente"
+    }
+  },
+  {
+    "name": "Covering your Tracks",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "CoveringyourTracks3",
+      "4": "CoveringyourTracks4"
+    }
+  },
+  {
+    "name": "Crooked Cop",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "CrookedCop3"
+    }
+  },
+  {
+    "name": "Crowd Control",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "CrowdControl4ga"
+    }
+  },
+  {
+    "name": "Crush The Sebiestor Station",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "5": "CrushTheSebiestorStation5mi"
+    }
+  },
+  {
+    "name": "Crystal Dreams Shattered",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "CrystalDreamsShattered3"
+    }
+  },
+  {
+    "name": "Crystal Dreams Shattered",
+    "faction": "Amarr Empire",
+    "levels": {
+      "3": "CrystalDreamsShattered3am"
+    }
+  },
+  {
+    "name": "Customs Interdiction",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "CustomsInterdiction2ga"
+    }
+  },
+  {
+    "name": "Cut-Throat Competition",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "CutThroatCompetition3"
+    }
+  },
+  {
+    "name": "The Damsel in Distress",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "DamselinDistress2",
+      "3": "DamselinDistress3",
+      "4": "DamselinDistress4"
+    }
+  },
+  {
+    "name": "Dark Alliance",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "3": "DarkAlliance3mi"
+    }
+  },
+  {
+    "name": "Data Mining",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "DataMining2am"
+    }
+  },
+  {
+    "name": "Data Mining",
+    "faction": "Caldari State",
+    "levels": {
+      "2": "DataMining2ca"
+    }
+  },
+  {
+    "name": "Dead Drift",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "DeadDrift2"
+    }
+  },
+  {
+    "name": "Deadly Arrival",
+    "faction": "Gallente Federation & Minmatar Republic",
+    "levels": {
+      "2": "DeadlyArrival2gami",
+      "3": "DeadlyArrival3gami"
+    }
+  },
+  {
+    "name": "Deadly Arrival",
+    "faction": "Caldari & Amarr",
+    "levels": {
+      "2": "DeadlyArrival2caam",
+      "3": "DeadlyArrival3caam"
+    }
+  },
+  {
+    "name": "Deadly Serious",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "DeadlySerious5ga"
+    }
+  },
+  {
+    "name": "Delving Into the Past",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "DelvingIntoThePast2am"
+    }
+  },
+  {
+    "name": "Denial Of Reconnaissance",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "DenialOfReconnaissanceLevel1Ga"
+    }
+  },
+  {
+    "name": "Desperate Maneuvers",
+    "faction": "Blood Raiders & Serpentis & Guristas Pirates",
+    "levels": {
+      "4": "DesperateManeuvers4"
+    }
+  },
+  {
+    "name": "Desperate Measures",
+    "faction": "Mercenaries",
+    "levels": {
+      "1": "DesperateMeasures1"
+    }
+  },
+  {
+    "name": "Destroy the Ammatar Base",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "DestroyAmmatarBase5"
+    }
+  },
+  {
+    "name": "Destroy the Caldari Outpost",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "DestroytheCaldariOutpost5"
+    }
+  },
+  {
+    "name": "Diplomatic Incident",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "DiplomaticIncident4"
+    }
+  },
+  {
+    "name": "Dirty Job",
+    "faction": "Minmatar Republic & Mercenaries",
+    "levels": {
+      "5": "DirtyJob5"
+    }
+  },
+  {
+    "name": "The Disgruntled Employee",
+    "faction": "Angel Cartel & Rogue Drones",
+    "levels": {
+      "1": "DisgruntledEmployee1"
+    }
+  },
+  {
+    "name": "Dissidents",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "Dissidents4br"
+    }
+  },
+  {
+    "name": "Down with the Legion",
+    "faction": "Mordus Legion",
+    "levels": {
+      "3": "DownLegion3"
+    }
+  },
+  {
+    "name": "Downing The Slavers (2 of 2)",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "4": "RogueSlaveTrader4"
+    }
+  },
+  {
+    "name": "Downing The Slavers (2 of 2)",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "RogueSlaveTrader3"
+    }
+  },
+  {
+    "name": "Dread Pirate Scarlet",
+    "faction": "Angel Cartel, Blood Raiders, Guristas Pirates, Serpentis",
+    "levels": {
+      "4": "DreadPirateScarlet4"
+    }
+  },
+  {
+    "name": "Driving a Wedge",
+    "faction": "Gallente Federation & Minmatar Republic",
+    "levels": {
+      "3": "DrivingaWedge3"
+    }
+  },
+  {
+    "name": "Drone Detritus",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "DroneDetrius1"
+    }
+  },
+  {
+    "name": "Drone Infestation",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "DroneInfestation1",
+      "2": "DroneInfestation2"
+    }
+  },
+  {
+    "name": "Drug Bust",
+    "faction": "Serpentis",
+    "levels": {
+      "2": "DrugBust2se"
+    }
+  },
+  {
+    "name": "Duo of Death",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "DuoofDeath3an",
+      "4": "DuoofDeath4an"
+    }
+  },
+  {
+    "name": "Duo of Death",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "DuoofDeath3br",
+      "4": "DuoofDeath4br"
+    }
+  },
+  {
+    "name": "Duo of Death",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "DuoofDeath3gu",
+      "4": "DuoofDeath4gu"
+    }
+  },
+  {
+    "name": "Duo of Death",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "3": "DuoofDeath3sa",
+      "4": "DuoofDeath4sa"
+    }
+  },
+  {
+    "name": "Duo of Death",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "DuoofDeath3se",
+      "4": "DuoofDeath4se"
+    }
+  },
+  {
+    "name": "Eliminate a Pirate Nuisance",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "EliminateaPirateNuisance1an"
+    }
+  },
+  {
+    "name": "Eliminate a Pirate Nuisance",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "EliminateaPirateNuisance1br"
+    }
+  },
+  {
+    "name": "Eliminate a Pirate Nuisance",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "EliminateaPirateNuisance1gu"
+    }
+  },
+  {
+    "name": "Eliminate a Pirate Nuisance",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "EliminateaPirateNuisance1sa"
+    }
+  },
+  {
+    "name": "Eliminate a Pirate Nuisance",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "EliminateaPirateNuisance1se"
+    }
+  },
+  {
+    "name": "Eliminate the Pirate Campers",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "EliminatethePirateCampers1"
+    }
+  },
+  {
+    "name": "Eliminate the Pirate Campers",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "EliminateThePirateCampers1se"
+    }
+  },
+  {
+    "name": "Eliminate the Pirate Campers",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "EliminatethePirateCampers3an"
+    }
+  },
+  {
+    "name": "Eliminate the Pirate Campers",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "EliminatethePirateCampers3br"
+    }
+  },
+  {
+    "name": "Eliminate the Pirate Campers",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "2": "EliminatethePirateCampers2gu"
+    }
+  },
+  {
+    "name": "Eliminate the Pirate Campers",
+    "faction": "Thukker Tribe",
+    "levels": {
+      "2": "EliminatethePirateCampers2tt"
+    }
+  },
+  {
+    "name": "Eliminate the Stargate Campers",
+    "faction": "Concord",
+    "levels": {
+      "2": "EliminateStargatecampers2ded",
+      "3": "EliminateStargatecampers3ded"
+    }
+  },
+  {
+    "name": "Elopement",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "Elopement2ga"
+    }
+  },
+  {
+    "name": "Encounter at Station 464",
+    "faction": "Caldari State",
+    "levels": {
+      "1": "EncounteratStation4641"
+    }
+  },
+  {
+    "name": "End to Eavesdropping, An",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "EndtoEavesdropping4"
+    }
+  },
+  {
+    "name": "Endless Battle",
+    "faction": "Tutorial",
+    "levels": {
+      "1": "EndlessBattle"
+    }
+  },
+  {
+    "name": "Enemies Abound 1 of 5",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "EnemiesAbound4p1"
+    }
+  },
+  {
+    "name": "Enemies Abound 2 of 5",
+    "faction": "Courier",
+    "levels": {}
+  },
+  {
+    "name": "Enemies Abound 3 of 5",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "EnemiesAbound4p3"
+    }
+  },
+  {
+    "name": "Enemies Abound 4 of 5",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "EnemiesAbound4p4"
+    }
+  },
+  {
+    "name": "Enemies Abound 5 of 5",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "EnemiesAbound4p5"
+    }
+  },
+  {
+    "name": "Escaped Dissident",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "1": "EscapedDissident1"
+    }
+  },
+  {
+    "name": "Escaped Killer",
+    "faction": "Amarr Empire",
+    "levels": {
+      "1": "EscapedKiller1"
+    }
+  },
+  {
+    "name": "Escaped Spy",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "EscapedSpy1ga"
+    }
+  },
+  {
+    "name": "Escaped Terrorist",
+    "faction": "Caldari State",
+    "levels": {
+      "1": "EscapedTerrorist1"
+    }
+  },
+  {
+    "name": "Evolution",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "Evolution4"
+    }
+  },
+  {
+    "name": "Exploited Sensitivities",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "ExploitedSensitivities4ga"
+    }
+  },
+  {
+    "name": "Extract The Renegade",
+    "faction": "",
+    "levels": {
+      "4": "ExtractTheRenegade4"
+    }
+  },
+  {
+    "name": "Fair Play",
+    "faction": "Rogue Pirates",
+    "levels": {
+      "1": "FairPlay"
+    }
+  },
+  {
+    "name": "Falling the Nation Comes at a Cost",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "3": "FallingNationComesCost3"
+    }
+  },
+  {
+    "name": "Fate of Angels",
+    "faction": "Angel Cartel",
+    "levels": {}
+  },
+  {
+    "name": "Father And Son",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "FatherAndSon3ga"
+    }
+  },
+  {
+    "name": "Federal Confidence",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "FederalConfidence4"
+    }
+  },
+  {
+    "name": "Feeding Frenzy",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "FeedingFrenzy4ga"
+    }
+  },
+  {
+    "name": "Fetching Friends",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "FetchingFriends2ga"
+    }
+  },
+  {
+    "name": "Finders And Keepers",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "FindersandKeepers5"
+    }
+  },
+  {
+    "name": "Flame of Peace",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "FlameofPeace1"
+    }
+  },
+  {
+    "name": "Foil The Military Preparations",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "FoilTheMilitaryPreparations4Ca"
+    }
+  },
+  {
+    "name": "Foil The Military Preparations",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "FoilTheMilitaryPreparations4Ga"
+    }
+  },
+  {
+    "name": "Foil The Military Preparations",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "3": "FoilTheMilitaryPreparations3Mi"
+    }
+  },
+  {
+    "name": "For Justice",
+    "faction": "Amarr Empire",
+    "levels": {
+      "1": "ForJustice1"
+    }
+  },
+  {
+    "name": "For the Birds",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "FortheBirds1"
+    }
+  },
+  {
+    "name": "For the Greater Good",
+    "faction": "Minmatar Republic & Amarr & Concord",
+    "levels": {
+      "1": "FortheGreaterGood1"
+    }
+  },
+  {
+    "name": "For the Honor of Rouvenor",
+    "faction": "Caldari State",
+    "levels": {
+      "1": "FortheHonorofRouvenor1"
+    }
+  },
+  {
+    "name": "Forbidden Cloning",
+    "faction": "Mercenaries",
+    "levels": {
+      "1": "ForbiddenCloning1"
+    }
+  },
+  {
+    "name": "Force to be Reckoned with, A",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "ForcetobeReckonedWith3an"
+    }
+  },
+  {
+    "name": "Force to be Reckoned with, A",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "ForcetobeReckonedWith3br"
+    }
+  },
+  {
+    "name": "Force to be Reckoned with, A",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "ForcetobeReckonedWith3se"
+    }
+  },
+  {
+    "name": "Forces Amassing",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "ForcesAmassing5am"
+    }
+  },
+  {
+    "name": "Foreign Investment",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "ForeignInvestment2"
+    }
+  },
+  {
+    "name": "Forgotten Outposts",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "ForgottenOutposts4CaldariStateStoryline"
+    }
+  },
+  {
+    "name": "The Fortress",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "Fortress5am"
+    }
+  },
+  {
+    "name": "The Fortress",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "Fortress5ca"
+    }
+  },
+  {
+    "name": "The Fortress",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "Fortress5Ga"
+    }
+  },
+  {
+    "name": "The Fortress",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "5": "Fortress5mi"
+    }
+  },
+  {
+    "name": "The Fox Hunt",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "1": "FoxHunt1"
+    }
+  },
+  {
+    "name": "Freedom And Commerce",
+    "faction": "Amarr Empire",
+    "levels": {
+      "1": "FreedomAndCommerce1am"
+    }
+  },
+  {
+    "name": "Freedom Must Not Prevail",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "2": "FreedomMustNotPrevail2"
+    }
+  },
+  {
+    "name": "Freeing the Informant",
+    "faction": "Serpentis",
+    "levels": {
+      "2": "FreeingtheInformant2se"
+    }
+  },
+  {
+    "name": "Friendly Spies",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "FriendlySpies3ga"
+    }
+  },
+  {
+    "name": "Furrier Fiasco",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "FurrierFiasco1"
+    }
+  },
+  {
+    "name": "Gate Blitz",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "GateBlitz3ga"
+    }
+  },
+  {
+    "name": "Gate to nowhere",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "Gatetonowhere4"
+    }
+  },
+  {
+    "name": "Get the Relic",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "GettheRelic1"
+    }
+  },
+  {
+    "name": "Gone Berserk",
+    "faction": "EoM",
+    "levels": {
+      "1": "GoneBerserk1",
+      "2": "GoneBerserk2",
+      "3": "GoneBerserk3",
+      "4": "GoneBerserk4"
+    }
+  },
+  {
+    "name": "The Good Word",
+    "faction": "",
+    "levels": {
+      "3": "GoodWord3"
+    }
+  },
+  {
+    "name": "Greater Good 1-5",
+    "faction": "Minmatar Republic & Amarr",
+    "levels": {
+      "1": "GreaterGood1"
+    }
+  },
+  {
+    "name": "Guristas Extravaganza",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "GuristaExtravaganza3",
+      "4": "GuristaExtravaganza4"
+    }
+  },
+  {
+    "name": "The Guristas Spies",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "GuristaSpies1",
+      "2": "GuristaSpies2",
+      "3": "GuristaSpies3",
+      "4": "GuristaSpies4"
+    }
+  },
+  {
+    "name": "Guristas strike Part 1 to 4",
+    "faction": "Common",
+    "levels": {
+      "3": "GuristasStrike3"
+    }
+  },
+  {
+    "name": "Guristas strike Part 5 to 10",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "GuristasStrike3se"
+    }
+  },
+  {
+    "name": "Halt the Invasion",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "HaltTheInvasion4am"
+    }
+  },
+  {
+    "name": "Halt the Invasion",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "HaltTheInvasion4mi"
+    }
+  },
+  {
+    "name": "The Hard Way",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "HardWay5am"
+    }
+  },
+  {
+    "name": "Head Hunter Threat",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "HeadHunterThreat2",
+      "3": "HeadHunterThreat3"
+    }
+  },
+  {
+    "name": "The Heiress",
+    "faction": "",
+    "levels": {
+      "1": "Heiress1"
+    }
+  },
+  {
+    "name": "The Heir's Favorite Slave",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "1": "HeirsFavoriteSlave1"
+    }
+  },
+  {
+    "name": "Hidden Enemy Base",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "HiddenEnemyBase5am"
+    }
+  },
+  {
+    "name": "Hidden Enemy Base",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "HiddenEnemyBase5ca"
+    }
+  },
+  {
+    "name": "Hidden Enemy Base",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "5": "HiddenEnemyBase5mi"
+    }
+  },
+  {
+    "name": "Hidden Hope",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "HiddenHope4se"
+    }
+  },
+  {
+    "name": "The Hidden Stash",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "HiddenStash1an",
+      "2": "HiddenStash2an"
+    }
+  },
+  {
+    "name": "The Hidden Stash",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "HiddenStash1br",
+      "2": "HiddenStash2br"
+    }
+  },
+  {
+    "name": "The Hidden Stash",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "HiddenStash1gu",
+      "2": "HiddenStash2gu"
+    }
+  },
+  {
+    "name": "The Hidden Stash",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "HiddenStash1sa",
+      "2": "HiddenStash2sa"
+    }
+  },
+  {
+    "name": "The Hidden Stash",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "HiddenStash1se",
+      "2": "HiddenStash2se"
+    }
+  },
+  {
+    "name": "Honor",
+    "faction": "Angel Cartel",
+    "levels": {
+      "5": "Honor5an"
+    }
+  },
+  {
+    "name": "Honor",
+    "faction": "Blood Raiders",
+    "levels": {
+      "5": "Honor5br"
+    }
+  },
+  {
+    "name": "Honor",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "5": "Honor5gu"
+    }
+  },
+  {
+    "name": "Honor",
+    "faction": "Serpentis",
+    "levels": {
+      "5": "Honor5se"
+    }
+  },
+  {
+    "name": "Human Cattle",
+    "faction": "Rogue Drones & Caldari & Mercenaries",
+    "levels": {
+      "2": "HumanCattle2"
+    }
+  },
+  {
+    "name": "Humble Beginnings",
+    "faction": "",
+    "levels": {
+      "3": "HumbleBeginnings3",
+      "4": "HumbleBeginnings4"
+    }
+  },
+  {
+    "name": "Id & Egonics Inc.",
+    "faction": "Amarr & Caldari",
+    "levels": {
+      "3": "IdEgonicsInc3amca"
+    }
+  },
+  {
+    "name": "Illegal Activity",
+    "faction": "General",
+    "levels": {
+      "2": "IllegalActivity2"
+    }
+  },
+  {
+    "name": "Illegal Activity",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "IllegalActivity2ga",
+      "3": "IllegalActivity3",
+      "4": "IllegalActivity4"
+    }
+  },
+  {
+    "name": "Imperial Scouts Spotted",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "ImperialScoutsSpotted2am"
+    }
+  },
+  {
+    "name": "In The Midst of Deadspace (1 of 5)",
+    "faction": "Amarr & Caldari",
+    "levels": {
+      "4": "IntheMidstofDeadspace4p1"
+    }
+  },
+  {
+    "name": "In The Midst of Deadspace (2 of 5)",
+    "faction": "Courier",
+    "levels": {}
+  },
+  {
+    "name": "In The Midst of Deadspace (3 of 5)",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "IntheMidstofDeadspace4p3"
+    }
+  },
+  {
+    "name": "In The Midst of Deadspace (4 of 5)",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "IntheMidstofDeadspace4p4"
+    }
+  },
+  {
+    "name": "In The Midst of Deadspace (5 of 5)",
+    "faction": "Khanid & Caldari",
+    "levels": {
+      "4": "IntheMidstofDeadspace4p5"
+    }
+  },
+  {
+    "name": "In The Shadow Of War",
+    "faction": "Caldari State",
+    "levels": {
+      "1": "InTheShadowOfWar1"
+    }
+  },
+  {
+    "name": "The Infested Ruins",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "InfestedRuins4"
+    }
+  },
+  {
+    "name": "Infiltrated Outposts",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "InfiltratedOutpost4"
+    }
+  },
+  {
+    "name": "Informed Attack (4 of 5)",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "InformedAttack5"
+    }
+  },
+  {
+    "name": "Innocents In The Crossfire",
+    "faction": "",
+    "levels": {
+      "4": "InnocentsInTheCrossfire4gu"
+    }
+  },
+  {
+    "name": "Insorum Hijacking",
+    "faction": "",
+    "levels": {
+      "4": "InsorumHijacking4"
+    }
+  },
+  {
+    "name": "Inspired",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "Inspired4se"
+    }
+  },
+  {
+    "name": "Intaki and Mordus Legion",
+    "faction": "Mordus Legion",
+    "levels": {
+      "3": "IntakiAndMordusLegion3mo"
+    }
+  },
+  {
+    "name": "Intercept The Pirate Smugglers",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "InterceptthePirateSmugglers3br"
+    }
+  },
+  {
+    "name": "Intercept The Pirate Smugglers",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "InterceptthePirateSmugglers3se"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "IntercepttheSaboteurs2am",
+      "3": "IntercepttheSaboteurs3am",
+      "4": "IntercepttheSaboteurs4am"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "IntercepttheSaboteurs4br"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Caldari State",
+    "levels": {
+      "3": "IntercepttheSaboteurs3ca"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "IntercepttheSaboteurs4gu"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "2": "IntercepttheSaboteurs2mi",
+      "4": "IntercepttheSaboteurs4mi"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Sansha Nation & Serpentis",
+    "levels": {
+      "3": "IntercepttheSaboteurs3sase"
+    }
+  },
+  {
+    "name": "Intercept The Saboteurs",
+    "faction": "Serpentis & Sansha Nation",
+    "levels": {
+      "4": "IntercepttheSaboteurs4sesa"
+    }
+  },
+  {
+    "name": "Interstellar Railroad",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "1": "InterstellarRailroad1mi"
+    }
+  },
+  {
+    "name": "Jealous Rivals",
+    "faction": "Guristas",
+    "levels": {
+      "4": "JealousRivals4gu"
+    }
+  },
+  {
+    "name": "Khanid Nobleman",
+    "faction": "Khanid & Mercenaries",
+    "levels": {
+      "4": "KhanidNobleman4"
+    }
+  },
+  {
+    "name": "Kidnappers Strike Part 1-4",
+    "faction": "Common",
+    "levels": {
+      "3": "KidnappersStrike3"
+    }
+  },
+  {
+    "name": "Kidnappers Strike Part 5-10",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "KidnappersStrike3br"
+    }
+  },
+  {
+    "name": "Kidnappers Strike Part 5-10",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "KidnappersStrike3gu"
+    }
+  },
+  {
+    "name": "Kidnappers Strike Part 5-10",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "3": "KidnappersStrike3sa"
+    }
+  },
+  {
+    "name": "The Kidnapping",
+    "faction": "EoM & Mercenaries",
+    "levels": {
+      "4": "Kidnapping4"
+    }
+  },
+  {
+    "name": "Labor of Love",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "2": "LaborOfLove2Ga"
+    }
+  },
+  {
+    "name": "Labors of War",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "LaborOfWar1to3"
+    }
+  },
+  {
+    "name": "Lamb Amongst Lions",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "LambAmongstLions4"
+    }
+  },
+  {
+    "name": "Lasers Softly Beaming",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "LasersSoftlyBeaming2",
+      "3": "LasersSoftlyBeaming3ga"
+    }
+  },
+  {
+    "name": "Letters from Dalamaid",
+    "faction": "Minmatar & Rogue Drones",
+    "levels": {
+      "1": "LettersFromDalamaid1"
+    }
+  },
+  {
+    "name": "The Left Hook",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "LeftHook3ga"
+    }
+  },
+  {
+    "name": "Liberate the Miners",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "LiberateTheMiners5am"
+    }
+  },
+  {
+    "name": "Liberate the Miners",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "LiberateTheMiners5ca"
+    }
+  },
+  {
+    "name": "Lights Out",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "LightsOutga1",
+      "3": "LightsOut3ga",
+      "5": "LightsOut5ga"
+    }
+  },
+  {
+    "name": "Location Location",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "LocationLocation5am"
+    }
+  },
+  {
+    "name": "Location Location",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "LocationLocation5ca"
+    }
+  },
+  {
+    "name": "Location Location",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "LocationLocation5ga"
+    }
+  },
+  {
+    "name": "Lost Records",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "LostRecords1se"
+    }
+  },
+  {
+    "name": "Lost That Bet",
+    "faction": "Mercenaries",
+    "levels": {
+      "1": "LostThatBet1"
+    }
+  },
+  {
+    "name": "The Major",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "Major1se"
+    }
+  },
+  {
+    "name": "Mannar Mining Colony",
+    "faction": "Rogue Drones",
+    "levels": {
+      "3": "MannarMiningColonyLevel3"
+    }
+  },
+  {
+    "name": "Mass Drivers",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "MassDrivers5am"
+    }
+  },
+  {
+    "name": "Mass Drivers",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "MassDrivers5ga"
+    }
+  },
+  {
+    "name": "Massive Attack",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "MassiveAttack4am"
+    }
+  },
+  {
+    "name": "Massive Attack",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "MassiveAttack4mi"
+    }
+  },
+  {
+    "name": "Massive Attack",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "3": "MassiveAttack3sa",
+      "4": "MassiveAttack4sa"
+    }
+  },
+  {
+    "name": "Massive Attack",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "MassiveAttack4se"
+    }
+  },
+  {
+    "name": "Matriarch",
+    "faction": "Angel Cartel & Sansha",
+    "levels": {
+      "4": "Matriarch4ansa"
+    }
+  },
+  {
+    "name": "Million Little Pieces",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "MillionLittlePieces3ga"
+    }
+  },
+  {
+    "name": "Mining Misappropriation",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "MiningMisappropriation4am"
+    }
+  },
+  {
+    "name": "Minmatar Plot",
+    "faction": "Amarr & Gallente Federation & Minmatar Republic",
+    "levels": {
+      "2": "MinmatarPlot2mi"
+    }
+  },
+  {
+    "name": "The Missing Convoy",
+    "faction": "Rogue Drones",
+    "levels": {
+      "3": "MissingConvoy3"
+    }
+  },
+  {
+    "name": "Missing Persons Report",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "MissingPersonsReport4ca"
+    }
+  },
+  {
+    "name": "Missing Reporters",
+    "faction": "Caldari & Mercenaries & Amarr",
+    "levels": {
+      "3": "MissingReporters3"
+    }
+  },
+  {
+    "name": "Mission of Mercy",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "MissionOfMercy2"
+    }
+  },
+  {
+    "name": "Morale and Morality",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "MoraleAndMorality3ga"
+    }
+  },
+  {
+    "name": "The Mordus Headhunters",
+    "faction": "Mordus Legion",
+    "levels": {
+      "1": "MordusHeadhunters1",
+      "2": "MordusHeadhunters2",
+      "3": "MordusHeadhunters3",
+      "4": "MordusHeadhunters4",
+      "5": "MordusHeadhunters5"
+    }
+  },
+  {
+    "name": "Mordus Folly",
+    "faction": "Mordus Legion",
+    "levels": {
+      "4": "MordusFolly4Mordus"
+    }
+  },
+  {
+    "name": "Mote In The Eye, A",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "MoteInTheEye5ga"
+    }
+  },
+  {
+    "name": "The Mouthy Merc",
+    "faction": "Minmatar & Mercenaries",
+    "levels": {
+      "4": "MouthyMerc4"
+    }
+  },
+  {
+    "name": "Murderer Brought to Justice",
+    "faction": "",
+    "levels": {
+      "2": "MurdererBroughttoJustice2"
+    }
+  },
+  {
+    "name": "My Sweet Privateer",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "MySweetPrivateer3ga"
+    }
+  },
+  {
+    "name": "Mysterious Sightings",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "MysteriousSightings1se"
+    }
+  },
+  {
+    "name": "Navy Armada",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "NavyArmada4am"
+    }
+  },
+  {
+    "name": "Navy Armada",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "NavyArmada4ca"
+    }
+  },
+  {
+    "name": "Navy Armada",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "NavyArmada4ga"
+    }
+  },
+  {
+    "name": "New Frontiers 1-7",
+    "faction": "Mercenaries & Rogue Drones",
+    "levels": {
+      "3": "NewFrontiers3"
+    }
+  },
+  {
+    "name": "New Slaves",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "1": "NewSlaves1"
+    }
+  },
+  {
+    "name": "New Venture",
+    "faction": "Mercenaries",
+    "levels": {
+      "1": "NewVenture1"
+    }
+  },
+  {
+    "name": "Nine Tenths Of The Wormhole",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "4": "NineTenthsOfTheWormhole4sa"
+    }
+  },
+  {
+    "name": "No Excuse",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "NoExcuse3ga"
+    }
+  },
+  {
+    "name": "No Honor",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "NoHonor2"
+    }
+  },
+  {
+    "name": "Onslaught",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "Onslaught1"
+    }
+  },
+  {
+    "name": "Opening Moves",
+    "faction": "Amarr Empire & Angel Cartel",
+    "levels": {
+      "2": "OpeningMoves2aman"
+    }
+  },
+  {
+    "name": "Operation Hamstring",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "OperationHamstring3"
+    }
+  },
+  {
+    "name": "Operation Wyrmsbane",
+    "faction": "Serpentis",
+    "levels": {
+      "5": "OperationWyrmsbane5se"
+    }
+  },
+  {
+    "name": "Operation Wyrmslayer",
+    "faction": "",
+    "levels": {}
+  },
+  {
+    "name": "Oust The Claimjumpers",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "OustTheClaimJumpers5ga"
+    }
+  },
+  {
+    "name": "Patient Zero",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "PatientZero4"
+    }
+  },
+  {
+    "name": "Patriotic Measures",
+    "faction": "Caldari State",
+    "levels": {
+      "1": "PatrioticMeasures1ca"
+    }
+  },
+  {
+    "name": "Persistent Enemy",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "PersistentEnemy4caga"
+    }
+  },
+  {
+    "name": "Persistent Pests",
+    "faction": "Rogue Drones",
+    "levels": {
+      "3": "PersistentPests3rd"
+    }
+  },
+  {
+    "name": "Pick Your Poison",
+    "faction": "Minmatar Republic & Amarr",
+    "levels": {
+      "3": "PickYourPoison3ammi"
+    }
+  },
+  {
+    "name": "Pirate Aggression",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "PirateAggression1an"
+    }
+  },
+  {
+    "name": "Pirate Aggression",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "PirateAggression1sa"
+    }
+  },
+  {
+    "name": "Pirate Business",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "PirateBusiness4am"
+    }
+  },
+  {
+    "name": "Pirate Business",
+    "faction": "Caldari State",
+    "levels": {
+      "3": "PirateBusiness3ca"
+    }
+  },
+  {
+    "name": "Pirate Business",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "PirateBusiness1ga"
+    }
+  },
+  {
+    "name": "Pirate Business",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "2": "PirateBusiness2mi",
+      "4": "PirateBusiness4mi"
+    }
+  },
+  {
+    "name": "Pirate Intrusion",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "PirateIntrusion1an"
+    }
+  },
+  {
+    "name": "Pirate Intrusion",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "PirateIntrusion1br"
+    }
+  },
+  {
+    "name": "Pirate Intrusion",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "2": "PirateIntrusion2gu"
+    }
+  },
+  {
+    "name": "Pirate Intrusion",
+    "faction": "Serpentis",
+    "levels": {
+      "2": "PirateIntrusion2se"
+    }
+  },
+  {
+    "name": "Pirate Invasion",
+    "faction": "Angel Cartel",
+    "levels": {
+      "4": "PirateInvasion4an"
+    }
+  },
+  {
+    "name": "Pirate Invasion",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "PirateInvasion3gu"
+    }
+  },
+  {
+    "name": "Pirate Invasion",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "4": "PirateInvasion4sa"
+    }
+  },
+  {
+    "name": "Pirate Invasion",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "PirateInvasion3se"
+    }
+  },
+  {
+    "name": "Pirate Nuisance",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "PirateNuisance1an"
+    }
+  },
+  {
+    "name": "Pirate Nuisance",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "PirateNuisance1sa"
+    }
+  },
+  {
+    "name": "Pirate Nuisance",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "PirateNuisance1se"
+    }
+  },
+  {
+    "name": "Pirate Nuisance",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "PirateNuisance1br"
+    }
+  },
+  {
+    "name": "Pirate Radio",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "3": "PirateRadio3"
+    }
+  },
+  {
+    "name": "Pirate Slaughter",
+    "faction": "Angel Cartel",
+    "levels": {
+      "4": "PirateSlaughter4an"
+    }
+  },
+  {
+    "name": "Pirate Slaughter",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "PirateSlaughter4gu"
+    }
+  },
+  {
+    "name": "Police Intrusion",
+    "faction": "Ammatar",
+    "levels": {
+      "1": "PoliceIntrusion1at"
+    }
+  },
+  {
+    "name": "Police Intrusion",
+    "faction": "Caldari State",
+    "levels": {
+      "2": "PoliceIntrusion2ca"
+    }
+  },
+  {
+    "name": "Police Intrusion",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "2": "PoliceIntrusion2mi"
+    }
+  },
+  {
+    "name": "Police Invasion",
+    "faction": "Khanid Kingdom",
+    "levels": {
+      "3": "PoliceInvasion3kk"
+    }
+  },
+  {
+    "name": "Police Invasion",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "PoliceInvasion4mi"
+    }
+  },
+  {
+    "name": "Postmodern Primitives",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "PostmodernPrimitives"
+    }
+  },
+  {
+    "name": "Pot and Kettle",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "PotandKettle4"
+    }
+  },
+  {
+    "name": "Portal to War",
+    "faction": "Rogue Drones",
+    "levels": {
+      "3": "PortaltoWar3"
+    }
+  },
+  {
+    "name": "Preaching to the Masses",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "PreachingToTheMasses5am"
+    }
+  },
+  {
+    "name": "Preliminary Strike",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "PreliminaryStrike2"
+    }
+  },
+  {
+    "name": "Prison Break",
+    "faction": "Rogue Drones, Concord",
+    "levels": {
+      "5": "PrisonBreak5cc"
+    }
+  },
+  {
+    "name": "Prison Bust",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "PrisonBust5"
+    }
+  },
+  {
+    "name": "Prison Transfer",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "PrisonTransfer4ca"
+    }
+  },
+  {
+    "name": "Probing Question",
+    "faction": "Amarr Empire",
+    "levels": {
+      "3": "ProbingQuestion3am"
+    }
+  },
+  {
+    "name": "Propaganda War",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "PropagandaWar5ga"
+    }
+  },
+  {
+    "name": "Quota Season",
+    "faction": "Angel Cartel",
+    "levels": {
+      "4": "QuotaSeason4"
+    }
+  },
+  {
+    "name": "Racetrack Ruckus",
+    "faction": "Gallente Federation",
+    "levels": {
+      "4": "RacetrackRuckus4am"
+    }
+  },
+  {
+    "name": "Railgun is Worth more than Thousand Words, A",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "RailGunIsWorthAThousandWords2am"
+    }
+  },
+  {
+    "name": "Rancorous Researcher",
+    "faction": "",
+    "levels": {
+      "1": "RancorousResearcher1"
+    }
+  },
+  {
+    "name": "Reclamation",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "Reclamation5am"
+    }
+  },
+  {
+    "name": "Reclamation",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "Reclamation5ca"
+    }
+  },
+  {
+    "name": "Reclamation",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "Reclamation5ga"
+    }
+  },
+  {
+    "name": "Recon (1 of 3)",
+    "faction": "Angel Cartel",
+    "levels": {
+      "2": "Recon2an",
+      "4": "Recon4an"
+    }
+  },
+  {
+    "name": "Recon (1 of 3)",
+    "faction": "Blood Raiders",
+    "levels": {
+      "2": "Recon2br",
+      "4": "Recon4br"
+    }
+  },
+  {
+    "name": "Recon (1 of 3)",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "2": "Recon2gu",
+      "4": "Recon4gu"
+    }
+  },
+  {
+    "name": "Recon (1 of 3)",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "2": "Recon2sa",
+      "4": "Recon4sa"
+    }
+  },
+  {
+    "name": "Recon (1 of 3)",
+    "faction": "Serpentis",
+    "levels": {
+      "2": "Recon2se",
+      "4": "Recon4se"
+    }
+  },
+  {
+    "name": "Recon (2-3 of 3)",
+    "faction": "All Factions",
+    "levels": {
+      "2": "Recon2",
+      "4": "Recon4"
+    }
+  },
+  {
+    "name": "Record Cleaning",
+    "faction": "Mercenaries",
+    "levels": {
+      "4": "RecordCleaning4"
+    }
+  },
+  {
+    "name": "Recover the Containers",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "RecoverTheContainers5ca"
+    }
+  },
+  {
+    "name": "Retribution",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "Retribution3an"
+    }
+  },
+  {
+    "name": "Retribution",
+    "faction": "Caldari State",
+    "levels": {
+      "3": "Retribution3Ca"
+    }
+  },
+  {
+    "name": "Retribution",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "Retribution3gu"
+    }
+  },
+  {
+    "name": "Retribution",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "3": "Retribution3sa"
+    }
+  },
+  {
+    "name": "Retribution",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "Retribution3se"
+    }
+  },
+  {
+    "name": "Revenge Attack",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "3": "RevengeAttack3mi"
+    }
+  },
+  {
+    "name": "The Right Hand of Zazzmatazz",
+    "faction": "Mercenaries",
+    "levels": {
+      "4": "RightHandofZazzmatazz4"
+    }
+  },
+  {
+    "name": "Ritualist Raids",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "RitualistRaid4"
+    }
+  },
+  {
+    "name": "Rogue Drone Harassment",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "RogueDroneHarassment1",
+      "2": "RogueDroneHarassment2",
+      "3": "RogueDroneHarassment3",
+      "4": "RogueDroneHarassment4"
+    }
+  },
+  {
+    "name": "Rogue Eradication",
+    "faction": "Rogue Drones",
+    "levels": {
+      "5": "RogueEradication5"
+    }
+  },
+  {
+    "name": "Rogue Hunt (P2 of Rogue Spy)",
+    "faction": "Rogue Drones",
+    "levels": {
+      "5": "RogueHunt5"
+    }
+  },
+  {
+    "name": "Rogue Slave Trader, The (1 of 2)",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "4": "RogueSlaveTrader4"
+    }
+  },
+  {
+    "name": "Rogue Slave Trader, The (1 of 2)",
+    "faction": "Blood Raiders",
+    "levels": {
+      "3": "RogueSlaveTrader3"
+    }
+  },
+  {
+    "name": "Rogue Spy",
+    "faction": "Rogue Drones",
+    "levels": {
+      "5": "RogueSpy5"
+    }
+  },
+  {
+    "name": "Rogue Tech",
+    "faction": "Caldari State",
+    "levels": {
+      "2": "RogueTech2"
+    }
+  },
+  {
+    "name": "Roid Rage",
+    "faction": "Amarr Empire",
+    "levels": {
+      "2": "RoidRage2"
+    }
+  },
+  {
+    "name": "Roving Rogue Drones",
+    "faction": "Rogue Drones",
+    "levels": {
+      "1": "RovingRogueDrones1"
+    }
+  },
+  {
+    "name": "Sansha Acquisition",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "5": "SanshaAcquisition5"
+    }
+  },
+  {
+    "name": "Sansha on the Horizon",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "5": "SanshaOnTheHorizon5"
+    }
+  },
+  {
+    "name": "The Sansha Spies",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "SanshaSpies1",
+      "2": "SanshaSpies2",
+      "3": "SanshaSpies3",
+      "4": "SanshaSpies4"
+    }
+  },
+  {
+    "name": "Save a Mans Career",
+    "faction": "Rogue Drones & Angel Cartel",
+    "levels": {
+      "2": "SaveaMansCareer2"
+    }
+  },
+  {
+    "name": "Save the Miners",
+    "faction": "Gallente Federation",
+    "levels": {
+      "3": "SaveMiners3ga"
+    }
+  },
+  {
+    "name": "Scavengers",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "Scavengers2ga"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Ammatar Mandate",
+    "levels": {
+      "3": "Score3at",
+      "4": "Score4at"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Arch Angels",
+    "levels": {
+      "1": "Score1an",
+      "3": "Score3an"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Blood Raiders",
+    "levels": {
+      "2": "Score2br"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "Score1ga"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "Score1gu",
+      "3": "Score3gu"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Khanid Kingdom",
+    "levels": {
+      "2": "Score2kk"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "2": "Score2mi",
+      "4": "Score4mi"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "2": "Score2sa",
+      "4": "Score4sa"
+    }
+  },
+  {
+    "name": "The Score",
+    "faction": "Serpentis",
+    "levels": {
+      "2": "Score2se",
+      "4": "Score4se"
+    }
+  },
+  {
+    "name": "Scout It Out",
+    "faction": "Amarr Empire",
+    "levels": {
+      "3": "ScoutItOut3am"
+    }
+  },
+  {
+    "name": "Search and Rescue",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "SearchandRescue1gu"
+    }
+  },
+  {
+    "name": "Secret Pickup",
+    "faction": "Caldari State",
+    "levels": {
+      "1": "SecretPickup1ca"
+    }
+  },
+  {
+    "name": "Secret Project X",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "SecretProjectX3"
+    }
+  },
+  {
+    "name": "Seek and Destroy",
+    "faction": "Angel Cartel",
+    "levels": {
+      "1": "SeekandDestroy1an",
+      "2": "SeekandDestroy2an",
+      "3": "SeekandDestroy3an"
+    }
+  },
+  {
+    "name": "Seek and Destroy",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "SeekandDestroy1br",
+      "2": "SeekandDestroy2br",
+      "3": "SeekandDestroy3br"
+    }
+  },
+  {
+    "name": "Seek and Destroy",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "SeekandDestroy1gu",
+      "2": "SeekandDestroy2gu",
+      "3": "SeekandDestroy3gu"
+    }
+  },
+  {
+    "name": "Seek and Destroy",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "1": "SeekandDestroy1sa",
+      "2": "SeekandDestroy2sa",
+      "3": "SeekandDestroy3sa"
+    }
+  },
+  {
+    "name": "Seek and Destroy",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "SeekandDestroy1se",
+      "2": "SeekandDestroy2se",
+      "3": "SeekandDestroy3se"
+    }
+  },
+  {
+    "name": "Serpent And The Slaves",
+    "faction": "Serpentis & Sansha",
+    "levels": {
+      "4": "SerpentAndTheSlaves4sesa"
+    }
+  },
+  {
+    "name": "Serpentis Extravaganza",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "SerpentisExtravaganza3",
+      "4": "SerpentisExtravaganza4"
+    }
+  },
+  {
+    "name": "Serpentis Ship Builders",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "SerpentisShipBuilders4"
+    }
+  },
+  {
+    "name": "The Serpentis Spies",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "SerpentisSpies1",
+      "2": "SerpentisSpies2",
+      "3": "SerpentisSpies3",
+      "4": "SerpentisSpies4"
+    }
+  },
+  {
+    "name": "The Seven's Brothel",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "SevensBrothel2"
+    }
+  },
+  {
+    "name": "The Seven's Prison Facility",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "SevensPrisonFacility3"
+    }
+  },
+  {
+    "name": "Shades of Grey",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "ShadesOfGrey4mi"
+    }
+  },
+  {
+    "name": "Shaman Secrets",
+    "faction": "Serpentis & Angels & Mercenaries",
+    "levels": {
+      "1": "ShamanSecrets1"
+    }
+  },
+  {
+    "name": "Shipyard Theft (",
+    "faction": "Angel Cartel",
+    "levels": {
+      "4": "ShipyardTheft4an"
+    }
+  },
+  {
+    "name": "Shipyard Theft (",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "ShipyardTheft4br"
+    }
+  },
+  {
+    "name": "Shipyard Theft (",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "ShipyardTheft4gu"
+    }
+  },
+  {
+    "name": "Shipyard Theft (",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "ShipyardTheft4se"
+    }
+  },
+  {
+    "name": "Silence Deep as Death",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "SilenceDeepasDeath3an"
+    }
+  },
+  {
+    "name": "Silence the Informant",
+    "faction": "Mercenaries & Rogue Drones",
+    "levels": {
+      "2": "SilencetheInformant2",
+      "3": "SilencetheInformant3",
+      "4": "SilencetheInformant4"
+    }
+  },
+  {
+    "name": "The Slaves Must Be Returned",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "3": "SlaveMustBeReturned3"
+    }
+  },
+  {
+    "name": "The Small Armory",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "SmallArmory3"
+    }
+  },
+  {
+    "name": "Small Misunderstanding",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "2": "SmallMisunderstanding2Gu"
+    }
+  },
+  {
+    "name": "Smash The Gallente Stockyard",
+    "faction": "Gallente Federation",
+    "levels": {
+      "5": "SmashTheGallenteStockyard5ga"
+    }
+  },
+  {
+    "name": "Smash The Supplier",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "SmashSupplier4am"
+    }
+  },
+  {
+    "name": "Smash The Shipyard",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "SmashTheShipyard4am"
+    }
+  },
+  {
+    "name": "Smuggler Interception",
+    "faction": "Angel Cartel",
+    "levels": {
+      "2": "SmugglerInterception2an",
+      "4": "SmugglerInterception4an"
+    }
+  },
+  {
+    "name": "Smuggler Interception",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "SmugglerInterception1br",
+      "4": "SmugglerInterception4br"
+    }
+  },
+  {
+    "name": "Smuggler Interception",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "SmugglerInterception3gu"
+    }
+  },
+  {
+    "name": "Smuggler Interception",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "2": "SmugglerInterception2sa"
+    }
+  },
+  {
+    "name": "Smuggler Interception",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "SmugglerInterception1se",
+      "3": "SmugglerInterception3se"
+    }
+  },
+  {
+    "name": "Soft Drink Wars",
+    "faction": "Mercenaries",
+    "levels": {
+      "1": "SoftDrinkWars1"
+    }
+  },
+  {
+    "name": "Soothe The Salvage Beast",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "SootheTheSalvageBeast4"
+    }
+  },
+  {
+    "name": "The Space Telescope",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "SpaceTelescope3"
+    }
+  },
+  {
+    "name": "The Spy Stash",
+    "faction": "Angel Cartel",
+    "levels": {
+      "3": "SpyStash3an"
+    }
+  },
+  {
+    "name": "The Spy Stash",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "SpyStash3gu"
+    }
+  },
+  {
+    "name": "Stem The Flow",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "StemTheFlow4gu"
+    }
+  },
+  {
+    "name": "Stray Amarr Carrier",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "StrayAmarrCarrier5"
+    }
+  },
+  {
+    "name": "Stray Caldari Carrier",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "StrayCaldariCarrier5"
+    }
+  },
+  {
+    "name": "Stop the Thief",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "StoptheThief2",
+      "3": "StoptheThief3",
+      "4": "StoptheThief4"
+    }
+  },
+  {
+    "name": "Striking Down Two Flies With One Swing",
+    "faction": "Angel Cartel & Mercenaries",
+    "levels": {
+      "3": "StrikingDownTwoFliesWithOneSwing3an"
+    }
+  },
+  {
+    "name": "Striking Down Two Flies With One Swing",
+    "faction": "Blood Raiders & Mercenaries",
+    "levels": {
+      "1": "StrikingDownTwoFliesWithOneSwing1br"
+    }
+  },
+  {
+    "name": "Striking Down Two Flies With One Swing",
+    "faction": "Guristas Pirates & Mercenaries",
+    "levels": {
+      "1": "StrikingDownTwoFliesWithOneSwing1gu"
+    }
+  },
+  {
+    "name": "Striking Down Two Flies With One Swing",
+    "faction": "Serpentis & Mercenaries",
+    "levels": {
+      "1": "StrikingDownTwoFliesWithOneSwing1se"
+    }
+  },
+  {
+    "name": "Success Comes At A Price",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "SuccessComesataPrice3"
+    }
+  },
+  {
+    "name": "Suntendi Recall",
+    "faction": "Angel Cartel & Caldari",
+    "levels": {
+      "1": "SuntendiRecall1anca"
+    }
+  },
+  {
+    "name": "Surprise Surprise",
+    "faction": "Amarr & Caldari",
+    "levels": {
+      "4": "SurpriseSurprise4"
+    }
+  },
+  {
+    "name": "Surprise Surprise",
+    "faction": "Minmatar Republic & Gallente Federation",
+    "levels": {
+      "4": "SurpriseSurprise4miga"
+    }
+  },
+  {
+    "name": "Technological Secrets",
+    "faction": "Thukker Tribe",
+    "levels": {
+      "2": "TechnologicalSecrets2",
+      "3": "TechnologicalSecrets3"
+    }
+  },
+  {
+    "name": "Terrorism!",
+    "faction": "Caldari State",
+    "levels": {
+      "2": "Terrorism2ca"
+    }
+  },
+  {
+    "name": "They Robots 1-5",
+    "faction": "Gallente Federation & Rogue Drones",
+    "levels": {
+      "1": "TheyRobots1"
+    }
+  },
+  {
+    "name": "Tomb Of The Unknown Soldiers",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "TombOfTheUnknownSoldiers4ca"
+    }
+  },
+  {
+    "name": "Threat from Afar",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "1": "ThreatfromAfar1mi"
+    }
+  },
+  {
+    "name": "Transport Duty",
+    "faction": "Caldari State",
+    "levels": {
+      "3": "TransportDuty3ca"
+    }
+  },
+  {
+    "name": "Trespassers",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "3": "Trespassers3mi"
+    }
+  },
+  {
+    "name": "Trimming The Fat",
+    "faction": "Caldari State",
+    "levels": {
+      "2": "TrimmingTheFat2"
+    }
+  },
+  {
+    "name": "Troop Build Up",
+    "faction": "Caldari State",
+    "levels": {
+      "5": "TroopBuildUp5"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Angel Cartel",
+    "levels": {
+      "2": "UnauthorizedMilitaryPresence2an",
+      "4": "UnauthorizedMilitaryPresence4an"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Blood Raiders",
+    "levels": {
+      "2": "UnauthorizedMilitaryPresence2br",
+      "4": "UnauthorizedMilitaryPresence4br"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Caldari State",
+    "levels": {
+      "4": "UnauthorizedMilitaryPresence4ca"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "UnauthorizedMilitaryPresence1ga",
+      "4": "UnauthorizedMilitaryPresence4ga"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "UnauthorizedMilitaryPresence1gu",
+      "3": "UnauthorizedMilitaryPresence3gu"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Mordus Legion",
+    "levels": {
+      "1": "UnauthorizedMilitaryPresence1mo"
+    }
+  },
+  {
+    "name": "Unauthorized Military Presence",
+    "faction": "Serpentis",
+    "levels": {
+      "3": "UnauthorizedMilitaryPresence3se"
+    }
+  },
+  {
+    "name": "Under Suspicion",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "UnderSuspicion4gu"
+    }
+  },
+  {
+    "name": "Undue Attention",
+    "faction": "Gallente Federation",
+    "levels": {
+      "1": "UndueAttention1ga"
+    }
+  },
+  {
+    "name": "The Uprising",
+    "faction": "Mordus Legion",
+    "levels": {
+      "2": "Uprising2mo",
+      "3": "Uprising3mo"
+    }
+  },
+  {
+    "name": "Vengeance",
+    "faction": "Angel Cartel",
+    "levels": {
+      "4": "Vengeance4an"
+    }
+  },
+  {
+    "name": "Vengeance",
+    "faction": "Blood Raiders",
+    "levels": {
+      "4": "Vengeance4br"
+    }
+  },
+  {
+    "name": "Vengeance",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "4": "Vengeance4gu"
+    }
+  },
+  {
+    "name": "Vengeance",
+    "faction": "Mordus Legion",
+    "levels": {
+      "4": "Vengeance4mo"
+    }
+  },
+  {
+    "name": "Vengeance",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "4": "Vengeance4sa"
+    }
+  },
+  {
+    "name": "Vengeance",
+    "faction": "Serpentis",
+    "levels": {
+      "4": "Vengeance4se"
+    }
+  },
+  {
+    "name": "Vigilance",
+    "faction": "Gallente Federation",
+    "levels": {
+      "2": "Vigilance2ga"
+    }
+  },
+  {
+    "name": "Vigilance",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "3": "Vigilance3gu"
+    }
+  },
+  {
+    "name": "Violent Expulsion",
+    "faction": "Blood Raiders",
+    "levels": {
+      "1": "ViolentExpulsion1br"
+    }
+  },
+  {
+    "name": "Violent Expulsion",
+    "faction": "Guristas Pirates",
+    "levels": {
+      "1": "ViolentExpulsion1gu"
+    }
+  },
+  {
+    "name": "Violent Expulsion",
+    "faction": "Serpentis",
+    "levels": {
+      "1": "ViolentExpulsion1se"
+    }
+  },
+  {
+    "name": "Violent Expulsion",
+    "faction": "Thukker Tribe",
+    "levels": {
+      "1": "ViolentExpulsion1tk"
+    }
+  },
+  {
+    "name": "Vitoc Vector",
+    "faction": "Angel Cartel & Ammatar",
+    "levels": {
+      "1": "VitocVector1anatam"
+    }
+  },
+  {
+    "name": "The Voting Trail",
+    "faction": "Mercenaries",
+    "levels": {
+      "2": "VotingTrail2ca"
+    }
+  },
+  {
+    "name": "War Situation",
+    "faction": "Amarr Empire",
+    "levels": {
+      "4": "WarSituation4am"
+    }
+  },
+  {
+    "name": "Warlord Strikes",
+    "faction": "Minmatar Republic",
+    "levels": {
+      "4": "WarlordStrikes4mi"
+    }
+  },
+  {
+    "name": "What Comes Around Goes Around",
+    "faction": "Mercenaries",
+    "levels": {
+      "3": "WhatComesAroundGoesAround3"
+    }
+  },
+  {
+    "name": "What Slavery Begets",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "WhatSlaveryBegets5"
+    }
+  },
+  {
+    "name": "What's In a Name",
+    "faction": "Rogue Drones & Gallente Federation",
+    "levels": {
+      "1": "WhatsInAName1"
+    }
+  },
+  {
+    "name": "Whispers In The Dark",
+    "faction": "Sansha's Nation",
+    "levels": {
+      "2": "WhispersIntheDark2"
+    }
+  },
+  {
+    "name": "The Wildcat Strike",
+    "faction": "Rogue Drones",
+    "levels": {
+      "4": "WildcatStrike4drones"
+    }
+  },
+  {
+    "name": "Wolf by the Ears, A",
+    "faction": "Amarr Empire",
+    "levels": {
+      "5": "AWolfByTheEars5am"
+    }
+  },
+  {
+    "name": "Worlds Collide",
+    "faction": "Angel Cartel & Sansha Nation",
+    "levels": {
+      "1": "WorldsCollide1ansa",
+      "4": "WorldsCollide4ansa"
+    }
+  },
+  {
+    "name": "Worlds Collide",
+    "faction": "Blood Raiders & Angel Cartel",
+    "levels": {
+      "1": "WorldsCollide1blan",
+      "4": "WorldsCollide4bran"
+    }
+  },
+  {
+    "name": "Worlds Collide",
+    "faction": "Gallente Federation & Sansha Nation",
+    "levels": {
+      "4": "WorldsCollide4saga"
+    }
+  },
+  {
+    "name": "Worlds Collide",
+    "faction": "Guristas Pirates & Angel Cartel",
+    "levels": {
+      "1": "WorldsCollide1guan"
+    }
+  },
+  {
+    "name": "Worlds Collide",
+    "faction": "Guristas Pirates & Serpentis",
+    "levels": {
+      "4": "WorldsCollide4guse"
+    }
+  },
+  {
+    "name": "Worlds Collide",
+    "faction": "Serpentis & Guristas Pirates",
+    "levels": {
+      "4": "WorldsCollide4segu"
+    }
+  },
+  {
+    "name": "Wrath of Angels",
+    "faction": "Angel Cartel",
+    "levels": {
+      "5": "WrathOfAngels5an"
+    }
+  }
+]
