@@ -32,6 +32,9 @@ services:
     staticPublishPath: .
     routes:
       - type: rewrite
+        source: /sleeper-archive/<rest>
+        destination: /SleeperArchive/dist/<rest>
+      - type: rewrite
         source: /*
         destination: /Killboard/index.html
 
