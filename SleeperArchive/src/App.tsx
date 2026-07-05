@@ -721,6 +721,8 @@ export default function App() {
 
     // Blackglass: chance to forgive a wrong guess
     if (totalBonuses.wrongGuessSurvivalChance && !word.includes(letter) && Math.random() < totalBonuses.wrongGuessSurvivalChance) {
+      setGuessedLetters((prev: string[]) => [...prev, letter]);
+      setGhostCheckedLetters((prev: string[]) => [...prev, letter]);
       setMessage('BLACKGLASS: NEURAL COHERENCE STABILIZED');
       setTimeout(() => setMessage('ENCRYPTION BREACH IN PROGRESS...'), 1500);
       return;
@@ -2734,7 +2736,7 @@ export default function App() {
 
       {/* Version */}
       <div className="fixed bottom-2 left-2 text-[9px] font-mono text-white/20 select-none z-50 pointer-events-none">
-        v1.0.4
+        v1.0.5
       </div>
 
       {/* Background Nebula Overlay */}
