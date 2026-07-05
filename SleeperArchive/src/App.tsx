@@ -896,16 +896,10 @@ export default function App() {
     const implant = IMPLANTS.find(i => i.id === implantId);
     if (!implant || implant.slot !== slot) return;
     if (!ownedImplants.includes(implantId)) return;
+    if (equippedSlots[slot]) return; // Slot already occupied — permanent until hull breach
     setEquippedSlots((prev: Record<number, string | null>) => ({
       ...prev,
-      [slot]: prev[slot] === implantId ? null : implantId,
-    }));
-  };
-
-  const unequipSlot = (slot: number) => {
-    setEquippedSlots((prev: Record<number, string | null>) => ({
-      ...prev,
-      [slot]: null,
+      [slot]: implantId,
     }));
   };
 
@@ -2044,10 +2038,15 @@ export default function App() {
                 </div>
 
                 {/* Footer Message */}
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <p className="text-xs opacity-60 font-mono italic">
                     "{status === 'won' ? 'Data vault accessed. Extracting classified files. Evacuate immediately.' : 'Security breach detected. Quarantine protocols engaged. Operative status: MIA.'}"
                   </p>
+                  {status === 'lost' && (
+                    <p className="text-[10px] text-eve-danger/70 font-bold uppercase tracking-wider animate-pulse">
+                      • Implants destroyed in pod loss •
+                    </p>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -2471,7 +2470,7 @@ export default function App() {
                 </div>
 
                 <div className="text-[9px] text-white/40 uppercase border border-emerald-600/20 bg-emerald-600/5 p-2">
-                  Implants are consumed on failure. Equip wisely.
+                  Implants are permanent until hull breach. Choose carefully.
                 </div>
 
                 {/* Slot Grid */}
@@ -2487,14 +2486,7 @@ export default function App() {
                             <span className="text-[10px] uppercase text-emerald-400 font-bold">Slot {slot}</span>
                             <span className="text-[9px] text-white/40 ml-2">— {slotNames[slot]}</span>
                           </div>
-                          {equipped ? (
-                            <button
-                              onClick={() => unequipSlot(slot)}
-                              className="px-2 py-1 text-[9px] uppercase border border-eve-danger/50 text-eve-danger hover:bg-eve-danger/10 transition-all"
-                            >
-                              Unequip
-                            </button>
-                          ) : (
+                          {!equipped && (
                             <button
                               onClick={() => setSelectedSlot(isSelected ? null : slot)}
                               className={`px-2 py-1 text-[9px] uppercase border transition-all ${isSelected ? 'border-emerald-600/50 text-emerald-400' : 'border-white/20 text-white/60 hover:border-emerald-600/50'}`}
@@ -2742,7 +2734,7 @@ export default function App() {
 
       {/* Version */}
       <div className="fixed bottom-2 left-2 text-[9px] font-mono text-white/20 select-none z-50 pointer-events-none">
-        v1.0.2
+        v1.0.3
       </div>
 
       {/* Background Nebula Overlay */}
