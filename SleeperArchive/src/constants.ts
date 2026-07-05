@@ -404,10 +404,12 @@ export const MATERIAL_DROPS: Record<string, {
     common: [
       { id: 'data_scraps', min: 40, max: 80 },
       { id: 'pyerite', min: 10, max: 25 },
+      { id: 'isogen', min: 3, max: 8 },
     ],
     uncommon: [
       { id: 'mexallon', min: 5, max: 12 },
       { id: 'zydrine', min: 1, max: 3 },
+      { id: 'megacyte', min: 1, max: 3 },
     ],
     rare: [
       { id: 'nocxium', min: 2, max: 5 },
@@ -430,10 +432,9 @@ export const MATERIAL_DROPS: Record<string, {
     common: [
       { id: 'data_scraps', min: 80, max: 150 },
       { id: 'nocxium', min: 5, max: 15 },
-    ],
-    uncommon: [
       { id: 'megacyte', min: 3, max: 8 },
     ],
+    uncommon: [],
     rare: [
       { id: 'data_core', min: 2, max: 5 },
     ],
