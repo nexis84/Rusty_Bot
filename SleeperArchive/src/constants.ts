@@ -407,6 +407,7 @@ export const MATERIAL_DROPS: Record<string, {
     ],
     uncommon: [
       { id: 'mexallon', min: 5, max: 12 },
+      { id: 'zydrine', min: 1, max: 3 },
     ],
     rare: [
       { id: 'nocxium', min: 2, max: 5 },
