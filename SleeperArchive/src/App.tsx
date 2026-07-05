@@ -539,13 +539,11 @@ export default function App() {
       }
     }
 
-    // Consume equipped implants on loss (read directly from localStorage for robustness)
+    // Consume equipped implants on loss
     const lossUserId = getUserId();
-    const lossEquippedSlots = JSON.parse(localStorage.getItem(`sleeper_equipped_slots_${lossUserId}`) || '{}');
-    const lossImplants = JSON.parse(localStorage.getItem(`sleeper_implants_${lossUserId}`) || '[]');
-    const lossStored = [...lossImplants];
+    const lossStored = [...ownedImplants];
     for (const lossSlot of [1, 2, 3, 4, 5] as const) {
-      const lossImplantId = lossEquippedSlots[lossSlot] || equippedSlots[lossSlot];
+      const lossImplantId = equippedSlots[lossSlot];
       if (lossImplantId) {
         const li = lossStored.indexOf(lossImplantId);
         if (li !== -1) lossStored.splice(li, 1);
