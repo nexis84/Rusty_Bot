@@ -634,23 +634,6 @@ export default function App() {
       }
     }
 
-    // Consume equipped implants on win (read directly from localStorage for robustness)
-    const winUserId = getUserId();
-    const winEquippedSlots = JSON.parse(localStorage.getItem(`sleeper_equipped_slots_${winUserId}`) || '{}');
-    const winImplants = JSON.parse(localStorage.getItem(`sleeper_implants_${winUserId}`) || '[]');
-    const winStored = [...winImplants];
-    for (const winSlot of [1, 2, 3, 4, 5] as const) {
-      const winImplantId = winEquippedSlots[winSlot] || equippedSlots[winSlot];
-      if (winImplantId) {
-        const wi = winStored.indexOf(winImplantId);
-        if (wi !== -1) winStored.splice(wi, 1);
-      }
-    }
-    setOwnedImplants(winStored);
-    setEquippedSlots({ 1: null, 2: null, 3: null, 4: null, 5: null });
-    localStorage.setItem(`sleeper_implants_${winUserId}`, JSON.stringify(winStored));
-    storeEquippedSlots({ 1: null, 2: null, 3: null, 4: null, 5: null });
-
     const bonusText = boosterActive ? ' (Security Connections +25%)' : '';
     setMessage(`DECRYPTION SUCCESSFUL. RECOVERED ${actualReward.toLocaleString()} ISK.${bonusText}${bonusLootText}`);
     setShowSuccess(true);
@@ -2469,7 +2452,7 @@ export default function App() {
                 </div>
 
                 <div className="text-[9px] text-white/40 uppercase border border-emerald-600/20 bg-emerald-600/5 p-2">
-                  Implants are consumed on game over (win or loss). Equip wisely.
+                  Implants are consumed on failure. Equip wisely.
                 </div>
 
                 {/* Slot Grid */}
