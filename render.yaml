@@ -40,5 +40,5 @@ services:
     runtime: static
     repo: https://github.com/nexis84/Rusty_Bot.git
     branch: main
-    buildCommand: cd SleeperArchive && npm install && npm run build
+    buildCommand: ""
     staticPublishPath: SleeperArchive/dist
