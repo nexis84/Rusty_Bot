@@ -2429,9 +2429,9 @@ export default function App() {
             exit={{ opacity: 0, y: 50 }}
             className="fixed bottom-4 left-4 right-4 z-[80] flex justify-center pointer-events-none"
           >
-            <div className="bg-eve-panel border border-eve-success/50 p-3 rounded-lg shadow-[0_0_20px_rgba(0,255,0,0.2)] max-w-md">
-              <div className="text-[10px] text-eve-success uppercase font-bold mb-1">Materials Acquired</div>
-              <div className="text-[10px] text-white/80">{materialDropMessage}</div>
+            <div className="bg-eve-panel border border-eve-success/50 p-4 rounded-lg shadow-[0_0_30px_rgba(0,255,0,0.3)] max-w-lg">
+              <div className="text-sm text-eve-success uppercase font-bold mb-2">Materials Acquired</div>
+              <div className="text-xs text-white/80 leading-relaxed">{materialDropMessage}</div>
             </div>
           </motion.div>
         )}
