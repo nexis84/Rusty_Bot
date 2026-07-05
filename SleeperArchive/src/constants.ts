@@ -411,6 +411,7 @@ export const MATERIAL_DROPS: Record<string, {
     ],
     rare: [
       { id: 'nocxium', min: 2, max: 5 },
+      { id: 'data_core', min: 1, max: 1 },
     ],
   },
   streamer: {
