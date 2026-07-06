@@ -2767,7 +2767,7 @@ export default function App() {
 
       {/* Version */}
       <div className="fixed bottom-2 left-2 text-[9px] font-mono text-white/20 select-none z-50 pointer-events-none">
-        v1.0.6
+        v1.0.7
       </div>
 
       {/* Background Nebula Overlay */}
