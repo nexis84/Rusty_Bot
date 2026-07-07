@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total stations: 5210
-// Generated: 2026-06-11 14:52:34 UTC
+// Generated: 2026-07-07 21:20:08 UTC
 
 const Stations = {
     60015187: { name: '- The Fulcrum - Ancient Jovian Outpost', systemId: 30100000 },
