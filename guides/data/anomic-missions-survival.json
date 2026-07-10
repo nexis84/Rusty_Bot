@@ -1,0 +1,601 @@
+{
+  "AnomicAgent4an": {
+    "wakka": "AnomicAgent4an",
+    "name": "Anomic Agent (Angel)",
+    "type": "Agent",
+    "faction": "Angel",
+    "info": {},
+    "pockets": [],
+    "videoLinks": []
+  },
+  "AnomicAgent4BR": {
+    "wakka": "AnomicAgent4BR",
+    "name": "Anomic Agent (Blood Raider)",
+    "type": "Agent",
+    "faction": "Blood Raiders",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "EM+Therm (50% each)",
+      "Extras": "You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "Exp/Kin",
+      "Recommended ship classes": "Assault Frigate, Pirate Faction Frigate"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Agent: Blood Raider Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by ElonJobs:This page doesn't appear on categories. Thu, 11 Nov 2021 23:10 UTC",
+          "Faction: Blood Raiders",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: EM+Therm (50% each)",
+          "Web/Scramble/NOS: Burner Cruor",
+          "Extras: You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: Exp/Kin",
+          "Recommended ship types: Assault Frigate, Pirate Faction Frigate"
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "Ship aggro on warp-in."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (10 km)",
+        "level": "h4",
+        "lines": [
+          "1x Pirate Frigate (Burner Cruor)"
+        ]
+      },
+      {
+        "heading": "General Tips",
+        "level": "h5",
+        "lines": [
+          "Burner NOS will drain typical AF capacitor in just several seconds;",
+          "Burner have \"faction\" webs/scram;",
+          "This Burner has very large armor buffer;"
+        ]
+      },
+      {
+        "heading": "Kiting Tips",
+        "level": "h5",
+        "lines": [
+          "Burner NOS range is slightly bellow 10km;",
+          "Burner has no AB nor MWD, max nominal speed is around 380m/s;"
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "CCP said that there is a slight chance of getting faction stuff in the loot. If you don't get faction modules, the loot is mostly made of Meta modules."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "5,000,000 ISK for the Burner",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": []
+  },
+  "AnomicAgent4sa": {
+    "wakka": "AnomicAgent4sa",
+    "name": "Anomic Agent (Sansha)",
+    "type": "Agent",
+    "faction": "Sansha's Nation",
+    "info": {
+      "Faction": "Sansha",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "EM+Therm (50% each)",
+      "Extras": "Web/Scramble (Burner Succubus). You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "EM/Therm",
+      "Recommended ship classes": "Assault Frigate, Pirate Faction Frigate"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Agent: Sansha Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by ElonJobs:This page doesn't appear on categories. Thu, 11 Nov 2021 23:15 UTC",
+          "Faction: Sansha",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: EM+Therm (50% each)",
+          "Extras: Web/Scramble (Burner Succubus). You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: EM/Therm",
+          "Recommended ship types: Assault Frigate, Pirate Faction Frigate"
+        ]
+      },
+      {
+        "heading": "Agent mission description",
+        "level": "h3",
+        "lines": [
+          "A single individual, a rogue element of Sansha’s Nation, has struck out on their own. We don't know why, but we want you to hunt them down.",
+          "They have all scans open, so we can't go there in force. We've acquired their coordinates and need someone to sneak in and take them out. It's you against them.",
+          "Only frigate sized ships can gain entry to the hideout, so don’t try to bring anything bigger.",
+          "This pirate will be flying an extremely fast, shield boosted Succubus frigate. He uses lasers loaded with Scorch frequency crystals. Survivors of his previous attacks claim that he likes to orbit his opponents at around 15km at extremely high speeds. He always flies with a Stasis Webifier and a Warp Scrambler fit."
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "Ship aggro on warp-in."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (5 km)",
+        "level": "h4",
+        "lines": [
+          "1x Pirate Frigate (Burner Succubus)"
+        ]
+      },
+      {
+        "heading": "General Tips",
+        "level": "h5",
+        "lines": [
+          "Burner traits almost pin you in place as they use faction web/scram.",
+          "Burner orbits at extremely high velocity (approx 3000m/s) at range (approx 15km).",
+          "Rocket users - recommend to use target painter and rocket explosion velocity rigs.",
+          "Turret users - recommended to use tracking boosting mods/rigs and target painter.",
+          "Burner will switch targets to drones and will very quickly destroy them."
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "CCP report that there is a slight chance of getting faction loot. If you don't get faction modules, the loot is mostly made of Meta modules."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "approx 2,000,000 ISK for the Burner + mission bonus.",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": []
+  },
+  "AnomicAgent4se": {
+    "wakka": "AnomicAgent4se",
+    "name": "Anomic Agent (Serpentis)",
+    "type": "Agent",
+    "faction": "Serpentis",
+    "info": {
+      "Faction": "Serpentis",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "Kin+Therm (50% each)",
+      "Extras": "Web/Scramble (Burner Daredevil). You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "Exp/Kin",
+      "Recommended ship classes": "Assault Frigate, Pirate Faction Frigate"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Agent: Serpentis Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by JudicianNar Mon, 06 Feb 2017 13:33 UTC",
+          "Faction: Serpentis",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: Kin+Therm (50% each)",
+          "Extras: Web/Scramble (Burner Daredevil). You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: Exp/Kin",
+          "Recommended ship types: Assault Frigate, Pirate Faction Frigate"
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "Ship aggro on warp-in."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (5 km)",
+        "level": "h4",
+        "lines": [
+          "1x Pirate Frigate (Burner Daredevil)"
+        ]
+      },
+      {
+        "heading": "General Tips",
+        "level": "h5",
+        "lines": [
+          "Daredevil traits almost pin you in place as burner use faction web/scram.",
+          "Burner orbits at extremely high velocity at close range (under 5km).",
+          "Rocket users require double web and target painter.",
+          "Turret users require double web and tracking boosting mods.",
+          "Burner will switch targets to drones and will very quickly destroy them."
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "CCP report that there is a slight chance of getting faction loot. If you don't get faction modules, the loot is mostly made of Meta modules."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "5,000,000 ISK for the Burner",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": []
+  },
+  "AnomicTeam4am": {
+    "wakka": "AnomicTeam4am",
+    "name": "Anomic Team (Amarr)",
+    "type": "Team",
+    "faction": "Amarr",
+    "info": {
+      "Faction": "Amarr",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "EM/Thermal",
+      "Web/Scramble": "Burner Vengeance",
+      "Extras": "You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "Thermal",
+      "Recommended ship classes": "Kestrel, kiting long range frigate (25km+)",
+      "Video": "Kestrel (mixed T1/T2)",
+      "ECM": "Radar"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Team: Vengeance Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by Roktaal:added ECM type Mon, 29 Oct 2018 15:49 UTC",
+          "Faction: Amarr",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: EM/Thermal",
+          "Web/scramble: Burner Vengeance",
+          "Extras: You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: Thermal",
+          "Recommended ship types: Kestrel, kiting long range frigate (25km+)",
+          "Video:",
+          "Kestrel (mixed T1/T2)",
+          "ECM: Radar"
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "All ships aggro on warp-in. Burner Inquisitors are only remote repairing each other and Burner Vengeance and will not deal any damage to you."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (40-45 km)",
+        "level": "h4",
+        "lines": [
+          "2x Frigates (Burner Inquisitor)",
+          "(Remote Armor Repair)",
+          "1x Elite Frigate (Burner Vengeance)"
+        ]
+      },
+      {
+        "heading": "Kiting Tips",
+        "level": "h5",
+        "lines": [
+          "set the default orbit distance before you enter the mission site;",
+          "set the orbit to whatever the range of your guns/launchers can support, but do not set it inside Burner Vengeance's webbing range;",
+          "Burners can and usually do have \"faction\" webs, so watch out when choosing your orbit range;",
+          "Activate your Microwarp Drive and start orbiting the Burner Vengeance as soon as you land. Otherwise, you'll end up being webbed and scrambled because Burner Vengeance is pretty fast (750-800 m/s);",
+          "Destroy Burner Inquisitors first as they remote repair each other and the Burner Vengeance;",
+          "Burner Vengeance uses Defender Missiles. If you notice that you are not hitting it with your own missiles, try turning off your launchers and turning them on again. This may place your firing cycle between the firing cycles of Burner Vengeance's Defender missiles;"
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "CCP said that there is a slight chance of getting dedspace stuff in the loot. If you don't get dedspace modules, the loot is mostly made of Meta 4 modules."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "5,000,000 ISK for the Burner Vengeance",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": [
+      {
+        "text": "Kestrel (mixed T1/T2)",
+        "url": "https://www.youtube.com/watch?v=25nUNFYIuVc"
+      }
+    ]
+  },
+  "AnomicTeam4ca": {
+    "wakka": "AnomicTeam4ca",
+    "name": "Anomic Team (Caldari)",
+    "type": "Team",
+    "faction": "Caldari",
+    "info": {
+      "Faction": "Caldari",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "Kinetic",
+      "Web/Scramble": "Burner Hawk",
+      "Extras": "You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "EM",
+      "Recommended ship classes": "Kestrel, kiting long range frigate (25km+)",
+      "Video": "Kestrel (mixed T1/T2)",
+      "ECM": "Gravimetric"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Team: Hawk Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by Roktaal:added ECM type Mon, 29 Oct 2018 15:48 UTC",
+          "Faction: Caldari",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: Kinetic",
+          "Web/scramble: Burner Hawk",
+          "Extras: You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: EM",
+          "Recommended ship types: Kestrel, kiting long range frigate (25km+)",
+          "Video:",
+          "Kestrel (mixed T1/T2)",
+          "ECM: Gravimetric"
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "All ships aggro on warp-in."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (40-45 km)",
+        "level": "h4",
+        "lines": [
+          "2x Frigates (Burner Bantam)",
+          "(Remote Shield Repair)",
+          "1x Elite Frigate (Burner Hawk)"
+        ]
+      },
+      {
+        "heading": "Kiting Tips",
+        "level": "h5",
+        "lines": [
+          "set the default orbit distance before you enter the mission site;",
+          "set the orbit to whatever the range of your guns/launchers can support, but do not set it inside Burner Hawk's webbing range;",
+          "Burners can and usually do have \"faction\" webs, so watch out when choosing your orbit range;",
+          "Activate your Microwarp Drive and start orbiting the Burner Hawk as soon as you land. Otherwise, you'll end up being webbed and scrambled because Burner Hawk is pretty fast;",
+          "Destroy Burner Bantams first as they remote repair each other and the Burner Hawk;",
+          "Burner Hawk uses Defender Missiles. If you notice that you are not hitting it with your own missiles, try turning off your launchers and turning them on again. This may place your firing cycle between the firing cycles of Burner Hawk's Defender missiles;",
+          "ECM is recommended"
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "CCP said that there is a slight chance of getting faction stuff in the loot. If you don't get faction modules, the loot is mostly made of Meta 4 modules. Burner Hawk is known to drop meta Ballistic Control Systems (Muon Coil, Cross-linked), among other loot."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "5,000,000 ISK for the Burner Hawk",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": [
+      {
+        "text": "Kestrel (mixed T1/T2)",
+        "url": "https://www.youtube.com/watch?v=KzYw-n1NFUM"
+      }
+    ]
+  },
+  "AnomicTeam4ga": {
+    "wakka": "AnomicTeam4ga",
+    "name": "Anomic Team (Gallente)",
+    "type": "Team",
+    "faction": "Gallente",
+    "info": {
+      "Faction": "Gallente",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "Kinetic/Thermal",
+      "Web/Scramble": "Burner Enyo (14km)",
+      "Extras": "You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "Explosive",
+      "Recommended ship classes": "Kestrel, Harpy, kiting long range frigate (25km+)",
+      "Video": "Kestrel (T1/T2 fit)",
+      "ECM": "Magnetometric"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Team: Enyo Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by Roktaal:added ECM type Mon, 29 Oct 2018 15:48 UTC",
+          "Faction: Gallente",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: Kinetic/Thermal",
+          "Web/scramble: Burner Enyo (14km)",
+          "Extras: You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: Explosive",
+          "Recommended ship types: Kestrel,",
+          "Harpy",
+          ", kiting long range frigate (25km+)",
+          "Video:",
+          "Kestrel (T1/T2 fit)",
+          "ECM: Magnetometric"
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "All ships aggro on warp-in. Burner Navitates are only remote repairing each other and Burner Enyo and will not deal any damage to you."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (40-45 km)",
+        "level": "h4",
+        "lines": [
+          "2x Frigates (Burner Navitas)",
+          "(Remote Armor Repair)",
+          "1x Elite Frigate (Burner Enyo)"
+        ]
+      },
+      {
+        "heading": "Kiting Tips",
+        "level": "h5",
+        "lines": [
+          "set the default orbit distance before you enter the mission site;",
+          "set the orbit to whatever the range of your guns/launchers can support, but do not set it inside Burner Enyo's webbing range;",
+          "Burners can and usually do have \"faction\" webs, so watch out when choosing your orbit range;",
+          "Activate your Microwarp Drive and start orbiting the Burner Enyo as soon as you land. Otherwise, you'll end up being webbed and scrambled because Burner Enyo is pretty fast (750-820 m/s);",
+          "Destroy Burner Navitates first as they remote repair each other and the Burner Enyo;",
+          "Burner Enyo uses Defender Missiles. If you notice that you are not hitting it with your own missiles, try turning off your launchers and turning them on again. This may place your firing cycle between the firing cycles of Burner Enyo's Defender missiles;"
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "CCP said that there is a slight chance of getting dedspace stuff in the loot. If you don't get dedspace modules, the loot is mostly made of Meta 4 modules."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "5,000,000 ISK for the Burner Enyo",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": [
+      {
+        "text": "Kestrel (T1/T2 fit)",
+        "url": "https://www.youtube.com/watch?v=W-2H9Dhpg9E"
+      }
+    ]
+  },
+  "AnomicTeam4mi": {
+    "wakka": "AnomicTeam4mi",
+    "name": "Anomic Team (Minmatar)",
+    "type": "Team",
+    "faction": "Minmatar",
+    "info": {
+      "Faction": "Minmatar",
+      "Mission type": "Encounter",
+      "Space type": "Deadspace",
+      "Damage dealt": "Explosive",
+      "Web/Scramble": "Burner Jaguar (14km)",
+      "Extras": "You can not enter mission site in anything larger than a Frigate hull.",
+      "Recommended damage dealing": "Kinetic",
+      "Recommended ship classes": "Hawk, kiting long range frigate (25km+)",
+      "ECM": "Ladar"
+    },
+    "pockets": [
+      {
+        "heading": "Anomic Team: Jaguar Burner, Level 4",
+        "level": "h1",
+        "lines": [
+          "Last edited by Roktaal:added ECM type Mon, 29 Oct 2018 15:47 UTC",
+          "Faction: Minmatar",
+          "Mission type: Encounter",
+          "Space type: Deadspace",
+          "Damage dealt: Explosive",
+          "Web/scramble: Burner Jaguar (14km)",
+          "Extras: You can not enter mission site in anything larger than a Frigate hull.",
+          "Recommended damage dealing: Kinetic",
+          "Recommended ship types: Hawk, kiting long range frigate (25km+)",
+          "ECM: Ladar"
+        ]
+      },
+      {
+        "heading": "Pocket 1",
+        "level": "h3",
+        "lines": [
+          "All ships aggro on warp-in. Burner Burst are only remote repairing each other and Burner Jaguar and will not deal any damage to you."
+        ]
+      },
+      {
+        "heading": "Hostile Ships (40-45 km)",
+        "level": "h4",
+        "lines": [
+          "2x Frigates (Burner Burst)",
+          "(Remote Armor Repair)",
+          "1x Elite Frigate (Burner Jaguar)"
+        ]
+      },
+      {
+        "heading": "Kiting Tips",
+        "level": "h5",
+        "lines": [
+          "set the default \"keep at distance\" before you enter the mission site;",
+          "set the \"keep at distance\" to whatever the range of your guns/launchers can support, but do not set it inside Burner Jaguar's webbing range;",
+          "Burners can and usually do have \"faction\" webs, so watch out when choosing your orbit range;",
+          "Activate your Microwarp Drive and \"keep at distance\" the Burner Jaguar as soon as you land. Otherwise, you'll end up being webbed and scrambled because Burner Jaguar is pretty fast (750-820 m/s);",
+          "Destroy Burner Bursts first as they remote repair each other and the Burner Jaguar;",
+          "Burner Jaguar uses Defender Missiles. If you notice that you are not hitting it with your own missiles, try turning off your launchers and turning them on again. This may place your firing cycle between the firing cycles of Burner Jaguar's Defender missiles;"
+        ]
+      },
+      {
+        "heading": "Loot",
+        "level": "h5",
+        "lines": [
+          "The loot is mostly made of Meta 4 modules but faction loot is possible."
+        ]
+      },
+      {
+        "heading": "Bounty",
+        "level": "h5",
+        "lines": [
+          "5,000,000 ISK for the Burner Enyo",
+          "CategoryMissions",
+          "CategoryLevel4",
+          "CategoryBurner"
+        ]
+      }
+    ],
+    "videoLinks": []
+  }
+}

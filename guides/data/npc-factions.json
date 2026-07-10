@@ -1,0 +1,204 @@
+{
+  "factions": [
+    {
+      "id": "amarr-empire",
+      "name": "Amarr Empire",
+      "category": "Empire",
+      "locations": "High-Sec (Amarr space), Faction Warfare",
+      "description": "The largest of the five main empires, the Amarr Empire is a sprawling patchwork of feudal-like provinces held together by the might of the emperor. Religion has always played a big part in Amarrian politics and the Amarrians believe they are the rightful masters of the world. They embrace slavery and their navy wields powerful laser weaponry that deals devastating EM and thermal damage.",
+      "damage_dealt": { "em": 57, "thermal": 41, "kinetic": 2, "explosive": 0 },
+      "damage_weakness": { "em": 82, "thermal": 78, "kinetic": 72, "explosive": 67 },
+      "ewar": ["Target Jamming", "Stasis Webifiers", "Sensor Dampening", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "caldari-state",
+      "name": "Caldari State",
+      "category": "Empire",
+      "locations": "High-Sec (Caldari space), Faction Warfare",
+      "description": "The Caldari State is ruled by several mega-corporations with no central government. Duty and discipline are required traits in Caldari citizens, plus unquestioning loyalty to the corporation they serve. The corporations compete aggressively amongst themselves, resulting in a highly capitalistic society. Their ships favor hybrid turrets and missiles, dealing kinetic and thermal damage.",
+      "damage_dealt": { "em": 1, "thermal": 52, "kinetic": 47, "explosive": 0 },
+      "damage_weakness": { "em": 70, "thermal": 76, "kinetic": 80, "explosive": 74 },
+      "ewar": ["Target Jamming", "Stasis Webifiers", "Sensor Dampening", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "gallente-federation",
+      "name": "Gallente Federation",
+      "category": "Empire",
+      "locations": "High-Sec (Gallente space), Faction Warfare",
+      "description": "The Gallente Federation encompasses several races, the Gallenteans the largest by far. The Federation is democratic and very liberal in a world full of dictators and oligarchies. The Caldari State was once part of the Federation, but a severe dispute resulted in their departure. The Gallente are masters of pleasure and entertainment, and their navy favors drone boats and blaster hybrids dealing thermal and kinetic damage.",
+      "damage_dealt": { "em": 5, "thermal": 49, "kinetic": 46, "explosive": 0 },
+      "damage_weakness": { "em": 75, "thermal": 77, "kinetic": 79, "explosive": 70 },
+      "ewar": ["Target Jamming", "Stasis Webifiers", "Sensor Dampening", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "minmatar-republic",
+      "name": "Minmatar Republic",
+      "category": "Empire",
+      "locations": "High-Sec (Minmatar space), Faction Warfare",
+      "description": "The Minmatar Republic was formed over a century ago when the Minmatar threw out their Amarrian overlords in the Minmatar Rebellion, supported by the Gallente Federation. Only a quarter of the Minmatar people reside within the Republic; the rest are scattered around the star cluster, including a large portion still enslaved within the Amarr Empire. Minmatar ships are fast and flexible, favoring projectile turrets and missiles dealing explosive damage.",
+      "damage_dealt": { "em": 13, "thermal": 11, "kinetic": 30, "explosive": 46 },
+      "damage_weakness": { "em": 67, "thermal": 73, "kinetic": 78, "explosive": 82 },
+      "ewar": ["Target Painting", "Target Jamming", "Stasis Webifiers", "Sensor Dampening", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "angel-cartel",
+      "name": "Angel Cartel",
+      "category": "Pirate",
+      "locations": "Curse, Great Wildlands, Stain, null-sec pockets",
+      "description": "Operating from the heart of the Curse region, the Angel Cartel is today the largest and best organized of the space-based criminal factions. The Angels are divided into several groups, each with a very special function. It is commanded by the Dominations and in the century they've been lurking in deep space they have stolen, plundered or sabotaged countless ships. The Angels recruit members from all the races and are thus not bound to any one zone of operation. Many believe that the Angels got their power by uncovering Jovian technologies hidden in their ancient homes.",
+      "damage_dealt": { "em": 12, "thermal": 8, "kinetic": 42, "explosive": 38 },
+      "damage_weakness": { "em": 69, "thermal": 73, "kinetic": 77, "explosive": 81 },
+      "ewar": ["Target Painting", "Target Jamming", "Stasis Webifiers", "Warp Scrambling", "Warp Disrupting", "Energy Neutralizing"]
+    },
+    {
+      "id": "blood-raiders",
+      "name": "Blood Raiders",
+      "category": "Pirate",
+      "locations": "Bleak Lands, Deadspace, High-Sec anoms, Aridia",
+      "description": "The Amarr Empire has had its share of religious cults and fanatics, but few have been as successful or feared as the Blood Raiders. They are a sect of an ancient cult called Sani Sabik, which uses blood in their rituals. The Blood Raiders believe that cloned bodies have 'purer' blood than other bodies, which is why they operate mainly in space, attacking unwary space farers and draining their bodies of blood. Led by the fearsome Omir Sarikusa, who has remained on top of the DED most wanted list for many years.",
+      "damage_dealt": { "em": 55, "thermal": 44, "kinetic": 1, "explosive": 0 },
+      "damage_weakness": { "em": 83, "thermal": 78, "kinetic": 72, "explosive": 67 },
+      "ewar": ["Stasis Webifiers", "Warp Scrambling", "Energy Neutralizing", "Tracking Disruption"]
+    },
+    {
+      "id": "guristas",
+      "name": "Guristas Pirates",
+      "category": "Pirate",
+      "locations": "Venal, Outer Passage, Dereleet, null-sec pockets",
+      "description": "Formed by two former members of the Caldari Navy, the pair go by the names Fatal and the Rabbit, the Guristas are a constant thorn in the side of the Caldari State. The Guristas are traditional pirates in the sense that their operation is not based around some creed or ideology, but rather plain and simple greed. They have bases close to Caldari space and from them they embark on daring raids, often into the State itself. Though considered more honorable than many of their counterparts, they are still extremely dangerous.",
+      "damage_dealt": { "em": 0, "thermal": 47, "kinetic": 53, "explosive": 0 },
+      "damage_weakness": { "em": 69, "thermal": 77, "kinetic": 81, "explosive": 73 },
+      "ewar": ["Target Painting", "Target Jamming", "Stasis Webifiers", "Warp Scrambling", "Warp Disrupting", "Energy Neutralizing"]
+    },
+    {
+      "id": "sanshas-nation",
+      "name": "Sansha's Nation",
+      "category": "Pirate",
+      "locations": "Great Wildlands, Catch, Stain, null-sec, Incursions",
+      "description": "Sansha's Nation was founded more than a century ago by Sansha, a Caldari tycoon that carved out a sizeable piece of space for himself to create a utopian state. His vision and charm attracted thousands of people and for some time the Nation flourished. But Sansha became ever more warped as his success increased. He started experiments combining capsule technology with the human mind, creating zombie-like creatures. When this became public knowledge, the other empires joined forces to bring him down. His forces were decimated and scattered to the winds.",
+      "damage_dealt": { "em": 56, "thermal": 44, "kinetic": 0, "explosive": 0 },
+      "damage_weakness": { "em": 81, "thermal": 77, "kinetic": 73, "explosive": 69 },
+      "ewar": ["Target Painting", "Target Jamming", "Stasis Webifiers", "Warp Scrambling", "Energy Neutralizing", "ECM", "Tracking Disruption"]
+    },
+    {
+      "id": "serpentis",
+      "name": "Serpentis Corporation",
+      "category": "Pirate",
+      "locations": "Fountain, Cloud Ring, Deklein, null-sec pockets",
+      "description": "The Serpentis Corporation was founded a few decades ago by V. Salvador Sarpati. At first it was engaged in hi-tech research, but with time its ties with the underworld grew and the Serpentis research stations, scattered in remote areas, became infamous pirate havens. Sarpati made a deal with the Angel Cartel early on to provide protection for his stations. Both sides have prospered enormously from this deal. It is strongly believed that Serpentis is the main developer and manufacturer of illegal neural boosters.",
+      "damage_dealt": { "em": 0, "thermal": 53, "kinetic": 46, "explosive": 1 },
+      "damage_weakness": { "em": 73, "thermal": 78, "kinetic": 82, "explosive": 67 },
+      "ewar": ["Stasis Webifiers", "Sensor Dampening", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "mordus-legion",
+      "name": "Mordu's Legion",
+      "category": "Pirate",
+      "locations": "Outer Passage, Black Rise, Molden Heath",
+      "description": "The origin of Mordu's Legion lies in the Gallente-Caldari War when a group of Intaki military personnel sided with the Caldari. After the war the Intakis settled in Caldari space, but unwillingly became entangled with Caldari locals in the Waschi Uprising. Mordu's Legion was formed at that time as a mercenary fighting force. The Legion is loosely associated with the Caldari Navy but is for the most part totally independent. They are commonly hired by companies to protect valuable assets outside empire space.",
+      "damage_dealt": { "em": 10, "thermal": 47, "kinetic": 36, "explosive": 7 },
+      "damage_weakness": { "em": 74, "thermal": 75, "kinetic": 76, "explosive": 75 },
+      "ewar": ["Target Painting", "Stasis Webifiers", "Warp Scrambling", "Warp Disrupting", "Energy Neutralizing"]
+    },
+    {
+      "id": "thukker-tribe",
+      "name": "Thukker Tribe",
+      "category": "Pirate",
+      "locations": "Great Wildlands, nomadic caravans",
+      "description": "The Thukker tribe is one of the seven original Minmatar tribes. After the Minmatar Rebellion the Thukkers left Minmatar space and took up the nomadic lifestyles of their ancestors, only this time in space. The closest thing they've got to home is the Great Wildlands region, where they are very numerous, but the Thukkers like to be on the move, constantly going from one solar system to another in their huge caravans, trading and scavenging. Respectable citizens of EVE frown upon the Thukkers, considering them nothing but scoundrels and thieves.",
+      "damage_dealt": { "em": 0, "thermal": 45, "kinetic": 14, "explosive": 41 },
+      "damage_weakness": { "em": 75, "thermal": 77, "kinetic": 73, "explosive": 74 },
+      "ewar": ["Target Jamming", "Stasis Webifiers", "Warp Scrambling"]
+    },
+    {
+      "id": "khanid-kingdom",
+      "name": "Khanid Kingdom",
+      "category": "Empire",
+      "locations": "High-Sec (Khanid space)",
+      "description": "The Khanid Kingdom, also known as the Dark Amarr, was founded a few centuries ago when the last Amarr Emperor was chosen. Khanid was one of the royal heirs at the time and, in accordance with tradition, should have killed himself after failing to become emperor. This Khanid refused to do and split his vast domains from the Amarr Empire. The Kingdom still upholds many of the traditions of Amarr society but has also embraced the customs of others, mainly the Caldari. Many visitors feel like it is a surreal mix of the Amarr and Caldari empires.",
+      "damage_dealt": { "em": 50, "thermal": 44, "kinetic": 4, "explosive": 2 },
+      "damage_weakness": { "em": 81, "thermal": 78, "kinetic": 72, "explosive": 69 },
+      "ewar": ["Stasis Webifiers", "Warp Scrambling"]
+    },
+    {
+      "id": "eom",
+      "name": "Equilibrium of Mankind",
+      "category": "Pirate",
+      "locations": "High-Sec missions",
+      "description": "The Equilibrium of Mankind is a radical human supremacist faction that believes humanity must be purified and freed from alien influence. They operate primarily through mission agents and have cells embedded within empire space. Their ships use a mix of hybrid and missile weaponry, favoring kinetic and thermal damage. They are a relatively small but dangerous faction with strong ideological convictions.",
+      "damage_dealt": { "em": 0, "thermal": 57, "kinetic": 43, "explosive": 0 },
+      "damage_weakness": { "em": 71, "thermal": 76, "kinetic": 79, "explosive": 75 },
+      "ewar": ["Stasis Webifiers", "Warp Scrambling"]
+    },
+    {
+      "id": "mercenary",
+      "name": "Mercenaries",
+      "category": "Pirate",
+      "locations": "High-Sec missions, various locations",
+      "description": "Mercenaries in New Eden are independent contractors who sell their combat services to the highest bidder. Unlike faction-aligned pirates, mercs have no grand ideology or religious fervor — they fight for ISK. Their ships and tactics vary widely depending on their employer and specialization, making them unpredictable opponents. They employ a mix of weapon types and can be found operating wherever there is conflict and profit to be made.",
+      "damage_dealt": { "em": 18, "thermal": 34, "kinetic": 28, "explosive": 19 },
+      "damage_weakness": { "em": 75, "thermal": 78, "kinetic": 72, "explosive": 74 },
+      "ewar": ["Stasis Webifiers", "Warp Scrambling"]
+    },
+    {
+      "id": "concord",
+      "name": "CONCORD",
+      "category": "Other",
+      "locations": "All empire space, missions",
+      "description": "CONCORD is an independent organization founded a century ago to facilitate negotiations between the races to improve relations, as well as to foster inter-stellar trade through policing and regulations. Starting as a fledgling meeting ground for diplomats, CONCORD has slowly increased its power and influence. It has become an entity independent of the races, able to largely fund its own operation through customs, confiscation of contraband goods, and other means. Their enforcement ships use balanced weapon systems dealing all damage types.",
+      "damage_dealt": { "em": 24, "thermal": 25, "kinetic": 25, "explosive": 26 },
+      "damage_weakness": { "em": 76, "thermal": 76, "kinetic": 74, "explosive": 74 },
+      "ewar": ["Target Jamming", "Stasis Webifiers", "Sensor Dampening", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "rogue-drones",
+      "name": "Rogue Drones",
+      "category": "Other",
+      "locations": "Asteroid belts, Deadspace, Abyssal, roaming",
+      "description": "While rogue drones come in all shapes, sizes and even personalities, the signs are that they do not exist in a unified collective. Much like their accidental creators, the rogue drones can be found co-operating locally, and even in relatively large and widespread 'hive minds', but they will readily attack and recycle drones from competing hives. They are a constant nuisance for miners and travelers throughout New Eden, and their omni-damage profile makes them unpredictable opponents.",
+      "damage_dealt": { "em": 26, "thermal": 19, "kinetic": 31, "explosive": 25 },
+      "damage_weakness": { "em": 81, "thermal": 77, "kinetic": 73, "explosive": 70 },
+      "ewar": ["Target Painting", "Stasis Webifiers", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "sleepers",
+      "name": "Sleepers",
+      "category": "Other",
+      "locations": "Wormhole Deadspace (Anoikis), roaming",
+      "description": "The Sleepers were an ancient civilization that retreated into wormhole space (Anoikis) long before thecolonization of New Eden. Their highly advanced automated defense systems still guard the ruins of their civilization, making wormhole space one of the most dangerous areas in the universe. Sleeper NPCs are notoriously difficult, employing all four damage types and sophisticated electronic warfare. They are believed to be the precursors to much of the technology used by the other races today.",
+      "damage_dealt": { "em": 50, "thermal": 50, "kinetic": 0, "explosive": 0 },
+      "damage_weakness": { "em": 75, "thermal": 76, "kinetic": 75, "explosive": 74 },
+      "ewar": ["Stasis Webifiers", "Warp Scrambling", "Energy Neutralizing"]
+    },
+    {
+      "id": "triglavian",
+      "name": "Triglavian Collective",
+      "category": "Other",
+      "locations": "Abyssal Deadspace, roaming invasions",
+      "description": "The Triglavian Collective appears to be a human civilization that secluded itself in the depths of Abyssal Deadspace centuries, perhaps millennia ago. The Triglavian civilization has demonstrable expertise in advanced space-time mechanics, coupled with a mastery of bioadaptive technology that it uses to survive the shifting environments of the Abyss. Their ships use unique weapon systems that ramp up damage over time, primarily dealing thermal and explosive damage.",
+      "damage_dealt": { "em": 2, "thermal": 55, "kinetic": 3, "explosive": 40 },
+      "damage_weakness": { "em": 78, "thermal": 77, "kinetic": 72, "explosive": 72 },
+      "ewar": ["Target Painting", "Electronic War Resistance", "Stasis Webifiers", "Energy Neutralizing"]
+    },
+    {
+      "id": "air",
+      "name": "AIR",
+      "category": "Other",
+      "locations": "New player systems, tutorial areas",
+      "description": "AIR (Advanced Interface Replication) is an organization that provides support services and training for new capsuleers. While primarily a peaceful entity, AIR security forces may engage hostile targets in protected space. Their forces deal primarily thermal and explosive damage with very little EM or kinetic output.",
+      "damage_dealt": { "em": 8, "thermal": 62, "kinetic": 3, "explosive": 27 },
+      "damage_weakness": { "em": 75, "thermal": 74, "kinetic": 74, "explosive": 77 },
+      "ewar": []
+    },
+    {
+      "id": "upwell",
+      "name": "Upwell Consortium",
+      "category": "Other",
+      "locations": "Anti-insurgency systems",
+      "description": "The Upwell Consortium is a powerful industrial and political entity in New Eden, responsible for building and maintaining many of the structures used by capsuleers. During the Triglavian invasion, Upwell established defensive forces to protect their assets and infrastructure. Their anti-insurgency forces deal balanced EM and explosive damage.",
+      "damage_dealt": { "em": 50, "thermal": 0, "kinetic": 50, "explosive": 0 },
+      "damage_weakness": { "em": 76, "thermal": 74, "kinetic": 74, "explosive": 76 },
+      "ewar": ["Target Painting", "Stasis Webifiers", "Energy Neutralizing"]
+    }
+  ]
+}

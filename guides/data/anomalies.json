@@ -1,0 +1,6559 @@
+{
+  "AngelBurrow": {
+    "pageName": "AngelBurrow",
+    "title": "Angel Burrow",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each wave triggers next wave.  Waves spawn in 30-60km from warp-in."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Gistii Hijacker/Rogue)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Gistii Hijacker/Rogue)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Gistii Thug)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Gistii Hijacker)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "1x Frigate (Gistii Ambusher)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelDen": {
+    "pageName": "AngelDen",
+    "title": "Angel Den",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Two sets of spawns, one triggered by ship destuction and the second triggered by Sentry Tower destruction."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "6x Frigate (Gistii Hunter/Ruffian)",
+          "Target Painting Ruffian",
+          "4x Destroyer (Gistior Trasher)",
+          "2x Sentry (Angel Light Missile Battery)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Gistii Hijacker)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Sentry (Angel Light Missile Battery)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Gistii Ambusher)",
+          "2x Destroyer (Gistior Trasher)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Gistii Nomad)",
+          "1x Faction Cruiser (Domination Predator)",
+          "Optional Spawn"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelForlornHideaway": {
+    "pageName": "AngelForlornHideaway",
+    "title": "Angel Forlorn Hideaway",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "No auto-aggro.  Last ship in each wave triggers next wave.  Waves warp in at Abandoned Asteroid Station, 40km from warp-in."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "5x Frigate (Gistii Nomad/Ruffian)",
+          "Target Painting Ruffian"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Gistii Nomad/Ruffian)",
+          "Target Painting Ruffian",
+          "1x Cruiser (Gistum Predator)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Gistior Defacer/Shatterer)",
+          "3x Cruiser (Gistum Depredator/Predator)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "5x Cruiser (Gistum Depredator/Predator)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelForsakenRallyPoint": {
+    "pageName": "AngelForsakenRallyPoint",
+    "title": "Angel Forsaken Rally Point",
+    "info": {
+      "Faction": "Angel",
+      "Location": "Nullsec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "Arch Gistii Hijacker/Outlaw/Rogue/Thug",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Elite Cruiser (Arch Gistum Marauder/Phalanx)",
+          "1-2x Battleship (Gist Nephilim/Saint)",
+          "Target Painting"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Arch Gistii Ambusher/Hunter/Impaler)",
+          "2-3x Battleship (Gist Nephilim/Saint)",
+          "Target Painting"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Cruiser (Gistum Marauder/Phalanx)",
+          "2-3x Battleship (Gist Malakim/Throne)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Arch Gistii Hijacker/Outlaw/Rogue/Thug)",
+          "Scram & Web",
+          "2-3x Battleship (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Battlecruiser (Arch Gistatis Legatus/Legionnaire/Primus/Tribuni)",
+          "3-4x Battleship (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Cruiser (Arch Gistum Centurion/Marauder/Liquidator/Phalanx)",
+          "3-4x Battleship (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "3-4x Battleship (Gist Malakim/Throne)"
+        ]
+      },
+      {
+        "heading": "Rewards",
+        "level": "h5",
+        "lines": [
+          "Bounty: ~19-22.5 mil",
+          "Loot/Salvage: ~5-12 mil"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelHiddenHideaway": {
+    "pageName": "AngelHiddenHideaway",
+    "title": "Angel Hidden Hideaway",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Two sets of spawns, one triggered by ship destruction and the second triggered by Sentry Tower destruction."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "6x Frigate (Gistii Outlaw/Thug)",
+          "1-2x Cruiser (Gistum Predator)",
+          "1x Sentry (Angel Sentry Gun)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Gistior Haunter)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Gistii Rogue)",
+          "1x Cruiser (Gistum Depredator)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Gistii Rogue)",
+          "1x Destroyer (Gistior Haunter)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Gistii Hijacker)",
+          "2x Cruiser (Gistum Predator)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelHaven": {
+    "pageName": "AngelHaven",
+    "title": "Angel Haven",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "Nullsec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "Arch Gistii Outlaw/Rogue/Thug",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Two stripes of clouds with tiny little asteroids around the warp in point (watch out if you orbit).",
+          "All waves aggress upon spawning.",
+          "Two types of site, scroll down for the second."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Turrets (types)",
+          "5x Elite Cruisers (Arch Gistum Liquidator)",
+          "Trigger",
+          "3x Battlecruisers (Gistatis Legionnaire/Primus)",
+          "7x Battleships (Gist Cherubim/Seraphim/Throne)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "4x Elite Frigates (Arch Gistii Ambusher/Hunter/Impaler)",
+          "3x Elite Cruisers (Arch Gistum Centurion/Phalanx)",
+          "2x Battlecruisers (Gistatis Legatus)",
+          "Trigger",
+          "3x Battleships (Gist Malakim/Throne)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigates (Arch Gistii Outlaw)",
+          "Scram & Web",
+          "3x Battlecruisers (Gistatis Praefectus/Tribuni)",
+          "Trigger",
+          "3x Battleships (Gist Malakim/Throne)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigates (Arch Gistii Hijacker)",
+          "6x Battlecruisers (Gistatis Legatus/Tribuni/Tribunus)",
+          "Trigger",
+          "4x Battleships (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigates (Arch Gistii Nomad/Ruffian)",
+          "Target Painting",
+          "3x Battlecruisers (Gistatis Praefectus)",
+          "7x Battleships (Gist Cherubim/Malakim/Seraphim/Throne)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigates (Arch Gistii Outlaw/Rogue/Thug)",
+          "Scram & Web",
+          "4x Battleships (Gist Cherubim/Seraphim)",
+          "OPTIONAL: Domination Nephilim"
+        ]
+      },
+      {
+        "heading": "OR",
+        "level": "h3",
+        "lines": [
+          "A different site:"
+        ]
+      },
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Two stripes of clouds with tiny little asteroids around the warp in point (watch out if you orbit).",
+          "Waves are slightly variable, but the same total number of each type of ship.",
+          "All waves aggress upon spawning."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": []
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelHideaway": {
+    "pageName": "AngelHideaway",
+    "title": "Angel Hideaway",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Gistii Hijacker/Rogue)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Gistii Outlaw/Thug)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Gistii Hijacker/Rogue)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1-3x Frigate (Gistii Ambusher/Outlaw/Raider/Thug)"
+        ]
+      },
+      {
+        "heading": "Wave 4 (Optional)",
+        "level": "h4",
+        "lines": [
+          "1x Faction Frigate (Domination Thug)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelHiddenRallyPoint": {
+    "pageName": "AngelHiddenRallyPoint",
+    "title": "Angel Hidden Rally Point",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "Nullsec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "Arch Gisti Hijacker",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "2 Large rock formations in a small cloud, all waves spawn around or behind this area.  Warp in is around 50k away below and in front.",
+          "Aggro on warp in.",
+          "NOTE: All waves aggress upon spawning, unless greater than 120km away.  Aggro can be managed this way if you accidentally blow a trigger."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "5x Destroyers (Gistior Defiler/Seizer)",
+          "6x Cruisers (Gistum Liquidator/Maurader)",
+          "Trigger",
+          "3x Battlecruisers (Gistatis Legatus/Primus/Tribuni)",
+          "3x Battleships (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigates (Arch Gistii Hijacker)",
+          "Scram & Web",
+          "4x Cruisers (Gistum Liquidator/Marauder)",
+          "7x Battlecruisers (Gistatis Praefectus/Tribunus)",
+          "4x Battleships (Gist Commander/General)",
+          "Next wave spawns when last battlecruiser or cruiser (whichever is last) is destroyed"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "6x Cruisers (Gistum Centurion/Phalanx)",
+          "7x Battlecruisers (Gistatis Legatus/Tribunis)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigates (Arch Gistii Nomad)",
+          "Target Painting",
+          "4x Elite Cruisers (Arch Gistum Liquidator/Marauder)",
+          "Trigger",
+          "5x Battlecruisers (Gistatis Legatus/Tribunis)",
+          "2x Battleships (Gist Nephilim/Saint)",
+          "Target Painting"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2x Elite Cruisers (Arch Gistum Centurion/Phalanx)",
+          "8x Battleships (Gist Cherubim/Throne)",
+          "Category Anomalies"
+        ]
+      }
+    ],
+    "categories": []
+  },
+  "AngelHiddenHub": {
+    "pageName": "AngelHiddenHub",
+    "title": "Angel Hidden Hub",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "Nullsec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "Arch Gistii Outlaw",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Warp into a small pocket with a ruined stargate and a stonehenge object. Final kill is trigger for next wave, unless otherwise specified."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Cruisers (Gistum Centurion/Phalanx)",
+          "4x Battlecruisers (Gistatis Legatus/Tribunus)",
+          "4x Battleships (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Elite Cruisers (Arch Gistum Centurion)",
+          "Trigger",
+          "7x Battlecruisers (Gistatis Praefectus/Primus/Tribunus)",
+          "4x Battleships (Gist Cherubim/Seraphim)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigates (Arch Gistii Hunter)",
+          "3x Battlecruisers (Gistatis Legatus, Primus, Tribuni)",
+          "7x Battleships (Gist Cherubim/Nephilim/Saint/Seraphim/Warlord)",
+          "Target Painting Nephilim/Saint",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1x Elite Frigate (Arch Gistii Outlaw)",
+          "Scram & Web",
+          "1x Elite Cruiser (Arch Gistum Centurion/Phalanx)",
+          "6x Battleships (Gist Seraphim)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelHub": {
+    "pageName": "AngelHub",
+    "title": "Angel Hub",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "Nullsec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Small pocket, cloud with some angel structures about 50k away.  Turrets located there.  Auto-aggro on warp in."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigate (Arch Gistii Hunter/Impaler)",
+          "3x Battleship (Gist Malakim)",
+          "Trigger",
+          "4x Turrets (2 different types)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Gistatis Legatus/Praefectus)",
+          "4x Battleship (Gist Cherubim/Seraphim)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Destoyer (Gistior Defacer/Haunter)",
+          "3x Battlecruiser (Gistatis Legatus)",
+          "4x Battleship (Gist Cherubim/Seraphim)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Elite Cruiser (Arch Gistum Centurion/Marauder/Phalanx)",
+          "4x Battleship (Gist Commander/General)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelPort": {
+    "pageName": "AngelPort",
+    "title": "Angel Port",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "Low Sec/Nullsec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave. Last ship of specified type in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Arch Gistii Hunter/Impaler)",
+          "4x Battlecruiser (Gistatis Legionnaire/Primus)",
+          "Trigger",
+          "2x Angel Heavy Missile Battery",
+          "2x Tower Sentry Angel"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Arch Gistii Ambusher/Impaler)",
+          "2x Battlecruiser (Gistatis Legatus)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Destroyer (Gistior Defiler/Hunter/Seizer/Thrasher)",
+          "7x Battlecruiser (Gistatis Legatus/Legionnaire/Praefectus/Primus)",
+          "4x Battleship (Gist Malakim/Throne)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Gistatis Primus)",
+          "3x Battleship (Gist War General/Warlord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelRefuge": {
+    "pageName": "AngelRefuge",
+    "title": "Angel Refuge",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Exp/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Exp(best), Kin(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Gistii Hijacker/Outlaw/Rogue)",
+          "2x Sentry (Angel Basic Defense Battery/Light Missile Battery/Tower Sentry Angel I)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Gistii Nomad/Thug)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "1-3x Frigate (Gistii Ambusher/Nomad)",
+          "0-2x EW Frigate (Gistii Ruffian)",
+          "Target Painting",
+          "0-1x Destroyer (Gistior Haunter/Hunter)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "0-3x Frigate (Gistii Hunter/Raider)",
+          "1-3x Destroyer (Gistior Defacer/Shatterer)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "0-2x Frigate (Gistii Hunter/Imapler)",
+          "1-2x Destroyer (Gistior Defiler/Haunter)"
+        ]
+      },
+      {
+        "heading": "Wave 5 (Optional)",
+        "level": "h4",
+        "lines": [
+          "1-3x Frigate (Gistii Hunter/Raider)",
+          "0-2x Destroyer (Gistior Defiler)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodForsakenHideaway": {
+    "pageName": "BloodForsakenHideaway",
+    "title": "Blood Forsaken Hideaway",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "High-Sec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Corpii Reaver)",
+          "2x Destroyer (Corpior Friar)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Elder Corpii Raider)",
+          "2x Destroyer (Corpior Cleric)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Corpii Reaver)",
+          "3x Destroyer (Corpior Friar)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Elder Corpii Reaver)",
+          "3x Destroyer (Corpior Friar)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodForsakenHub": {
+    "pageName": "BloodForsakenHub",
+    "title": "Blood Forsaken Hub",
+    "info": {
+      "Faction": "Blood Raider",
+      "Location": "Null Sec",
+      "Damage Dealt": "EM/Therm",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto Aggro; spawn approx 15 km from warp in"
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Battlecruisers (Corpatis Shade)",
+          "Neuting",
+          "3x Battleships (Corpus Archbishop)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Cruisers (Elder Corpum Arch Sage)",
+          "3x Battleships (Corpus Pope)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Battlecruisers (Corpatis Bishop)",
+          "4x Battleships (Corpus Harbringer)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Cruisers (Elder Corpum Arch Priest)",
+          "4x Battleships (Corpus Patriarch)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodDen": {
+    "pageName": "BloodDen",
+    "title": "Blood Den",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "High-Sec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Two chains of spawns triggered by EW Frigates and Sentries."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Corpii Engraver)",
+          "Tracking Disruption",
+          "3x Destroyer (Corpior Friar/Cleric)",
+          "2x Sentry (Tower Heavy Missile Battery)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Corpior Visionary)",
+          "2x Cruiser (Corpum Arch Engraver/Arch Reaver)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Corpii Reaver/Diviner)",
+          "2x Cruiser (Corpum Arch Reaver)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Destroyer (Corpior Cleric/Devoter)",
+          "3x Cruiser (Corpum Revenant/Arch Templar)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 4",
+        "level": "h4",
+        "lines": [
+          "3x Destroyer (Corpior Friar/Templar/Visionary)",
+          "3x Cruiser (Corpum Sage/Priest)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodHub": {
+    "pageName": "BloodHub",
+    "title": "Blood Hub",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "Nullsec/Lowsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "4x Blood Heavy Missile Battery",
+          "2x Tower Sentry Bloodraider II",
+          "3x Cruiser (Corpum Arch Sage)",
+          "3x Battleship (Corpus Apostle)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Destroyer (Corpior Friar)",
+          "3x Battleship (Corpus Apostle)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Corpii Reaver)",
+          "3x Battleship (Corpus Oracle)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Corpatis Bishop)",
+          "2x Battleship (Corpus Oracle)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodHideaway": {
+    "pageName": "BloodHideaway",
+    "title": "Blood Hideaway",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "High-Sec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1x Frigate (Corpii Worshipper)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1x Frigate (Corpii Herald / Upholder)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Corpii Worshipper / Follower)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Corpii Herald / Upholder)"
+        ]
+      },
+      {
+        "heading": "Wave 4 (Optional)",
+        "level": "h4",
+        "lines": [
+          "1x Faction Frigate (Dark Blood Seeker)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodHiddenHub": {
+    "pageName": "BloodHiddenHub",
+    "title": "Blood Hidden Den",
+    "info": {
+      "Faction": "Blood Raider",
+      "Location": "Null Sec",
+      "Damage Dealt": "EM/Therm",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto Aggro, spawn at ~20 km from warp in.",
+          "Frigates are triggers"
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Corpii Reaver)",
+          "4x Elite Frigate (Elder Corpii Collector)",
+          "Tracking Disruption",
+          "3x Cruiser (Corpum Arch Sage/Shadow Sage)",
+          "2x Elite Cruiser (Elder Corpum Shadow Sage)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1x Battleship (Corpus Harbringer)",
+          "Neuting"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Corpii Reaver)",
+          "2x Cruiser (Corpum Dark Priest)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodRefuge": {
+    "pageName": "BloodRefuge",
+    "title": "Blood Refuge",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "High-Sec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Corpii Follower/Herald/Upholder/Worshipper)",
+          "2x Sentry (Tower Sentry Bloodraider I/Light Missile Battery)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Corpii Collector/Herald/Seeker/Upholder)",
+          "Tracking Disruption Collector"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Corpii Collector/Raider/Reaver/Seeker)",
+          "Tracking Disruption Collector",
+          "0-2x Destroyer (Corpior Devoter/Templar)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "0-3x Frigate (Corpii Diviner/Raider)",
+          "2-3x Destroyer (Corpior Visionary)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "0-2x Frigate (Corpii Diviner/Engraver/Raider)",
+          "1-3x Destroyer (Corpior Devoter/Templar)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodPort": {
+    "pageName": "BloodPort",
+    "title": "Blood Port",
+    "info": {
+      "Faction": "Blood Raider",
+      "Location": "Null/Low Sec",
+      "Damage Dealt": "EM/Therm",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Has a few destructible object, no known drops.",
+          "Rats spawn approx 15 km from warp in"
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Blood Heavy Missile Battery",
+          "2x Blood Raider Tower Sentry II",
+          "3x Frigate (Elder Corpii Diviner)",
+          "3x Battlecruiser (Corpatis Fanatic)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Elder Corpii Diviner)",
+          "3x Battlecruiser (Corpatis Fanatic)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Corpior Devoter)",
+          "3x Battlecruiser (Corpatis Fanatic)",
+          "1-3x Battleship (Corpus Archon)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Elder Corpi Diviner)",
+          "4x Battleship (Corpus Archon)"
+        ]
+      },
+      {
+        "heading": "Bonus Wave",
+        "level": "h4",
+        "lines": [
+          "1x Battleship (Dark Blood Prophet) 4,875,000 bounty",
+          "Bonus Loot:",
+          "Blood Radio L",
+          "Blood Crystal Tag"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodRallyPoint": {
+    "pageName": "BloodRallyPoint",
+    "title": "",
+    "info": {
+      "Faction": "Blood Raider",
+      "Location": "Null Sec",
+      "Damage Dealt": "EM/Therm",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Blood Rally Point",
+        "level": "h3",
+        "lines": [
+          "Last edited by ShintuFelper:Fixed typo Fri, 04 Jul 2014 14:48 UTC [diff]",
+          "Faction: Blood Raider",
+          "Location: Null Sec",
+          "Damage Dealt: EM/Therm",
+          "Web/Scram: Elder Corpii Follower",
+          "Extras: none",
+          "Recommended Damage Dealing: EM(best), Therm(secondary)",
+          "Ship Used: Passive Shield Drake"
+        ]
+      },
+      {
+        "heading": "Single Pocket",
+        "level": "h4",
+        "lines": [
+          "Auto aggro from about 15 km out from warp in.",
+          "Destrucable object with random drops"
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Blood Raider Tower Sentry",
+          "2x Frigates (Corpior Templar)",
+          "2x Cruisers (Corpum Arch Engraver)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigates (Elder Corpii Worshiper)",
+          "2x Cruisers (Corpum Arch Reaver)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigates (Elder Corpii Follower)",
+          "Scram & Web",
+          "3x Battlecruisers (Corpatis Fanatic)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigates (Elder Corpii Raider)",
+          "2x Battlecruisers (Corpatis Fanatic)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "DroneCluster": {
+    "pageName": "DroneCluster",
+    "title": "Drone Cluster",
+    "info": {
+      "Faction": "Rogue Drones",
+      "Location": "High-Sec",
+      "Damage Dealt": "All Types",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Decimator/Infester/Raider/Render Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1-3x Frigate (Decimator/Render Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "0-3x Frigate (Infester Alvi)",
+          "0-2x Destroyer (Shatter/Ripper Alvior)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Decimator/Hunter/Raider/Silverfish Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Raider/Silverfish/Sunder Alvi)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "BloodYard": {
+    "pageName": "BloodYard",
+    "title": "Blood Yard",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "Low Sec",
+      "Damage Dealt": "EM / Thermal",
+      "Recommended Damage Dealing": "EM / Thermal"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "0-3x Heavy Missile Battery",
+          "3x Cruiser"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "4x Cruiser"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate",
+          "2x Cruiser"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Destroyer",
+          "4x Cruiser"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer",
+          "2-3x Cruiser"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "DroneAssembly": {
+    "pageName": "DroneAssembly",
+    "title": "Drone Assembly",
+    "info": {
+      "Faction": "Rogue Drones",
+      "Location": "High-Sec",
+      "Damage Dealt": "All Types",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Frigate"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1x Frigate"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate"
+        ]
+      },
+      {
+        "heading": "Bonus Wave",
+        "level": "h4",
+        "lines": [
+          "0-1x Commander Destroyer (Sentient Shredder Alvior)--Drops rogue drone parts"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasBurrow": {
+    "pageName": "GuristasBurrow",
+    "title": "Guristas Burrow",
+    "info": {
+      "Faction": "Guristas Pirates",
+      "Location": "High Sec",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Rock Formation Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Pithi Plunderer/Wrecker)"
+        ]
+      },
+      {
+        "heading": "Asteroid Station Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave, except for Wave 1 which is triggered by a specific type of frigate."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2-4x Frigate (Pith Arrogator/Imputor)",
+          "Trigger",
+          "1-2x Frigate (Pith Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Plunderer/Wrecker)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "DroneCollection": {
+    "pageName": "DroneCollection",
+    "title": "Drone Collection",
+    "info": {
+      "Faction": "Rogue Drones",
+      "Location": "High-Sec",
+      "Damage Dealt": "All Types",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave.  All waves spawn at the Drone Bunker, 22km from warp-in."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Splinter Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Splinter Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Decimator Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Decimator Alvi)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Infester Alvi)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "DroneHorde": {
+    "pageName": "DroneHorde",
+    "title": "Drone Horde",
+    "info": {
+      "Faction": "Rogue Drones",
+      "Location": "Nullsec",
+      "Damage dealt": "Various (~24% EM, ~19% Ex, ~19% Kin, ~38% Therm)",
+      "Recommended damage dealing": "EM/Therm"
+    },
+    "pockets": [
+      {
+        "heading": "Towers",
+        "level": "h4",
+        "lines": [
+          "3x Lookout Sentry",
+          "1x Lookout Sentry",
+          "Neut",
+          "(Near Group 2)"
+        ]
+      },
+      {
+        "heading": "Group 1 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate(s) (Predator/Marauder/Dismantler Alvior)",
+          "1-2x Battleship(s) (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 1-1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigates (Strain Barracuda/Devilfish/Hunter/Silverfish Alvi)",
+          "2-3x Battlecruisers (Siege/Exterminator Alvatis)"
+        ]
+      },
+      {
+        "heading": "Group 2 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "1-2x Battlecruiser(s) (Crippler/Defeater/Exterminator/Siege/Striker Alvatis)",
+          "1-2x Battleship(s) (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 2-1",
+        "level": "h4",
+        "lines": [
+          "3-4x Cruisers (Strain Atomizer/Bomber/Disintegrator/Nuker Alvum)",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Group 3 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "1-3x Frigate(s) (Strain Decimator/Infester/Render/Splinter Alvi)",
+          "Web/Scramble",
+          "1-2x Battleship(s) (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 3-1",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruisers (Crippler/Defeater/Enforcer/Exterminator/Siege/Striker Alvatis)",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Group 4 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate(s) (Strain Raider/Render/Sunder)",
+          "Render Web/Scramble",
+          "1-2x Battleship(s) (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 4-1 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "3-4x Cruisers (Strain Annihilator/Devastator/Violator/Viral Infector Alvum)",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 4-2 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "2-3x Battlecruisers (Crippler/Defeater/Enforcer/Exterminator/Siege/Striker Alvatis)",
+          "2-3x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 4-3",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigates (Dismantler/Maurader/Predator Alvior)",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Blitz:",
+        "level": "h5",
+        "lines": [
+          "Kill all ships in Group 4 and all spawns.",
+          "Note: This only works as a blitz in that it makes the Cosmic Anomaly despawn so you will have to be probed for a neutral to warp to you."
+        ]
+      },
+      {
+        "heading": "Tips:",
+        "level": "h5",
+        "lines": [
+          "To lower the damage kill all but one ship in each of the 4 initial spawns then work on 1 group at a time.",
+          "Matriarch Alvus hit mainly Therm, while Alvus Queen hit EM/Ex; prioritize kills according to your tank.",
+          "If you have an extra 20gj/s cap stability it is not necessary to kill the neuting tower.",
+          "Bounty: ~27-32mil isk depending on spawn composition",
+          "Ring Variant",
+          "On warp-in all sentry guns and the lone rat will agro within a few seconds.",
+          "With the new Odyssey rat AI, rats will target switch to your drones intermittently."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "8x Lookout Sentry",
+          "1x Cruiser(Striker Alvatis)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Spawn 1 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigates (Strain Decimator/Infector/Render/Splinter Alvi)",
+          "Web/Scramble",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 2 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigates (Strain Decimator/Infector/Render/Splinter Alvi)",
+          "Web/Scramble",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 3 (See Note)",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigates (Strain Barracuda/Devilfish/Hunter Alvi)",
+          "6-7x Cruisers (Atomizer/Bomber/Disintegrator/Nuker Alvum)",
+          "2-3x Battlecruisers (Exterminator/Siege Alvatis)",
+          "Note: After eight runs of this the determining factor of the spawn is still unknown, but 80% of the time it is the leftmost Nuker/Disintegrator Alvum."
+        ]
+      },
+      {
+        "heading": "Spawn 4 (Last Kill)",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigates (Maurauder/Predator Alvi)",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 5 (Last Battleship)",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigates (Strain Decimator/Infester/Render/Splinter Alvi)",
+          "Web/Scramble",
+          "2-4x Cruisers (Annihilator/Devastator/Viral Infector Alvum)",
+          "5-7x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Spawn 6",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruisers (Crippler/Enforcer/Extermiantor/Siege/Striker Alvatis)",
+          "3-4x Battleships (Matriarch Alvus/Alvus Queen)"
+        ]
+      },
+      {
+        "heading": "Tips:",
+        "level": "h5",
+        "lines": [
+          "Matriarch Alvus hit mainly Therm, while Alvus Queen hit EM/Ex; prioritize kills according to your tank.",
+          "Bounty: ~27-28.5mil isk depending on spawn composition"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasDen": {
+    "pageName": "GuristasDen",
+    "title": "Guristas Forsaken Den",
+    "info": {
+      "Faction": "Guristas",
+      "Location": "Nullsec",
+      "Damage dealt": "Kinetic / Thermal",
+      "Web/scramble": "Elite Frigates",
+      "Recommended damage dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Elite Cruiser (Dire Pithum Inferno)",
+          "3x Battlecruiser (Pithatis Revolter)",
+          "Jamming"
+        ]
+      },
+      {
+        "heading": "Ship Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Dire Pithi Plunderer)",
+          "3x Elite Cruiser (Dire Pithum Eraser)"
+        ]
+      },
+      {
+        "heading": "Ship Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Battlecruiser (Pithatis Revolter)",
+          "Jamming",
+          "3x Elite Cruiser (Dire Pithum Mortifier)",
+          "Jamming"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasForlornHideaway": {
+    "pageName": "GuristasForlornHideaway",
+    "title": "",
+    "info": {
+      "Faction": "Guristas Pirates",
+      "Location": "High-Sec",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h4",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h5",
+        "lines": [
+          "5x Frigate (Pithi Plunderer/Wrecker)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h5",
+        "lines": [
+          "4x Frigate (Pithi Plunderer/Wrecker)",
+          "1x Cruiser (Pithum Ascriber/Silencer)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h5",
+        "lines": [
+          "2x Destroyer (Pithior Anarchist/Nihilist)",
+          "3x Cruiser (Pithum Asciber/Silencer)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h5",
+        "lines": [
+          "5x Cruiser (Pithum Asciber/Silencer)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasForlornHub": {
+    "pageName": "GuristasForlornHub",
+    "title": "Guristas Forlorn Hub",
+    "info": {
+      "Faction": "Guristas",
+      "Location": "0.0",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "Dire Pithi Infiltrator",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "30km off initial group, monument and space stonehenge in back."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Battleship (Pith Usurper)",
+          "6x Battlecruiser (Pithatis Death Dealer/Executor/Revolter)",
+          "Trigger",
+          "4x Cruiser (Pithum Abolisher/Eraser)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Battleship (Pith Usurper)",
+          "8x Battlecruiser (Pithatis Death Dealer/Executor/Revolter)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "7x Battleship (Pith Eliminator/Extinguisher/Massacrer)",
+          "Jamming Eliminator/Extinquisher",
+          "Trigger",
+          "4x Battlecruiser (Pithatis Enforcer)",
+          "2x Elite Frigate (Dire Pithi Demolisher)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "6x Battleship (Pith Usurper)",
+          "2x Elite Cruiser (Dire Pithum Abolisher/Eraser)",
+          "2x Elite Frigate (Dire Pithi Infiltrator)",
+          "Scram & Web"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasHiddenHideaway": {
+    "pageName": "GuristasHiddenHideaway",
+    "title": "Guristas Hidden Hideaway",
+    "info": {
+      "Faction": "Guristas Pirates",
+      "Location": "High Sec",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of specified ship type. There are two triggers in the Initial Group for Extra Spawn 1 and Wave 1."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1x Guristas Sentry Gun",
+          "Trigger for Extra Spawn 1",
+          "6x Frigate (Pithi Infiltrator/Invader)",
+          "Trigger for Wave 1",
+          "Note: trigger is a specific frigate usually spawns near the top",
+          "2x Cruiser (Pithum Ascriber/Silencer)"
+        ]
+      },
+      {
+        "heading": "Extra Spawn 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Destroyer (Pithior Guerilla/Renegade)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Arrogator/Imputor)",
+          "1-2x Cruiser (Pithum Ascriber/Silencer)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Pithi Arrogator/Imputor)",
+          "1-3x Destroyer (Pithior Guerilla/Renegade)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Arrogator/Imputor)",
+          "2x Cruiser (Ptihum Ascriber/Silencer)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasForsakenHideaway": {
+    "pageName": "GuristasForsakenHideaway",
+    "title": "Guristas Forsaken Hideaway",
+    "info": {
+      "Faction": "Guristas Pirates",
+      "Location": "High Sec",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Pithi Demolisher/Destructor/Plunderer/Wrecker)",
+          "2-3x Destroyer (Pithior Supremacist/Terrorist)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Dire Pithi Destructor/Wrecker)",
+          "2x Destroyer (Pithior Supremacist/Terrorist)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Pithi Destructor/Plunderer)",
+          "3-4x Destroyer (Pithior Supremacist/Terrorist)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Elite Frigate (Dire Pithi Plunderer/Wrecker)",
+          "3-4x Destroyer (Pithior Supremacist/Terrorist)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasHideaway": {
+    "pageName": "GuristasHideaway",
+    "title": "Guristas Hideaway",
+    "info": {
+      "Faction": "Guristas Pirates",
+      "Location": "High Sec",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Observation Post Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Bunker Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Arrogator/Imputor)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Wrecker/Plunderer)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasRefuge": {
+    "pageName": "GuristasRefuge",
+    "title": "Guristas Refuge",
+    "info": {
+      "Faction": "Guristas Pirates",
+      "Location": "High Sec",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Cargo Rig Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave, except for Wave 1 which is triggered by the last frigate."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1x Tower Sentry Guristas I",
+          "1x Guristas Light Missile Battery",
+          "2-3x Frigate (Pithi Infiltrator/Invader)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Despoiler/Saboteur)",
+          "Jamming"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Pithi Destructor/Plunderer/Wrecker)",
+          "1-2x Destroyer (Pithior Guerilla/Renegade)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Demolisher/Wrecker)",
+          "2-3x Destroyer (Pithior Anarchist/Nihilst)"
+        ]
+      },
+      {
+        "heading": "Asteroid Station Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave, except for Wave 1 which is triggered by the last frigate."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1x Gurista Basic Defense Battery",
+          "1x Guristas Light Missile Battery",
+          "2-3x Frigate (Pithi Arrogator/Imputor)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Pithi Infiltrator/Invader)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Pithi Despoiler/Saboteur)",
+          "Jamming"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1-2x Destroyer (Pithior Anarchist/Nihilst)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Pithior Guerilla/Renegade)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "GuristasHub": {
+    "pageName": "GuristasHub",
+    "title": "Guristas Hub",
+    "info": {
+      "Faction": "Guristas",
+      "Location": "0.0",
+      "Damage Dealt": "Kin/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "60km off initial group sentry guns around structures."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Guristas Cruise Missile Launcher",
+          "2x Guristas Heavy Missile Launcher",
+          "2x Tower Sentry Guristas II",
+          "3x Battleship (Pith Conquistador)",
+          "Trigger",
+          "3x Cruiser (Pithum Abolisher)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Battleship (Pith Usurper)",
+          "2x Destroyer (Pithior Guerilla)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3x Battleship (Pith Destroyer)",
+          "3x Frigate (Pithi Plunderer)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2x Battleship (Pith Dismantler)",
+          "3x Battlecruiser (Pithatis Revolter)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaForlornDen": {
+    "pageName": "SanshaForlornDen",
+    "title": "Sansha Forlorn Den",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Lowsec & Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of specified ship type."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "6x Frigate (Centii Butcher/Manslayer)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "6x Frigate (Centii Butcher/Manslayer)",
+          "Trigger",
+          "5x Cruiser (Centum Mutilator/Torturer)",
+          "2x Battleship (Centus Lord/Slave Lord)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "5x Destroyer (Centior Abomination/Monster)",
+          "4x Cruiser (Centum Fiend/Hellhound)",
+          "Trigger",
+          "2x Battleship (Centus Mutant/Slave Lord)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "5x Cruiser (Centum Fiend/Hellhound)",
+          "6x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger",
+          "2x Battleship (Centus Mutant/Savage Lord)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "10x Battlecruiser (Centatis Behemoth/Daemon/Devil/Wraith)",
+          "Trigger on a random ship in the wave"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Centii Loyal Minion/Servant)",
+          "Scram & Web",
+          "3x Elite Cruiser (Centum Loyal Execrator/Slaughterer)",
+          "Tracking Disruption",
+          "4x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaForlornRallyPoint": {
+    "pageName": "SanshaForlornRallyPoint",
+    "title": "Sansha Forlorn Rally Point",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of specified ship type."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "6x Destroyer (Centior Abomination/Monster)",
+          "4x Cruiser (Centum Mutilator/Torturer)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "4x Cruiser (Centum Mutilator/Torturer)",
+          "5x Battlecruiser (Centatis Devil/Wraith)",
+          "Trigger",
+          "4x Battleship (Centus Mutant Lord/Savage Lord)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Cruiser (Centum Fiend/Hellhound)",
+          "5x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger",
+          "3-4x Battleship (Centus Beast Lord/Plague Lord/Savage Lord)",
+          "Tracking Disruption Beast Lord & Plague Lord"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Elite Cruiser (Centus Loyal Mutilator/Torturer)",
+          "Trigger",
+          "6x Battlecruiser (Centatis Behemoth/Daemon)",
+          "4x Battleship (Centus Overlord)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "4x Elite Cruiser (Centum Loyal Fiend/Hellhound)",
+          "4x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaForsakenDen": {
+    "pageName": "SanshaForsakenDen",
+    "title": "Sansha Forsaken Den",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Lowsec & Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Cruiser (Centum Loyal Fiend/Hellhound/Torturer)",
+          "2-3x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Butcher/Enslaver/Plague)",
+          "2-3x Elite Cruiser (Centum Loyal Fiend/Hellhound)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Cruiser (Centum Loyal Fiend/Hellhound/Mutilator)",
+          "4x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Cruiser (Centum Fiend/Hellhound/Mutilator/Torturer)",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Minion/Ravener/Servant)",
+          "Scramble & Web",
+          "2-3x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaForlornHub": {
+    "pageName": "SanshaForlornHub",
+    "title": "Sansha Forlorn Hub",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is last ship of shiptype specified."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "Scram & Web",
+          "4x Cruiser (Centum Fiend/Hellhound)",
+          "2x Battlecruiser (Centatis Daemon)",
+          "Trigger",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Elite Cruiser (Centum Loyal Fiend/Hellhound)",
+          "Trigger",
+          "8x Battlecruiser (Centatis Beast/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigate (Centii Loyal Butcher/Manslayer)",
+          "3x Battlecruiser (Centatis Daemon/Devil/Phantasm/Spectre/Wraith)",
+          "4x Battleship (Centus Beast Lord/Plague Lord/Savage Lord)",
+          "Tracking Disruption Beast Lord/Plague Lord",
+          "Trigger",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigate (Centii Loyal Ravener/Scavenger)",
+          "Scram & Web",
+          "2x Elite Cruiser (Centum Loyal Fiend/Hellhound)",
+          "6x Battleship (Centus Tyrant)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaForsakenRallyPoint": {
+    "pageName": "SanshaForsakenRallyPoint",
+    "title": "Sansha Forsaken Rally Point",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1x Elite Cruiser (Centum Loyal Fiend/Mutilator/Torturer)",
+          "2x Battleship (Centus Beast Lord/Plague Lord)",
+          "Tracking Disruption"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer)",
+          "2-3x Battleship (Centus Beast Lord/Plague Lord)",
+          "Tracking Disruption"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Cruiser (Centum Fiend/Hellhound/Mutilator/Torturer)",
+          "3x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "Scram & Web",
+          "3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Spectre)",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Cruiser (Centum Loyal Hellhound/Mutilator/Torturer)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "4x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaForsakenHub": {
+    "pageName": "SanshaForsakenHub",
+    "title": "Sansha Forsaken Hub",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Butcher/Enslaver/Manslayer/Plague",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3x Elite Cruiser (Centum Loyal Fiend/Hellhound/Mutilator/Torturer)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Spectre)",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "Scramble & Web",
+          "3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "Bonus Wave",
+          "3x Centus Overlords"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaHaven": {
+    "pageName": "SanshaHaven",
+    "title": "Sansha Haven",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Stargate Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in takes up to 30 seconds to rats to spawn in. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Phantasm/Specter/Wraith)",
+          "3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "Scramble & Web",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "4x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Cruiser (Centii Loyal Beast/Executor/Juggernaut/Slaughterer)",
+          "Tracking Disruption",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "7-8x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "7-8x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Chem Factory Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Triggers are convoluted."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Factory Defense Batteries (Sansha Cruise Missile Battery)",
+          "3-4x Elite Cruiser (Centum Loyal Fiend/Hellhound/Mutilator/Torturer)",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)",
+          "3-4x Battleship (Centus Dark Lord/Overlord)",
+          "Trigger is last kill of the elite cruisers + dark lord/overlords"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "2-3x Elite Cruiser (Centum Loyal Fiend/Hellhound/Mutilator/Torturer)",
+          "2-3x Battlecruiser (Centatis Behemoth)",
+          "3-4x Battleship (Centus Dark Lord/Overlord)",
+          "Trigger is the last kill of the elite cruisers + battlecruisers"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Ravener/Scavenger)",
+          "Scramble & Web",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Mutilator/Phantasm/Specter)",
+          "3-4x Battleship (Centus Dark Lord/Overlord)",
+          "Trigger is the last kill of the battlecruisers + battleships"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1-2x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger)",
+          "Scramble & Web",
+          "4-6x Battlecrusier (Centatis Behemoth/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)",
+          "Trigger is the last kill of the battlecruisers + battleships"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Phantasm/Wraith)",
+          "3-4x Battleship (Centus Dark Lord/Overlord)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)",
+          "Trigger is last kill of elite frigates + dark lord/overlords"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "Scramble & Web",
+          "3-4x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaHiddenDen": {
+    "pageName": "SanshaHiddenDen",
+    "title": "Sansha Hidden Den",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Lowsec & Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in, only the missile battery will agro. Engaging anything will agro the whole room. Trigger is final kill of specified ship type."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1x Sansha Heavy Missile Battery",
+          "9-10x Frigate (Centii Butcher/Enslaver/Manslayer/Plague)",
+          "9-11x Destroyer (Centior Horror/Monster)",
+          "4-5x Cruiser (Centum Mutilator/Torturer)",
+          "2-3x Battlecruiser (Centatis Devi/Wraith)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Enslaver/Plague)",
+          "2-3x Cruiser (Centum Ravager/Ravisher)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Enslaver/Plague)",
+          "2-3x Destroyer (Centior Horror/Monster)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Savage/Slavehunter)",
+          "Tracking Disruption",
+          "2-3x Cruiser (Centum Mutilator/Torturer)",
+          "3x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Savage/Slavehunter)",
+          "Tracking Disruption",
+          "4-5x Battlecruiser (Centatis Behemoth/Daemon/Specter)",
+          "Trigger",
+          "Note: Sometimes the next wave will trigger on the last Daemon kill."
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Centii Savage/Slavehunter)",
+          "Tracking Disruption",
+          "2-3x Cruiser (Centum Mutilator/Torturer)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "1-2x Elite Frigate (Centii Loyal Ravener/Scavenger/Servant)",
+          "Scramble & Web",
+          "3x Cruiser (Centum Ravager/Ravisher)",
+          "4-5x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 7",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Centii Enslaver/Plague)",
+          "2-3x Cruiser (Centum Mutilator/Torturer)",
+          "3x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 8",
+        "level": "h4",
+        "lines": [
+          "4x Elite Frigate (Centii Loyal Minion/Ravener/Servant)",
+          "Scramble & Web",
+          "2-3x Cruiser (Centum Ravager/Ravisher)",
+          "6-7x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaHiddenRallyPoint": {
+    "pageName": "SanshaHiddenRallyPoint",
+    "title": "Sansha Hidden Rally Point",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of specified rat type."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "5-6x Destroyer (Centior Abomination/Monster)",
+          "6x Cruiser (Centum Mutilator/Torturer)",
+          "Trigger",
+          "4x Battlecruiser (Centatis Devil/Phantasm/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Minion/Scavenger/Servant)",
+          "Scram & Web",
+          "6x Cruiser (Centum Fiend/Hellhound)",
+          "7x Battlecruiser (Centatis Daemon/Devil)",
+          "Trigger",
+          "3-4x Battleship (Centus Lord/Slave Lord)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "6x Cruiser (Centum Fiend/Hellhound)",
+          "7x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "5x Elite Cruiser (Centum Loyal Mutilator/Torturer)",
+          "Trigger",
+          "6x Battlecruiser (Centatis Behemoth/Daemon)",
+          "2-3x Battleship (Centus Beast Lord/Plague Lord)",
+          "Tracking Disruption"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2x Elite Cruiser (Centum Loyal Fiend/Hellhound)",
+          "8x Battleship (Centus Dark Lord/Dread Lord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaHiddenHub": {
+    "pageName": "SanshaHiddenHub",
+    "title": "Sansha Hidden Hub",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Trigger is final kill of specified rat type."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "6x Frigate (Centii Butcher/Enslaver/Manslayer/Plague)",
+          "5x Destroyer (Centior Abomination/Horror/Monster",
+          "5-6x Cruiser (Centum Execrator/Fiend/Hellhound/Mutilator/Slaughterer/Torturer)",
+          "Tracking Disruption Execrator/Slaughterer",
+          "6-8x Battlecruiser (Centatis Behemoth/Daemon/Phantasm/Specter)",
+          "3x Battleship (Centus Lord/Slave Lord)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Enslaver/Manslayer/Plague)",
+          "3-4x Elite Frigate (Centii Loyal Enslaver/Plague)",
+          "2-3x Cruiser (Centum Fiend/Hellhound)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Centii Butcher/Enslaver/Plague)",
+          "3x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "2x Destroyer (Centior Horror/Monster)",
+          "2-3x Battleship (Centus Beast Lord/Plague Lord)",
+          "Tracking Disruption",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Enslaver/Manslayer/Plague)",
+          "3-4x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "1-2x Cruiser (Centum Fiend/Hellhound)",
+          "4x Battleship (Centus Slave Lord/Plague Lord)",
+          "Tracking Disruption Plague Lord",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Centii Butcher/Enslaver/Manslayer/Plague)",
+          "3-4x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "1-2x Cruiser (Centum Fiend/Hellhound/Mutilator)",
+          "2x Elite Cruiser (Centum Loyal Execrator/Slaughterer)",
+          "Tracking Disruption",
+          "4x Battleship (Centus Beast Lord/Overlord/Savage Lord)",
+          "Tracking Disruption Beast Lord",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Centii Enslaver/Plague)",
+          "2-3x Cruiser (Centum Beast/Juggernaut)",
+          "Tracking Disruption",
+          "4x Battleship (Centus Beast Lord/Overlord/Savage Lord)",
+          "Tracking Disruption Beast Lord",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Centii Butcher/Enslaver/Manslayer/Plague)",
+          "2x Elite Frigate (Centii Loyal Enslaver/Plague)",
+          "2x Elite Cruiser (Centum Loyal Beast/Execrator/Sluaghterer)",
+          "Tracking Disruption",
+          "2-3x Battlecruiser (Centatis Behemoth/Daemon)",
+          "3x Battleship (Centus Dark Lord/Dread Lord)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 7",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Centii Enslaver/Plague)",
+          "1-2x Cruiser (Centum Mutilator/Torturer)",
+          "Trigger",
+          "4x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 8",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Centii Butcher/Manslayer)",
+          "3x Cruiser (Centum Fiend/Hellhound)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaPort": {
+    "pageName": "SanshaPort",
+    "title": "Sansha Port",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Transport Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Sentry Gun (Tower Sentry Sansha II)",
+          "2x Heavy Missile Battery (Sansha Heavy Missile Battery)",
+          "3-4x Cruiser (Centum Fiend/Hellhound)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Destroyer (Centior Abomination/Cannibal/Devourer/Horror/Misshape/Monster)",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Cruiser (Centum Fiend/Hellhound/Mutilator/Torturer)",
+          "2-3x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Asteroid Facility Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave, except for wave 3 which is triggered by last battleship of wave 2."
+        ]
+      },
+      {
+        "heading": "Inital Group",
+        "level": "h4",
+        "lines": [
+          "2x Sentry Gun (Tower Sentry Sansha II)",
+          "2x Heavy Missile Battery (Sansha Heavy Missile Battery)",
+          "3-4x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "3-4x Battlecruiser (Centatis Phantasm/Specter)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "2-3x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Destroyer (Centior Abomination/Cannibal/Devourer/Horror/Monster/Misshape)",
+          "6-8x Battlecruiser (Centatis Behemoth/Devil/Phantasm/Specter/Wraith)",
+          "3-4x Battleship (Centus Dark Lord/Overlord)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Battlecruiser (Centatis Daemon/Devil/Phantasm/Specter/Wraith)",
+          "2-3x Battleship (Centus Mutant Lord/Savage Lord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaRallyPoint": {
+    "pageName": "SanshaRallyPoint",
+    "title": "Sansha Rally Point",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Sansha's Rally Point Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Sentry Gun (Tower Sentry Sansha I)",
+          "2x Heavy Missile Battery (Sansha Heavy Missile Battery)",
+          "3-4x Frigate (Centii Butcher/Enslaver/Manslayer/Plague)",
+          "3-4x Destroyer (Centior Horror/Monster)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Centii Butcher/Plague)",
+          "2x Cruiser (Centum Hellhound)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Minion/Scavenger/Servant)",
+          "Web & Scram",
+          "2-3x Cruiser (Centum Fiend/Hellhound)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Centii Butcher/Enslaver/Plague)",
+          "2-3x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "1-2x Elite Frigate (Centii Loyal Manslayer/Plague)",
+          "1-2x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Dameon)"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Cruiser (Centum Loyal Fiend/Hellhound/Mutilator/Torturer)",
+          "2-3x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 7",
+        "level": "h4",
+        "lines": [
+          "1-2x Battlecruiser (Centatis Daemon/Devil/Phantasm)",
+          "1x Battleship (Centum Best/Plague Lord)",
+          "Tracking Disruption"
+        ]
+      },
+      {
+        "heading": "Sansha Rally Point Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave, except for wave 3 which is triggered by last battlecruiser of wave 2."
+        ]
+      },
+      {
+        "heading": "Inital Group",
+        "level": "h4",
+        "lines": [
+          "2x Sentry Gun (Tower Sentry Sansha I)",
+          "3x Destroyer (Centior Abomination/Cannibal/Devourer/Misshape/Monster)",
+          "4x Cruiser (Centum Fiend/Hellhound)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Minion/Scavenger/Ravener)",
+          "Web & Scram",
+          "2-3x Cruiser (Centum Mutilator/Torturer)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "1x Elite Frigate (Centii Loyal Servant)",
+          "Web & Scram",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Cruiser (Centum Fiend/Hellhound/Torturer)",
+          "3x Battlecruiser (Centatis Behemoth/Daemon)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "1x Battlecruiser (Centatis Behemoth/Phantasm)",
+          "1-2x Battleship (Centus Mutant Lord/Savage Lord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaHub": {
+    "pageName": "SanshaHub",
+    "title": "Sansha Hub",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Four Tower Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave, except for wave 2 which is triggered by last battleship of wave 1."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "4x Sentry Gun (Tower Sentry Sansha II)",
+          "2-3x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "2-3x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Destroyer (Centior Abomination/Cannibal/Devourer/Horror/Monster/Misshape)",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Cruiser (Centum Loyal Fiend/Hellhound/Mutilator/Torturer)",
+          "3-4x Battleship (Centus Lord/Slave Lord)"
+        ]
+      },
+      {
+        "heading": "Six Tower Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Sentry Gun (Tower Sentry Sansha II)",
+          "2x Cruise Missile Battery (Sansha Cruise Missile Battery)",
+          "2x Heavy Missile Battery (Sansha Heavy Missile Battery)",
+          "2-3x Cruiser (Centum Fiend/Hellhound/Mutilator/Torturer)",
+          "2-3x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2-3x Destroyer (Centior Abomination/Horror/Monster)",
+          "2-3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Centii Butcher/Enslaver/Manslayer/Plague)",
+          "2-3x Battleship (Centus Dark Lord/Overlord)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)",
+          "2-3x Battleship (Centus Mutant Lord/Savage Lord)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisForlornHideaway": {
+    "pageName": "SerpentisForlornHideaway",
+    "title": "Serpentis Forlorn Hideaway",
+    "info": {
+      "Faction": "Serpentis",
+      "Location": "High-Sec",
+      "Damage Dealt": "Therm/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin(best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave.  Waves spawn at Abandoned Asteroid Station, 40km from warp-in."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "5x Frigate (Coreli Patroller/Watchman)",
+          "Damp Watchman"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Coreli Patroller/Watchman)",
+          "Damp Watchman",
+          "1x Crusier (Corelum Chief Scout)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Corelior Soldier / Trooper)",
+          "3x Crusier (Corelum Chief Spy)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "5x Crusier (Corelum Chief Scout / Spy)",
+          "4x Destroyer (Corelior Artillery)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisBurrow": {
+    "pageName": "SerpentisBurrow",
+    "title": "Serpentis Burrow",
+    "info": {
+      "Faction": "Serpentis",
+      "Location": "High-Sec",
+      "Damage Dealt": "Therm/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kinetic (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "5x Frigate (Coreli Initiate/Spy)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Coreli Spy Agent)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "1x Frigate (Coreli Safeguard/Guard)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Coreli Initiate/Scout)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Coreli Safeguard)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SanshaSanctum": {
+    "pageName": "SanshaSanctum",
+    "title": "Sansha Sanctum",
+    "info": {
+      "Faction": "Sansha",
+      "Location": "Nullsec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "Centii Loyal Minion/Ravener/Scavenger/Servant",
+      "Recommended Damage Dealing": "EM (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Ring Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Specter/Wraith)",
+          "6-8x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3x Elite Cruiser (Centum Loyal Beast/Juggernaut/Slaughterer)",
+          "Tracking Disruption",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "Scramble & Web",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "4x Elite Frigate (Centii Loyal Minion/Ravener/Scavenger/Servant)",
+          "Scramble & Web",
+          "4x Elite Cruiser (Centum Loyal Fiend/Hellhound/Torturer)",
+          "6-7x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Station Variant",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will agro. Final kill is trigger for next wave."
+        ]
+      },
+      {
+        "heading": "Inital Group",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Enslaver/Manslayer/Plague)",
+          "4x Elite Cruiser (Centum Loyal Beast/Execrator/Juggernaut/Slaughterer)",
+          "Tracking Disruption",
+          "7x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Cruiser (Centum Loyal Hellhound/Mutilator/Torturer)",
+          "3x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Centii Loyal Butcher/Enslaver/Manslayer/Plague)",
+          "4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon/Devil/Phantasm/Specter/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "4x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "2x Cruiser (Centum Fiend/Hellhound/Torturer)",
+          "6x Battleship (Centus Dark Lord/Dread Lord/Overlord/Tyrant)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Centii Loyal Savage/Slavehunter)",
+          "Tracking Disruption",
+          "4x Destroyer (Centior Horror/Monster)",
+          "3-4x Battlecruiser (Centatis Behemoth/Daemon)",
+          "4x Battleship (Centus Dread Lord/Tyrant)",
+          "Trigger"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "2-3x Elite Frigate (Centii Loyal Manslayer/Plague)",
+          "3x Elite Cruiser (Centum Loyal Fiend/Hellhound)",
+          "3-4x Battlecruiser (Centatis Behemoth/Devil/Phantasm/Wraith)",
+          "3-4x Battleship (Centus Dread Lord/Tyrant)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisForsakenRallyPoint": {
+    "pageName": "SerpentisForsakenRallyPoint",
+    "title": "Single Pocket",
+    "info": {
+      "Faction": "Serpentis",
+      "Location": "Nullsec",
+      "Damage Dealt": "Therm/Kin",
+      "Web/Scramble": "No",
+      "Recommended Damage Dealing": "Therm/Kin"
+    },
+    "pockets": [
+      {
+        "heading": "Initial Group",
+        "level": "h5",
+        "lines": [
+          "1 x CR (Corelum Guardian Chief Infantry)",
+          "2 x BS (Core Vice Admiral, Core Flotilla Admiral)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2 x FR (Coreli Guardian Defender, Coreli Guardian Safeguard )",
+          "3 x BS (Core Vice Admiral)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2 x CR (Corelum Chief Defender, Corelum Chief Protector)",
+          "2 x BS (Core High Admiral)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3 x FR (Coreli Guardian Initiate, Coreli Guardian Spy)",
+          "2 x BS (Core Lord Admiral, Core Grand Admiral)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3 x BS (Core Grand Admiral, Core Lord Admiral)",
+          "4 x BC (Corelatis Squad Leader, Corelatis Captain, Corelatis Wing Leader)"
+        ]
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": [
+          "4 x BS (Core Lord Admiral, Core Grand Admiral)",
+          "3 x CR (Corelum Guardian Chief Defender, Corelum Guardian Chief Sentinel)"
+        ]
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "3 x BS (Core Grand Admiral, Core High Admiral)",
+          "Total bounty: 24M",
+          "Total loot: around 7M",
+          "Total salvage: 5M"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisForsakenHideaway": {
+    "pageName": "SerpentisForsakenHideaway",
+    "title": "Serpentis Forsaken Hideaway",
+    "info": {
+      "Faction": "Serpentis & Sansha",
+      "Location": "High-Sec",
+      "Damage Dealt": "Kin/Thermal/EM",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Therm(second best vs. both)/Kin vs. Serpentis/EM vs. Sansha"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Centii Enslaver / Plague)",
+          "2x Destroyer (Centior Monster)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Elite Frigate (Coreli Guardian Safeguard)",
+          "3x Destroyer (Corelior Cannoneer / Artillery)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Coreli Protector)",
+          "3x Destroyer (Corelior Cannoneer / Artillery)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Coreli Guardian Defender)",
+          "4x Destroyer (Corelior Artillery)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisForsakenHub": {
+    "pageName": "SerpentisForsakenHub",
+    "title": "Serpentis Forsaken Hub",
+    "info": {
+      "Faction": "Serpentis",
+      "Location": "0.0",
+      "Damage Dealt": "Therm/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kin (best),Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Brutix Class)",
+          "4x Battleship (Megathron Class)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Brutix Class)",
+          "3x Battleship (Megathron Class)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Cruiser (Thorax Class)",
+          "4x Battleship (Megathron Class)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Brutix Class)",
+          "3x Battleship (Megathron Class)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "3x Cruiser (Thorax Class)",
+          "3x Battleship (Megathron Class)"
+        ]
+      },
+      {
+        "heading": "Final Wave",
+        "level": "h4",
+        "lines": [
+          "3/4x Battleship (Megathron Class)"
+        ]
+      },
+      {
+        "heading": "This report is not complete yet",
+        "level": "h5",
+        "lines": [
+          "Bounty payout: Approximately 24.2M ISK",
+          "Loot and Salvage: Potentially 10-15M ISK including a Serpentis Diamond tag"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisHideaway": {
+    "pageName": "SerpentisHideaway",
+    "title": "Serpentis Hideaway",
+    "info": {
+      "Faction": "Serpentis",
+      "Location": "High-Sec",
+      "Damage Dealt": "Therm/Kin",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "Kinetic (best), Therm(secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Coreli Initiate)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "1x Frigate (Coreli Spy / Agent)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Coreli Initiate)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "1x Frigate (Coreli Guard)"
+        ]
+      },
+      {
+        "heading": "Wave 4 (Optional)",
+        "level": "h4",
+        "lines": [
+          "1x Faction Frigate (Shadow Serpentis Patroller)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "SerpentisRefuge": {
+    "pageName": "SerpentisRefuge",
+    "title": "Serpentis Refuge",
+    "info": {
+      "Faction": "Serpentis",
+      "Location": "High-Sec",
+      "Damage Dealt": "Thermal/ Kinetic",
+      "Web/ Scramble": "None",
+      "Recommended Damage Dealing": "Kinetic (best), Thermal (Secondary)"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Coreli Scout)",
+          "2x Sentry Tower (Serpentis Light Missile Battery / Tower Sentry I)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Coreli Spy)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Frigate (Coreli Watchman)",
+          "Dampening"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Corelior Trooper)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "1x Destroyer (Corelior Sentinel)"
+        ]
+      }
+    ],
+    "categories": [
+      "CategoryAnomalies"
+    ]
+  },
+  "AngelForlornHub": {
+    "pageName": "AngelForlornHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelForlornRallyPoint": {
+    "pageName": "AngelForlornRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelForlornDen": {
+    "pageName": "AngelForlornDen",
+    "title": "Angel Forlorn Den",
+    "info": {
+      "Faction": "Angel",
+      "Location": "Low & Null Sec Systems",
+      "Damage Dealt": "Explosive/ Thermal/ Kinetic (Varies)",
+      "Recommended Damage Dealing": "Explosive/ Kinetic"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto aggro.  Trigger is final kill of specific ship type.",
+          "Initial Group (51- 67km)",
+          "6x Frigate (Gistii Hunter/ Impaler)",
+          "1st Spawn (68- 72km)",
+          "6x Frigate (Gistii Hunter/ Impaler) Trigger",
+          "5x Cruiser (Gistum Liquidator/ Marauder)",
+          "2x Battleship (Gist Commander)",
+          "2nd Spawn (58- 62km)",
+          "5x Destroyer (Gistior Defiler/ Seizer)",
+          "4x Cruiser (Gistum Centurion/ Phalanx) Trigger",
+          "2x Battleship (Gist General)",
+          "3rd Spawn (23- 28km)",
+          "5x Cruiser (Gistum Centurion/ Phalanx)",
+          "6x Battlecruiser (Gistatis Legatus/ Tribunus) Trigger",
+          "2x Battleship (Gist Warlord/ War General)",
+          "4th Spawn (36- 40km)",
+          "10x Battlecruiser (Gistatis Legatus/ Praefectus Tribuni/ Tribunus) Trigger (Random)",
+          "5th Spawn (34- 41km)",
+          "3x Elite Frigate (Arch Gistii Hijacker/ Rogue) Webifier/ Warp Disruptor",
+          "3x Elite Cruiser (Arch Gistum Breaker/ Defeater) Target Painter",
+          "4x Battleship (Gist Malakim/ Throne)"
+        ]
+      },
+      {
+        "heading": "Loot and Bounty",
+        "level": "h5",
+        "lines": [
+          "Loot + Salvage:",
+          "Bounty: ~10 mil."
+        ]
+      }
+    ],
+    "tips": "",
+    "loot": "~5.5 mil."
+  },
+  "AngelForsakenHub": {
+    "pageName": "AngelForsakenHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelForsakenHideaway": {
+    "pageName": "AngelForsakenHideaway",
+    "title": "Angel Forsaken Hideaway",
+    "info": {
+      "Faction": "Angel Cartel",
+      "Location": "High-Sec",
+      "Damage Dealt": "Explosive",
+      "Web/Scramble": "None"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "2-3x Frigate (Gistii Hunter / Raider)",
+          "2-3x Destroyer (Gistior Trasher / Seizer)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigate (Arch Gistii Raider / Ambusher)",
+          "2x Destroyer (Gistior Thrasher)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "3-4x Frigate (Gistii Ambusher)",
+          "4x Destroyer (Gistior Seizer)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3-4x Elite Frigate (Arch Gistii Raider)",
+          "3-4x Destroyer (Gistior Thrasher)"
+        ]
+      },
+      {
+        "heading": "Wave 4 (Optional)",
+        "level": "h4",
+        "lines": [
+          "1x Faction Frigate (Domination Ruffian)"
+        ]
+      }
+    ],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelForsakenDen": {
+    "pageName": "AngelForsakenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelSanctum": {
+    "pageName": "AngelSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelHiddenDen": {
+    "pageName": "AngelHiddenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelRallyPoint": {
+    "pageName": "AngelRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelYard": {
+    "pageName": "AngelYard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodBurrow": {
+    "pageName": "BloodBurrow",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForlornDen": {
+    "pageName": "BloodForlornDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForlornHideaway": {
+    "pageName": "BloodForlornHideaway",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForlornHub": {
+    "pageName": "BloodForlornHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForlornRallyPoint": {
+    "pageName": "BloodForlornRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForsakenDen": {
+    "pageName": "BloodForsakenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodHaven": {
+    "pageName": "BloodHaven",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForsakenRallyPoint": {
+    "pageName": "BloodForsakenRallyPoint",
+    "title": "Blood Raider Forsaken Rally Point",
+    "info": {
+      "Faction": "Blood",
+      "Location": "Nullsec",
+      "Damage Dealt": "Thermal/EM",
+      "Web/Scramble": "Elder Corpii Upholder"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "On warp-in everything will aggro. Trigger is final kill of wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": []
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": []
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Elite Frigate (Elder Corpii Worshiper/Follower)",
+          "4x Battleship (Corpus Cardinal/Patriarch/Pope)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Battlecruiser (Corpus Bishop/Seer)",
+          "4x Battleship (Corpus Pope)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": []
+      },
+      {
+        "heading": "Wave 5",
+        "level": "h4",
+        "lines": []
+      },
+      {
+        "heading": "Wave 6",
+        "level": "h4",
+        "lines": [
+          "Corpatis Seer (2)",
+          "Corpatis Shade (1)",
+          "Corpus Patriarch (2)",
+          "Corpus Pope (2)"
+        ]
+      }
+    ],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodHiddenHideaway": {
+    "pageName": "BloodHiddenHideaway",
+    "title": "Blood Hidden Hideaway",
+    "info": {
+      "Faction": "Blood Raiders",
+      "Location": "High-Sec",
+      "Damage Dealt": "EM/Therm",
+      "Web/Scramble": "None"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Three sets of waves triggered by destroying the last of each class of ship in the initial group."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "6x Frigate (Corpii Upholder)",
+          "1x Cruiser (Corpum Arch Reaver)",
+          "1x Sentry (Blood Raider Sentry Gun"
+        ]
+      },
+      {
+        "heading": "Frigate Wave",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Corpior Devoter)"
+        ]
+      },
+      {
+        "heading": "Cruiser Wave",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Corpii Raider)",
+          "3x Destroyer (Corpior Templar)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 1",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Corpii Follower)",
+          "2x Cruiser (Corpum Arch Engraver)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 2",
+        "level": "h4",
+        "lines": [
+          "4x Frigate (Corpii Worshipper)",
+          "1x Destroyer (Corpior Devoter)"
+        ]
+      },
+      {
+        "heading": "Sentry Wave 3",
+        "level": "h4",
+        "lines": [
+          "3x Frigate (Corpii Follower)",
+          "1x Cruiser (Corpum Arch Reaver)"
+        ]
+      }
+    ],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodHiddenDen": {
+    "pageName": "BloodHiddenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodHiddenRallyPoint": {
+    "pageName": "BloodHiddenRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DroneHerd": {
+    "pageName": "DroneHerd",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DroneGathering": {
+    "pageName": "DroneGathering",
+    "title": "Drone Gathering",
+    "info": {
+      "Faction": "Rogue Drones",
+      "Location": "High/Low Sec",
+      "Damage Dealt": "All Types",
+      "Web/Scramble": "None",
+      "Recommended Damage Dealing": "EM"
+    },
+    "pockets": [
+      {
+        "heading": "Single Pocket",
+        "level": "h3",
+        "lines": [
+          "Auto-aggro from each wave.  Last ship in each waves triggers next wave."
+        ]
+      },
+      {
+        "heading": "Initial Group",
+        "level": "h4",
+        "lines": [
+          "1-2x Frigate (Hunter / Devilfish Alvi)",
+          "1-2x Destroyer (Shredder Alvior)",
+          "2x Sentry (Drone Heavy Missile Battery)"
+        ]
+      },
+      {
+        "heading": "Wave 1",
+        "level": "h4",
+        "lines": [
+          "2x Cruiser (Wrecker / Destructor Alvum)"
+        ]
+      },
+      {
+        "heading": "Wave 2",
+        "level": "h4",
+        "lines": [
+          "2x Destroyer (Shredder Alvior)",
+          "1-2x Cruiser (Annihilator Alvum)"
+        ]
+      },
+      {
+        "heading": "Wave 3",
+        "level": "h4",
+        "lines": [
+          "2-3x Destroyer (Shredder / Ripper Alvior)",
+          "3x Cruiser (Wrecker / Destructor Alvum)"
+        ]
+      },
+      {
+        "heading": "Wave 4",
+        "level": "h4",
+        "lines": [
+          "2-3x Destroyer (Ripper / Shatter Alvior)",
+          "2-3x Cruiser (Annihilator / Devastator Alvum)"
+        ]
+      },
+      {
+        "heading": "Bonus Wave",
+        "level": "h4",
+        "lines": [
+          "1x Cruiser (Sentient Wrecker Alvum)",
+          "Loot:",
+          "20x Drone Capillary Fluid; 12x Drone Tactical Limb (5.4m ISK)"
+        ]
+      }
+    ],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodSanctum": {
+    "pageName": "BloodSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DroneSquad": {
+    "pageName": "DroneSquad",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DronePatrol": {
+    "pageName": "DronePatrol",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DroneMenagerie": {
+    "pageName": "DroneMenagerie",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasForlornDen": {
+    "pageName": "GuristasForlornDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasForlornRallyPoint": {
+    "pageName": "GuristasForlornRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DroneSurveillance": {
+    "pageName": "DroneSurveillance",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasForsakenHub": {
+    "pageName": "GuristasForsakenHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasForsakenRallyPoint": {
+    "pageName": "GuristasForsakenRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasForsakenDen": {
+    "pageName": "GuristasForsakenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasHiddenHub": {
+    "pageName": "GuristasHiddenHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasHaven": {
+    "pageName": "GuristasHaven",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasHiddenDen": {
+    "pageName": "GuristasHiddenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasHiddenRallyPoint": {
+    "pageName": "GuristasHiddenRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasPort": {
+    "pageName": "GuristasPort",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasRallyPoint": {
+    "pageName": "GuristasRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasSanctum": {
+    "pageName": "GuristasSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaBurrow": {
+    "pageName": "SanshaBurrow",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasYard": {
+    "pageName": "GuristasYard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaForlornHideaway": {
+    "pageName": "SanshaForlornHideaway",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaDen": {
+    "pageName": "SanshaDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaForsakenHideaway": {
+    "pageName": "SanshaForsakenHideaway",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaForsakenSanctum": {
+    "pageName": "SanshaForsakenSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaHideaway": {
+    "pageName": "SanshaHideaway",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaHiddenHideaway": {
+    "pageName": "SanshaHiddenHideaway",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisDen": {
+    "pageName": "SerpentisDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaRefuge": {
+    "pageName": "SanshaRefuge",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaYard": {
+    "pageName": "SanshaYard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisForlornHub": {
+    "pageName": "SerpentisForlornHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisForlornDen": {
+    "pageName": "SerpentisForlornDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisForlornRallyPoint": {
+    "pageName": "SerpentisForlornRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisForsakenDen": {
+    "pageName": "SerpentisForsakenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHaven": {
+    "pageName": "SerpentisHaven",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisForsakenSanctum": {
+    "pageName": "SerpentisForsakenSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHiddenHub": {
+    "pageName": "SerpentisHiddenHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHiddenDen": {
+    "pageName": "SerpentisHiddenDen",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHiddenHideaway": {
+    "pageName": "SerpentisHiddenHideaway",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHub": {
+    "pageName": "SerpentisHub",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisPort": {
+    "pageName": "SerpentisPort",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHiddenRallyPoint": {
+    "pageName": "SerpentisHiddenRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisYard": {
+    "pageName": "SerpentisYard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisSanctum": {
+    "pageName": "SerpentisSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisRallyPoint": {
+    "pageName": "SerpentisRallyPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Angel'sRedLightDistrict": {
+    "pageName": "Angel'sRedLightDistrict",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AncientRuins": {
+    "pageName": "AncientRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelAnnex": {
+    "pageName": "AngelAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelBase": {
+    "pageName": "AngelBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelCartelNavalShipyard": {
+    "pageName": "AngelCartelNavalShipyard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelCartelOccupiedMiningColony": {
+    "pageName": "AngelCartelOccupiedMiningColony",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelCreo-CorpMining": {
+    "pageName": "AngelCreo-CorpMining",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelChemicalLab": {
+    "pageName": "AngelChemicalLab",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelDominationFleetStagingPoint": {
+    "pageName": "AngelDominationFleetStagingPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelFortress": {
+    "pageName": "AngelFortress",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelForsakenSanctum": {
+    "pageName": "AngelForsakenSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelGasProcessingSite": {
+    "pageName": "AngelGasProcessingSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelHideout": {
+    "pageName": "AngelHideout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelLookout": {
+    "pageName": "AngelLookout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelMilitaryComplex": {
+    "pageName": "AngelMilitaryComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelMilitaryOperationsComplex": {
+    "pageName": "AngelMilitaryOperationsComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelOutpost": {
+    "pageName": "AngelOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelMineralAcquisitionOutpost": {
+    "pageName": "AngelMineralAcquisitionOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelRepurposedOutpost": {
+    "pageName": "AngelRepurposedOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelProvincialHQ": {
+    "pageName": "AngelProvincialHQ",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelVigil": {
+    "pageName": "AngelVigil",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloatedRuins": {
+    "pageName": "BloatedRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BesiegedCovertResearchFacility": {
+    "pageName": "BesiegedCovertResearchFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "AngelWatch": {
+    "pageName": "AngelWatch",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodAnnex": {
+    "pageName": "BloodAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodHideout": {
+    "pageName": "BloodHideout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodForsakenSanctum": {
+    "pageName": "BloodForsakenSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodMilitaryComplex": {
+    "pageName": "BloodMilitaryComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodLookout": {
+    "pageName": "BloodLookout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodProvincialHQ": {
+    "pageName": "BloodProvincialHQ",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderBase": {
+    "pageName": "BloodRaiderBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderChemicalLab": {
+    "pageName": "BloodRaiderChemicalLab",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderCoordinationCenter": {
+    "pageName": "BloodRaiderCoordinationCenter",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderHumanFarm": {
+    "pageName": "BloodRaiderHumanFarm",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderFortress": {
+    "pageName": "BloodRaiderFortress",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderGasProcessingSite": {
+    "pageName": "BloodRaiderGasProcessingSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderOutpost": {
+    "pageName": "BloodRaiderOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderIntelligenceCollectionPoint": {
+    "pageName": "BloodRaiderIntelligenceCollectionPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderNavalShipyard": {
+    "pageName": "BloodRaiderNavalShipyard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderPrisonCamp": {
+    "pageName": "BloodRaiderPrisonCamp",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderTempleComplex": {
+    "pageName": "BloodRaiderTempleComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderPsychotropicsDepot": {
+    "pageName": "BloodRaiderPsychotropicsDepot",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodVigil": {
+    "pageName": "BloodVigil",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodWatch": {
+    "pageName": "BloodWatch",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "BloodRaiderTempleComplex(TheInnerSanctum)": {
+    "pageName": "BloodRaiderTempleComplex(TheInnerSanctum)",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CHAINMindfloodProductionFacility": {
+    "pageName": "CHAINMindfloodProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CartelPrisonerRetention": {
+    "pageName": "CartelPrisonerRetention",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CHAINMindfloodDistributionBase": {
+    "pageName": "CHAINMindfloodDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ChemicalYard": {
+    "pageName": "ChemicalYard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CentusAssemblyT.P.Co.": {
+    "pageName": "CentusAssemblyT.P.Co.",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CoreRunnerDropDistribution": {
+    "pageName": "CoreRunnerDropDistribution",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CoreRunnerExileProductionFacility": {
+    "pageName": "CoreRunnerExileProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CoreRunnerDropProductionFacility": {
+    "pageName": "CoreRunnerDropProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CoreRunnerExileDistributionBase": {
+    "pageName": "CoreRunnerExileDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CrimsonHandSupplyDepot": {
+    "pageName": "CrimsonHandSupplyDepot",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "CrumblingRuins": {
+    "pageName": "CrumblingRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DarkBloodFleetStagingPoint": {
+    "pageName": "DarkBloodFleetStagingPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalCircuitry": {
+    "pageName": "DigitalCircuitry",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DesolateSite": {
+    "pageName": "DesolateSite",
+    "title": "Desolate Site",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalComplex": {
+    "pageName": "DigitalComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalCompound": {
+    "pageName": "DigitalCompound",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalMatrix": {
+    "pageName": "DigitalMatrix",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalConvolution": {
+    "pageName": "DigitalConvolution",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalPlexus": {
+    "pageName": "DigitalPlexus",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalNetwork": {
+    "pageName": "DigitalNetwork",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DigitalTessellation": {
+    "pageName": "DigitalTessellation",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DirtySite": {
+    "pageName": "DirtySite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DreadGuristasFleetStagingPoint": {
+    "pageName": "DreadGuristasFleetStagingPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "DroneInfestedMine": {
+    "pageName": "DroneInfestedMine",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "EDENCOMFieldBase": {
+    "pageName": "EDENCOMFieldBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "EDENCOMStagingArea": {
+    "pageName": "EDENCOMStagingArea",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "EDENCOMForwardPost": {
+    "pageName": "EDENCOMForwardPost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ElohimSoothSayerProductionFacility": {
+    "pageName": "ElohimSoothSayerProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ElohimSoothSayerDistributionBase": {
+    "pageName": "ElohimSoothSayerDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ElohimX-InstinctDistributionBase": {
+    "pageName": "ElohimX-InstinctDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "EmergingConduit": {
+    "pageName": "EmergingConduit",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ElohimX-InstinctProductionFacility": {
+    "pageName": "ElohimX-InstinctProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "FesteringRuins": {
+    "pageName": "FesteringRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ForgottenRuins": {
+    "pageName": "ForgottenRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaBase": {
+    "pageName": "GuristaBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaFortress": {
+    "pageName": "GuristaFortress",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaLookout": {
+    "pageName": "GuristaLookout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaHideout": {
+    "pageName": "GuristaHideout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaMilitaryComplex": {
+    "pageName": "GuristaMilitaryComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaOutpost": {
+    "pageName": "GuristaOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaProvincialHQ": {
+    "pageName": "GuristaProvincialHQ",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristaMilitaryOperationsComplex": {
+    "pageName": "GuristaMilitaryOperationsComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasForsakenSanctum": {
+    "pageName": "GuristasForsakenSanctum",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasChemicalLab": {
+    "pageName": "GuristasChemicalLab",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasAnnex": {
+    "pageName": "GuristasAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasGuerillaGrounds": {
+    "pageName": "GuristasGuerillaGrounds",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasGasProcessingSite": {
+    "pageName": "GuristasGasProcessingSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasHallucinogenSupplyWaypoint": {
+    "pageName": "GuristasHallucinogenSupplyWaypoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasScoutOutpost": {
+    "pageName": "GuristasScoutOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasTroopReinvigorationCamp": {
+    "pageName": "GuristasTroopReinvigorationCamp",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasVigil": {
+    "pageName": "GuristasVigil",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "H-PACrewBluePillDistributionBase": {
+    "pageName": "H-PACrewBluePillDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "GuristasWatch": {
+    "pageName": "GuristasWatch",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "H-PACrewBluePillProductionFacility": {
+    "pageName": "H-PACrewBluePillProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "H-PACrewCrashProductionFacility": {
+    "pageName": "H-PACrewCrashProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "H-PACrewCrashDistributionBase": {
+    "pageName": "H-PACrewCrashDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "HauntedYard": {
+    "pageName": "HauntedYard",
+    "title": "Haunted Yard",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Hierarchy": {
+    "pageName": "Hierarchy",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ISHAEKATacticalResponseHQ": {
+    "pageName": "ISHAEKATacticalResponseHQ",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "HiddenRuins": {
+    "pageName": "HiddenRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MajorConduit": {
+    "pageName": "MajorConduit",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinmatarContractedBio-Farm": {
+    "pageName": "MinmatarContractedBio-Farm",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Independence": {
+    "pageName": "Independence",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinorBloodAnnex": {
+    "pageName": "MinorBloodAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinorAngelAnnex": {
+    "pageName": "MinorAngelAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinorConduit": {
+    "pageName": "MinorConduit",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinorSerpentisAnnex": {
+    "pageName": "MinorSerpentisAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinorSanshaAnnex": {
+    "pageName": "MinorSanshaAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "MinorGuristasAnnex": {
+    "pageName": "MinorGuristasAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Mul-ZatahMonastery": {
+    "pageName": "Mul-ZatahMonastery",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "OldMeanie-CultivationCenter": {
+    "pageName": "OldMeanie-CultivationCenter",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ObservatoryFlashpoint": {
+    "pageName": "ObservatoryFlashpoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "OutgrowthRogueDroneHive(5/10)": {
+    "pageName": "OutgrowthRogueDroneHive(5/10)",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "OutgrowthRogueDroneHive(10/10)": {
+    "pageName": "OutgrowthRogueDroneHive(10/10)",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "PDW-09FXFrentixDistributionBase": {
+    "pageName": "PDW-09FXFrentixDistributionBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "PDW-09FXFrentixProductionFacility": {
+    "pageName": "PDW-09FXFrentixProductionFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Pith'sPenalComplex": {
+    "pageName": "Pith'sPenalComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "PithMerchantDepot": {
+    "pageName": "PithMerchantDepot",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "PithRobuxAsteroidMining&Co.": {
+    "pageName": "PithRobuxAsteroidMining&Co.",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ProvisionalBloodOutpost": {
+    "pageName": "ProvisionalBloodOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ProvisionalAngelOutpost": {
+    "pageName": "ProvisionalAngelOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ProvisionalGuristaOutpost": {
+    "pageName": "ProvisionalGuristaOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ProvisionalSanshaOutpost": {
+    "pageName": "ProvisionalSanshaOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ProvisionalSerpentisOutpost": {
+    "pageName": "ProvisionalSerpentisOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Radiance": {
+    "pageName": "Radiance",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "RogueDroneAsteroidInfestation": {
+    "pageName": "RogueDroneAsteroidInfestation",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "RogueDroneInfestationSprout": {
+    "pageName": "RogueDroneInfestationSprout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "RogueTrialYard": {
+    "pageName": "RogueTrialYard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Sansha'sCommandRelayOutpost": {
+    "pageName": "Sansha'sCommandRelayOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Ruins": {
+    "pageName": "Ruins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Sansha'sNationNeuralParalyticFacility": {
+    "pageName": "Sansha'sNationNeuralParalyticFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "Sansha'sNationOccupiedMiningColony": {
+    "pageName": "Sansha'sNationOccupiedMiningColony",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaAcclimatizationFacility": {
+    "pageName": "SanshaAcclimatizationFacility",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaBase": {
+    "pageName": "SanshaBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaAnnex": {
+    "pageName": "SanshaAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaChemicalLab": {
+    "pageName": "SanshaChemicalLab",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaFortress": {
+    "pageName": "SanshaFortress",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaGasProcessingSite": {
+    "pageName": "SanshaGasProcessingSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaHideout": {
+    "pageName": "SanshaHideout",
+    "title": "Sansha Hideout",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaMilitaryComplex": {
+    "pageName": "SanshaMilitaryComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaMilitaryOperationsComplex": {
+    "pageName": "SanshaMilitaryOperationsComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaLookout": {
+    "pageName": "SanshaLookout",
+    "title": "Sansha Lookout",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaMilitaryOutpost": {
+    "pageName": "SanshaMilitaryOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaOutpost": {
+    "pageName": "SanshaOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaPrisonCamp": {
+    "pageName": "SanshaPrisonCamp",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaProvincialHQ": {
+    "pageName": "SanshaProvincialHQ",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaVigil": {
+    "pageName": "SanshaVigil",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaWarSupplyComplex": {
+    "pageName": "SanshaWarSupplyComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SanshaWatch": {
+    "pageName": "SanshaWatch",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisAnnex": {
+    "pageName": "SerpentisAnnex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisBase": {
+    "pageName": "SerpentisBase",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisCapitalStaging": {
+    "pageName": "SerpentisCapitalStaging",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisChemicalLab": {
+    "pageName": "SerpentisChemicalLab",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisCorporationHydroponicsSite": {
+    "pageName": "SerpentisCorporationHydroponicsSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisDrugOutlet": {
+    "pageName": "SerpentisDrugOutlet",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisFleetShipyard": {
+    "pageName": "SerpentisFleetShipyard",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisFortress": {
+    "pageName": "SerpentisFortress",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisGasProcessingSite": {
+    "pageName": "SerpentisGasProcessingSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisLiveCargoDistributionFacilities": {
+    "pageName": "SerpentisLiveCargoDistributionFacilities",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisHideout": {
+    "pageName": "SerpentisHideout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisLogisticalOutpost": {
+    "pageName": "SerpentisLogisticalOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisMilitaryComplex": {
+    "pageName": "SerpentisMilitaryComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisLookout": {
+    "pageName": "SerpentisLookout",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisNarcoticWarehouses": {
+    "pageName": "SerpentisNarcoticWarehouses",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisParamilitaryComplex": {
+    "pageName": "SerpentisParamilitaryComplex",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisOutpost": {
+    "pageName": "SerpentisOutpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisPrisonCamp": {
+    "pageName": "SerpentisPrisonCamp",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisPhi-Outpost": {
+    "pageName": "SerpentisPhi-Outpost",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisProvincialHQ": {
+    "pageName": "SerpentisProvincialHQ",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "ShadowSerpentisFleetStagingPoint": {
+    "pageName": "ShadowSerpentisFleetStagingPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisVigil": {
+    "pageName": "SerpentisVigil",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "SerpentisWatch": {
+    "pageName": "SerpentisWatch",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "StellarFleetDeploymentSite": {
+    "pageName": "StellarFleetDeploymentSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "TeemingDroneHorde": {
+    "pageName": "TeemingDroneHorde",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "TheMaze": {
+    "pageName": "TheMaze",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "WispyRuins": {
+    "pageName": "WispyRuins",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "TrueSanshaFleetStagingPoint": {
+    "pageName": "TrueSanshaFleetStagingPoint",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  },
+  "WorldArkDeploymentSite": {
+    "pageName": "WorldArkDeploymentSite",
+    "title": "",
+    "info": {},
+    "pockets": [],
+    "tips": "",
+    "loot": ""
+  }
+}

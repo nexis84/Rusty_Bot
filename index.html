@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rusty Bot - EVE Online Tools</title>
+    <link rel="stylesheet" href="Style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="rusty_bot.png">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --panel: #1a1a1a;
+            --panel-hover: #222;
+            --border: #2a2a2a;
+            --text: #ddd;
+            --dim: #888;
+            --accent: #e8d900;
+            --accent-dim: rgba(232, 217, 0, 0.25);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Titillium Web', sans-serif;
+            line-height: 1.6;
+        }
+
+        .hero-wrap {
+            background: #111;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 64px 24px 40px;
+        }
+
+        .hero-logo {
+            max-width: 140px;
+            margin-bottom: 18px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .hero h1 span { color: var(--accent); }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--dim);
+            margin-top: 4px;
+        }
+
+        .hero-rule {
+            width: 60px;
+            height: 2px;
+            background: var(--accent);
+            margin: 18px auto 0;
+        }
+
+        .nav-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(13, 13, 13, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .quick-nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 12px 24px;
+        }
+
+        .quick-nav a {
+            color: var(--dim);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 5px 14px;
+            border-radius: 3px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .quick-nav a:hover {
+            color: var(--accent);
+            background: rgba(232, 217, 0, 0.06);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .section { padding: 36px 0; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .section-header .line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .section-header i { color: var(--accent); font-size: 0.85rem; }
+
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .card-grid .card {
+            flex: 0 1 200px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px 18px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 4px;
+            transition: background 0.15s, border-color 0.2s;
+        }
+
+        .card-grid .card:hover {
+            background: var(--panel-hover);
+            border-color: var(--accent-dim);
+        }
+
+        .card-grid .card-icon {
+            font-size: 1.3rem;
+            color: var(--dim);
+            margin-bottom: 4px;
+            transition: color 0.15s;
+        }
+
+        .card-grid .card:hover .card-icon { color: var(--accent); }
+
+        .card-grid .card h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #eee;
+        }
+
+        .card-grid .card p {
+            font-size: 0.75rem;
+            color: var(--dim);
+        }
+
+        .card-grid .card.card-soon {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .card-grid .card.card-soon:hover {
+            background: var(--panel);
+            border-color: var(--border);
+        }
+
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .feat-grid .feat {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            transition: background 0.15s, border-color 0.2s;
+        }
+
+        .feat-grid .feat:hover {
+            background: var(--panel-hover);
+            border-color: var(--accent-dim);
+        }
+
+        .feat-grid .feat i {
+            color: var(--accent);
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+
+        .feat-grid .feat h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .feat-grid .feat p {
+            font-size: 0.78rem;
+            color: var(--dim);
+            line-height: 1.4;
+        }
+
+        .support-box {
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        .support-box p { color: var(--dim); font-size: 0.95rem; margin-bottom: 4px; }
+        .support-box .highlight { color: var(--accent); font-weight: 700; }
+
+        .poster-wrap {
+            text-align: center;
+            padding: 8px 0 32px;
+        }
+
+        .poster-wrap .award-badge {
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .poster-wrap img {
+            max-width: 440px;
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+
+        .poster-wrap img:hover {
+            border-color: var(--accent-dim);
+        }
+
+        .poster-wrap p {
+            margin-top: 12px;
+            font-size: 0.95rem;
+            color: var(--dim);
+        }
+
+        .back-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 99;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--dim);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .back-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-top:hover {
+            background: var(--panel-hover);
+            border-color: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            padding: 28px 0;
+            border-top: 1px solid var(--border);
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        footer a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+        footer a:hover { color: var(--accent); }
+
+        footer .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .feat-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 2.2rem; }
+            .hero-logo { max-width: 110px; }
+            .back-top { bottom: 20px; right: 20px; }
+        }
+
+        @media (max-width: 500px) {
+            .card-grid .card { flex: 0 1 140px; }
+            .feat-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero-wrap">
+        <header class="hero">
+            <img src="rusty_bot.png" alt="Rusty Bot Logo" class="hero-logo">
+            <h1>Welcome to <span>Rusty Bot</span></h1>
+            <p>Your suite of powerful EVE Online tools for Twitch and Discord.</p>
+            <div class="hero-rule"></div>
+        </header>
+    </div>
+
+    <div class="nav-wrap">
+        <nav class="quick-nav">
+            <a href="#giveaway">Giveaway</a>
+            <a href="#tools">Tools</a>
+            <a href="#games">Games</a>
+            <a href="#support">Support</a>
+            <a href="#features">Features</a>
+            <a href="#coming-soon">Coming Soon</a>
+        </nav>
+    </div>
+
+    <div class="container">
+
+        <section class="section" id="giveaway">
+            <div class="section-header">
+                <i class="fa-solid fa-gift"></i>
+                <h2>Giveaway Tools</h2>
+                <span class="line"></span>
+            </div>
+            <div class="card-grid">
+                <a href="giveaway.html" class="card">
+                    <div class="card-icon"><i class="fa-brands fa-twitch"></i></div>
+                    <h3>RustyBot Client</h3>
+                    <p>For Twitch and Kick Streamers</p>
+                </a>
+                <a href="discord.html" class="card">
+                    <div class="card-icon"><i class="fa-brands fa-discord"></i></div>
+                    <h3>Discord Bot</h3>
+                    <p>For Discord Communities</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="section" id="tools">
+            <div class="section-header">
+                <i class="fa-solid fa-wrench"></i>
+                <h2>Tools</h2>
+                <span class="line"></span>
+            </div>
+            <div class="card-grid">
+                <a href="bpc-calculator/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-cubes"></i></div>
+                    <h3>BPC Calculator</h3>
+                    <p>Manufacturing Profits</p>
+                </a>
+                <a href="gatecheck/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-shield"></i></div>
+                    <h3>Gate Check</h3>
+                    <p>Route Safety Scanner</p>
+                </a>
+                <a href="market/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                    <h3>Market Check</h3>
+                    <p>Live Market Data</p>
+                </a>
+                <a href="guides/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-book"></i></div>
+                    <h3>Missions & Anomalies</h3>
+                    <p>Guides and info</p>
+                </a>
+                <a href="skin-gallery/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-palette"></i></div>
+                    <h3>SKINR Gallery</h3>
+                    <p>Share your custom skins</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="section" id="games">
+            <div class="section-header">
+                <i class="fa-solid fa-gamepad"></i>
+                <h2>Games</h2>
+                <span class="line"></span>
+            </div>
+            <div class="card-grid">
+                <a href="ship-guess-game/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-ship"></i></div>
+                    <h3>Classified Hulls</h3>
+                    <p>Ship Guess Game</p>
+                </a>
+                <a href="the-isk-is-right/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <h3>The ISK is Right!</h3>
+                    <p>Ship Price Game</p>
+                </a>
+                <a href="sleeper-archive/" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Sleeper Archive</h3>
+                    <p>EVE Hacking Minigame</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="section" id="coming-soon">
+            <div class="section-header">
+                <i class="fa-regular fa-clock"></i>
+                <h2>Coming Soon</h2>
+                <span class="line"></span>
+            </div>
+            <div class="card-grid">
+                <div class="card card-soon">
+                    <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+                    <h3>PI Visualizer</h3>
+                    <p>Coming Soon</p>
+                </div>
+                <div class="card card-soon">
+                    <div class="card-icon"><i class="fa-regular fa-clock"></i></div>
+                    <h3>Skill Planner</h3>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="support">
+            <div class="section-header">
+                <i class="fa-solid fa-heart"></i>
+                <h2>Support</h2>
+                <span class="line"></span>
+            </div>
+            <div class="support-box">
+                <p>Support via Ko-fi or send ISK to IGN <span class="highlight">"Virxens"</span></p>
+                <div style="margin-top:12px;">
+                    <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="features">
+            <div class="section-header">
+                <i class="fa-solid fa-star"></i>
+                <h2>Features</h2>
+                <span class="line"></span>
+            </div>
+            <div class="feat-grid">
+                <div class="feat">
+                    <i class="fa-brands fa-twitch"></i>
+                    <h4>Twitch Giveaway Tool</h4>
+                    <p>Engage your Twitch community with secure real-time giveaways for streamers.</p>
+                </div>
+                <div class="feat">
+                    <i class="fa-brands fa-discord"></i>
+                    <h4>Discord Utility Bot</h4>
+                    <p>EVE Online utilities like market lookups and d-scan parsing for your server.</p>
+                </div>
+                <div class="feat">
+                    <i class="fa-solid fa-database"></i>
+                    <h4>Live EVE Data</h4>
+                    <p>All tools powered by the ESI API for accurate, real-time information.</p>
+                </div>
+                <div class="feat">
+                    <i class="fa-solid fa-comments"></i>
+                    <h4>Twitch & Kick Chat Connected</h4>
+                    <p>Fully integrated with Twitch and Kick chat for seamless live interaction.</p>
+                </div>
+                <div class="feat">
+                    <i class="fa-solid fa-lock-open"></i>
+                    <h4>Open Source</h4>
+                    <p>Transparent and community-driven &mdash; RustyBot is fully open source.</p>
+                </div>
+                <div class="feat">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <h4>Twitch & Kick Utility Bot</h4>
+                    <p>Live market lookups, price checks, and more in your Twitch and Kick chat.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="poster-wrap">
+            <div class="award-badge">Creator Awards Finalist 2026</div>
+            <img src="Poster%20Newdev.png" alt="Thanks for your support">
+            <p>Thanks for all your ongoing support</p>
+        </div>
+
+        <footer>
+            <div class="social-links">
+                <a href="https://github.com" title="GitHub"><i class="fa-brands fa-github"></i></a>
+                <a href="#" title="Discord"><i class="fa-brands fa-discord"></i></a>
+                <a href="#" title="Twitch"><i class="fa-brands fa-twitch"></i></a>
+            </div>
+            RustyBot is an unofficial EVE Online tool, not affiliated with CCP Games.
+        </footer>
+
+    </div>
+
+    <a href="#" class="back-top" id="backTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></a>
+
+    <script>
+        const backBtn = document.getElementById('backTop');
+        window.addEventListener('scroll', () => {
+            backBtn.classList.toggle('visible', window.scrollY > 400);
+        });
+    </script>
+</body>
+</html>
