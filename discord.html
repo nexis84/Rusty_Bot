@@ -83,28 +83,6 @@
             margin-top: 4px;
         }
 
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--panel);
-            color: var(--text);
-            padding: 16px 28px;
-            text-decoration: none;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            font-size: 1.2rem;
-            font-weight: 700;
-            min-width: 240px;
-            margin-top: 1.5rem;
-            transition: background 0.15s, border-color 0.2s;
-        }
-
-        .cta-button:hover {
-            background: var(--panel-hover);
-            border-color: var(--accent-dim);
-        }
-
         .contact-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -119,10 +97,11 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 14px;
+            padding: 20px 18px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
             gap: 4px;
             transition: background 0.15s, border-color 0.2s;
         }
@@ -133,29 +112,27 @@
         }
 
         .contact-card-icon {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: var(--accent);
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .contact-card-name {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.75rem;
             color: var(--dim);
-            font-weight: 600;
+            font-weight: 400;
         }
 
         .contact-card-value {
-            font-size: 0.95rem;
-            color: var(--text);
+            font-size: 0.9rem;
+            color: #eee;
             font-weight: 700;
         }
 
         .contact-card-ign {
             grid-column: 1 / -1;
             justify-self: center;
-            max-width: 180px;
+            max-width: 200px;
             width: 100%;
             border-color: var(--accent-dim);
         }
@@ -267,8 +244,10 @@
             <img src="rusty_bot.png" alt="RustyBot Discord Logo" class="logo">
             <h1><span>Discord Bot</span></h1>
             <p class="subtitle">Your all-in-one EVE Online market and utility assistant for Discord.</p>
-            <span class="cta-button">Contact Me</span>
-            <p style="color: var(--dim); margin-top: 1.5rem;">If you would like to use RustyBot please contact me</p>
+            <div class="section-header" style="margin-top: 2rem;">
+                <i class="fa-solid fa-address-card"></i>
+                <h2>Contact</h2>
+            </div>
             <div class="contact-cards">
                 <div class="contact-card">
                     <span class="contact-card-icon"><i class="fa-brands fa-discord"></i></span>
