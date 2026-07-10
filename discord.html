@@ -137,7 +137,7 @@
             border-color: var(--accent-dim);
         }
 
-        .section { padding: 32px 0; }
+        .section { padding: 32px 0; border-top: none; }
 
         .section-header {
             display: flex;
@@ -164,12 +164,14 @@
         .section-header i { color: var(--accent); font-size: 0.85rem; }
 
         .feat-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 12px;
         }
 
         .feat-grid .feat {
+            flex: 0 1 280px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -230,7 +232,7 @@
 
         @media (max-width: 600px) {
             header h1 { font-size: 2rem; }
-            .feat-grid { grid-template-columns: 1fr; }
+            .feat-grid .feat { flex: 0 1 100%; }
             .back-link { position: static; display: block; text-align: center; margin-bottom: 0; }
             .contact-cards { grid-template-columns: 1fr 1fr; }
         }
@@ -244,9 +246,11 @@
             <img src="rusty_bot.png" alt="RustyBot Discord Logo" class="logo">
             <h1><span>Discord Bot</span></h1>
             <p class="subtitle">Your all-in-one EVE Online market and utility assistant for Discord.</p>
+            <p style="color: var(--dim); margin-top: 1.5rem;">If you would like to use RustyBot then please contact me</p>
             <div class="section-header" style="margin-top: 2rem;">
                 <i class="fa-solid fa-address-card"></i>
                 <h2>Contact</h2>
+                <span class="line"></span>
             </div>
             <div class="contact-cards">
                 <div class="contact-card">
@@ -265,7 +269,7 @@
                     <span class="contact-card-value">ne_x_is</span>
                 </div>
                 <div class="contact-card">
-                    <span class="contact-card-icon"><i class="fa-brands fa-kickstarter"></i></span>
+                    <span class="contact-card-icon"><i class="fa-solid fa-comment"></i></span>
                     <span class="contact-card-name">Kick</span>
                     <span class="contact-card-value">ne_x_is</span>
                 </div>
@@ -303,19 +307,34 @@
                 </div>
                 <div class="feat-grid">
                     <div class="feat">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <h4>Real-time Market Data</h4>
-                        <p>Get live market prices for any item from all major EVE trade hubs, including Jita, Amarr, and Dodixie.</p>
+                        <i class="fa-brands fa-twitch"></i>
+                        <h4>Giveaway</h4>
+                        <p>Run real-time EVE Online giveaways directly from your Discord server.</p>
                     </div>
                     <div class="feat">
-                        <i class="fa-solid fa-radar"></i>
-                        <h4>D-Scan Parser</h4>
-                        <p>Paste directional scan results to get an instant, categorized breakdown of all ships on scan.</p>
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <h4>Market</h4>
+                        <p>Live market prices and lookups for any item from all major EVE trade hubs.</p>
+                    </div>
+                    <div class="feat">
+                        <i class="fa-solid fa-shield"></i>
+                        <h4>Gate Check</h4>
+                        <p>Route safety scanning to check if systems are clear before you jump.</p>
+                    </div>
+                    <div class="feat">
+                        <i class="fa-solid fa-database"></i>
+                        <h4>Fully Connected to ESI</h4>
+                        <p>Fully integrated with EVE Online ESI for real-time data and pilot verification.</p>
                     </div>
                     <div class="feat">
                         <i class="fa-solid fa-coins"></i>
-                        <h4>LP Store Analysis</h4>
-                        <p>Analyze and compare Loyalty Point store offers to find the most profitable items to cash in your LP.</p>
+                        <h4>LP</h4>
+                        <p>Analyze and compare Loyalty Point store offers to find the most profitable items.</p>
+                    </div>
+                    <div class="feat">
+                        <i class="fa-solid fa-crosshairs"></i>
+                        <h4>D-Scan</h4>
+                        <p>Paste directional scan results for an instant, categorized breakdown of all ships on scan.</p>
                     </div>
                 </div>
             </section>
