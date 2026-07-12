@@ -85,8 +85,8 @@
 
         .contact-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
             margin-top: 1.5rem;
             max-width: 600px;
             margin-left: auto;
@@ -97,12 +97,14 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 20px 18px;
+            padding: 8px 6px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
             text-align: center;
-            gap: 4px;
+            gap: 2px 4px;
             transition: background 0.15s, border-color 0.2s;
         }
 
@@ -112,19 +114,19 @@
         }
 
         .contact-card-icon {
-            font-size: 1.3rem;
+            font-size: 1.05rem;
             color: var(--accent);
-            margin-bottom: 4px;
+            flex: 0 0 100%;
         }
 
         .contact-card-name {
-            font-size: 0.75rem;
+            font-size: 0.68rem;
             color: var(--dim);
             font-weight: 400;
         }
 
         .contact-card-value {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #eee;
             font-weight: 700;
         }
@@ -134,7 +136,33 @@
             justify-self: center;
             max-width: 200px;
             width: 100%;
+            padding: 10px 16px;
             border-color: var(--accent-dim);
+        }
+
+        .contact-card-ign .contact-card-icon {
+            flex: 0 0 auto;
+            font-size: 0.7rem;
+        }
+
+        a.contact-card-link {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            grid-column: 1 / -1;
+            justify-self: center;
+            max-width: 240px;
+            width: 100%;
+            padding: 20px 16px;
+            margin-top: 6px;
+        }
+
+        a.contact-card-link .contact-card-icon {
+            font-size: 1.3rem;
+        }
+
+        a.contact-card-link .contact-card-value {
+            font-size: 0.9rem;
         }
 
         .section { padding: 32px 0; border-top: none; }
@@ -234,7 +262,7 @@
             header h1 { font-size: 2rem; }
             .feat-grid .feat { flex: 0 1 100%; }
             .back-link { position: static; display: block; text-align: center; margin-bottom: 0; }
-            .contact-cards { grid-template-columns: 1fr 1fr; }
+            .contact-cards { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -275,9 +303,14 @@
                 </div>
                 <div class="contact-card contact-card-ign">
                     <span class="contact-card-icon"><i class="fa-solid fa-star"></i></span>
-                    <span class="contact-card-name">In Game Channel</span>
+                    <span class="contact-card-name">IGN</span>
                     <span class="contact-card-value">RustyBot.co.uk</span>
                 </div>
+                <a href="https://discord.gg/sFa2cSkHZ" target="_blank" rel="noopener noreferrer" class="contact-card contact-card-link">
+                    <span class="contact-card-icon"><i class="fa-solid fa-link"></i></span>
+                    <span class="contact-card-name">Discord Server</span>
+                    <span class="contact-card-value">Join Here</span>
+                </a>
             </div>
         </header>
 
