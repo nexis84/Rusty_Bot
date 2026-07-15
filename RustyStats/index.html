@@ -78,9 +78,9 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
-            max-width: 720px;
+            max-width: 860px;
             margin: 32px auto;
         }
 
@@ -95,6 +95,11 @@
             overflow: hidden;
         }
 
+        .stat-card.entries {
+            grid-column: 2 / span 2;
+            padding: 18px 16px;
+        }
+
         .stat-card::before {
             content: '';
             position: absolute;
@@ -107,6 +112,8 @@
         .stat-card.entries::before { background: var(--accent); }
         .stat-card.avg::before { background: #ff9800; }
         .stat-card.winners::before { background: #00e676; }
+        .stat-card.draws::before { background: #9c27b0; }
+        .stat-card.rerolls::before { background: #e53935; }
 
         .stat-card:hover {
             border-color: var(--accent-dim);
@@ -120,6 +127,8 @@
         .stat-card.entries .icon { color: var(--accent); }
         .stat-card.avg .icon { color: #ff9800; }
         .stat-card.winners .icon { color: #00e676; }
+        .stat-card.draws .icon { color: #9c27b0; }
+        .stat-card.rerolls .icon { color: #e53935; }
 
         .stat-card .label {
             font-size: 0.75rem;
@@ -216,11 +225,11 @@
 
         <div id="app">
             <div class="stats-grid">
-                <div class="stat-card entries">
-                    <div class="icon"><i class="fa-solid fa-ticket"></i></div>
-                    <div class="label">Draw Entries</div>
-                    <div class="value" id="entries">—</div>
-                    <div class="sub">total this period</div>
+                <div class="stat-card draws">
+                    <div class="icon"><i class="fa-solid fa-dice"></i></div>
+                    <div class="label">Total Draws</div>
+                    <div class="value" id="totalDraws">—</div>
+                    <div class="sub">winners + timeouts</div>
                 </div>
                 <div class="stat-card avg">
                     <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
@@ -228,10 +237,22 @@
                     <div class="value" id="avg">—</div>
                     <div class="sub">entries per draw</div>
                 </div>
+                <div class="stat-card rerolls">
+                    <div class="icon"><i class="fa-solid fa-rotate"></i></div>
+                    <div class="label">Total Re-rolls</div>
+                    <div class="value" id="rerolls">—</div>
+                    <div class="sub">winner timeouts</div>
+                </div>
                 <div class="stat-card winners">
                     <div class="icon"><i class="fa-solid fa-trophy"></i></div>
-                    <div class="label">Winners Drawn</div>
+                    <div class="label">Total Winners</div>
                     <div class="value" id="winners">—</div>
+                    <div class="sub">total this period</div>
+                </div>
+                <div class="stat-card entries">
+                    <div class="icon"><i class="fa-solid fa-ticket"></i></div>
+                    <div class="label">Total Draw Entries</div>
+                    <div class="value" id="entries">—</div>
                     <div class="sub">total this period</div>
                 </div>
             </div>
@@ -258,6 +279,8 @@
         const entriesEl = document.getElementById('entries');
         const avgEl = document.getElementById('avg');
         const winnersEl = document.getElementById('winners');
+        const totalDrawsEl = document.getElementById('totalDraws');
+        const rerollsEl = document.getElementById('rerolls');
         const dateRangeEl = document.getElementById('dateRange');
         const fileDateEl = document.getElementById('fileDate');
         const noDataEl = document.getElementById('noData');
@@ -293,6 +316,8 @@
                 animateValue(entriesEl, data.entries);
                 avgEl.textContent = data.avgPerDraw.toFixed(1);
                 animateValue(winnersEl, data.winners);
+                animateValue(totalDrawsEl, data.totalDraws);
+                animateValue(rerollsEl, data.timeouts);
 
                 if (data.startDate && data.endDate) {
                     dateRangeEl.textContent = data.startDate + '  —  ' + data.endDate;

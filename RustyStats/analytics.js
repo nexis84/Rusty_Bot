@@ -23,6 +23,7 @@ function parseCsv() {
     let endDate = null;
     let entries = 0;
     let winners = 0;
+    let timeouts = 0;
 
     for (const line of lines) {
       if (!line) continue;
@@ -41,10 +42,12 @@ function parseCsv() {
       const count = parseInt(line.slice(comma + 1).trim(), 10) || 0;
       if (name === 'draw_entry') entries = count;
       if (name === 'winner_drawn') winners = count;
+      if (name === 'winner_timeout') timeouts = count;
     }
 
     const avg = entries > 0 && winners > 0 ? +(entries / winners).toFixed(1) : 0;
-    return { entries, winners, avgPerDraw: avg, startDate, endDate, fileModified: stat.mtime.toISOString() };
+    const totalDraws = winners + timeouts;
+    return { entries, winners, timeouts, totalDraws, avgPerDraw: avg, startDate, endDate, fileModified: stat.mtime.toISOString() };
   } catch (e) {
     console.error('[Analytics] CSV read error:', e.message);
     return { entries: 0, winners: 0, startDate: null, endDate: null, fileModified: null };
