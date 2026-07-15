@@ -153,6 +153,28 @@
             font-weight: 600;
         }
 
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--dim);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.78rem;
+            transition: border-color 0.2s, color 0.2s;
+            margin-top: 8px;
+        }
+        .refresh-btn:hover {
+            border-color: var(--accent-dim);
+            color: var(--accent);
+        }
+        .refresh-btn i { font-size: 0.75rem; }
+        .refresh-btn:disabled { opacity: 0.4; cursor: default; }
+
         footer {
             text-align: center;
             padding: 28px 0;
@@ -209,6 +231,8 @@
             <div class="meta">
                 Data: <span class="highlight" id="dateRange">—</span>
                 &middot; CSV updated: <span id="fileDate">—</span>
+                <br>
+                <button class="refresh-btn" id="refreshBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
             </div>
         </div>
 
@@ -228,6 +252,7 @@
         const dateRangeEl = document.getElementById('dateRange');
         const fileDateEl = document.getElementById('fileDate');
         const noDataEl = document.getElementById('noData');
+        const refreshBtn = document.getElementById('refreshBtn');
 
         function animateValue(el, newVal) {
             const current = parseInt(el.textContent.replace(/,/g, ''), 10);
@@ -248,7 +273,7 @@
 
         async function fetchData() {
             try {
-                const res = await fetch('/api/analytics');
+                const res = await fetch('/api/analytics?_=' + Date.now());
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
 
@@ -268,6 +293,11 @@
                 noDataEl.style.display = 'block';
             }
         }
+
+        refreshBtn.addEventListener('click', () => {
+            refreshBtn.disabled = true;
+            fetchData().finally(() => { refreshBtn.disabled = false; });
+        });
 
         document.addEventListener('DOMContentLoaded', fetchData);
     </script>
