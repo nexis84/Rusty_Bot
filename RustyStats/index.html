@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rusty Stats — RustyBot</title>
+    <link rel="stylesheet" href="../Style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="../rusty_bot.png">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --panel: #1a1a1a;
+            --panel-hover: #222;
+            --border: #2a2a2a;
+            --text: #ddd;
+            --dim: #888;
+            --accent: #e8d900;
+            --accent-dim: rgba(232, 217, 0, 0.25);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Titillium Web', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 24px;
+            color: var(--dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .back-link:hover { color: var(--accent); }
+
+        header {
+            text-align: center;
+            padding: 48px 20px 32px;
+        }
+
+        .logo {
+            max-width: 100px;
+            margin-bottom: 12px;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        header h1 span { color: var(--accent); }
+
+        header .subtitle {
+            font-size: 1rem;
+            color: var(--dim);
+            margin-top: 2px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            max-width: 500px;
+            margin: 32px auto;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 28px 20px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .stat-card.entries::before { background: var(--accent); }
+        .stat-card.winners::before { background: #00e676; }
+
+        .stat-card:hover {
+            border-color: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        .stat-card.entries .icon { color: var(--accent); }
+        .stat-card.winners .icon { color: #00e676; }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--dim);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-card .sub {
+            font-size: 0.72rem;
+            color: var(--dim);
+            margin-top: 6px;
+        }
+
+        .meta {
+            text-align: center;
+            padding: 8px 0 32px;
+            font-size: 0.82rem;
+            color: var(--dim);
+        }
+
+        .meta .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 28px 0;
+            border-top: 1px solid var(--border);
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        footer a { color: var(--dim); text-decoration: none; }
+        footer a:hover { color: var(--accent); }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--dim);
+        }
+        .no-data i { font-size: 2.5rem; margin-bottom: 12px; color: var(--accent-dim); }
+        .no-data p { font-size: 1rem; }
+
+        @media (max-width: 500px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.8rem; }
+            .stat-card .value { font-size: 2.2rem; }
+            .back-link { position: static; display: block; text-align: center; margin-bottom: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">&larr; Back to Hub</a>
+
+        <header>
+            <img src="../rusty_bot.png" alt="RustyBot" class="logo">
+            <h1><span>Rusty</span> Stats</h1>
+            <p class="subtitle">Monthly draw event summary</p>
+        </header>
+
+        <div id="app">
+            <div class="stats-grid">
+                <div class="stat-card entries">
+                    <div class="icon"><i class="fa-solid fa-ticket"></i></div>
+                    <div class="label">Draw Entries</div>
+                    <div class="value" id="entries">—</div>
+                    <div class="sub">total this period</div>
+                </div>
+                <div class="stat-card winners">
+                    <div class="icon"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="label">Winners Drawn</div>
+                    <div class="value" id="winners">—</div>
+                    <div class="sub">total this period</div>
+                </div>
+            </div>
+
+            <div class="meta">
+                Data: <span class="highlight" id="dateRange">—</span>
+                &middot; CSV updated: <span id="fileDate">—</span>
+            </div>
+        </div>
+
+        <div id="noData" class="no-data" style="display:none;">
+            <i class="fa-solid fa-chart-simple"></i>
+            <p>No data found.<br><span style="font-size:0.82rem;color:var(--dim);">Make sure data.csv exists and has data.</span></p>
+        </div>
+
+        <footer>
+            Data exported from <a href="https://analytics.google.com" target="_blank">Google Analytics</a>
+        </footer>
+    </div>
+
+    <script>
+        const entriesEl = document.getElementById('entries');
+        const winnersEl = document.getElementById('winners');
+        const dateRangeEl = document.getElementById('dateRange');
+        const fileDateEl = document.getElementById('fileDate');
+        const noDataEl = document.getElementById('noData');
+
+        function animateValue(el, newVal) {
+            const current = parseInt(el.textContent.replace(/,/g, ''), 10);
+            if (isNaN(current) || current === newVal) {
+                el.textContent = newVal.toLocaleString();
+                return;
+            }
+            const duration = 400;
+            const start = performance.now();
+            const diff = newVal - current;
+            function tick(now) {
+                const p = Math.min((now - start) / duration, 1);
+                el.textContent = Math.round(current + diff * (1 - Math.pow(1 - p, 3))).toLocaleString();
+                if (p < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+
+        async function fetchData() {
+            try {
+                const res = await fetch('/api/analytics');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+
+                animateValue(entriesEl, data.entries);
+                animateValue(winnersEl, data.winners);
+
+                if (data.startDate && data.endDate) {
+                    dateRangeEl.textContent = data.startDate + '  —  ' + data.endDate;
+                }
+                if (data.fileModified) {
+                    const d = new Date(data.fileModified);
+                    fileDateEl.textContent = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+                }
+                noDataEl.style.display = 'none';
+            } catch (e) {
+                console.error('[Rusty Stats] Error:', e);
+                noDataEl.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+</body>
+</html>

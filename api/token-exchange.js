@@ -499,6 +499,10 @@ mountKillboardApi('/Killboard/api');
 // Mount Skin Gallery API
 app.use('/api', skinsRouter);
 
+// Mount Analytics API
+const analyticsRouter = require('../RustyStats/analytics.js');
+app.use('/api', analyticsRouter);
+
 // EVE SSO callback relay — EVE redirects here, we forward to the skin gallery
 app.get('/api/auth/eve/callback', (req, res) => {
   const { code, state } = req.query;
