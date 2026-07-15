@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const router = express.Router();
 
-const CSV_PATH = path.join(__dirname, 'data.csv');
+const CSV_PATH = path.join(__dirname, 'Rusty_DrawBot.csv');
 
 function formatDate(yyyymmdd) {
   if (!yyyymmdd || yyyymmdd.length !== 8) return null;
@@ -43,7 +43,8 @@ function parseCsv() {
       if (name === 'winner_drawn') winners = count;
     }
 
-    return { entries, winners, startDate, endDate, fileModified: stat.mtime.toISOString() };
+    const avg = entries > 0 && winners > 0 ? +(entries / winners).toFixed(1) : 0;
+    return { entries, winners, avgPerDraw: avg, startDate, endDate, fileModified: stat.mtime.toISOString() };
   } catch (e) {
     console.error('[Analytics] CSV read error:', e.message);
     return { entries: 0, winners: 0, startDate: null, endDate: null, fileModified: null };

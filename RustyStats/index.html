@@ -78,7 +78,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             max-width: 500px;
             margin: 32px auto;
@@ -105,6 +105,7 @@
         }
 
         .stat-card.entries::before { background: var(--accent); }
+        .stat-card.avg::before { background: #ff9800; }
         .stat-card.winners::before { background: #00e676; }
 
         .stat-card:hover {
@@ -117,6 +118,7 @@
             margin-bottom: 8px;
         }
         .stat-card.entries .icon { color: var(--accent); }
+        .stat-card.avg .icon { color: #ff9800; }
         .stat-card.winners .icon { color: #00e676; }
 
         .stat-card .label {
@@ -220,6 +222,12 @@
                     <div class="value" id="entries">—</div>
                     <div class="sub">total this period</div>
                 </div>
+                <div class="stat-card avg">
+                    <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="label">Avg per Draw</div>
+                    <div class="value" id="avg">—</div>
+                    <div class="sub">entries per draw</div>
+                </div>
                 <div class="stat-card winners">
                     <div class="icon"><i class="fa-solid fa-trophy"></i></div>
                     <div class="label">Winners Drawn</div>
@@ -238,7 +246,7 @@
 
         <div id="noData" class="no-data" style="display:none;">
             <i class="fa-solid fa-chart-simple"></i>
-            <p>No data found.<br><span style="font-size:0.82rem;color:var(--dim);">Make sure data.csv exists and has data.</span></p>
+            <p>No data found.<br><span style="font-size:0.82rem;color:var(--dim);">Make sure Rusty_DrawBot.csv exists and has data.</span></p>
         </div>
 
         <footer>
@@ -248,6 +256,7 @@
 
     <script>
         const entriesEl = document.getElementById('entries');
+        const avgEl = document.getElementById('avg');
         const winnersEl = document.getElementById('winners');
         const dateRangeEl = document.getElementById('dateRange');
         const fileDateEl = document.getElementById('fileDate');
@@ -282,6 +291,7 @@
                 const data = await res.json();
 
                 animateValue(entriesEl, data.entries);
+                avgEl.textContent = data.avgPerDraw.toFixed(1);
                 animateValue(winnersEl, data.winners);
 
                 if (data.startDate && data.endDate) {
