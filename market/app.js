@@ -25,8 +25,7 @@ const AppState = {
         categoryVolume: null
     },
     regionalChart: null,
-    priceAlerts: JSON.parse(localStorage.getItem('marketPriceAlerts') || '{}'),
-    lastSkinAnalysis: []
+    priceAlerts: JSON.parse(localStorage.getItem('marketPriceAlerts') || '{}')
 };
 
 // Utility functions
@@ -238,9 +237,6 @@ async function initApp() {
         
         // Setup event listeners
         setupEventListeners();
-        
-        // Update SSO UI (Check if logged in)
-        updateSSOUI();
         
         // Update EVE time
         updateEveTime();
@@ -2273,20 +2269,6 @@ async function loadItem(typeId, name, forceRefresh = false) {
         const categoryName = itemInfo?.path[0] || 'Unknown';
         el('itemCategory').textContent = categoryName;
         
-        // Show/hide skins tab for ships only
-        const skinsTabBtn = el('skinsTabBtn');
-        if (skinsTabBtn) {
-            if (categoryName === 'Ships') {
-                skinsTabBtn.style.display = 'inline-flex';
-            } else {
-                skinsTabBtn.style.display = 'none';
-                // If we were on the skins tab, switch back to orders
-                if (el('skinsTab')?.classList.contains('active') || !el('skinsTab')?.classList.contains('hidden')) {
-                    switchTab('orders');
-}
-}
-}
-        
         // Check if we got any data
         const hasData = itemData || orders.length > 0 || historyData.length > 0;
         const hasOrders = orders.length > 0;
@@ -4097,128 +4079,6 @@ async function loadSkinsData(shipId, shipName) {
 }
 }
 
-// ==================== EVE SSO AUTHENTICATION & SKIN ANALYZER ====================
-
-// EVE SSO Configuration
-const EVE_SSO_CONFIG = {
-    clientId: '654cd1a4e1c24985a7771eb49ed2724a',
-    redirectUri: 'https://www.rustybot.co.uk/market/sso-callback.html',
-    scopes: ['esi-assets.read_assets.v1', 'esi-characters.read_notifications.v1'],
-    // NOTE: The client secret is NOT stored here for security reasons.
-    // Token exchange happens server-side via Render API
-    tokenExchangeUrl: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8080/api/token-exchange'
-        : 'https://rusty-bot-api.onrender.com/api/token-exchange'
-};
-
-// Generate random state parameter
-function generateState() {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return btoa(String.fromCharCode.apply(null, array))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
-}
-
-// Initiate EVE SSO login
-function initiateSSOLogin() {
-    const state = generateState();
-    
-    // Store state for later verification
-    localStorage.setItem('eve_sso_state', state);
-    
-    // Build authorization URL (standard auth code flow, no PKCE needed - client_secret is server-side)
-    const authUrl = new URL('https://login.eveonline.com/v2/oauth/authorize');
-    authUrl.searchParams.append('response_type', 'code');
-    authUrl.searchParams.append('redirect_uri', EVE_SSO_CONFIG.redirectUri);
-    authUrl.searchParams.append('client_id', EVE_SSO_CONFIG.clientId);
-    authUrl.searchParams.append('scope', EVE_SSO_CONFIG.scopes.join(' '));
-    authUrl.searchParams.append('state', state);
-    
-    // Redirect to EVE SSO
-    window.location.href = authUrl.toString();
-}
-
-// Check if user is authenticated
-function isAuthenticated() {
-    return localStorage.getItem('eve_access_token') !== null && 
-           localStorage.getItem('eve_character_id') !== null;
-}
-
-// Get authentication headers for ESI requests
-function getAuthHeaders() {
-    const token = localStorage.getItem('eve_access_token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
-
-
-// Refresh access token (placeholder - needs backend implementation)
-async function refreshAccessToken() {
-    // In production, this should call your backend to refresh the token
-    console.log('Token refresh needed - redirecting to login');
-    logout();
-    throw new Error('Session expired. Please log in again.');
-}
-
-// Logout function
-function logout() {
-    localStorage.removeItem('eve_access_token');
-    localStorage.removeItem('eve_refresh_token');
-    localStorage.removeItem('eve_character_id');
-    localStorage.removeItem('eve_character_name');
-    localStorage.removeItem('eve_auth_time');
-    localStorage.removeItem('eve_has_skins_scope');
-    
-    // Refresh UI
-    updateSSOUI();
-    showNotification('Logged out successfully', 'info');
-}
-
-// Update SSO UI based on authentication status
-function updateSSOUI() {
-    const ssoButton = el('ssoButton');
-    const ssoStatus = el('ssoStatus');
-    const ssoBadge = el('ssoBadge');
-    
-    // if (!ssoButton || !ssoStatus) return; // Removed early return so analyzer can update
-    
-    if (isAuthenticated()) {
-        const charName = localStorage.getItem('eve_character_name') || 'Unknown';
-        ssoButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-        ssoButton.onclick = logout;
-        
-        let statusHTML = `<i class="fas fa-user-circle"></i> ${escapeHtml(charName)}`;
-        ssoStatus.innerHTML = statusHTML;
-        ssoStatus.classList.add('authenticated');
-        
-        if (ssoBadge) ssoBadge.style.display = 'none';
-        
-    } else {
-        ssoButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> EVE SSO Login';
-        ssoButton.onclick = initiateSSOLogin;
-        ssoStatus.innerHTML = '<i class="fas fa-user-slash"></i> Not logged in';
-        ssoStatus.classList.remove('authenticated');
-        
-        if (ssoBadge) ssoBadge.style.display = 'inline-block';
-    }
-    
-    // Update Skin Analyzer login prompt
-    const analyzerLoginPrompt = document.getElementById('analyzerLoginPrompt');
-    const analyzerControls = document.getElementById('analyzerControls');
-    
-    if (analyzerLoginPrompt && analyzerControls) {
-        if (isAuthenticated()) {
-            analyzerLoginPrompt.style.display = 'none';
-            analyzerControls.style.display = 'block';
-        } else {
-            analyzerLoginPrompt.style.display = 'block';
-            analyzerControls.style.display = 'none';
-        }
-    }
-}
-
 
 
 // Show notification helper
@@ -4251,8 +4111,5 @@ function showNotification(message, type = 'info') {
 window.MarketBrowser = {
     state: AppState,
     loadItem,
-    showView,
-    initiateSSOLogin,
-    logout,
-    isAuthenticated
+    showView
 };
