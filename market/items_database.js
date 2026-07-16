@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23531
-// SDE build: 3424810
-// Generated: 2026-07-07 21:20:02 UTC
+// Total items: 23540
+// SDE build: 3435006
+// Generated: 2026-07-16 07:24:30 UTC
 
 const AllMarketItems = {
     // Ships
@@ -17449,6 +17449,7 @@ const AllMarketItems = {
             { id: 46890, name: "Bifrost Glacial Drift SKIN" },
             { id: 63583, name: "Bifrost Halcyon Dawn SKIN" },
             { id: 56900, name: "Bifrost Hazard Control SKIN" },
+            { id: 95721, name: "Bifrost Hrada-Oki Offender SKIN" },
             { id: 63176, name: "Bifrost Hunter's Quiver SKIN" },
             { id: 54919, name: "Bifrost Kybernaut Clade SKIN" },
             { id: 59470, name: "Bifrost Liberation Games SKIN" },
@@ -17986,6 +17987,7 @@ const AllMarketItems = {
             { id: 46907, name: "Claymore Glacial Drift SKIN" },
             { id: 63588, name: "Claymore Halcyon Dawn SKIN" },
             { id: 56899, name: "Claymore Hazard Control SKIN" },
+            { id: 95724, name: "Claymore Hrada-Oki Offender SKIN" },
             { id: 36448, name: "Claymore Justice SKIN" },
             { id: 59473, name: "Claymore Liberation Games SKIN" },
             { id: 52881, name: "Claymore Snowline Bladeracer SKIN" },
@@ -20102,6 +20104,7 @@ const AllMarketItems = {
             { id: 46901, name: "Loki Glacial Drift SKIN" },
             { id: 63550, name: "Loki Halcyon Dawn SKIN" },
             { id: 56946, name: "Loki Hazard Control SKIN" },
+            { id: 95720, name: "Loki Hrada-Oki Offender SKIN" },
             { id: 52428, name: "Loki In Rust We Trust SKIN" },
             { id: 82186, name: "Loki Republic Police SKIN" },
             { id: 52875, name: "Loki Snowline Bladeracer SKIN" },
@@ -20947,6 +20950,7 @@ const AllMarketItems = {
             { id: 46927, name: "Nomad Glacial Drift SKIN" },
             { id: 63570, name: "Nomad Halcyon Dawn SKIN" },
             { id: 56937, name: "Nomad Hazard Control SKIN" },
+            { id: 95727, name: "Nomad Hrada-Oki Offender SKIN" },
             { id: 36454, name: "Nomad Justice SKIN" },
             { id: 84686, name: "Nomad Mabebu Exchange SKIN" },
             { id: 52901, name: "Nomad Snowline Bladeracer SKIN" },
@@ -21766,6 +21770,7 @@ const AllMarketItems = {
             { id: 46924, name: "Prowler Glacial Drift SKIN" },
             { id: 63587, name: "Prowler Halcyon Dawn SKIN" },
             { id: 56934, name: "Prowler Hazard Control SKIN" },
+            { id: 95723, name: "Prowler Hrada-Oki Offender SKIN" },
             { id: 36437, name: "Prowler Justice SKIN" },
             { id: 46748, name: "Prowler Lodestrike SKIN" },
             { id: 61193, name: "Prowler Scope Syndication YC122 SKIN" },
@@ -22722,6 +22727,7 @@ const AllMarketItems = {
             { id: 46886, name: "Stiletto Glacial Drift SKIN" },
             { id: 63582, name: "Stiletto Halcyon Dawn SKIN" },
             { id: 56894, name: "Stiletto Hazard Control SKIN" },
+            { id: 95722, name: "Stiletto Hrada-Oki Offender SKIN" },
             { id: 57533, name: "Stiletto Hunter's Quiver SKIN" },
             { id: 36426, name: "Stiletto Justice SKIN" },
             { id: 64402, name: "Stiletto Luminaire Zenith SKIN" },
@@ -22962,6 +22968,7 @@ const AllMarketItems = {
             { id: 92801, name: "Tempest Fleet Issue Fleet Ordnance Spike SKIN" },
             { id: 46915, name: "Tempest Fleet Issue Glacial Drift SKIN" },
             { id: 63594, name: "Tempest Fleet Issue Halcyon Dawn SKIN" },
+            { id: 95725, name: "Tempest Fleet Issue Hrada-Oki Offender SKIN" },
             { id: 36442, name: "Tempest Fleet Issue Justice SKIN" },
             { id: 59834, name: "Tempest Fleet Issue Krusual SKIN" },
             { id: 64911, name: "Tempest Fleet Issue Liberation Games SKIN" },
@@ -23752,6 +23759,7 @@ const AllMarketItems = {
             { id: 35641, name: "Wyvern Wiyrkomi SKIN (7 Days)" },
             { id: 35643, name: "Wyvern Wiyrkomi SKIN (90 Days)" },
             { id: 53198, name: "Wyvern Zento Isideko Combine SKIN" },
+            { id: 95726, name: "Ymir Hrada-Oki Offender SKIN" },
             { id: 90405, name: "Zarmazd Azdaja Extirpated SKIN" },
             { id: 49926, name: "Zarmazd Blackfire Steel SKIN" },
             { id: 49935, name: "Zarmazd Hadean Horror SKIN" },
@@ -25798,6 +25806,7 @@ const AllMarketItems = {
             { id: 56951, name: "Forever 4-4 Fireworks Crate" },
             { id: 44208, name: "Forged Frigate Blueprints" },
             { id: 56860, name: "Forward 4-4 Celebration Crate" },
+            { id: 95747, name: "Foundation Day Celebration Crate" },
             { id: 55745, name: "Four Freedoms Fireworks Crate" },
             { id: 62050, name: "Fragment Inscribed with Odd Circular Text" },
             { id: 91397, name: "Fragmented Quarterly Earnings Report Holoreel" },
