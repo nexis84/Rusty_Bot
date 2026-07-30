@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total systems: 8490
-// Generated: 2026-07-16 07:24:30 UTC
+// Generated: 2026-07-30 10:32:17 UTC
 
 const Systems = [
     { id: 30000995, name: '0-3VW8', regionId: 10000011, securityStatus: -0.033765 },

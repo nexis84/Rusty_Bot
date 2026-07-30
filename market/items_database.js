@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total items: 23540
-// SDE build: 3435006
-// Generated: 2026-07-16 07:24:30 UTC
+// SDE build: 3448696
+// Generated: 2026-07-30 10:32:17 UTC
 
 const AllMarketItems = {
     // Ships
@@ -6261,12 +6261,6 @@ const AllMarketItems = {
             { id: 63614, name: "Halcyon Y-4 Booster" },
             { id: 63615, name: "Halcyon Y-5 Booster" },
             { id: 95542, name: "Hallowed Volatile Booster" },
-            { id: 27206, name: "Hardwiring - Zainou 'Sharpshooter' ZMX10" },
-            { id: 27204, name: "Hardwiring - Zainou 'Sharpshooter' ZMX100" },
-            { id: 27205, name: "Hardwiring - Zainou 'Sharpshooter' ZMX1000" },
-            { id: 3149, name: "Hardwiring - Zainou 'Sharpshooter' ZMX11" },
-            { id: 3150, name: "Hardwiring - Zainou 'Sharpshooter' ZMX110" },
-            { id: 3151, name: "Hardwiring - Zainou 'Sharpshooter' ZMX1100" },
             { id: 94039, name: "Haven Booster III" },
             { id: 94040, name: "Haven Booster VI" },
             { id: 57728, name: "Heavy Drones Skill Accelerator" },
@@ -7279,6 +7273,12 @@ const AllMarketItems = {
             { id: 3177, name: "Zainou 'Snapshot' Torpedoes TD-604" },
             { id: 27256, name: "Zainou 'Snapshot' Torpedoes TD-605" },
             { id: 3180, name: "Zainou 'Snapshot' Torpedoes TD-606" },
+            { id: 27206, name: "Zainou 'Snapshot' XL Torpedoes XT-601" },
+            { id: 3149, name: "Zainou 'Snapshot' XL Torpedoes XT-602" },
+            { id: 27204, name: "Zainou 'Snapshot' XL Torpedoes XT-603" },
+            { id: 3150, name: "Zainou 'Snapshot' XL Torpedoes XT-604" },
+            { id: 27205, name: "Zainou 'Snapshot' XL Torpedoes XT-605" },
+            { id: 3151, name: "Zainou 'Snapshot' XL Torpedoes XT-606" },
             { id: 95540, name: "Zero-In Volatile Booster" },
             { id: 24663, name: "Zor's Custom Navigation Hyper-Link" },
             { id: 19500, name: "Zor's Custom Navigation Link" },
@@ -10853,7 +10853,7 @@ const AllMarketItems = {
             { id: 47214, name: "Standup Equite II Blueprint" },
             { id: 47210, name: "Standup Firbolg I Blueprint" },
             { id: 47218, name: "Standup Firbolg II Blueprint" },
-            { id: 63196, name: "Standup Flak Round Blueprint" },
+            { id: 63196, name: "Standup Flak Round I Blueprint" },
             { id: 37087, name: "Standup Focused Warp Disruptor I Blueprint" },
             { id: 47335, name: "Standup Focused Warp Disruptor II Blueprint" },
             { id: 47337, name: "Standup Focused Warp Scrambling Script Blueprint" },

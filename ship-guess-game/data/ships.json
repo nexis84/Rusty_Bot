@@ -3589,7 +3589,10 @@
     "name": "Opux Luxury Yacht",
     "race": "Gallente",
     "class": "Special Edition Yachts",
-    "bonuses": []
+    "bonuses": [
+      "Can fit Covert Ops Cloaking Device",
+      "Can fit Interdiction Nullifier"
+    ]
   },
   {
     "name": "Oracle",
