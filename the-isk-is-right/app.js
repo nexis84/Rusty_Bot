@@ -5,9 +5,11 @@ const IMG_BASE = 'https://images.evetech.net';
 let state = null;
 let priceCache = new Map();
 let loadedShipIds = new Set();
-const CACHE_TTL = 3600000; // 1 hour in ms
-const FETCH_TIMEOUT = 10000; // 10s abort timeout
+const CACHE_TTL = 3600000;
+const FETCH_TIMEOUT = 10000;
 const MAX_ROUNDS = 50;
+const SAVE_KEY = 'isk_game_state';
+const LEADERBOARD_KEY = 'isk_leaderboard';
 
 function getBuyLifeCost() {
   const x = state.livesBought;
@@ -26,23 +28,20 @@ function loadPriceFromCache(typeId) {
       return null;
     }
     return price;
-  } catch (e) {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function savePriceToCache(typeId, price) {
   try {
     localStorage.setItem(`ship_price_${typeId}`, JSON.stringify({ price, ts: Date.now() }));
-  } catch (e) {}
+  } catch {}
 }
 
-// Sound effects using Web Audio API
 const SoundFX = {
   _ctx: null,
   _init() {
     if (!this._ctx) {
-      try { this._ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+      try { this._ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
     }
   },
   _play(freq, duration, type, ramp) {
@@ -68,9 +67,7 @@ const SoundFX = {
     this._play(300, 0.15, 'sawtooth');
     setTimeout(() => this._play(200, 0.25, 'sawtooth'), 120);
   },
-  click() {
-    this._play(800, 0.05, 'sine');
-  },
+  click() { this._play(800, 0.05, 'sine'); },
   streak() {
     this._play(587, 0.08, 'sine');
     setTimeout(() => this._play(740, 0.08, 'sine'), 80);
@@ -82,9 +79,7 @@ const SoundFX = {
     setTimeout(() => this._play(350, 0.2, 'triangle'), 200);
     setTimeout(() => this._play(300, 0.3, 'triangle'), 400);
   },
-  tick() {
-    this._play(660, 0.08, 'sine');
-  },
+  tick() { this._play(660, 0.08, 'sine'); },
   go() {
     this._play(880, 0.15, 'sine');
     setTimeout(() => this._play(1047, 0.2, 'sine'), 100);
@@ -139,63 +134,75 @@ function getMinPriceDiff(streak) {
   return 0.03;
 }
 
-
+async function fetchWithRetry(url, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+    try {
+      const res = await fetch(url, {
+        signal: controller.signal,
+        cache: 'no-cache',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      clearTimeout(timeout);
+      if (res.status === 429) {
+        const retryAfter = parseInt(res.headers.get('Retry-After') || '5', 10);
+        await new Promise(r => setTimeout(r, retryAfter * 1000));
+        continue;
+      }
+      return res;
+    } catch (e) {
+      clearTimeout(timeout);
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
+      } else {
+        throw e;
+      }
+    }
+  }
+  return null;
+}
 
 async function fetchShipPrice(typeId) {
-  // Check memory cache first
   if (priceCache.has(typeId)) {
     const cached = priceCache.get(typeId);
     if (Date.now() - cached.ts < 60000) return cached.price;
   }
-  
-  // Check localStorage cache
+
   const cachedPrice = loadPriceFromCache(typeId);
   if (cachedPrice !== null) {
     priceCache.set(typeId, { price: cachedPrice, ts: Date.now() });
     return cachedPrice;
   }
 
-  // Static reference data as fallback
   const staticPrice = PRICE_DATA && PRICE_DATA.prices[typeId];
-  
+
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
     const url = `${ESI_BASE}/markets/${JITA_REGION}/orders/?type_id=${typeId}&order_type=sell&_=${Date.now()}`;
-    const res = await fetch(url, {
-      signal: controller.signal,
-      cache: 'no-cache',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    clearTimeout(timeout);
-    if (!res.ok) return staticPrice || null;
+    const res = await fetchWithRetry(url);
+    if (!res || !res.ok) return staticPrice || null;
     const orders = await res.json();
     if (!orders.length) return staticPrice || null;
     const price = Math.min(...orders.map(o => o.price));
     priceCache.set(typeId, { price, ts: Date.now() });
     savePriceToCache(typeId, price);
     return price;
-  } catch (e) {
+  } catch {
     return staticPrice || null;
   }
 }
 
-function addRecent(id) {
-  state.recentIds[id] = state.roundNum;
-}
+function addRecent(id) { state.recentIds[id] = state.roundNum; }
 
 function cleanRecent() {
   for (const id of Object.keys(state.recentIds)) {
-    if (state.roundNum - state.recentIds[id] >= 15) {
-      delete state.recentIds[id];
-    }
+    if (state.roundNum - state.recentIds[id] >= 15) delete state.recentIds[id];
   }
 }
 
 function isRecent(id) {
   const seen = state.recentIds[id];
-  if (seen == null) return false;
-  return state.roundNum - seen < 15;
+  return seen != null && state.roundNum - seen < 15;
 }
 
 function getChallenger(currentShip, prices, streak, roundNum) {
@@ -212,7 +219,6 @@ function getChallenger(currentShip, prices, streak, roundNum) {
     return p != null && p > 0 && p >= minPrice && p <= maxPrice && p <= tierCap;
   });
 
-  // Second attempt: 50% to 200% range
   if (pool.length < 2) {
     const wideMin = currentPrice * 0.5;
     const wideMax = Math.min(currentPrice * 2, tierCap);
@@ -224,7 +230,6 @@ function getChallenger(currentShip, prices, streak, roundNum) {
     });
   }
 
-  // Third attempt: 30% to 300% range
   if (pool.length < 2) {
     const wideMin = currentPrice * 0.3;
     const wideMax = Math.min(currentPrice * 3, tierCap);
@@ -236,7 +241,6 @@ function getChallenger(currentShip, prices, streak, roundNum) {
     });
   }
 
-  // Final fallback: ignore recency, apply tier cap with progressive ratio
   if (pool.length < 2) {
     const ratios = [3, 5, 10, Infinity];
     for (const maxRatio of ratios) {
@@ -259,7 +263,6 @@ function getChallenger(currentShip, prices, streak, roundNum) {
   }
 
   pool = pool.filter(s => s.id !== currentShip.id);
-
   return pool.length > 0 ? pickRandom(pool) : null;
 }
 
@@ -290,8 +293,54 @@ function initGame() {
     livesUsed: 0,
     livesBought: 0,
     lifeSaved: false,
-    allShuffled: []
+    allShuffled: [],
+    countdownTimer: null,
+    lifeTimer: null,
+    refreshCap: 0
   };
+}
+
+function saveGameState() {
+  try {
+    const save = {
+      streak: state.streak,
+      roundNum: state.roundNum,
+      totalReward: state.totalReward,
+      lives: state.lives,
+      livesUsed: state.livesUsed,
+      livesBought: state.livesBought,
+      history: state.history,
+      recentIds: state.recentIds,
+      refreshCap: state.refreshCap,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+  } catch {}
+}
+
+function clearGameState() {
+  try { localStorage.removeItem(SAVE_KEY); } catch {}
+}
+
+function loadBestStreak() {
+  try {
+    const data = localStorage.getItem(LEADERBOARD_KEY);
+    if (!data) return { bestStreak: 0, bestEarnings: 0 };
+    return JSON.parse(data);
+  } catch { return { bestStreak: 0, bestEarnings: 0 }; }
+}
+
+function saveBestStreak(streak, earnings) {
+  try {
+    const current = loadBestStreak();
+    if (streak > current.bestStreak || (streak === current.bestStreak && earnings > current.bestEarnings)) {
+      localStorage.setItem(LEADERBOARD_KEY, JSON.stringify({
+        bestStreak: streak,
+        bestEarnings: Math.max(earnings, current.bestEarnings),
+        date: Date.now()
+      }));
+    }
+  } catch {}
 }
 
 function makeShipCard(ship, prices, isCurrent, resolved, leftWon) {
@@ -301,13 +350,8 @@ function makeShipCard(ship, prices, isCurrent, resolved, leftWon) {
 
   if (resolved) {
     const isWinner = (isCurrent && leftWon) || (!isCurrent && !leftWon);
-    if (isWinner) {
-      cls += ' reveal-high';
-      priceCls += ' reveal-high-price';
-    } else {
-      cls += ' reveal-low';
-      priceCls += ' reveal-low-price';
-    }
+    cls += isWinner ? ' reveal-high' : ' reveal-low';
+    priceCls += isWinner ? ' reveal-high-price' : ' reveal-low-price';
   } else {
     priceCls += ' hidden';
   }
@@ -362,12 +406,13 @@ function renderButtons() {
   const cur = state.currentShip;
   const chal = state.challengerShip;
   const pricesLoaded = cur && chal && state.prices[cur.id] != null && state.prices[chal.id] != null;
-  
+
   if (state.resolved && state.lifeSaved) {
     container.innerHTML = `<div class="life-saved-area"><span class="next-round-msg">Continuing in...</span><span class="countdown-number" id="life-countdown">2</span></div>`;
   } else if (state.won) {
     const livesMsg = state.livesUsed > 0 ? ` • ${state.livesUsed} life${state.livesUsed > 1 ? 's' : ''} saved` : '';
     const topTier = getTierCap(state.roundNum);
+    const lb = loadBestStreak();
     container.innerHTML = `<div class="game-over-panel">
       <div class="go-title win">You Win</div>
       <div class="go-label">You have successfully finished all ${MAX_ROUNDS} rounds</div>
@@ -376,11 +421,13 @@ function renderButtons() {
       <div class="go-history">
         <div class="history-item"><span class="h-name">Final ship:</span><span class="h-price">${state.currentShip.name}</span></div>
         <div class="history-item"><span class="h-name">Tier reached:</span><span class="h-price">${formatISKShort(topTier)}</span></div>
+        <div class="history-item"><span class="h-name">Personal Best:</span><span class="h-price">${lb.bestStreak} (${formatISKShort(lb.bestEarnings)} ISK)</span></div>
       </div><button class="result-btn" id="restart-btn">PLAY AGAIN</button></div>`;
     document.getElementById('restart-btn').addEventListener('click', startGame);
   } else if (state.gameOver) {
     const totalISK = state.history.reduce((sum, h) => sum + (h.price || 0), 0);
     const livesMsg = state.livesUsed > 0 ? ` • ${state.livesUsed} life${state.livesUsed > 1 ? 's' : ''} saved` : '';
+    const lb = loadBestStreak();
     let html = `<div class="game-over-panel">
       <div class="go-title lose">GAME OVER</div>
       <div class="go-streak">${state.streak}</div>
@@ -388,6 +435,7 @@ function renderButtons() {
       <div class="go-history">
         <div class="history-item"><span class="h-name">${state.currentShip.name}</span><span class="h-price">${formatISKShort(state.prices[state.currentShip.id])} ISK</span></div>
         <div class="history-item"><span class="h-name">${state.challengerShip.name}</span><span class="h-price">${formatISKShort(state.prices[state.challengerShip.id])} ISK</span></div>
+        <div class="history-item"><span class="h-name">Personal Best:</span><span class="h-price">${lb.bestStreak} (${formatISKShort(lb.bestEarnings)} ISK)</span></div>
       </div><button class="result-btn" id="restart-btn">PLAY AGAIN</button></div>`;
     container.innerHTML = html;
     document.getElementById('restart-btn').addEventListener('click', startGame);
@@ -418,7 +466,6 @@ function handleGuess(guessedCurrentIsHigher) {
   state.roundNum++;
   cleanRecent();
 
-  // Mark both ships as recently used so they don't repeat for 15 rounds
   addRecent(state.currentShip.id);
   addRecent(state.challengerShip.id);
 
@@ -433,20 +480,19 @@ function handleGuess(guessedCurrentIsHigher) {
 
     if (state.roundNum >= MAX_ROUNDS) {
       state.won = true;
-      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-      if (lifeTimer) { clearInterval(lifeTimer); lifeTimer = null; }
+      if (state.countdownTimer) { clearInterval(state.countdownTimer); state.countdownTimer = null; }
+      if (state.lifeTimer) { clearInterval(state.lifeTimer); state.lifeTimer = null; }
       SoundFX.victory();
+      clearGameState();
+      saveBestStreak(state.streak, state.totalReward);
       renderGame();
       updateHeader();
       renderButtons();
       return;
     }
 
-    if (state.streak > 0 && state.streak % 5 === 0) {
-      SoundFX.streak();
-    } else {
-      SoundFX.correct();
-    }
+    if (state.streak > 0 && state.streak % 5 === 0) SoundFX.streak();
+    else SoundFX.correct();
   } else {
     if (state.lives > 0) {
       state.lives--;
@@ -469,9 +515,12 @@ function handleGuess(guessedCurrentIsHigher) {
 
   renderGame();
   updateHeader();
+  saveGameState();
 
   if (!correct && !state.lifeSaved) {
     state.gameOver = true;
+    clearGameState();
+    saveBestStreak(state.streak, state.totalReward);
   }
   renderButtons();
 
@@ -482,23 +531,20 @@ function handleGuess(guessedCurrentIsHigher) {
   }
 }
 
-let countdownTimer = null;
-let lifeTimer = null;
-
 function startLifeCountdown() {
-  if (lifeTimer) clearInterval(lifeTimer);
+  if (state.lifeTimer) clearInterval(state.lifeTimer);
   let count = 2;
   const el = document.getElementById('life-countdown');
   if (!el) { nextRound(); return; }
   el.textContent = count;
-  lifeTimer = setInterval(() => {
+  state.lifeTimer = setInterval(() => {
     count--;
     if (count > 0) {
       el.textContent = count;
       SoundFX.tick();
     } else {
-      clearInterval(lifeTimer);
-      lifeTimer = null;
+      clearInterval(state.lifeTimer);
+      state.lifeTimer = null;
       state.lifeSaved = false;
       SoundFX.go();
       nextRound();
@@ -507,27 +553,25 @@ function startLifeCountdown() {
 }
 
 function startCountdown() {
-  if (countdownTimer) clearInterval(countdownTimer);
+  if (state.countdownTimer) clearInterval(state.countdownTimer);
   let count = 3;
   const el = document.getElementById('countdown-number');
   if (!el) return;
   el.textContent = count;
   SoundFX.tick();
-  countdownTimer = setInterval(() => {
+  state.countdownTimer = setInterval(() => {
     count--;
     if (count > 0) {
       el.textContent = count;
       SoundFX.tick();
     } else {
-      clearInterval(countdownTimer);
-      countdownTimer = null;
+      clearInterval(state.countdownTimer);
+      state.countdownTimer = null;
       SoundFX.go();
       nextRound();
     }
   }, 1000);
 }
-
-let currentRefreshCap = 0;
 
 async function refreshTier(cap) {
   const toRefresh = state.allShuffled.filter(s => {
@@ -544,6 +588,7 @@ async function refreshTier(cap) {
       if (price != null && price > 0) {
         state.prices[batch[i].id] = price;
         priceCache.set(batch[i].id, { price, ts: Date.now() });
+        loadedShipIds.add(batch[i].id);
       }
     }
     if (offset < toRefresh.length) {
@@ -554,22 +599,13 @@ async function refreshTier(cap) {
 
 async function refreshPriceFromESI(typeId) {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
     const url = `${ESI_BASE}/markets/${JITA_REGION}/orders/?type_id=${typeId}&order_type=sell&_=${Date.now()}`;
-    const res = await fetch(url, {
-      signal: controller.signal,
-      cache: 'no-cache',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    clearTimeout(timeout);
-    if (!res.ok) return null;
+    const res = await fetchWithRetry(url);
+    if (!res || !res.ok) return null;
     const orders = await res.json();
     if (!orders.length) return null;
     return Math.min(...orders.map(o => o.price));
-  } catch (e) {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function getTierCap(roundNum) {
@@ -606,7 +642,6 @@ async function nextRound() {
   }
   state.winnerSide = null;
 
-  // Force ramp: if current ship is below this tier's minimum, swap to a ship in range
   const tierMin = getTierMinPrice(state.roundNum);
   if (state.prices[state.currentShip.id] < tierMin) {
     const candidates = state.allShuffled.filter(s => {
@@ -619,17 +654,18 @@ async function nextRound() {
     }
   }
 
-  // Expand ESI refresh if we crossed into a higher price tier
   const newTierCap = getTierCap(state.roundNum);
-  if (newTierCap > currentRefreshCap) {
-    currentRefreshCap = newTierCap;
-    refreshTier(currentRefreshCap).catch(() => {});
+  if (newTierCap > state.refreshCap) {
+    state.refreshCap = newTierCap;
+    refreshTier(state.refreshCap).catch(() => {});
   }
 
   let challenger = getChallenger(state.currentShip, state.prices, state.streak, state.roundNum);
-  
+
   if (!challenger) {
     state.gameOver = true;
+    clearGameState();
+    saveBestStreak(state.streak, state.totalReward);
     renderButtons();
     return;
   }
@@ -639,10 +675,13 @@ async function nextRound() {
   const newPrice = await fetchShipPrice(challenger.id);
   if (newPrice == null) {
     state.gameOver = true;
+    clearGameState();
+    saveBestStreak(state.streak, state.totalReward);
     renderButtons();
     return;
   }
   state.prices[challenger.id] = newPrice;
+  loadedShipIds.add(challenger.id);
 
   renderGame();
   renderButtons();
@@ -675,6 +714,27 @@ function buyLife() {
     el.innerHTML = `<span class="fb-life-saved">🛒 Life purchased for ${formatISKShort(cost)} ISK! ❤️ ${state.lives}</span>`;
     SoundFX.lifeGained();
     updateHeader();
+    saveGameState();
+  } else if (state.totalReward < cost) {
+    const el = document.getElementById('feedback');
+    el.className = 'feedback wrong';
+    el.innerHTML = `Need ${formatISKShort(cost - state.totalReward)} more ISK to buy a life`;
+    setTimeout(() => {
+      if (!state.resolved) {
+        el.className = 'feedback';
+        el.textContent = '';
+      }
+    }, 2000);
+  } else if (state.resolved) {
+    const el = document.getElementById('feedback');
+    el.className = 'feedback wrong';
+    el.textContent = 'Cannot buy life during a round';
+    setTimeout(() => {
+      if (state.resolved) {
+        el.className = 'feedback';
+        el.textContent = '';
+      }
+    }, 2000);
   }
 }
 
@@ -685,11 +745,7 @@ function updateHeader() {
   document.getElementById('reward-total').textContent = state.totalReward.toLocaleString('en-US');
   const badge = document.getElementById('streak-badge');
   badge.textContent = `🔥 ${state.streak}`;
-  if (state.streak >= 5) {
-    badge.classList.add('fire');
-  } else {
-    badge.classList.remove('fire');
-  }
+  badge.classList.toggle('fire', state.streak >= 5);
   const livesEl = document.getElementById('lives-display');
   if (livesEl) {
     livesEl.textContent = state.lives > 0 ? `❤️ ${state.lives}` : `❤️ 0`;
@@ -702,19 +758,34 @@ function updateHeader() {
     buyBtn.textContent = `🛒 Buy Life ${formatISKShort(cost)}`;
     buyBtn.classList.toggle('btn-available', canBuy);
     buyBtn.classList.toggle('btn-locked', !canBuy);
+    buyBtn.title = canBuy
+      ? `Purchase an extra life for ${formatISKShort(cost)} ISK`
+      : state.resolved
+        ? 'Cannot buy life during a round'
+        : state.gameOver
+          ? 'Game is over'
+          : `Need ${formatISKShort(cost - state.totalReward)} more ISK`;
+  }
+}
+
+function loadCachePrices() {
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('ship_price_')) {
+      const typeId = parseInt(key.slice('ship_price_'.length), 10);
+      if (!isNaN(typeId)) {
+        const cached = loadPriceFromCache(typeId);
+        if (cached != null && cached > 0) {
+          loadedShipIds.add(typeId);
+        }
+      }
+    }
   }
 }
 
 async function startGame() {
   initGame();
-  if (countdownTimer) {
-    clearInterval(countdownTimer);
-    countdownTimer = null;
-  }
-  if (lifeTimer) {
-    clearInterval(lifeTimer);
-    lifeTimer = null;
-  }
+
   document.getElementById('feedback').className = 'feedback';
   document.getElementById('feedback').textContent = '';
   document.getElementById('streak-count').textContent = '0';
@@ -730,7 +801,7 @@ async function startGame() {
   state.prices = {};
   loadedShipIds = new Set();
 
-  // Load all prices from static reference data for instant start
+  // Load all prices from static reference data
   for (const ship of SHIPS) {
     const price = PRICE_DATA && PRICE_DATA.prices[ship.id];
     if (price != null && price > 0) {
@@ -740,11 +811,23 @@ async function startGame() {
     }
   }
 
-  // Background ESI refresh for current tier's ships only
-  currentRefreshCap = getTierCap(0);
-  refreshTier(currentRefreshCap).catch(() => {});
-  
-  // Pick first two from the loaded ships within the starting price tier
+  // Also load any prices cached in localStorage (from previous ESI fetches)
+  loadCachePrices();
+  for (const id of loadedShipIds) {
+    if (state.prices[id] == null) {
+      const cachedPrice = loadPriceFromCache(id);
+      if (cachedPrice != null) {
+        state.prices[id] = cachedPrice;
+        priceCache.set(id, { price: cachedPrice, ts: Date.now() });
+      }
+    }
+  }
+
+  // Background ESI refresh for current tier
+  state.refreshCap = getTierCap(0);
+  refreshTier(state.refreshCap).catch(() => {});
+
+  // Pick first two ships from the loaded ships within the starting price tier
   const tierCap = getTierCap(0);
   const validShips = state.allShuffled.filter(s => loadedShipIds.has(s.id) && state.prices[s.id] <= tierCap);
   if (validShips.length < 2) {
@@ -752,17 +835,18 @@ async function startGame() {
       `<div class="error-msg">Could not load prices. <button class="retry-btn" onclick="startGame()">RETRY</button></div>`;
     return;
   }
-  
+
   const shipA = validShips[0];
   const shipB = validShips[1];
-  
+
   state.currentShip = shipA;
   state.challengerShip = shipB;
   state.history = [{ name: shipA.name, price: state.prices[shipA.id] }];
-  
+
   renderGame();
   renderButtons();
   updateHeader();
+  clearGameState();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
