@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVE Top Trumps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="rusty_bot.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+  <!-- ===== MENU SCREEN ===== -->
+  <div id="menuScreen">
+    <a class="back-link" href="../index.html">&larr; Back</a>
+
+    <header class="tool-header">
+      <img src="rusty_bot.png" alt="RustyBot Logo" class="logo">
+      <h1>EVE <span>Top Trumps</span></h1>
+      <p class="subtitle">Unlock ship classes, earn ISK, climb the leaderboard.</p>
+    </header>
+
+    <div class="menu-stats">
+      <span>🛢️ <strong id="lifetimeIskDisplay">0</strong> ISK</span>
+      <span>🏆 Best Run: <strong id="bestRunDisplay">0</strong> ISK</span>
+    </div>
+
+    <div class="unlock-tree" id="unlockTree"></div>
+
+    <div class="menu-actions">
+      <button id="playBtn" class="play-btn">PLAY</button>
+      <div id="loadStatus" class="load-status"></div>
+    </div>
+
+    <footer>
+      <div class="support-content">
+        <p>If you would like to support us you can do that via Ko-fi or via ISK.</p>
+        <p>Send ISK to IGN <strong>"Virxens"</strong></p>
+        <p>All support is welcomed and very appreciated!</p>
+        <a href="https://ko-fi.com/rustybot" target="_blank" class="kofi-button">
+          <img src="https://storage.ko-fi.com/cdn/kofi_stroke_cup.svg" alt="" class="kofi-icon">
+          Support on Ko-fi
+        </a>
+      </div>
+      <p style="margin-top:1.5rem;font-size:0.85rem;color:#555">RustyBot is an unofficial EVE Online tool, not affiliated with CCP Games.</p>
+    </footer>
+  </div>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <div id="gameScreen" class="hidden">
+    <header class="game-header">
+      <div class="game-top-bar">
+        <button id="backToMenuBtn" class="back-btn">&larr; Menu</button>
+        <span class="game-title">EVE Top Trumps</span>
+      </div>
+      <div class="game-stats-bar">
+        <span class="lives" id="livesDisplay">❤️❤️❤️❤️❤️</span>
+        <span>🛢️ <strong id="iskDisplay">0</strong> ISK</span>
+        <span>Level: <strong id="levelDisplay">0</strong></span>
+        <span>Streak: <strong id="streakDisplay">0</strong></span>
+      </div>
+    </header>
+
+    <div class="controls">
+      <span id="activeLabel" class="active-label">Playing: all unlocked classes</span>
+    </div>
+
+    <div id="statBanner">
+      <span id="statLabel">Pick the ship with the <strong>HIGHER</strong> stat</span>
+    </div>
+
+    <div id="cards">
+      <div class="card" id="card0" data-index="0">
+        <div class="card-header">
+          <span class="card-name" id="name0"></span>
+          <span class="card-race" id="race0"></span>
+        </div>
+        <div class="card-image"><img id="img0" src="" alt=""></div>
+        <div class="card-stats" id="stats0"></div>
+        <div class="card-footer"><span class="card-class" id="class0"></span></div>
+      </div>
+      <div class="card" id="card1" data-index="1">
+        <div class="card-header">
+          <span class="card-name" id="name1"></span>
+          <span class="card-race" id="race1"></span>
+        </div>
+        <div class="card-image"><img id="img1" src="" alt=""></div>
+        <div class="card-stats" id="stats1"></div>
+        <div class="card-footer"><span class="card-class" id="class1"></span></div>
+      </div>
+    </div>
+
+    <!-- Result overlay -->
+    <div id="resultOverlay" class="hidden">
+      <div id="resultMsg"></div>
+      <div id="countdownMsg" class="countdown-msg">Next round in 3...</div>
+    </div>
+  </div>
+
+  <!-- ===== GAME OVER OVERLAY (on top of game) ===== -->
+  <div id="gameOverOverlay" class="hidden">
+    <div class="game-over-box">
+      <h2 id="goTitle" class="go-title">GAME OVER</h2>
+      <div id="goSubtitle" class=""></div>
+      <div class="go-stats">
+        <div class="go-row">
+          <span class="go-label">Total ISK</span>
+          <span class="go-value" id="goIsk">0</span>
+        </div>
+        <div class="go-row">
+          <span class="go-label">Best Streak</span>
+          <span class="go-value" id="goStreak">0</span>
+        </div>
+        <div class="go-row">
+          <span class="go-label">Previous Best</span>
+          <span class="go-value" id="goPrevBest">0</span>
+        </div>
+        <div id="newHighscoreBadge" class="hidden">🏆 NEW HIGH SCORE!</div>
+      </div>
+      <div class="countdown-msg" id="goCountdown">Returning to menu in 3...</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="ships.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
