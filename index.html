@@ -203,8 +203,9 @@
         }
 
         .feat-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 12px;
         }
 
@@ -214,6 +215,7 @@
             border-radius: 6px;
             padding: 20px;
             text-align: center;
+            flex: 0 1 30%;
             transition: background 0.15s, border-color 0.2s;
         }
 
@@ -253,17 +255,59 @@
             padding: 8px 0 32px;
         }
 
+        .poster-wrap .awards-row {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .poster-wrap .award-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 220px;
+        }
+
+        .poster-wrap .award-item img {
+            margin-top: auto;
+        }
+
         .poster-wrap .award-badge {
             color: var(--accent);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             font-size: 0.85rem;
-            margin-bottom: 16px;
+            height: 3.2em;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            margin-top: 0;
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+
+        .poster-wrap .partner-text {
+            box-sizing: border-box;
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            height: 3.2em;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            margin-top: 0;
+            margin-bottom: 24px;
+            line-height: 1.3;
+            padding-bottom: 0;
         }
 
         .poster-wrap img {
-            max-width: 440px;
+            max-width: 220px;
             width: 100%;
             height: auto;
             border-radius: 6px;
@@ -281,10 +325,53 @@
             color: var(--dim);
         }
 
+        .poster-thanks {
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--dim);
+            margin-top: 12px;
+            padding: 28px 0 0;
+        }
+
+        .awards-divider {
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+            margin: 24px auto 0;
+        }
+
         .poster-wrap .partner-badge {
-            margin-top: 24px;
-            max-width: 180px;
+            max-width: 220px;
             border: none;
+        }
+
+        .poster-wrap .poster-thumb {
+            max-width: 140px;
+            cursor: zoom-in;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.9);
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+
+        .lightbox.open {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid var(--border);
         }
 
         .back-top {
@@ -340,7 +427,7 @@
         }
 
         @media (max-width: 768px) {
-            .feat-grid { grid-template-columns: repeat(2, 1fr); }
+            .feat-grid .feat { flex: 0 1 45%; }
             .hero h1 { font-size: 2.2rem; }
             .hero-logo { max-width: 110px; }
             .back-top { bottom: 20px; right: 20px; }
@@ -348,7 +435,7 @@
 
         @media (max-width: 500px) {
             .card-grid .card { flex: 0 1 140px; }
-            .feat-grid { grid-template-columns: 1fr; }
+            .feat-grid .feat { flex: 0 1 100%; }
         }
     </style>
 </head>
@@ -359,7 +446,7 @@
             <img src="rusty_bot.png" alt="Rusty Bot Logo" class="hero-logo">
             <h1>Welcome to <span>Rusty Bot</span></h1>
             <p>Your suite of powerful EVE Online tools for Twitch and Discord.</p>
-            <img class="partner-badge" src="PartnerBadge2.png" alt="Partner badge">
+            <img class="partner-badge" src="PartnerBadge2.png" alt="EVE Online Partner badge">
         </header>
     </div>
 
@@ -552,14 +639,38 @@
                     <h4>Twitch & Kick Utility Bot</h4>
                     <p>Live market lookups, price checks, and more in your Twitch and Kick chat.</p>
                 </div>
+                <div class="feat">
+                    <i class="fa-solid fa-rocket"></i>
+                    <h4>EVE Online Partner</h4>
+                    <p>Proudly recognized as an official EVE Online partner.</p>
+                </div>
             </div>
         </section>
 
-        <div class="poster-wrap">
-            <div class="award-badge">Creator Awards Finalist 2026</div>
-            <img src="Poster%20Newdev.png" alt="Thanks for your support">
-            <p>Thanks for all your ongoing support</p>
-            <img class="partner-badge" src="PartnerBadge2.png" alt="Partner badge">
+        <section class="section" id="awards">
+            <div class="section-header">
+                <i class="fa-solid fa-award"></i>
+                <h2>Awards</h2>
+                <span class="line"></span>
+            </div>
+            <div class="poster-wrap">
+                <div class="awards-row">
+                    <div class="award-item">
+                        <p class="partner-text">EVE Online Partner</p>
+                        <img class="partner-badge" src="logo_with_badge.png" alt="EVE Online Partner badge">
+                    </div>
+                    <div class="award-item">
+                        <div class="award-badge">Creator Awards Finalist 2026</div>
+                        <img class="poster-thumb" src="Poster%20Newdev.png" alt="Thanks for your support">
+                    </div>
+                </div>
+            </div>
+            <div class="awards-divider"></div>
+            <p class="poster-thanks">Thanks for all your ongoing support</p>
+        </section>
+
+        <div class="lightbox" id="lightbox">
+            <img src="Poster%20Newdev.png" alt="Creator Awards Finalist 2026">
         </div>
 
         <footer>
@@ -578,6 +689,14 @@
         const backBtn = document.getElementById('backTop');
         window.addEventListener('scroll', () => {
             backBtn.classList.toggle('visible', window.scrollY > 400);
+        });
+
+        const lightbox = document.getElementById('lightbox');
+        document.querySelector('.poster-thumb').addEventListener('click', () => {
+            lightbox.classList.add('open');
+        });
+        lightbox.addEventListener('click', () => {
+            lightbox.classList.remove('open');
         });
     </script>
 </body>
