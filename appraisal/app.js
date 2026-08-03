@@ -811,6 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
     el('copyResultsBtn').addEventListener('click', copyResults);
     el('shareLinkBtn').addEventListener('click', copyShareLink);
 
+    el('clearBtn').addEventListener('click', () => {
+        el('appraisalText').value = '';
+        el('appraisalText').focus();
+    });
+
     el('cancelBtn').addEventListener('click', () => {
         appraisalCancelled = true;
         if (activeController) activeController.abort();

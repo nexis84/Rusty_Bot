@@ -289,6 +289,29 @@ body {
     cursor: not-allowed;
 }
 
+.clear-btn {
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.clear-btn:hover {
+    background: var(--secondary-color);
+    color: var(--text);
+    border-color: var(--accent);
+}
+
 /* Results Section */
 .results-header {
     display: flex;
@@ -365,6 +388,20 @@ body {
     background: var(--secondary-color);
     color: var(--text);
     border-color: var(--accent);
+}
+
+.copy-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    border-color: var(--border-color);
+}
+
+.copy-btn:disabled:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    border-color: var(--border-color);
 }
 
 /* Market Summary (totals) */

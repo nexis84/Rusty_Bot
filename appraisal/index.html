@@ -11,7 +11,7 @@
     <meta name="keywords" content="EVE Online, item appraisal, price check, Jita, Amarr, Dodixie, Hek, Rens, trade hubs, ISK, RustyBot">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://www.rustybot.co.uk/appraisal/index.html">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=4">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -98,6 +98,9 @@
                     <button id="appraiseBtn" class="appraise-btn">
                         <i class="fas fa-magnifying-glass-dollar"></i> Appraise
                     </button>
+                    <button id="clearBtn" class="clear-btn" title="Clear the items field">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
                 </div>
             </div>
         </section>
@@ -121,7 +124,7 @@
                     <button id="copyResultsBtn" class="copy-btn" title="Copy results table to clipboard">
                         <i class="fas fa-copy"></i> Copy
                     </button>
-                    <button id="shareLinkBtn" class="copy-btn" title="Copy a shareable link to this appraisal">
+                    <button id="shareLinkBtn" class="copy-btn" title="Copy a shareable link to this appraisal" disabled>
                         <i class="fas fa-link"></i> Share
                     </button>
                 </div>
@@ -245,6 +248,6 @@
 </script>
 
 <script src="../market/items_database.js"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
