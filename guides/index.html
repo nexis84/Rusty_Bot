@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Missions and Anomalies - RustyBot</title>
   <link rel="stylesheet" href="../Style.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -20,14 +23,25 @@
   </script>
 </head>
 <body>
-  <div class="container">
-    <a class="back-link" href="../index.html">&larr; Back</a>
+  <header class="top-bar">
+    <div class="brand">
+      <a href="../index.html" class="brand-link">
+        <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
+        <h1 class="brand-name">RustyBot <span class="accent">Guides</span></h1>
+      </a>
+    </div>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+      <span class="breadcrumb-item"><a href="index.html">Guides</a></span>
+    </div>
+  </header>
 
-    <header>
-      <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
-      <h1><span>RustyBot</span> Guides</h1>
-      <p class="subtitle">EVE Online mission reports, anomaly guides, and more.</p>
-    </header>
+  <div class="container">
+    <section class="hero-section">
+      <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+      <h2>RustyBot <span class="accent">Guides</span></h2>
+      <p>EVE Online mission reports, anomaly guides, and more.</p>
+    </section>
 
     <!-- Tab Bar -->
     <div class="tab-bar">
@@ -348,7 +362,7 @@
     </div>
 
     <footer>
-      <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+      <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
       <p>Data sourced from <a href="https://eve-survival.org/?wakka=MissionReports" target="_blank">EVE-Survival</a> and <a href="https://wiki.eveuniversity.org/" target="_blank">EVE University Wiki</a>.</p>
     </footer>
   </div>

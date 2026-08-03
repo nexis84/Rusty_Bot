@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>RustyAppraisal | EVE Online Item Appraisal | RustyBot</title>
+    <meta name="description" content="Paste a list of EVE Online items and instantly appraise their value at the major trade hubs. Check buy and sell prices across Jita, Amarr, Dodixie, Hek and Rens.">
+    <meta name="keywords" content="EVE Online, item appraisal, price check, Jita, Amarr, Dodixie, Hek, Rens, trade hubs, ISK, RustyBot">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.rustybot.co.uk/appraisal/index.html">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1EELB9VSCK');
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "RustyAppraisal - RustyBot EVE Online Item Appraisal",
+      "url": "https://www.rustybot.co.uk/appraisal/index.html",
+      "description": "Free EVE Online item appraisal tool. Paste a list of items and get instant buy and sell prices from the major trade hubs including Jita, Amarr, Dodixie, Hek and Rens.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "ISK"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "RustyBot"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/index.html" },
+        { "@type": "ListItem", "position": 2, "name": "RustyAppraisal - EVE Online Item Appraisal", "item": "https://www.rustybot.co.uk/appraisal/index.html" }
+      ]
+    }
+    </script>
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand">
+        <a href="../index.html" class="brand-link">
+            <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+            <h1 class="brand-name">Rusty<span class="accent">Appraisal</span></h1>
+        </a>
+    </div>
+    <div class="breadcrumb" id="breadcrumb">
+        <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+        <span class="breadcrumb-item"><a href="index.html">RustyAppraisal</a></span>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="content-wrapper">
+        <!-- Hero -->
+        <section class="hero-section">
+            <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+            <h2>Rusty<span class="accent">Appraisal</span></h2>
+            <p>Paste a list of items and instantly see what they're worth at the major trade hubs.</p>
+        </section>
+
+        <!-- Appraisal Form -->
+        <section class="appraisal-panel">
+            <div class="appraisal-inputs">
+                <div class="filter-group input-group">
+                    <label for="appraisalText"><i class="fas fa-clipboard-list"></i> Items (paste from game clipboard)</label>
+                    <textarea id="appraisalText" spellcheck="false" placeholder="25 x Tritanium&#10;Pyerite x 1,000&#10;1000 Veldspar&#10;Damage Control II&#10;5 Republic Fleet EMP S"></textarea>
+                    <p class="field-hint">One item per line. Accepted formats: <code>25 x Tritanium</code>, <code>Tritanium x 1,000</code>, <code>1000 Veldspar</code> or just <code>Damage Control II</code>.</p>
+                </div>
+                <div class="filter-group hub-group">
+                    <label for="hubSelect"><i class="fas fa-map-marker-alt"></i> Trade Hub</label>
+                    <select id="hubSelect">
+                        <option value="all" selected>All Trade Hubs (Jita, Amarr, Dodixie, Hek, Rens)</option>
+                        <option value="10000002">Jita (The Forge)</option>
+                        <option value="10000043">Amarr (Domain)</option>
+                        <option value="10000032">Dodixie (Sinq Laison)</option>
+                        <option value="10000042">Hek (Metropolis)</option>
+                        <option value="10000030">Rens (Heimatar)</option>
+                    </select>
+                    <button id="appraiseBtn" class="appraise-btn">
+                        <i class="fas fa-magnifying-glass-dollar"></i> Appraise
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section id="resultsSection" class="results-section hidden">
+            <div class="results-header">
+                <h3>Rusty<span class="accent">Appraisal</span> Results</h3>
+                <div class="results-actions">
+                    <div class="value-toggle" id="valueToggle">
+                        <button class="value-btn active" data-value="buy">
+                            <i class="fas fa-arrow-down"></i> Buy Value
+                        </button>
+                        <button class="value-btn" data-value="split">
+                            <i class="fas fa-divide"></i> Split Value
+                        </button>
+                        <button class="value-btn" data-value="sell">
+                            <i class="fas fa-arrow-up"></i> Sell Value
+                        </button>
+                    </div>
+                    <button id="copyResultsBtn" class="copy-btn" title="Copy results table to clipboard">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button id="shareLinkBtn" class="copy-btn" title="Copy a shareable link to this appraisal">
+                        <i class="fas fa-link"></i> Share
+                    </button>
+                </div>
+            </div>
+
+            <p id="resultsHubNote" class="results-hub-note"></p>
+
+            <!-- Total Summary -->
+            <div class="market-summary">
+                <div class="summary-card sell" data-value="buy" title="Click to select Buy Value">
+                    <div class="summary-header">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Buy Value</span>
+                    </div>
+                    <div class="summary-value" id="buyTotal">—</div>
+                    <div class="summary-note">Using best buy orders (what buyers pay)</div>
+                </div>
+                <div class="summary-card buy" data-value="sell" title="Click to select Sell Value">
+                    <div class="summary-header">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Sell Value</span>
+                    </div>
+                    <div class="summary-value" id="sellTotal">—</div>
+                    <div class="summary-note">Using best sell orders (what sellers ask)</div>
+                </div>
+                <div class="summary-card spread" data-value="split" title="Click to select Split Value">
+                    <div class="summary-header">
+                        <i class="fas fa-divide"></i>
+                        <span>Split Value</span>
+                    </div>
+                    <div class="summary-value" id="splitTotal">—</div>
+                    <div class="summary-note" id="splitNote">Midpoint between buy and sell</div>
+                </div>
+                <div class="summary-card volume">
+                    <div class="summary-header">
+                        <i class="fas fa-boxes-stacked"></i>
+                        <span>Items</span>
+                    </div>
+                    <div class="summary-value" id="lineCount">—</div>
+                    <div class="summary-note" id="itemCountNote">—</div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div id="progressArea" class="progress-area hidden">
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+                <p id="progressText">Fetching prices...</p>
+                <button id="cancelBtn" class="cancel-btn">
+                    <i class="fas fa-ban"></i> Cancel
+                </button>
+            </div>
+
+            <!-- Results Table -->
+            <div class="results-table-container">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="name">Item <i class="fas fa-sort"></i></th>
+                            <th class="num" data-sort="qty">Qty <i class="fas fa-sort"></i></th>
+                            <th class="num" data-sort="buy">Best Buy <i class="fas fa-sort"></i></th>
+                            <th class="num" data-sort="sell">Best Sell <i class="fas fa-sort"></i></th>
+                            <th class="num" data-sort="split">Split <i class="fas fa-sort"></i></th>
+                            <th class="num" data-sort="buyTotal">Total (Buy) <i class="fas fa-sort"></i></th>
+                            <th class="num" data-sort="sellTotal">Total (Sell) <i class="fas fa-sort"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                    </tbody>
+                    <tfoot id="resultsFoot">
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Unmatched Items -->
+            <div id="unmatchedSection" class="unmatched-section hidden">
+                <h4><i class="fas fa-triangle-exclamation"></i> Unmatched Items</h4>
+                <p class="unmatched-note">These lines could not be matched to a known EVE Online item. Check the spelling.</p>
+                <ul id="unmatchedList" class="unmatched-list"></ul>
+            </div>
+        </section>
+
+        <!-- SEO Content Section -->
+        <section class="seo-content">
+            <h2>RustyAppraisal - EVE Online Item Appraisal Tool</h2>
+            <p>This free tool lets capsuleers paste a list of items from the EVE Online clipboard and instantly appraise their market value. Choose between the major trade hubs — <strong>Jita (The Forge)</strong>, <strong>Amarr (Domain)</strong>, <strong>Dodixie (Sinq Laison)</strong>, <strong>Hek (Metropolis)</strong> and <strong>Rens (Heimatar)</strong> — or get a combined appraisal across all five hubs.</p>
+            <p>For every item you'll see the best buy order price (the highest price buyers are currently willing to pay) and the best sell order price (the lowest price sellers are asking). Totals are shown for both, so you can quickly value a hangar, a loot drop or a shopping list in ISK.</p>
+            <p>Prices are pulled live from CCP's ESI API and cached briefly, so repeated appraisals are fast while staying up to date.</p>
+        </section>
+
+        <footer class="main-footer">
+            <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
+            <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
+            <p class="eve-time-display"><i class="far fa-clock"></i> EVE Time: <span id="eveClock">--:--:--</span></p>
+        </footer>
+    </div>
+</main>
+
+<div id="messageArea" class="message-area hidden"></div>
+
+<script>
+// Dynamic breadcrumb: show "Market" step when arriving from the market browser
+(function () {
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (!breadcrumb) return;
+
+    const referrer = document.referrer || '';
+
+    const home = '<span class="breadcrumb-item"><a href="../index.html">Home</a></span>';
+    const market = '<span class="breadcrumb-item"><a href="../market/index.html">Market</a></span>';
+    const current = '<span class="breadcrumb-item"><a href="index.html">RustyAppraisal</a></span>';
+
+    // Include the Market step if the visitor came from a market page
+    if (referrer.indexOf('/market/') !== -1) {
+        breadcrumb.innerHTML = home + market + current;
+    } else {
+        breadcrumb.innerHTML = home + current;
+    }
+})();
+</script>
+
+<script src="../market/items_database.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

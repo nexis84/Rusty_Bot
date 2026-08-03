@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Gate Check - RustyBot</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=5">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
@@ -16,14 +19,25 @@
     </script>
 </head>
 <body>
-<div class="container">
-    <a class="back-link" href="../index.html">← Back</a>
+<header class="top-bar">
+    <div class="brand">
+        <a href="../index.html" class="brand-link">
+            <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
+            <h1 class="brand-name">Gate <span class="accent">Check</span></h1>
+        </a>
+    </div>
+    <div class="breadcrumb">
+        <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+        <span class="breadcrumb-item"><a href="index.html">Gate Check</a></span>
+    </div>
+</header>
 
-    <header>
-        <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
-        <h1>Gate <span>Check</span></h1>
-        <p class="subtitle">Check before you jump.</p>
-    </header>
+<div class="container">
+    <section class="hero-section">
+        <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+        <h2>Gate <span class="accent">Check</span></h2>
+        <p>Check before you jump.</p>
+    </section>
 
     <section class="form-card">
         <div class="form-row">
@@ -100,7 +114,7 @@
     </section>
 
     <footer>
-        <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+        <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
     </footer>
 </div>
 <script src="app.js"></script>

@@ -75,6 +75,40 @@ body {
     color: var(--accent-color);
 }
 
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: '/';
+    color: var(--text-subtle-color);
+}
+
+.breadcrumb-item a {
+    color: var(--text-subtle-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--accent-color);
+}
+
+.breadcrumb-item:last-child a {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
 .logo-section {
     display: flex;
     align-items: center;

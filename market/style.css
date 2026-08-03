@@ -71,47 +71,6 @@ body {
     transition: transform 0.3s ease;
 }
 
-.sidebar-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 13px;
-    margin-bottom: 16px;
-    transition: color 0.2s;
-}
-
-.back-link:hover { color: var(--text); }
-
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-}
-
-.sidebar-header h1 {
-    font-size: 18px;
-    margin: 0;
-    font-weight: 700;
-}
-
-.sidebar-header h1 .accent {
-    color: var(--accent-2);
-}
-
-/* Sidebar Search */
 .sidebar-search {
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
@@ -502,6 +461,35 @@ body {
     color: var(--text);
 }
 
+.brand { flex-shrink: 0; }
+
+.brand-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.brand-link .logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(255, 140, 61, 0.35));
+}
+
+.brand-link h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.brand-link h1 .accent {
+    color: var(--accent-2);
+}
+
 .breadcrumb {
     flex: 1;
     display: flex;
@@ -596,20 +584,33 @@ body {
 /* Home View */
 .hero-section {
     text-align: center;
-    padding: 40px 20px;
-    margin-bottom: 24px;
+    padding: 28px 20px 8px;
+    margin-bottom: 20px;
 }
 
 .hero-section h2 {
     font-size: 28px;
-    margin: 0 0 12px 0;
+    margin: 0 0 10px 0;
     font-weight: 700;
+}
+
+.hero-section h2 .accent {
+    color: var(--accent-2);
+}
+
+.hero-logo {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    margin: 0 auto 14px;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(255, 140, 61, 0.4));
 }
 
 .hero-section p {
     color: var(--text-secondary);
     font-size: 15px;
-    max-width: 500px;
+    max-width: 560px;
     margin: 0 auto;
 }
 
@@ -2046,6 +2047,10 @@ body {
     /* Extra small phone styles */
     .top-bar {
         padding: 10px 12px;
+    }
+
+    .brand-link h1 {
+        font-size: 16px;
     }
     
     .content-wrapper {

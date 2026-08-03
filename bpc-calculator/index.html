@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RustyBot Quick BPC Calculator</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Rusty BPC Calculator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="../rusty_bot.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=5">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
   <script>
@@ -19,13 +22,26 @@
   </script>
 </head>
 <body>
+  <header class="top-bar">
+    <div class="brand">
+      <a href="../index.html" class="brand-link">
+        <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+        <h1 class="brand-name">Rusty <span class="accent">BPC Calculator</span></h1>
+      </a>
+    </div>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+      <span class="breadcrumb-item"><a href="index.html">BPC Calculator</a></span>
+    </div>
+  </header>
+
   <div class="container">
-    <a class="back-link" href="../index.html">&larr; Back</a>
-    <header class="tool-header">
-      <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
-      <h1>Quick BPC <span>Calculator</span></h1>
-      <p class="subtitle">Calculate blueprint copy values and profits for EVE Online manufacturing.</p>
-    </header>
+    <section class="hero-section">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+      <h2>Rusty <span class="accent">BPC Calculator</span></h2>
+      <p>Calculate blueprint copy values and profits for EVE Online manufacturing.</p>
+    </section>
+
     <div class="app-card">
 
       <div class="form-section form-section--light">
@@ -1349,7 +1365,7 @@
   <!-- pop-out feature removed -->
 
   <footer>
-    <p>RustyBot BPC Calculator is an unofficial EVE Online tool. Not affiliated with CCP Games.</p>
+    <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
   </footer>
 </body>
 </html>

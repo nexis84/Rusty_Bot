@@ -59,6 +59,41 @@
 
         .back-link:hover { color: var(--accent); }
 
+        .breadcrumb {
+            position: absolute;
+            top: 20px;
+            left: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            z-index: 2;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            color: var(--dim);
+        }
+
+        .breadcrumb-item a {
+            color: var(--dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb-item a:hover { color: var(--accent); }
+
+        .breadcrumb-item:last-child a {
+            color: var(--text);
+            font-weight: 500;
+        }
+
         header {
             text-align: center;
             padding: 60px 20px 40px;
@@ -264,13 +299,17 @@
             header h1 { font-size: 2rem; }
             .feat-grid .feat { flex: 0 1 100%; }
             .back-link { position: static; display: block; text-align: center; margin-bottom: 0; }
+            .breadcrumb { position: static; display: flex; justify-content: center; margin-bottom: 8px; }
             .contact-cards { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">&larr; Back to Hub</a>
+        <div class="breadcrumb">
+            <span class="breadcrumb-item"><a href="index.html">Home</a></span>
+            <span class="breadcrumb-item"><a href="giveaway.html">Rustybot Client</a></span>
+        </div>
 
         <header>
             <img src="rusty_bot.png" alt="RustyBot Giveaway Logo" class="logo">
@@ -390,7 +429,7 @@
                 <a href="#" title="Discord"><i class="fa-brands fa-discord"></i></a>
                 <a href="#" title="Twitch"><i class="fa-brands fa-twitch"></i></a>
             </div>
-            RustyBot Giveaway is an unofficial EVE Online tool. Not affiliated with CCP Games.
+            EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.
         </footer>
     </div>
 </body>

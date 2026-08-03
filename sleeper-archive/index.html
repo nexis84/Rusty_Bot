@@ -3,10 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Sleeper Archive — EVE Hacking Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      .sa-topbar{display:flex;align-items:center;gap:20px;width:100%;padding:12px 24px;box-sizing:border-box;background:#03080c;border-bottom:1px solid rgba(0,212,255,0.15);position:sticky;top:0;z-index:200;font-family:'Inter','Segoe UI',Roboto,Arial,sans-serif}
+      .sa-topbar .sa-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+      .sa-topbar .sa-brand img{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(0,212,255,0.35))}
+      .sa-topbar .sa-brand h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.5px;white-space:nowrap;color:#e8f4ff}
+      .sa-topbar .sa-brand h1 .accent{color:#00d4ff}
+      .sa-topbar .sa-breadcrumb{flex:1;display:flex;align-items:center;gap:8px;font-size:14px}
+      .sa-topbar .sa-breadcrumb .sa-item{display:flex;align-items:center;gap:8px}
+      .sa-topbar .sa-breadcrumb .sa-item:not(:last-child)::after{content:'/';color:#6a8296}
+      .sa-topbar .sa-breadcrumb .sa-item a{color:#6a8296;text-decoration:none;transition:color .2s}
+      .sa-topbar .sa-breadcrumb .sa-item a:hover{color:#00d4ff}
+      .sa-topbar .sa-breadcrumb .sa-item:last-child a{color:#e8f4ff;font-weight:500}
+      @media (max-width:720px){.sa-topbar{flex-wrap:wrap;gap:10px;padding:10px 16px}.sa-topbar .sa-breadcrumb{flex:0 0 100%;order:3;justify-content:flex-start}}
+    </style>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
     <script>
@@ -19,6 +36,16 @@
     <link rel="stylesheet" crossorigin href="/sleeper-archive/assets/index-DKs74CRj.css">
   </head>
   <body>
+    <header class="sa-topbar">
+      <a href="../index.html" class="sa-brand">
+        <img src="../rusty_bot.png" alt="RustyBot Logo">
+        <h1>Sleeper <span class="accent">Archive</span></h1>
+      </a>
+      <nav class="sa-breadcrumb">
+        <span class="sa-item"><a href="../index.html">Home</a></span>
+        <span class="sa-item"><a href="index.html">Sleeper Archive</a></span>
+      </nav>
+    </header>
     <div id="root"></div>
 
   </body>

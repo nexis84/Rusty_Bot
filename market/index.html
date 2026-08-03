@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>EVE Online Market Browser & Trend Tracker | RustyBot</title>
     <meta name="description" content="An open, no-login EVE Online market browser. Check real-time market trends and track item data across all New Eden regions including Jita (The Forge) and Amarr (Domain).">
     <meta name="keywords" content="EVE Online, market browser, market trends, Jita, Amarr, The Forge, Domain, EVE market, item prices, capsuleer tools, RustyBot">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://www.rustybot.co.uk/market/index.html">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=7">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -56,14 +59,6 @@
 <div class="app">
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
-            <div class="logo-section">
-                <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
-                <h1>Market<span class="accent">Browser</span></h1>
-            </div>
-        </div>
-        
         <div class="sidebar-search">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -86,6 +81,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Market Trends</span>
             </a>
+            <a href="../appraisal/index.html" class="nav-item">
+                <i class="fas fa-coins"></i>
+                <span>RustyAppraisal</span>
+            </a>
             <a href="#" id="favoritesLink" class="nav-item">
                 <i class="fas fa-star"></i>
                 <span>Favorite Items</span>
@@ -107,10 +106,44 @@
             <button id="toggleSidebar" class="toggle-btn">
                 <i class="fas fa-bars"></i>
             </button>
-            
-            <div class="breadcrumb" id="breadcrumb">
-                <span class="breadcrumb-item"><a href="https://www.rustybot.co.uk/market/index.html">Home</a></span>
+
+            <div class="brand">
+                <a href="../index.html" class="brand-link">
+                    <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
+                    <h1 class="brand-name">Market<span class="accent">Browser</span></h1>
+                </a>
             </div>
+
+            <div class="breadcrumb" id="breadcrumb">
+                <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+                <span class="breadcrumb-item"><a href="index.html">Market Browser</a></span>
+            </div>
+
+            <script>
+            // Dynamic breadcrumb: show where the visitor came from (e.g. Appraisal)
+            (function () {
+                const bc = document.getElementById('breadcrumb');
+                if (!bc) return;
+
+                const referrer = document.referrer || '';
+                const home = '<span class="breadcrumb-item"><a href="../index.html">Home</a></span>';
+                const current = '<span class="breadcrumb-item"><a href="index.html">Market Browser</a></span>';
+
+                const sources = [
+                    { match: '/appraisal/', label: 'RustyAppraisal', href: '../appraisal/index.html' },
+                    { match: '/killboard/', label: 'Killboard', href: '../Killboard/index.html' },
+                    { match: '/guides/', label: 'Guides', href: '../guides/index.html' },
+                    { match: '/skillplanner/', label: 'Skill Planner', href: '../skillplanner/index.html' }
+                ];
+
+                const src = sources.find(s => referrer.indexOf(s.match) !== -1);
+                if (src) {
+                    bc.innerHTML = home +
+                        `<span class="breadcrumb-item"><a href="${src.href}">${src.label}</a></span>` +
+                        current;
+                }
+            })();
+            </script>
             
             <div class="region-selector">
                 <label><i class="fas fa-map-marker-alt"></i> Region:</label>
@@ -132,7 +165,8 @@
             <!-- Home/Category View -->
             <section id="homeView" class="view">
                 <div class="hero-section">
-                    <h2>Welcome to EVE Market Browser</h2>
+                    <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+                    <h2>Market <span class="accent">Browser</span></h2>
                     <p>Browse market data for any item in New Eden. Select a category from the sidebar or search for an item.</p>
                 </div>
                 
@@ -550,7 +584,7 @@
         </section>
 
         <footer class="main-footer">
-            <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+            <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
             <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
         </footer>
     </main>
@@ -561,6 +595,6 @@
 <script src="categories.js"></script>
 <script src="systems.js"></script>
 <script src="stations.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

@@ -278,7 +278,7 @@ def convert():
 {html_body}
 
   <footer>
-    <p>RustyBot is an unofficial EVE Online tool, not affiliated with CCP Games.</p>
+    <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
   </footer>
 </div>
 

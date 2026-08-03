@@ -2203,7 +2203,12 @@ async function loadItem(typeId, name, forceRefresh = false) {
         
         // Update URL
         const url = `?type=${typeId}&region=${AppState.currentRegion}`;
-        history.pushState({ typeId, region: AppState.currentRegion }, '', url);
+        if (window.location.search === url) {
+            // Already at this URL (e.g. deep link from another page) - avoid a duplicate history entry
+            history.replaceState({ typeId, region: AppState.currentRegion }, '', url);
+        } else {
+            history.pushState({ typeId, region: AppState.currentRegion }, '', url);
+        }
         
         // Show item view
         showView('item');
@@ -3465,7 +3470,7 @@ function updateFavoritesView() {
 function updateBreadcrumb(itemName) {
     const breadcrumb = el('breadcrumb');
     breadcrumb.innerHTML = `
-        <span class="breadcrumb-item"><a href="https://www.rustybot.co.uk/market/index.html">Home</a></span>
+        <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
         <span class="breadcrumb-item"><a href="#">${AppState.allItems.find(i => i.id === AppState.currentItem?.id)?.path[0] || 'Market'}</a></span>
         <span class="breadcrumb-item"><a href="#">${itemName}</a></span>
     `;

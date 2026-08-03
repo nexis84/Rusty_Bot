@@ -3,22 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>The ISK is Right! — EVE Ship Price Game</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="../rusty_bot.png">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
-  <div class="container">
-    <a class="back-link" href="../index.html">&larr; Back</a>
+  <header class="top-bar">
+    <div class="brand">
+      <a href="../index.html" class="brand-link">
+        <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+        <h1 class="brand-name">The ISK is <span class="accent">Right!</span></h1>
+      </a>
+    </div>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+      <span class="breadcrumb-item"><a href="index.html">The ISK is Right</a></span>
+    </div>
+  </header>
 
-    <header class="tool-header">
-      <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
-      <h1>The ISK is <span>Right!</span></h1>
-      <p class="subtitle">Guess which EVE ship costs more. Chain as many as you can!</p>
-    </header>
+  <div class="container">
+    <section class="hero-section">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+      <h2>The ISK is <span class="accent">Right!</span></h2>
+      <p>Guess which EVE ship costs more. Chain as many as you can!</p>
+    </section>
 
     <div class="header-stats">
       <span>Streak: <strong id="streak-count">0</strong></span>

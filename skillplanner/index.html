@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Rusty Skill Planner - RustyBot</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -16,7 +16,10 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="../index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+                <div class="breadcrumb">
+                    <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+                    <span class="breadcrumb-item"><a href="index.html">Skill Planner</a></span>
+                </div>
                 <div class="logo-section">
                     <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
                     <h1>Rusty<span class="accent">Skill Planner</span></h1>
@@ -574,7 +577,7 @@
             <div id="messageArea" class="message-area hidden"></div>
 
             <footer class="main-footer">
-                <p>RustyBot is an unofficial EVE Online tool, not affiliated with <a href="https://www.ccpgames.com" target="_blank">CCP Games</a>.</p>
+                <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
                 <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
             </footer>
         </main>
