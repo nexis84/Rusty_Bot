@@ -29,6 +29,7 @@ function normalizeName(s) {
 const ItemDB = (function buildItemDB() {
     const byLower = new Map();  // lowercase name -> { id, name }
     const byNorm = new Map();   // normalized name -> { id, name }
+    const byId = new Map();     // type id -> { id, name }
     const all = [];
     if (typeof AllMarketItems === 'undefined') {
         return null;
@@ -42,10 +43,11 @@ const ItemDB = (function buildItemDB() {
             const entry = { id: item.id, name: item.name, lower: item.name.toLowerCase(), norm: normalizeName(item.name) };
             if (!byLower.has(entry.lower)) byLower.set(entry.lower, entry);
             if (!byNorm.has(entry.norm)) byNorm.set(entry.norm, entry);
+            if (!byId.has(entry.id)) byId.set(entry.id, entry);
             all.push(entry);
         });
     });
-    return { byLower, byNorm, all };
+    return { byLower, byNorm, byId, all };
 })();
 
 function matchItem(rawName) {
@@ -583,7 +585,11 @@ function buildShareLink() {
     const lines = [];
 
     for (const row of rows) {
-        lines.push(`${row.qty} x ${row.name}`);
+        if (row.id) {
+            lines.push(`${row.qty}:${row.id}`);
+        } else {
+            lines.push(`${row.qty} x ${row.name}`);
+        }
     }
     for (const u of unmatched) {
         lines.push(u.qty > 1 ? `${u.qty} x ${u.raw}` : u.raw);
@@ -753,7 +759,18 @@ function handleShareHash() {
     const items = params.get('items');
     if (!items) return false;
 
-    el('appraisalText').value = items;
+    // Decode compact "qty:typeId" lines back to "qty x Name" for the textarea.
+    // Old full-name links are left untouched.
+    const decoded = items.split('\n').map(line => {
+        const m = line.trim().match(/^(\d+):(\d+)$/);
+        if (m && ItemDB && ItemDB.byId) {
+            const entry = ItemDB.byId.get(Number(m[2]));
+            if (entry) return `${m[1]} x ${entry.name}`;
+        }
+        return line;
+    }).join('\n');
+
+    el('appraisalText').value = decoded;
     const hub = params.get('hub');
     if (hub && el('hubSelect').querySelector(`option[value="${hub}"]`)) {
         el('hubSelect').value = hub;
