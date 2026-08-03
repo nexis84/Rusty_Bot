@@ -651,6 +651,41 @@ function setProgress(visible, text, pct) {
     }
 }
 
+// ---- Clear ----
+function clearAppraisal() {
+    if (activeController) activeController.abort();
+    activeController = null;
+    appraisalCancelled = true;
+
+    el('appraisalText').value = '';
+    el('appraisalText').focus();
+
+    window.__appraisalRows = [];
+    window.__appraisalPrices = {};
+    window.__appraisalRegion = null;
+    window.__appraisalTotals = { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
+    window.__appraisalUnmatched = [];
+
+    el('resultsBody').innerHTML = '';
+    el('resultsFoot').innerHTML = '';
+    el('unmatchedList').innerHTML = '';
+    el('unmatchedSection').classList.add('hidden');
+    el('resultsSection').classList.add('hidden');
+    el('buyTotal').textContent = '—';
+    el('sellTotal').textContent = '—';
+    el('splitTotal').textContent = '—';
+    el('lineCount').textContent = '—';
+    el('itemCountNote').textContent = '—';
+    el('splitNote').textContent = 'Midpoint between buy and sell';
+
+    setProgress(false);
+    try {
+        localStorage.removeItem('rustyAppraisalLast');
+    } catch (e) { /* ignore */ }
+
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+}
+
 // ---- Message area ----
 function showMessage(text, type) {
     const area = el('messageArea');
@@ -811,10 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
     el('copyResultsBtn').addEventListener('click', copyResults);
     el('shareLinkBtn').addEventListener('click', copyShareLink);
 
-    el('clearBtn').addEventListener('click', () => {
-        el('appraisalText').value = '';
-        el('appraisalText').focus();
-    });
+    el('clearBtn').addEventListener('click', clearAppraisal);
 
     el('cancelBtn').addEventListener('click', () => {
         appraisalCancelled = true;
