@@ -38,6 +38,11 @@
 
     <div class="unlock-tree" id="unlockTree"></div>
 
+    <div class="ach-section">
+      <button id="achPanelBtn" type="button" class="ach-panel-btn">🏆 Achievements (0/17)</button>
+      <div id="achPanel" class="ach-panel hidden"><div id="achList"></div></div>
+    </div>
+
     <div class="menu-actions">
       <button id="playBtn" class="play-btn">PLAY</button>
       <div id="loadStatus" class="load-status"></div>
@@ -128,8 +133,20 @@
           <span class="go-value" id="goIsk">0</span>
         </div>
         <div class="go-row">
+          <span class="go-label">Accuracy</span>
+          <span class="go-value" id="goAccuracy">0%</span>
+        </div>
+        <div class="go-row">
+          <span class="go-label">Time</span>
+          <span class="go-value" id="goTime">00:00</span>
+        </div>
+        <div class="go-row">
           <span class="go-label">Best Streak</span>
-          <span class="go-value" id="goStreak">0</span>
+          <span class="go-value" id="goBestStreak">0</span>
+        </div>
+        <div class="go-row">
+          <span class="go-label">Correct / Wrong / Timeout</span>
+          <span class="go-value" id="goBreakdown">✅ 0 · ❌ 0 · ⏰ 0</span>
         </div>
         <div class="go-row">
           <span class="go-label">Previous Best</span>
@@ -137,9 +154,16 @@
         </div>
         <div id="newHighscoreBadge" class="hidden">🏆 NEW HIGH SCORE!</div>
       </div>
+      <div class="go-actions">
+        <button id="goPlayAgainBtn" class="play-btn go-play">▶ PLAY AGAIN</button>
+        <button id="goMenuBtn" class="back-btn go-menu">Menu</button>
+      </div>
       <div class="countdown-msg" id="goCountdown">Returning to menu in 3...</div>
     </div>
   </div>
+
+  <!-- ===== ACHIEVEMENT TOAST ===== -->
+  <div id="achToast" class="ach-toast hidden"></div>
 
 </div>
 

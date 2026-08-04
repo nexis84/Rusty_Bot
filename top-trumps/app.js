@@ -98,10 +98,14 @@ for (const group of UNLOCK_TREE) {
 }
 
 // ─── SAVE / LOAD ────────────────────────────────────
-const SAVE_VERSION = 1
+const SAVE_VERSION = 2
 
 function defaultData() {
-  return { version: SAVE_VERSION, lifetimeIsk: 0, unlocked: ['Frigate', 'Corvette', 'Shuttle'], bestRun: 0, toggled: null, sound: true }
+  return {
+    version: SAVE_VERSION, lifetimeIsk: 0, unlocked: ['Frigate', 'Corvette', 'Shuttle'],
+    bestRun: 0, toggled: null, sound: true,
+    achievements: [], totalRounds: 0, totalCorrect: 0, seenAchievementIds: [],
+  }
 }
 
 function migrate(data) {
@@ -110,8 +114,68 @@ function migrate(data) {
   const out = { ...base, ...data }
   if (out.toggled === null || out.toggled === undefined) out.toggled = base.toggled
   if (typeof out.sound !== 'boolean') out.sound = base.sound
+  if (!Array.isArray(out.achievements)) out.achievements = []
+  if (!Array.isArray(out.seenAchievementIds)) out.seenAchievementIds = []
+  if (typeof out.totalRounds !== 'number') out.totalRounds = 0
+  if (typeof out.totalCorrect !== 'number') out.totalCorrect = 0
   out.version = SAVE_VERSION
   return out
+}
+
+// ─── ACHIEVEMENTS ───────────────────────────────────
+const ACHIEVEMENTS = [
+  { id: 'first_steps', icon: '👣', name: 'First Steps', desc: 'Finish your first run.', rewardISK: 10000, check: (r) => r.roundsPlayed >= 1 },
+  { id: 'warm_up', icon: '🔥', name: 'Warm Up', desc: 'Win a run.', rewardISK: 25000, check: (r) => r.won },
+  { id: 'perfect_run', icon: '💎', name: 'Perfect Run', desc: 'Win a run without losing a single life.', rewardISK: 100000, check: (r) => r.won && r.livesLost === 0 },
+  { id: 'streak_3', icon: '⚡', name: 'Hot Streak', desc: 'Reach a 3 correct-answer streak.', rewardISK: 15000, check: (r) => r.bestStreak >= 3 },
+  { id: 'streak_5', icon: '🔥', name: 'On Fire', desc: 'Reach a 5 correct-answer streak.', rewardISK: 30000, check: (r) => r.bestStreak >= 5 },
+  { id: 'streak_10', icon: '⚡', name: 'Unstoppable', desc: 'Reach a 10 correct-answer streak.', rewardISK: 75000, check: (r) => r.bestStreak >= 10 },
+  { id: 'level_5', icon: '⭐', name: 'Level 5', desc: 'Reach level 5 in a run.', rewardISK: 20000, check: (r) => r.level >= 5 },
+  { id: 'level_10', icon: '🌟', name: 'Max Level', desc: 'Reach level 10 in a run.', rewardISK: 100000, check: (r) => r.level >= 10 },
+  { id: 'isk_500k', icon: '💰', name: 'Isk Hauler', desc: 'Earn 500,000 ISK in a single run.', rewardISK: 50000, check: (r) => r.isk >= 500000 },
+  { id: 'isk_2m', icon: '🤑', name: 'Isk Bomb', desc: 'Earn 2,000,000 ISK in a single run.', rewardISK: 150000, check: (r) => r.isk >= 2000000 },
+  { id: 'speed_demon', icon: '🚀', name: 'Speed Demon', desc: 'Win a run in under 2 minutes.', rewardISK: 75000, check: (r) => r.won && r.elapsedSec < 120 },
+  { id: 'precision', icon: '🎯', name: 'Precision', desc: 'Finish a run with at least 80% accuracy over 10+ rounds.', rewardISK: 50000, check: (r) => r.roundsPlayed >= 10 && r.roundsPlayed > 0 && r.correctCount / r.roundsPlayed >= 0.8 },
+  { id: 'collector_5', icon: '🗃️', name: 'Collector', desc: 'Unlock 5 ship categories.', rewardISK: 25000, check: (r, d) => d.unlocked.length >= 5 },
+  { id: 'collector_10', icon: '🗄️', name: 'Archivist', desc: 'Unlock 10 ship categories.', rewardISK: 75000, check: (r, d) => d.unlocked.length >= 10 },
+  { id: 'collector_20', icon: '📚', name: 'Librarian', desc: 'Unlock 20 ship categories.', rewardISK: 200000, check: (r, d) => d.unlocked.length >= 20 },
+  { id: 'grind_25', icon: '⛏️', name: 'The Grind', desc: 'Play 25 rounds in total.', rewardISK: 20000, check: (r, d) => d.totalRounds >= 25 },
+  { id: 'grind_100', icon: '🧗', name: 'Grind Lord', desc: 'Play 100 rounds in total.', rewardISK: 100000, check: (r, d) => d.totalRounds >= 100 },
+]
+
+const ACH_BY_ID = {}
+for (const a of ACHIEVEMENTS) ACH_BY_ID[a.id] = a
+
+function unlockedAchievements(data) { return data.achievements || [] }
+
+function checkAchievements(runData) {
+  const data = loadData()
+  const unlocked = new Set(data.achievements)
+  const newly = []
+  for (const a of ACHIEVEMENTS) {
+    if (unlocked.has(a.id)) continue
+    if (a.check(runData, data)) {
+      data.achievements.push(a.id)
+      data.lifetimeIsk += a.rewardISK
+      newly.push(a)
+    }
+  }
+  if (newly.length) {
+    saveData(data)
+    newly.forEach((a, i) => setTimeout(() => showAchievementToast(a), i * 800))
+  }
+  return newly
+}
+
+function showAchievementToast(a) {
+  if (!achToast) return
+  achToast.innerHTML = `<span class="ach-toast-icon">${a.icon}</span><span class="ach-toast-text"><strong>${a.name}</strong> +${formatISK(a.rewardISK)} ISK</span>`
+  achToast.classList.remove('hidden')
+  achToast.classList.remove('show')
+  void achToast.offsetWidth
+  achToast.classList.add('show')
+  clearTimeout(achToastTimer)
+  achToastTimer = setTimeout(() => { achToast.classList.remove('show') }, 4000)
 }
 
 function loadData() {
@@ -158,7 +222,6 @@ const resultMsg = document.getElementById('resultMsg')
 const countdownMsg = document.getElementById('countdownMsg')
 const levelDisplay = document.getElementById('levelDisplay')
 const goIsk = document.getElementById('goIsk')
-const goStreak = document.getElementById('goStreak')
 const goPrevBest = document.getElementById('goPrevBest')
 const goCountdown = document.getElementById('goCountdown')
 const newHighscoreBadge = document.getElementById('newHighscoreBadge')
@@ -171,6 +234,19 @@ const diffStatName = document.getElementById('diffStatName')
 const diffRows = document.getElementById('diffRows')
 const diffResult = document.getElementById('diffResult')
 const soundBtn = document.getElementById('soundBtn')
+
+const achToast = document.getElementById('achToast')
+const achPanelBtn = document.getElementById('achPanelBtn')
+const achPanel = document.getElementById('achPanel')
+const achList = document.getElementById('achList')
+let achToastTimer = null
+
+const goAccuracy = document.getElementById('goAccuracy')
+const goTime = document.getElementById('goTime')
+const goBestStreak = document.getElementById('goBestStreak')
+const goBreakdown = document.getElementById('goBreakdown')
+const goPlayAgainBtn = document.getElementById('goPlayAgainBtn')
+const goMenuBtn = document.getElementById('goMenuBtn')
 
 const cardEls = [0, 1].map(i => ({
   card: document.getElementById(`card${i}`),
@@ -253,6 +329,7 @@ function renderMenu() {
       data.unlocked.push(catName)
       data.toggled = [catName]
       saveData(data)
+      checkAchievements({})
       renderMenu()
     })
   })
@@ -266,14 +343,27 @@ function renderMenu() {
     })
   })
 
-  if (soundBtn) {
-    soundBtn.addEventListener('click', () => {
-      const data = loadData()
-      data.sound = data.sound === false
-      saveData(data)
-      renderMenu()
-    })
+  renderAchievements()
+}
+
+function renderAchievements() {
+  if (!achPanel || !achList || !achPanelBtn) return
+  const data = loadData()
+  const unlocked = new Set(data.achievements)
+  achPanelBtn.textContent = `🏆 Achievements (${unlocked.size}/${ACHIEVEMENTS.length})`
+  let html = ''
+  for (const a of ACHIEVEMENTS) {
+    const isUnlocked = unlocked.has(a.id)
+    html += `<div class="ach-row ${isUnlocked ? 'ach-unlocked' : 'ach-locked'}">
+      <span class="ach-icon">${a.icon}</span>
+      <div class="ach-info">
+        <span class="ach-name">${isUnlocked ? '🏆' : '🔒'} ${a.name}</span>
+        <span class="ach-desc">${a.desc}</span>
+      </div>
+      <span class="ach-reward">${isUnlocked ? '+' + formatISK(a.rewardISK) : formatISK(a.rewardISK)} ISK</span>
+    </div>`
   }
+  achList.innerHTML = html
 }
 
 function getActiveClasses(data) {
@@ -293,12 +383,21 @@ function getActiveClasses(data) {
 
 // ─── GAME ──────────────────────────────────────────
 let roundReady = false
+let roundsPlayed = 0
+let correctCount = 0
+let wrongCount = 0
+let timeoutCount = 0
+let bestStreak = 0
+let runStartTime = 0
 
 function startGame() {
   const data = loadData()
   isk = 0; lives = MAX_LIVES; streak = 0; level = 0
+  roundsPlayed = 0; correctCount = 0; wrongCount = 0; timeoutCount = 0; bestStreak = 0
+  runStartTime = Date.now()
   roundReady = false
   clearTimer()
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
   gameOverOverlay.classList.add('hidden')
   resultOverlay.classList.add('hidden')
   menuScreen.classList.add('hidden')
@@ -342,6 +441,8 @@ function handleTimeout() {
   if (locked) return
   locked = true
   revealed = true
+  roundsPlayed++
+  timeoutCount++
   cardEls.forEach(el => el.card.classList.remove('highlight'))
   renderCards()
   cardEls.forEach(el => el.card.classList.add('disabled'))
@@ -356,6 +457,8 @@ function handleTimeout() {
     resultMsg.className = 'correct'
     isk += 10000 + level * 5000
     streak++
+    bestStreak = Math.max(bestStreak, streak)
+    correctCount++
     level++
     playCorrect()
   } else {
@@ -363,6 +466,7 @@ function handleTimeout() {
     cardEls[1 - winnerIndex].card.classList.add('loser')
     lives--
     streak = 0
+    wrongCount++
     resultMsg.textContent = `⏰ TIME'S UP! ${currentShips[winnerIndex].name} wins with ${formatStatValue(currentStat, winnerIndex === 0 ? v0 : v1)}`
     resultMsg.className = 'wrong'
     playWrong()
@@ -550,6 +654,7 @@ function choose(index) {
   locked = true
   revealed = true
   clearTimer()
+  roundsPlayed++
 
   cardEls.forEach(el => el.card.classList.remove('highlight'))
 
@@ -570,6 +675,8 @@ function choose(index) {
     resultMsg.className = 'correct'
     isk += 10000 + level * 5000
     streak++
+    bestStreak = Math.max(bestStreak, streak)
+    correctCount++
     level++
     playCorrect()
     win = true
@@ -581,6 +688,8 @@ function choose(index) {
     const earned = base + bonus
     isk += earned
     streak++
+    bestStreak = Math.max(bestStreak, streak)
+    correctCount++
     level++
     resultMsg.innerHTML = `✅ CORRECT! +${formatISK(earned)} ISK${bonus > 0 ? ` (streak x${streak - 1})` : ''}`
     resultMsg.className = 'correct'
@@ -591,6 +700,7 @@ function choose(index) {
     cardEls[1 - winnerIndex].card.classList.add('loser')
     lives--
     streak = 0
+    wrongCount++
     resultMsg.textContent = `❌ WRONG! ${currentShips[winnerIndex].name} wins with ${formatStatValue(currentStat, winnerIndex === 0 ? v0 : v1)}`
     resultMsg.className = 'wrong'
     playWrong()
@@ -661,11 +771,21 @@ function finishRun(won) {
   data.lifetimeIsk += isk
   let newBest = false
   if (isk > data.bestRun) { data.bestRun = isk; newBest = true }
+  data.totalRounds += roundsPlayed
+  data.totalCorrect += correctCount
   saveData(data)
 
+  const elapsedSec = Math.max(0, Math.floor((Date.now() - runStartTime) / 1000))
+  const mm = String(Math.floor(elapsedSec / 60)).padStart(2, '0')
+  const ss = String(elapsedSec % 60).padStart(2, '0')
+  const accuracy = roundsPlayed > 0 ? Math.round((correctCount / roundsPlayed) * 100) : 0
+
   goIsk.textContent = formatISK(isk) + ' ISK'
-  goStreak.textContent = streak
   goPrevBest.textContent = formatISK(data.bestRun) + ' ISK'
+  goAccuracy.textContent = accuracy + '%'
+  goTime.textContent = `${mm}:${ss}`
+  goBestStreak.textContent = bestStreak
+  goBreakdown.textContent = `✅ ${correctCount} · ❌ ${wrongCount} · ⏰ ${timeoutCount}`
   newHighscoreBadge.classList.toggle('hidden', !newBest)
 
   const titleEl = document.getElementById('goTitle')
@@ -685,20 +805,22 @@ function finishRun(won) {
 
   gameOverOverlay.classList.remove('hidden')
 
-  let remaining = won ? 5 : 3
-  goCountdown.textContent = `Returning to menu in ${remaining}...`
-  countdownTimer = setInterval(() => {
-    remaining--
-    if (remaining <= 0) {
-      clearInterval(countdownTimer); countdownTimer = null
-      gameOverOverlay.classList.add('hidden')
-      gameScreen.classList.add('hidden')
-      menuScreen.classList.remove('hidden')
-      renderMenu()
-    } else {
-      goCountdown.textContent = `Returning to menu in ${remaining}...`
-    }
-  }, 1000)
+  const runData = {
+    won, isk, bestStreak, roundsPlayed, correctCount, wrongCount, timeoutCount,
+    level, elapsedSec, livesLost: MAX_LIVES - lives,
+  }
+  checkAchievements(runData)
+
+  goCountdown.classList.add('hidden')
+}
+
+function goToMenu() {
+  clearTimer()
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
+  gameOverOverlay.classList.add('hidden')
+  gameScreen.classList.add('hidden')
+  menuScreen.classList.remove('hidden')
+  renderMenu()
 }
 
 // ─── HOTKEYS ──────────────────────────────────────
@@ -736,14 +858,23 @@ async function init() {
   playBtn.disabled = false
 
   playBtn.addEventListener('click', startGame)
-  backToMenuBtn.addEventListener('click', () => {
-    clearTimer()
-    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
-    gameOverOverlay.classList.add('hidden')
-    gameScreen.classList.add('hidden')
-    menuScreen.classList.remove('hidden')
-    renderMenu()
-  })
+  backToMenuBtn.addEventListener('click', goToMenu)
+  if (soundBtn) {
+    soundBtn.addEventListener('click', () => {
+      const data = loadData()
+      data.sound = data.sound === false
+      saveData(data)
+      renderMenu()
+    })
+  }
+  if (goPlayAgainBtn) goPlayAgainBtn.addEventListener('click', startGame)
+  if (goMenuBtn) goMenuBtn.addEventListener('click', goToMenu)
+  if (achPanelBtn) {
+    achPanelBtn.addEventListener('click', () => {
+      const hidden = achPanel.classList.toggle('hidden')
+      achPanelBtn.classList.toggle('open', !hidden)
+    })
+  }
 
   renderMenu()
 }

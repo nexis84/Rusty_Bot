@@ -118,6 +118,51 @@ body {
 .ut-buy:hover { filter: brightness(1.12); transform: translateY(-1px); }
 .ut-locked-label { font-size: 0.78rem; color: var(--dim); }
 
+/* ── ACHIEVEMENTS ── */
+.ach-section { margin-bottom: 28px; }
+.ach-panel-btn {
+  display: block; margin: 0 auto; max-width: 420px; width: 100%;
+  background: var(--p1); color: var(--text); border: 1px solid var(--p2);
+  border-radius: 10px; padding: 12px; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; font-family: inherit; letter-spacing: 1px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.ach-panel-btn:hover, .ach-panel-btn.open { border-color: var(--accent); color: var(--accent); }
+.ach-panel {
+  margin: 10px auto 0; max-width: 420px;
+  border: 1px solid var(--p2); border-radius: 10px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.01);
+}
+.ach-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; border-bottom: 1px solid rgba(42, 42, 42, 0.6);
+}
+.ach-row:last-child { border-bottom: none; }
+.ach-locked { opacity: 0.5; }
+.ach-icon { font-size: 1.2rem; flex-shrink: 0; }
+.ach-info { flex: 1; min-width: 0; }
+.ach-name { display: block; font-size: 0.9rem; }
+.ach-desc { display: block; font-size: 0.75rem; color: var(--dim); }
+.ach-reward { font-size: 0.78rem; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+.ach-unlocked .ach-name { color: var(--win); }
+
+/* ── ACHIEVEMENT TOAST ── */
+.ach-toast {
+  position: fixed; top: 16px; left: 50%; z-index: 200;
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(180deg, #1d1d2a, #15151e);
+  border: 1px solid var(--accent); border-radius: 999px;
+  padding: 10px 22px;
+  box-shadow: 0 0 40px rgba(232, 217, 0, 0.25), 0 10px 30px rgba(0, 0, 0, 0.5);
+  opacity: 0; transform: translateX(-50%) translateY(-16px);
+  transition: opacity 0.35s, transform 0.35s;
+  pointer-events: none;
+}
+.ach-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.ach-toast-icon { font-size: 1.4rem; }
+.ach-toast-text { color: var(--text); font-size: 0.95rem; }
+.ach-toast-text strong { color: var(--accent); }
+
 /* ── MENU ACTIONS ── */
 .menu-actions { text-align: center; margin-bottom: 32px; }
 .play-btn {
@@ -355,6 +400,9 @@ button { font-family: inherit; }
 .go-value { font-weight: 700; color: var(--accent); }
 #newHighscoreBadge { font-size: 1.3rem; color: var(--win); font-weight: 700; margin-top: 16px; animation: pulse 1s ease-in-out infinite; }
 #goCountdown { color: var(--dim); font-size: 0.9rem; margin-top: 16px; }
+.go-actions { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+.go-play { padding: 12px 28px; font-size: 1rem; letter-spacing: 2px; }
+.go-menu { padding: 12px 24px; font-size: 0.95rem; }
 .victory-title { font-size: 2.5rem; color: gold; letter-spacing: 4px; margin-bottom: 8px; animation: pulse 1s ease-in-out infinite; }
 .victory-subtitle { font-size: 1.1rem; color: var(--win); margin-bottom: 16px; }
 .go-title { font-size: 2rem; color: var(--accent); letter-spacing: 3px; margin-bottom: 24px; }
