@@ -26,12 +26,15 @@
       <h1>EVE <span>Top Trumps</span></h1>
       <span class="beta-badge">Beta</span>
       <p class="subtitle">Unlock ship classes, earn ISK, climb the leaderboard.</p>
+      <button id="soundBtn" class="sound-btn" type="button">🔊 Sound On</button>
     </header>
 
     <div class="menu-stats">
       <span>🛢️ <strong id="lifetimeIskDisplay">0</strong> ISK</span>
       <span>🏆 Best Run: <strong id="bestRunDisplay">0</strong> ISK</span>
     </div>
+
+    <p class="howto">Pick the card with the <strong>higher</strong> (or <strong>lower</strong>, as prompted) trump stat before the timer runs out. Keys <strong>1</strong>/<strong>2</strong> or <strong>←</strong>/<strong>→</strong> also work.</p>
 
     <div class="unlock-tree" id="unlockTree"></div>
 
@@ -67,6 +70,10 @@
         <span>Level: <strong id="levelDisplay">0</strong></span>
         <span>Streak: <strong id="streakDisplay">0</strong></span>
       </div>
+      <div id="timerBar">
+        <div id="timerFill"></div>
+        <span id="timerText">30</span>
+      </div>
     </header>
 
     <div class="controls">
@@ -101,7 +108,12 @@
     <!-- Result overlay -->
     <div id="resultOverlay" class="hidden">
       <div id="resultMsg"></div>
-      <div id="countdownMsg" class="countdown-msg">Next round in 3...</div>
+      <div id="diffPanel" class="diff-panel hidden">
+        <div class="diff-title">Stat Difference — <span id="diffStatName"></span></div>
+        <div id="diffRows"></div>
+        <div id="diffResult" class="diff-result"></div>
+      </div>
+      <div id="countdownMsg" class="countdown-msg">Next round in 5...</div>
     </div>
   </div>
 

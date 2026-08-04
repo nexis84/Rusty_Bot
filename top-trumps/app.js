@@ -8,6 +8,8 @@ let streak = 0
 let level = 0
 const MAX_LIVES = 5
 const MAX_LEVEL = 10
+const ROUND_SECONDS = 30
+const ROUND_PAUSE_SECONDS = 5
 const EXCLUDED_CLASSES = new Set(['Capsule', 'Special Edition Yachts'])
 const AT_SHIP_IDS = new Set([2834, 2836, 3516, 3518, 35779, 35781, 32788, 33397, 33395, 32207, 32209, 52250, 48636, 48635, 33820, 42125, 42241])
 const SPECIAL_SHIP_IDS = new Set([617, 33081])
@@ -161,6 +163,15 @@ const goPrevBest = document.getElementById('goPrevBest')
 const goCountdown = document.getElementById('goCountdown')
 const newHighscoreBadge = document.getElementById('newHighscoreBadge')
 
+const timerBar = document.getElementById('timerBar')
+const timerFill = document.getElementById('timerFill')
+const timerText = document.getElementById('timerText')
+const diffPanel = document.getElementById('diffPanel')
+const diffStatName = document.getElementById('diffStatName')
+const diffRows = document.getElementById('diffRows')
+const diffResult = document.getElementById('diffResult')
+const soundBtn = document.getElementById('soundBtn')
+
 const cardEls = [0, 1].map(i => ({
   card: document.getElementById(`card${i}`),
   img: document.getElementById(`img${i}`),
@@ -172,9 +183,15 @@ const cardEls = [0, 1].map(i => ({
 
 // ─── SOUND ──────────────────────────────────────────
 let audioCtx = null
+function soundOn() {
+  const d = loadData()
+  return d.sound !== false
+}
 function playTone(freq, dur, type = 'sine') {
   try {
+    if (!soundOn()) return
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+    if (audioCtx.state === 'suspended') audioCtx.resume()
     const o = audioCtx.createOscillator(), g = audioCtx.createGain()
     o.type = type; o.frequency.value = freq
     g.gain.setValueAtTime(0.15, audioCtx.currentTime)
@@ -191,6 +208,11 @@ function renderMenu() {
   const data = loadData()
   lifetimeIskDisplay.textContent = formatISK(data.lifetimeIsk)
   bestRunDisplay.textContent = formatISK(data.bestRun)
+
+  if (soundBtn) {
+    soundBtn.textContent = data.sound === false ? '🔇 Sound Off' : '🔊 Sound On'
+    soundBtn.classList.toggle('muted', data.sound === false)
+  }
 
   let html = ''
   for (const group of UNLOCK_TREE) {
@@ -243,6 +265,15 @@ function renderMenu() {
       renderMenu()
     })
   })
+
+  if (soundBtn) {
+    soundBtn.addEventListener('click', () => {
+      const data = loadData()
+      data.sound = data.sound === false
+      saveData(data)
+      renderMenu()
+    })
+  }
 }
 
 function getActiveClasses(data) {
@@ -261,9 +292,13 @@ function getActiveClasses(data) {
 }
 
 // ─── GAME ──────────────────────────────────────────
+let roundReady = false
+
 function startGame() {
   const data = loadData()
   isk = 0; lives = MAX_LIVES; streak = 0; level = 0
+  roundReady = false
+  clearTimer()
   gameOverOverlay.classList.add('hidden')
   resultOverlay.classList.add('hidden')
   menuScreen.classList.add('hidden')
@@ -271,6 +306,77 @@ function startGame() {
   updateGameUI()
   updateActiveLabel()
   deal()
+}
+
+// ─── ROUND TIMER ───────────────────────────────────
+let timeLeft = ROUND_SECONDS
+let timerInterval = null
+
+function clearTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null }
+}
+
+function updateTimerUI() {
+  const frac = timeLeft / ROUND_SECONDS
+  timerFill.style.width = (frac * 100) + '%'
+  timerText.textContent = timeLeft
+  timerBar.classList.toggle('danger', timeLeft <= 5)
+  timerBar.classList.toggle('warn', timeLeft > 5 && timeLeft <= 10)
+}
+
+function startTimer() {
+  clearTimer()
+  timeLeft = ROUND_SECONDS
+  updateTimerUI()
+  timerInterval = setInterval(() => {
+    timeLeft--
+    updateTimerUI()
+    if (timeLeft <= 0) {
+      clearTimer()
+      handleTimeout()
+    }
+  }, 1000)
+}
+
+function handleTimeout() {
+  if (locked) return
+  locked = true
+  revealed = true
+  cardEls.forEach(el => el.card.classList.remove('highlight'))
+  renderCards()
+  cardEls.forEach(el => el.card.classList.add('disabled'))
+  const v0 = getStat(currentShips[0], currentStat)
+  const v1 = getStat(currentShips[1], currentStat)
+  const m = statsData.stats[currentStat]
+  const winnerIndex = m.highIsGood ? (v0 > v1 ? 0 : 1) : (v0 < v1 ? 0 : 1)
+  const tie = v0 === v1
+  if (tie) {
+    cardEls.forEach(x => x.card.classList.add('winner'))
+    resultMsg.textContent = `⏰ TIME'S UP! It was a tie!`
+    resultMsg.className = 'correct'
+    isk += 10000 + level * 5000
+    streak++
+    level++
+    playCorrect()
+  } else {
+    cardEls[winnerIndex].card.classList.add('winner')
+    cardEls[1 - winnerIndex].card.classList.add('loser')
+    lives--
+    streak = 0
+    resultMsg.textContent = `⏰ TIME'S UP! ${currentShips[winnerIndex].name} wins with ${formatStatValue(currentStat, winnerIndex === 0 ? v0 : v1)}`
+    resultMsg.className = 'wrong'
+    playWrong()
+  }
+  updateGameUI()
+  renderDifference()
+  if (level >= MAX_LEVEL) {
+    finishRun(true)
+  } else if (lives <= 0) {
+    finishRun(false)
+  } else {
+    resultOverlay.classList.remove('hidden')
+    startCountdown(ROUND_PAUSE_SECONDS, () => { resultOverlay.classList.add('hidden'); deal() }, 'Next round in ')
+  }
 }
 
 function getActiveShips(data) {
@@ -307,14 +413,20 @@ function updateActiveLabel() {
 
 function deal() {
   if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
+  clearTimer()
   resultOverlay.classList.add('hidden')
-  revealed = false; locked = false
+  diffPanel.classList.add('hidden')
+  revealed = false; locked = false; roundReady = false
 
   cardEls.forEach(el => el.card.classList.remove('winner', 'loser', 'disabled', 'highlight'))
 
   const activeIds = getActiveShips(loadData())
   const pool = SHIPS.filter(s => activeIds.has(s.id) && statsData.ships[s.id])
-  if (pool.length < 2) { statLabel.textContent = 'Unlock more ships to play!'; return }
+  if (pool.length < 2) {
+    statLabel.textContent = 'Unlock more ships to play!'
+    cardEls.forEach(el => el.card.classList.add('disabled'))
+    return
+  }
 
   const statKeys = Object.keys(statsData.stats)
   const byStat = {}
@@ -328,7 +440,11 @@ function deal() {
   }
 
   const statPool = Object.keys(byStat)
-  if (!statPool.length) { statLabel.textContent = 'No compatible ships!'; return }
+  if (!statPool.length) {
+    statLabel.textContent = 'No compatible ships!'
+    cardEls.forEach(el => el.card.classList.add('disabled'))
+    return
+  }
 
   const stat = statPool[Math.floor(Math.random() * statPool.length)]
   const entries = byStat[stat]
@@ -338,6 +454,7 @@ function deal() {
 
   currentShips = [a[0], b[0]]
   currentStat = stat
+  roundReady = true
 
   renderCards()
   updateBanner()
@@ -346,6 +463,7 @@ function deal() {
     void el.card.offsetWidth
     el.card.classList.add('deal')
   })
+  startTimer()
 }
 
 function getStat(ship, k) {
@@ -428,9 +546,10 @@ function updateGameUI() {
 }
 
 function choose(index) {
-  if (locked) return
+  if (locked || !roundReady) return
   locked = true
   revealed = true
+  clearTimer()
 
   cardEls.forEach(el => el.card.classList.remove('highlight'))
 
@@ -478,6 +597,7 @@ function choose(index) {
   }
 
   updateGameUI()
+  renderDifference()
 
   if (level >= MAX_LEVEL && win) {
     finishRun(true)
@@ -485,8 +605,43 @@ function choose(index) {
     finishRun(false)
   } else {
     resultOverlay.classList.remove('hidden')
-    startCountdown(3, () => { resultOverlay.classList.add('hidden'); deal() }, 'Next round in ')
+    startCountdown(ROUND_PAUSE_SECONDS, () => { resultOverlay.classList.add('hidden'); deal() }, 'Next round in ')
   }
+}
+
+function renderDifference() {
+  const v0 = getStat(currentShips[0], currentStat)
+  const v1 = getStat(currentShips[1], currentStat)
+  if (v0 === undefined || v1 === undefined) { diffPanel.classList.add('hidden'); return }
+  const m = statsData.stats[currentStat]
+  const color = getStatColor(currentStat)
+  diffStatName.textContent = m.name
+  diffStatName.style.color = color
+
+  const rows = [
+    { ship: currentShips[0], v: v0 },
+    { ship: currentShips[1], v: v1 },
+  ].sort((x, y) => (m.highIsGood ? y.v - x.v : x.v - y.v))
+  diffRows.innerHTML = rows.map(r => `
+    <div class="diff-row">
+      <span class="diff-ship">${r.ship.name}</span>
+      <span class="diff-val" style="color:${color}">${formatStatValue(currentStat, r.v)}</span>
+    </div>
+  `).join('')
+
+  const diff = Math.abs(v0 - v1)
+  if (diff === 0) {
+    diffResult.textContent = 'Difference: 0 — Tie!'
+  } else {
+    const smaller = Math.min(v0, v1)
+    if (smaller > 0) {
+      const pct = (diff / smaller) * 100
+      diffResult.innerHTML = `Difference: <strong>${formatStatValue(currentStat, diff)}</strong> <span class="diff-pct">(${pct >= 100 ? pct.toFixed(0) : pct.toFixed(1)}%)</span>`
+    } else {
+      diffResult.innerHTML = `Difference: <strong>${formatStatValue(currentStat, diff)}</strong>`
+    }
+  }
+  diffPanel.classList.remove('hidden')
 }
 
 function startCountdown(secs, callback, prefix) {
@@ -500,6 +655,8 @@ function startCountdown(secs, callback, prefix) {
 }
 
 function finishRun(won) {
+  clearTimer()
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
   const data = loadData()
   data.lifetimeIsk += isk
   let newBest = false
@@ -546,6 +703,11 @@ function finishRun(won) {
 
 // ─── HOTKEYS ──────────────────────────────────────
 cardEls.forEach((el, i) => el.card.addEventListener('click', () => choose(i)))
+document.addEventListener('keydown', (e) => {
+  if (menuScreen.classList.contains('hidden') && !gameOverOverlay.classList.contains('hidden')) return
+  if (e.key === '1' || e.key === 'ArrowLeft') { choose(0) }
+  else if (e.key === '2' || e.key === 'ArrowRight') { choose(1) }
+})
 
 // ─── INIT ──────────────────────────────────────────
 async function init() {
@@ -575,6 +737,7 @@ async function init() {
 
   playBtn.addEventListener('click', startGame)
   backToMenuBtn.addEventListener('click', () => {
+    clearTimer()
     if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null }
     gameOverOverlay.classList.add('hidden')
     gameScreen.classList.add('hidden')
