@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Supporters Wall - RustyBot</title>
+  <meta name="description" content="Thank you to every supporter of RustyBot. Our wall of thanks for all our generous Ko-fi members and supporters.">
+  <meta name="keywords" content="RustyBot, supporters, Ko-fi, EVE Online, thank you, members">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Support/index.html">
+  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="icon" type="image/png" href="../rusty_bot.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/index.html" },
+      { "@type": "ListItem", "position": 2, "name": "Supporters", "item": "https://www.rustybot.co.uk/Support/index.html" }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand">
+      <a href="../index.html" class="brand-link">
+        <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+        <h1 class="brand-name">Rusty <span class="accent">Supporters</span></h1>
+      </a>
+    </div>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+      <span class="breadcrumb-item"><a href="index.html">Supporters</a></span>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero-section">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+      <h2>Rusty <span class="accent">Supporters</span></h2>
+      <p>Every one of you helps keep RustyBot running. Thank you to all our Ko-fi members and supporters!</p>
+    </section>
+
+    <div class="stats-bar">
+      <div class="stats-count">
+        <span class="num" id="supportCount">0</span>
+        <span class="label"><span>Supporters</span><span>and counting</span></span>
+      </div>
+    </div>
+
+    <div class="wall" id="wall"></div>
+
+    <div class="support-box">
+      <p>If you would like to join this wall you can do so via Ko-fi or via ISK.</p>
+      <p>Send ISK to IGN <span class="highlight">&quot;Virxens&quot;</span></p>
+      <p>All support is welcomed and very appreciated!</p>
+      <div class="kofi-row">
+        <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+        <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+      </div>
+    </div>
+
+    <footer>
+      <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
+    </footer>
+  </div>
+
+  <a href="#" class="back-top" id="backTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></a>
+
+  <script src="supporters.js"></script>
+  <script>
+    const TYPE = {
+      member: { label: 'Member', icon: 'fa-solid fa-id-badge' },
+      oneoff: { label: 'One-off', icon: 'fa-solid fa-mug-hot' },
+      shop: { label: 'Shop', icon: 'fa-solid fa-cart-shopping' },
+      commission: { label: 'Commission', icon: 'fa-solid fa-wand-magic-sparkles' },
+    };
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr + 'T00:00:00Z');
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function renderWall() {
+      const wall = document.getElementById('wall');
+      const cfg = TYPE;
+      const supporters = window.SUPPORTERS || [];
+      document.getElementById('supportCount').textContent = supporters.length;
+
+      const frag = document.createDocumentFragment();
+      for (const s of supporters) {
+        const type = cfg[s.type] || cfg.oneoff;
+        const tile = document.createElement('div');
+        tile.className = 'supporter';
+        tile.innerHTML = `
+          <span class="tag ${s.type}"><i class="${type.icon}"></i> ${type.label}</span>
+          <span class="name">${escapeHtml(s.name)}</span>
+          <span class="since"><i class="fa-solid fa-calendar-days"></i> Since ${formatDate(s.date)}</span>
+        `;
+        frag.appendChild(tile);
+      }
+      wall.appendChild(frag);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    document.addEventListener('DOMContentLoaded', renderWall);
+
+    const backBtn = document.getElementById('backTop');
+    window.addEventListener('scroll', () => {
+      backBtn.classList.toggle('visible', window.scrollY > 400);
+    });
+  </script>
+</body>
+</html>

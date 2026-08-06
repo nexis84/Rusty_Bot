@@ -250,6 +250,27 @@
         .support-box p { color: var(--dim); font-size: 0.95rem; margin-bottom: 4px; }
         .support-box .highlight { color: var(--accent); font-weight: 700; }
 
+        .support-wall-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            color: var(--dim);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+
+        .support-wall-link:hover {
+            color: var(--accent);
+            border-color: var(--accent-dim);
+            background: rgba(232, 217, 0, 0.06);
+        }
+
         .poster-wrap {
             text-align: center;
             padding: 8px 0 32px;
@@ -527,6 +548,11 @@
                     <h3>SKINR Gallery</h3>
                     <p>Share your custom skins</p>
                 </a>
+                <a href="SkinrV2/index.html" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h3>SKINR V2</h3>
+                    <p>My SKINR collection &amp; components</p>
+                </a>
             </div>
         </section>
 
@@ -589,6 +615,7 @@
                     <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
                     <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
                 </div>
+                <p style="margin-top:20px;"><a href="Support/index.html" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a></p>
             </div>
         </section>
 
