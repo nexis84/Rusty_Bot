@@ -503,6 +503,8 @@ footer { text-align: center; padding: 2rem 1rem; margin-top: 2rem; border-top: 1
 .support-content { max-width: 600px; margin: 0 auto; }
 .support-content p { font-size: 1rem; color: var(--dim); margin: 0.3rem 0; }
 .support-content a { color: var(--accent); text-decoration: none; }
+footer .fineprint a { color: #fff; text-decoration: underline; }
+footer .fineprint a:hover { color: var(--accent); }
 .support-content strong { color: var(--text); }
 .support-content .kofi-button { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 24px; background: linear-gradient(180deg, #f5e53b, var(--accent) 60%, #d4c700); color: #1a0e08; font-weight: 700; font-size: 1rem; border-radius: 6px; text-decoration: none; transition: filter 0.2s; box-shadow: 0 4px 16px var(--accent-glow); }
 .support-content .kofi-button:hover { filter: brightness(1.1); color: #1a0e08; }
