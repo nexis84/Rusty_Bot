@@ -10,9 +10,10 @@ const MAX_LIVES = 5
 const MAX_LEVEL = 10
 const ROUND_SECONDS = 30
 const ROUND_PAUSE_SECONDS = 5
-const EXCLUDED_CLASSES = new Set(['Capsule', 'Special Edition Yachts'])
+const TIE_REWARD = 5000
+const EXCLUDED_CLASSES = new Set(['Capsule', 'Special Edition Yachts', 'Flag Cruiser'])
 const AT_SHIP_IDS = new Set([2834, 2836, 3516, 3518, 35779, 35781, 32788, 33397, 33395, 32207, 32209, 52250, 48636, 48635, 33820, 42125, 42241])
-const SPECIAL_SHIP_IDS = new Set([617, 33081])
+const SPECIAL_SHIP_IDS = new Set([617, 33081, 615, 33079, 33083])
 
 const IMG_BASE = 'https://images.evetech.net/types'
 const LS_KEY = 'toptrumps_data'
@@ -24,64 +25,64 @@ const UNLOCK_TREE = [
     cats: [
       { name: 'Frigate', cost: 0, classes: ['Frigate'] },
       { name: 'Corvette', cost: 0, classes: ['Corvette'] },
-      { name: 'Interceptor', cost: 50000, classes: ['Interceptor'] },
-      { name: 'Covert Ops Frigate', cost: 50000, classes: ['Covert Ops'] },
-      { name: 'Stealth Bomber', cost: 50000, classes: ['Stealth Bomber'] },
-      { name: 'Assault Frigate', cost: 50000, classes: ['Assault Frigate'] },
-      { name: 'Electronic Attack Frigate', cost: 50000, classes: ['Electronic Attack Ship'] },
-      { name: 'Destroyer', cost: 200000, classes: ['Destroyer'] },
-      { name: 'Interdictor', cost: 200000, classes: ['Interdictor'] },
-      { name: 'Command Destroyer', cost: 200000, classes: ['Command Destroyer'] },
-      { name: 'Tactical Destroyer', cost: 200000, classes: ['Tactical Destroyer'] },
-      { name: 'Cruiser', cost: 500000, classes: ['Cruiser', 'Flag Cruiser'] },
-      { name: 'Heavy Assault Cruiser', cost: 500000, classes: ['Heavy Assault Cruiser'] },
-      { name: 'Heavy Interdiction Cruiser', cost: 500000, classes: ['Heavy Interdiction Cruiser'] },
-      { name: 'Logistics Cruiser', cost: 500000, classes: ['Logistics'] },
-      { name: 'Recon Ship', cost: 500000, classes: ['Combat Recon Ship', 'Force Recon Ship'] },
-      { name: 'Strategic Cruiser', cost: 500000, classes: ['Strategic Cruiser'] },
-      { name: 'Battlecruiser', cost: 1000000, classes: ['Battlecruiser', 'Combat Battlecruiser', 'Attack Battlecruiser'] },
-      { name: 'Command Ship', cost: 1000000, classes: ['Command Ship'] },
-      { name: 'Battleship', cost: 2500000, classes: ['Battleship'] },
-      { name: 'Marauder', cost: 2500000, classes: ['Marauder'] },
-      { name: 'Black Ops', cost: 2500000, classes: ['Black Ops'] },
+      { name: 'Interceptor', cost: 25000, classes: ['Interceptor'] },
+      { name: 'Covert Ops Frigate', cost: 25000, classes: ['Covert Ops'] },
+      { name: 'Stealth Bomber', cost: 25000, classes: ['Stealth Bomber'] },
+      { name: 'Assault Frigate', cost: 25000, classes: ['Assault Frigate'] },
+      { name: 'Electronic Attack Frigate', cost: 25000, classes: ['Electronic Attack Ship'] },
+      { name: 'Destroyer', cost: 100000, classes: ['Destroyer'] },
+      { name: 'Interdictor', cost: 100000, classes: ['Interdictor'] },
+      { name: 'Command Destroyer', cost: 100000, classes: ['Command Destroyer'] },
+      { name: 'Tactical Destroyer', cost: 100000, classes: ['Tactical Destroyer'] },
+      { name: 'Cruiser', cost: 250000, classes: ['Cruiser'] },
+      { name: 'Heavy Assault Cruiser', cost: 250000, classes: ['Heavy Assault Cruiser'] },
+      { name: 'Heavy Interdiction Cruiser', cost: 250000, classes: ['Heavy Interdiction Cruiser'] },
+      { name: 'Logistics Cruiser', cost: 250000, classes: ['Logistics'] },
+      { name: 'Recon Ship', cost: 250000, classes: ['Combat Recon Ship', 'Force Recon Ship'] },
+      { name: 'Strategic Cruiser', cost: 250000, classes: ['Strategic Cruiser'] },
+      { name: 'Battlecruiser', cost: 500000, classes: ['Combat Battlecruiser', 'Attack Battlecruiser'] },
+      { name: 'Command Ship', cost: 500000, classes: ['Command Ship'] },
+      { name: 'Battleship', cost: 1000000, classes: ['Battleship'] },
+      { name: 'Marauder', cost: 1000000, classes: ['Marauder'] },
+      { name: 'Black Ops', cost: 1000000, classes: ['Black Ops'] },
     ],
   },
   {
     group: 'CAPITAL SHIPS',
     cats: [
-      { name: 'Dreadnought', cost: 5000000, classes: ['Dreadnought'] },
-      { name: 'Lancer Dreadnought', cost: 5000000, classes: ['Lancer Dreadnought'] },
-      { name: 'Carrier', cost: 5000000, classes: ['Carrier', 'Command Carrier'] },
-      { name: 'Force Auxiliary', cost: 5000000, classes: ['Force Auxiliary'] },
-      { name: 'Supercarrier', cost: 10000000, classes: ['Supercarrier'] },
-      { name: 'Titan', cost: 10000000, classes: ['Titan'] },
+      { name: 'Dreadnought', cost: 1500000, classes: ['Dreadnought'] },
+      { name: 'Lancer Dreadnought', cost: 1500000, classes: ['Lancer Dreadnought'] },
+      { name: 'Carrier', cost: 1500000, classes: ['Carrier', 'Command Carrier'] },
+      { name: 'Force Auxiliary', cost: 1500000, classes: ['Force Auxiliary'] },
+      { name: 'Supercarrier', cost: 2500000, classes: ['Supercarrier'] },
+      { name: 'Titan', cost: 2500000, classes: ['Titan'] },
     ],
   },
   {
     group: 'INDUSTRIAL & UTILITY',
     cats: [
       { name: 'Shuttle', cost: 0, classes: ['Shuttle'] },
-      { name: 'Expedition Frigate', cost: 50000, classes: ['Expedition Frigate', 'Prototype Exploration Ship', 'Logistics Frigate'] },
-      { name: 'Mining Barge', cost: 500000, classes: ['Mining Barge', 'Exhumer'] },
-      { name: 'Industrial Ship', cost: 1000000, classes: ['Hauler'] },
-      { name: 'Transport Ship', cost: 1000000, classes: ['Blockade Runner', 'Deep Space Transport'] },
-      { name: 'Freighter', cost: 2500000, classes: ['Freighter'] },
-      { name: 'Jump Freighter', cost: 5000000, classes: ['Jump Freighter'] },
-      { name: 'Capital Industrial Ship', cost: 5000000, classes: ['Capital Industrial Ship', 'Industrial Command Ship', 'Expedition Command Ship'] },
+      { name: 'Expedition Frigate', cost: 25000, classes: ['Expedition Frigate', 'Prototype Exploration Ship', 'Logistics Frigate'] },
+      { name: 'Mining Barge', cost: 250000, classes: ['Mining Barge', 'Exhumer'] },
+      { name: 'Industrial Ship', cost: 500000, classes: ['Hauler'] },
+      { name: 'Transport Ship', cost: 500000, classes: ['Blockade Runner', 'Deep Space Transport'] },
+      { name: 'Freighter', cost: 1000000, classes: ['Freighter'] },
+      { name: 'Jump Freighter', cost: 2000000, classes: ['Jump Freighter'] },
+      { name: 'Capital Industrial Ship', cost: 2000000, classes: ['Capital Industrial Ship', 'Industrial Command Ship', 'Expedition Command Ship'] },
     ],
   },
   {
     group: 'ALLIANCE TOURNAMENT',
     cats: [
-      { name: 'AT Frigates', cost: 5000000, ships: [2834, 32788, 32207, 3516, 52250, 35779, 33397, 48636] },
-      { name: 'AT Cruisers', cost: 8000000, ships: [2836, 3518, 32209, 33395, 35781, 48635] },
-      { name: 'AT Heavy', cost: 15000000, ships: [33820, 42125, 42241] },
+      { name: 'AT Frigates', cost: 2000000, ships: [2834, 32788, 32207, 3516, 52250, 35779, 33397, 48636] },
+      { name: 'AT Cruisers', cost: 3000000, ships: [2836, 3518, 32209, 33395, 35781, 48635] },
+      { name: 'AT Heavy', cost: 5000000, ships: [33820, 42125, 42241] },
     ],
   },
   {
     group: 'SPECIAL SHIPS',
     cats: [
-      { name: 'Special Corvettes', cost: 1000000, ships: [617, 33081] },
+      { name: 'Special Corvettes', cost: 500000, ships: [617, 33081, 615, 33079, 33083] },
     ],
   },
 ]
@@ -454,12 +455,8 @@ function handleTimeout() {
   if (tie) {
     cardEls.forEach(x => x.card.classList.add('winner'))
     resultMsg.textContent = `⏰ TIME'S UP! It was a tie!`
-    resultMsg.className = 'correct'
-    isk += 10000 + level * 5000
-    streak++
-    bestStreak = Math.max(bestStreak, streak)
-    correctCount++
-    level++
+    resultMsg.className = 'tie'
+    isk += TIE_REWARD
     playCorrect()
   } else {
     cardEls[winnerIndex].card.classList.add('winner')
@@ -553,7 +550,7 @@ function deal() {
   const stat = statPool[Math.floor(Math.random() * statPool.length)]
   const entries = byStat[stat]
   const a = entries[Math.floor(Math.random() * entries.length)]
-  const partners = entries.filter(e => e[0] !== a[0] && e[1] !== a[1])
+  const partners = entries.filter(e => e[0] !== a[0])
   const b = partners[Math.floor(Math.random() * partners.length)]
 
   currentShips = [a[0], b[0]]
@@ -672,19 +669,14 @@ function choose(index) {
   if (tie) {
     cardEls.forEach(el => el.card.classList.add('winner'))
     resultMsg.textContent = `TIE! Both have ${formatStatValue(currentStat, v0)}`
-    resultMsg.className = 'correct'
-    isk += 10000 + level * 5000
-    streak++
-    bestStreak = Math.max(bestStreak, streak)
-    correctCount++
-    level++
+    resultMsg.className = 'tie'
+    isk += TIE_REWARD
     playCorrect()
-    win = true
   } else if (index === winnerIndex) {
     cardEls[winnerIndex].card.classList.add('winner')
     cardEls[1 - winnerIndex].card.classList.add('loser')
-    const base = 10000 + level * 5000
-    const bonus = streak * 5000
+    const base = 25000 + level * 15000
+    const bonus = streak * 10000
     const earned = base + bonus
     isk += earned
     streak++

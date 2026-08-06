@@ -463,7 +463,7 @@ const SHIPS = [
     "id": 85229,
     "name": "Cobra",
     "class": "Force Recon Ship",
-    "race": "Unknown"
+    "race": "Edencom"
   },
   {
     "id": 16236,
@@ -721,7 +721,7 @@ const SHIPS = [
     "id": 44995,
     "name": "Enforcer",
     "class": "Force Recon Ship",
-    "race": "Unknown"
+    "race": "Edencom"
   },
   {
     "id": 12044,
@@ -1327,7 +1327,7 @@ const SHIPS = [
     "id": 44996,
     "name": "Marshal",
     "class": "Black Ops",
-    "race": "Unknown"
+    "race": "Edencom"
   },
   {
     "id": 12747,
@@ -1663,7 +1663,7 @@ const SHIPS = [
     "id": 44993,
     "name": "Pacifier",
     "class": "Covert Ops",
-    "race": "Unknown"
+    "race": "Edencom"
   },
   {
     "id": 28659,
@@ -1825,7 +1825,7 @@ const SHIPS = [
     "id": 85236,
     "name": "Python",
     "class": "Black Ops",
-    "race": "Unknown"
+    "race": "Edencom"
   },
   {
     "id": 42245,
@@ -2053,7 +2053,7 @@ const SHIPS = [
     "id": 85062,
     "name": "Sidewinder",
     "class": "Covert Ops",
-    "race": "Unknown"
+    "race": "Edencom"
   },
   {
     "id": 19744,

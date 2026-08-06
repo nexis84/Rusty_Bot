@@ -357,6 +357,7 @@ button { font-family: inherit; }
 #resultMsg { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9); }
 #resultMsg.correct { color: var(--win); text-shadow: 0 0 20px rgba(76, 175, 80, 0.4); }
 #resultMsg.wrong { color: var(--lose); animation: shake 0.35s ease; }
+#resultMsg.tie { color: var(--accent); text-shadow: 0 0 20px rgba(232, 217, 0, 0.4); }
 .countdown-msg { font-size: 0.95rem; color: var(--dim); }
 
 /* ── DIFFERENCE PANEL ── */
