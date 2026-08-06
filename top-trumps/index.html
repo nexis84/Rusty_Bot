@@ -50,15 +50,16 @@
 
     <footer>
       <div class="support-content">
-        <p>If you would like to support us you can do that via Ko-fi or via ISK.</p>
-        <p>Send ISK to IGN <strong>"Virxens"</strong></p>
+        <p>If you would like to support us you can do that via Ko-fi.</p>
         <p>All support is welcomed and very appreciated!</p>
         <a href="https://ko-fi.com/rustybot" target="_blank" class="kofi-button">
           <img src="https://storage.ko-fi.com/cdn/kofi_stroke_cup.svg" alt="" class="kofi-icon">
           Support on Ko-fi
         </a>
       </div>
-      <p style="margin-top:1.5rem;font-size:0.85rem;color:#555">EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
+      <p style="margin-top:1.5rem;font-size:0.85rem;color:#555">Proudly recognized as an official <a href="https://www.ccpgames.com" target="_blank">EVE Online</a> partner.</p>
+      <img class="partner-badge" src="../PartnerBadge2.png" alt="EVE Online Partner badge">
+      <p style="margin-top:0.5rem;font-size:0.85rem;color:#555">EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
     </footer>
   </div>
 
@@ -91,6 +92,7 @@
 
     <div id="cards">
       <div class="card" id="card0" data-index="0">
+        <a class="card-info" id="info0" href="#" target="_blank" rel="noopener" title="View ship info">ℹ</a>
         <div class="card-header">
           <span class="card-name" id="name0"></span>
           <span class="card-race" id="race0"></span>
@@ -100,6 +102,7 @@
         <div class="card-footer"><span class="card-class" id="class0"></span></div>
       </div>
       <div class="card" id="card1" data-index="1">
+        <a class="card-info" id="info1" href="#" target="_blank" rel="noopener" title="View ship info">ℹ</a>
         <div class="card-header">
           <span class="card-name" id="name1"></span>
           <span class="card-race" id="race1"></span>
@@ -158,7 +161,10 @@
         <button id="goPlayAgainBtn" class="play-btn go-play">▶ PLAY AGAIN</button>
         <button id="goMenuBtn" class="back-btn go-menu">Menu</button>
       </div>
-      <div class="countdown-msg" id="goCountdown">Returning to menu in 3...</div>
+      <div class="go-share-actions">
+        <button id="goDownloadBtn" class="back-btn">🖼️ Save PNG</button>
+        <button id="goCopyBtn" class="back-btn">📋 Copy Summary</button>
+      </div>
     </div>
   </div>
 
@@ -167,6 +173,20 @@
 
 </div>
 
+<div id="sharePoster" class="share-poster hidden">
+  <div class="sp-brand">RUSTYBOT</div>
+  <h1 class="sp-title">EVE <span>TOP TRUMPS</span></h1>
+  <div class="sp-result" id="spResult">🏆 VICTORY!</div>
+  <div class="sp-stats">
+    <div class="sp-stat"><span class="sp-k">ISK Earned</span><span class="sp-v" id="spIsk">0</span></div>
+    <div class="sp-stat"><span class="sp-k">Accuracy</span><span class="sp-v" id="spAccuracy">0%</span></div>
+    <div class="sp-stat"><span class="sp-k">Best Streak</span><span class="sp-v" id="spStreak">0</span></div>
+    <div class="sp-stat"><span class="sp-k">Level</span><span class="sp-v" id="spLevel">0/10</span></div>
+  </div>
+  <div class="sp-foot">Can you beat my run? Play EVE Top Trumps on RustyBot!</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="ships.js"></script>
 <script src="app.js"></script>
 </body>

@@ -25,64 +25,64 @@ const UNLOCK_TREE = [
     cats: [
       { name: 'Frigate', cost: 0, classes: ['Frigate'] },
       { name: 'Corvette', cost: 0, classes: ['Corvette'] },
-      { name: 'Interceptor', cost: 25000, classes: ['Interceptor'] },
-      { name: 'Covert Ops Frigate', cost: 25000, classes: ['Covert Ops'] },
-      { name: 'Stealth Bomber', cost: 25000, classes: ['Stealth Bomber'] },
-      { name: 'Assault Frigate', cost: 25000, classes: ['Assault Frigate'] },
-      { name: 'Electronic Attack Frigate', cost: 25000, classes: ['Electronic Attack Ship'] },
-      { name: 'Destroyer', cost: 100000, classes: ['Destroyer'] },
-      { name: 'Interdictor', cost: 100000, classes: ['Interdictor'] },
-      { name: 'Command Destroyer', cost: 100000, classes: ['Command Destroyer'] },
-      { name: 'Tactical Destroyer', cost: 100000, classes: ['Tactical Destroyer'] },
-      { name: 'Cruiser', cost: 250000, classes: ['Cruiser'] },
-      { name: 'Heavy Assault Cruiser', cost: 250000, classes: ['Heavy Assault Cruiser'] },
-      { name: 'Heavy Interdiction Cruiser', cost: 250000, classes: ['Heavy Interdiction Cruiser'] },
-      { name: 'Logistics Cruiser', cost: 250000, classes: ['Logistics'] },
-      { name: 'Recon Ship', cost: 250000, classes: ['Combat Recon Ship', 'Force Recon Ship'] },
-      { name: 'Strategic Cruiser', cost: 250000, classes: ['Strategic Cruiser'] },
-      { name: 'Battlecruiser', cost: 500000, classes: ['Combat Battlecruiser', 'Attack Battlecruiser'] },
-      { name: 'Command Ship', cost: 500000, classes: ['Command Ship'] },
-      { name: 'Battleship', cost: 1000000, classes: ['Battleship'] },
-      { name: 'Marauder', cost: 1000000, classes: ['Marauder'] },
-      { name: 'Black Ops', cost: 1000000, classes: ['Black Ops'] },
+      { name: 'Interceptor', cost: 100000, classes: ['Interceptor'] },
+      { name: 'Covert Ops Frigate', cost: 100000, classes: ['Covert Ops'] },
+      { name: 'Stealth Bomber', cost: 100000, classes: ['Stealth Bomber'] },
+      { name: 'Assault Frigate', cost: 100000, classes: ['Assault Frigate'] },
+      { name: 'Electronic Attack Frigate', cost: 100000, classes: ['Electronic Attack Ship'] },
+      { name: 'Destroyer', cost: 250000, classes: ['Destroyer'] },
+      { name: 'Interdictor', cost: 250000, classes: ['Interdictor'] },
+      { name: 'Command Destroyer', cost: 250000, classes: ['Command Destroyer'] },
+      { name: 'Tactical Destroyer', cost: 250000, classes: ['Tactical Destroyer'] },
+      { name: 'Cruiser', cost: 750000, classes: ['Cruiser'] },
+      { name: 'Heavy Assault Cruiser', cost: 750000, classes: ['Heavy Assault Cruiser'] },
+      { name: 'Heavy Interdiction Cruiser', cost: 750000, classes: ['Heavy Interdiction Cruiser'] },
+      { name: 'Logistics Cruiser', cost: 750000, classes: ['Logistics'] },
+      { name: 'Recon Ship', cost: 750000, classes: ['Combat Recon Ship', 'Force Recon Ship'] },
+      { name: 'Strategic Cruiser', cost: 750000, classes: ['Strategic Cruiser'] },
+      { name: 'Battlecruiser', cost: 1500000, classes: ['Combat Battlecruiser', 'Attack Battlecruiser'] },
+      { name: 'Command Ship', cost: 1500000, classes: ['Command Ship'] },
+      { name: 'Battleship', cost: 3000000, classes: ['Battleship'] },
+      { name: 'Marauder', cost: 3000000, classes: ['Marauder'] },
+      { name: 'Black Ops', cost: 3000000, classes: ['Black Ops'] },
     ],
   },
   {
     group: 'CAPITAL SHIPS',
     cats: [
-      { name: 'Dreadnought', cost: 1500000, classes: ['Dreadnought'] },
-      { name: 'Lancer Dreadnought', cost: 1500000, classes: ['Lancer Dreadnought'] },
-      { name: 'Carrier', cost: 1500000, classes: ['Carrier', 'Command Carrier'] },
-      { name: 'Force Auxiliary', cost: 1500000, classes: ['Force Auxiliary'] },
-      { name: 'Supercarrier', cost: 2500000, classes: ['Supercarrier'] },
-      { name: 'Titan', cost: 2500000, classes: ['Titan'] },
+      { name: 'Dreadnought', cost: 5000000, classes: ['Dreadnought'] },
+      { name: 'Lancer Dreadnought', cost: 5000000, classes: ['Lancer Dreadnought'] },
+      { name: 'Carrier', cost: 5000000, classes: ['Carrier', 'Command Carrier'] },
+      { name: 'Force Auxiliary', cost: 5000000, classes: ['Force Auxiliary'] },
+      { name: 'Supercarrier', cost: 8000000, classes: ['Supercarrier'] },
+      { name: 'Titan', cost: 8000000, classes: ['Titan'] },
     ],
   },
   {
     group: 'INDUSTRIAL & UTILITY',
     cats: [
       { name: 'Shuttle', cost: 0, classes: ['Shuttle'] },
-      { name: 'Expedition Frigate', cost: 25000, classes: ['Expedition Frigate', 'Prototype Exploration Ship', 'Logistics Frigate'] },
-      { name: 'Mining Barge', cost: 250000, classes: ['Mining Barge', 'Exhumer'] },
-      { name: 'Industrial Ship', cost: 500000, classes: ['Hauler'] },
-      { name: 'Transport Ship', cost: 500000, classes: ['Blockade Runner', 'Deep Space Transport'] },
-      { name: 'Freighter', cost: 1000000, classes: ['Freighter'] },
-      { name: 'Jump Freighter', cost: 2000000, classes: ['Jump Freighter'] },
-      { name: 'Capital Industrial Ship', cost: 2000000, classes: ['Capital Industrial Ship', 'Industrial Command Ship', 'Expedition Command Ship'] },
+      { name: 'Expedition Frigate', cost: 100000, classes: ['Expedition Frigate', 'Prototype Exploration Ship', 'Logistics Frigate'] },
+      { name: 'Mining Barge', cost: 750000, classes: ['Mining Barge', 'Exhumer'] },
+      { name: 'Industrial Ship', cost: 1000000, classes: ['Hauler'] },
+      { name: 'Transport Ship', cost: 1000000, classes: ['Blockade Runner', 'Deep Space Transport'] },
+      { name: 'Freighter', cost: 3000000, classes: ['Freighter'] },
+      { name: 'Jump Freighter', cost: 6000000, classes: ['Jump Freighter'] },
+      { name: 'Capital Industrial Ship', cost: 6000000, classes: ['Capital Industrial Ship', 'Industrial Command Ship', 'Expedition Command Ship'] },
     ],
   },
   {
     group: 'ALLIANCE TOURNAMENT',
     cats: [
-      { name: 'AT Frigates', cost: 2000000, ships: [2834, 32788, 32207, 3516, 52250, 35779, 33397, 48636] },
-      { name: 'AT Cruisers', cost: 3000000, ships: [2836, 3518, 32209, 33395, 35781, 48635] },
-      { name: 'AT Heavy', cost: 5000000, ships: [33820, 42125, 42241] },
+      { name: 'AT Frigates', cost: 6000000, ships: [2834, 32788, 32207, 3516, 52250, 35779, 33397, 48636] },
+      { name: 'AT Cruisers', cost: 9000000, ships: [2836, 3518, 32209, 33395, 35781, 48635] },
+      { name: 'AT Heavy', cost: 15000000, ships: [33820, 42125, 42241] },
     ],
   },
   {
     group: 'SPECIAL SHIPS',
     cats: [
-      { name: 'Special Corvettes', cost: 500000, ships: [617, 33081, 615, 33079, 33083] },
+      { name: 'Special Corvettes', cost: 1500000, ships: [617, 33081, 615, 33079, 33083] },
     ],
   },
 ]
@@ -106,6 +106,7 @@ function defaultData() {
     version: SAVE_VERSION, lifetimeIsk: 0, unlocked: ['Frigate', 'Corvette', 'Shuttle'],
     bestRun: 0, toggled: null, sound: true,
     achievements: [], totalRounds: 0, totalCorrect: 0, seenAchievementIds: [],
+    expandedGroups: [], recentUnlocks: [],
   }
 }
 
@@ -119,6 +120,8 @@ function migrate(data) {
   if (!Array.isArray(out.seenAchievementIds)) out.seenAchievementIds = []
   if (typeof out.totalRounds !== 'number') out.totalRounds = 0
   if (typeof out.totalCorrect !== 'number') out.totalCorrect = 0
+  if (!Array.isArray(out.expandedGroups)) out.expandedGroups = []
+  if (!Array.isArray(out.recentUnlocks)) out.recentUnlocks = []
   out.version = SAVE_VERSION
   return out
 }
@@ -224,7 +227,6 @@ const countdownMsg = document.getElementById('countdownMsg')
 const levelDisplay = document.getElementById('levelDisplay')
 const goIsk = document.getElementById('goIsk')
 const goPrevBest = document.getElementById('goPrevBest')
-const goCountdown = document.getElementById('goCountdown')
 const newHighscoreBadge = document.getElementById('newHighscoreBadge')
 
 const timerBar = document.getElementById('timerBar')
@@ -256,6 +258,7 @@ const cardEls = [0, 1].map(i => ({
   cls: document.getElementById(`class${i}`),
   race: document.getElementById(`race${i}`),
   stats: document.getElementById(`stats${i}`),
+  info: document.getElementById(`info${i}`),
 }))
 
 // ─── SOUND ──────────────────────────────────────────
@@ -281,6 +284,30 @@ function playWrong() { playTone(180, 0.25, 'sawtooth'); setTimeout(() => playTon
 function playVictory() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.3), i * 150)) }
 
 // ─── MENU SCREEN ────────────────────────────────────
+let menuSearch = ''
+let menuFilter = 'all'
+
+function categoryShipCount(cat) {
+  if (cat.ships) return cat.ships.length
+  let n = 0
+  for (const s of SHIPS) {
+    if (cat.classes.includes(s.class)) n++
+  }
+  return n
+}
+
+function rowMatches(cat, unlocked, data) {
+  if (menuSearch) {
+    const term = menuSearch.toLowerCase()
+    if (!cat.name.toLowerCase().includes(term)) return false
+  }
+  const affordable = data.lifetimeIsk >= cat.cost
+  if (menuFilter === 'unlocked') return unlocked
+  if (menuFilter === 'locked') return !unlocked
+  if (menuFilter === 'affordable') return unlocked || (cat.cost > 0 && affordable)
+  return true
+}
+
 function renderMenu() {
   const data = loadData()
   lifetimeIskDisplay.textContent = formatISK(data.lifetimeIsk)
@@ -291,18 +318,53 @@ function renderMenu() {
     soundBtn.classList.toggle('muted', data.sound === false)
   }
 
+  const expandedSet = new Set(data.expandedGroups || [])
+  const searching = !!menuSearch || menuFilter !== 'all'
+  const newUnlocks = new Set(data.recentUnlocks || [])
+  const freshNew = newUnlocks.size > 0
+
   let html = ''
+  html += `<div class="ut-controls">
+    <input type="text" id="utSearch" class="ut-search" placeholder="Search ship classes…" value="${menuSearch.replace(/"/g, '&quot;')}">
+    <div class="ut-filters">
+      ${['all', 'unlocked', 'locked', 'affordable'].map(f =>
+        `<button type="button" class="ut-filter ${menuFilter === f ? 'active' : ''}" data-filter="${f}">${{ all: 'All', unlocked: 'Unlocked', locked: 'Locked', affordable: 'Affordable' }[f]}</button>`
+      ).join('')}
+    </div>
+  </div>`
+
   for (const group of UNLOCK_TREE) {
-    html += `<div class="ut-group"><div class="ut-group-title">${group.group}</div>`
-    for (const cat of group.cats) {
+    const catRows = group.cats.map(cat => {
       const unlocked = isUnlocked(cat.name, data)
+      const match = rowMatches(cat, unlocked, data)
+      return { cat, unlocked, match }
+    })
+    const visible = searching ? catRows.filter(r => r.match) : catRows
+    if (searching && visible.length === 0) continue
+
+    const collapsed = !searching && !expandedSet.has(group.group)
+    const unlockedInGroup = catRows.filter(r => r.unlocked).length
+    html += `<div class="ut-group">
+      <button type="button" class="ut-group-title" data-group="${group.group.replace(/"/g, '&quot;')}">
+        <span class="ut-chevron">${collapsed ? '▸' : '▾'}</span>
+        ${group.group}
+        <span class="ut-group-count">${unlockedInGroup}/${group.cats.length}</span>
+      </button>
+      <div class="ut-group-body ${collapsed ? 'hidden' : ''}">`
+
+    for (const { cat, unlocked, match } of catRows) {
+      if (searching && !match) continue
       const affordable = data.lifetimeIsk >= cat.cost
       const canBuy = cat.cost > 0 && !unlocked && affordable
       const free = cat.cost === 0
-      html += `<div class="ut-row ${unlocked ? 'ut-unlocked' : 'ut-locked'}">
+      const isNew = newUnlocks.has(cat.name)
+      const count = categoryShipCount(cat)
+      const dim = searching && !match
+      html += `<div class="ut-row ${unlocked ? 'ut-unlocked' : 'ut-locked'} ${dim ? 'ut-dim' : ''} ${isNew ? 'ut-new' : ''}">
         <div class="ut-info">
-          <span class="ut-name">${unlocked ? '✅' : '🔒'} ${cat.name}</span>
+          <span class="ut-name">${unlocked ? '✅' : '🔒'} ${cat.name}${isNew ? ' <span class="ut-new-tag">NEW</span>' : ''}</span>
           <span class="ut-cost">${free ? 'FREE' : formatISK(cat.cost) + ' ISK'}</span>
+          <span class="ut-count" title="Ships in this category">🛰️ ${count}</span>
         </div>
         <div class="ut-actions">`
       if (unlocked) {
@@ -315,9 +377,40 @@ function renderMenu() {
       }
       html += `</div></div>`
     }
-    html += `</div>`
+    html += `</div></div>`
   }
   unlockTree.innerHTML = html
+
+  if (freshNew) {
+    data.recentUnlocks = []
+    saveData(data)
+  }
+
+  const searchInput = document.getElementById('utSearch')
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      menuSearch = searchInput.value
+      renderMenu()
+    })
+  }
+  unlockTree.querySelectorAll('.ut-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      menuFilter = btn.dataset.filter
+      renderMenu()
+    })
+  })
+  unlockTree.querySelectorAll('.ut-group-title').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = loadData()
+      const g = btn.dataset.group
+      if (!d.expandedGroups) d.expandedGroups = []
+      const idx = d.expandedGroups.indexOf(g)
+      if (idx >= 0) d.expandedGroups.splice(idx, 1)
+      else d.expandedGroups.push(g)
+      saveData(d)
+      renderMenu()
+    })
+  })
 
   // Event delegation for buy buttons and toggles
   unlockTree.querySelectorAll('.ut-buy').forEach(btn => {
@@ -329,6 +422,8 @@ function renderMenu() {
       data.lifetimeIsk -= cat.cost
       data.unlocked.push(catName)
       data.toggled = [catName]
+      if (!data.recentUnlocks) data.recentUnlocks = []
+      data.recentUnlocks.push(catName)
       saveData(data)
       checkAchievements({})
       renderMenu()
@@ -411,14 +506,17 @@ function startGame() {
 // ─── ROUND TIMER ───────────────────────────────────
 let timeLeft = ROUND_SECONDS
 let timerInterval = null
+let timerRAF = null
+let timerStart = 0
 
 function clearTimer() {
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null }
+  if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null }
 }
 
-function updateTimerUI() {
-  const frac = timeLeft / ROUND_SECONDS
-  timerFill.style.width = (frac * 100) + '%'
+function updateTimerUI(frac) {
+  const f = typeof frac === 'number' ? Math.max(0, Math.min(1, frac)) : timeLeft / ROUND_SECONDS
+  timerFill.style.width = (f * 100) + '%'
   timerText.textContent = timeLeft
   timerBar.classList.toggle('danger', timeLeft <= 5)
   timerBar.classList.toggle('warn', timeLeft > 5 && timeLeft <= 10)
@@ -426,16 +524,20 @@ function updateTimerUI() {
 
 function startTimer() {
   clearTimer()
+  timerStart = performance.now()
   timeLeft = ROUND_SECONDS
-  updateTimerUI()
-  timerInterval = setInterval(() => {
-    timeLeft--
-    updateTimerUI()
-    if (timeLeft <= 0) {
+  const tick = (now) => {
+    const elapsed = (now - timerStart) / 1000
+    timeLeft = Math.max(0, ROUND_SECONDS - Math.floor(elapsed))
+    updateTimerUI(1 - elapsed / ROUND_SECONDS)
+    if (elapsed >= ROUND_SECONDS) {
       clearTimer()
       handleTimeout()
+    } else {
+      timerRAF = requestAnimationFrame(tick)
     }
-  }, 1000)
+  }
+  timerRAF = requestAnimationFrame(tick)
 }
 
 function handleTimeout() {
@@ -550,8 +652,9 @@ function deal() {
   const stat = statPool[Math.floor(Math.random() * statPool.length)]
   const entries = byStat[stat]
   const a = entries[Math.floor(Math.random() * entries.length)]
-  const partners = entries.filter(e => e[0] !== a[0])
-  const b = partners[Math.floor(Math.random() * partners.length)]
+  const tieVal = a[1]
+  const partners = entries.filter(e => e[0] !== a[0] && e[1] !== tieVal)
+  const b = partners.length ? partners[Math.floor(Math.random() * partners.length)] : entries.find(e => e[0] !== a[0])
 
   currentShips = [a[0], b[0]]
   currentStat = stat
@@ -609,6 +712,7 @@ function renderCards() {
     el.name.textContent = ship.name
     el.cls.textContent = ship.class
     el.race.textContent = ship.race
+    if (el.info) el.info.href = `https://everef.net/type/${ship.id}/`
     let html = ''
     const statKeys = Object.keys(statsData.stats)
     statKeys.forEach(k => {
@@ -803,8 +907,23 @@ function finishRun(won) {
   }
   checkAchievements(runData)
 
-  goCountdown.classList.add('hidden')
+  populateSharePoster(runData)
 }
+
+function populateSharePoster(runData) {
+  const win = runData.won
+  const spResult = document.getElementById('spResult')
+  if (spResult) {
+    spResult.textContent = win ? '🏆 VICTORY! 🏆' : 'GAME OVER'
+    spResult.className = 'sp-result ' + (win ? 'sp-win' : 'sp-loss')
+  }
+  setText('spIsk', formatISK(runData.isk) + ' ISK')
+  const accuracy = runData.roundsPlayed > 0 ? Math.round((runData.correctCount / runData.roundsPlayed) * 100) : 0
+  setText('spAccuracy', accuracy + '%')
+  setText('spStreak', bestStreak)
+  setText('spLevel', `${level}/${MAX_LEVEL}`)
+}
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v }
 
 function goToMenu() {
   clearTimer()
@@ -817,6 +936,9 @@ function goToMenu() {
 
 // ─── HOTKEYS ──────────────────────────────────────
 cardEls.forEach((el, i) => el.card.addEventListener('click', () => choose(i)))
+cardEls.forEach(el => {
+  if (el.info) el.info.addEventListener('click', (e) => e.stopPropagation())
+})
 document.addEventListener('keydown', (e) => {
   if (menuScreen.classList.contains('hidden') && !gameOverOverlay.classList.contains('hidden')) return
   if (e.key === '1' || e.key === 'ArrowLeft') { choose(0) }
@@ -861,6 +983,43 @@ async function init() {
   }
   if (goPlayAgainBtn) goPlayAgainBtn.addEventListener('click', startGame)
   if (goMenuBtn) goMenuBtn.addEventListener('click', goToMenu)
+  if (document.getElementById('goDownloadBtn')) {
+    document.getElementById('goDownloadBtn').addEventListener('click', async () => {
+      const poster = document.getElementById('sharePoster')
+      if (!poster || typeof html2canvas === 'undefined') return
+      poster.classList.remove('hidden')
+      try {
+        const canvas = await html2canvas(poster, { scale: 2, backgroundColor: '#121212' })
+        canvas.toBlob((blob) => {
+          if (!blob) return
+          const a = document.createElement('a')
+          a.href = URL.createObjectURL(blob)
+          a.download = 'rustybot-top-trumps.png'
+          a.click()
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+        }, 'image/png')
+      } catch (err) {
+        console.error('Share export failed:', err)
+      } finally {
+        poster.classList.add('hidden')
+      }
+    })
+  }
+  if (document.getElementById('goCopyBtn')) {
+    document.getElementById('goCopyBtn').addEventListener('click', async () => {
+      const accuracy = roundsPlayed > 0 ? Math.round((correctCount / roundsPlayed) * 100) : 0
+      const title = (document.getElementById('goTitle').textContent || 'GAME OVER').trim()
+      const text = `EVE Top Trumps — ${title}\nISK: ${formatISK(isk)}\nAccuracy: ${accuracy}%\nBest Streak: ${bestStreak}\nCan you beat it? Play on RustyBot!`
+      try {
+        await navigator.clipboard.writeText(text)
+        const btn = document.getElementById('goCopyBtn')
+        btn.textContent = '✅ Copied!'
+        setTimeout(() => { btn.textContent = '📋 Copy Summary' }, 2000)
+      } catch (err) {
+        console.error('Clipboard failed:', err)
+      }
+    })
+  }
   if (achPanelBtn) {
     achPanelBtn.addEventListener('click', () => {
       const hidden = achPanel.classList.toggle('hidden')

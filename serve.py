@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import os
 
-os.chdir(r'C:\Users\nexis\Desktop\Rusty Bot')
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 PORT = 3006
 Handler = http.server.SimpleHTTPRequestHandler
