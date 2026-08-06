@@ -253,22 +253,25 @@
         .support-wall-link {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             margin-top: 8px;
-            color: var(--dim);
+            color: var(--accent);
             text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             padding: 8px 18px;
-            border: 1px solid var(--border);
+            background: var(--panel);
+            border: 1px solid var(--accent-dim);
             border-radius: 6px;
-            transition: color 0.2s, border-color 0.2s, background 0.2s;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
         }
 
         .support-wall-link:hover {
-            color: var(--accent);
-            border-color: var(--accent-dim);
-            background: rgba(232, 217, 0, 0.06);
+            color: #111;
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
         }
 
         .poster-wrap {
@@ -608,8 +611,7 @@
                 <span class="line"></span>
             </div>
             <div class="support-box">
-                <p>If you would like to support us you can do that via Ko-fi or via ISK.</p>
-                <p>Send ISK to IGN <span class="highlight">"Virxens"</span></p>
+                <p>If you would like to support us you can do that via Ko-fi.</p>
                 <p>All support is welcomed and very appreciated!</p>
                 <div style="margin-top:12px;">
                     <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>

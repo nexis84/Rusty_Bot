@@ -221,6 +221,34 @@
         .refresh-btn i { font-size: 0.75rem; }
         .refresh-btn:disabled { opacity: 0.4; cursor: default; }
 
+        .support-hotlink {
+            text-align: center;
+            padding: 24px 0 12px;
+        }
+
+        .support-hotlink .support-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 8px 18px;
+            background: var(--panel);
+            border: 1px solid var(--accent-dim);
+            border-radius: 6px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+        }
+
+        .support-hotlink .support-link:hover {
+            color: #111;
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
         footer {
             text-align: center;
             padding: 28px 0;
@@ -307,6 +335,10 @@
         <div id="noData" class="no-data" style="display:none;">
             <i class="fa-solid fa-chart-simple"></i>
             <p>No data found.<br><span style="font-size:0.82rem;color:var(--dim);">Make sure Rusty_DrawBot.csv exists and has data.</span></p>
+        </div>
+
+        <div class="support-hotlink">
+            <a href="../Support/index.html" class="support-link"><i class="fa-solid fa-heart"></i> Support RustyBot</a>
         </div>
 
         <footer>
