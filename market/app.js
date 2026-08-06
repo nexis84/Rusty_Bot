@@ -1584,7 +1584,8 @@ async function calculateBulkCost() {
             { id: '10000032', name: 'Dodixie' },
             { id: '10000030', name: 'Hek' },
             { id: '10000042', name: 'Rens' },
-            { id: '10001004', name: 'Manifest' }
+            { id: '10001004', name: 'Manifest' },
+            { id: '10000009', name: 'C-J6MT' }
         ];
         
         // PLEX type ID
@@ -2125,6 +2126,7 @@ function switchTab(tabName) {
                     <option value="10000030">Hek</option>
                     <option value="10000042">Rens</option>
                     <option value="10001004">Manifest</option>
+                    <option value="10000009">C-J6MT</option>
                 `;
                 bulkRegion.value = 'major';
             }
@@ -2195,6 +2197,7 @@ async function loadItem(typeId, name, forceRefresh = false) {
                         <option value="10000030">Hek</option>
                         <option value="10000042">Rens</option>
                         <option value="10001004">Manifest</option>
+                        <option value="10000009">C-J6MT</option>
                     `;
                     bulkRegion.value = 'major';
 }
@@ -2348,7 +2351,7 @@ async function fetchOrdersForItem(typeId, region) {
     
     if (region === 'major') {
         // Fetch from major trade hub regions (fast)
-        const regions = ['10000002', '10000043', '10000032', '10000030', '10000042', '10001004'];
+        const regions = ['10000002', '10000043', '10000032', '10000030', '10000042', '10001004', '10000009'];
         console.log(`Fetching market data from ${regions.length} major trade hubs...`);
         
         for (const regionId of regions) {
@@ -3130,7 +3133,8 @@ function updateSystemFilter(orders) {
         { value: 'Dodixie', label: 'Dodixie (Sinq Laison)' },
         { value: 'Rens', label: 'Rens (Heimatar)' },
         { value: 'Hek', label: 'Hek (Metropolis)' },
-        { value: 'Manifest', label: 'Manifest (Exordium)' }
+        { value: 'Manifest', label: 'Manifest (Exordium)' },
+        { value: 'C-J6MT', label: 'C-J6MT (Catch)' }
     ];
     
     majorHubs.forEach(hub => {
@@ -3816,7 +3820,8 @@ async function loadRegionalComparison(typeId) {
             { id: 10000032, name: 'Sinq Laison (Dodixie)' },
             { id: 10000030, name: 'Heimatar (Rens)' },
             { id: 10000042, name: 'Metropolis (Hek)' },
-            { id: 10001004, name: 'Exordium (Manifest)' }
+            { id: 10001004, name: 'Exordium (Manifest)' },
+            { id: 10000009, name: 'Catch (C-J6MT)' }
         ];
 
         const regionalData = [];

@@ -11,7 +11,8 @@ const HUB_REGIONS = {
     '10000043': 'Amarr',
     '10000032': 'Dodixie',
     '10000042': 'Hek',
-    '10000030': 'Rens'
+    '10000030': 'Rens',
+    '10000009': 'C-J6MT'
 };
 const HUB_NAMES = {};
 for (const id in HUB_REGIONS) HUB_NAMES[HUB_REGIONS[id]] = id;
@@ -497,7 +498,7 @@ function renderResults(items, prices, unmatched, region, hubName) {
     // Hub note
     const hubNote = el('resultsHubNote');
     if (region === 'all') {
-        hubNote.textContent = 'Prices aggregated across Jita, Amarr, Dodixie, Hek and Rens.';
+        hubNote.textContent = 'Prices aggregated across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT.';
     } else {
         hubNote.textContent = `Prices from ${hubName}. Click an item to view it on the Market page.`;
     }
