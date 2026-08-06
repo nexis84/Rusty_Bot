@@ -5,10 +5,10 @@
 # ----------------------------------------
 # 
 # All Users
-# Start date: 20260617
-# End date: 20260714
+# Start date: 20260501
+# End date: 20260731
 Event name,Event count
-draw_entry,40218
-winner_drawn,1203
-winner_timeout,125
-draw_abandoned,63
+draw_entry,45779
+winner_drawn,1382
+winner_timeout,158
+draw_abandoned,109
