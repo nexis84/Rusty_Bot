@@ -33,7 +33,7 @@ services:
     routes:
       - type: rewrite
         source: /*
-        destination: /Killboard/index.html
+        destination: /index.html
 
   - type: web
     name: sleeper-archive

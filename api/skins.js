@@ -4,6 +4,7 @@ const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
+const { verifyJWT } = require('./jwt-verify');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -34,27 +35,15 @@ const upload = multer({
   }
 });
 
-function decodeJWT(token) {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = Buffer.from(base64, 'base64').toString('utf8');
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
-
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing or invalid Authorization header' });
   }
   const token = authHeader.slice(7);
-  const decoded = decodeJWT(token);
+  const decoded = await verifyJWT(token);
   if (!decoded || !decoded.sub) {
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
   const characterId = decoded.sub.split(':').pop();
   const characterName = decoded.name || 'Unknown';
@@ -65,6 +54,15 @@ function authMiddleware(req, res, next) {
   req.characterName = characterName;
   next();
 }
+
+const likedSet = new Map();
+
+setInterval(() => {
+  const cutoff = Date.now() - 86400000;
+  for (const [key, ts] of likedSet) {
+    if (ts < cutoff) likedSet.delete(key);
+  }
+}, 300000).unref();
 
 async function uploadImagesToSupabase(files, characterId) {
   const urls = [];
@@ -337,6 +335,16 @@ router.post('/skins/:id/like', authMiddleware, async (req, res) => {
       return res.status(500).json({ error: 'Supabase not configured' });
     }
 
+    const likeKey = `${req.params.id}:${req.characterId}`;
+    if (likedSet.has(likeKey)) {
+      const { data: skin } = await supabase
+        .from('skins')
+        .select('likes')
+        .eq('id', req.params.id)
+        .single();
+      return res.status(409).json({ error: 'Already liked', likes: skin?.likes || 0 });
+    }
+
     const { data: skin, error: fetchError } = await supabase
       .from('skins')
       .select('id, likes')
@@ -358,6 +366,7 @@ router.post('/skins/:id/like', authMiddleware, async (req, res) => {
 
     if (error) throw error;
 
+    likedSet.set(likeKey, Date.now());
     res.json({ likes: data.likes });
   } catch (err) {
     console.error('[skins] POST /skins/:id/like error:', err.message);
@@ -397,14 +406,26 @@ router.get('/profile/:characterId', async (req, res) => {
   }
 });
 
-router.get('/config', (req, res) => {
-  res.json({
+router.get('/config', async (req, res) => {
+  const config = {
     supabase_configured: !!supabase,
     has_supabase_url: !!process.env.SUPABASE_URL,
     has_supabase_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     eve_client_id: !!process.env.EVE_CLIENT_ID,
-    admin_ids: getAdminIds()
-  });
+  };
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const decoded = await verifyJWT(authHeader.slice(7));
+    if (decoded && decoded.sub) {
+      const characterId = parseInt(decoded.sub.split(':').pop(), 10);
+      if (!isNaN(characterId) && isAdmin(characterId)) {
+        config.admin_ids = getAdminIds();
+      }
+    }
+  }
+
+  res.json(config);
 });
 
 router.use((err, req, res, next) => {

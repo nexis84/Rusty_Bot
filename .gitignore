@@ -27,10 +27,6 @@ market/tools/sde/fsd/types.yaml
 # Local Render setup docs (not for GitHub)
 RENDER_SETUP.md
 
-# Debug/temp files
-Killboard/*.txt
-Killboard/swagger*.json
-
 # Vite cache
 .vite/
 
@@ -39,8 +35,10 @@ dist-sleeper/
 
 # Token/secret files
 download_tokens.json
+.env
 .env.local
 render-env.txt
+scripts/.skinr-token.json
 
 # Market temp/backup files
 market/MARKET.txt
@@ -51,6 +49,9 @@ market/updates.txt
 # Guides log files
 guides/server.log
 guides/server.err
+
+# Ko-fi supporters export (contains emails - never publish)
+Support/Supporters_*.csv
 
 # D-Scan NPC Analyzer (local-only tool, not for GitHub)
 guides/dscan-tool/
