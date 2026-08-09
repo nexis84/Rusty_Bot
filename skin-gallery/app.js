@@ -3,9 +3,9 @@
 
   const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const API_BASE = IS_LOCAL ? '/api' : 'https://rusty-bot-api.onrender.com/api';
-  const EVE_SSO_CLIENT_ID = '35216ef7be2a46d1a36467ed172f077a';
   const EVE_SSO_REDIRECT_URI = 'https://rusty-bot-api.onrender.com/api/auth/eve/callback';
   const EVE_SSO_URL = 'https://login.eveonline.com/v2/oauth/authorize/';
+  let ssoClientId = null;
 
   let currentUser = null;
   let currentView = 'gallery';
@@ -96,7 +96,7 @@
   window.SkinrApp = {
     login: function () {
       const state = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
-      const params = new URLSearchParams({ response_type: 'code', redirect_uri: EVE_SSO_REDIRECT_URI, client_id: EVE_SSO_CLIENT_ID, scope: 'publicData', state: state });
+      const params = new URLSearchParams({ response_type: 'code', redirect_uri: EVE_SSO_REDIRECT_URI, client_id: ssoClientId, scope: 'publicData', state: state });
       window.location.href = EVE_SSO_URL + '?' + params.toString();
     },
     logout: function () {
@@ -584,6 +584,7 @@
     updateAuthUI();
     handleAuthCallback();
     fetch(API_BASE + '/config').then(r => r.json()).then(cfg => {
+      ssoClientId = cfg.eve_client_id || null;
       adminIds = cfg.admin_ids || [];
       updateAuthUI();
     }).catch(() => {});

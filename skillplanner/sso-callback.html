@@ -101,9 +101,9 @@
     </div>
 
     <script>
-        // EVE SSO Configuration - client-side token exchange
-        const CLIENT_ID = 'ac86bbdbb05e404b85c6eb1546ed06b1';
         const TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '/api' : 'https://rusty-bot-api.onrender.com/api';
         
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -156,16 +156,17 @@
             }
             
             try {
-                // Verify state parameter to prevent CSRF attacks
                 const savedState = localStorage.getItem('esi_state');
                 if (state !== savedState) {
                     throw new Error('Invalid state parameter. Possible CSRF attack.');
                 }
-                
-                // Clear the state from storage
                 localStorage.removeItem('esi_state');
-                
-                // Exchange authorization code for tokens directly with EVE SSO
+
+                const configRes = await fetch(API_BASE + '/config');
+                const config = await configRes.json();
+                const clientId = config.eve_client_id;
+                if (!clientId) throw new Error('EVE Client ID not configured on server');
+
                 const response = await fetch(TOKEN_URL, {
                     method: 'POST',
                     headers: {
@@ -174,7 +175,7 @@
                     body: new URLSearchParams({
                         grant_type: 'authorization_code',
                         code: code,
-                        client_id: CLIENT_ID
+                        client_id: clientId
                     })
                 });
                 

@@ -12,7 +12,6 @@ const TOKEN_EXCHANGE_URL = isLocalhost
     : 'https://rusty-bot-api.onrender.com/api/token-exchange';
 
 const ESI_CONFIG = {
-    clientId: 'ac86bbdbb05e404b85c6eb1546ed06b1', // Rusty Skill Planner
     redirectUri: REDIRECT_URI,
     authorizeUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
@@ -25,6 +24,15 @@ const ESI_CONFIG = {
         'esi-clones.read_clones.v1'
     ]
 };
+
+let ssoClientId = null;
+
+(function loadClientId() {
+  fetch(TOKEN_EXCHANGE_URL.replace('/api/token-exchange', '/api/config'))
+    .then(r => r.json())
+    .then(cfg => { ssoClientId = cfg.eve_client_id || null; })
+    .catch(() => {});
+})();
 
 class ESIAuth {
     constructor() {
@@ -50,7 +58,7 @@ class ESIAuth {
         const params = new URLSearchParams({
             response_type: 'code',
             redirect_uri: ESI_CONFIG.redirectUri,
-            client_id: ESI_CONFIG.clientId,
+            client_id: ssoClientId,
             scope: ESI_CONFIG.scopes.join(' '),
             state: state
         });
@@ -70,7 +78,7 @@ class ESIAuth {
             body: new URLSearchParams({
                 grant_type: 'authorization_code',
                 code: code,
-                client_id: ESI_CONFIG.clientId
+                client_id: ssoClientId
             })
         });
         
@@ -156,7 +164,7 @@ class ESIAuth {
             body: new URLSearchParams({
                 grant_type: 'refresh_token',
                 refresh_token: tokens.refreshToken,
-                client_id: ESI_CONFIG.clientId
+                client_id: ssoClientId
             })
         });
         

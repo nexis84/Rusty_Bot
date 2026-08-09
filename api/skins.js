@@ -411,7 +411,7 @@ router.get('/config', async (req, res) => {
     supabase_configured: !!supabase,
     has_supabase_url: !!process.env.SUPABASE_URL,
     has_supabase_key: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    eve_client_id: !!process.env.EVE_CLIENT_ID,
+    eve_client_id: process.env.EVE_CLIENT_ID || null,
   };
 
   const authHeader = req.headers.authorization;
