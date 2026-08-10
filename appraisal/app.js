@@ -610,7 +610,7 @@ async function buildShareLink() {
         });
         const data = await res.json();
         if (data.code) {
-            const path = location.pathname.replace(/\/index\.html$/, '');
+            const path = location.pathname.replace(/\/index\.html$/, '/');
             return `${location.origin}${path}#${data.code}`;
         }
     } catch (e) {
@@ -622,7 +622,7 @@ async function buildShareLink() {
     params.set('items', lines.join('\n'));
     params.set('mode', mode);
     if (region && region !== 'all') params.set('hub', region);
-    const path = location.pathname.replace(/\/index\.html$/, '');
+    const path = location.pathname.replace(/\/index\.html$/, '/');
     return `${location.origin}${path}#${params.toString()}`;
 }
 
