@@ -855,7 +855,15 @@ async function resolveShortCode(code) {
         if (!res.ok) return;
         const data = await res.json();
         if (data.items) {
-            el('appraisalText').value = data.items;
+            const decoded = data.items.split('\n').map(line => {
+                const m = line.trim().match(/^(\d+):(\d+)$/);
+                if (m && ItemDB && ItemDB.byId) {
+                    const entry = ItemDB.byId.get(Number(m[2]));
+                    if (entry) return `${m[1]} x ${entry.name}`;
+                }
+                return line;
+            }).join('\n');
+            el('appraisalText').value = decoded;
             if (data.hub && el('hubSelect').querySelector(`option[value="${data.hub}"]`)) {
                 el('hubSelect').value = data.hub;
             }
