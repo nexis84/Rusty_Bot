@@ -3,7 +3,7 @@ const path = require('path');
 
 // Read ships.json (rich data with class/race)
 const shipsJson = JSON.parse(fs.readFileSync(
-  path.join(__dirname, '..', 'ship-guess-game', 'data', 'ships.json'), 'utf8'
+  path.join(__dirname, '..', 'classifiedhulls', 'data', 'ships.json'), 'utf8'
 ));
 
 // Read items_database.js (has id mappings)
