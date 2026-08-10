@@ -2,6 +2,7 @@
 // Paste clipboard items -> resolve to type IDs -> fetch live prices from trade hubs
 
 const ESI_BASE = 'https://esi.evetech.net/latest';
+const API_BASE = 'https://api.rustybot.co.uk/api';
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 const CONCURRENCY = 8;
 
@@ -580,7 +581,7 @@ async function copyResults() {
 }
 
 // ---- Share link ----
-function buildShareLink() {
+async function buildShareLink() {
     const rows = window.__appraisalRows || [];
     const unmatched = window.__appraisalUnmatched || [];
     const lines = [];
@@ -596,13 +597,30 @@ function buildShareLink() {
         lines.push(u.qty > 1 ? `${u.qty} x ${u.raw}` : u.raw);
     }
 
+    const mode = getActiveValueMode();
+    const region = window.__appraisalRegion;
+    const body = { items: lines.join('\n'), mode };
+    if (region && region !== 'all') body.hub = region;
+
+    try {
+        const res = await fetch(API_BASE + '/appraisal/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.code) {
+            return `${location.origin}${location.pathname}#${data.code}`;
+        }
+    } catch (e) {
+        console.warn('Short link creation failed, falling back:', e.message);
+    }
+
+    // Fallback to legacy long link
     const params = new URLSearchParams();
     params.set('items', lines.join('\n'));
-    params.set('mode', getActiveValueMode());
-    const region = window.__appraisalRegion;
-    if (region && region !== 'all') {
-        params.set('hub', region);
-    }
+    params.set('mode', mode);
+    if (region && region !== 'all') params.set('hub', region);
     return `${location.origin}${location.pathname}#${params.toString()}`;
 }
 
@@ -618,7 +636,7 @@ async function copyShareLink() {
         showMessage('Nothing to share yet.', 'error');
         return;
     }
-    const text = buildShareLink();
+    const text = await buildShareLink();
     try {
         await navigator.clipboard.writeText(text);
         showMessage('Share link copied to clipboard', 'success');
@@ -786,6 +804,13 @@ function hubDisplayName(region) {
 function handleShareHash() {
     const hash = location.hash.slice(1);
     if (!hash) return false;
+
+    // Short code format (e.g. #aB3xK9m) — resolve via API (handles its own auto-run)
+    if (hash.indexOf('=') === -1 && hash.length <= 12) {
+        resolveShortCode(hash);
+        return false;
+    }
+
     let params;
     try {
         params = new URLSearchParams(hash);
@@ -819,6 +844,29 @@ function handleShareHash() {
         updateToggle();
     }
     return true;
+}
+
+async function resolveShortCode(code) {
+    try {
+        const res = await fetch(API_BASE + '/appraisal/share/' + encodeURIComponent(code));
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.items) {
+            el('appraisalText').value = data.items;
+            if (data.hub && el('hubSelect').querySelector(`option[value="${data.hub}"]`)) {
+                el('hubSelect').value = data.hub;
+            }
+            if (data.mode && ['buy', 'split', 'sell'].includes(data.mode)) {
+                document.querySelectorAll('.value-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.value === data.mode);
+                });
+                updateToggle();
+            }
+            setTimeout(runAppraisal, 50);
+        }
+    } catch (e) {
+        console.warn('Short code resolution failed:', e.message);
+    }
 }
 
 // ---- EVE time clock ----
