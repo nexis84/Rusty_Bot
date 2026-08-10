@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>SKINR V2 - My SKINR Collection - RustyBot</title>
+  <meta name="description" content="View your owned EVE Online SKINR licenses and component licenses, with full attributes from the new ESI cosmetics API.">
+  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="../rusty_bot.png">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="brand">
+      <a href="../index.html" class="brand-link">
+        <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+        <h1 class="brand-name">SKINR <span class="accent">V2</span></h1>
+      </a>
+    </div>
+    <div class="breadcrumb">
+      <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+      <span class="breadcrumb-item"><a href="index.html">SKINR V2</a></span>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero-section">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+      <h2>SKINR <span class="accent">V2</span></h2>
+      <p>View your owned SKINr licenses and component licenses, straight from the new EVE Online cosmetics API.</p>
+    </section>
+
+    <!-- Auth bar -->
+    <div id="auth-area" class="auth-area"></div>
+
+    <!-- Nav -->
+    <div class="skin-nav">
+      <button id="nav-licenses" class="active" onclick="SkinrV2.switchTab('licenses')"><i class="fa-solid fa-palette"></i> My Licenses</button>
+      <button id="nav-components" onclick="SkinrV2.switchTab('components')"><i class="fa-solid fa-fill-drip"></i> My Components</button>
+      <button id="nav-lookup" onclick="SkinrV2.switchTab('lookup')"><i class="fa-solid fa-magnifying-glass"></i> Lookup</button>
+    </div>
+
+    <!-- ======== LICENSES TAB ======== -->
+    <div id="tab-licenses" class="tab-view active">
+      <div id="licenses-area"></div>
+    </div>
+
+    <!-- ======== COMPONENTS TAB ======== -->
+    <div id="tab-components" class="tab-view">
+      <div id="components-area"></div>
+    </div>
+
+    <!-- ======== LOOKUP TAB ======== -->
+    <div id="tab-lookup" class="tab-view">
+      <section class="lookup-panel">
+        <div class="lookup-bar">
+          <input type="text" id="lookup-input" placeholder="Enter a SKINr ID..." autocomplete="off">
+          <button id="lookup-btn" class="btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Fetch</button>
+        </div>
+        <div id="lookup-area"></div>
+      </section>
+    </div>
+
+    <footer>
+      <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
+      <p>SKINr data is provided by the EVE ESI cosmetics API.</p>
+      <p style="margin-top: 1rem;">If you would like to support us you can do so via Ko-fi or via ISK.</p>
+      <p>Send ISK to IGN &quot;Virxens&quot;</p>
+      <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+      <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
