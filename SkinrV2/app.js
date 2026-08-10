@@ -13,8 +13,7 @@
   const SCOPE_OK_KEY = 'skinr_v2_scope_ok';
 
   const SDE = '../sde/';
-  const SDE_FILES = ['skinrComponents', 'skinrComponentRarities', 'skinrComponentCategories', 'skinrSlots',
-    'skinrSlotNames', 'skinrSlotCategories', 'skinrSlotConfigurations', 'skinrComponentPointValues', 'skinrTierThresholds'];
+  const SDE_FILES = ['skinrComponents', 'skinrComponentRarities', 'skinrComponentCategories', 'skinrSlots'];
 
   const BLEND_MODES = { normal: 'Normal', subtract: 'Subtract', exclusion: 'Exclusion', nested: 'Nested', nested_inverted: 'Nested Inverted' };
 
@@ -64,8 +63,7 @@
   }
 
   async function loadSde() {
-    const [comps, rarities, cats, slots, slotNames, slotCats, slotConfigs, pointValues, tierThresholds] =
-      await Promise.all(SDE_FILES.map(f => fetchJsonl(f)));
+    const [comps, rarities, cats, slots] = await Promise.all(SDE_FILES.map(f => fetchJsonl(f)));
     sde.components = byKey(comps.filter(c => c.published !== false));
     sde.componentsByTypeId = {};
     for (const comp of comps) {
@@ -78,11 +76,6 @@
     sde.rarities = byKey(rarities);
     sde.categories = byKey(cats);
     sde.slots = byKey(slots);
-    sde.slotNames = byKey(slotNames);
-    sde.slotCategories = byKey(slotCats);
-    sde.slotConfigs = slotConfigs;
-    sde.pointValues = byKey(pointValues);
-    sde.tierThresholds = byKey(tierThresholds);
   }
 
   function slotName(id) {
@@ -97,54 +90,6 @@
   function rarityName(id) {
     const r = sde.rarities[id];
     return r ? r.name.en : `Rarity ${id}`;
-  }
-
-  function slotLabel(id) {
-    const sn = sde.slotNames[id];
-    if (!sn) return slotName(id);
-    return sn.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  function getSlotConfig(shipTypeId) {
-    if (!sde.slotConfigs) return { allowedSlots: [1,2,3,4,5,6,7,8], blocked: false };
-    const sorted = [...sde.slotConfigs].sort((a, b) => (b.priority || 0) - (a.priority || 0));
-    for (const cfg of sorted) {
-      if (cfg.allowAllShips) return { allowedSlots: cfg.config || [1,2,3,4,5,6,7,8], blocked: false, name: cfg.name };
-      if (cfg.ships && cfg.ships.includes(shipTypeId)) {
-        if (cfg.config) return { allowedSlots: cfg.config, blocked: false, name: cfg.name };
-        return { allowedSlots: [], blocked: true, name: cfg.name };
-      }
-    }
-    return { allowedSlots: [1,2,3,4,5,6,7,8], blocked: false, name: 'Default' };
-  }
-
-  function calculateDesignCost(layout) {
-    if (!layout || !layout.slots) return null;
-    let total = 0;
-    for (const slot of layout.slots) {
-      const conf = slot.configuration || {};
-      for (const key of ['nanocoating', 'pattern']) {
-        const entry = conf[key];
-        if (!entry || !entry.id) continue;
-        const comp = componentForId(entry.id);
-        if (!comp) continue;
-        const pv = sde.pointValues[comp._key];
-        if (!pv || !pv._value) continue;
-        const costEntry = pv._value.find(v => v._key === comp.rarity);
-        if (costEntry) total += costEntry._value;
-      }
-    }
-    return total > 0 ? total : null;
-  }
-
-  function tierFromCost(cost) {
-    if (!cost || !sde.tierThresholds) return null;
-    const thresholds = sde.tierThresholds[5] || Object.values(sde.tierThresholds)[0];
-    if (!thresholds || !thresholds._value) return null;
-    for (const t of thresholds._value) {
-      if (cost <= t._value) return { level: t._key, max: t._value };
-    }
-    return null;
   }
 
   function parseSwatchColor(iconFile) {
@@ -360,7 +305,7 @@
         );
       }
       if (!parts.length) parts.push('<span class="slot-comp" style="color:var(--text-subtle-color);">— empty —</span>');
-      return `<div class="layout-slot"><div class="slot-name">${escapeHtml(slotLabel(slot.id))}</div>${parts.join('')}</div>`;
+      return `<div class="layout-slot"><div class="slot-name">${escapeHtml(slotName(slot.id))}</div>${parts.join('')}</div>`;
     }).join('') +
     (blend ? `<div class="blend-mode" style="margin-top:8px;">Pattern blend: <strong>${escapeHtml(blend)}</strong></div>` : '');
   }
@@ -385,22 +330,13 @@
 
     const ship = await shipName(detail.ship_type_id);
     const creator = await creatorName(detail.creator_id);
+    const tier = detail.tier && detail.tier.level ? detail.tier.level : null;
     const line = detail.line || '';
-
-    const designCost = calculateDesignCost(detail.layout);
-    const localTier = tierFromCost(designCost);
-    const shipConfig = getSlotConfig(detail.ship_type_id);
-    const usedSlotCount = detail.layout && detail.layout.slots ? detail.layout.slots.length : 0;
-    const compatText = shipConfig.blocked
-      ? 'Blocked'
-      : `${usedSlotCount} used / ${shipConfig.allowedSlots.length} slots`;
 
     const html = `
       <div class="detail-row"><span class="label">Ship</span><span class="value">${escapeHtml(ship)}</span></div>
       ${line ? `<div class="detail-row"><span class="label">Line</span><span class="value">${escapeHtml(line)}</span></div>` : ''}
-      ${localTier ? `<div class="detail-row"><span class="label">Tier</span><span class="value">${rarityBadge(localTier.level)} <span style="color:var(--text-subtle-color);">≤ ${localTier.max.toLocaleString()} PLEX</span></span></div>` : ''}
-      ${designCost ? `<div class="detail-row"><span class="label">Est. Cost</span><span class="value">${designCost.toLocaleString()} PLEX</span></div>` : ''}
-      <div class="detail-row"><span class="label">Slots</span><span class="value">${compatText}</span></div>
+      ${tier ? `<div class="detail-row"><span class="label">Tier</span><span class="value">${tier}</span></div>` : ''}
       <div class="detail-row"><span class="label">Creator</span><span class="value">${escapeHtml(creator)}</span></div>
       <div class="layout-section">
         <div class="layout-title"><i class="fa-solid fa-layer-group"></i> Layout</div>
