@@ -92,7 +92,7 @@ app.get('/api/auth/eve/login', (req, res) => {
   pendingStates.set(state, { created: Date.now() });
   const clientId = process.env.EVE_CLIENT_ID || '';
   const frontendUrl = process.env.FRONTEND_URL || '';
-  const baseUrl = frontendUrl || 'https://rusty-bot-api.onrender.com';
+  const baseUrl = frontendUrl || 'https://api.rustybot.co.uk';
   const redirectUri = baseUrl + '/api/auth/eve/callback';
   const url = 'https://login.eveonline.com/v2/oauth/authorize/?' + new URLSearchParams({
     response_type: 'code',

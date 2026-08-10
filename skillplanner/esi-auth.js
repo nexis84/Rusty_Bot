@@ -9,7 +9,7 @@ const REDIRECT_URI = isLocalhost
 
 const TOKEN_EXCHANGE_URL = isLocalhost
     ? 'http://localhost:8080/api/token-exchange'
-    : 'https://rusty-bot-api.onrender.com/api/token-exchange';
+    : 'https://api.rustybot.co.uk/api/token-exchange';
 
 const ESI_CONFIG = {
     redirectUri: REDIRECT_URI,

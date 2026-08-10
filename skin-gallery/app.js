@@ -2,8 +2,8 @@
   'use strict';
 
   const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const API_BASE = IS_LOCAL ? '/api' : 'https://rusty-bot-api.onrender.com/api';
-  const EVE_SSO_REDIRECT_URI = 'https://rusty-bot-api.onrender.com/api/auth/eve/callback';
+  const API_BASE = IS_LOCAL ? '/api' : 'https://api.rustybot.co.uk/api';
+  const EVE_SSO_REDIRECT_URI = 'https://api.rustybot.co.uk/api/auth/eve/callback';
   const EVE_SSO_URL = 'https://login.eveonline.com/v2/oauth/authorize/';
   let ssoClientId = null;
 

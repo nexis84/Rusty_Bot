@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://rusty-bot-api.onrender.com/api/:path*"
+      "destination": "https://api.rustybot.co.uk/api/:path*"
     }
   ],
   "headers": [
@@ -15,7 +15,7 @@
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
