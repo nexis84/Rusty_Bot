@@ -90,13 +90,13 @@
         <div id="error-state" style="display: none;">
             <h1>Authentication Failed</h1>
             <p id="error-message" class="error-message"></p>
-            <a href="index.html" class="btn">Return to Skill Planner</a>
+            <a href="./" class="btn">Return to Skill Planner</a>
         </div>
         
         <div id="success-state" style="display: none;">
             <h1>Login Successful!</h1>
             <p id="success-message" class="success-message"></p>
-            <a href="index.html" class="btn">Go to Skill Planner</a>
+            <a href="./" class="btn">Go to Skill Planner</a>
         </div>
     </div>
 
@@ -216,7 +216,7 @@
                 
                 // Redirect back to the main app
                 setTimeout(() => {
-                    window.location.replace('index.html');
+                    window.location.replace('./');
                 }, 2000);
                 
             } catch (err) {

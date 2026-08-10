@@ -28,7 +28,7 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "RustyAppraisal - RustyBot EVE Online Item Appraisal",
-      "url": "https://www.rustybot.co.uk/appraisal/index.html",
+      "url": "https://www.rustybot.co.uk/appraisal/",
       "description": "Free EVE Online item appraisal tool. Paste a list of items and get instant buy and sell prices from the major trade hubs including Jita, Amarr, Dodixie, Hek and Rens.",
       "applicationCategory": "GameApplication",
       "operatingSystem": "All",
@@ -49,8 +49,8 @@
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/index.html" },
-        { "@type": "ListItem", "position": 2, "name": "RustyAppraisal - EVE Online Item Appraisal", "item": "https://www.rustybot.co.uk/appraisal/index.html" }
+        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/" },
+        { "@type": "ListItem", "position": 2, "name": "RustyAppraisal - EVE Online Item Appraisal", "item": "https://www.rustybot.co.uk/appraisal/" }
       ]
     }
     </script>
@@ -58,14 +58,14 @@
 <body>
 <header class="top-bar">
     <div class="brand">
-        <a href="../index.html" class="brand-link">
+        <a href="../" class="brand-link">
             <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
             <h1 class="brand-name">Rusty<span class="accent">Appraisal</span></h1>
         </a>
     </div>
     <div class="breadcrumb" id="breadcrumb">
-        <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
-        <span class="breadcrumb-item"><a href="index.html">RustyAppraisal</a></span>
+        <span class="breadcrumb-item"><a href="../">Home</a></span>
+        <span class="breadcrumb-item"><a href="./">RustyAppraisal</a></span>
     </div>
 </header>
 
@@ -236,9 +236,9 @@
 
     const referrer = document.referrer || '';
 
-    const home = '<span class="breadcrumb-item"><a href="../index.html">Home</a></span>';
-    const market = '<span class="breadcrumb-item"><a href="../market/index.html">Market</a></span>';
-    const current = '<span class="breadcrumb-item"><a href="index.html">RustyAppraisal</a></span>';
+    const home = '<span class="breadcrumb-item"><a href="../">Home</a></span>';
+    const market = '<span class="breadcrumb-item"><a href="../market/">Market</a></span>';
+    const current = '<span class="breadcrumb-item"><a href="./">RustyAppraisal</a></span>';
 
     // Include the Market step if the visitor came from a market page
     if (referrer.indexOf('/market/') !== -1) {

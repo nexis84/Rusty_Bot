@@ -471,7 +471,7 @@ function renderResults(items, prices, unmatched, region, hubName) {
             rowSplit,
             buyHub: price.buyHub || null,
             sellHub: price.sellHub || null,
-            marketUrl: `../market/index.html?type=${item.id}&region=${regionParam}`
+            marketUrl: `../market/?type=${item.id}&region=${regionParam}`
         });
     }
 

@@ -111,7 +111,7 @@ app.get('/api/auth/eve/callback', (req, res) => {
   const { code, state } = req.query;
   const frontendUrl = process.env.FRONTEND_URL || '';
   const baseUrl = frontendUrl || (req.get('origin') || '');
-  const targetPage = (state && state.indexOf('skinr2:') === 0) ? '/SkinrV2/index.html' : '/skin-gallery/index.html';
+  const targetPage = (state && state.indexOf('skinr2:') === 0) ? '/SkinrV2/' : '/skin-gallery/';
   const redirectTarget = (baseUrl || '') + targetPage;
 
   if (!code) {

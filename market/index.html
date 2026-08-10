@@ -10,7 +10,7 @@
     <meta name="description" content="An open, no-login EVE Online market browser. Check real-time market trends and track item data across all New Eden regions including Jita (The Forge) and Amarr (Domain).">
     <meta name="keywords" content="EVE Online, market browser, market trends, Jita, Amarr, The Forge, Domain, EVE market, item prices, capsuleer tools, RustyBot">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://www.rustybot.co.uk/market/index.html">
+    <link rel="canonical" href="https://www.rustybot.co.uk/market/">
     <link rel="stylesheet" href="style.css?v=7">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -28,7 +28,7 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "RustyBot EVE Online Market Browser",
-      "url": "https://www.rustybot.co.uk/market/index.html",
+      "url": "https://www.rustybot.co.uk/market/",
       "description": "Free EVE Online market browser. Track real-time market trends, item prices, buy/sell orders across Jita, Amarr, and all New Eden regions.",
       "applicationCategory": "GameApplication",
       "operatingSystem": "All",
@@ -49,8 +49,8 @@
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/index.html" },
-        { "@type": "ListItem", "position": 2, "name": "EVE Online Market Browser", "item": "https://www.rustybot.co.uk/market/index.html" }
+        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/" },
+        { "@type": "ListItem", "position": 2, "name": "EVE Online Market Browser", "item": "https://www.rustybot.co.uk/market/" }
       ]
     }
     </script>
@@ -81,7 +81,7 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Market Trends</span>
             </a>
-            <a href="../appraisal/index.html" class="nav-item">
+            <a href="../appraisal/" class="nav-item">
                 <i class="fas fa-coins"></i>
                 <span>RustyAppraisal</span>
             </a>
@@ -108,15 +108,15 @@
             </button>
 
             <div class="brand">
-                <a href="../index.html" class="brand-link">
+                <a href="../" class="brand-link">
                     <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="logo">
                     <h1 class="brand-name">Market<span class="accent">Browser</span></h1>
                 </a>
             </div>
 
             <div class="breadcrumb" id="breadcrumb">
-                <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
-                <span class="breadcrumb-item"><a href="index.html">Market Browser</a></span>
+                <span class="breadcrumb-item"><a href="../">Home</a></span>
+                <span class="breadcrumb-item"><a href="./">Market Browser</a></span>
             </div>
 
             <script>
@@ -126,13 +126,13 @@
                 if (!bc) return;
 
                 const referrer = document.referrer || '';
-                const home = '<span class="breadcrumb-item"><a href="../index.html">Home</a></span>';
-                const current = '<span class="breadcrumb-item"><a href="index.html">Market Browser</a></span>';
+                const home = '<span class="breadcrumb-item"><a href="../">Home</a></span>';
+                const current = '<span class="breadcrumb-item"><a href="./">Market Browser</a></span>';
 
                 const sources = [
-                    { match: '/appraisal/', label: 'RustyAppraisal', href: '../appraisal/index.html' },
-                    { match: '/guides/', label: 'Guides', href: '../guides/index.html' },
-                    { match: '/skillplanner/', label: 'Skill Planner', href: '../skillplanner/index.html' }
+                    { match: '/appraisal/', label: 'RustyAppraisal', href: '../appraisal/' },
+                    { match: '/guides/', label: 'Guides', href: '../guides/' },
+                    { match: '/skillplanner/', label: 'Skill Planner', href: '../skillplanner/' }
                 ];
 
                 const src = sources.find(s => referrer.indexOf(s.match) !== -1);

@@ -3474,7 +3474,7 @@ function updateFavoritesView() {
 function updateBreadcrumb(itemName) {
     const breadcrumb = el('breadcrumb');
     breadcrumb.innerHTML = `
-        <span class="breadcrumb-item"><a href="../index.html">Home</a></span>
+        <span class="breadcrumb-item"><a href="../">Home</a></span>
         <span class="breadcrumb-item"><a href="#">${AppState.allItems.find(i => i.id === AppState.currentItem?.id)?.path[0] || 'Market'}</a></span>
         <span class="breadcrumb-item"><a href="#">${itemName}</a></span>
     `;

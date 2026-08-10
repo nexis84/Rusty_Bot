@@ -5466,17 +5466,17 @@ const SKILL_BOOKS = {
 function getSkillBookMarketLink(skillId) {
   const bookId = SKILL_BOOKS[skillId];
   if (!bookId) return null;
-  return `../market/index.html?type=${bookId}`;
+  return `../market/?type=${bookId}`;
 }
 
 function getRustyMarketSearchLink(query) {
-  if (!query) return '../market/index.html';
-  return `../market/index.html?search=${encodeURIComponent(query)}`;
+  if (!query) return '../market/';
+  return `../market/?search=${encodeURIComponent(query)}`;
 }
 
 function getRustyMarketTypeLink(typeId) {
-  if (!typeId) return '../market/index.html';
-  return `../market/index.html?type=${typeId}`;
+  if (!typeId) return '../market/';
+  return `../market/?type=${typeId}`;
 }
 
 function getSkillMarketLink(skillId) {
@@ -5507,7 +5507,7 @@ const CEREBRAL_ACCELERATORS = [
   { name: 'Event Accelerator (+12)', bonus: 12, typeId: 0 }
 ].map(item => ({
   ...item,
-  marketLink: item.typeId ? getRustyMarketTypeLink(item.typeId) : '../market/index.html'
+  marketLink: item.typeId ? getRustyMarketTypeLink(item.typeId) : '../market/'
 }));
 
 const skillNameCache = {};
