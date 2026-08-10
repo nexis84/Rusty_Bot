@@ -786,6 +786,7 @@ async function runAppraisal() {
 
     setProgress(false);
     btn.disabled = false;
+    el('shareLinkBtn').disabled = false;
 
     if (appraisalCancelled) {
         showMessage('Appraisal cancelled. Showing partial results.', 'error');
