@@ -18,5 +18,11 @@ window.SUPPORTERS = [
     "type": "member",
     "date": "2026-07-16",
     "total": 5
+  },
+   {
+    "name": "StevesHaven",
+    "type": "member",
+    "date": "2026-08-10",
+    "total": 15
   }
 ];
