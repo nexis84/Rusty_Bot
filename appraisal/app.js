@@ -610,7 +610,8 @@ async function buildShareLink() {
         });
         const data = await res.json();
         if (data.code) {
-            return `${location.origin}${location.pathname}#${data.code}`;
+            const path = location.pathname.replace(/\/index\.html$/, '');
+            return `${location.origin}${path}#${data.code}`;
         }
     } catch (e) {
         console.warn('Short link creation failed, falling back:', e.message);
@@ -621,7 +622,8 @@ async function buildShareLink() {
     params.set('items', lines.join('\n'));
     params.set('mode', mode);
     if (region && region !== 'all') params.set('hub', region);
-    return `${location.origin}${location.pathname}#${params.toString()}`;
+    const path = location.pathname.replace(/\/index\.html$/, '');
+    return `${location.origin}${path}#${params.toString()}`;
 }
 
 function modeTotal(totals, mode) {
