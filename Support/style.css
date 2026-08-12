@@ -173,14 +173,16 @@ body {
 
 /* ── The Wall ───────────────────────────────────────────────────────────── */
 .wall {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
   margin: 28px auto 8px;
 }
 
 .supporter {
+  flex: 0 1 220px;
+  min-width: 180px;
   background: var(--primary-color);
   border: 1px solid var(--secondary-color);
   border-radius: 8px;
@@ -350,11 +352,12 @@ footer a:hover { color: var(--accent-color); }
   .hero-section h2 { font-size: 24px; }
   
   .wall {
-    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 
   .supporter {
+    flex: 0 1 calc(50% - 5px);
+    min-width: 0;
     padding: 12px 8px;
     gap: 6px;
   }
@@ -372,7 +375,7 @@ footer a:hover { color: var(--accent-color); }
 }
 
 @media (max-width: 340px) {
-  .wall {
-    grid-template-columns: 1fr;
+  .supporter {
+    flex-basis: 100%;
   }
 }
