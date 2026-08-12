@@ -24,11 +24,11 @@ window.SUPPORTERS = [
     "type": "member",
     "date": "2026-08-10",
     "total": 15
-  }
+  },
     {
     "name": "Lokival The Nub",
     "type": "member",
     "date": "2026-08-12",
     "total": 1
-  },
+  }
 ];
