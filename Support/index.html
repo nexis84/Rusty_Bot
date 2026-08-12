@@ -91,6 +91,13 @@
       commission: { label: 'Commission', icon: 'fa-solid fa-wand-magic-sparkles' },
     };
 
+    const TWITCH_LINKS = {
+      'StevesHaven': 'https://www.twitch.tv/steveshaven',
+      'SpongeyJon': 'https://www.twitch.tv/spongeyjon',
+      'Lokival The Nub': 'https://www.twitch.tv/lokival_the_nub',
+      'EveMiner01': 'https://www.twitch.tv/eveminer01',
+    };
+
     function formatDate(dateStr) {
       if (!dateStr) return '';
       const d = new Date(dateStr + 'T00:00:00Z');
@@ -107,11 +114,15 @@
       const frag = document.createDocumentFragment();
       for (const s of supporters) {
         const type = cfg[s.type] || cfg.oneoff;
+        const twitch = TWITCH_LINKS[s.name];
+        const nameHtml = twitch
+          ? `<a class="name" href="${twitch}" target="_blank" rel="noopener"><i class="fa-brands fa-twitch"></i> ${escapeHtml(s.name)}</a>`
+          : `<span class="name">${escapeHtml(s.name)}</span>`;
         const tile = document.createElement('div');
         tile.className = 'supporter';
         tile.innerHTML = `
           <span class="tag ${s.type}"><i class="${type.icon}"></i> ${type.label}</span>
-          <span class="name">${escapeHtml(s.name)}</span>
+          ${nameHtml}
           <span class="since"><i class="fa-solid fa-calendar-days"></i> Since ${formatDate(s.date)}</span>
         `;
         frag.appendChild(tile);

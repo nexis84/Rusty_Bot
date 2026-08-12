@@ -174,7 +174,7 @@ body {
 /* ── The Wall ───────────────────────────────────────────────────────────── */
 .wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
   justify-content: center;
   gap: 12px;
   margin: 28px auto 8px;
@@ -204,6 +204,24 @@ body {
   font-weight: 700;
   color: var(--text-color);
   word-break: break-word;
+}
+
+.supporter a.name {
+  text-decoration: none;
+  color: var(--text-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.supporter a.name:hover {
+  color: var(--accent-color);
+}
+
+.supporter a.name .fa-twitch {
+  color: #9146ff;
 }
 
 .supporter .since {
