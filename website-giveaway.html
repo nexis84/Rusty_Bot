@@ -31,16 +31,40 @@
             line-height: 1.6;
         }
 
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .brand { flex-shrink: 0; }
+        .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .brand-link .logo { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35)); }
+        .brand-link h1 { font-size: 20px; margin: 0; font-weight: 700; color: var(--text); letter-spacing: 0.5px; white-space: nowrap; }
+        .brand-link h1 .accent { color: var(--accent); }
+        .breadcrumb { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .breadcrumb-item { display: flex; align-items: center; gap: 8px; }
+        .breadcrumb-item:not(:last-child)::after { content: '/'; color: var(--dim); }
+        .breadcrumb-item a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb-item a:hover { color: var(--accent); }
+        .breadcrumb-item:last-child a { color: var(--text); font-weight: 600; }
+
         .hero-wrap { background: #111; border-bottom: 1px solid var(--border); }
         .hero { max-width: 1200px; margin: 0 auto; text-align: center; padding: 48px 24px 20px; }
         .hero-logo { max-width: 140px; margin-bottom: 18px; }
+        .hero .partner-badge { max-width: 150px; margin-bottom: 18px; }
         .hero h1 { font-size: 3rem; font-weight: 700; color: #fff; }
         .hero h1 span { color: var(--accent); }
         .hero p { font-size: 1.1rem; color: var(--dim); margin-top: 4px; }
         .hero-rule { width: 60px; height: 2px; background: var(--accent); margin: 18px auto 0; }
 
         .nav-wrap {
-            position: sticky; top: 0; z-index: 100;
             background: rgba(13, 13, 13, 0.92);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--border);
@@ -105,15 +129,56 @@
         .contact-card-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600; }
         .contact-card-value { font-size: 1rem; color: var(--text); font-weight: 700; }
 
+        .support-box { text-align: center; padding: 24px 0; }
+        .support-box p { color: var(--dim); font-size: 0.95rem; margin-bottom: 4px; }
+        .support-wall-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 8px 18px;
+            background: var(--panel);
+            border: 1px solid var(--accent-dim);
+            border-radius: 6px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+        }
+        .support-wall-link:hover {
+            color: #111;
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
         @media (max-width: 600px) {
+            .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+            .breadcrumb { flex: 0 0 100%; order: 3; justify-content: flex-start; }
             .hero h1 { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body>
+    <header class="top-bar">
+        <div class="brand">
+            <a href="index.html" class="brand-link">
+                <img src="rusty_bot.png" alt="RustyBot Logo" class="logo">
+                <h1 class="brand-name">Website <span class="accent">Giveaway</span></h1>
+            </a>
+        </div>
+        <div class="breadcrumb">
+            <span class="breadcrumb-item"><a href="index.html">Home</a></span>
+            <span class="breadcrumb-item"><a href="website-giveaway.html">Website Giveaway</a></span>
+        </div>
+    </header>
+
     <div class="hero-wrap">
         <div class="hero">
             <img src="rusty_bot.png" alt="RustyBot" class="hero-logo">
+            <img class="partner-badge" src="PartnerBadge2.png" alt="EVE Online Partner badge">
             <h1>Website <span>Giveaway</span></h1>
             <p>Log in with your EVE character and enter to win this week's prize.</p>
             <div class="hero-rule"></div>
@@ -125,6 +190,7 @@
             <a href="#status">This Week</a>
             <a href="#enter">Enter</a>
             <a href="#how">How It Works</a>
+            <a href="#support">Support</a>
             <a href="index.html">Back to RustyBot</a>
         </nav>
     </div>
@@ -192,6 +258,23 @@
                     <li><span class="step">3</span><span class="txt">You get <b>one entry per week</b>. A winner is drawn at the end of the week.</span></li>
                     <li><span class="step">4</span><span class="txt">If you win, the code is sent to you <b>in-game via EVE mail</b> to the character you registered with.</span></li>
                 </ul>
+            </div>
+        </section>
+
+        <section class="section" id="support">
+            <div class="section-header">
+                <i class="fa-solid fa-heart"></i>
+                <h2>Support</h2>
+                <span class="line"></span>
+            </div>
+            <div class="support-box">
+                <p>If you would like to support us you can do that via Ko-fi.</p>
+                <p>All support is welcomed and very appreciated!</p>
+                <div style="margin-top:12px;">
+                    <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                </div>
+                <p style="margin-top:20px;"><a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a></p>
             </div>
         </section>
 
