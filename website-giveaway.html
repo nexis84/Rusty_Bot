@@ -112,8 +112,10 @@
         .msg.ok { background: rgba(81, 207, 102, 0.12); border: 1px solid rgba(81, 207, 102, 0.4); color: #51cf66; }
         .msg.err { background: rgba(255, 107, 107, 0.12); border: 1px solid rgba(255, 107, 107, 0.4); color: #ff6b6b; }
 
-        .last-winner { margin-top: 16px; padding: 14px 16px; background: var(--panel-hover); border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
-        .last-winner b { color: var(--accent); }
+        .last-winner { margin-top: 16px; padding: 22px 16px; text-align: center; background: var(--panel-hover); border: 1px solid var(--border); border-radius: 6px; font-size: 1.2rem; line-height: 1.4; }
+        .last-winner .lw-label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
+        .last-winner .lw-label i { color: var(--accent); margin-right: 6px; }
+        .last-winner b { color: var(--accent); font-size: 1.6rem; font-weight: 700; display: inline-block; margin-top: 2px; }
 
         .prize-box { margin-top: 16px; text-align: center; }
         .prize-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
@@ -315,7 +317,7 @@
                 const lw = document.getElementById('lastWinner');
                 if (data.lastWinner) {
                     lw.style.display = 'block';
-                    lw.innerHTML = 'Latest winner: <b>' + esc(data.lastWinner.character_name) + '</b>';
+                    lw.innerHTML = '<span class="lw-label"><i class="fa-solid fa-trophy"></i> Latest Winner</span><b>' + esc(data.lastWinner.character_name) + '</b>';
                 } else {
                     lw.style.display = 'none';
                 }
