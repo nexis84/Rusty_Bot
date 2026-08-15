@@ -282,7 +282,7 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Entry failed');
-                showEntryMsg('You\u2019re in as <b>' + esc(data.character_name) + '</b> - one entry this week. Good luck!', true);
+                showEntryMsg('You\u2019re in as ' + data.character_name + ' - one entry this week. Good luck!', true);
                 document.getElementById('twitch').disabled = true;
                 document.getElementById('kick').disabled = true;
                 document.getElementById('velora').disabled = true;
