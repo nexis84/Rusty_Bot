@@ -31,30 +31,6 @@
             line-height: 1.6;
         }
 
-        .top-bar {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            width: 100%;
-            padding: 12px 24px;
-            background: var(--panel);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .brand { flex-shrink: 0; }
-        .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .brand-link .logo { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35)); }
-        .brand-link h1 { font-size: 20px; margin: 0; font-weight: 700; color: var(--text); letter-spacing: 0.5px; white-space: nowrap; }
-        .brand-link h1 .accent { color: var(--accent); }
-        .breadcrumb { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 14px; }
-        .breadcrumb-item { display: flex; align-items: center; gap: 8px; }
-        .breadcrumb-item:not(:last-child)::after { content: '/'; color: var(--dim); }
-        .breadcrumb-item a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
-        .breadcrumb-item a:hover { color: var(--accent); }
-        .breadcrumb-item:last-child a { color: var(--text); font-weight: 600; }
-
         .hero-wrap { background: #111; border-bottom: 1px solid var(--border); }
         .hero { max-width: 1200px; margin: 0 auto; text-align: center; padding: 48px 24px 20px; }
         .hero-logo { max-width: 320px; margin-bottom: 18px; }
@@ -159,26 +135,11 @@
         }
 
         @media (max-width: 600px) {
-            .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
-            .breadcrumb { flex: 0 0 100%; order: 3; justify-content: flex-start; }
             .hero h1 { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body>
-    <header class="top-bar">
-        <div class="brand">
-            <a href="index.html" class="brand-link">
-                <img src="rusty_bot.png" alt="RustyBot Logo" class="logo">
-                <h1 class="brand-name">Website <span class="accent">Giveaway</span></h1>
-            </a>
-        </div>
-        <div class="breadcrumb">
-            <span class="breadcrumb-item"><a href="index.html">Home</a></span>
-            <span class="breadcrumb-item"><a href="website-giveaway">Website Giveaway</a></span>
-        </div>
-    </header>
-
     <div class="hero-wrap">
         <div class="hero">
             <img src="logo_with_badge.png" alt="RustyBot" class="hero-logo">
