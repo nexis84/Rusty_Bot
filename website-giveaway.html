@@ -307,7 +307,7 @@
 
         async function loadStatus() {
             try {
-                const res = await fetch(API + '/codes/status');
+                const res = await fetch(API + '/codes/status', { cache: 'no-store' });
                 const data = await res.json();
                 open = data.open;
                 document.querySelector('#stats .stat:nth-child(1) .num').textContent = data.open ? 'Open' : 'Closed';
