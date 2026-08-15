@@ -114,6 +114,11 @@
         .last-winner { margin-top: 16px; padding: 14px 16px; background: var(--panel-hover); border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
         .last-winner b { color: var(--accent); }
 
+        .prize-box { margin-top: 16px; text-align: center; }
+        .prize-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
+        .prize-label i { color: var(--accent); margin-right: 6px; }
+        .prize-value { font-size: 1.7rem; font-weight: 700; color: var(--accent); word-break: break-word; line-height: 1.3; }
+
         .how-list { list-style: none; }
         .how-list li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.98rem; }
         .how-list li:last-child { border-bottom: none; }
@@ -204,6 +209,10 @@
             <div class="stat-row" id="stats">
                 <div class="stat"><div class="num">-</div><div class="lbl">Status</div></div>
                 <div class="stat"><div class="num">-</div><div class="lbl">Entries</div></div>
+            </div>
+            <div class="panel prize-box" id="prizeBox">
+                <div class="prize-label"><i class="fa-solid fa-gift"></i> This Week's Prize</div>
+                <div class="prize-value" id="prizeValue">To be announced</div>
             </div>
             <div class="last-winner" id="lastWinner" style="display:none;"></div>
         </section>
@@ -298,6 +307,7 @@
                 open = data.open;
                 document.querySelector('#stats .stat:nth-child(1) .num').textContent = data.open ? 'Open' : 'Closed';
                 document.querySelector('#stats .stat:nth-child(2) .num').textContent = data.entries;
+                document.getElementById('prizeValue').textContent = data.prize || 'To be announced';
 
                 const lw = document.getElementById('lastWinner');
                 if (data.lastWinner) {
