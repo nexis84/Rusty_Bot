@@ -159,13 +159,19 @@
 
             <div class="panel" id="entryBox" style="display:none;">
                 <div class="msg" id="entryMsg"></div>
-                <p style="color:var(--dim); margin-bottom:8px;">You've logged in with EVE Online. Enter your streaming usernames so we can add them to the IGN registry.</p>
-                <label for="twitch">Twitch Username <span class="req">*</span></label>
-                <input type="text" id="twitch" placeholder="e.g. your_twitch_name">
-                <label for="kick">Kick Username <span class="req">*</span></label>
-                <input type="text" id="kick" placeholder="e.g. your_kick_name">
-                <label for="velora">Velora Username</label>
-                <input type="text" id="velora" placeholder="optional">
+                <p style="color:var(--dim); margin-bottom:8px;">You've logged in with EVE Online. Optional: enter your streaming usernames so we can add them to the IGN registry.</p>
+                <div id="accountFields">
+                    <label for="twitch">Twitch Username <span class="req">*</span></label>
+                    <input type="text" id="twitch" placeholder="e.g. your_twitch_name">
+                    <label for="kick">Kick Username <span class="req">*</span></label>
+                    <input type="text" id="kick" placeholder="e.g. your_kick_name">
+                    <label for="velora">Velora Username</label>
+                    <input type="text" id="velora" placeholder="optional">
+                </div>
+                <label style="display:flex; align-items:center; gap:8px; margin-top:18px; font-size:0.95rem; color:var(--text); cursor:pointer;">
+                    <input type="checkbox" id="noAccounts" onchange="toggleAccounts()" style="width:18px; height:18px; accent-color:#e8d900;">
+                    I don't have a Twitch, Kick or Velora account - enter with just my EVE character
+                </label>
                 <div style="margin-top:20px;">
                     <button onclick="submitEntry()"><i class="fa-solid fa-ticket"></i> Enter Draw</button>
                 </div>
@@ -181,7 +187,7 @@
             <div class="panel">
                 <ul class="how-list">
                     <li><span class="step">1</span><span class="txt"><b>Log in with EVE Online</b> to verify your character.</span></li>
-                    <li><span class="step">2</span><span class="txt"><b>Enter your Twitch and Kick usernames</b> (Velora optional) so we can register your IGN.</span></li>
+                    <li><span class="step">2</span><span class="txt"><b>Enter your Twitch and Kick usernames</b> (Velora optional) so we can register your IGN - or tick "no account" to enter with just your EVE character.</span></li>
                     <li><span class="step">3</span><span class="txt">You get <b>one entry per week</b>. A winner is drawn at the end of the week.</span></li>
                     <li><span class="step">4</span><span class="txt">If you win, the code is sent to you <b>in-game via EVE mail</b> to the character you registered with.</span></li>
                 </ul>
@@ -246,13 +252,19 @@
             el.style.display = 'block';
         }
 
+        function toggleAccounts() {
+            const noAcct = document.getElementById('noAccounts').checked;
+            document.getElementById('accountFields').style.display = noAcct ? 'none' : 'block';
+        }
+
         async function submitEntry() {
+            const noAcct = document.getElementById('noAccounts').checked;
             const twitch = document.getElementById('twitch').value.trim();
             const kick = document.getElementById('kick').value.trim();
             const velora = document.getElementById('velora').value.trim();
 
-            if (!twitch || !kick) {
-                showEntryMsg('Twitch and Kick usernames are required.', false);
+            if (!noAcct && (!twitch || !kick)) {
+                showEntryMsg('Twitch and Kick usernames are required, or tick the "no account" box.', false);
                 return;
             }
             if (!code) {
@@ -266,7 +278,7 @@
                 const res = await fetch(API + '/codes/enter', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, twitch, kick, velora })
+                    body: JSON.stringify({ code, twitch, kick, velora, noAccounts: noAcct })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Entry failed');
