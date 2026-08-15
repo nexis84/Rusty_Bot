@@ -161,10 +161,10 @@
                 <div class="msg" id="entryMsg"></div>
                 <p style="color:var(--dim); margin-bottom:8px;">You've logged in with EVE Online. Optional: enter your streaming usernames so we can add them to the IGN registry.</p>
                 <div id="accountFields">
-                    <label for="twitch">Twitch Username <span class="req">*</span></label>
-                    <input type="text" id="twitch" placeholder="e.g. your_twitch_name">
-                    <label for="kick">Kick Username <span class="req">*</span></label>
-                    <input type="text" id="kick" placeholder="e.g. your_kick_name">
+                    <label for="twitch">Twitch Username</label>
+                    <input type="text" id="twitch" placeholder="optional - e.g. your_twitch_name">
+                    <label for="kick">Kick Username</label>
+                    <input type="text" id="kick" placeholder="optional - e.g. your_kick_name">
                     <label for="velora">Velora Username</label>
                     <input type="text" id="velora" placeholder="optional">
                 </div>
@@ -187,7 +187,7 @@
             <div class="panel">
                 <ul class="how-list">
                     <li><span class="step">1</span><span class="txt"><b>Log in with EVE Online</b> to verify your character.</span></li>
-                    <li><span class="step">2</span><span class="txt"><b>Enter your Twitch and Kick usernames</b> (Velora optional) so we can register your IGN - Twitch names are verified against eve2twitch, and Kick/Velora are added even if you're not on Twitch. Or tick "no account" to enter with just your EVE character.</span></li>
+                    <li><span class="step">2</span><span class="txt"><b>Optionally add your Twitch, Kick or Velora usernames</b> so we can register your IGN - Twitch names are verified against eve2twitch. Not on any of them? Tick "no account" or just leave the fields blank.</span></li>
                     <li><span class="step">3</span><span class="txt">You get <b>one entry per week</b>. A winner is drawn at the end of the week.</span></li>
                     <li><span class="step">4</span><span class="txt">If you win, the code is sent to you <b>in-game via EVE mail</b> to the character you registered with.</span></li>
                 </ul>
@@ -263,10 +263,6 @@
             const kick = document.getElementById('kick').value.trim();
             const velora = document.getElementById('velora').value.trim();
 
-            if (!noAcct && (!twitch || !kick)) {
-                showEntryMsg('Twitch and Kick usernames are required, or tick the "no account" box.', false);
-                return;
-            }
             if (!code) {
                 showEntryMsg('Login session expired - please log in with EVE Online again.', false);
                 return;
