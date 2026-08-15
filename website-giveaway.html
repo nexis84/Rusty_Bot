@@ -187,7 +187,7 @@
             <div class="panel">
                 <ul class="how-list">
                     <li><span class="step">1</span><span class="txt"><b>Log in with EVE Online</b> to verify your character.</span></li>
-                    <li><span class="step">2</span><span class="txt"><b>Enter your Twitch and Kick usernames</b> (Velora optional) so we can register your IGN - or tick "no account" to enter with just your EVE character.</span></li>
+                    <li><span class="step">2</span><span class="txt"><b>Enter your Twitch and Kick usernames</b> (Velora optional) so we can register your IGN - Twitch names are verified against eve2twitch, and Kick/Velora are added even if you're not on Twitch. Or tick "no account" to enter with just your EVE character.</span></li>
                     <li><span class="step">3</span><span class="txt">You get <b>one entry per week</b>. A winner is drawn at the end of the week.</span></li>
                     <li><span class="step">4</span><span class="txt">If you win, the code is sent to you <b>in-game via EVE mail</b> to the character you registered with.</span></li>
                 </ul>
@@ -282,7 +282,10 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Entry failed');
-                showEntryMsg('You\u2019re in as ' + data.character_name + ' - one entry this week. Good luck!', true);
+                let verif = '';
+                if (data.verified_twitch) verif = ' Usernames verified.';
+                else if (data.verification_note) verif = ' You\u2019re still entered, but we couldn\u2019t verify your usernames (' + data.verification_note + ').';
+                showEntryMsg('You\u2019re in as ' + data.character_name + ' - one entry this week. Good luck!' + verif, true);
                 document.getElementById('twitch').disabled = true;
                 document.getElementById('kick').disabled = true;
                 document.getElementById('velora').disabled = true;
