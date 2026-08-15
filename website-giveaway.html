@@ -402,8 +402,7 @@
                 if (window.history && window.history.replaceState) {
                     window.history.replaceState({}, '', window.location.pathname);
                 }
-loadStatus();
-        setInterval(loadStatus, 10000);
+                loadStatus();
             } catch (e) {
                 showEntryMsg('Error: ' + e.message, false);
             } finally {
@@ -425,6 +424,7 @@ loadStatus();
         }
 
         loadStatus();
+        setInterval(loadStatus, 10000);
     </script>
 </body>
 </html>
