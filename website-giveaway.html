@@ -347,7 +347,13 @@
 
         function toggleAccounts() {
             const noAcct = document.getElementById('noAccounts').checked;
-            document.getElementById('accountFields').style.display = noAcct ? 'none' : 'block';
+            const fields = document.getElementById('accountFields');
+            fields.style.display = noAcct ? 'none' : 'block';
+            if (noAcct) {
+                document.getElementById('twitch').value = '';
+                document.getElementById('kick').value = '';
+                document.getElementById('velora').value = '';
+            }
         }
 
         async function submitEntry(btn) {
@@ -375,6 +381,9 @@
                 else if (data.verification_note) verif = ' You\u2019re still entered, but we couldn\u2019t verify your usernames (' + data.verification_note + ').';
                 showEntryMsg('You\u2019re in as ' + data.character_name + ' - one entry this week. Good luck!' + verif, true);
                 document.getElementById('entryForm').style.display = 'none';
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, '', window.location.pathname);
+                }
                 loadStatus();
             } catch (e) {
                 showEntryMsg('Error: ' + e.message, false);
