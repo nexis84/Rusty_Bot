@@ -153,7 +153,7 @@
 
             <div class="panel" id="loginBox" style="text-align:center;">
                 <p style="color:var(--dim); margin-bottom:16px;">Sign in with EVE Online account you registered with eve2twitch to verify your character. You get one entry per week.</p>
-                <button onclick="startLogin()"><i class="fa-brands fa-steam"></i> Login with EVE Online</button>
+                <button onclick="startLogin()"><i class="fa-solid fa-rocket"></i> Login with EVE Online</button>
             </div>
 
             <div class="panel" id="entryBox" style="display:none;">
@@ -173,7 +173,7 @@
                         I don't have a Twitch, Kick or Velora account - enter with just my EVE character
                     </label>
                     <div style="margin-top:20px;">
-                        <button onclick="submitEntry()"><i class="fa-solid fa-ticket"></i> Enter Draw</button>
+                        <button onclick="submitEntry(this)"><i class="fa-solid fa-ticket"></i> Enter Draw</button>
                     </div>
                 </div>
             </div>
@@ -221,14 +221,16 @@
                 const lw = document.getElementById('lastWinner');
                 if (data.lastWinner) {
                     lw.style.display = 'block';
-                    lw.innerHTML = 'Last week\u2019s winner: <b>' + esc(data.lastWinner.character_name) + '</b>';
+                    lw.innerHTML = 'Latest winner: <b>' + esc(data.lastWinner.character_name) + '</b>';
                 } else {
                     lw.style.display = 'none';
                 }
 
                 if (!data.open && !code) {
                     document.getElementById('loginBox').querySelector('button').disabled = true;
-                    showEntryMsg('This week\u2019s draw is closed - check back next week.', true);
+                    const p = document.querySelector('#loginBox p');
+                    p.textContent = 'This week\u2019s draw is closed - check back next week.';
+                    p.style.color = 'var(--accent)';
                 }
             } catch (e) {
                 console.error('status error', e);
@@ -257,7 +259,7 @@
             document.getElementById('accountFields').style.display = noAcct ? 'none' : 'block';
         }
 
-        async function submitEntry() {
+        async function submitEntry(btn) {
             const noAcct = document.getElementById('noAccounts').checked;
             const twitch = document.getElementById('twitch').value.trim();
             const kick = document.getElementById('kick').value.trim();
@@ -268,7 +270,6 @@
                 return;
             }
 
-            const btn = event.target;
             btn.disabled = true;
             try {
                 const res = await fetch(API + '/codes/enter', {
