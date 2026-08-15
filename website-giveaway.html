@@ -138,7 +138,6 @@
                 <span class="line"></span>
             </div>
             <div class="stat-row" id="stats">
-                <div class="stat"><div class="num">-</div><div class="lbl">Week</div></div>
                 <div class="stat"><div class="num">-</div><div class="lbl">Status</div></div>
                 <div class="stat"><div class="num">-</div><div class="lbl">Entries</div></div>
             </div>
@@ -216,14 +215,13 @@
                 const res = await fetch(API + '/codes/status');
                 const data = await res.json();
                 open = data.open;
-                document.querySelector('#stats .stat:nth-child(1) .num').textContent = data.week;
-                document.querySelector('#stats .stat:nth-child(2) .num').textContent = data.open ? 'Open' : 'Closed';
-                document.querySelector('#stats .stat:nth-child(3) .num').textContent = data.entries;
+                document.querySelector('#stats .stat:nth-child(1) .num').textContent = data.open ? 'Open' : 'Closed';
+                document.querySelector('#stats .stat:nth-child(2) .num').textContent = data.entries;
 
                 const lw = document.getElementById('lastWinner');
                 if (data.lastWinner) {
                     lw.style.display = 'block';
-                    lw.innerHTML = 'Last week\u2019s winner: <b>' + esc(data.lastWinner.character_name) + '</b> (Week ' + data.lastWinner.week + ')';
+                    lw.innerHTML = 'Last week\u2019s winner: <b>' + esc(data.lastWinner.character_name) + '</b>';
                 } else {
                     lw.style.display = 'none';
                 }
