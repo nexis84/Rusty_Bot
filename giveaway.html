@@ -59,15 +59,31 @@
 
         .back-link:hover { color: var(--accent); }
 
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .brand { flex-shrink: 0; }
+        .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .brand-link .logo { width: 40px; height: 40px; object-fit: contain; margin: 0; filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35)); }
+        .brand-link h1 { font-size: 20px; margin: 0; font-weight: 700; color: var(--text); letter-spacing: 0.5px; white-space: nowrap; }
+        .brand-link h1 .accent { color: var(--accent); }
+
         .breadcrumb {
-            position: absolute;
-            top: 20px;
-            left: 24px;
+            flex: 1;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.9rem;
-            z-index: 2;
+            font-size: 14px;
         }
 
         .breadcrumb-item {
@@ -296,6 +312,8 @@
         }
 
         @media (max-width: 600px) {
+            .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+            .breadcrumb { flex: 0 0 100%; order: 3; justify-content: flex-start; }
             header h1 { font-size: 2rem; }
             .feat-grid .feat { flex: 0 1 100%; }
             .back-link { position: static; display: block; text-align: center; margin-bottom: 0; }
@@ -305,12 +323,20 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <header class="top-bar">
+        <div class="brand">
+            <a href="./" class="brand-link">
+                <img src="rusty_bot.png" alt="RustyBot Logo" class="logo">
+                <h1 class="brand-name">Rustybot <span class="accent">Client</span></h1>
+            </a>
+        </div>
         <div class="breadcrumb">
             <span class="breadcrumb-item"><a href="./">Home</a></span>
-            <span class="breadcrumb-item"><a href="">Rustybot Client</a></span>
+            <span class="breadcrumb-item"><a href="giveaway">Rustybot Client</a></span>
         </div>
+    </header>
 
+    <div class="container">
         <header>
             <img src="rusty_bot.png" alt="RustyBot Giveaway Logo" class="logo">
             <h1><span>Rustybot Client</span></h1>
