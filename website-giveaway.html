@@ -300,6 +300,8 @@
         const err = params.get('error');
 
         let open = true;
+        let wasClosed = false;
+        const loginHint = 'Sign in with EVE Online account you registered with eve2twitch to verify your character. You get one entry per week.';
 
         async function loadStatus() {
             try {
@@ -319,10 +321,23 @@
                 }
 
                 if (!data.open && !code) {
-                    document.getElementById('loginBox').querySelector('button').disabled = true;
+                    const btn = document.getElementById('loginBox').querySelector('button');
                     const p = document.querySelector('#loginBox p');
-                    p.textContent = 'This week\u2019s draw is closed - check back next week.';
-                    p.style.color = 'var(--accent)';
+                    btn.disabled = true;
+                    if (!wasClosed) {
+                        p.textContent = 'This week\u2019s draw is closed - check back next week.';
+                        p.style.color = 'var(--accent)';
+                    }
+                    wasClosed = true;
+                } else {
+                    const btn = document.getElementById('loginBox').querySelector('button');
+                    const p = document.querySelector('#loginBox p');
+                    btn.disabled = false;
+                    if (wasClosed) {
+                        p.textContent = loginHint;
+                        p.style.color = 'var(--dim)';
+                    }
+                    wasClosed = false;
                 }
             } catch (e) {
                 console.error('status error', e);
@@ -385,7 +400,8 @@
                 if (window.history && window.history.replaceState) {
                     window.history.replaceState({}, '', window.location.pathname);
                 }
-                loadStatus();
+loadStatus();
+        setInterval(loadStatus, 10000);
             } catch (e) {
                 showEntryMsg('Error: ' + e.message, false);
             } finally {
