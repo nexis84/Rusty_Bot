@@ -303,13 +303,20 @@
 
         let open = true;
         let wasClosed = false;
+        let lastOpen = null;
         const loginHint = 'Sign in with EVE Online account you registered with eve2twitch to verify your character. You get one entry per week.';
 
         async function loadStatus() {
             try {
-                const res = await fetch(API + '/codes/status', { cache: 'no-store' });
+                const res = await fetch(API + '/codes/status?t=' + Date.now(), { cache: 'no-store' });
                 const data = await res.json();
                 open = data.open;
+
+                if (lastOpen !== null && data.open !== lastOpen) {
+                    window.location.reload();
+                    return;
+                }
+                lastOpen = data.open;
                 document.querySelector('#stats .stat:nth-child(1) .num').textContent = data.open ? 'Open' : 'Closed';
                 document.querySelector('#stats .stat:nth-child(2) .num').textContent = data.entries;
                 document.getElementById('prizeValue').textContent = data.prize || 'To be announced';
@@ -425,6 +432,9 @@
 
         loadStatus();
         setInterval(loadStatus, 10000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) loadStatus();
+        });
     </script>
 </body>
 </html>
