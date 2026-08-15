@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Code Giveaway - RustyBot</title>
+    <link rel="stylesheet" href="Style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="rusty_bot.png">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --panel: #1a1a1a;
+            --panel-hover: #222;
+            --border: #2a2a2a;
+            --text: #ddd;
+            --dim: #888;
+            --accent: #e8d900;
+            --accent-dim: rgba(232, 217, 0, 0.25);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Titillium Web', sans-serif;
+            line-height: 1.6;
+        }
+
+        .hero-wrap { background: #111; border-bottom: 1px solid var(--border); }
+        .hero { max-width: 1200px; margin: 0 auto; text-align: center; padding: 48px 24px 20px; }
+        .hero-logo { max-width: 140px; margin-bottom: 18px; }
+        .hero h1 { font-size: 3rem; font-weight: 700; color: #fff; }
+        .hero h1 span { color: var(--accent); }
+        .hero p { font-size: 1.1rem; color: var(--dim); margin-top: 4px; }
+        .hero-rule { width: 60px; height: 2px; background: var(--accent); margin: 18px auto 0; }
+
+        .nav-wrap {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(13, 13, 13, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+        }
+        .quick-nav { max-width: 1200px; margin: 0 auto; display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; padding: 12px 24px; }
+        .quick-nav a { color: var(--dim); text-decoration: none; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 5px 14px; border-radius: 3px; transition: color 0.2s, background 0.2s; }
+        .quick-nav a:hover { color: var(--accent); background: var(--accent-dim); }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        .section { padding: 36px 0; }
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .section-header h2 { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); white-space: nowrap; }
+        .section-header .line { flex: 1; height: 1px; background: var(--border); }
+        .section-header i { color: var(--accent); font-size: 0.85rem; }
+
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 24px; }
+
+        .stat-row { display: flex; flex-wrap: wrap; gap: 12px; }
+        .stat { flex: 1 1 180px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 18px; text-align: center; }
+        .stat .num { font-size: 2rem; font-weight: 700; color: var(--accent); }
+        .stat .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); }
+
+        label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; margin-top: 16px; }
+        label .req { color: var(--accent); }
+        input[type="text"] {
+            width: 100%; padding: 12px 14px;
+            background: var(--bg); color: var(--text);
+            border: 1px solid var(--border); border-radius: 4px;
+            font-family: inherit; font-size: 1rem;
+        }
+        input:focus { outline: none; border-color: var(--accent); }
+
+        button, .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background: var(--accent); color: #0d0d0d;
+            border: none; border-radius: 4px;
+            padding: 12px 22px; font-family: inherit; font-size: 1rem; font-weight: 700;
+            cursor: pointer; text-decoration: none;
+            transition: transform 0.15s, background 0.15s;
+        }
+        button:hover, .btn:hover { background: #f5e53b; transform: translateY(-1px); }
+        button:disabled { background: var(--border); color: var(--dim); cursor: not-allowed; transform: none; }
+
+        .msg { padding: 12px 16px; border-radius: 4px; margin-top: 16px; font-size: 0.92rem; display: none; }
+        .msg.ok { background: rgba(81, 207, 102, 0.12); border: 1px solid rgba(81, 207, 102, 0.4); color: #51cf66; }
+        .msg.err { background: rgba(255, 107, 107, 0.12); border: 1px solid rgba(255, 107, 107, 0.4); color: #ff6b6b; }
+
+        .last-winner { margin-top: 16px; padding: 14px 16px; background: var(--panel-hover); border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; }
+        .last-winner b { color: var(--accent); }
+
+        .how-list { list-style: none; }
+        .how-list li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.98rem; }
+        .how-list li:last-child { border-bottom: none; }
+        .how-list .step { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #0d0d0d; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .how-list .txt b { color: #eee; }
+
+        footer { text-align: center; padding: 24px; margin-top: 24px; border-top: 1px solid var(--border); color: #777; font-size: 0.85rem; }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        .contact-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 1.5rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .contact-card { background-color: var(--primary-color); border: 1px solid var(--secondary-color); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .contact-card-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600; }
+        .contact-card-value { font-size: 1rem; color: var(--text); font-weight: 700; }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-wrap">
+        <div class="hero">
+            <img src="rusty_bot.png" alt="RustyBot" class="hero-logo">
+            <h1>Weekly Code <span>Giveaway</span></h1>
+            <p>Log in with your EVE character and enter to win this week's prize.</p>
+            <div class="hero-rule"></div>
+        </div>
+    </div>
+
+    <div class="nav-wrap">
+        <nav class="quick-nav">
+            <a href="#status">This Week</a>
+            <a href="#enter">Enter</a>
+            <a href="#how">How It Works</a>
+            <a href="index.html">Back to RustyBot</a>
+        </nav>
+    </div>
+
+    <div class="container">
+
+        <section class="section" id="status">
+            <div class="section-header">
+                <i class="fa-solid fa-calendar-week"></i>
+                <h2>This Week</h2>
+                <span class="line"></span>
+            </div>
+            <div class="stat-row" id="stats">
+                <div class="stat"><div class="num">-</div><div class="lbl">Week</div></div>
+                <div class="stat"><div class="num">-</div><div class="lbl">Status</div></div>
+                <div class="stat"><div class="num">-</div><div class="lbl">Entries</div></div>
+            </div>
+            <div class="last-winner" id="lastWinner" style="display:none;"></div>
+        </section>
+
+        <section class="section" id="enter">
+            <div class="section-header">
+                <i class="fa-solid fa-gift"></i>
+                <h2>Enter the Draw</h2>
+                <span class="line"></span>
+            </div>
+
+            <div class="panel" id="loginBox">
+                <p style="color:var(--dim); margin-bottom:16px;">Sign in with EVE Online to verify your character. You get one entry per week.</p>
+                <button onclick="startLogin()"><i class="fa-brands fa-steam"></i> Login with EVE Online</button>
+            </div>
+
+            <div class="panel" id="entryBox" style="display:none;">
+                <div class="msg" id="entryMsg"></div>
+                <p style="color:var(--dim); margin-bottom:8px;">You've logged in with EVE Online. Enter your streaming usernames so we can add them to the IGN registry.</p>
+                <label for="twitch">Twitch Username <span class="req">*</span></label>
+                <input type="text" id="twitch" placeholder="e.g. your_twitch_name">
+                <label for="kick">Kick Username <span class="req">*</span></label>
+                <input type="text" id="kick" placeholder="e.g. your_kick_name">
+                <label for="velora">Velora Username</label>
+                <input type="text" id="velora" placeholder="optional">
+                <div style="margin-top:20px;">
+                    <button onclick="submitEntry()"><i class="fa-solid fa-ticket"></i> Enter Draw</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="how">
+            <div class="section-header">
+                <i class="fa-solid fa-circle-info"></i>
+                <h2>How It Works</h2>
+                <span class="line"></span>
+            </div>
+            <div class="panel">
+                <ul class="how-list">
+                    <li><span class="step">1</span><span class="txt"><b>Log in with EVE Online</b> to verify your character.</span></li>
+                    <li><span class="step">2</span><span class="txt"><b>Enter your Twitch and Kick usernames</b> (Velora optional) so we can register your IGN.</span></li>
+                    <li><span class="step">3</span><span class="txt">You get <b>one entry per week</b>. A winner is drawn at the end of the week.</span></li>
+                    <li><span class="step">4</span><span class="txt">If you win, the code is sent to you <b>in-game via EVE mail</b> to the character you registered with.</span></li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.
+    </footer>
+
+    <script>
+        const API = 'https://api.rustybot.co.uk/api';
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const state = params.get('state');
+        const err = params.get('error');
+
+        let open = true;
+
+        async function loadStatus() {
+            try {
+                const res = await fetch(API + '/codes/status');
+                const data = await res.json();
+                open = data.open;
+                document.querySelector('#stats .stat:nth-child(1) .num').textContent = data.week;
+                document.querySelector('#stats .stat:nth-child(2) .num').textContent = data.open ? 'Open' : 'Closed';
+                document.querySelector('#stats .stat:nth-child(3) .num').textContent = data.entries;
+
+                const lw = document.getElementById('lastWinner');
+                if (data.lastWinner) {
+                    lw.style.display = 'block';
+                    lw.innerHTML = 'Last week\u2019s winner: <b>' + esc(data.lastWinner.character_name) + '</b> (Week ' + data.lastWinner.week + ')';
+                } else {
+                    lw.style.display = 'none';
+                }
+
+                if (!data.open && !code) {
+                    document.getElementById('loginBox').querySelector('button').disabled = true;
+                    showEntryMsg('This week\u2019s draw is closed - check back next week.', true);
+                }
+            } catch (e) {
+                console.error('status error', e);
+            }
+        }
+
+        async function startLogin() {
+            try {
+                const res = await fetch(API + '/auth/eve/login?redirect=codes');
+                const data = await res.json();
+                window.location.href = data.url;
+            } catch (e) {
+                showEntryMsg('Could not start login: ' + e.message, false);
+            }
+        }
+
+        function showEntryMsg(text, ok) {
+            const el = document.getElementById('entryMsg');
+            el.textContent = text;
+            el.className = 'msg ' + (ok ? 'ok' : 'err');
+            el.style.display = 'block';
+        }
+
+        async function submitEntry() {
+            const twitch = document.getElementById('twitch').value.trim();
+            const kick = document.getElementById('kick').value.trim();
+            const velora = document.getElementById('velora').value.trim();
+
+            if (!twitch || !kick) {
+                showEntryMsg('Twitch and Kick usernames are required.', false);
+                return;
+            }
+            if (!code) {
+                showEntryMsg('Login session expired - please log in with EVE Online again.', false);
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            try {
+                const res = await fetch(API + '/codes/enter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, twitch, kick, velora })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Entry failed');
+                showEntryMsg('You\u2019re in as <b>' + esc(data.character_name) + '</b> - one entry this week. Good luck!', true);
+                document.getElementById('twitch').disabled = true;
+                document.getElementById('kick').disabled = true;
+                document.getElementById('velora').disabled = true;
+                loadStatus();
+            } catch (e) {
+                showEntryMsg('Error: ' + e.message, false);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function esc(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        if (err) {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('entryBox').style.display = 'block';
+            showEntryMsg('EVE SSO error: ' + err, false);
+        } else if (code && state) {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('entryBox').style.display = 'block';
+        }
+
+        loadStatus();
+    </script>
+</body>
+</html>
