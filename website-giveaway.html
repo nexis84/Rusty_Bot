@@ -159,21 +159,23 @@
 
             <div class="panel" id="entryBox" style="display:none;">
                 <div class="msg" id="entryMsg"></div>
-                <p style="color:var(--dim); margin-bottom:8px;">You've logged in with EVE Online. Optional: enter your streaming usernames so we can add them to the IGN registry.</p>
-                <div id="accountFields">
-                    <label for="twitch">Twitch Username</label>
-                    <input type="text" id="twitch" placeholder="optional - e.g. your_twitch_name">
-                    <label for="kick">Kick Username</label>
-                    <input type="text" id="kick" placeholder="optional - e.g. your_kick_name">
-                    <label for="velora">Velora Username</label>
-                    <input type="text" id="velora" placeholder="optional">
-                </div>
-                <label style="display:flex; align-items:center; gap:8px; margin-top:18px; font-size:0.95rem; color:var(--text); cursor:pointer;">
-                    <input type="checkbox" id="noAccounts" onchange="toggleAccounts()" style="width:18px; height:18px; accent-color:#e8d900;">
-                    I don't have a Twitch, Kick or Velora account - enter with just my EVE character
-                </label>
-                <div style="margin-top:20px;">
-                    <button onclick="submitEntry()"><i class="fa-solid fa-ticket"></i> Enter Draw</button>
+                <div id="entryForm">
+                    <p style="color:var(--dim); margin-bottom:8px;">You've logged in with EVE Online. Optional: enter your streaming usernames so we can add them to the IGN registry.</p>
+                    <div id="accountFields">
+                        <label for="twitch">Twitch Username</label>
+                        <input type="text" id="twitch" placeholder="optional - e.g. your_twitch_name">
+                        <label for="kick">Kick Username</label>
+                        <input type="text" id="kick" placeholder="optional - e.g. your_kick_name">
+                        <label for="velora">Velora Username</label>
+                        <input type="text" id="velora" placeholder="optional">
+                    </div>
+                    <label style="display:flex; align-items:center; gap:8px; margin-top:18px; font-size:0.95rem; color:var(--text); cursor:pointer;">
+                        <input type="checkbox" id="noAccounts" onchange="toggleAccounts()" style="width:18px; height:18px; accent-color:#e8d900;">
+                        I don't have a Twitch, Kick or Velora account - enter with just my EVE character
+                    </label>
+                    <div style="margin-top:20px;">
+                        <button onclick="submitEntry()"><i class="fa-solid fa-ticket"></i> Enter Draw</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -282,9 +284,7 @@
                 if (data.verified_twitch) verif = ' Usernames verified.';
                 else if (data.verification_note) verif = ' You\u2019re still entered, but we couldn\u2019t verify your usernames (' + data.verification_note + ').';
                 showEntryMsg('You\u2019re in as ' + data.character_name + ' - one entry this week. Good luck!' + verif, true);
-                document.getElementById('twitch').disabled = true;
-                document.getElementById('kick').disabled = true;
-                document.getElementById('velora').disabled = true;
+                document.getElementById('entryForm').style.display = 'none';
                 loadStatus();
             } catch (e) {
                 showEntryMsg('Error: ' + e.message, false);
