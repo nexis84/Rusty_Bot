@@ -276,128 +276,88 @@
             transform: translateY(-2px);
         }
 
-        .poster-wrap {
-            text-align: center;
-            padding: 8px 0 32px;
+        #awards {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
         }
 
-        .poster-wrap .awards-row {
+        #awards .section-header {
+            justify-content: flex-start;
+        }
+
+        #awards .section-header .line {
+            display: block;
+        }
+
+        #awards .section-sub {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .awards-badges {
             display: flex;
             justify-content: center;
-            align-items: stretch;
-            gap: 40px;
+            align-items: flex-start;
+            gap: 2.5rem;
             flex-wrap: wrap;
         }
 
-        .poster-wrap .award-item {
+        .awards-badges .award-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 220px;
-        }
-
-        .poster-wrap .award-item img {
-            margin-top: auto;
-        }
-
-        .poster-wrap .award-badge {
-            color: var(--accent);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85rem;
-            height: 3.2em;
-            display: flex;
-            align-items: flex-start;
             justify-content: center;
-            margin-top: 0;
-            margin-bottom: 24px;
-            line-height: 1.3;
+            gap: 16px;
+            width: 260px;
         }
 
-        .poster-wrap .partner-text {
-            box-sizing: border-box;
-            color: var(--accent);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .awards-badges .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fff;
             font-size: 0.85rem;
-            height: 3.2em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .awards-badges .badge i {
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .awards-badges .left-award-asset,
+        .awards-badges .right-award-asset {
             display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            margin-top: 0;
-            margin-bottom: 24px;
-            line-height: 1.3;
-            padding-bottom: 0;
-        }
-
-        .poster-wrap img {
-            max-width: 220px;
-            width: 100%;
-            height: auto;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            transition: border-color 0.3s;
-        }
-
-        .poster-wrap img:hover {
-            border-color: var(--accent-dim);
-        }
-
-        .poster-wrap p {
-            margin-top: 12px;
-            font-size: 0.95rem;
-            color: var(--dim);
-        }
-
-        .poster-thanks {
-            text-align: center;
-            font-size: 0.95rem;
-            color: var(--dim);
-            margin-top: 12px;
-            padding: 28px 0 0;
-        }
-
-        .awards-divider {
-            width: 100%;
-            height: 1px;
-            background: var(--border);
-            margin: 24px auto 0;
-        }
-
-        .poster-wrap .partner-badge {
-            max-width: 220px;
-            border: none;
-        }
-
-        .poster-wrap .poster-thumb {
-            max-width: 140px;
-            cursor: zoom-in;
-        }
-
-        .lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: rgba(0, 0, 0, 0.9);
             align-items: center;
             justify-content: center;
-            cursor: zoom-out;
+            overflow: hidden;
+            width: 220px;
+            height: 220px;
         }
 
-        .lightbox.open {
-            display: flex;
+        .awards-badges .award-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
-        .lightbox img {
-            max-width: 90vw;
-            max-height: 90vh;
-            width: auto;
-            height: auto;
-            border-radius: 6px;
-            border: 1px solid var(--border);
+        .awards-thanks {
+            text-align: center;
+            padding: 24px 0 8px;
+        }
+
+        .awards-thanks .thanks-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #eee;
+        }
+
+        .awards-thanks .thanks-sub {
+            font-size: 0.95rem;
+            color: var(--dim);
+            margin-top: 4px;
         }
 
         .back-top {
@@ -683,29 +643,29 @@
         <section class="section" id="awards">
             <div class="section-header">
                 <i class="fa-solid fa-award"></i>
-                <h2>Awards</h2>
+                <h2>Awards &amp; Recognition</h2>
                 <span class="line"></span>
             </div>
             <p class="section-sub">Recognition RustyBot has received</p>
-            <div class="poster-wrap">
-                <div class="awards-row">
-                    <div class="award-item">
-                        <p class="partner-text">EVE Online Partner</p>
-                        <img class="partner-badge" src="logo_with_badge.png" alt="EVE Online Partner badge">
+            <div class="awards-badges">
+                <div class="award-item">
+                    <span class="badge"><i class="fa-solid fa-star"></i> EVE Online Partner</span>
+                    <div class="left-award-asset">
+                        <img class="award-img" src="logo_with_badge.png" alt="EVE Online Partner badge">
                     </div>
-                    <div class="award-item">
-                        <div class="award-badge">Creator Awards Finalist 2026</div>
-                        <img class="poster-thumb" src="Poster%20Newdev.png" alt="Thanks for your support">
+                </div>
+                <div class="award-item">
+                    <span class="badge"><i class="fa-solid fa-trophy"></i> Creator Awards Finalist 2026</span>
+                    <div class="right-award-asset">
+                        <img class="award-img" src="Poster%20Newdev.png" alt="Creator Awards Finalist 2026">
                     </div>
                 </div>
             </div>
-            <div class="awards-divider"></div>
-            <p class="poster-thanks">Thanks for all your ongoing support</p>
+            <div class="awards-thanks">
+                <p class="thanks-title">Thanks for your support</p>
+                <p class="thanks-sub">Thanks for all your ongoing support</p>
+            </div>
         </section>
-
-        <div class="lightbox" id="lightbox">
-            <img src="Poster%20Newdev.png" alt="Creator Awards Finalist 2026">
-        </div>
 
         <footer>
             <div class="social-links">
@@ -723,14 +683,6 @@
         const backBtn = document.getElementById('backTop');
         window.addEventListener('scroll', () => {
             backBtn.classList.toggle('visible', window.scrollY > 400);
-        });
-
-        const lightbox = document.getElementById('lightbox');
-        document.querySelector('.poster-thumb').addEventListener('click', () => {
-            lightbox.classList.add('open');
-        });
-        lightbox.addEventListener('click', () => {
-            lightbox.classList.remove('open');
         });
     </script>
 </body>
