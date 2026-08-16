@@ -158,40 +158,89 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 20px 18px;
+            padding: 14px 12px;
             text-decoration: none;
             color: inherit;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 4px;
-            transition: background 0.15s, border-color 0.2s;
+            gap: 2px;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.15s;
         }
 
         .card-grid .card:hover {
             background: var(--panel-hover);
-            border-color: var(--accent-dim);
+            border-color: #ffd700;
+            transform: translateY(-4px);
         }
 
         .card-grid .card-icon {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             color: var(--dim);
-            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
             transition: color 0.15s;
         }
 
         .card-grid .card:hover .card-icon { color: var(--accent); }
 
         .card-grid .card h3 {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #eee;
+            margin: 0.4rem 0 0;
         }
 
         .card-grid .card p {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--dim);
+            opacity: 0.8;
+        }
+
+        .card-grid .card-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            border: 1px solid var(--accent-dim);
+            border-radius: 6px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+
+        .card-grid .card:hover .card-cta {
+            color: #111;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        #giveaway .card {
+            flex: 0 1 300px;
+            padding: 1rem 0.9rem;
+        }
+
+        #tools .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        #tools .card-grid .card {
+            flex: none;
+            width: 100%;
+            padding: 1rem 0.9rem;
         }
 
         .card-grid .card.card-soon {
@@ -244,19 +293,81 @@
             line-height: 1.4;
         }
 
-        .support-box {
+        .support-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 0.75rem;
+            max-width: 500px;
+            margin: 0 auto;
             text-align: center;
-            padding: 24px 0;
+            transition: background 0.15s, border-color 0.2s;
         }
 
-        .support-box p { color: var(--dim); font-size: 0.95rem; margin-bottom: 4px; }
-        .support-box .highlight { color: var(--accent); font-weight: 700; }
+        .support-card:hover {
+            background: var(--panel-hover);
+            border-color: var(--accent-dim);
+        }
+
+        .support-card-icon {
+            font-size: 1.5rem;
+            width: 32px;
+            height: 32px;
+            color: #ffd700;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .support-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #eee;
+            margin-bottom: 6px;
+        }
+
+        .support-card-desc {
+            font-size: 0.875rem;
+            color: var(--dim);
+            max-width: 360px;
+            margin: 0 auto 20px;
+        }
+
+        .support-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .ko-fi-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .ko-fi-wrap .kofi-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Titillium Web', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 8px 18px;
+            border-radius: 6px;
+            transition: transform 0.15s;
+        }
+
+        .ko-fi-wrap .kofi-button:hover {
+            transform: translateY(-2px);
+        }
 
         .support-wall-link {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
-            margin-top: 8px;
             color: var(--accent);
             text-decoration: none;
             font-size: 0.8rem;
@@ -463,11 +574,13 @@
                     <div class="card-icon"><i class="fa-brands fa-twitch"></i></div>
                     <h3>RustyBot Client</h3>
                     <p>For Twitch and Kick Streamers</p>
+                    <span class="card-cta">Use RustyBot</span>
                 </a>
                 <a href="discord" class="card">
                     <div class="card-icon"><i class="fa-brands fa-discord"></i></div>
                     <h3>Discord Bot</h3>
                     <p>For Discord Communities</p>
+                    <span class="card-cta">Use RustyBot</span>
                 </a>
             </div>
         </section>
@@ -484,31 +597,37 @@
                     <div class="card-icon"><i class="fa-solid fa-cubes"></i></div>
                     <h3>BPC Calculator</h3>
                     <p>Manufacturing Profits</p>
+                    <span class="card-cta">Open Tool</span>
                 </a>
                 <a href="gatecheck/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-shield"></i></div>
                     <h3>Gate Check</h3>
                     <p>Route Safety Scanner</p>
+                    <span class="card-cta">Open Tool</span>
                 </a>
                 <a href="market/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-chart-simple"></i></div>
                     <h3>Market Check</h3>
                     <p>Live Market Data</p>
+                    <span class="card-cta">Open Tool</span>
                 </a>
                 <a href="appraisal/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-coins"></i></div>
                     <h3>RustyAppraisal</h3>
                     <p>Paste items, get prices</p>
+                    <span class="card-cta">Open Tool</span>
                 </a>
                 <a href="guides/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-book"></i></div>
                     <h3>Missions & Anomalies</h3>
                     <p>Guides and info</p>
+                    <span class="card-cta">Open Tool</span>
                 </a>
                 <a href="skin-gallery/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-palette"></i></div>
                     <h3>SKINR Gallery</h3>
                     <p>Share your custom skins</p>
+                    <span class="card-cta">Open Tool</span>
                 </a>
                 </div>
         </section>
@@ -525,16 +644,19 @@
                     <div class="card-icon"><i class="fa-solid fa-ship"></i></div>
                     <h3>Classified Hulls</h3>
                     <p>Ship Guess Game</p>
+                    <span class="card-cta">Play Game</span>
                 </a>
                 <a href="the-isk-is-right/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
                     <h3>The ISK is Right!</h3>
                     <p>Ship Price Game</p>
+                    <span class="card-cta">Play Game</span>
                 </a>
                 <a href="sleeper-archive/" class="card">
                     <div class="card-icon"><i class="fa-solid fa-microchip"></i></div>
                     <h3>Sleeper Archive</h3>
                     <p>EVE Hacking Minigame</p>
+                    <span class="card-cta">Play Game</span>
                 </a>
             </div>
         </section>
@@ -549,8 +671,9 @@
             <div class="card-grid">
                 <a href="website-giveaway" class="card">
                     <div class="card-icon"><i class="fa-solid fa-ticket"></i></div>
-                    <h3>Weekly Draw</h3>
+                    <h3>Website Giveaway</h3>
                     <p>Win this week's prize with your EVE character</p>
+                    <span class="card-cta">Enter Giveaway</span>
                 </a>
             </div>
         </section>
@@ -562,14 +685,17 @@
                 <span class="line"></span>
             </div>
             <p class="section-sub">Support RustyBot via Ko-fi</p>
-            <div class="support-box">
-                <p>If you would like to support us you can do that via Ko-fi.</p>
-                <p>All support is welcomed and very appreciated!</p>
-                <div style="margin-top:12px;">
-                    <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+            <div class="support-card">
+                <div class="support-card-icon"><i class="fa-solid fa-heart"></i></div>
+                <h3 class="support-card-title">Support RustyBot</h3>
+                <p class="support-card-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
+                <div class="support-actions">
+                    <div class="ko-fi-wrap">
+                        <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+                        <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                    </div>
+                    <a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a>
                 </div>
-                <p style="margin-top:20px;"><a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a></p>
             </div>
         </section>
 
