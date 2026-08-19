@@ -20,7 +20,9 @@ const AppState = {
     hoveredCard: null,
     systemsLoaded: false,
     colonies: null,
-    coloniesLoading: false
+    coloniesLoading: false,
+    colonyDetail: null,
+    colonyCards: []
 };
 
 const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
@@ -1255,6 +1257,11 @@ function drawPlanetP0Node(mat, x, y, w, h, color) {
 // ---------- Colonies View ----------
 // Draws the player's planetary colonies on the main canvas, grouped by solar system.
 function drawColoniesView() {
+    if (AppState.colonyDetail) {
+        drawColonyDetail(AppState.colonyDetail);
+        return;
+    }
+
     if (AppState.coloniesLoading) {
         drawColoniesPrompt('Loading your colonies...', 'Fetching colony data from EVE');
         return;
@@ -1305,6 +1312,9 @@ function drawColoniesView() {
     const cols = Math.max(1, Math.floor((canvas.width - margin * 2) / (cardWidth + gapX)));
     let y = margin + headerH + offsetY;
 
+    // Track card hit areas for click detection
+    AppState.colonyCards = [];
+
     systemIds.forEach(sysId => {
         const sys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined') ? PI_SYSTEMS[sysId] : null;
         const systemName = sys ? sys.name : `System ${sysId}`;
@@ -1331,6 +1341,7 @@ function drawColoniesView() {
         coloniesInSystem.forEach(c => {
             const x = margin + col * (cardWidth + gapX);
             drawColonyCard(c, x, y, cardWidth, cardHeight);
+            AppState.colonyCards.push({ colony: c, x, y, w: cardWidth, h: cardHeight });
             col++;
             if (col >= cols) {
                 col = 0;
@@ -1441,11 +1452,219 @@ function drawColonyCard(c, x, y, w, h) {
     }
 }
 
+// ---------- Colony Detail View ----------
+// Shows a single colony's production chain, producing items and stored items.
+function drawColonyDetail(c) {
+    const pt = getPlanetTypeByNameOrId(c.planet_type);
+    const typeName = pt ? pt.name : `Planet type ${c.planet_type}`;
+    const color = pt ? pt.color : '#666';
+    const sys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined') ? PI_SYSTEMS[c.solar_system_id] : null;
+    const systemName = sys ? sys.name : `System ${c.solar_system_id}`;
+    const regionName = sys && sys.regionId && PI_DATA.regions && PI_DATA.regions[sys.regionId] ? PI_DATA.regions[sys.regionId] : null;
+
+    const margin = 30;
+    let x = margin;
+    let y = margin;
+
+    // Back button
+    ctx.fillStyle = 'rgba(40,40,40,0.95)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, 90, 28, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 12px Titillium Web, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('< Back', x + 45, y + 14);
+    y += 40;
+
+    // Header
+    ctx.fillStyle = color;
+    ctx.font = 'bold 22px Titillium Web, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(typeName, x, y);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '13px Titillium Web, sans-serif';
+    ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''} • CC ${c.upgrade_level || 0} • ${c.num_pins || 0} pins`, x, y + 28);
+    y += 58;
+
+    const { producing, stored } = analyseColony(c.detail);
+
+    // ---- Producing column ----
+    let px = x;
+    let py = y;
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 14px Titillium Web, sans-serif';
+    ctx.fillText('PRODUCING', px, py);
+    py += 24;
+    if (!producing.length) {
+        ctx.fillStyle = '#888';
+        ctx.font = '12px Titillium Web, sans-serif';
+        ctx.fillText('Nothing being produced', px, py);
+    } else {
+        producing.forEach(p => {
+            const tierColor = PI_COLORS[p.tier] || '#888';
+            ctx.fillStyle = tierColor;
+            ctx.font = 'bold 13px Titillium Web, sans-serif';
+            ctx.fillText(p.name, px, py);
+            ctx.fillStyle = '#888';
+            ctx.font = '11px Titillium Web, sans-serif';
+            const extra = p.type === 'extractor' ? ` • ${p.amount}/cycle` : (p.cycleSec ? ` • ${p.cycleSec}s cycle` : '');
+            ctx.fillText(`x${p.count}${extra}`, px + 170, py + 2);
+            py += 18;
+        });
+    }
+
+    // ---- Stored column ----
+    let sx = canvas.width / 2;
+    let sy = y;
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 14px Titillium Web, sans-serif';
+    ctx.fillText('STORED', sx, sy);
+    sy += 24;
+    if (!stored.length) {
+        ctx.fillStyle = '#888';
+        ctx.font = '12px Titillium Web, sans-serif';
+        ctx.fillText('Nothing stored', sx, sy);
+    } else {
+        stored.forEach(s => {
+            const tierColor = PI_COLORS[s.tier] || '#888';
+            ctx.fillStyle = tierColor;
+            ctx.font = '13px Titillium Web, sans-serif';
+            ctx.fillText(s.name, sx, sy);
+            ctx.fillStyle = '#e8d900';
+            ctx.font = 'bold 12px Titillium Web, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(formatAmount(s.amount), canvas.width - margin, sy);
+            ctx.textAlign = 'left';
+            sy += 18;
+        });
+    }
+
+    // ---- Production chain ----
+    // Draw a chain box per produced material showing its inputs
+    let cy = Math.max(py, sy) + 20;
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 14px Titillium Web, sans-serif';
+    ctx.fillText('PRODUCTION CHAIN', x, cy);
+    cy += 24;
+
+    if (!producing.length) {
+        ctx.fillStyle = '#888';
+        ctx.font = '12px Titillium Web, sans-serif';
+        ctx.fillText('No chains to show', x, cy);
+        return;
+    }
+
+    // For each producing item, show the chain from its inputs
+    producing.forEach(p => {
+        // If a factory output, resolve the material by finding it in recipes
+        const chain = resolveColonyChain(p);
+        drawChainRow(chain, x, cy, canvas.width - margin * 2);
+        cy += chain ? chain.height : 34;
+    });
+}
+
+// Resolve the chain inputs for a produced item. Returns { name, tier, color, inputs, height }
+// inputs: array of { name, tier, qty }
+function resolveColonyChain(p) {
+    // Try to find the material by name in PI_DATA.materials
+    let mat = null;
+    for (const id in PI_DATA.materials) {
+        if (PI_DATA.materials[id].name && PI_DATA.materials[id].name.toLowerCase() === p.name.toLowerCase()) {
+            mat = PI_DATA.materials[id];
+            break;
+        }
+    }
+
+    const result = { name: p.name, tier: p.tier || 0, color: PI_COLORS[p.tier] || '#888', inputs: [], height: 0 };
+
+    if (mat && mat.inputs) {
+        for (const [idStr, qty] of Object.entries(mat.inputs)) {
+            const subMat = getMaterialById(parseInt(idStr));
+            result.inputs.push({
+                name: subMat ? subMat.name : String(idStr),
+                tier: subMat ? subMat.tier : 0,
+                qty
+            });
+        }
+    }
+
+    result.height = 40 + Math.max(result.inputs.length, 1) * 18;
+    return result;
+}
+
+function drawChainRow(chain, x, y, width) {
+    // Card background
+    ctx.fillStyle = 'rgba(30,30,30,0.95)';
+    ctx.strokeStyle = chain.color;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x, y, width, chain.height, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Output name (left accent)
+    ctx.fillStyle = chain.color;
+    ctx.beginPath();
+    roundRect(ctx, x, y, 4, chain.height, [8, 0, 0, 8]);
+    ctx.fill();
+
+    ctx.fillStyle = chain.color;
+    ctx.font = 'bold 13px Titillium Web, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(chain.name, x + 16, y + 10);
+
+    ctx.fillStyle = '#888';
+    ctx.font = '10px Titillium Web, sans-serif';
+    ctx.fillText(`P${chain.tier}`, x + 16, y + 26);
+
+    // Inputs on the right side
+    let iy = y + 10;
+    ctx.fillStyle = '#999';
+    ctx.font = '11px Titillium Web, sans-serif';
+    chain.inputs.forEach(inp => {
+        const inpColor = PI_COLORS[inp.tier] || '#999';
+        ctx.fillStyle = inpColor;
+        ctx.fillText(`${inp.qty}x ${inp.name}`, x + width - 180, iy);
+        iy += 18;
+    });
+}
+
 // ---------- Canvas Event Handlers ----------
 function onMouseDown(e) {
     const pos = getCanvasPos(e);
     AppState.mouseDownPos = pos;
     AppState.hasDragged = false;
+
+    if (AppState.viewMode === 'colonies') {
+        // Back button in detail view
+        if (AppState.colonyDetail) {
+            if (pos.x >= 30 && pos.x <= 120 && pos.y >= 30 && pos.y <= 58) {
+                AppState.colonyDetail = null;
+                draw();
+                return;
+            }
+            return; // detail view is fixed layout, no drag
+        } else {
+            // Click a colony card to open its detail
+            for (const card of AppState.colonyCards) {
+                if (pos.x >= card.x && pos.x <= card.x + card.w &&
+                    pos.y >= card.y && pos.y <= card.y + card.h) {
+                    AppState.colonyDetail = card.colony;
+                    draw();
+                    return;
+                }
+            }
+        }
+
+        AppState.isDraggingCanvas = true;
+        AppState.lastMousePos = pos;
+        return;
+    }
 
     if (AppState.viewMode === 'reference') {
         const cols = Math.floor(canvas.width / 180) || 1;
@@ -1581,6 +1800,9 @@ function setZoom(zoom) {
 }
 
 function setViewMode(mode) {
+    if (mode !== 'colonies') {
+        AppState.colonyDetail = null;
+    }
     AppState.viewMode = mode;
     elements.viewReference.classList.toggle('active', mode === 'reference');
     elements.viewChain.classList.toggle('active', mode === 'chain');
