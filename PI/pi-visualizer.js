@@ -10,7 +10,7 @@ const DEFAULT_REGION = '10000002'; // Jita/The Forge
 const AppState = {
     canvasOffset: { x: 0, y: 0 },
     zoom: 1,
-    viewMode: 'reference', // 'reference', 'chain', 'planets'
+    viewMode: 'reference', // 'reference', 'chain', 'planets', 'colonies'
     marketPrices: {},
     targetProduct: null,
     isDraggingCanvas: false,
@@ -18,7 +18,9 @@ const AppState = {
     chainLayout: null,
     currentTab: 'system',
     hoveredCard: null,
-    systemsLoaded: false
+    systemsLoaded: false,
+    colonies: null,
+    coloniesLoading: false
 };
 
 const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
@@ -35,6 +37,7 @@ const elements = {
     viewReference: document.getElementById('viewReference'),
     viewChain: document.getElementById('viewChain'),
     viewPlanets: document.getElementById('viewPlanets'),
+    viewColonies: document.getElementById('viewColonies'),
     backToRef: document.getElementById('backToRef'),
     zoomIn: document.getElementById('zoomIn'),
     zoomOut: document.getElementById('zoomOut'),
@@ -227,6 +230,14 @@ function setupEventListeners() {
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
     elements.viewPlanets.addEventListener('click', () => setViewMode('planets'));
+    elements.viewColonies.addEventListener('click', () => {
+        setViewMode('colonies');
+        if (AppState.coloniesLoading || AppState.colonies) {
+            draw();
+        } else {
+            refreshColoniesAuthState();
+        }
+    });
     elements.backToRef.addEventListener('click', () => setViewMode('reference'));
 
     elements.zoomIn.addEventListener('click', () => setZoom(AppState.zoom * 1.2));
@@ -632,6 +643,8 @@ async function loadColonies() {
     }
 
     showColoniesLoading();
+    AppState.coloniesLoading = true;
+    AppState.colonies = null;
 
     try {
         const characterId = piEsiAuth.getCurrentCharacter();
@@ -652,9 +665,14 @@ async function loadColonies() {
             }
         }
 
+        AppState.colonies = detailed;
+        AppState.coloniesLoading = false;
         renderColonies(detailed, systemsLoaded);
+        if (AppState.viewMode === 'colonies') draw();
     } catch (err) {
         console.error('Failed to load colonies:', err);
+        AppState.coloniesLoading = false;
+        AppState.colonies = null;
         elements.coloniesHeader.textContent = 'Colonies';
         elements.coloniesList.innerHTML = `<div class="colony-item" style="border-left-color: var(--danger)"><div class="colony-name">Failed to load colonies</div><div class="colony-meta">${escapeHtml(err.message)}</div></div>`;
     }
@@ -848,6 +866,11 @@ function draw() {
 
     if (AppState.viewMode === 'reference') {
         drawReferenceView();
+        return;
+    }
+
+    if (AppState.viewMode === 'colonies') {
+        drawColoniesView();
         return;
     }
 
@@ -1229,6 +1252,195 @@ function drawPlanetP0Node(mat, x, y, w, h, color) {
     }
 }
 
+// ---------- Colonies View ----------
+// Draws the player's planetary colonies on the main canvas, grouped by solar system.
+function drawColoniesView() {
+    if (AppState.coloniesLoading) {
+        drawColoniesPrompt('Loading your colonies...', 'Fetching colony data from EVE');
+        return;
+    }
+
+    if (!AppState.colonies) {
+        if (window.piEsiAuth && piEsiAuth.isAuthenticated()) {
+            drawColoniesPrompt('No colony data loaded', 'Click Refresh in the My Colonies tab, or press Refresh');
+        } else {
+            drawColoniesPrompt('Sign in with EVE SSO', 'Use the My Colonies tab to log in and view your planetary colonies');
+        }
+        return;
+    }
+
+    const colonies = AppState.colonies;
+
+    // Header
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 18px Titillium Web, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${piEsiAuth.getCurrentCharacterName() || 'Character'} - ${colonies.length} colony${colonies.length === 1 ? '' : 'ies'}`, 20, 20);
+
+    if (colonies.length === 0) {
+        ctx.fillStyle = '#888';
+        ctx.font = '14px Titillium Web, sans-serif';
+        ctx.fillText('No colonies found. Colonize a planet in-game to see it here.', 20, 50);
+        return;
+    }
+
+    // Group by system
+    const bySystem = {};
+    colonies.forEach(c => {
+        const sysId = c.solar_system_id;
+        if (!bySystem[sysId]) bySystem[sysId] = [];
+        bySystem[sysId].push(c);
+    });
+    const systemIds = Object.keys(bySystem).map(Number).sort((a, b) => a - b);
+
+    const cardWidth = 320;
+    const cardHeight = 150;
+    const gapX = 24;
+    const gapY = 24;
+    const headerH = 34;
+    const margin = 40;
+    const offsetY = AppState.canvasOffset.y;
+
+    const cols = Math.max(1, Math.floor((canvas.width - margin * 2) / (cardWidth + gapX)));
+    let y = margin + headerH + offsetY;
+
+    systemIds.forEach(sysId => {
+        const sys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined') ? PI_SYSTEMS[sysId] : null;
+        const systemName = sys ? sys.name : `System ${sysId}`;
+        const regionName = sys && sys.regionId && PI_DATA.regions && PI_DATA.regions[sys.regionId] ? PI_DATA.regions[sys.regionId] : null;
+        const sec = sys ? sys.security : null;
+
+        const coloniesInSystem = bySystem[sysId];
+        const totalUpgrades = coloniesInSystem.reduce((sum, c) => sum + (c.upgrade_level || 0), 0);
+
+        // System header
+        ctx.fillStyle = '#58a6ff';
+        ctx.font = 'bold 14px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''}`, margin, y);
+        ctx.fillStyle = '#888';
+        ctx.font = '11px Titillium Web, sans-serif';
+        const meta = `${sec !== null ? `Sec ${sec.toFixed(1)}` : ''}${sec !== null && coloniesInSystem.length ? ' • ' : ''}${coloniesInSystem.length} planet${coloniesInSystem.length === 1 ? '' : 's'}${totalUpgrades ? ` • ${totalUpgrades} upgrades` : ''}`;
+        ctx.fillText(meta, margin + 260, y + 4);
+        y += headerH;
+
+        // Colony cards
+        let col = 0;
+        coloniesInSystem.forEach(c => {
+            const x = margin + col * (cardWidth + gapX);
+            drawColonyCard(c, x, y, cardWidth, cardHeight);
+            col++;
+            if (col >= cols) {
+                col = 0;
+                y += cardHeight + gapY;
+            }
+        });
+        if (col > 0) y += cardHeight + gapY;
+    });
+}
+
+function drawColoniesPrompt(title, sub) {
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
+    roundRect(ctx, cx - 240, cy - 60, 480, 120, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 16px Titillium Web, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, cx, cy - 20);
+
+    ctx.fillStyle = '#888';
+    ctx.font = '12px Titillium Web, sans-serif';
+    ctx.fillText(sub, cx, cy + 18);
+}
+
+function drawColonyCard(c, x, y, w, h) {
+    const pt = getPlanetTypeByNameOrId(c.planet_type);
+    const typeName = pt ? pt.name : `Planet type ${c.planet_type}`;
+    const color = pt ? pt.color : '#666';
+    const upgrades = c.upgrade_level || 0;
+    const pinCount = c.num_pins || 0;
+
+    // Card background
+    const gradient = ctx.createLinearGradient(x, y, x, y + h);
+    gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
+    gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, w, h, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Left accent bar
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    roundRect(ctx, x, y, 4, h, [8, 0, 0, 8]);
+    ctx.fill();
+
+    // Planet type + name
+    ctx.fillStyle = color;
+    ctx.font = 'bold 13px Titillium Web, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(typeName, x + 16, y + 12);
+
+    // Upgrade dots
+    const dotSize = 10;
+    for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i < upgrades ? color : 'rgba(255, 255, 255, 0.15)';
+        ctx.beginPath();
+        ctx.arc(x + w - 20 - (4 - i) * (dotSize + 4), y + 16, dotSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Meta
+    ctx.fillStyle = '#aaa';
+    ctx.font = '11px Titillium Web, sans-serif';
+    ctx.fillText(`${pinCount} pins • CC ${upgrades}`, x + 16, y + 32);
+
+    // Producing / stored summary
+    const { producing, stored } = analyseColony(c.detail);
+    let py = y + 52;
+    if (producing.length) {
+        ctx.fillStyle = '#888';
+        ctx.font = 'bold 10px Titillium Web, sans-serif';
+        ctx.fillText('PRODUCING', x + 16, py);
+        py += 16;
+        producing.slice(0, 3).forEach(p => {
+            const tierColor = PI_COLORS[p.tier] || '#888';
+            ctx.fillStyle = tierColor;
+            ctx.font = '10px Titillium Web, sans-serif';
+            ctx.fillText(`${p.name}${p.amount && p.type === 'extractor' ? ` x${p.amount}/cyc` : ''}`, x + 16, py);
+            py += 13;
+        });
+    }
+    if (stored.length) {
+        if (py < y + h - 26) {
+            ctx.fillStyle = '#888';
+            ctx.font = 'bold 10px Titillium Web, sans-serif';
+            ctx.fillText('STORED', x + 16, py);
+            py += 14;
+            stored.slice(0, 3).forEach(s => {
+                const tierColor = PI_COLORS[s.tier] || '#888';
+                ctx.fillStyle = tierColor;
+                ctx.font = '10px Titillium Web, sans-serif';
+                ctx.fillText(`${s.name} x${formatAmount(s.amount)}`, x + 16, py);
+                py += 13;
+            });
+        }
+    }
+}
+
 // ---------- Canvas Event Handlers ----------
 function onMouseDown(e) {
     const pos = getCanvasPos(e);
@@ -1373,6 +1585,7 @@ function setViewMode(mode) {
     elements.viewReference.classList.toggle('active', mode === 'reference');
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
+    elements.viewColonies.classList.toggle('active', mode === 'colonies');
     elements.backToRef.classList.toggle('hidden', mode === 'reference');
 
     const helpText = document.querySelector('.canvas-help p');
@@ -1382,6 +1595,9 @@ function setViewMode(mode) {
     } else if (mode === 'planets') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Planet breakdown view • Shows which raw materials each planet subtype can extract';
+    } else if (mode === 'colonies') {
+        canvas.style.cursor = 'default';
+        helpText.innerHTML = '<i class="fas fa-info-circle"></i> My Colonies • Sign in with EVE SSO to view your planetary colonies';
     } else {
         canvas.style.cursor = 'default';
         if (AppState.chainLayout) {
