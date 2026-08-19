@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.rustybot.co.uk/index.html</loc>
+    <loc>https://www.rustybot.co.uk/</loc>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/market/index.html</loc>
+    <loc>https://www.rustybot.co.uk/market/</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/appraisal/index.html</loc>
+    <loc>https://www.rustybot.co.uk/appraisal/</loc>
     <priority>0.8</priority>
   </url>
   <url>
@@ -21,59 +21,51 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/bpc-calculator/index.html</loc>
+    <loc>https://www.rustybot.co.uk/bpc-calculator/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/gatecheck/index.html</loc>
+    <loc>https://www.rustybot.co.uk/gatecheck/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/PI/index.html</loc>
+    <loc>https://www.rustybot.co.uk/PI/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/RustyStats/index.html</loc>
+    <loc>https://www.rustybot.co.uk/RustyStats/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/ship-guess-game/index.html</loc>
+    <loc>https://www.rustybot.co.uk/ship-higher-lower/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/sleeper-archive/index.html</loc>
+    <loc>https://www.rustybot.co.uk/sleeper-archive/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/SleeperArchive/index.html</loc>
+    <loc>https://www.rustybot.co.uk/skillplanner/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/skillplanner/index.html</loc>
+    <loc>https://www.rustybot.co.uk/the-isk-is-right/</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/the-isk-is-right/index.html</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.rustybot.co.uk/guides/index.html</loc>
+    <loc>https://www.rustybot.co.uk/guides/</loc>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/Support/index.html</loc>
+    <loc>https://www.rustybot.co.uk/Support/</loc>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.rustybot.co.uk/top-trumps/index.html</loc>
+    <loc>https://www.rustybot.co.uk/top-trumps/</loc>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.rustybot.co.uk/Rustybot%20Giveaway%20guides/complete_user_guide.html</loc>
     <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://ko-fi.com/rustybot</loc>
-    <priority>0.5</priority>
   </url>
 </urlset>
