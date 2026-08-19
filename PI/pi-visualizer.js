@@ -1,5 +1,5 @@
 // PI Chain Visualizer - Main Application
-// Interactive canvas for planning planetary interaction chains
+// SDE-driven: data loaded from pi-data.js (core) + pi-systems.js (lazy, system checker)
 
 console.log('PI Visualizer loading...');
 
@@ -10,7 +10,7 @@ const DEFAULT_REGION = '10000002'; // Jita/The Forge
 const AppState = {
     canvasOffset: { x: 0, y: 0 },
     zoom: 1,
-    viewMode: 'reference', // 'reference', 'chain', or 'planets'
+    viewMode: 'reference', // 'reference', 'chain', 'planets'
     marketPrices: {},
     targetProduct: null,
     isDraggingCanvas: false,
@@ -18,16 +18,10 @@ const AppState = {
     chainLayout: null,
     currentTab: 'system',
     hoveredCard: null,
-    // Template builder state
-    template: {
-        pins: [],
-        links: [],
-        routes: [],
-        selectedFacility: null,
-        selectedPin: null,
-        linkingFrom: null
-    }
+    systemsLoaded: false
 };
+
+const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
 
 // Canvas setup
 const canvas = document.getElementById('piCanvas');
@@ -41,7 +35,6 @@ const elements = {
     viewReference: document.getElementById('viewReference'),
     viewChain: document.getElementById('viewChain'),
     viewPlanets: document.getElementById('viewPlanets'),
-    viewTemplate: document.getElementById('viewTemplate'),
     backToRef: document.getElementById('backToRef'),
     zoomIn: document.getElementById('zoomIn'),
     zoomOut: document.getElementById('zoomOut'),
@@ -58,41 +51,155 @@ const elements = {
     systemInput: document.getElementById('systemInput'),
     checkSystem: document.getElementById('checkSystem'),
     systemResults: document.getElementById('systemResults'),
+    systemInfo: document.getElementById('systemInfo'),
     systemPlanets: document.getElementById('systemPlanets'),
     producibleP2: document.getElementById('producibleP2'),
     producibleP3: document.getElementById('producibleP3'),
+    producibleP4: document.getElementById('producibleP4'),
     // Reference elements
     refP1: document.getElementById('refP1'),
     refP2: document.getElementById('refP2'),
     refP3: document.getElementById('refP3'),
-    // Template builder elements
-    templateName: document.getElementById('templateName'),
-    templatePlanetType: document.getElementById('templatePlanetType'),
-    templateCmdLevel: document.getElementById('templateCmdLevel'),
-    clearTemplate: document.getElementById('clearTemplate'),
-    exportTemplate: document.getElementById('exportTemplate')
+    refP4: document.getElementById('refP4'),
+    // Colonies elements
+    coloniesPanel: document.getElementById('coloniesPanel'),
+    coloniesStatus: document.getElementById('coloniesStatus'),
+    coloniesContent: document.getElementById('coloniesContent'),
+    coloniesHeader: document.getElementById('coloniesHeader'),
+    coloniesList: document.getElementById('coloniesList'),
+    coloniesLogin: document.getElementById('coloniesLogin'),
+    coloniesRefresh: document.getElementById('coloniesRefresh'),
+    coloniesLogout: document.getElementById('coloniesLogout')
 };
 
-// Initialize
+// ---------- Data access helpers (new SDE-driven structure) ----------
+function getMaterialsByTier(tier) {
+    const ids = (PI_DATA.tiers && PI_DATA.tiers[tier]) || [];
+    return ids.map(id => PI_DATA.materials[id]).filter(Boolean);
+}
+
+function getMaterialById(id) {
+    return PI_DATA.materials[id] || null;
+}
+
+function getPlanetTypeData(typeId) {
+    return PI_DATA.planetTypes[typeId] || null;
+}
+
+// Resolve a planet type from either an integer type ID (SDE) or an ESI string name
+// (e.g. "temperate", "barren", "plasma"). Returns null if unknown.
+let planetTypeNameCache = null;
+function getPlanetTypeByNameOrId(value) {
+    if (value === null || value === undefined || value === '') return null;
+
+    // Integer ID (SDE keys) — direct lookup
+    if (typeof value === 'number' || /^\d+$/.test(String(value))) {
+        return getPlanetTypeData(Number(value));
+    }
+
+    // ESI string name — lazy-build a lowercase name -> planetTypes entry map
+    if (!planetTypeNameCache) {
+        planetTypeNameCache = {};
+        for (const id in PI_DATA.planetTypes) {
+            const pt = PI_DATA.planetTypes[id];
+            const key = (pt.name || '').toLowerCase();
+            if (key) planetTypeNameCache[key] = pt;
+        }
+    }
+
+    return planetTypeNameCache[String(value).toLowerCase()] || null;
+}
+
+// Build a chain tree: { target, inputs } where every node has the shape
+// { id, name, tier, batchSize, inputs: [ { id, qty, name, tier, subChain } ] }.
+// subChain is the child node (or null for P0 / terminal materials).
+function getChainForProduct(productId) {
+    const mat = getMaterialById(productId);
+    if (!mat) return null;
+
+    const inputs = [];
+    if (mat.inputs) {
+        for (const [idStr, qty] of Object.entries(mat.inputs)) {
+            const id = parseInt(idStr);
+            const subMat = getMaterialById(id);
+            const subChain = getChainForProduct(id);
+            inputs.push({
+                id,
+                qty,
+                name: subMat ? subMat.name : String(id),
+                tier: subMat ? subMat.tier : 0,
+                subChain: subChain ? subChain.target : null
+            });
+        }
+    }
+
+    const target = {
+        id: mat.id,
+        name: mat.name,
+        tier: mat.tier,
+        batchSize: mat.batchSize || 1,
+        inputs,
+        qty: 1
+    };
+
+    return { target, inputs };
+}
+
+// Flatten an input reference into a drawable node (uses subChain or a terminal P0 node)
+function nodeFor(input) {
+    return input.subChain || { id: input.id, name: input.name, tier: input.tier, batchSize: 1, inputs: [], qty: input.qty };
+}
+
+// P0 -> planet type IDs where it can be extracted
+function getPlanetTypesForP0(p0Id) {
+    const typeIds = (PI_DATA.p0ToPlanetTypes && PI_DATA.p0ToPlanetTypes[p0Id]) || [];
+    return typeIds
+        .map(tid => getPlanetTypeData(tid))
+        .filter(Boolean)
+        .map(pt => ({ type: pt.name, name: pt.name, color: pt.color }));
+}
+
+// ---------- Initialize ----------
 function init() {
     console.log('init() called');
+    populateProductDropdowns();
     setupCanvas();
-    console.log('Canvas setup done');
     setupEventListeners();
-    console.log('Event listeners done');
     setupTabs();
-    console.log('Tabs setup done');
     setupReferenceGrids();
-    console.log('Reference grids done');
     setupSystemChecker();
-    console.log('System checker done');
-    setupTemplateBuilder();
-    console.log('Template builder done');
+    setupColonies();
+    refreshColoniesAuthState();
     animate();
-    
-    // Start in reference view
     setViewMode('reference');
     console.log('Init complete');
+}
+
+function populateProductDropdowns() {
+    const groups = [
+        { label: 'P4 Products', tier: 4 },
+        { label: 'P3 Products', tier: 3 },
+        { label: 'P2 Products', tier: 2 },
+        { label: 'P1 Materials', tier: 1 }
+    ];
+    const select = elements.targetProduct;
+    const frag = document.createDocumentFragment();
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select Product...';
+    frag.appendChild(placeholder);
+    groups.forEach(g => {
+        const optGroup = document.createElement('optgroup');
+        optGroup.label = g.label;
+        getMaterialsByTier(g.tier).forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = m.name;
+            optGroup.appendChild(opt);
+        });
+        frag.appendChild(optGroup);
+    });
+    select.appendChild(frag);
 }
 
 function setupCanvas() {
@@ -114,46 +221,41 @@ function setupEventListeners() {
     canvas.addEventListener('mouseup', onMouseUp);
     canvas.addEventListener('wheel', onWheel);
     canvas.addEventListener('contextmenu', e => e.preventDefault());
-    
-    // Keyboard events
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Delete' && AppState.viewMode === 'template') {
-            deleteSelectedPin();
-        }
-    });
 
     // Controls
-    elements.calculateChain.addEventListener('click', calculateChain);
-    
+    elements.calculateChain.addEventListener('click', () => runCalculate(elements.targetProduct.value));
+
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
     elements.viewPlanets.addEventListener('click', () => setViewMode('planets'));
-    elements.viewTemplate.addEventListener('click', () => setViewMode('template'));
     elements.backToRef.addEventListener('click', () => setViewMode('reference'));
-    
+
     elements.zoomIn.addEventListener('click', () => setZoom(AppState.zoom * 1.2));
     elements.zoomOut.addEventListener('click', () => setZoom(AppState.zoom * 0.8));
     elements.fitView.addEventListener('click', fitView);
-    
+
     elements.regionSelect.addEventListener('change', () => {
         if (AppState.targetProduct) {
             fetchMarketData();
         }
     });
-    
-    // Template builder events
-    document.querySelectorAll('.facility-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const type = btn.dataset.type;
-            console.log('Selected facility:', type);
-            AppState.template.selectedFacility = type;
-            document.querySelectorAll('.facility-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+
+    // Reference sidebar item clicks
+    document.querySelectorAll('.ref-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = parseInt(item.dataset.id);
+            selectProduct(id);
         });
     });
-    
-    elements.clearTemplate.addEventListener('click', clearTemplate);
-    elements.exportTemplate.addEventListener('click', exportTemplate);
+}
+
+function runCalculate(productIdValue) {
+    if (!productIdValue) {
+        alert('Please select a target product first');
+        return;
+    }
+    elements.targetProduct.value = productIdValue;
+    calculateChain();
 }
 
 // Tab Management
@@ -163,189 +265,882 @@ function setupTabs() {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            
+
             const tab = btn.dataset.tab;
-            
-            // Update buttons
+
             tabButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            // Update content
+
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const targetPanel = document.getElementById(`tab-${tab}`);
             if (targetPanel) {
                 targetPanel.classList.add('active');
             }
-            
+
             AppState.currentTab = tab;
-            
-            // Auto-switch to template mode when template tab is clicked
-            if (tab === 'template') {
-                elements.viewTemplate.click();
-            }
         });
     });
 }
 
-// Template Builder Setup
-function setupTemplateBuilder() {
-    // Facility type IDs (from EVE SDE)
-    AppState.facilityTypes = {
-        command: 2783,
-        extractor: 2868,
-        basic: 2474,
-        advanced: 2475,
-        hitech: 2476,
-        storage: 2527,
-        launchpad: 2552
-    };
+// ---------- Chain Calculation ----------
+function calculateChain() {
+    const productId = parseInt(elements.targetProduct.value);
+    if (!productId) return;
+
+    AppState.targetProduct = productId;
+
+    generateChainLayout();
+    fetchMarketData();
+    setViewMode('chain');
 }
 
-function clearTemplate() {
-    AppState.template.pins = [];
-    AppState.template.links = [];
-    AppState.template.routes = [];
-    AppState.template.selectedPin = null;
-    AppState.template.linkingFrom = null;
+function selectProduct(id) {
+    elements.targetProduct.value = id;
+    AppState.targetProduct = id;
+    generateChainLayout();
+    fetchMarketData();
+    setViewMode('chain');
+}
+
+function generateChainLayout() {
+    const productId = AppState.targetProduct;
+    const chain = getChainForProduct(productId);
+    if (!chain) return;
+
+    const layout = { nodes: [], links: [] };
+
+    // Count nodes per depth for balanced layout
+    const nodeCounts = {};
+    const maxDepth = { value: 0 };
+    const counted = new Set();
+    const countNodes = (nodeData, depth) => {
+        if (counted.has(nodeData.id)) return;
+        counted.add(nodeData.id);
+        maxDepth.value = Math.max(maxDepth.value, depth);
+        nodeCounts[depth] = (nodeCounts[depth] || 0) + 1;
+        if (nodeData.inputs) {
+            nodeData.inputs.forEach(input => countNodes(nodeFor(input), depth + 1));
+        }
+    };
+    countNodes(chain.target, 0);
+
+    const levelWidth = 170;
+    const nodeHeight = 110;
+    const levelIndices = {};
+    const visited = new Set();
+
+    const addNode = (nodeData, depth, parentId = null) => {
+        if (visited.has(nodeData.id)) return;
+        visited.add(nodeData.id);
+
+        levelIndices[depth] = (levelIndices[depth] || 0) + 1;
+        const index = levelIndices[depth] - 1;
+        const levelCount = nodeCounts[depth] || 1;
+        const totalWidth = (levelCount - 1) * levelWidth;
+        const x = (index * levelWidth) - totalWidth / 2;
+        const y = (maxDepth.value - depth) * nodeHeight;
+
+        const node = {
+            id: `node-${layout.nodes.length}`,
+            materialId: nodeData.id,
+            name: nodeData.name,
+            tier: nodeData.tier,
+            x,
+            y,
+            qty: nodeData.qty || 1,
+            planetTypes: nodeData.tier === 0 ? getPlanetTypesForP0(nodeData.id) : []
+        };
+
+        layout.nodes.push(node);
+        if (parentId) {
+            layout.links.push({ from: node.id, to: parentId });
+        }
+
+        if (nodeData.inputs) {
+            nodeData.inputs.forEach(input => {
+                addNode(nodeFor(input), depth + 1, node.id);
+            });
+        }
+    };
+
+    addNode(chain.target, 0);
+    AppState.chainLayout = layout;
+    fitChainView(layout);
+}
+
+function fitChainView(layout) {
+    if (!layout || layout.nodes.length === 0) return;
+
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    layout.nodes.forEach(n => {
+        minX = Math.min(minX, n.x - 80);
+        maxX = Math.max(maxX, n.x + 80);
+        minY = Math.min(minY, n.y - 40);
+        maxY = Math.max(maxY, n.y + 40);
+    });
+
+    const padding = 60;
+    const width = maxX - minX + padding * 2;
+    const height = maxY - minY + padding * 2;
+
+    const scaleX = canvas.width / width;
+    const scaleY = canvas.height / height;
+
+    setZoom(Math.min(scaleX, scaleY, 1.5));
+
+    AppState.canvasOffset.x = -minX * AppState.zoom + padding * AppState.zoom + (canvas.width - width * AppState.zoom) / 2;
+    AppState.canvasOffset.y = -minY * AppState.zoom + padding * AppState.zoom + (canvas.height - height * AppState.zoom) / 2;
+
     draw();
 }
 
-function deleteSelectedPin() {
-    if (!AppState.template.selectedPin) return;
-    
-    const pinId = AppState.template.selectedPin.id;
-    
-    // Remove pin
-    AppState.template.pins = AppState.template.pins.filter(p => p.id !== pinId);
-    
-    // Remove links connected to this pin
-    AppState.template.links = AppState.template.links.filter(
-        link => link.from !== pinId && link.to !== pinId
-    );
-    
-    AppState.template.selectedPin = null;
-    draw();
+// ---------- Market Data (ESI with light local caching) ----------
+const MARKET_CACHE_KEY = 'pi_market_cache_v1';
+const MARKET_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+function getCachedPrices(regionId) {
+    try {
+        const raw = localStorage.getItem(MARKET_CACHE_KEY);
+        if (!raw) return null;
+        const cache = JSON.parse(raw);
+        if (cache.region !== regionId) return null;
+        if (Date.now() - cache.timestamp > MARKET_CACHE_TTL) return null;
+        return cache.prices;
+    } catch (e) {
+        return null;
+    }
 }
 
-function exportTemplate() {
-    const template = {
-        CmdCtrLv: parseInt(elements.templateCmdLevel.value),
-        Cmt: elements.templateName.value || 'My Template',
-        Diam: 5820.0,
-        L: AppState.template.links.map(link => ({
-            D: link.to,
-            Lv: 0,
-            S: link.from
-        })),
-        P: AppState.template.pins.map((pin, index) => ({
-            H: 0,
-            La: pin.lat,
-            Lo: pin.lon,
-            S: pin.schematic || null,
-            T: AppState.facilityTypes[pin.type]
-        })),
-        Pln: parseInt(elements.templatePlanetType.value),
-        R: AppState.template.routes
+function setCachedPrices(regionId, prices) {
+    try {
+        localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({
+            region: regionId,
+            timestamp: Date.now(),
+            prices
+        }));
+    } catch (e) {
+        // Storage may be full or unavailable - ignore
+    }
+}
+
+async function fetchMarketData() {
+    if (!AppState.targetProduct) return;
+
+    elements.marketLoading.classList.remove('hidden');
+    elements.marketContent.classList.add('hidden');
+
+    const regionId = elements.regionSelect.value;
+    const productId = AppState.targetProduct;
+
+    const chain = getChainForProduct(productId);
+    const materialIds = collectMaterialIds(chain);
+
+    try {
+        // Try cache first
+        let prices = getCachedPrices(regionId);
+        if (!prices) {
+            prices = await fetchPricesForMaterials(Array.from(materialIds), regionId);
+            setCachedPrices(regionId, prices);
+        }
+        AppState.marketPrices = prices;
+        updateMarketDisplay(prices, chain);
+
+        elements.marketLoading.classList.add('hidden');
+        elements.marketContent.classList.remove('hidden');
+    } catch (err) {
+        console.error('Failed to fetch market data:', err);
+        elements.marketLoading.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error loading prices';
+    }
+}
+
+function collectMaterialIds(chain, ids = new Set()) {
+    if (!chain) return ids;
+
+    const visit = (node) => {
+        if (!node) return;
+        ids.add(node.id);
+        if (node.inputs) {
+            node.inputs.forEach(input => visit(nodeFor(input)));
+        }
     };
-    
-    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.Cmt.replace(/\s+/g, '_')}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    visit(chain.target);
+
+    return ids;
 }
 
-// Canvas Event Handlers (simplified for reference view)
+async function fetchPricesForMaterials(ids, regionId) {
+    const prices = {};
+    const idArray = Array.from(ids);
+
+    // Fetch region-specific sell orders for each type
+    const jobs = idArray.map(async id => {
+        try {
+            const url = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${id}&order_type=sell`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const orders = await response.json();
+            const sells = orders.filter(o => o.is_buy_order === false && o.price > 0);
+            if (sells.length > 0) {
+                sells.sort((a, b) => a.price - b.price);
+                prices[id] = { sell: sells[0].price };
+            }
+        } catch (e) {
+            console.warn(`Failed to fetch orders for ${id}:`, e);
+        }
+    });
+
+    await Promise.all(jobs);
+
+    // Fill any missing prices from the region-wide price index
+    const missing = idArray.filter(id => !prices[id]);
+    if (missing.length > 0) {
+        try {
+            const res = await fetch(`${ESI_BASE}/markets/prices/`);
+            if (res.ok) {
+                const data = await res.json();
+                missing.forEach(id => {
+                    if (!prices[id]) {
+                        const item = data.find(p => p.type_id === id);
+                        if (item) {
+                            prices[id] = { sell: item.average_price || item.adjusted_price || 0 };
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            // Ignore fallback errors
+        }
+    }
+
+    return prices;
+}
+
+function updateMarketDisplay(prices, chain) {
+    const targetId = chain.target.id;
+    const targetPrice = prices[targetId]?.sell || 0;
+    const targetBatch = chain.target.batchSize || 1;
+    const outputValue = targetPrice * targetBatch;
+
+    let totalInputCost = 0;
+    const priceItems = [];
+
+    function calcInputCost(node) {
+        if (!node.inputs) return;
+        node.inputs.forEach(input => {
+            const matId = input.id;
+            const qty = input.qty || 1;
+            const price = prices[matId]?.sell || 0;
+            const cost = price * qty;
+            totalInputCost += cost;
+
+            priceItems.push({
+                name: input.name,
+                price,
+                qty,
+                total: cost,
+                tier: input.tier
+            });
+
+            if (input.subChain) {
+                calcInputCost(input.subChain);
+            }
+        });
+    }
+    calcInputCost(chain);
+
+    const profit = outputValue - totalInputCost;
+    const margin = totalInputCost > 0 ? (profit / totalInputCost) * 100 : 0;
+
+    elements.outputValue.textContent = formatISK(outputValue);
+    elements.inputCost.textContent = formatISK(totalInputCost);
+
+    const profitEl = elements.profitValue;
+    profitEl.textContent = formatISK(profit);
+    profitEl.className = 'value isk ' + (profit >= 0 ? 'positive' : 'negative');
+
+    elements.profitMargin.textContent = margin.toFixed(1) + '%';
+
+    elements.priceList.innerHTML = priceItems
+        .sort((a, b) => b.tier - a.tier)
+        .map(item => `
+            <div class="price-item">
+                <span class="material-name">${item.name} x${item.qty}</span>
+                <span class="material-price">${formatISK(item.total)}</span>
+            </div>
+        `).join('');
+}
+
+function hideMarketData() {
+    elements.marketLoading.classList.remove('hidden');
+    elements.marketContent.classList.add('hidden');
+    elements.marketLoading.innerHTML = '<i class="fas fa-chart-line"></i> Select a product to view market data';
+}
+
+// ---------- My Colonies (EVE SSO + ESI planetary management) ----------
+function setupColonies() {
+    if (elements.coloniesLogin) {
+        elements.coloniesLogin.addEventListener('click', () => {
+            if (window.piEsiAuth) piEsiAuth.initiateLogin();
+        });
+    }
+    if (elements.coloniesRefresh) {
+        elements.coloniesRefresh.addEventListener('click', loadColonies);
+    }
+    if (elements.coloniesLogout) {
+        elements.coloniesLogout.addEventListener('click', () => {
+            if (window.piEsiAuth) piEsiAuth.logout();
+            showColoniesLoggedOut();
+        });
+    }
+}
+
+function refreshColoniesAuthState() {
+    if (!window.piEsiAuth) return;
+    if (piEsiAuth.isAuthenticated()) {
+        loadColonies();
+    } else {
+        showColoniesLoggedOut();
+    }
+}
+
+function showColoniesLoggedOut() {
+    elements.coloniesStatus.classList.remove('hidden');
+    elements.coloniesContent.classList.add('hidden');
+}
+
+function showColoniesLoading() {
+    elements.coloniesStatus.classList.add('hidden');
+    elements.coloniesContent.classList.remove('hidden');
+    elements.coloniesHeader.textContent = piEsiAuth.getCurrentCharacterName() ? `Loading colonies for ${piEsiAuth.getCurrentCharacterName()}...` : 'Loading colonies...';
+    elements.coloniesList.innerHTML = '<div class="colony-item"><div class="colony-name"><i class="fas fa-spinner fa-spin"></i> Fetching colony data...</div></div>';
+}
+
+async function loadColonies() {
+    if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
+        showColoniesLoggedOut();
+        return;
+    }
+
+    showColoniesLoading();
+
+    try {
+        const characterId = piEsiAuth.getCurrentCharacter();
+        const colonies = await piEsiAuth.esiFetch(`/characters/${characterId}/planets/`);
+
+        // Ensure system data is loaded so we can resolve solar system names
+        const systemsLoaded = await ensureSystemsLoaded();
+
+        renderColonies(colonies, systemsLoaded);
+    } catch (err) {
+        console.error('Failed to load colonies:', err);
+        elements.coloniesHeader.textContent = 'Colonies';
+        elements.coloniesList.innerHTML = `<div class="colony-item" style="border-left-color: var(--danger)"><div class="colony-name">Failed to load colonies</div><div class="colony-meta">${escapeHtml(err.message)}</div></div>`;
+    }
+}
+
+function renderColonies(colonies, systemsLoaded) {
+    const charName = piEsiAuth.getCurrentCharacterName();
+    elements.coloniesHeader.textContent = `${charName || 'Character'} - ${colonies.length} colony${colonies.length === 1 ? '' : 'ies'}`.replace('coloniesies', 'colonies');
+
+    if (!colonies.length) {
+        elements.coloniesList.innerHTML = '<div class="colony-item"><div class="colony-name">No colonies found</div><div class="colony-meta">Colonize a planet in-game to see it here</div></div>';
+        return;
+    }
+
+    // Group by system for readability
+    const bySystem = {};
+    colonies.forEach(c => {
+        const sysId = c.solar_system_id;
+        if (!bySystem[sysId]) bySystem[sysId] = [];
+        bySystem[sysId].push(c);
+    });
+
+    const systemIds = Object.keys(bySystem).map(Number).sort((a, b) => a - b);
+    let html = '';
+
+    systemIds.forEach(sysId => {
+        const sys = (systemsLoaded && typeof PI_SYSTEMS !== 'undefined') ? PI_SYSTEMS[sysId] : null;
+        const systemName = sys ? sys.name : `System ${sysId}`;
+        const regionName = sys && sys.regionId && PI_DATA.regions && PI_DATA.regions[sys.regionId] ? PI_DATA.regions[sys.regionId] : null;
+        const sec = sys ? sys.security : null;
+
+        const coloniesInSystem = bySystem[sysId];
+        const totalUpgrades = coloniesInSystem.reduce((sum, c) => sum + (c.upgrade_level || 0), 0);
+
+        html += `<div class="colony-system">
+            <div class="colony-system-name"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(systemName)}${regionName ? ` <span class="colony-region">(${escapeHtml(regionName)})</span>` : ''}</div>
+            <div class="colony-system-meta">${sec !== null ? `Sec ${sec.toFixed(1)}` : ''}${sec !== null && coloniesInSystem.length ? ' &bull; ' : ''}${coloniesInSystem.length} planet${coloniesInSystem.length === 1 ? '' : 's'}${totalUpgrades ? ` &bull; ${totalUpgrades} upgrades` : ''}</div>
+        </div>`;
+
+        coloniesInSystem.forEach(c => {
+            const pt = getPlanetTypeByNameOrId(c.planet_type);
+            const typeName = pt ? pt.name : `Planet type ${c.planet_type}`;
+            const color = pt ? pt.color : '#666';
+
+            const upgrades = c.upgrade_level || 0;
+            const upgradeBar = [1, 2, 3, 4, 5].map(i =>
+                `<span class="upgrade-dot ${i <= upgrades ? 'active' : ''}" style="${i <= upgrades ? 'background:' + color : ''}"></span>`
+            ).join('');
+
+            const lastUpdate = c.last_update ? new Date(c.last_update).toLocaleString() : '';
+            const pinCount = c.num_pins ? `${c.num_pins} pins` : '';
+
+            html += `<div class="colony-item" style="border-left-color: ${color}">
+                <div class="colony-top">
+                    <span class="colony-name" style="color: ${color}">${escapeHtml(typeName)}</span>
+                    <span class="colony-upgrade" title="Command Center upgrade level">${upgradeBar}</span>
+                </div>
+                <div class="colony-meta">
+                    ${pinCount ? `<span><i class="fas fa-thumbtack"></i>${pinCount}</span>` : ''}
+                    <span><i class="fas fa-cubes"></i>CC ${upgrades}</span>
+                </div>
+                ${lastUpdate ? `<div class="colony-updated"><i class="fas fa-clock"></i> Last update: ${escapeHtml(lastUpdate)}</div>` : ''}
+            </div>`;
+        });
+    });
+
+    elements.coloniesList.innerHTML = html;
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[c]);
+}
+
+// ---------- Drawing ----------
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawBackgroundGrid();
+
+    if (AppState.viewMode === 'reference') {
+        drawReferenceView();
+        return;
+    }
+
+    ctx.save();
+    ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
+    ctx.scale(AppState.zoom, AppState.zoom);
+
+    if (AppState.viewMode === 'chain' && AppState.chainLayout) {
+        drawChain();
+    } else if (AppState.viewMode === 'chain') {
+        drawNoSelectionPrompt();
+    } else if (AppState.viewMode === 'planets') {
+        drawPlanetsView();
+    }
+
+    ctx.restore();
+}
+
+function drawNoSelectionPrompt() {
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
+    roundRect(ctx, cx - 220, cy - 60, 440, 120, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 16px Titillium Web, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Select a product to view its chain', cx, cy - 20);
+
+    ctx.fillStyle = '#888';
+    ctx.font = '12px Titillium Web, sans-serif';
+    ctx.fillText('Use the Target Product selector or click any material in the Reference view', cx, cy + 18);
+}
+
+function drawBackgroundGrid() {
+    const gridSize = 40;
+    const offsetX = AppState.canvasOffset.x % gridSize;
+    const offsetY = AppState.canvasOffset.y % gridSize;
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 1;
+
+    for (let x = offsetX; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+
+    for (let y = offsetY; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+}
+
+// ---------- Reference View ----------
+function drawReferenceView() {
+    const cols = Math.floor(canvas.width / 180) || 1;
+    const spacing = canvas.width / cols;
+    const cellWidth = spacing - 16;
+    const cellHeight = 95;
+
+    const allMaterials = [
+        ...getMaterialsByTier(1),
+        ...getMaterialsByTier(2),
+        ...getMaterialsByTier(3),
+        ...getMaterialsByTier(4)
+    ];
+
+    allMaterials.forEach((mat, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = col * spacing + 8;
+        const y = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
+
+        if (y > -cellHeight && y < canvas.height) {
+            drawRefCard(mat, x, y, cellWidth, cellHeight, PI_COLORS[mat.tier]);
+        }
+    });
+}
+
+function drawRefCard(mat, x, y, w, h, color) {
+    const isHovered = AppState.hoveredCard === mat.id;
+
+    const gradient = ctx.createLinearGradient(x, y, x, y + h);
+    if (isHovered) {
+        gradient.addColorStop(0, 'rgba(60, 60, 60, 0.98)');
+        gradient.addColorStop(1, 'rgba(40, 40, 40, 0.98)');
+    } else {
+        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
+        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
+    }
+    ctx.fillStyle = gradient;
+    ctx.strokeStyle = isHovered ? color : 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = isHovered ? 2 : 1;
+    roundRect(ctx, x, y, w, h, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    roundRect(ctx, x, y, 4, h, [8, 0, 0, 8]);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    roundRect(ctx, x + 12, y + 8, 20, 16, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#121212';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`P${mat.tier}`, x + 22, y + 16);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Titillium Web, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    let name = mat.name;
+    if (name.length > 18) name = name.substring(0, 16) + '...';
+    ctx.fillText(name, x + 40, y + 10);
+
+    if (mat.volume) {
+        ctx.fillStyle = '#555';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${mat.volume}m³`, x + w - 12, y + 12);
+    }
+
+    if (mat.inputs) {
+        const inputEntries = Object.entries(mat.inputs).slice(0, 2);
+        let yPos = y + 38;
+
+        inputEntries.forEach(([id, qty], i) => {
+            const input = getMaterialById(parseInt(id));
+            if (!input) return;
+
+            ctx.fillStyle = '#888';
+            ctx.font = '9px sans-serif';
+            ctx.textAlign = 'left';
+
+            let inputName = input.name;
+            if (inputName.length > 16) inputName = inputName.substring(0, 14) + '...';
+            ctx.fillText(`${qty}x ${inputName}`, x + 12, yPos);
+
+            if (input.tier === 0) {
+                const planetTypes = getPlanetTypesForP0(parseInt(id));
+                if (planetTypes.length > 0) {
+                    const spacing = 11;
+                    const startX = x + 12;
+
+                    planetTypes.forEach((planet, j) => {
+                        const px = startX + j * spacing;
+                        ctx.fillStyle = planet.color;
+                        ctx.beginPath();
+                        ctx.arc(px, yPos + 10, 4, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.shadowColor = planet.color;
+                        ctx.shadowBlur = 4;
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    });
+                }
+            }
+
+            yPos += 18;
+        });
+
+        ctx.fillStyle = '#666';
+        ctx.font = '8px sans-serif';
+        ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos);
+    }
+
+    const price = AppState.marketPrices[mat.id]?.sell;
+    if (price) {
+        ctx.fillStyle = '#e8d900';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(formatISK(price), x + w - 12, y + h - 12);
+    }
+}
+
+// ---------- Chain View ----------
+function drawChain() {
+    if (!AppState.chainLayout) return;
+
+    const { nodes, links } = AppState.chainLayout;
+
+    links.forEach((link, index) => {
+        const from = nodes.find(n => n.id === link.from);
+        const to = nodes.find(n => n.id === link.to);
+        if (from && to) {
+            const midX = (from.x + to.x) / 2;
+            const midY = (from.y + to.y) / 2;
+            const curveOffset = (index % 2 === 0 ? 10 : -10);
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(232, 217, 0, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.moveTo(from.x, from.y);
+            ctx.quadraticCurveTo(midX + curveOffset, midY, to.x, to.y);
+            ctx.stroke();
+        }
+    });
+
+    nodes.forEach(node => {
+        drawChainNode(node);
+    });
+}
+
+function drawChainNode(node) {
+    const width = 140;
+    const height = node.tier === 0 ? 78 : 62;
+    const x = node.x - width / 2;
+    const y = node.y - height / 2;
+
+    const color = PI_COLORS[node.tier] || '#666';
+
+    ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+
+    roundRect(ctx, x, y, width, height, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x + 10, y + 10, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#e0e0e0';
+    ctx.font = '11px Titillium Web, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+
+    let name = node.name;
+    if (name.length > 16) name = name.substring(0, 14) + '...';
+    ctx.fillText(name, node.x, y + 6);
+
+    ctx.fillStyle = '#aaa';
+    ctx.font = '9px sans-serif';
+
+    const mat = getMaterialById(node.materialId);
+    if (mat && mat.inputs) {
+        const inputQty = Object.values(mat.inputs)[0];
+        ctx.fillText(`${inputQty} → ${mat.batchSize} units`, node.x, y + 22);
+    }
+
+    if (node.tier === 0 && node.planetTypes.length > 0) {
+        ctx.fillStyle = '#777';
+        ctx.font = '8px sans-serif';
+        ctx.fillText('Found on:', node.x, y + 22);
+
+        const planetSpacing = 14;
+        const totalWidth = node.planetTypes.length * planetSpacing;
+        const startX = node.x - totalWidth / 2 + planetSpacing / 2;
+
+        node.planetTypes.forEach((planet, i) => {
+            const px = startX + i * planetSpacing;
+            const py = y + 40;
+
+            ctx.fillStyle = planet.color;
+            ctx.beginPath();
+            ctx.arc(px, py, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 7px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(planet.name[0].toUpperCase(), px, py);
+        });
+    }
+
+    const price = AppState.marketPrices[node.materialId]?.sell;
+    if (price) {
+        ctx.fillStyle = '#e8d900';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(formatISK(price), node.x, y + height - 10);
+    }
+}
+
+// ---------- Planets View ----------
+// Standalone reference: every planet subtype and which raw (P0) materials it can extract.
+function drawPlanetsView() {
+    const planetTypeIds = Object.keys(PI_DATA.planetTypes)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .filter(id => (PI_DATA.planetTypes[id].p0Materials || []).length > 0);
+
+    const nodeWidth = 160;
+    const nodeHeight = 44;
+    const groupGap = 24;
+    const rowGap = 12;
+    const nodeSpacing = 10;
+    const headerH = 22;
+    const cols = 5;
+
+    let yOffset = -300;
+
+    for (const typeId of planetTypeIds) {
+        const pt = PI_DATA.planetTypes[typeId];
+
+        // Group header
+        ctx.fillStyle = pt.color;
+        ctx.font = 'bold 15px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(pt.name, 0, yOffset);
+
+        // Raw materials extractable here
+        const p0Ids = pt.p0Materials || [];
+        const rows = Math.ceil(p0Ids.length / cols);
+        const groupHeight = headerH + rows * (nodeHeight + rowGap);
+
+        // Group background panel
+        ctx.fillStyle = 'rgba(30, 30, 30, 0.55)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, -8, yOffset - 6, cols * (nodeWidth + nodeSpacing) + 12, groupHeight + 14, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        p0Ids.forEach((matId, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const nx = col * (nodeWidth + nodeSpacing);
+            const ny = yOffset + headerH + row * (nodeHeight + rowGap);
+            drawPlanetP0Node(getMaterialById(matId), nx, ny, nodeWidth, nodeHeight, pt.color);
+        });
+
+        yOffset += groupHeight + groupGap;
+    }
+}
+
+function drawPlanetP0Node(mat, x, y, w, h, color) {
+    if (!mat) return;
+
+    ctx.fillStyle = 'rgba(40, 40, 40, 0.95)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, w, h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px Titillium Web, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    let name = mat.name;
+    if (name.length > 20) name = name.substring(0, 18) + '...';
+    ctx.fillText(name, x + 8, y + 8);
+
+    ctx.fillStyle = color;
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`P${mat.tier}`, x + w - 8, y + 8);
+
+    const price = AppState.marketPrices[mat.id]?.sell;
+    if (price) {
+        ctx.fillStyle = '#e8d900';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(formatISK(price), x + w - 8, y + h - 8);
+    }
+}
+
+// ---------- Canvas Event Handlers ----------
 function onMouseDown(e) {
     const pos = getCanvasPos(e);
-    AppState.mouseDownPos = pos; // Track for distinguishing click vs drag
+    AppState.mouseDownPos = pos;
     AppState.hasDragged = false;
-    
+
     if (AppState.viewMode === 'reference') {
-        // Check if clicked on a reference card
-        const cols = Math.floor(canvas.width / 180);
+        const cols = Math.floor(canvas.width / 180) || 1;
         const spacing = canvas.width / cols;
         const cellWidth = spacing - 16;
         const cellHeight = 95;
-        
+
         const allMaterials = [
-            ...PI_DATA.getMaterialsByTier(1),
-            ...PI_DATA.getMaterialsByTier(2),
-            ...PI_DATA.getMaterialsByTier(3),
-            ...PI_DATA.getMaterialsByTier(4)
+            ...getMaterialsByTier(1),
+            ...getMaterialsByTier(2),
+            ...getMaterialsByTier(3),
+            ...getMaterialsByTier(4)
         ];
-        
+
         for (let i = 0; i < allMaterials.length; i++) {
             const col = i % cols;
             const row = Math.floor(i / cols);
             const cardX = col * spacing + 8;
             const cardY = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
-            
+
             if (pos.x >= cardX && pos.x <= cardX + cellWidth &&
                 pos.y >= cardY && pos.y <= cardY + cellHeight) {
                 selectProduct(allMaterials[i].id);
                 return;
             }
         }
-        
-        // Start drag
+
         AppState.isDraggingCanvas = true;
         AppState.lastMousePos = pos;
         return;
     }
-    
-    if (AppState.viewMode === 'template') {
-        console.log('Template mode click. Selected facility:', AppState.template.selectedFacility);
-        // Convert screen to world coordinates
-        const worldPos = screenToWorld(pos.x, pos.y);
-        console.log('World pos:', worldPos);
-        
-        // Check if clicking on existing pin
-        const clickedPin = findPinAt(worldPos.x, worldPos.y);
-        
-        if (clickedPin) {
-            // Right-click to start linking
-            if (e.button === 2) {
-                if (AppState.template.linkingFrom) {
-                    // Complete the link
-                    if (AppState.template.linkingFrom.id !== clickedPin.id) {
-                        addLink(AppState.template.linkingFrom.id, clickedPin.id);
-                    }
-                    AppState.template.linkingFrom = null;
-                } else {
-                    // Start linking
-                    AppState.template.linkingFrom = clickedPin;
-                }
-                return;
-            }
-            
-            AppState.template.selectedPin = clickedPin;
-            AppState.template.draggedPin = clickedPin;
-            return;
-        }
-        
-        // Don't place pin immediately - wait to see if it's a drag
-        // Start canvas drag instead
-        AppState.isDraggingCanvas = true;
-        AppState.lastMousePos = pos;
-        AppState.pendingPinPlacement = {
-            x: worldPos.x,
-            y: worldPos.y,
-            type: AppState.template.selectedFacility
-        };
-        return;
-    }
-    
+
     AppState.isDraggingCanvas = true;
     AppState.lastMousePos = pos;
 }
 
 function onMouseMove(e) {
     const pos = getCanvasPos(e);
-    
-    // Check if this is a drag (moved more than 5 pixels)
+
     if (AppState.mouseDownPos) {
         const dx = pos.x - AppState.mouseDownPos.x;
         const dy = pos.y - AppState.mouseDownPos.y;
@@ -353,51 +1148,41 @@ function onMouseMove(e) {
             AppState.hasDragged = true;
         }
     }
-    
+
     if (AppState.viewMode === 'reference') {
-        // Check for card hover
-        const cols = Math.floor(canvas.width / 180);
+        const cols = Math.floor(canvas.width / 180) || 1;
         const spacing = canvas.width / cols;
         const cellWidth = spacing - 16;
         const cellHeight = 95;
-        
+
         const allMaterials = [
-            ...PI_DATA.getMaterialsByTier(1),
-            ...PI_DATA.getMaterialsByTier(2),
-            ...PI_DATA.getMaterialsByTier(3),
-            ...PI_DATA.getMaterialsByTier(4)
+            ...getMaterialsByTier(1),
+            ...getMaterialsByTier(2),
+            ...getMaterialsByTier(3),
+            ...getMaterialsByTier(4)
         ];
-        
+
         let foundHover = null;
         for (let i = 0; i < allMaterials.length; i++) {
             const col = i % cols;
             const row = Math.floor(i / cols);
             const cardX = col * spacing + 8;
             const cardY = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
-            
+
             if (pos.x >= cardX && pos.x <= cardX + cellWidth &&
                 pos.y >= cardY && pos.y <= cardY + cellHeight) {
                 foundHover = allMaterials[i].id;
                 break;
             }
         }
-        
+
         if (foundHover !== AppState.hoveredCard) {
             AppState.hoveredCard = foundHover;
             canvas.style.cursor = foundHover ? 'pointer' : 'default';
             draw();
         }
     }
-    
-    if (AppState.viewMode === 'template' && AppState.template.draggedPin) {
-        const worldPos = screenToWorld(pos.x, pos.y);
-        // Snap to grid
-        const gridSize = 25;
-        AppState.template.draggedPin.x = Math.round(worldPos.x / gridSize) * gridSize;
-        AppState.template.draggedPin.y = Math.round(worldPos.y / gridSize) * gridSize;
-        draw();
-    }
-    
+
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
@@ -410,16 +1195,7 @@ function onMouseMove(e) {
 
 function onMouseUp(e) {
     AppState.isDraggingCanvas = false;
-    AppState.template.draggedPin = null;
-    
-    // Handle pending pin placement (only if it was a click, not a drag)
-    if (AppState.viewMode === 'template' && AppState.pendingPinPlacement && !AppState.hasDragged) {
-        if (AppState.pendingPinPlacement.type) {
-            addPin(AppState.pendingPinPlacement.x, AppState.pendingPinPlacement.y, AppState.pendingPinPlacement.type);
-        }
-    }
-    
-    AppState.pendingPinPlacement = null;
+
     AppState.mouseDownPos = null;
     AppState.hasDragged = false;
 }
@@ -461,52 +1237,28 @@ function setZoom(zoom) {
 }
 
 function setViewMode(mode) {
-    console.log('setViewMode called with:', mode);
     AppState.viewMode = mode;
     elements.viewReference.classList.toggle('active', mode === 'reference');
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
-    elements.viewTemplate.classList.toggle('active', mode === 'template');
     elements.backToRef.classList.toggle('hidden', mode === 'reference');
-    
-    // Hide market data panel in template mode
-    const marketPanel = document.querySelector('.market-panel');
-    if (marketPanel) {
-        marketPanel.classList.toggle('hidden', mode === 'template');
-    }
-    
-    // Hide product breakdown panel in template mode
-    const breakdownPanel = document.getElementById('productBreakdown');
-    if (breakdownPanel) {
-        breakdownPanel.classList.toggle('hidden', mode === 'template');
-    }
-    
-    // Hide target product toolbar section in template mode
-    const targetSection = elements.targetProduct.closest('.toolbar-section');
-    if (targetSection) {
-        targetSection.classList.toggle('hidden', mode === 'template');
-    }
-    
-    // Update canvas cursor and help text
+
     const helpText = document.querySelector('.canvas-help p');
     if (mode === 'reference') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Click any material to view its production chain and market data';
     } else if (mode === 'planets') {
         canvas.style.cursor = 'default';
-        helpText.innerHTML = '<i class="fas fa-info-circle"></i> Planet breakdown view • Shows required planet types for each material';
-    } else if (mode === 'template') {
-        canvas.style.cursor = 'default';
-        helpText.innerHTML = '<i class="fas fa-info-circle"></i> Template Builder • Click facility type, then click planet to place';
-        // Center the planet in view
-        AppState.canvasOffset.x = canvas.width / 2;
-        AppState.canvasOffset.y = canvas.height / 2;
-        AppState.zoom = 1;
+        helpText.innerHTML = '<i class="fas fa-info-circle"></i> Planet breakdown view • Shows which raw materials each planet subtype can extract';
     } else {
         canvas.style.cursor = 'default';
-        helpText.innerHTML = '<i class="fas fa-info-circle"></i> Viewing production chain • Use controls to zoom and pan';
+        if (AppState.chainLayout) {
+            helpText.innerHTML = '<i class="fas fa-info-circle"></i> Viewing production chain • Use controls to zoom and pan';
+        } else {
+            helpText.innerHTML = '<i class="fas fa-info-circle"></i> Select a product to view its production chain';
+        }
     }
-    
+
     draw();
 }
 
@@ -519,957 +1271,222 @@ function fitView() {
     }
 }
 
-// Chain Calculation
-function calculateChain() {
-    const productId = elements.targetProduct.value;
-    if (!productId) {
-        alert('Please select a target product first');
-        return;
-    }
-    
-    AppState.targetProduct = parseInt(productId);
-    
-    // Generate visual chain layout
-    generateChainLayout();
-    
-    // Fetch market data
-    fetchMarketData();
-    
-    setViewMode('chain');
+// ---------- Reference Grids (sidebar) ----------
+function setupReferenceGrids() {
+    [
+        [elements.refP1, 1],
+        [elements.refP2, 2],
+        [elements.refP3, 3],
+        [elements.refP4, 4]
+    ].forEach(([el, tier]) => {
+        el.innerHTML = getMaterialsByTier(tier).map(m => `
+            <div class="ref-item" data-id="${m.id}" title="${m.name}">${m.name}</div>
+        `).join('');
+    });
+
+    document.querySelectorAll('.ref-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = parseInt(item.dataset.id);
+            selectProduct(id);
+        });
+    });
 }
 
-function showProductBreakdown(productId) {
-    const material = PI_DATA.getMaterialById(productId);
-    if (!material) return;
-    
-    const requirements = {};
-    const visited = new Set();
-    
-    // Recursively calculate requirements based on material inputs
-    const calculateRequirements = (materialId, multiplier = 1) => {
-        // Prevent infinite recursion
-        if (visited.has(materialId)) return;
-        visited.add(materialId);
-        
-        const mat = PI_DATA.getMaterialById(materialId);
-        if (!mat) return;
-        
-        if (mat.tier === 0) {
-            // P0 material - add to requirements
-            requirements[materialId] = (requirements[materialId] || 0) + multiplier;
-        } else if (mat.inputs) {
-            // P1-P4 material - add its inputs
-            Object.entries(mat.inputs).forEach(([inputId, inputQty]) => {
-                calculateRequirements(parseInt(inputId), inputQty * multiplier);
-            });
+// ---------- System Checker (offline SDE + skyhook) ----------
+function setupSystemChecker() {
+    elements.checkSystem.addEventListener('click', checkSystem);
+    elements.systemInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') checkSystem();
+    });
+}
+
+async function ensureSystemsLoaded() {
+    if (AppState.systemsLoaded) return true;
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'pi-systems.js?t=' + new Date().getTime();
+        script.onload = () => {
+            AppState.systemsLoaded = true;
+            resolve(true);
+        };
+        script.onerror = () => {
+            console.error('Failed to load pi-systems.js');
+            resolve(false);
+        };
+        document.head.appendChild(script);
+    });
+}
+
+async function checkSystem() {
+    const systemName = elements.systemInput.value.trim();
+    if (!systemName) return;
+
+    elements.checkSystem.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+
+    const loaded = await ensureSystemsLoaded();
+    if (!loaded) {
+        elements.systemPlanets.innerHTML = '<div style="color: var(--danger)">Failed to load system data</div>';
+        elements.systemResults.classList.remove('hidden');
+        elements.checkSystem.innerHTML = '<i class="fas fa-search"></i> Check System';
+        return;
+    }
+
+    const lower = systemName.toLowerCase();
+
+    // Exact match first, then substring
+    let system = null;
+    for (const key in PI_SYSTEMS) {
+        if (PI_SYSTEMS[key].name.toLowerCase() === lower) {
+            system = PI_SYSTEMS[key];
+            break;
         }
-    };
-    
-    calculateRequirements(productId, 1);
-    
-    // Build breakdown HTML
-    const breakdownContent = document.getElementById('breakdownContent');
-    let html = '';
-    
-    Object.entries(requirements).forEach(([id, amount]) => {
-        const mat = PI_DATA.getMaterialById(parseInt(id));
-        if (mat) {
-            html += `
-                <div class="breakdown-item">
-                    <span class="material-name">${mat.name}</span>
-                    <span class="material-amount">${Math.round(amount)}</span>
-                </div>
+    }
+    if (!system) {
+        for (const key in PI_SYSTEMS) {
+            if (PI_SYSTEMS[key].name.toLowerCase().includes(lower)) {
+                system = PI_SYSTEMS[key];
+                break;
+            }
+        }
+    }
+
+    if (!system) {
+        elements.systemPlanets.innerHTML = '<div style="color: var(--danger)">System not found</div>';
+        elements.systemResults.classList.remove('hidden');
+        elements.checkSystem.innerHTML = '<i class="fas fa-search"></i> Check System';
+        return;
+    }
+
+    const planetTypes = system.planets.map(p => p.typeId).filter(Boolean);
+    const skyhookTotals = { power: 0, workforce: 0, reagents: {} };
+
+    system.planets.forEach(p => {
+        if (p.skyhook) {
+            if (p.skyhook.kind === 'power') skyhookTotals.power += p.skyhook.amount;
+            else if (p.skyhook.kind === 'workforce') skyhookTotals.workforce += p.skyhook.amount;
+            else if (p.skyhook.kind === 'reagent') {
+                skyhookTotals.reagents[p.skyhook.reagentTypeId] =
+                    (skyhookTotals.reagents[p.skyhook.reagentTypeId] || 0) + p.skyhook.amount;
+            }
+        }
+    });
+
+    displaySystemResults(system, planetTypes, skyhookTotals);
+
+    elements.checkSystem.innerHTML = '<i class="fas fa-search"></i> Check System';
+}
+
+function formatSecurity(sec) {
+    if (sec === null || sec === undefined) return '?';
+    return sec.toFixed(1);
+}
+
+function displaySystemResults(system, planetTypes, skyhookTotals) {
+    const regionName = PI_DATA.regions[system.regionId] || 'Unknown Region';
+    const securityClass = system.security >= 0.5 ? 'hi' : (system.security >= 0.1 ? 'lo' : 'null');
+
+    elements.systemInfo.innerHTML = `
+        <strong>${system.name}</strong> <span class="sec-badge ${securityClass}">${formatSecurity(system.security)}</span>
+        <span class="region-name">${regionName}</span>
+    `;
+
+    // Planet type counts
+    const counts = {};
+    planetTypes.forEach(t => {
+        counts[t] = (counts[t] || 0) + 1;
+    });
+
+    let planetsHtml = `<h4>${planetTypes.length} Planets</h4>`;
+    planetsHtml += '<div class="planet-count-row">';
+    for (const [typeId, count] of Object.entries(counts)) {
+        const pt = getPlanetTypeData(parseInt(typeId));
+        if (pt) {
+            planetsHtml += `
+                <span class="planet-type-badge" style="background: ${pt.color};" title="${pt.name}">
+                    ${pt.name} ×${count}
+                </span>
             `;
         }
-    });
-    
-    breakdownContent.innerHTML = html;
-    document.getElementById('productBreakdown').classList.remove('hidden');
-}
-
-function generateChainLayout() {
-    const productId = AppState.targetProduct;
-    const chain = PI_DATA.getChainForProduct(productId);
-    
-    if (!chain) return;
-    
-    const layout = {
-        nodes: [],
-        links: []
-    };
-    
-    const levelWidth = 160;
-    const nodeHeight = 100;
-    
-    // First pass: calculate tree depth and count nodes per level
-    const nodeCounts = {};
-    const maxDepth = { value: 0 };
-    const visitedNodes = new Set();
-    
-    const countNodes = (nodeData, depth) => {
-        // Prevent infinite recursion
-        if (visitedNodes.has(nodeData.id)) return;
-        visitedNodes.add(nodeData.id);
-        
-        maxDepth.value = Math.max(maxDepth.value, depth);
-        nodeCounts[depth] = (nodeCounts[depth] || 0) + 1;
-        
-        if (nodeData.inputs) {
-            // inputs is an object, convert to array
-            Object.values(nodeData.inputs).forEach(input => {
-                if (input.subChain) {
-                    countNodes(input.subChain, depth + 1);
-                }
-            });
-        }
-    };
-    
-    countNodes(chain.target, 0);
-    
-    // Build tree structure with better positioning
-    const visitedAddNodes = new Set();
-    const levelIndices = {}; // Track position of nodes at each depth level
-    
-    const addNode = (nodeData, depth, parentId = null) => {
-        // Prevent infinite recursion
-        if (visitedAddNodes.has(nodeData.id)) return;
-        visitedAddNodes.add(nodeData.id);
-        
-        // Track position at this depth level
-        levelIndices[depth] = (levelIndices[depth] || 0) + 1;
-        const index = levelIndices[depth] - 1;
-        
-        const levelCount = nodeCounts[depth] || 1;
-        const levelSpacing = levelWidth;
-        const totalWidth = (levelCount - 1) * levelSpacing;
-        const x = (index * levelSpacing) - totalWidth / 2;
-        const y = (maxDepth.value - depth) * nodeHeight;
-        
-        const node = {
-            id: `node-${layout.nodes.length}`,
-            materialId: nodeData.id,
-            name: nodeData.name,
-            tier: nodeData.tier,
-            x,
-            y,
-            qty: nodeData.qty || 1,
-            planetTypes: []
-        };
-        
-        // For P0 materials, find which planets can extract them
-        if (nodeData.tier === 0) {
-            for (const [type, data] of Object.entries(PI_DATA.planets)) {
-                if (data.p0Materials.includes(nodeData.id)) {
-                    node.planetTypes.push({ type, name: data.name, color: data.color });
-                }
-            }
-        }
-        
-        layout.nodes.push(node);
-        
-        if (parentId) {
-            layout.links.push({ from: node.id, to: parentId });
-        }
-        
-        if (nodeData.subChain) {
-            nodeData.subChain.inputs?.forEach(input => {
-                addNode(input, depth + 1, node.id);
-            });
-        } else if (nodeData.inputs) {
-            Object.entries(nodeData.inputs).forEach(([id, qty]) => {
-                const subChain = PI_DATA.getChainForProduct(parseInt(id));
-                if (subChain) {
-                    addNode({ ...subChain.target, qty }, depth + 1, node.id);
-                } else {
-                    addNode({ id: parseInt(id), ...PI_DATA.materials[id], qty }, depth + 1, node.id);
-                }
-            });
-        }
-        
-        return node.id;
-    };
-    
-    addNode(chain.target, 0);
-    
-    AppState.chainLayout = layout;
-    
-    // Center the view on the chain
-    fitChainView(layout);
-}
-
-function fitChainView(layout) {
-    if (!layout || layout.nodes.length === 0) return;
-    
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    
-    layout.nodes.forEach(n => {
-        minX = Math.min(minX, n.x - 60);
-        maxX = Math.max(maxX, n.x + 60);
-        minY = Math.min(minY, n.y - 40);
-        maxY = Math.max(maxY, n.y + 40);
-    });
-    
-    const padding = 50;
-    const width = maxX - minX + padding * 2;
-    const height = maxY - minY + padding * 2;
-    
-    const scaleX = canvas.width / width;
-    const scaleY = canvas.height / height;
-    
-    setZoom(Math.min(scaleX, scaleY, 1.5));
-    
-    AppState.canvasOffset.x = -minX * AppState.zoom + padding * AppState.zoom + (canvas.width - width * AppState.zoom) / 2;
-    AppState.canvasOffset.y = -minY * AppState.zoom + padding * AppState.zoom + (canvas.height - height * AppState.zoom) / 2;
-    
-    draw();
-}
-
-// Market Data
-async function fetchMarketData() {
-    if (!AppState.targetProduct) return;
-    
-    elements.marketLoading.classList.remove('hidden');
-    elements.marketContent.classList.add('hidden');
-    
-    const regionId = elements.regionSelect.value;
-    const productId = AppState.targetProduct;
-    
-    // Get all materials in the chain
-    const chain = PI_DATA.getChainForProduct(productId);
-    const materialIds = collectMaterialIds(chain);
-    
-    try {
-        const prices = await fetchPricesForMaterials(materialIds, regionId);
-        AppState.marketPrices = prices;
-        
-        updateMarketDisplay(prices, chain);
-        
-        elements.marketLoading.classList.add('hidden');
-        elements.marketContent.classList.remove('hidden');
-    } catch (err) {
-        console.error('Failed to fetch market data:', err);
-        elements.marketLoading.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error loading prices';
     }
-}
+    planetsHtml += '</div>';
+    elements.systemPlanets.innerHTML = planetsHtml;
 
-function collectMaterialIds(chain, ids = new Set()) {
-    if (!chain) return ids;
-    
-    ids.add(chain.target.id);
-    
-    if (chain.inputs) {
-        chain.inputs.forEach(input => {
-            ids.add(input.id);
-            if (input.subChain) {
-                collectMaterialIds(input.subChain, ids);
-            }
+    // Skyhook summary
+    if (skyhookTotals.power > 0 || skyhookTotals.workforce > 0 || Object.keys(skyhookTotals.reagents).length > 0) {
+        let skyHtml = '<div class="skyhook-summary"><h4><i class="fas fa-satellite-dish"></i> Skyhooks</h4>';
+        if (skyhookTotals.power > 0) skyHtml += `<div class="skyhook-item power"><i class="fas fa-bolt"></i> Power: ${skyhookTotals.power.toLocaleString()}</div>`;
+        if (skyhookTotals.workforce > 0) skyHtml += `<div class="skyhook-item workforce"><i class="fas fa-users"></i> Workforce: ${skyhookTotals.workforce.toLocaleString()}</div>`;
+        for (const [typeId, amount] of Object.entries(skyhookTotals.reagents)) {
+            const reagentName = (PI_DATA.reagentTypes && PI_DATA.reagentTypes[typeId]) || ('Reagent ' + typeId);
+            skyHtml += `<div class="skyhook-item reagent"><i class="fas fa-flask"></i> ${reagentName}: ${amount.toLocaleString()}</div>`;
+        }
+        skyHtml += '</div>';
+        elements.systemPlanets.innerHTML += skyHtml;
+    }
+
+    // Calculate producible materials
+    const availableP0 = new Set();
+    planetTypes.forEach(typeId => {
+        const pt = getPlanetTypeData(typeId);
+        if (pt) {
+            pt.p0Materials.forEach(id => availableP0.add(id));
+        }
+    });
+
+    // P1 producible
+    const producibleP1 = new Set();
+    for (const mat of getMaterialsByTier(1)) {
+        if (mat.inputs && Object.keys(mat.inputs).every(i => availableP0.has(parseInt(i)))) {
+            producibleP1.add(mat.id);
+        }
+    }
+
+    // P2 producible (inputs are P1 or P0)
+    const producibleP2 = getMaterialsByTier(2).filter(mat => {
+        if (!mat.inputs) return false;
+        return Object.keys(mat.inputs).every(i => producibleP1.has(parseInt(i)) || availableP0.has(parseInt(i)));
+    });
+
+    // P3 producible (inputs are P2, P1, or P0)
+    const producibleP2Ids = new Set(producibleP2.map(m => m.id));
+    const producibleP3 = getMaterialsByTier(3).filter(mat => {
+        if (!mat.inputs) return false;
+        return Object.keys(mat.inputs).every(i =>
+            producibleP2Ids.has(parseInt(i)) || producibleP1.has(parseInt(i)) || availableP0.has(parseInt(i)));
+    });
+
+    // P4 producible (inputs are P3, P2, P1, or P0)
+    const producibleP3Ids = new Set(producibleP3.map(m => m.id));
+    const producibleP4 = getMaterialsByTier(4).filter(mat => {
+        if (!mat.inputs) return false;
+        return Object.keys(mat.inputs).every(i =>
+            producibleP3Ids.has(parseInt(i)) || producibleP2Ids.has(parseInt(i)) ||
+            producibleP1.has(parseInt(i)) || availableP0.has(parseInt(i)));
+    });
+
+    elements.producibleP2.innerHTML = producibleP2.length > 0
+        ? producibleP2.map(p => `<div class="producible-item p2" data-id="${p.id}">${p.name}</div>`).join('')
+        : '<div style="color: var(--muted); font-size: 0.7rem;">No P2 producible locally</div>';
+
+    elements.producibleP3.innerHTML = producibleP3.length > 0
+        ? producibleP3.map(p => `<div class="producible-item p3" data-id="${p.id}">${p.name}</div>`).join('')
+        : '<div style="color: var(--muted); font-size: 0.7rem;">No P3 producible locally</div>';
+
+    elements.producibleP4.innerHTML = producibleP4.length > 0
+        ? producibleP4.map(p => `<div class="producible-item p4" data-id="${p.id}">${p.name}</div>`).join('')
+        : '<div style="color: var(--muted); font-size: 0.7rem;">No P4 producible locally</div>';
+
+    document.querySelectorAll('.producible-item').forEach(item => {
+        item.addEventListener('click', () => {
+            selectProduct(parseInt(item.dataset.id));
         });
-    }
-    
-    return ids;
-}
-
-async function fetchPricesForMaterials(ids, regionId) {
-    const prices = {};
-    const idArray = Array.from(ids);
-    
-    // Process in batches of 100 (ESI limit for orders endpoint is lower, use market prices)
-    const batches = [];
-    for (let i = 0; i < idArray.length; i += 100) {
-        batches.push(idArray.slice(i, i + 100));
-    }
-    
-    for (const batch of batches) {
-        try {
-            // Use market prices endpoint for all regions
-            const url = `${ESI_BASE}/markets/prices/`;
-            const response = await fetch(url);
-            
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
-            const data = await response.json();
-            
-            batch.forEach(id => {
-                const item = data.find(p => p.type_id === id);
-                if (item) {
-                    prices[id] = {
-                        sell: item.average_price || 0,
-                        buy: item.adjusted_price || 0
-                    };
-                }
-            });
-        } catch (err) {
-            console.warn('Failed to fetch batch:', err);
-        }
-        
-        // Small delay to be nice to ESI
-        await new Promise(r => setTimeout(r, 100));
-    }
-    
-    // Try to get better prices from orders for the selected region
-    if (regionId !== 'major') {
-        try {
-            const ordersUrl = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${idArray[0]}&order_type=sell`;
-            const response = await fetch(ordersUrl);
-            if (response.ok) {
-                const orders = await response.json();
-                if (orders.length > 0) {
-                    const bestSell = orders
-                        .filter(o => o.is_buy_order === false)
-                        .sort((a, b) => a.price - b.price)[0];
-                    if (bestSell) {
-                        prices[idArray[0]].sell = bestSell.price;
-                    }
-                }
-            }
-        } catch (e) {
-            // Ignore errors for individual items
-        }
-    }
-    
-    return prices;
-}
-
-function updateMarketDisplay(prices, chain) {
-    // Calculate costs
-    const targetId = chain.target.id;
-    const targetPrice = prices[targetId]?.sell || 0;
-    const targetBatch = PI_DATA.materials[targetId]?.batchSize || 1;
-    const outputValue = targetPrice * targetBatch;
-    
-    // Calculate input costs
-    let totalInputCost = 0;
-    const priceItems = [];
-    
-    function calcInputCost(node) {
-        if (!node.inputs) return;
-        
-        for (const input of node.inputs) {
-            const matId = input.id;
-            const qty = input.qty || 1;
-            const price = prices[matId]?.sell || 0;
-            const cost = price * qty;
-            totalInputCost += cost;
-            
-            priceItems.push({
-                name: input.name,
-                price: price,
-                qty: qty,
-                total: cost,
-                tier: input.tier
-            });
-            
-            if (input.subChain) {
-                calcInputCost(input.subChain);
-            }
-        }
-    }
-    
-    calcInputCost(chain);
-    
-    const profit = outputValue - totalInputCost;
-    const margin = totalInputCost > 0 ? (profit / totalInputCost) * 100 : 0;
-    
-    // Update display
-    elements.outputValue.textContent = formatISK(outputValue);
-    elements.inputCost.textContent = formatISK(totalInputCost);
-    
-    const profitEl = elements.profitValue;
-    profitEl.textContent = formatISK(profit);
-    profitEl.className = 'value isk ' + (profit >= 0 ? 'positive' : 'negative');
-    
-    elements.profitMargin.textContent = margin.toFixed(1) + '%';
-    
-    // Update price list
-    elements.priceList.innerHTML = priceItems
-        .sort((a, b) => b.tier - a.tier)
-        .map(item => `
-            <div class="price-item">
-                <span class="material-name">${item.name} x${item.qty}</span>
-                <span class="material-price">${formatISK(item.total)}</span>
-            </div>
-        `).join('');
-}
-
-function hideMarketData() {
-    elements.marketLoading.classList.remove('hidden');
-    elements.marketContent.classList.add('hidden');
-    elements.marketLoading.innerHTML = '<i class="fas fa-chart-line"></i> Select a product to view market data';
-}
-
-// Drawing
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw background grid
-    drawBackgroundGrid();
-    
-    if (AppState.viewMode === 'reference') {
-        drawReferenceView();
-        return;
-    }
-    
-    ctx.save();
-    ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
-    ctx.scale(AppState.zoom, AppState.zoom);
-    
-    if (AppState.viewMode === 'chain' && AppState.chainLayout) {
-        drawChain();
-    } else if (AppState.viewMode === 'planets' && AppState.chainLayout) {
-        drawPlanetsView();
-    } else if (AppState.viewMode === 'template') {
-        drawTemplateView();
-    }
-    
-    ctx.restore();
-}
-
-function drawBackgroundGrid() {
-    const gridSize = 40;
-    const offsetX = AppState.canvasOffset.x % gridSize;
-    const offsetY = AppState.canvasOffset.y % gridSize;
-    
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-    ctx.lineWidth = 1;
-    
-    for (let x = offsetX; x < canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    
-    for (let y = offsetY; y < canvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-}
-
-function drawReferenceView() {
-    // Draw compact reference grid showing all P1/P2/P3/P4 materials
-    const cols = Math.floor(canvas.width / 180);
-    const spacing = canvas.width / cols;
-    const cellWidth = spacing - 16;
-    const cellHeight = 95;
-    
-    const allMaterials = [
-        ...PI_DATA.getMaterialsByTier(1),
-        ...PI_DATA.getMaterialsByTier(2),
-        ...PI_DATA.getMaterialsByTier(3),
-        ...PI_DATA.getMaterialsByTier(4)
-    ];
-    
-    const tierColors = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
-    
-    allMaterials.forEach((mat, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const x = col * spacing + 8;
-        const y = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
-        
-        if (y > -cellHeight && y < canvas.height) {
-            drawRefCard(mat, x, y, cellWidth, cellHeight, tierColors[mat.tier]);
-        }
     });
+
+    elements.systemResults.classList.remove('hidden');
 }
 
-function drawRefCard(mat, x, y, w, h, color) {
-    const isHovered = AppState.hoveredCard === mat.id;
-    
-    // Card background with gradient
-    const gradient = ctx.createLinearGradient(x, y, x, y + h);
-    if (isHovered) {
-        gradient.addColorStop(0, 'rgba(60, 60, 60, 0.98)');
-        gradient.addColorStop(1, 'rgba(40, 40, 40, 0.98)');
-    } else {
-        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
-        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
-    }
-    ctx.fillStyle = gradient;
-    
-    // Subtle border
-    ctx.strokeStyle = isHovered ? color : 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = isHovered ? 2 : 1;
-    roundRect(ctx, x, y, w, h, 8);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Left accent bar
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    roundRect(ctx, x, y, 4, h, [8, 0, 0, 8]);
-    ctx.fill();
-    
-    // Tier badge
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    roundRect(ctx, x + 12, y + 8, 20, 16, 4);
-    ctx.fill();
-    
-    ctx.fillStyle = '#121212';
-    ctx.font = 'bold 9px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`P${mat.tier}`, x + 22, y + 16);
-    
-    // Name
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 13px Titillium Web, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    
-    let name = mat.name;
-    if (name.length > 18) name = name.substring(0, 16) + '...';
-    ctx.fillText(name, x + 40, y + 10);
-    
-    // Volume info
-    if (mat.volume) {
-        ctx.fillStyle = '#555';
-        ctx.font = '8px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(`${mat.volume}m³`, x + w - 12, y + 12);
-    }
-    
-    // Input summary with planet types
-    if (mat.inputs) {
-        const inputEntries = Object.entries(mat.inputs).slice(0, 2);
-        let yPos = y + 38;
-        
-        inputEntries.forEach(([id, qty], i) => {
-            const input = PI_DATA.materials[id];
-            if (!input) return;
-            
-            // Input name
-            ctx.fillStyle = '#888';
-            ctx.font = '9px sans-serif';
-            ctx.textAlign = 'left';
-            
-            let inputName = input.name;
-            if (inputName.length > 16) inputName = inputName.substring(0, 14) + '...';
-            ctx.fillText(`${qty}x ${inputName}`, x + 12, yPos);
-            
-            // Show planet types for P0 inputs
-            if (input.tier === 0) {
-                const planetTypes = [];
-                for (const [type, data] of Object.entries(PI_DATA.planets)) {
-                    if (data.p0Materials.includes(parseInt(id))) {
-                        planetTypes.push({ type, color: data.color });
-                    }
-                }
-                
-                if (planetTypes.length > 0) {
-                    const spacing = 11;
-                    const startX = x + 12;
-                    
-                    planetTypes.forEach((planet, j) => {
-                        const px = startX + j * spacing;
-                        ctx.fillStyle = planet.color;
-                        ctx.beginPath();
-                        ctx.arc(px, yPos + 10, 4, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        // Glow effect
-                        ctx.shadowColor = planet.color;
-                        ctx.shadowBlur = 4;
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                    });
-                }
-            }
-            
-            yPos += 18;
-        });
-        
-        // Output amount
-        ctx.fillStyle = '#666';
-        ctx.font = '8px sans-serif';
-        ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos);
-    }
-    
-    // Price if available
-    const price = AppState.marketPrices[mat.id]?.sell;
-    if (price) {
-        ctx.fillStyle = '#e8d900';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(formatISK(price), x + w - 12, y + h - 12);
-    }
-}
-
-function drawChain() {
-    if (!AppState.chainLayout) return;
-    
-    const { nodes, links } = AppState.chainLayout;
-    
-    // Draw links as simple curved lines without arrows
-    links.forEach((link, index) => {
-        const from = nodes.find(n => n.id === link.from);
-        const to = nodes.find(n => n.id === link.to);
-        
-        if (from && to) {
-            const midX = (from.x + to.x) / 2;
-            const midY = (from.y + to.y) / 2;
-            
-            // Add slight curve offset based on link index
-            const curveOffset = (index % 2 === 0 ? 10 : -10);
-            
-            ctx.beginPath();
-            ctx.strokeStyle = 'rgba(232, 217, 0, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.moveTo(from.x, from.y);
-            ctx.quadraticCurveTo(midX + curveOffset, midY, to.x, to.y);
-            ctx.stroke();
-        }
-    });
-    
-    // Draw nodes
-    nodes.forEach(node => {
-        drawChainNode(node);
-    });
-}
-
-function drawPlanetsView() {
-    if (!AppState.chainLayout) return;
-    
-    const { nodes } = AppState.chainLayout;
-    
-    // Group nodes by planet type (for P0) or tier
-    const planetGroups = {};
-    const tierGroups = {};
-    
-    nodes.forEach(node => {
-        if (node.tier === 0 && node.planetTypes.length > 0) {
-            node.planetTypes.forEach(pt => {
-                if (!planetGroups[pt.type]) {
-                    planetGroups[pt.type] = { name: pt.name, color: pt.color, nodes: [] };
-                }
-                planetGroups[pt.type].nodes.push(node);
-            });
-        } else {
-            const tier = `P${node.tier}`;
-            if (!tierGroups[tier]) {
-                tierGroups[tier] = { nodes: [] };
-            }
-            tierGroups[tier].nodes.push(node);
-        }
-    });
-    
-    // Draw planet groups
-    let yOffset = -300;
-    const groupSpacing = 120;
-    
-    // Planet type groups
-    for (const [type, group] of Object.entries(planetGroups)) {
-        drawPlanetGroup(group.name, group.color, group.nodes, 0, yOffset);
-        yOffset += groupSpacing;
-    }
-    
-    // Tier groups
-    for (const [tier, group] of Object.entries(tierGroups)) {
-        drawTierGroup(tier, group.nodes, 0, yOffset);
-        yOffset += groupSpacing;
-    }
-}
-
-function drawPlanetGroup(name, color, nodes, x, y) {
-    // Group header
-    ctx.fillStyle = color;
-    ctx.font = 'bold 14px Titillium Web, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(name, x, y);
-    
-    // Draw nodes in this group
-    const nodeWidth = 140;
-    const nodeHeight = 50;
-    const spacing = 10;
-    const cols = 4;
-    
-    nodes.forEach((node, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const nx = x + col * (nodeWidth + spacing);
-        const ny = y + 25 + row * (nodeHeight + spacing);
-        
-        drawCompactNode(node, nx, ny, nodeWidth, nodeHeight, color);
-    });
-}
-
-function drawTierGroup(tier, nodes, x, y) {
-    // Group header
-    ctx.fillStyle = '#888';
-    ctx.font = 'bold 14px Titillium Web, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(tier + ' Materials', x, y);
-    
-    // Draw nodes in this group
-    const nodeWidth = 140;
-    const nodeHeight = 50;
-    const spacing = 10;
-    const cols = 4;
-    
-    const tierColors = { 'P0': '#6e7681', 'P1': '#58a6ff', 'P2': '#d29922', 'P3': '#a371f7', 'P4': '#3fb950' };
-    const color = tierColors[tier] || '#666';
-    
-    nodes.forEach((node, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const nx = x + col * (nodeWidth + spacing);
-        const ny = y + 25 + row * (nodeHeight + spacing);
-        
-        drawCompactNode(node, nx, ny, nodeWidth, nodeHeight, color);
-    });
-}
-
-function drawCompactNode(node, x, y, w, h, color) {
-    // Background
-    ctx.fillStyle = 'rgba(40, 40, 40, 0.95)';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    roundRect(ctx, x, y, w, h, 6);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Name
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 11px Titillium Web, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    
-    let name = node.name;
-    if (name.length > 18) name = name.substring(0, 16) + '...';
-    ctx.fillText(name, x + 8, y + 8);
-    
-    // Tier
-    ctx.fillStyle = color;
-    ctx.font = '9px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`P${node.tier}`, x + w - 8, y + 8);
-    
-    // Price
-    const price = AppState.marketPrices[node.materialId]?.sell;
-    if (price) {
-        ctx.fillStyle = '#e8d900';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(formatISK(price), x + w - 8, y + h - 8);
-    }
-}
-
-// Template Builder Drawing
-function drawTemplateView() {
-    // Draw planet background
-    drawPlanetBackground();
-    
-    // Draw links
-    ctx.strokeStyle = 'rgba(232, 217, 0, 0.4)';
-    ctx.lineWidth = 2;
-    
-    AppState.template.links.forEach(link => {
-        const from = AppState.template.pins.find(p => p.id === link.from);
-        const to = AppState.template.pins.find(p => p.id === link.to);
-        
-        if (from && to) {
-            ctx.beginPath();
-            ctx.moveTo(from.x, from.y);
-            ctx.lineTo(to.x, to.y);
-            ctx.stroke();
-        }
-    });
-    
-    // Draw pins
-    AppState.template.pins.forEach(pin => {
-        drawPin(pin);
-    });
-}
-
-function drawPlanetBackground() {
-    const planetType = parseInt(elements.templatePlanetType.value);
-    const planetColors = {
-        2016: '#a16207', // Barren
-        2017: '#14b8a6', // Gas
-        2018: '#e0f2fe', // Ice
-        2019: '#dc2626', // Lava
-        2020: '#0ea5e9', // Oceanic
-        2021: '#8b5cf6', // Plasma
-        2022: '#6b7280', // Shattered
-        2023: '#f59e0b', // Storm
-        2024: '#4ade80'  // Temperate
-    };
-    
-    const color = planetColors[planetType] || '#666';
-    
-    // Draw planet circle
-    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 400);
-    gradient.addColorStop(0, lighten(color, 20));
-    gradient.addColorStop(0.5, color);
-    gradient.addColorStop(1, darken(color, 30));
-    
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(0, 0, 400, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Grid overlay
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 1;
-    
-    for (let i = -400; i <= 400; i += 50) {
-        ctx.beginPath();
-        ctx.moveTo(i, -400);
-        ctx.lineTo(i, 400);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(-400, i);
-        ctx.lineTo(400, i);
-        ctx.stroke();
-    }
-}
-
-function drawPin(pin) {
-    const isSelected = AppState.template.selectedPin?.id === pin.id;
-    const facilityColors = {
-        command: '#e8d900',
-        extractor: '#f97316',
-        basic: '#3b82f6',
-        advanced: '#8b5cf6',
-        hitech: '#ec4899',
-        storage: '#6b7280',
-        launchpad: '#14b8a6'
-    };
-    
-    const color = facilityColors[pin.type] || '#666';
-    const size = 15;
-    
-    // Pin body
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(pin.x, pin.y, size, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Selection highlight
-    if (isSelected) {
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-    } else {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    }
-    
-    // Pin label
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(pin.type[0].toUpperCase(), pin.x, pin.y);
-}
-
-function addPin(x, y, type) {
-    // Check if trying to place a second command center
-    if (type === 'command') {
-        const hasCommandCenter = AppState.template.pins.some(p => p.type === 'command');
-        if (hasCommandCenter) {
-            console.log('Cannot place more than one command center');
-            return;
-        }
-    }
-    
-    // Snap to grid
-    const gridSize = 25;
-    const snappedX = Math.round(x / gridSize) * gridSize;
-    const snappedY = Math.round(y / gridSize) * gridSize;
-    
-    const pin = {
-        id: AppState.template.pins.length + 1,
-        x: snappedX,
-        y: snappedY,
-        type,
-        lat: (snappedY / 400) * 1.5708, // Convert to radians
-        lon: (snappedX / 400) * 3.14159,
-        schematic: null
-    };
-    
-    AppState.template.pins.push(pin);
-    draw();
-}
-
-function addLink(fromId, toId) {
-    // Check if link already exists
-    const exists = AppState.template.links.some(
-        link => (link.from === fromId && link.to === toId) || 
-                (link.from === toId && link.to === fromId)
-    );
-    
-    if (!exists) {
-        AppState.template.links.push({ from: fromId, to: toId });
-        draw();
-    }
-}
-
-function findPinAt(x, y) {
-    const radius = 20;
-    for (let i = AppState.template.pins.length - 1; i >= 0; i--) {
-        const pin = AppState.template.pins[i];
-        const dx = x - pin.x;
-        const dy = y - pin.y;
-        if (dx * dx + dy * dy <= radius * radius) {
-            return pin;
-        }
-    }
-    return null;
-}
-
-function drawChainNode(node) {
-    const width = 120;
-    const height = 50;
-    const x = node.x - width / 2;
-    const y = node.y - height / 2;
-    
-    const tierColors = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
-    const color = tierColors[node.tier] || '#666';
-    
-    // Node background
-    ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    
-    roundRect(ctx, x, y, width, height, 6);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Tier indicator
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x + 10, y + 10, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Name
-    ctx.fillStyle = '#e0e0e0';
-    ctx.font = '12px Titillium Web, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    const name = node.name.length > 14 ? node.name.substring(0, 12) + '...' : node.name;
-    ctx.fillText(name, node.x, node.y);
-    
-    // Price (if available)
-    const price = AppState.marketPrices[node.materialId]?.sell;
-    if (price) {
-        ctx.fillStyle = '#aaa';
-        ctx.font = '10px sans-serif';
-        ctx.fillText(formatISK(price), node.x, node.y + 16);
-    }
-}
-
-// Utility functions
+// ---------- Utility ----------
 function roundRect(ctx, x, y, width, height, radius) {
-    // Handle array of radii [tl, tr, br, bl]
     if (Array.isArray(radius)) {
         const [tl, tr, br, bl] = radius;
         ctx.beginPath();
@@ -1498,24 +1515,6 @@ function roundRect(ctx, x, y, width, height, radius) {
     }
 }
 
-function lighten(color, percent) {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.min(255, (num >> 16) + amt);
-    const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
-    const B = Math.min(255, (num & 0x0000FF) + amt);
-    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
-}
-
-function darken(color, percent) {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.max(0, (num >> 16) - amt);
-    const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
-    const B = Math.max(0, (num & 0x0000FF) - amt);
-    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
-}
-
 function formatISK(value) {
     if (value >= 1000000000) {
         return (value / 1000000000).toFixed(2) + 'B';
@@ -1524,10 +1523,10 @@ function formatISK(value) {
     } else if (value >= 1000) {
         return (value / 1000).toFixed(2) + 'K';
     }
-    return value.toFixed(2);
+    return (value || 0).toFixed(2);
 }
 
-// Animation loop (for smooth interactions)
+// Animation loop
 function animate() {
     draw();
     requestAnimationFrame(animate);
@@ -1538,286 +1537,4 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
-}
-
-
-// Reference Grids Setup
-function setupReferenceGrids() {
-    // P1 Reference
-    const p1Materials = PI_DATA.getMaterialsByTier(1);
-    elements.refP1.innerHTML = p1Materials.map(m => `
-        <div class="ref-item" data-id="${m.id}" title="${m.name}">${m.name}</div>
-    `).join('');
-    
-    // P2 Reference
-    const p2Materials = PI_DATA.getMaterialsByTier(2);
-    elements.refP2.innerHTML = p2Materials.map(m => `
-        <div class="ref-item" data-id="${m.id}" title="${m.name}">${m.name}</div>
-    `).join('');
-    
-    // P3 Reference
-    const p3Materials = PI_DATA.getMaterialsByTier(3);
-    elements.refP3.innerHTML = p3Materials.map(m => `
-        <div class="ref-item" data-id="${m.id}" title="${m.name}">${m.name}</div>
-    `).join('');
-    
-    // Add click handlers to all ref items
-    document.querySelectorAll('.ref-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const id = parseInt(item.dataset.id);
-            selectProduct(id);
-        });
-    });
-}
-
-// System Checker
-function setupSystemChecker() {
-    elements.checkSystem.addEventListener('click', checkSystem);
-    elements.systemInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkSystem();
-    });
-}
-
-async function checkSystem() {
-    const systemName = elements.systemInput.value.trim();
-    if (!systemName) return;
-    
-    elements.checkSystem.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
-    
-    try {
-        // Search for system
-        const searchUrl = `${ESI_BASE}/search/?categories=solar_system&search=${encodeURIComponent(systemName)}&strict=true`;
-        const searchRes = await fetch(searchUrl);
-        
-        if (!searchRes.ok) throw new Error('Search failed');
-        const searchData = await searchRes.json();
-        
-        if (!searchData.solar_system || searchData.solar_system.length === 0) {
-            elements.systemPlanets.innerHTML = '<div style="color: var(--danger)">System not found</div>';
-            elements.systemResults.classList.remove('hidden');
-            elements.checkSystem.innerHTML = '<i class="fas fa-search"></i> Check System';
-            return;
-        }
-        
-        const systemId = searchData.solar_system[0];
-        
-        // Get system planets
-        const systemUrl = `${ESI_BASE}/universe/systems/${systemId}/`;
-        const systemRes = await fetch(systemUrl);
-        
-        if (!systemRes.ok) throw new Error('System data failed');
-        const systemData = await systemRes.json();
-        
-        // Get planet types
-        const planetTypes = [];
-        for (const planetId of systemData.planets || []) {
-            try {
-                const planetRes = await fetch(`${ESI_BASE}/universe/planets/${planetId}/`);
-                if (planetRes.ok) {
-                    const planetData = await planetRes.json();
-                    const typeRes = await fetch(`${ESI_BASE}/universe/types/${planetData.type_id}/`);
-                    if (typeRes.ok) {
-                        const typeData = await typeRes.json();
-                        const typeName = typeData.name.toLowerCase();
-                        
-                        // Map to our planet types
-                        let mappedType = null;
-                        if (typeName.includes('temperate')) mappedType = 'temperate';
-                        else if (typeName.includes('barren')) mappedType = 'barren';
-                        else if (typeName.includes('oceanic')) mappedType = 'oceanic';
-                        else if (typeName.includes('lava')) mappedType = 'lava';
-                        else if (typeName.includes('storm')) mappedType = 'storm';
-                        else if (typeName.includes('plasma')) mappedType = 'plasma';
-                        else if (typeName.includes('gas')) mappedType = 'gas';
-                        else if (typeName.includes('ice')) mappedType = 'ice';
-                        else if (typeName.includes('shattered')) mappedType = 'shattered';
-                        
-                        if (mappedType) planetTypes.push(mappedType);
-                    }
-                }
-            } catch (e) {
-                // Skip failed planets
-            }
-        }
-        
-        displaySystemResults(systemData.name, planetTypes);
-        
-    } catch (err) {
-        console.error('System check failed:', err);
-        elements.systemPlanets.innerHTML = '<div style="color: var(--danger)">Error checking system</div>';
-        elements.systemResults.classList.remove('hidden');
-    }
-    
-    elements.checkSystem.innerHTML = '<i class="fas fa-search"></i> Check System';
-}
-
-function displaySystemResults(systemName, planetTypes) {
-    // Display planets
-    elements.systemPlanets.innerHTML = `<h4>${systemName} - ${planetTypes.length} Planets</h4>`;
-    
-    const counts = {};
-    planetTypes.forEach(t => {
-        counts[t] = (counts[t] || 0) + 1;
-    });
-    
-    for (const [type, count] of Object.entries(counts)) {
-        const data = PI_DATA.planets[type];
-        const planetEl = document.createElement('div');
-        planetEl.className = 'system-planet';
-        planetEl.style.backgroundColor = data.color;
-        planetEl.style.color = type === 'ice' ? '#333' : '#fff';
-        planetEl.textContent = count > 1 ? `${count}x` : type[0].toUpperCase();
-        planetEl.title = `${data.name} x${count}`;
-        elements.systemPlanets.appendChild(planetEl);
-    }
-    
-    // Calculate producible P2/P3
-    const availableP0 = new Set();
-    planetTypes.forEach(type => {
-        const data = PI_DATA.planets[type];
-        data.p0Materials.forEach(id => availableP0.add(id));
-    });
-    
-    // Find producible P1
-    const producibleP1 = new Set();
-    for (const [id, mat] of Object.entries(PI_DATA.materials)) {
-        if (mat.tier === 1 && mat.inputs) {
-            const inputIds = Object.keys(mat.inputs).map(k => parseInt(k));
-            if (inputIds.every(i => availableP0.has(i))) {
-                producibleP1.add(parseInt(id));
-            }
-        }
-    }
-    
-    // Find producible P2 (all inputs must be producible P1 or available P0)
-    const producibleP2 = [];
-    for (const [id, mat] of Object.entries(PI_DATA.materials)) {
-        if (mat.tier === 2 && mat.inputs) {
-            const inputIds = Object.keys(mat.inputs).map(k => parseInt(k));
-            if (inputIds.every(i => producibleP1.has(i) || availableP0.has(i))) {
-                producibleP2.push({ id: parseInt(id), ...mat });
-            }
-        }
-    }
-    
-    // Find producible P3
-    const producibleP3 = [];
-    for (const [id, mat] of Object.entries(PI_DATA.materials)) {
-        if (mat.tier === 3 && mat.inputs) {
-            const inputIds = Object.keys(mat.inputs).map(k => parseInt(k));
-            if (inputIds.every(i => producibleP2.some(p => p.id === i) || producibleP1.has(i) || availableP0.has(i))) {
-                producibleP3.push({ id: parseInt(id), ...mat });
-            }
-        }
-    }
-    
-    // Display results
-    elements.producibleP2.innerHTML = producibleP2.length > 0 
-        ? producibleP2.map(p => `<div class="producible-item p2" data-id="${p.id}">${p.name}</div>`).join('')
-        : '<div style="color: var(--muted); font-size: 0.7rem;">No P2 producible locally</div>';
-    
-    elements.producibleP3.innerHTML = producibleP3.length > 0
-        ? producibleP3.map(p => `<div class="producible-item p3" data-id="${p.id}">${p.name}</div>`).join('')
-        : '<div style="color: var(--muted); font-size: 0.7rem;">No P3 producible locally</div>';
-    
-    // Add click handlers
-    document.querySelectorAll('.producible-item').forEach(item => {
-        item.addEventListener('click', () => {
-            selectProduct(parseInt(item.dataset.id));
-        });
-    });
-    
-    elements.systemResults.classList.remove('hidden');
-}
-
-function selectProduct(id) {
-    AppState.targetProduct = id;
-    elements.targetProduct.value = id;
-    
-    // Switch to chain view
-    calculateChain();
-}
-
-// Update drawChainNode to show amounts and planet types
-function drawChainNode(node) {
-    const width = 130;
-    const height = node.tier === 0 ? 75 : 60; // Taller for P0 to show planets
-    const x = node.x - width / 2;
-    const y = node.y - height / 2;
-    
-    const tierColors = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
-    const color = tierColors[node.tier] || '#666';
-    
-    // Node background
-    ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    
-    roundRect(ctx, x, y, width, height, 6);
-    ctx.fill();
-    ctx.stroke();
-    
-    // Tier indicator
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x + 10, y + 10, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Name
-    ctx.fillStyle = '#e0e0e0';
-    ctx.font = '11px Titillium Web, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    
-    let name = node.name;
-    if (name.length > 16) name = name.substring(0, 14) + '...';
-    ctx.fillText(name, node.x, y + 6);
-    
-    // Amount info
-    ctx.fillStyle = '#aaa';
-    ctx.font = '9px sans-serif';
-    
-    const mat = PI_DATA.materials[node.materialId];
-    if (mat && mat.inputs) {
-        const inputQty = Object.values(mat.inputs)[0];
-        ctx.fillText(`${inputQty} → ${mat.batchSize} units`, node.x, y + 22);
-    }
-    
-    // Planet types for P0
-    if (node.tier === 0 && node.planetTypes.length > 0) {
-        ctx.fillStyle = '#777';
-        ctx.font = '8px sans-serif';
-        ctx.fillText('Found on:', node.x, y + 22);
-        
-        // Draw planet dots
-        const planetSpacing = 14;
-        const totalWidth = node.planetTypes.length * planetSpacing;
-        const startX = node.x - totalWidth / 2 + planetSpacing / 2;
-        
-        node.planetTypes.forEach((planet, i) => {
-            const px = startX + i * planetSpacing;
-            const py = y + 38;
-            
-            ctx.fillStyle = planet.color;
-            ctx.beginPath();
-            ctx.arc(px, py, 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // First letter
-            ctx.fillStyle = planet.type === 'ice' ? '#333' : '#fff';
-            ctx.font = 'bold 7px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(planet.type[0].toUpperCase(), px, py);
-        });
-    }
-    
-    // Price
-    const price = AppState.marketPrices[node.materialId]?.sell;
-    if (price) {
-        ctx.fillStyle = '#e8d900';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(formatISK(price), node.x, y + height - 12);
-    }
 }

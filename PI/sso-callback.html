@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVE SSO Callback - PI Visualizer</title>
+    <link rel="stylesheet" href="pi-style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .callback-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(22, 27, 34, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .callback-container h1 {
+            color: #ffa500;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        .callback-container p {
+            color: #c9d1d9;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 165, 0, 0.3);
+            border-top-color: #ffa500;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        .success-message {
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #ffa500;
+            color: #0d1117;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #ff8c00;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div id="loading-state">
+            <div class="loading-spinner"></div>
+            <h1>Processing SSO Login</h1>
+            <p>Authenticating with EVE Online...</p>
+        </div>
+
+        <div id="error-state" style="display: none;">
+            <h1>Authentication Failed</h1>
+            <p id="error-message" class="error-message"></p>
+            <a href="./" class="btn">Return to PI Visualizer</a>
+        </div>
+
+        <div id="success-state" style="display: none;">
+            <h1>Login Successful!</h1>
+            <p id="success-message" class="success-message"></p>
+            <a href="./" class="btn">Go to PI Visualizer</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8080/api/pi' : 'https://api.rustybot.co.uk/api/pi';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        const loadingState = document.getElementById('loading-state');
+        const errorState = document.getElementById('error-state');
+        const successState = document.getElementById('success-state');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        function showState(s) {
+            loadingState.style.display = 'none';
+            errorState.style.display = 'none';
+            successState.style.display = 'none';
+            if (s === 'loading') loadingState.style.display = 'block';
+            if (s === 'error') errorState.style.display = 'block';
+            if (s === 'success') successState.style.display = 'block';
+        }
+
+        async function handleAuthentication() {
+            if (error) {
+                showState('error');
+                errorMessage.textContent = `EVE SSO Error: ${error} - ${errorDescription || 'Unknown error'}`;
+                return;
+            }
+
+            if (!code) {
+                showState('error');
+                errorMessage.textContent = 'No authorization code received from EVE SSO.';
+                return;
+            }
+
+            try {
+                const savedState = localStorage.getItem('pi_esi_state');
+                if (state !== savedState) {
+                    throw new Error('Invalid state parameter. Possible CSRF attack.');
+                }
+                localStorage.removeItem('pi_esi_state');
+
+                const response = await fetch(API_BASE + '/token-exchange', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    console.error('PI token exchange error:', response.status, errData);
+                    throw new Error(`Token exchange failed: ${response.status} - ${errData.error || 'Unknown error'}`);
+                }
+
+                const tokenData = await response.json();
+                const characterId = String(tokenData.character_id);
+                const characterName = tokenData.character_name || 'Unknown';
+
+                const tokens = JSON.parse(localStorage.getItem('pi_esi_tokens') || '{}');
+                tokens[characterId] = {
+                    characterId: characterId,
+                    characterName: characterName,
+                    accessToken: tokenData.access_token,
+                    refreshToken: tokenData.refresh_token,
+                    expiresAt: Date.now() + (tokenData.expires_in * 1000)
+                };
+                localStorage.setItem('pi_esi_tokens', JSON.stringify(tokens));
+                localStorage.setItem('pi_esi_current_character', characterId);
+
+                showState('success');
+                successMessage.textContent = `Welcome, ${characterName}! Successfully authenticated with EVE Online.`;
+
+                setTimeout(() => {
+                    window.location.replace('./');
+                }, 2000);
+
+            } catch (err) {
+                showState('error');
+                errorMessage.textContent = `Authentication error: ${err.message}`;
+                console.error('SSO Error:', err);
+            }
+        }
+
+        handleAuthentication();
+    </script>
+</body>
+</html>

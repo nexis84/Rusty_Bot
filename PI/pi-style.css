@@ -238,39 +238,132 @@ body {
     box-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* Control Buttons */
-.control-buttons {
+.calc-btn.secondary {
+    background: var(--bg-tertiary);
+    color: var(--text);
+    border: 1px solid var(--border-color);
+    font-weight: 400;
+}
+
+.calc-btn.secondary:hover {
+    background: var(--bg-secondary);
+    box-shadow: none;
+    color: #fff;
+}
+
+/* Colonies Panel */
+.colonies-content {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
 }
 
-.control-btn {
-    flex: 1;
+.colonies-header {
+    font-size: 0.8125rem;
+    color: var(--text);
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.colonies-list {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    padding: 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.colony-item {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent);
     border-radius: 6px;
-    color: var(--text-primary);
+    padding: 0.5rem 0.625rem;
+}
+
+.colony-item .colony-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.colony-item .colony-name {
     font-size: 0.8125rem;
-    cursor: pointer;
-    transition: all 0.2s;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.control-btn:hover {
-    background: var(--bg-secondary);
+.colony-item .colony-upgrade {
+    font-size: 0.6875rem;
+    color: var(--accent);
+    flex-shrink: 0;
 }
 
-.control-btn.danger {
-    color: var(--danger);
+.colony-item .colony-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--muted);
+    flex-wrap: wrap;
 }
 
-.control-btn.danger:hover {
-    background: var(--danger);
-    color: #fff;
+.colony-item .colony-meta i {
+    margin-right: 0.2rem;
+    color: var(--accent);
+}
+
+.colony-item .colony-updated {
+    margin-top: 0.25rem;
+    font-size: 0.625rem;
+    color: var(--muted);
+    opacity: 0.8;
+}
+
+.colony-system {
+    margin-bottom: 0.25rem;
+}
+
+.colony-system-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 0.5rem;
+}
+
+.colony-system-name:first-child {
+    margin-top: 0;
+}
+
+.colony-region {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.6875rem;
+}
+
+.colony-system-meta {
+    font-size: 0.625rem;
+    color: var(--muted);
+    margin: 0.15rem 0 0.35rem;
+}
+
+.upgrade-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    margin-right: 2px;
+    background: transparent;
+}
+
+.upgrade-dot.active {
+    border-color: transparent;
 }
 
 /* Market Panel */
@@ -381,6 +474,15 @@ body {
         radial-gradient(circle at 20% 80%, rgba(232, 217, 0, 0.03) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(255, 140, 61, 0.03) 0%, transparent 50%),
         radial-gradient(circle at 50% 50%, rgba(76, 175, 80, 0.02) 0%, transparent 50%);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
 }
 
 .canvas-toolbar {
@@ -781,95 +883,7 @@ body {
     font-weight: 500;
 }
 
-/* Template Builder */
-.template-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.template-controls .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.template-controls label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
-.facility-palette {
-    margin: 1rem 0;
-    padding: 0.75rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-}
-
-.facility-palette h4 {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-
-.facility-buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-}
-
-.facility-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    color: var(--text);
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.facility-btn:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--accent);
-    transform: translateY(-1px);
-}
-
-.facility-btn.active {
-    background: var(--accent);
-    color: #121212;
-    border-color: var(--accent);
-}
-
-.template-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.template-actions .calc-btn {
-    flex: 1;
-}
-
-.template-info {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: rgba(232, 217, 0, 0.1);
-    border: 1px solid rgba(232, 217, 0, 0.2);
-    border-radius: 4px;
-}
-
-.template-info .hint {
-    margin: 0;
-    font-size: 0.7rem;
-}
+/* Template Builder (disabled until reworked) */
 
 /* System Checker */
 .system-search {
@@ -964,6 +978,7 @@ body {
 .ref-section:nth-child(1) h4::before { background: var(--p1-color); }
 .ref-section:nth-child(2) h4::before { background: var(--p2-color); }
 .ref-section:nth-child(3) h4::before { background: var(--p3-color); }
+.ref-section:nth-child(4) h4::before { background: var(--p4-color); }
 
 .ref-grid {
     display: grid;
@@ -1031,3 +1046,78 @@ body {
     color: var(--muted);
     line-height: 1.3;
 }
+
+/* System checker: security badge, region, planet type badges, skyhook summary */
+.system-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.sec-badge {
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: #fff;
+}
+
+.sec-badge.hi { background: #2d7d46; }
+.sec-badge.lo { background: #a16207; }
+.sec-badge.null { background: #b91c1c; }
+
+.region-name {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.system-planets h4 {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.planet-count-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.planet-type-badge {
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.45rem;
+    border-radius: 3px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.skyhook-summary {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.6rem;
+    margin-bottom: 0.75rem;
+}
+
+.skyhook-summary h4 {
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+}
+
+.skyhook-item {
+    font-size: 0.7rem;
+    padding: 0.2rem 0;
+    color: var(--text-secondary);
+}
+
+.skyhook-item.power i { color: var(--accent); width: 1.1rem; }
+.skyhook-item.workforce i { color: var(--info); width: 1.1rem; }
+.skyhook-item.reagent i { color: var(--accent-2); width: 1.1rem; }
+
+.producible-item.p1 { border-left: 2px solid var(--p1-color); }
+.producible-item.p4 { border-left: 2px solid var(--p4-color); }
