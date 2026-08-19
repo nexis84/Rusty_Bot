@@ -35,12 +35,6 @@ setInterval(() => {
   }
 }, 120000).unref();
 
-// Skin Gallery API routes
-const skinsRouter = require('./skins.js');
-
-// SKINr cosmetics API routes
-const skinrRouter = require('./skinr.js');
-
 // Global rate limiter
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -76,15 +70,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// Mount Skin Gallery API
-app.use('/api', skinsRouter);
-
-// Mount SKINr cosmetics API
-app.use('/api', skinrRouter);
-
 // Mount Analytics API
 const analyticsRouter = require('../RustyStats/analytics.js');
 app.use('/api', analyticsRouter);
+
+// Minimal config endpoint (used by the skillplanner for its EVE SSO client ID)
+app.get('/api/config', (req, res) => {
+    res.json({ eve_client_id: process.env.EVE_CLIENT_ID || null });
+});
 
 // EVE SSO login endpoint — generates a state nonce for CSRF protection
 app.get('/api/auth/eve/login', (req, res) => {
@@ -104,14 +97,12 @@ app.get('/api/auth/eve/login', (req, res) => {
   res.json({ state, url });
 });
 
-// EVE SSO callback relay — EVE redirects here, we forward to the appropriate tool page.
-// The `state` parameter (set by the client) routes the callback: state=skinr2:* goes to
-// the SKINr V2 tool, anything else goes to the skin gallery.
+// EVE SSO callback relay — EVE redirects here, we forward back to the homepage.
 app.get('/api/auth/eve/callback', (req, res) => {
   const { code, state } = req.query;
   const frontendUrl = process.env.FRONTEND_URL || '';
   const baseUrl = frontendUrl || (req.get('origin') || '');
-  const targetPage = (state && state.indexOf('skinr2:') === 0) ? '/SkinrV2/' : '/skin-gallery/';
+  const targetPage = '/';
   const redirectTarget = (baseUrl || '') + targetPage;
 
   if (!code) {

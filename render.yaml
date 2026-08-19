@@ -14,13 +14,7 @@ services:
         sync: false
       - key: EVE_CLIENT_SECRET
         sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
       - key: FRONTEND_URL
-        sync: false
-      - key: ADMIN_CHARACTER_IDS
         sync: false
 
   - type: web

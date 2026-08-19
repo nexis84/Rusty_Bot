@@ -38,7 +38,6 @@ download_tokens.json
 .env
 .env.local
 render-env.txt
-scripts/.skinr-token.json
 
 # Market temp/backup files
 market/MARKET.txt

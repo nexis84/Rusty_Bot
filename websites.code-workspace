@@ -2,9 +2,6 @@
 	"folders": [
 		{
 			"path": ".."
-		},
-		{
-			"path": "../../eve-skinr-gallery"
 		}
 	],
 	"settings": {}
