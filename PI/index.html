@@ -43,6 +43,7 @@
                     <div class="tabs">
                         <button class="tab-btn active" data-tab="system"><i class="fas fa-search"></i> System</button>
                         <button class="tab-btn" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
+                        <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> My Colonies</button>
                     </div>
                 </div>
 
@@ -94,18 +95,8 @@
 
                 <!-- Template Builder Tab (disabled until reworked) -->
 
-                <div class="panel">
-                    <h3><i class="fas fa-industry"></i> Target Product</h3>
-                    <p class="hint">Select what you want to produce</p>
-                    <select id="targetProduct" class="product-select">
-                        <option value="">-- Select a product --</option>
-                    </select>
-                    <button id="calculateChain" class="calc-btn">
-                        <i class="fas fa-calculator"></i> Calculate Chain
-                    </button>
-                </div>
-
-                <div class="panel colonies-panel" id="coloniesPanel">
+                <!-- My Colonies Tab -->
+                <div class="panel tab-content" id="tab-colonies">
                     <h3><i class="fas fa-globe"></i> My Colonies</h3>
                     <div id="coloniesStatus">
                         <p class="hint">Sign in with EVE SSO to view your planetary colonies</p>
@@ -116,13 +107,26 @@
                     <div class="colonies-content hidden" id="coloniesContent">
                         <div class="colonies-header" id="coloniesHeader"></div>
                         <div class="colonies-list" id="coloniesList"></div>
-                        <button id="coloniesRefresh" class="calc-btn">
-                            <i class="fas fa-sync"></i> Refresh
-                        </button>
-                        <button id="coloniesLogout" class="calc-btn secondary">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
+                        <div class="colonies-actions">
+                            <button id="coloniesRefresh" class="calc-btn">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                            <button id="coloniesLogout" class="calc-btn secondary">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
                     </div>
+                </div>
+
+                <div class="panel">
+                    <h3><i class="fas fa-industry"></i> Target Product</h3>
+                    <p class="hint">Select what you want to produce</p>
+                    <select id="targetProduct" class="product-select">
+                        <option value="">-- Select a product --</option>
+                    </select>
+                    <button id="calculateChain" class="calc-btn">
+                        <i class="fas fa-calculator"></i> Calculate Chain
+                    </button>
                 </div>
 
                 <div class="panel market-panel" id="marketPanel">

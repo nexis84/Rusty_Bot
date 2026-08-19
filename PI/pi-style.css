@@ -366,6 +366,49 @@ body {
     border-color: transparent;
 }
 
+.colonies-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.colony-section {
+    margin-top: 0.4rem;
+    padding-top: 0.35rem;
+    border-top: 1px dashed var(--border-color);
+}
+
+.colony-section-title {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.colony-produce-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    padding: 0.15rem 0;
+}
+
+.colony-produce-item .cp-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.colony-produce-item .cp-meta {
+    color: var(--muted);
+    flex-shrink: 0;
+    font-size: 0.625rem;
+}
+
 /* Market Panel */
 .market-panel {
     flex: 1;

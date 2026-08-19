@@ -62,7 +62,6 @@ const elements = {
     refP3: document.getElementById('refP3'),
     refP4: document.getElementById('refP4'),
     // Colonies elements
-    coloniesPanel: document.getElementById('coloniesPanel'),
     coloniesStatus: document.getElementById('coloniesStatus'),
     coloniesContent: document.getElementById('coloniesContent'),
     coloniesHeader: document.getElementById('coloniesHeader'),
@@ -278,6 +277,10 @@ function setupTabs() {
             }
 
             AppState.currentTab = tab;
+
+            if (tab === 'colonies') {
+                refreshColoniesAuthState();
+            }
         });
     });
 }
@@ -580,7 +583,14 @@ function hideMarketData() {
 function setupColonies() {
     if (elements.coloniesLogin) {
         elements.coloniesLogin.addEventListener('click', () => {
-            if (window.piEsiAuth) piEsiAuth.initiateLogin();
+            if (!window.piEsiAuth) return;
+            piEsiAuth.initiateLogin().catch(err => {
+                console.error('PI SSO login failed:', err);
+                if (elements.coloniesStatus) {
+                    elements.coloniesStatus.classList.remove('hidden');
+                    elements.coloniesStatus.innerHTML = '<div style="color: var(--danger)"><i class="fas fa-exclamation-circle"></i> ' + escapeHtml(err.message) + '</div>';
+                }
+            });
         });
     }
     if (elements.coloniesRefresh) {
@@ -630,12 +640,98 @@ async function loadColonies() {
         // Ensure system data is loaded so we can resolve solar system names
         const systemsLoaded = await ensureSystemsLoaded();
 
-        renderColonies(colonies, systemsLoaded);
+        // Fetch per-colony detail for producing/stored info (cached 600s by ESI)
+        const detailed = [];
+        for (const colony of colonies) {
+            try {
+                const detail = await piEsiAuth.esiFetch(`/characters/${characterId}/planets/${colony.planet_id}/`);
+                detailed.push({ ...colony, detail });
+            } catch (e) {
+                console.warn(`Failed to fetch detail for planet ${colony.planet_id}:`, e);
+                detailed.push({ ...colony, detail: null });
+            }
+        }
+
+        renderColonies(detailed, systemsLoaded);
     } catch (err) {
         console.error('Failed to load colonies:', err);
         elements.coloniesHeader.textContent = 'Colonies';
         elements.coloniesList.innerHTML = `<div class="colony-item" style="border-left-color: var(--danger)"><div class="colony-name">Failed to load colonies</div><div class="colony-meta">${escapeHtml(err.message)}</div></div>`;
     }
+}
+
+// Map a factory schematic ID -> recipe object (which carries outputId/name)
+let schematicIndex = null;
+function getRecipeBySchematicId(schematicId) {
+    if (!schematicId) return null;
+    if (!schematicIndex) {
+        schematicIndex = {};
+        for (const outputId in PI_DATA.recipes) {
+            const recipe = PI_DATA.recipes[outputId];
+            if (recipe && recipe.id) schematicIndex[recipe.id] = recipe;
+        }
+    }
+    return schematicIndex[schematicId] || null;
+}
+
+// Summarise a colony's pins into "producing" and "stored" info.
+function analyseColony(detail) {
+    const producing = {}; // materialId -> {name, tier, count, amount}
+    const stored = {};    // materialId -> amount
+
+    if (!detail || !Array.isArray(detail.pins)) {
+        return { producing: [], stored: [] };
+    }
+
+    detail.pins.forEach(pin => {
+        // Extractors: pull a raw material
+        if (pin.extractor_details && pin.extractor_details.product_type_id) {
+            const matId = pin.extractor_details.product_type_id;
+            const mat = getMaterialById(matId);
+            const qtyPerCycle = pin.extractor_details.qty_per_cycle || 0;
+            const cycleSec = pin.extractor_details.cycle_time || 0;
+            if (!producing[matId]) {
+                producing[matId] = { name: mat ? mat.name : `Type ${matId}`, tier: mat ? mat.tier : 0, type: 'extractor', count: 0, amount: 0, cycleSec };
+            }
+            producing[matId].count++;
+            producing[matId].amount += qtyPerCycle;
+        }
+
+        // Factories: run a schematic -> produce an output
+        if (pin.factory_details && pin.factory_details.schematic_id) {
+            const recipe = getRecipeBySchematicId(pin.factory_details.schematic_id);
+            const outId = recipe ? recipe.outputId : null;
+            const outMat = outId ? getMaterialById(outId) : null;
+            if (!producing[outId || `schem-${pin.factory_details.schematic_id}`]) {
+                producing[outId || `schem-${pin.factory_details.schematic_id}`] = {
+                    name: outMat ? outMat.name : (recipe ? recipe.name : `Schematic ${pin.factory_details.schematic_id}`),
+                    tier: outMat ? outMat.tier : (recipe ? recipe.tier : 0),
+                    type: 'factory',
+                    count: 0,
+                    amount: 0,
+                    cycleSec: recipe ? recipe.cycleTime : 0
+                };
+            }
+            producing[outId || `schem-${pin.factory_details.schematic_id}`].count++;
+        }
+
+        // Storage contents in this pin
+        if (Array.isArray(pin.contents)) {
+            pin.contents.forEach(c => {
+                if (c && c.type_id) {
+                    stored[c.type_id] = (stored[c.type_id] || 0) + (c.amount || 0);
+                }
+            });
+        }
+    });
+
+    return {
+        producing: Object.values(producing),
+        stored: Object.entries(stored).map(([id, amount]) => {
+            const mat = getMaterialById(Number(id));
+            return { id: Number(id), name: mat ? mat.name : `Type ${id}`, tier: mat ? mat.tier : 0, amount };
+        }).filter(s => s.amount > 0)
+    };
 }
 
 function renderColonies(colonies, systemsLoaded) {
@@ -685,6 +781,34 @@ function renderColonies(colonies, systemsLoaded) {
             const lastUpdate = c.last_update ? new Date(c.last_update).toLocaleString() : '';
             const pinCount = c.num_pins ? `${c.num_pins} pins` : '';
 
+            const { producing, stored } = analyseColony(c.detail);
+
+            let produceHtml = '';
+            if (producing.length) {
+                produceHtml = `<div class="colony-section"><div class="colony-section-title"><i class="fas fa-industry"></i> Producing</div>`;
+                produceHtml += producing.map(p => {
+                    const tierColor = PI_COLORS[p.tier] || '#888';
+                    return `<div class="colony-produce-item">
+                        <span class="cp-name" style="color: ${tierColor}">${escapeHtml(p.name)}</span>
+                        <span class="cp-meta">x${p.count}${p.amount && p.type === 'extractor' ? ` &bull; ${p.amount}/cycle` : ''}</span>
+                    </div>`;
+                }).join('');
+                produceHtml += `</div>`;
+            }
+
+            let storedHtml = '';
+            if (stored.length) {
+                storedHtml = `<div class="colony-section"><div class="colony-section-title"><i class="fas fa-boxes-stacked"></i> Stored</div>`;
+                storedHtml += stored.map(s => {
+                    const tierColor = PI_COLORS[s.tier] || '#888';
+                    return `<div class="colony-produce-item">
+                        <span class="cp-name" style="color: ${tierColor}">${escapeHtml(s.name)}</span>
+                        <span class="cp-meta">${formatAmount(s.amount)}</span>
+                    </div>`;
+                }).join('');
+                storedHtml += `</div>`;
+            }
+
             html += `<div class="colony-item" style="border-left-color: ${color}">
                 <div class="colony-top">
                     <span class="colony-name" style="color: ${color}">${escapeHtml(typeName)}</span>
@@ -694,12 +818,20 @@ function renderColonies(colonies, systemsLoaded) {
                     ${pinCount ? `<span><i class="fas fa-thumbtack"></i>${pinCount}</span>` : ''}
                     <span><i class="fas fa-cubes"></i>CC ${upgrades}</span>
                 </div>
+                ${produceHtml}
+                ${storedHtml}
                 ${lastUpdate ? `<div class="colony-updated"><i class="fas fa-clock"></i> Last update: ${escapeHtml(lastUpdate)}</div>` : ''}
             </div>`;
         });
     });
 
     elements.coloniesList.innerHTML = html;
+}
+
+function formatAmount(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return String(n);
 }
 
 function escapeHtml(str) {

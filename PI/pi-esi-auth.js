@@ -21,13 +21,24 @@ const PI_ESI_CONFIG = {
 };
 
 let piSsoClientId = null;
+let piClientIdPromise = null;
 
-(function loadClientId() {
-    fetch(PI_TOKEN_EXCHANGE_URL.replace('/api/pi/token-exchange', '/api/pi/config'))
-        .then(r => r.json())
-        .then(cfg => { piSsoClientId = cfg.eve_client_id || null; })
-        .catch(() => {});
-})();
+function loadClientId() {
+    if (!piClientIdPromise) {
+        piClientIdPromise = fetch(PI_TOKEN_EXCHANGE_URL.replace('/api/pi/token-exchange', '/api/pi/config'))
+            .then(r => {
+                if (!r.ok) throw new Error(`Config endpoint returned HTTP ${r.status}`);
+                return r.json();
+            })
+            .then(cfg => { piSsoClientId = cfg.eve_client_id || null; })
+            .catch(err => {
+                piClientIdPromise = null;
+                piSsoClientId = null;
+                throw err;
+            });
+    }
+    return piClientIdPromise;
+}
 
 class PIESIAuth {
     constructor() {
@@ -45,6 +56,16 @@ class PIESIAuth {
     }
 
     async initiateLogin() {
+        try {
+            await loadClientId();
+        } catch (err) {
+            throw new Error('Failed to load EVE SSO client config - is the API reachable?');
+        }
+
+        if (!piSsoClientId) {
+            throw new Error('EVE SSO not configured - EVE_PI_CLIENT_ID is missing on the server');
+        }
+
         const state = this.generateState();
         localStorage.setItem('pi_esi_state', state);
 
