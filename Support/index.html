@@ -74,6 +74,11 @@
       <div class="wall elite-wall" id="crewWall"></div>
     </div>
 
+    <div class="elite-section" id="donatorSection">
+      <h3 class="section-title"><i class="fa-solid fa-heart"></i> Rustybots Donators</h3>
+      <div class="wall elite-wall" id="donatorWall"></div>
+    </div>
+
     <div class="wall" id="wall"></div>
 
     <div class="support-box">
@@ -140,7 +145,8 @@
 
       const elite = supporters.filter(s => s.type === 'elite');
       const crew = supporters.filter(s => s.type === 'member');
-      const rest = supporters.filter(s => s.type !== 'elite' && s.type !== 'member');
+      const donators = supporters.filter(s => s.type === 'oneoff');
+      const rest = supporters.filter(s => s.type !== 'elite' && s.type !== 'member' && s.type !== 'oneoff');
 
       const eliteSection = document.getElementById('eliteSection');
       if (elite.length) {
@@ -162,6 +168,17 @@
         crewSection.style.display = '';
       } else {
         crewSection.style.display = 'none';
+      }
+
+      const donatorSection = document.getElementById('donatorSection');
+      if (donators.length) {
+        const donatorWall = document.getElementById('donatorWall');
+        const frag = document.createDocumentFragment();
+        for (const s of donators) frag.appendChild(buildTile(s, cfg));
+        donatorWall.appendChild(frag);
+        donatorSection.style.display = '';
+      } else {
+        donatorSection.style.display = 'none';
       }
 
       const wall = document.getElementById('wall');
