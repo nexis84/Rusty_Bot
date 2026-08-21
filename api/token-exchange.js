@@ -59,13 +59,36 @@ app.use(globalLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS middleware
+// CORS middleware — allow only configured origins.
+// FRONTEND_URL (single) and/or CORS_ORIGINS (comma-separated) control the allowlist.
+// If neither is set, falls back to localhost + the known production domains.
+function allowedOrigins() {
+    const fromEnv = (process.env.CORS_ORIGINS || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    const frontend = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+    const base = [
+        'http://localhost:3000',
+        'http://localhost:8080',
+        'https://www.rustybot.co.uk',
+        'https://rustybot.co.uk',
+        'https://api.rustybot.co.uk',
+    ];
+    if (frontend) base.push(frontend);
+    return base.concat(fromEnv);
+}
+
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins().includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Vary', 'Origin');
+    }
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
+        return res.sendStatus(204);
     }
     next();
 });
@@ -126,15 +149,15 @@ app.get('/', (req, res) => {
     res.json({ status: 'ok', service: 'RustyBot API', routes: 'mounted', env: process.env.NODE_ENV || 'not set' });
 });
 
-// Diagnostic: list registered routes (disabled in production)
+// Diagnostic: list registered routes (enabled only when DEBUG_ROUTES=1)
 app.get('/__routes', (req, res) => {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.DEBUG_ROUTES !== '1') {
         return res.status(404).json({ error: 'Not found' });
     }
     const routes = app._router.stack
         .filter(r => r.route)
         .map(r => ({ path: r.route.path, methods: Object.keys(r.route.methods) }));
-    res.json({ routes, dir: __dirname });
+    res.json({ routes });
 });
 
 function fetchWithTimeout(url, options = {}, timeout = 10000) {
@@ -321,8 +344,54 @@ app.post('/api/pi/token-exchange', tokenExchangeLimiter, async (req, res) => {
     }
 });
 
-// Static file serving (after routes for route priority)
-app.use(express.static(__dirname + '/..'));
+// Static file serving (after routes for route priority).
+// Only whitelisted extensions are served; sensitive files are always blocked.
+const STATIC_ROOT = path.join(__dirname, '..');
+const SENSITIVE_SEGMENTS = new Set([
+    '.env', '.env.local', '.env.development.local',
+    'deploy_state.json', 'snapshot.json', 'config.json',
+    'deploy.tar.gz', 'deploy_oracle.ps1', 'deploy_to_oracle.ps1', 'update_oracle.ps1',
+    'keys', 'node_modules', 'sde', 'SDE', '__pycache__',
+    'serve.js', 'serve.py', 'server.js', 'deploy_all.ps1',
+]);
+const SENSITIVE_EXTENSIONS = new Set(['.key', '.pem', '.crt', '.p12', '.pfx', '.log']);
+const SAFE_STATIC_EXTENSIONS = new Set([
+    '.html', '.htm', '.js', '.mjs', '.css', '.png', '.jpg', '.jpeg', '.gif',
+    '.webp', '.svg', '.ico', '.json', '.xml', '.txt', '.woff', '.woff2', '.ttf',
+]);
+
+function isSensitiveStaticPath(relPath) {
+    const parts = relPath.split(/[\\/]+/).filter(Boolean);
+    for (const part of parts) {
+        if (SENSITIVE_SEGMENTS.has(part)) return true;
+        if (part.startsWith('.')) return true;
+    }
+    const ext = path.extname(relPath).toLowerCase();
+    return SENSITIVE_EXTENSIONS.has(ext);
+}
+
+app.use((req, res, next) => {
+    let urlPath;
+    try {
+        urlPath = decodeURIComponent(req.path || '/');
+    } catch (e) {
+        return res.status(400).end('Bad request');
+    }
+    const rel = path.relative(STATIC_ROOT, path.normalize(path.join(STATIC_ROOT, urlPath)));
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        return res.status(403).end('Forbidden');
+    }
+    if (isSensitiveStaticPath(rel)) {
+        return res.status(403).end('Forbidden');
+    }
+    // Only serve known safe static extensions (skip requests to files like source).
+    const ext = path.extname(rel).toLowerCase();
+    if (ext && !SAFE_STATIC_EXTENSIONS.has(ext)) {
+        return res.status(403).end('Forbidden');
+    }
+    next();
+});
+app.use(express.static(STATIC_ROOT));
 
 // Global error handler — prevents async route crashes from hanging the response
 app.use((err, req, res, next) => {
