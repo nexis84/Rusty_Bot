@@ -139,6 +139,30 @@
         .how-list .step { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #0d0d0d; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
         .how-list .txt b { color: #eee; }
 
+        /* Tabs */
+        .tabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .tab-btn {
+            padding: 8px 18px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--dim); background: transparent; border: none;
+            border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.2s, border-color 0.2s;
+            font-family: inherit;
+        }
+        .tab-btn:hover { color: var(--accent); }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .winners-table { width: 100%; border-collapse: collapse; }
+        .winners-table th, .winners-table td {
+            text-align: left; padding: 10px 12px; font-size: 0.95rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .winners-table th { color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+        .winners-table tr:hover td { background: var(--panel-hover); }
+        .winners-table .week { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .winners-table .name b { color: #eee; }
+        .no-winners { color: var(--dim); font-size: 0.95rem; }
+
         footer { text-align: center; padding: 24px; margin-top: 24px; border-top: 1px solid var(--border); color: #777; font-size: 0.85rem; }
         footer a { color: var(--accent); text-decoration: none; }
 
@@ -209,6 +233,7 @@
     <div class="nav-wrap">
         <nav class="quick-nav">
             <a href="#status">This Week</a>
+            <a href="#status" onclick="switchTab('pastwinners'); return false;">Past Winners</a>
             <a href="#enter">Enter</a>
             <a href="#how">How It Works</a>
             <a href="#support">Support</a>
@@ -221,28 +246,41 @@
         <section class="section" id="status">
             <div class="section-header">
                 <i class="fa-solid fa-calendar-week"></i>
-                <h2>This Week</h2>
+                <h2>Giveaway</h2>
                 <span class="line"></span>
             </div>
-            <div class="stat-row" id="stats">
-                <div class="stat"><div class="num">-</div><div class="lbl">Status</div></div>
-                <div class="stat"><div class="num">-</div><div class="lbl">Entries</div></div>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="thisweek" onclick="switchTab('thisweek')">This Week</button>
+                <button class="tab-btn" data-tab="pastwinners" onclick="switchTab('pastwinners')">Past Winners</button>
             </div>
-            <div class="panel prize-box" id="prizeBox">
-                <div class="prize-label"><i class="fa-solid fa-gift"></i> This Week's Prize</div>
-                <div class="prize-value" id="prizeValue">To be announced</div>
+
+            <div class="tab-panel active" id="tab-thisweek">
+                <div class="stat-row" id="stats">
+                    <div class="stat"><div class="num">-</div><div class="lbl">Status</div></div>
+                    <div class="stat"><div class="num">-</div><div class="lbl">Entries</div></div>
+                </div>
+                <div class="panel prize-box" id="prizeBox">
+                    <div class="prize-label"><i class="fa-solid fa-gift"></i> This Week's Prize</div>
+                    <div class="prize-value" id="prizeValue">To be announced</div>
+                </div>
+                <div class="panel draw-timer closed" id="drawTimer" style="display:none;">
+                    <div class="timer-label"><i class="fa-solid fa-stopwatch"></i> Time Left To Enter</div>
+                    <div class="timer-digits">
+                        <div class="timer-cell"><span class="n" id="th">00</span><span class="u">Hrs</span></div>
+                        <span class="timer-sep">:</span>
+                        <div class="timer-cell"><span class="n" id="tm">00</span><span class="u">Min</span></div>
+                        <span class="timer-sep">:</span>
+                        <div class="timer-cell"><span class="n" id="ts">00</span><span class="u">Sec</span></div>
+                    </div>
+                </div>
+                <div class="last-winner" id="lastWinner" style="display:none;"></div>
             </div>
-            <div class="panel draw-timer closed" id="drawTimer" style="display:none;">
-                <div class="timer-label"><i class="fa-solid fa-stopwatch"></i> Time Left To Enter</div>
-                <div class="timer-digits">
-                    <div class="timer-cell"><span class="n" id="th">00</span><span class="u">Hrs</span></div>
-                    <span class="timer-sep">:</span>
-                    <div class="timer-cell"><span class="n" id="tm">00</span><span class="u">Min</span></div>
-                    <span class="timer-sep">:</span>
-                    <div class="timer-cell"><span class="n" id="ts">00</span><span class="u">Sec</span></div>
+
+            <div class="tab-panel" id="tab-pastwinners">
+                <div class="panel">
+                    <div id="pastWinnersList"><div class="no-winners">Loading past winners...</div></div>
                 </div>
             </div>
-            <div class="last-winner" id="lastWinner" style="display:none;"></div>
         </section>
 
         <section class="section" id="enter">
@@ -356,6 +394,8 @@
                 } else {
                     lw.style.display = 'none';
                 }
+
+                renderPastWinners(data.pastWinners);
 
                 if (!data.open && !code) {
                     const btn = document.getElementById('loginBox').querySelector('button');
@@ -474,6 +514,27 @@
 
         function esc(s) {
             return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+        }
+
+        function renderPastWinners(winners) {
+            const el = document.getElementById('pastWinnersList');
+            const list = Array.isArray(winners) ? winners : [];
+            if (!list.length) {
+                el.innerHTML = '<div class="no-winners">No winners yet — be the first to enter this week!</div>';
+                return;
+            }
+            const rows = list.map(w => {
+                const week = w.week ? 'Week ' + esc(w.week) : '';
+                const date = w.drawn_at ? new Date(w.drawn_at).toLocaleDateString() : '';
+                const meta = [week, date].filter(Boolean).join(' · ');
+                return '<tr><td class="name"><b>' + esc(w.character_name) + '</b></td><td class="week">' + meta + '</td></tr>';
+            }).join('');
+            el.innerHTML = '<table class="winners-table"><thead><tr><th>Winner</th><th>Week</th></tr></thead><tbody>' + rows + '</tbody></table>';
         }
 
         if (err) {
