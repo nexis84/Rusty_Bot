@@ -529,12 +529,12 @@
                 return;
             }
             const rows = list.map(w => {
-                const week = w.week ? 'Week ' + esc(w.week) : '';
+                const prize = w.prize ? esc(w.prize) : '—';
                 const date = w.drawn_at ? new Date(w.drawn_at).toLocaleDateString() : '';
-                const meta = [week, date].filter(Boolean).join(' · ');
-                return '<tr><td class="name"><b>' + esc(w.character_name) + '</b></td><td class="week">' + meta + '</td></tr>';
+                const meta = date ? '<span class="week">' + date + '</span>' : '';
+                return '<tr><td class="name"><b>' + esc(w.character_name) + '</b></td><td>' + prize + '</td><td class="week">' + meta + '</td></tr>';
             }).join('');
-            el.innerHTML = '<table class="winners-table"><thead><tr><th>Winner</th><th>Week</th></tr></thead><tbody>' + rows + '</tbody></table>';
+            el.innerHTML = '<table class="winners-table"><thead><tr><th>Winner</th><th>Prize Won</th><th>Date</th></tr></thead><tbody>' + rows + '</tbody></table>';
         }
 
         if (err) {
