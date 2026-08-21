@@ -286,8 +286,7 @@ body {
   margin: 32px auto 8px;
   padding: 24px 20px 12px;
   background: transparent;
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  border-radius: 10px;
+  border: none;
 }
 
 .section-title {
