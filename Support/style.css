@@ -12,6 +12,7 @@
   --info-color: #339af0;
   --shop-color: #f573f1;
   --member-color: #e8d900;
+  --elite-color: #ffd700;
 }
 
 * { box-sizing: border-box; }
@@ -271,6 +272,58 @@ body {
 .tag.commission {
   background: var(--info-color);
   color: #111;
+}
+
+.tag.elite {
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #111;
+  border: 1px solid #fff3b0;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.35);
+}
+
+/* ── Elite section ──────────────────────────────────────────────────────── */
+.elite-section {
+  margin: 32px auto 8px;
+  padding: 24px 20px 12px;
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.08), transparent);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 10px;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--elite-color);
+  margin: 0 0 18px 0;
+}
+
+.section-title i {
+  margin-right: 8px;
+}
+
+.elite-wall {
+  margin: 0;
+}
+
+.supporter.elite {
+  background: linear-gradient(180deg, #2a2410, #1e1e1e);
+  border: 1px solid rgba(255, 215, 0, 0.6);
+}
+
+.supporter.elite:hover {
+  border-color: var(--elite-color);
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.25);
+}
+
+.supporter.elite .name {
+  color: #ffd700;
+}
+
+.supporter.elite a.name:hover {
+  color: #fff3b0;
 }
 
 /* ── Support box ────────────────────────────────────────────────────────── */

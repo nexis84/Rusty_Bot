@@ -2,6 +2,12 @@
 // Run: node scripts/generate_supporters.js
 window.SUPPORTERS = [
   {
+    "name": "ContempoEnterprises",
+    "type": "elite",
+    "date": "2026-08-21",
+    "total": 500
+  },
+  {
     "name": "EveMiner01",
     "type": "oneoff",
     "date": "2026-08-02",
