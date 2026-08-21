@@ -285,7 +285,7 @@ body {
 .elite-section {
   margin: 32px auto 8px;
   padding: 24px 20px 12px;
-  background: linear-gradient(180deg, rgba(255, 215, 0, 0.08), transparent);
+  background: transparent;
   border: 1px solid rgba(255, 215, 0, 0.35);
   border-radius: 10px;
 }
