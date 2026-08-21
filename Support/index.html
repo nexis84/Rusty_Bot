@@ -65,8 +65,13 @@
     </div>
 
     <div class="elite-section" id="eliteSection">
-      <h3 class="section-title"><i class="fa-solid fa-crown"></i> Rustybots Maintance Crew</h3>
+      <h3 class="section-title"><i class="fa-solid fa-crown"></i> Elite Supporters</h3>
       <div class="wall elite-wall" id="eliteWall"></div>
+    </div>
+
+    <div class="elite-section" id="crewSection">
+      <h3 class="section-title"><i class="fa-solid fa-wrench"></i> Rustybots Maintance Crew</h3>
+      <div class="wall elite-wall" id="crewWall"></div>
     </div>
 
     <div class="wall" id="wall"></div>
@@ -134,7 +139,8 @@
       document.getElementById('supportCount').textContent = supporters.length;
 
       const elite = supporters.filter(s => s.type === 'elite');
-      const rest = supporters.filter(s => s.type !== 'elite');
+      const crew = supporters.filter(s => s.type === 'member');
+      const rest = supporters.filter(s => s.type !== 'elite' && s.type !== 'member');
 
       const eliteSection = document.getElementById('eliteSection');
       if (elite.length) {
@@ -145,6 +151,17 @@
         eliteSection.style.display = '';
       } else {
         eliteSection.style.display = 'none';
+      }
+
+      const crewSection = document.getElementById('crewSection');
+      if (crew.length) {
+        const crewWall = document.getElementById('crewWall');
+        const frag = document.createDocumentFragment();
+        for (const s of crew) frag.appendChild(buildTile(s, cfg));
+        crewWall.appendChild(frag);
+        crewSection.style.display = '';
+      } else {
+        crewSection.style.display = 'none';
       }
 
       const wall = document.getElementById('wall');

@@ -9,7 +9,7 @@ window.SUPPORTERS = [
   },
   {
     "name": "EveMiner01",
-    "type": "oneoff",
+    "type": "member",
     "date": "2026-08-02",
     "total": 25
   },
