@@ -73,7 +73,10 @@ const elements = {
     coloniesList: document.getElementById('coloniesList'),
     coloniesLogin: document.getElementById('coloniesLogin'),
     coloniesRefresh: document.getElementById('coloniesRefresh'),
-    coloniesLogout: document.getElementById('coloniesLogout')
+    coloniesLogout: document.getElementById('coloniesLogout'),
+    // Product breakdown (Planets Needed) panel
+    productBreakdown: document.getElementById('productBreakdown'),
+    breakdownContent: document.getElementById('breakdownContent')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -161,6 +164,68 @@ function getPlanetTypesForP0(p0Id) {
         .map(tid => getPlanetTypeData(tid))
         .filter(Boolean)
         .map(pt => ({ type: pt.name, name: pt.name, color: pt.color }));
+}
+
+// Walk a material's input chain down to raw (P0) resources and return the
+// distinct planet types required to produce it. Returns planet names + colors
+// only (used by the "Planets Needed" aggregate panel).
+function getRequiredPlanetTypes(materialId) {
+    const p0Ids = new Set();
+    const collectP0 = (node) => {
+        if (!node || !node.inputs) return;
+        node.inputs.forEach(input => {
+            const sub = getMaterialById(input.id);
+            const isRaw = !sub || sub.tier === 0 || !sub.inputs || Object.keys(sub.inputs).length === 0;
+            if (isRaw) {
+                p0Ids.add(input.id);
+            } else {
+                const subChain = getChainForProduct(input.id);
+                if (subChain && subChain.target) collectP0(subChain.target);
+            }
+        });
+    };
+    const root = getChainForProduct(materialId);
+    if (root && root.target) collectP0(root.target);
+    const self = getMaterialById(materialId);
+    if (self && (!self.inputs || Object.keys(self.inputs).length === 0)) {
+        p0Ids.add(materialId);
+    }
+
+    const planetTypeIds = new Set();
+    p0Ids.forEach(p0 => {
+        const types = (PI_DATA.p0ToPlanetTypes && PI_DATA.p0ToPlanetTypes[p0]) || [];
+        types.forEach(t => planetTypeIds.add(t));
+    });
+
+    const result = [];
+    planetTypeIds.forEach(tid => {
+        const pt = getPlanetTypeData(tid);
+        if (pt) result.push({ name: pt.name, color: pt.color });
+    });
+    result.sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+}
+
+// Populate the product breakdown panel with the distinct planet types needed
+// to produce the selected product across its whole chain.
+function renderPlanetsNeeded(productId) {
+    const panel = elements.productBreakdown;
+    const container = elements.breakdownContent;
+    if (!panel || !container) return;
+
+    const planets = getRequiredPlanetTypes(productId);
+    if (!planets.length) {
+        container.innerHTML = '<p class="hint">This is a raw resource extracted directly from a planet type.</p>';
+    } else {
+        const badges = planets.map(p =>
+            `<span class="planet-type-badge" style="background: ${p.color};" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span>`
+        ).join(' ');
+        container.innerHTML =
+            `<div class="planets-needed">` +
+            `<span class="planets-needed-label"><i class="fas fa-globe"></i> Planets Needed:</span>` +
+            `<span class="planets-needed-badges">${badges}</span></div>`;
+    }
+    panel.classList.remove('hidden');
 }
 
 // ---------- Initialize ----------
@@ -381,6 +446,7 @@ function generateChainLayout() {
 
     addNode(chain.target, 0);
     AppState.chainLayout = layout;
+    renderPlanetsNeeded(productId);
     fitChainView(layout);
 }
 
