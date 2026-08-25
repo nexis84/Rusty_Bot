@@ -838,6 +838,13 @@ async function loadColonies() {
             }
         }
 
+        // Fetch each planet's real radius (public ESI route) so link CPU/PG cost
+        // is exact for every colony, not just the per-type default.
+        await Promise.all(detailed.map(async c => {
+            if (c.planet_id == null) return;
+            c._esiRadius = await ensurePlanetRadius(c.planet_id);
+        }));
+
         AppState.colonies = detailed;
         AppState.coloniesLoading = false;
         renderColonies(detailed, systemsLoaded);
@@ -945,6 +952,23 @@ const PLANET_RADIUS_KM = {
     temperate: 12000, barren: 9000, oceanic: 13000, ice: 10000,
     gas: 22000, lava: 6950, storm: 14000, plasma: 15000
 };
+// Real planet radii fetched from ESI /universe/planets/{id}/ (cached for the
+// session; ESI itself caches the route for a day). Used for link distance so
+// every colony's CPU/PG matches in-game without manual radius entry.
+const planetRadiusCache = {};
+async function ensurePlanetRadius(planetId) {
+    if (planetId == null) return null;
+    if (planetRadiusCache[planetId] !== undefined) return planetRadiusCache[planetId];
+    try {
+        const data = await piEsiAuth.esiFetch('/universe/planets/' + planetId + '/');
+        const r = data && typeof data.radius === 'number' ? data.radius : null;
+        planetRadiusCache[planetId] = r;
+        return r;
+    } catch (_) {
+        planetRadiusCache[planetId] = null;
+        return null;
+    }
+}
 function getColonyRadiusOverride(planetId) {
     try {
         const v = Number(localStorage.getItem('pi_pi_radius_' + planetId));
@@ -964,6 +988,7 @@ function colonyRadiusKm(c) {
         const o = getColonyRadiusOverride(c.planet_id);
         if (o) return o;
     }
+    if (c && typeof c._esiRadius === 'number' && c._esiRadius > 0) return c._esiRadius;
     if (c && c.planet_type && PLANET_RADIUS_KM[c.planet_type]) return PLANET_RADIUS_KM[c.planet_type];
     return 12000;
 }

@@ -40,11 +40,17 @@ const documentStub = {
     body: elStub()
 };
 
+const lsStore = {};
+
 const sandbox = {
     console: { log() {}, warn() {}, error() {} },
     document: documentStub,
     window: { addEventListener() {}, PI_ASSET_VERSION: '13' },
-    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    localStorage: {
+        getItem: k => (k in lsStore ? lsStore[k] : null),
+        setItem(k, v) { lsStore[k] = String(v); },
+        removeItem(k) { delete lsStore[k]; }
+    },
     location: { href: '', pathname: '/PI/' },
     navigator: { userAgent: 'test' },
     fetch: () => Promise.reject(new Error('no network in test')),
@@ -70,7 +76,7 @@ const sandbox = {
 vm.createContext(sandbox);
 
 const code = fs.readFileSync(path.join(PI_DIR, 'pi-visualizer.js'), 'utf8')
-    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, analyseColony, colonyRadiusKm, LINK_CPU_BASE, LINK_CPU_PER_KM, LINK_PG_BASE, LINK_PG_PER_KM, ctx };';
+    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, analyseColony, colonyRadiusKm, setColonyRadiusOverride, LINK_CPU_BASE, LINK_CPU_PER_KM, LINK_PG_BASE, LINK_PG_PER_KM, ctx };';
 vm.runInContext(code, sandbox, { filename: 'pi-visualizer.js' });
 const T = sandbox.__test;
 const drawOverlay = T.drawColonyLayoutOverlay;
@@ -244,6 +250,21 @@ totalFail += runScenario('shared', detail3, 1200, 600);
     if (a.capCpu !== 17215) { f++; console.error(`[ccpower] FAIL: capCpu ${a.capCpu} != 17215`); }
     if (a.capPg !== 15000) { f++; console.error(`[ccpower] FAIL: capPg ${a.capPg} != 15000`); }
     console.log(`[ccpower] usedCpu=${a.usedCpu.toFixed(1)} usedPg=${a.usedPg.toFixed(1)} capCpu=${a.capCpu} capPg=${a.capPg}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+{
+    // Radius priority: c.radiusKm > localStorage override > _esiRadius > type default > fallback
+    let f = 0;
+    Object.keys(lsStore).forEach(k => delete lsStore[k]);
+
+    if (T.colonyRadiusKm({ planet_id: 900, planet_type: 'barren' }) !== 9000) { f++; console.error('[radius] FAIL: barren default != 9000'); }
+    if (T.colonyRadiusKm({ planet_id: 901, planet_type: 'barren', _esiRadius: 5300 }) !== 5300) { f++; console.error('[radius] FAIL: _esiRadius 5300 not used'); }
+    T.setColonyRadiusOverride(902, 7777);
+    if (T.colonyRadiusKm({ planet_id: 902, planet_type: 'barren', _esiRadius: 5300 }) !== 7777) { f++; console.error('[radius] FAIL: localStorage override 7777 not used'); }
+    if (T.colonyRadiusKm({ planet_id: 903, planet_type: 'unknown' }) !== 12000) { f++; console.error('[radius] FAIL: fallback != 12000'); }
+    if (T.colonyRadiusKm({ planet_id: 904, planet_type: 'barren', _esiRadius: 0 }) !== 9000) { f++; console.error('[radius] FAIL: zero _esiRadius falls back to type default'); }
+    console.log(`[radius] priority chain -> ${f ? f + ' FAIL' : 'PASS'}`);
     totalFail += f;
 }
 
