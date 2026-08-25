@@ -70,9 +70,10 @@ const sandbox = {
 vm.createContext(sandbox);
 
 const code = fs.readFileSync(path.join(PI_DIR, 'pi-visualizer.js'), 'utf8')
-    + '\n;globalThis.__test = { AppState, drawColonyLayout, ctx };';
+    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, ctx };';
 vm.runInContext(code, sandbox, { filename: 'pi-visualizer.js' });
 const T = sandbox.__test;
+const drawOverlay = T.drawColonyLayoutOverlay;
 
 // ---- Helpers ----
 const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -184,6 +185,31 @@ let totalFail = 0;
 totalFail += runScenario('tight', detail1, 1200, 420);
 totalFail += runScenario('dense', detail2, 1200, 800);
 totalFail += runScenario('shared', detail3, 1200, 600);
+
+// ---- Scenario 4: hover tooltip follows the cursor ----
+{
+    const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: detail2.pins.length, detail: detail2 };
+    ctx.__calls.fills = []; ctx.__calls.fillTexts = [];
+    T.AppState.cssW = 1200; T.AppState.cssH = 800;
+    T.AppState.layoutMode = true;
+    T.AppState.layoutSel = null;
+    T.AppState.layoutHover = 10;          // a processor pin from detail2
+    T.AppState.hoverPos = { x: 560, y: 320 };
+    T.AppState.systemsLoaded = false;
+    T.drawColonyLayout(colony);
+    drawOverlay(colony);
+    const panel = ctx.__calls.fills.find(r => r.fillStyle === 'rgba(20, 20, 20, 0.92)' && Math.abs(r.w - 230) < 0.5);
+    let f = 0;
+    if (!panel) { f++; console.error('[tooltip] FAIL: no hover panel drawn'); }
+    else {
+        // Panel top-left should sit at cursor + (14,14); allow small slack.
+        const d = Math.hypot(panel.x - (560 + 14), panel.y - (320 + 14));
+        if (d > 20) { f++; console.error(`[tooltip] FAIL: panel top-left ${Math.round(d)}px from cursor+14 (max 20)`); }
+        if (panel.x < 0 || panel.y < 0 || panel.x + panel.w > 1200 || panel.y + panel.h > 800) { f++; console.error('[tooltip] FAIL: panel off-canvas'); }
+    }
+    console.log(`[tooltip] panel=${panel ? 'yes' : 'no'}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
 
 console.log(totalFail === 0 ? '\nALL PASS' : `\n${totalFail} FAILURE(S)`);
 process.exit(totalFail === 0 ? 0 : 1);

@@ -27,6 +27,7 @@ const AppState = {
     layoutMode: false,      // colony detail: show planet layout map instead of details
     layoutSel: null,        // selected pin id in layout view
     layoutHover: null,      // hovered pin id in layout view (shows breakdown)
+    hoverPos: { x: 0, y: 0 }, // cursor position (canvas-relative) for tooltip placement
     colonyLayoutData: null, // projected layout for hit-testing (set during draw)
     pendingColonyId: null,  // deep link: open this colony once loaded
     pendingLayoutMode: false,
@@ -2387,7 +2388,20 @@ function drawColonyLayoutOverlay(c) {
         routeLines.slice(0, 6).forEach(rl => lines.push(rl));
 
         const w = 230, lh = 15, h = 12 + lines.length * lh;
-        const px = margin + 4, py = top;
+        // Place the panel at the cursor when hovering, else beside the selected pin.
+        let px, py;
+        if (AppState.layoutHover && layout.byId[AppState.layoutHover]) {
+            const hp = AppState.hoverPos || { x: margin + 4, y: top };
+            px = hp.x + 14; py = hp.y + 14;
+            if (px + w > AppState.cssW - 10) px = hp.x - w - 14; // flip left near edge
+        } else {
+            const sp = layout.byId[focus];
+            const sx = sp.x * AppState.zoom + AppState.canvasOffset.x;
+            const sy = sp.y * AppState.zoom + AppState.canvasOffset.y;
+            px = sx + LAYOUT_CARD_W / 2 + 12; py = sy - h / 2;
+        }
+        px = Math.max(10, Math.min(px, AppState.cssW - w - 10));
+        py = Math.max(10, Math.min(py, AppState.cssH - h - 10));
         ctx.fillStyle = 'rgba(20, 20, 20, 0.92)';
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 1;
@@ -2850,10 +2864,12 @@ function onPointerMove(e) {
             const wpos = screenToWorld(pos.x, pos.y);
             const pin = colonyLayoutPinAt(wpos);
             const id = pin ? pin.pinId : null;
-            if (id !== AppState.layoutHover) {
-                AppState.layoutHover = id;
-                draw();
-            }
+            // Redraw on hover enter/leave AND on every move while over a pin, so
+            // the info panel tracks the cursor.
+            const changed = id !== AppState.layoutHover;
+            AppState.layoutHover = id;
+            AppState.hoverPos = pos;
+            if (changed || id !== null) draw();
             canvas.style.cursor = id ? 'pointer' : 'default';
         }
     }
