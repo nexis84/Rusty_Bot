@@ -1994,6 +1994,16 @@ function drawDetailToggles() {
     });
 }
 
+// ESI reports radians; guard against out-of-range values (wrap longitude,
+// clamp latitude to the poles)
+function normalizePinLatLong(lat, long) {
+    const TWO_PI = Math.PI * 2;
+    let lng = long;
+    while (lng > Math.PI) lng -= TWO_PI;
+    while (lng < -Math.PI) lng += TWO_PI;
+    return { lat: Math.max(-Math.PI / 2, Math.min(Math.PI / 2, lat)), long: lng };
+}
+
 // Builds the drawable colony graph: pins projected onto the disc, links and routes
 function buildColonyLayout(detail, cx, cy, R) {
     const pins = [], links = [], routes = [];
@@ -2001,7 +2011,8 @@ function buildColonyLayout(detail, cx, cy, R) {
     if (!detail || !Array.isArray(detail.pins)) return { pins, links, routes, byId };
 
     detail.pins.forEach(pin => {
-        const pos = projectColonyPin(pin.latitude || 0, pin.longitude || 0, cx, cy, R);
+        const norm = normalizePinLatLong(pin.latitude || 0, pin.longitude || 0);
+        const pos = projectColonyPin(norm.lat, norm.long, cx, cy, R);
         let kind = 'other', label = 'Pin', color = '#888';
         if (ECU_TYPES.has(pin.type_id)) {
             const ed = pin.extractor_details;
@@ -2057,7 +2068,7 @@ function colonyLayoutPinAt(pos) {
 
 function drawColonyLayout(c) {
     const margin = 30;
-    const top = 72;
+    const top = 130; // below the back button + colony header
     const availW = AppState.cssW - margin * 2;
     const availH = AppState.cssH - top - margin;
     if (availW <= 0 || availH <= 0) return;
@@ -2224,11 +2235,12 @@ function drawColonyLayout(c) {
         });
     }
 
-    // Stale-data note
+    // Stale-data note + pin count
     ctx.fillStyle = '#666';
     ctx.font = '10px Titillium Web, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText('Layout from ESI - recalculates when viewed in game', AppState.cssW - margin, AppState.cssH - margin + 8);
+    ctx.fillText(`${layout.pins.length} pin${layout.pins.length === 1 ? '' : 's'} on map`, AppState.cssW - margin, AppState.cssH - margin - 8);
     ctx.textAlign = 'left';
 }
 
@@ -2261,13 +2273,7 @@ function drawColonyDetail(c) {
     drawDetailToggles();
     y += 40;
 
-    // Layout mode renders the planet map instead of the detail columns
-    if (AppState.layoutMode) {
-        drawColonyLayout(c);
-        return;
-    }
-
-    // Header
+    // Header (shown in both Details and Layout modes)
     ctx.fillStyle = color;
     ctx.font = 'bold 22px Titillium Web, sans-serif';
     ctx.textAlign = 'left';
@@ -2277,6 +2283,12 @@ function drawColonyDetail(c) {
     ctx.font = '13px Titillium Web, sans-serif';
     ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''} • CC ${c.upgrade_level || 0} • ${c.num_pins || 0} pins`, x, y + 28);
     y += 58;
+
+    // Layout mode renders the planet map instead of the detail columns
+    if (AppState.layoutMode) {
+        drawColonyLayout(c);
+        return;
+    }
 
     const analysis = analyseColonyCached(c);
     const { producing, stored } = analysis;
@@ -2794,7 +2806,10 @@ function setViewMode(mode) {
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Planet breakdown view • Shows which raw materials each planet subtype can extract';
     } else if (mode === 'colonies') {
         canvas.style.cursor = 'default';
-        helpText.innerHTML = '<i class="fas fa-info-circle"></i> My Colonies • Sign in with EVE SSO to view your planetary colonies';
+        const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
+        helpText.innerHTML = authed
+            ? '<i class="fas fa-info-circle"></i> My Colonies &bull; Click a colony card to open it, then use Layout to see the planet map - tap pins to inspect them'
+            : '<i class="fas fa-info-circle"></i> My Colonies &bull; Sign in with EVE SSO to view your planetary colonies';
     } else {
         canvas.style.cursor = 'default';
         if (AppState.chainLayout) {
