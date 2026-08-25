@@ -70,7 +70,7 @@ const sandbox = {
 vm.createContext(sandbox);
 
 const code = fs.readFileSync(path.join(PI_DIR, 'pi-visualizer.js'), 'utf8')
-    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, ctx };';
+    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, analyseColony, colonyRadiusKm, LINK_CPU_BASE, LINK_CPU_PER_KM, LINK_PG_BASE, LINK_PG_PER_KM, ctx };';
 vm.runInContext(code, sandbox, { filename: 'pi-visualizer.js' });
 const T = sandbox.__test;
 const drawOverlay = T.drawColonyLayoutOverlay;
@@ -216,26 +216,34 @@ totalFail += runScenario('shared', detail3, 1200, 600);
     const detail = {
         pins: [
             { pin_id: 1, type_id: 2254, extractor_details: null },                 // CC (level 3)
-            { pin_id: 2, type_id: 2848, extractor_details: { product_type_id: 2270, qty_per_cycle: 1, cycle_time: 1 } },
-            { pin_id: 3, type_id: 2469, factory_details: { schematic_id: 1 } },
-            { pin_id: 4, type_id: 2257 },
+            { pin_id: 2, type_id: 2848, extractor_details: { product_type_id: 2270, qty_per_cycle: 1, cycle_time: 1 }, latitude: 0.0, longitude: 0.0 },
+            { pin_id: 3, type_id: 2469, factory_details: { schematic_id: 1 }, latitude: 0.1, longitude: 0.0 },
+            { pin_id: 4, type_id: 2257, latitude: 0.2, longitude: 0.0 },
             { pin_id: 5, type_id: 2256 }
         ],
-        links: [], routes: []
+        // Two links of 100 km each (planet radius 1000 km x 0.1 rad separation)
+        links: [
+            { source_pin_id: 2, destination_pin_id: 3, link_level: 0 },
+            { source_pin_id: 3, destination_pin_id: 4, link_level: 0 }
+        ],
+        routes: []
     };
-    const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: detail.pins.length, detail };
+    const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: detail.pins.length, detail, radiusKm: 1000 };
     T.AppState.layoutMode = true; T.AppState.layoutSel = null; T.AppState.layoutHover = null; T.AppState.systemsLoaded = false;
     T.drawColonyLayout(colony);
     const a = colony._analysis;
     // PIN_SPECS: ECU 2848=400/2600, PROC 2469=200/800, STOR 2257=500/700, LAUN 2256=3600/700
-    const expUsedCpu = 400 + 200 + 500 + 3600, expUsedPg = 2600 + 800 + 700 + 700;
+    const structCpu = 400 + 200 + 500 + 3600, structPg = 2600 + 800 + 700 + 700;
+    // Two links at 100 km: cost = base + perKm * 100 each
+    const linkCpu = T.LINK_CPU_BASE + T.LINK_CPU_PER_KM * 100, linkPg = T.LINK_PG_BASE + T.LINK_PG_PER_KM * 100;
+    const expUsedCpu = structCpu + 2 * linkCpu, expUsedPg = structPg + 2 * linkPg;
     // CC L3 capacity: 17215 CPU / 15000 PG (authoritative EVE values)
     let f = 0;
-    if (a.usedCpu !== expUsedCpu) { f++; console.error(`[ccpower] FAIL: usedCpu ${a.usedCpu} != ${expUsedCpu}`); }
-    if (a.usedPg !== expUsedPg) { f++; console.error(`[ccpower] FAIL: usedPg ${a.usedPg} != ${expUsedPg}`); }
+    if (Math.abs(a.usedCpu - expUsedCpu) > 0.01) { f++; console.error(`[ccpower] FAIL: usedCpu ${a.usedCpu} != ${expUsedCpu}`); }
+    if (Math.abs(a.usedPg - expUsedPg) > 0.01) { f++; console.error(`[ccpower] FAIL: usedPg ${a.usedPg} != ${expUsedPg}`); }
     if (a.capCpu !== 17215) { f++; console.error(`[ccpower] FAIL: capCpu ${a.capCpu} != 17215`); }
     if (a.capPg !== 15000) { f++; console.error(`[ccpower] FAIL: capPg ${a.capPg} != 15000`); }
-    console.log(`[ccpower] usedCpu=${a.usedCpu} usedPg=${a.usedPg} capCpu=${a.capCpu} capPg=${a.capPg}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    console.log(`[ccpower] usedCpu=${a.usedCpu.toFixed(1)} usedPg=${a.usedPg.toFixed(1)} capCpu=${a.capCpu} capPg=${a.capPg}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 

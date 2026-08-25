@@ -318,6 +318,22 @@ body {
     color: var(--accent);
 }
 
+.colony-radius {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.colony-radius-input {
+    width: 4.2rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 0.6875rem;
+    padding: 1px 4px;
+}
+
 .colony-item .colony-updated {
     margin-top: 0.25rem;
     font-size: 0.625rem;

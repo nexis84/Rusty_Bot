@@ -343,6 +343,19 @@ function setupEventListeners() {
         }
     });
 
+    // Per-colony planet radius override (drives link CPU/Powergrid cost)
+    elements.coloniesList.addEventListener('change', (e) => {
+        const input = e.target;
+        if (!input.classList || !input.classList.contains('colony-radius-input')) return;
+        const planetId = Number(input.dataset.planet);
+        setColonyRadiusOverride(planetId, input.value);
+        const c = AppState.colonies && AppState.colonies.find(x => x.planet_id === planetId);
+        if (c) delete c._analysis;
+        if (AppState.colonyDetail && AppState.colonyDetail.planet_id === planetId) delete AppState.colonyDetail._analysis;
+        if (AppState.viewMode === 'colonies') renderColonies(AppState.colonies || [], AppState.systemsLoaded);
+        draw();
+    });
+
     // Reference sidebar item clicks
     document.querySelectorAll('.ref-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -916,6 +929,45 @@ function ccCapacity(level) {
     return CC_CAPACITY[L];
 }
 
+// Link CPU / Powergrid draw. Base cost per link plus a per-km cost. These
+// coefficients are calibrated to a real colony's in-game Command Centre window
+// (structure-only usage subtracted from the total); the documented EVE
+// University coefficients do not match current EVE, where links are
+// Powergrid-dominant.
+const LINK_CPU_BASE = 15, LINK_PG_BASE = 10;
+const LINK_CPU_PER_KM = 0.672, LINK_PG_PER_KM = 2.388;
+
+// Planet radius (km) used to turn pin lat/long angular separation into link
+// distance. ESI omits planet diameter, so these are per-type defaults; the lava
+// value comes from a real lava colony (diameter 13900 km -> radius 6950).
+// A per-colony override can be set via localStorage (UI input) or c.radiusKm.
+const PLANET_RADIUS_KM = {
+    temperate: 12000, barren: 9000, oceanic: 13000, ice: 10000,
+    gas: 22000, lava: 6950, storm: 14000, plasma: 15000
+};
+function getColonyRadiusOverride(planetId) {
+    try {
+        const v = Number(localStorage.getItem('pi_pi_radius_' + planetId));
+        return isFinite(v) && v > 0 ? v : null;
+    } catch (_) { return null; }
+}
+function setColonyRadiusOverride(planetId, km) {
+    const k = Number(km);
+    try {
+        if (isFinite(k) && k > 0) localStorage.setItem('pi_pi_radius_' + planetId, String(k));
+        else localStorage.removeItem('pi_pi_radius_' + planetId);
+    } catch (_) {}
+}
+function colonyRadiusKm(c) {
+    if (c && typeof c.radiusKm === 'number' && isFinite(c.radiusKm) && c.radiusKm > 0) return c.radiusKm;
+    if (c && c.planet_id != null) {
+        const o = getColonyRadiusOverride(c.planet_id);
+        if (o) return o;
+    }
+    if (c && c.planet_type && PLANET_RADIUS_KM[c.planet_type]) return PLANET_RADIUS_KM[c.planet_type];
+    return 12000;
+}
+
 // Thin filled capacity bar (used vs max).
 function drawBar(x, y, w, h, frac, color) {
     const r = Math.min(2, h / 2);
@@ -944,7 +996,7 @@ function storagePinInfo(pin) {
     return { kind, typeId: pin.type_id, used, capacity: PIN_CAPACITY[pin.type_id], fill: used / PIN_CAPACITY[pin.type_id] };
 }
 
-function analyseColony(detail, level) {
+function analyseColony(detail, level, radiusKm) {
     const producing = {}; // materialId -> {name, tier, count, amount}
     const stored = {};    // materialId -> amount
     const storagePins = [];
@@ -1067,6 +1119,30 @@ function analyseColony(detail, level) {
             usedCpu += spec.cpu; usedPg += spec.pg;
         }
     });
+
+    // Links: each structure-to-structure link draws CPU/PG based on its length
+    // (planet radius x great-circle angle between the two pins). Extractor-head
+    // links are not separate pins so they never appear in detail.links.
+    const r = (typeof radiusKm === 'number' && isFinite(radiusKm) && radiusKm > 0) ? radiusKm : 12000;
+    if (Array.isArray(detail.links) && detail.links.length) {
+        const pos = {};
+        detail.pins.forEach(pin => {
+            if (pin && pin.pin_id != null && typeof pin.latitude === 'number' && typeof pin.longitude === 'number') {
+                pos[pin.pin_id] = [pin.latitude, pin.longitude];
+            }
+        });
+        detail.links.forEach(link => {
+            const a = pos[link.source_pin_id], b = pos[link.destination_pin_id];
+            if (!a || !b) return;
+            const dLa = b[0] - a[0], dLo = b[1] - a[1];
+            const h = Math.min(1, Math.sin(dLa / 2) ** 2 + Math.cos(a[0]) * Math.cos(b[0]) * Math.sin(dLo / 2) ** 2);
+            const ang = 2 * Math.asin(Math.sqrt(h));
+            const l = r * ang;
+            usedCpu += LINK_CPU_BASE + LINK_CPU_PER_KM * l;
+            usedPg += LINK_PG_BASE + LINK_PG_PER_KM * l;
+        });
+    }
+
     storagePins.sort((a, b) => b.fill - a.fill);
     extractors.sort((a, b) => (a.expiryMs || Infinity) - (b.expiryMs || Infinity));
 
@@ -1090,7 +1166,7 @@ function analyseColony(detail, level) {
 // draws (which run on every pan/hover) don't recompute it. Cache invalidates
 // naturally because loadColonies replaces the colony objects.
 function analyseColonyCached(c) {
-    if (!c._analysis) c._analysis = analyseColony(c.detail, c.upgrade_level);
+    if (!c._analysis) c._analysis = analyseColony(c.detail, c.upgrade_level, colonyRadiusKm(c));
     return c._analysis;
 }
 
@@ -1148,6 +1224,7 @@ function renderColonies(colonies, systemsLoaded) {
 
             const analysis = analyseColonyCached(c);
             const { producing, stored } = analysis;
+            const radiusVal = Math.round(colonyRadiusKm(c));
 
             let produceHtml = '';
             if (producing.length) {
@@ -1186,6 +1263,7 @@ function renderColonies(colonies, systemsLoaded) {
                 <div class="colony-meta">
                     ${pinCount ? `<span><i class="fas fa-thumbtack"></i>${pinCount}</span>` : ''}
                     <span><i class="fas fa-cubes"></i>CC ${upgrades}</span>
+                    <span class="colony-radius"><i class="fas fa-globe"></i>R <input class="colony-radius-input" data-planet="${c.planet_id}" type="number" min="1" step="100" value="${radiusVal}" title="Planet radius (km) - used to calculate link CPU/Powergrid cost"></span>
                 </div>
                 ${produceHtml}
                 ${storedHtml}
@@ -2462,6 +2540,7 @@ function drawColonyLayoutOverlay(c) {
             if (sp) lines.push({ text: `${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m3 (${Math.round(sp.fill * 100)}%)`, color: '#aaa' });
             if (p.kind === 'cc') {
                 const cap = ccCapacity(c.upgrade_level || 0);
+                lines.push({ text: 'Structures + links', color: '#aaa' });
                 lines.push({ text: `CPU ${analysis.usedCpu.toLocaleString()} / ${cap.cpu.toLocaleString()}`, color: '#f87171' });
                 lines.push({ text: `PG ${analysis.usedPg.toLocaleString()} / ${cap.pg.toLocaleString()}`, color: '#58a6ff' });
             }
