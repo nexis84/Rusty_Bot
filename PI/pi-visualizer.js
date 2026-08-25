@@ -883,23 +883,23 @@ COMMAND_CENTER_TYPES.forEach(id => { PIN_CAPACITY[id] = 500; });
 const PIN_KIND_NAMES = { launchpad: 'Launchpad', storage: 'Storage Facility', cc: 'Command Center', extractor: 'Extractor Control Unit', processor: 'Processor', other: 'Pin' };
 
 // Per-pin CPU / Powergrid costs, sourced from the SDE (typeDogma attrs
-// 48/15 = CPU, 11/49 = Powergrid). Command Centres provide capacity and
-// consume nothing; every other pin type draws from it. Used by the colony
-// analysis to show CC capacity bars.
+// 48 = cpuOutput / 11 = powerOutput for Command Centres, which provide
+// capacity and consume nothing; 49 = cpuLoad / 15 = powerLoad for every other
+// pin type, which draws from it). Used by the colony analysis for CC bars.
 const PIN_SPECS = {
-    2254:{cpu:1675,pg:6000},2256:{cpu:700,pg:3600},2257:{cpu:700,pg:500},
-    2469:{cpu:800,pg:200},2470:{cpu:700,pg:500},2471:{cpu:800,pg:200},2472:{cpu:700,pg:500},
-    2473:{cpu:800,pg:200},2474:{cpu:700,pg:500},2475:{cpu:400,pg:1100},2480:{cpu:700,pg:500},
-    2481:{cpu:800,pg:200},2482:{cpu:400,pg:1100},2483:{cpu:800,pg:200},2484:{cpu:700,pg:500},
-    2485:{cpu:700,pg:500},2490:{cpu:800,pg:200},2491:{cpu:700,pg:500},2492:{cpu:800,pg:200},
-    2493:{cpu:800,pg:200},2494:{cpu:700,pg:500},2524:{cpu:1675,pg:6000},2525:{cpu:1675,pg:6000},
-    2533:{cpu:1675,pg:6000},2534:{cpu:1675,pg:6000},2535:{cpu:700,pg:500},2536:{cpu:700,pg:500},
-    2541:{cpu:700,pg:500},2542:{cpu:700,pg:3600},2543:{cpu:700,pg:3600},2544:{cpu:700,pg:3600},
-    2549:{cpu:1675,pg:6000},2550:{cpu:1675,pg:6000},2551:{cpu:1675,pg:6000},2552:{cpu:700,pg:3600},
-    2555:{cpu:700,pg:3600},2556:{cpu:700,pg:3600},2557:{cpu:700,pg:3600},2558:{cpu:700,pg:500},
-    2560:{cpu:700,pg:500},2561:{cpu:700,pg:500},2562:{cpu:700,pg:500},2848:{cpu:2600,pg:400},
-    3060:{cpu:2600,pg:400},3061:{cpu:2600,pg:400},3062:{cpu:2600,pg:400},3063:{cpu:2600,pg:400},
-    3064:{cpu:2600,pg:400},3067:{cpu:2600,pg:400},3068:{cpu:2600,pg:400}
+    2254:{cpu:1675,pg:6000},2256:{cpu:3600,pg:700},2257:{cpu:500,pg:700},2469:{cpu:200,pg:800},
+    2470:{cpu:500,pg:700},2471:{cpu:200,pg:800},2472:{cpu:500,pg:700},2473:{cpu:200,pg:800},
+    2474:{cpu:500,pg:700},2475:{cpu:1100,pg:400},2480:{cpu:500,pg:700},2481:{cpu:200,pg:800},
+    2482:{cpu:1100,pg:400},2483:{cpu:200,pg:800},2484:{cpu:500,pg:700},2485:{cpu:500,pg:700},
+    2490:{cpu:200,pg:800},2491:{cpu:500,pg:700},2492:{cpu:200,pg:800},2493:{cpu:200,pg:800},
+    2494:{cpu:500,pg:700},2524:{cpu:1675,pg:6000},2525:{cpu:1675,pg:6000},2533:{cpu:1675,pg:6000},
+    2534:{cpu:1675,pg:6000},2535:{cpu:500,pg:700},2536:{cpu:500,pg:700},2541:{cpu:500,pg:700},
+    2542:{cpu:3600,pg:700},2543:{cpu:3600,pg:700},2544:{cpu:3600,pg:700},2549:{cpu:1675,pg:6000},
+    2550:{cpu:1675,pg:6000},2551:{cpu:1675,pg:6000},2552:{cpu:3600,pg:700},2555:{cpu:3600,pg:700},
+    2556:{cpu:3600,pg:700},2557:{cpu:3600,pg:700},2558:{cpu:500,pg:700},2560:{cpu:500,pg:700},
+    2561:{cpu:500,pg:700},2562:{cpu:500,pg:700},2848:{cpu:400,pg:2600},3060:{cpu:400,pg:2600},
+    3061:{cpu:400,pg:2600},3062:{cpu:400,pg:2600},3063:{cpu:400,pg:2600},3064:{cpu:400,pg:2600},
+    3067:{cpu:400,pg:2600},3068:{cpu:400,pg:2600}
 };
 // Command Centre capacity scales +20% per upgrade level (SDE base 1675 CPU / 6000 PG).
 const CC_BASE_CPU = 1675, CC_BASE_PG = 6000, CC_PER_LEVEL = 0.2;

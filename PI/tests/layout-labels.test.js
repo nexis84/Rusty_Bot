@@ -227,8 +227,8 @@ totalFail += runScenario('shared', detail3, 1200, 600);
     T.AppState.layoutMode = true; T.AppState.layoutSel = null; T.AppState.layoutHover = null; T.AppState.systemsLoaded = false;
     T.drawColonyLayout(colony);
     const a = colony._analysis;
-    // PIN_SPECS: ECU 2848=2600/400, PROC 2469=800/200, STOR 2257=700/500, LAUN 2256=700/3600
-    const expUsedCpu = 2600 + 800 + 700 + 700, expUsedPg = 400 + 200 + 500 + 3600;
+    // PIN_SPECS: ECU 2848=400/2600, PROC 2469=200/800, STOR 2257=500/700, LAUN 2256=3600/700
+    const expUsedCpu = 400 + 200 + 500 + 3600, expUsedPg = 2600 + 800 + 700 + 700;
     // CC L3 capacity: 1675*1.6=2680 CPU, 6000*1.6=9600 PG
     let f = 0;
     if (a.usedCpu !== expUsedCpu) { f++; console.error(`[ccpower] FAIL: usedCpu ${a.usedCpu} != ${expUsedCpu}`); }
