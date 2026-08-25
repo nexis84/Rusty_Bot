@@ -255,6 +255,7 @@ function init() {
     setupColonies();
     refreshColoniesAuthState();
     setViewMode('reference');
+    hideMarketData();
     restoreFromUrl();
     console.log('Init complete');
 }
