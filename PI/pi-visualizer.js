@@ -901,11 +901,19 @@ const PIN_SPECS = {
     3061:{cpu:400,pg:2600},3062:{cpu:400,pg:2600},3063:{cpu:400,pg:2600},3064:{cpu:400,pg:2600},
     3067:{cpu:400,pg:2600},3068:{cpu:400,pg:2600}
 };
-// Command Centre capacity scales +20% per upgrade level (SDE base 1675 CPU / 6000 PG).
-const CC_BASE_CPU = 1675, CC_BASE_PG = 6000, CC_PER_LEVEL = 0.2;
+// Command Centre CPU / Powergrid capacity per upgrade level (authoritative EVE
+// values, e.g. EVE University / Ellatha). Not a linear +% per level.
+const CC_CAPACITY = [
+    { cpu: 1675, pg: 6000 },    // L0
+    { cpu: 7057, pg: 9000 },    // L1
+    { cpu: 12136, pg: 12000 },  // L2
+    { cpu: 17215, pg: 15000 },  // L3
+    { cpu: 21315, pg: 17000 },  // L4
+    { cpu: 25415, pg: 19000 }   // L5
+];
 function ccCapacity(level) {
     const L = Math.max(0, Math.min(5, level || 0));
-    return { cpu: Math.round(CC_BASE_CPU * (1 + CC_PER_LEVEL * L)), pg: Math.round(CC_BASE_PG * (1 + CC_PER_LEVEL * L)) };
+    return CC_CAPACITY[L];
 }
 
 // Thin filled capacity bar (used vs max).

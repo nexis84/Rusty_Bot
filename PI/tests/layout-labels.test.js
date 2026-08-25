@@ -229,12 +229,12 @@ totalFail += runScenario('shared', detail3, 1200, 600);
     const a = colony._analysis;
     // PIN_SPECS: ECU 2848=400/2600, PROC 2469=200/800, STOR 2257=500/700, LAUN 2256=3600/700
     const expUsedCpu = 400 + 200 + 500 + 3600, expUsedPg = 2600 + 800 + 700 + 700;
-    // CC L3 capacity: 1675*1.6=2680 CPU, 6000*1.6=9600 PG
+    // CC L3 capacity: 17215 CPU / 15000 PG (authoritative EVE values)
     let f = 0;
     if (a.usedCpu !== expUsedCpu) { f++; console.error(`[ccpower] FAIL: usedCpu ${a.usedCpu} != ${expUsedCpu}`); }
     if (a.usedPg !== expUsedPg) { f++; console.error(`[ccpower] FAIL: usedPg ${a.usedPg} != ${expUsedPg}`); }
-    if (a.capCpu !== 2680) { f++; console.error(`[ccpower] FAIL: capCpu ${a.capCpu} != 2680`); }
-    if (a.capPg !== 9600) { f++; console.error(`[ccpower] FAIL: capPg ${a.capPg} != 9600`); }
+    if (a.capCpu !== 17215) { f++; console.error(`[ccpower] FAIL: capCpu ${a.capCpu} != 17215`); }
+    if (a.capPg !== 15000) { f++; console.error(`[ccpower] FAIL: capPg ${a.capPg} != 15000`); }
     console.log(`[ccpower] usedCpu=${a.usedCpu} usedPg=${a.usedPg} capCpu=${a.capCpu} capPg=${a.capPg}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
