@@ -399,6 +399,45 @@ body {
     color: var(--muted);
 }
 
+/* Colony insight lines: countdown, ISK figures, idle warnings */
+.colony-insight-line {
+    margin-top: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.65rem;
+}
+
+.colony-countdown {
+    color: var(--text);
+}
+
+.colony-expired {
+    color: #f87171;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.colony-isk-line {
+    margin-top: 0.25rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    font-size: 0.65rem;
+    color: var(--muted);
+}
+
+.colony-isk-line span {
+    white-space: nowrap;
+}
+
+.colony-warn-line {
+    margin-top: 0.25rem;
+    font-size: 0.62rem;
+    color: #fbbf24;
+}
+
 .colony-system {
     margin-bottom: 0.25rem;
 }

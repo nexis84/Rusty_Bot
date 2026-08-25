@@ -23,6 +23,7 @@ const AppState = {
     coloniesLoading: false,
     colonyDetail: null,
     colonyCards: [],
+    colonyPrices: {},
     cssW: 0, // CSS-pixel canvas size (backing store is scaled by devicePixelRatio)
     cssH: 0,
     pendingHit: null,
@@ -330,6 +331,9 @@ function setupEventListeners() {
         if (AppState.targetProduct) {
             fetchMarketData();
         }
+        if (AppState.colonies && AppState.colonies.length) {
+            ensureColonyPrices();
+        }
     });
 
     // Reference sidebar item clicks
@@ -373,6 +377,8 @@ function setupTabs() {
 
             if (tab === 'colonies') {
                 refreshColoniesAuthState();
+            } else {
+                setColonyTick(false);
             }
         });
     });
@@ -816,6 +822,7 @@ async function loadColonies() {
         AppState.coloniesLoading = false;
         renderColonies(detailed, systemsLoaded);
         if (AppState.viewMode === 'colonies') draw();
+        ensureColonyPrices();
     } catch (err) {
         console.error('Failed to load colonies:', err);
         AppState.coloniesLoading = false;
@@ -853,6 +860,10 @@ STORAGE_FACILITY_TYPES.forEach(id => { PIN_CAPACITY[id] = 12000; });
 COMMAND_CENTER_TYPES.forEach(id => { PIN_CAPACITY[id] = 500; });
 const PIN_KIND_NAMES = { launchpad: 'Launchpad', storage: 'Storage', cc: 'Command Center' };
 
+// Pin classification for idle detection (SDE groups 1063 / 1028)
+const ECU_TYPES = new Set([2848, 3060, 3061, 3062, 3063, 3064, 3067, 3068]);
+const PROCESSOR_TYPES = new Set([2469, 2470, 2471, 2472, 2473, 2474, 2475, 2480, 2481, 2482, 2483, 2484, 2485, 2490, 2491, 2492, 2493, 2494]);
+
 function storagePinInfo(pin) {
     if (!pin || !PIN_CAPACITY[pin.type_id]) return null;
     const kind = LAUNCHPAD_TYPES.has(pin.type_id) ? 'launchpad'
@@ -872,12 +883,55 @@ function analyseColony(detail) {
     const producing = {}; // materialId -> {name, tier, count, amount}
     const stored = {};    // materialId -> amount
     const storagePins = [];
+    const extractors = [];
+    const factories = [];
+    const idle = { extractors: 0, factories: 0, expired: 0 };
+    const now = Date.now();
 
     if (!detail || !Array.isArray(detail.pins)) {
-        return { producing: [], stored: [], storagePins: [], fullest: null, extraStorage: 0 };
+        return { producing: [], stored: [], storagePins: [], fullest: null, extraStorage: 0, extractors: [], factories: [], idle };
     }
 
     detail.pins.forEach(pin => {
+        // Extractor control units: active program or idle
+        if (ECU_TYPES.has(pin.type_id)) {
+            const ed = pin.extractor_details;
+            if (ed && ed.product_type_id) {
+                const mat = getMaterialById(ed.product_type_id);
+                const expiryMs = pin.expiry_time ? Date.parse(pin.expiry_time) : null;
+                const expired = expiryMs !== null && !Number.isNaN(expiryMs) && expiryMs <= now;
+                if (expired) idle.expired++;
+                extractors.push({
+                    pinId: pin.pin_id,
+                    productId: ed.product_type_id,
+                    productName: mat ? mat.name : `Type ${ed.product_type_id}`,
+                    tier: mat ? mat.tier : 0,
+                    qtyPerCycle: ed.qty_per_cycle || 0,
+                    cycleTime: ed.cycle_time || 0,
+                    expiryMs: (expiryMs !== null && !Number.isNaN(expiryMs)) ? expiryMs : null,
+                    expired
+                });
+            } else {
+                idle.extractors++;
+            }
+        }
+
+        // Processors: running a schematic or idle
+        if (PROCESSOR_TYPES.has(pin.type_id)) {
+            if (pin.factory_details && pin.factory_details.schematic_id) {
+                const recipe = getRecipeBySchematicId(pin.factory_details.schematic_id);
+                factories.push({
+                    pinId: pin.pin_id,
+                    schematicId: pin.factory_details.schematic_id,
+                    outputId: recipe ? recipe.outputId : null,
+                    outputName: recipe ? recipe.name : `Schematic ${pin.factory_details.schematic_id}`,
+                    outputQty: recipe ? (recipe.outputQty || 1) : 0,
+                    cycleTime: recipe ? (recipe.cycleTime || 0) : 0
+                });
+            } else {
+                idle.factories++;
+            }
+        }
         const sp = storagePinInfo(pin);
         if (sp) {
             // Top contents by m3 for the detail view
@@ -936,6 +990,7 @@ function analyseColony(detail) {
     });
 
     storagePins.sort((a, b) => b.fill - a.fill);
+    extractors.sort((a, b) => (a.expiryMs || Infinity) - (b.expiryMs || Infinity));
 
     return {
         producing: Object.values(producing),
@@ -945,7 +1000,10 @@ function analyseColony(detail) {
         }).filter(s => s.amount > 0),
         storagePins,
         fullest: storagePins[0] || null,
-        extraStorage: Math.max(0, storagePins.length - 1)
+        extraStorage: Math.max(0, storagePins.length - 1),
+        extractors,
+        factories,
+        idle
     };
 }
 
@@ -959,7 +1017,12 @@ function analyseColonyCached(c) {
 
 function renderColonies(colonies, systemsLoaded) {
     const charName = piEsiAuth.getCurrentCharacterName();
-    elements.coloniesHeader.textContent = `${charName || 'Character'} - ${colonies.length} ${colonies.length === 1 ? 'colony' : 'colonies'}`;
+    const totals = totalColonyValuation();
+    let header = `${charName || 'Character'} - ${colonies.length} ${colonies.length === 1 ? 'colony' : 'colonies'}`;
+    if (totals.storedValue || totals.extractPerDay || totals.factoryPerDay) {
+        header += ` · ${formatISK(totals.storedValue)} stored · ${formatISK(totals.extractPerDay + totals.factoryPerDay)}/day`;
+    }
+    elements.coloniesHeader.textContent = header;
 
     if (!colonies.length) {
         elements.coloniesList.innerHTML = '<div class="colony-item"><div class="colony-name">No colonies found</div><div class="colony-meta">Colonize a planet in-game to see it here</div></div>';
@@ -1034,6 +1097,7 @@ function renderColonies(colonies, systemsLoaded) {
             }
 
             const storageHtml = storageFillHtml(analysis);
+            const insightHtml = colonyInsightHtml(analysis, valueColony(analysis, AppState.colonyPrices || {}));
 
             html += `<div class="colony-item" style="border-left-color: ${color}">
                 <div class="colony-top">
@@ -1047,6 +1111,7 @@ function renderColonies(colonies, systemsLoaded) {
                 ${produceHtml}
                 ${storedHtml}
                 ${storageHtml}
+                ${insightHtml}
                 ${lastUpdate ? `<div class="colony-updated"><i class="fas fa-clock"></i> Last update: ${escapeHtml(lastUpdate)}</div>` : ''}
             </div>`;
         });
@@ -1055,9 +1120,158 @@ function renderColonies(colonies, systemsLoaded) {
     elements.coloniesList.innerHTML = html;
 }
 
+// ---------- Colony countdown / valuation helpers ----------
+function formatDuration(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    if (d > 0) return m > 0 ? `${d}d ${h}h` : (h > 0 ? `${d}d ${h}h` : `${d}d`);
+    if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;
+    return `${m}m`;
+}
+
+function extractorStatus(e) {
+    const now = Date.now();
+    if (e.expired || (e.expiryMs && e.expiryMs <= now)) {
+        return { text: `EXPIRED ${formatDuration(now - e.expiryMs)} ago`, expired: true };
+    }
+    if (!e.expiryMs) return { text: 'no end time', expired: false };
+    return { text: `ends in ${formatDuration(e.expiryMs - now)}`, expired: false };
+}
+
+// ISK figures for one colony given a price map (sell prices)
+function valueColony(analysis, prices) {
+    const now = Date.now();
+    let storedValue = 0, extractPerDay = 0, factoryPerDay = 0, remainingValue = 0;
+
+    (analysis.stored || []).forEach(s => {
+        storedValue += s.amount * (prices[s.id]?.sell || 0);
+    });
+
+    (analysis.extractors || []).forEach(e => {
+        const p = prices[e.productId]?.sell || 0;
+        if (e.cycleTime > 0) extractPerDay += (e.qtyPerCycle / e.cycleTime) * 86400 * p;
+        if (!e.expired && e.expiryMs && e.cycleTime > 0) {
+            const cyclesLeft = Math.max(0, Math.floor((e.expiryMs - now) / (e.cycleTime * 1000)));
+            remainingValue += cyclesLeft * e.qtyPerCycle * p;
+        }
+    });
+
+    (analysis.factories || []).forEach(f => {
+        const p = f.outputId ? (prices[f.outputId]?.sell || 0) : 0;
+        if (f.cycleTime > 0 && f.outputQty > 0) factoryPerDay += (f.outputQty / f.cycleTime) * 86400 * p;
+    });
+
+    return { storedValue, extractPerDay, factoryPerDay, remainingValue };
+}
+
+// Total valuation across all loaded colonies
+function totalColonyValuation() {
+    const totals = { storedValue: 0, extractPerDay: 0, factoryPerDay: 0 };
+    (AppState.colonies || []).forEach(c => {
+        const v = valueColony(analyseColonyCached(c), AppState.colonyPrices || {});
+        totals.storedValue += v.storedValue;
+        totals.extractPerDay += v.extractPerDay;
+        totals.factoryPerDay += v.factoryPerDay;
+    });
+    return totals;
+}
+
+// Load market prices for everything the colonies reference (non-blocking)
+let colonyPricesRequestId = 0;
+async function ensureColonyPrices() {
+    const colonies = AppState.colonies;
+    if (!colonies || !colonies.length) return;
+
+    const ids = new Set();
+    colonies.forEach(c => {
+        const a = analyseColonyCached(c);
+        (a.extractors || []).forEach(e => ids.add(e.productId));
+        (a.factories || []).forEach(f => { if (f.outputId) ids.add(f.outputId); });
+        (a.stored || []).forEach(s => ids.add(s.id));
+    });
+    const idList = Array.from(ids);
+    if (!idList.length) return;
+
+    const regionId = elements.regionSelect.value;
+    const requestId = ++colonyPricesRequestId;
+
+    try {
+        const cached = getCachedPrices(regionId, idList);
+        const missing = idList.filter(id => !cached[id]);
+        let prices = { ...(AppState.colonyPrices || {}), ...cached };
+        if (missing.length > 0) {
+            const fetched = await fetchPricesForMaterials(missing, regionId);
+            if (requestId !== colonyPricesRequestId) return;
+            setCachedPrices(regionId, fetched);
+            prices = { ...prices, ...fetched };
+        }
+        AppState.colonyPrices = prices;
+        renderColonyValuation();
+    } catch (e) {
+        console.warn('Colony price fetch failed:', e);
+    }
+}
+
+function renderColonyValuation() {
+    if (AppState.currentTab === 'colonies' && AppState.colonies) {
+        renderColonies(AppState.colonies, AppState.systemsLoaded);
+    }
+    if (AppState.viewMode === 'colonies') draw();
+}
+
+// Live countdown tick - only re-renders while colonies UI is visible
+let colonyTickTimer = null;
+function setColonyTick(active) {
+    if (active && !colonyTickTimer) {
+        colonyTickTimer = setInterval(() => {
+            if (AppState.viewMode === 'colonies') draw();
+            if (AppState.currentTab === 'colonies' && AppState.colonies && !AppState.coloniesLoading) {
+                renderColonies(AppState.colonies, AppState.systemsLoaded);
+            }
+        }, 60000);
+    } else if (!active && colonyTickTimer) {
+        clearInterval(colonyTickTimer);
+        colonyTickTimer = null;
+    }
+}
+
+// Per-colony insight lines: countdown/expiry, ISK figures, idle warnings
+function colonyInsightHtml(analysis, val) {
+    let html = '';
+
+    // Soonest active program + expired count
+    const active = (analysis.extractors || []).filter(e => e.expiryMs && !e.expired);
+    const expiredCount = (analysis.extractors || []).filter(e => e.expired).length;
+    const soonest = active[0]; // extractors sorted by expiry
+    const bits = [];
+    if (expiredCount) bits.push(`<span class="colony-expired">${expiredCount} EXPIRED</span>`);
+    if (soonest) {
+        bits.push(`<span class="colony-countdown" title="${escapeHtml(soonest.productName)}"><i class="fas fa-hourglass-half"></i> ${escapeHtml(soonest.productName)} ${formatDuration(soonest.expiryMs - Date.now())}</span>`);
+    }
+    if (bits.length) html += `<div class="colony-insight-line">${bits.join(' ')}</div>`;
+
+    // ISK figures (only when prices are loaded)
+    if (val && (val.storedValue || val.extractPerDay || val.factoryPerDay)) {
+        html += `<div class="colony-isk-line" title="Stored value / extracted ISK per day / factory output per day">
+            <span title="Stored goods value"><i class="fas fa-boxes-stacked"></i> ${formatISK(val.storedValue)}</span>
+            <span title="Extracted ISK per day"><i class="fas fa-industry"></i> ${formatISK(val.extractPerDay)}/d</span>
+            <span title="Factory output ISK per day"><i class="fas fa-flask"></i> ${formatISK(val.factoryPerDay)}/d</span>
+        </div>`;
+    }
+
+    // Idle warnings
+    const warns = [];
+    if (analysis.idle.extractors) warns.push(`${analysis.idle.extractors} idle extractor${analysis.idle.extractors === 1 ? '' : 's'}`);
+    if (analysis.idle.factories) warns.push(`${analysis.idle.factories} idle factor${analysis.idle.factories === 1 ? 'y' : 'ies'}`);
+    if (warns.length) html += `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${escapeHtml(warns.join(' · '))}</div>`;
+
+    return html;
+}
+
 // Sidebar storage fill block for the fullest storage pin on a colony
-function storageFillHtml(analysis) {
-    const sp = analysis && analysis.fullest;
+function storageFillHtml(analysis) {    const sp = analysis && analysis.fullest;
     if (!sp) return '';
     const pct = Math.min(100, Math.round(sp.fill * 100));
     const cls = sp.fill >= 1 ? 'full' : (sp.fill >= 0.8 ? 'warn' : '');
@@ -1502,6 +1716,16 @@ function drawColoniesView() {
     ctx.textBaseline = 'top';
     ctx.fillText(`${piEsiAuth.getCurrentCharacterName() || 'Character'} - ${colonies.length} ${colonies.length === 1 ? 'colony' : 'colonies'}`, 20, 20);
 
+    // ISK totals across colonies
+    const totals = totalColonyValuation();
+    let headerY = 44;
+    if (totals.storedValue || totals.extractPerDay || totals.factoryPerDay) {
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px Titillium Web, sans-serif';
+        ctx.fillText(`Stored: ${formatISK(totals.storedValue)} ISK • Extract: ${formatISK(totals.extractPerDay)}/day • Factory: ${formatISK(totals.factoryPerDay)}/day`, 20, headerY);
+        headerY += 20;
+    }
+
     // Near-capacity warning across colonies
     const nearFull = colonies.filter(c => {
         const a = analyseColonyCached(c);
@@ -1511,7 +1735,7 @@ function drawColoniesView() {
         const anyFull = nearFull.some(c => analyseColonyCached(c).fullest.fill >= 1);
         ctx.fillStyle = anyFull ? '#f87171' : '#fbbf24';
         ctx.font = '12px Titillium Web, sans-serif';
-        ctx.fillText(`${nearFull.length} ${nearFull.length === 1 ? 'colony' : 'colonies'} near storage capacity`, 20, 44);
+        ctx.fillText(`${nearFull.length} ${nearFull.length === 1 ? 'colony' : 'colonies'} near storage capacity`, 20, headerY);
     }
 
     if (colonies.length === 0) {
@@ -1644,12 +1868,22 @@ function drawColonyCard(c, x, y, w, h) {
     }
 
     // Meta
-    ctx.fillStyle = '#aaa';
+    const analysis = analyseColonyCached(c);
+    let meta = `${pinCount} pins • CC ${upgrades}`;
+    const active = (analysis.extractors || []).filter(e => e.expiryMs && !e.expired);
+    const expiredCount = (analysis.extractors || []).filter(e => e.expired).length;
+    if (expiredCount) meta += ` • ${expiredCount} EXPIRED`;
+    if (active[0]) meta += ` • ends ${formatDuration(active[0].expiryMs - Date.now())}`;
+    const val = valueColony(analysis, AppState.colonyPrices || {});
+    if (val.extractPerDay || val.factoryPerDay) {
+        meta += ` • ${formatISK(val.extractPerDay + val.factoryPerDay)}/d`;
+    }
+    ctx.fillStyle = expiredCount ? '#f87171' : '#aaa';
     ctx.font = '11px Titillium Web, sans-serif';
-    ctx.fillText(`${pinCount} pins • CC ${upgrades}`, x + 16, y + 32);
+    ctx.fillText(meta, x + 16, y + 32);
 
     // Producing / stored summary
-    const { producing, stored } = analyseColonyCached(c);
+    const { producing, stored } = analysis;
     let py = y + 52;
     if (producing.length) {
         ctx.fillStyle = '#888';
@@ -1681,7 +1915,6 @@ function drawColonyCard(c, x, y, w, h) {
     }
 
     // Storage fill strip (fullest storage pin)
-    const analysis = analyseColonyCached(c);
     if (analysis.fullest) {
         const sp = analysis.fullest;
         const pct = Math.min(1, sp.fill);
@@ -1741,7 +1974,66 @@ function drawColonyDetail(c) {
     ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''} • CC ${c.upgrade_level || 0} • ${c.num_pins || 0} pins`, x, y + 28);
     y += 58;
 
-    const { producing, stored } = analyseColonyCached(c);
+    const analysis = analyseColonyCached(c);
+    const { producing, stored } = analysis;
+
+    // ---- Extractor programs ----
+    const val = valueColony(analysis, AppState.colonyPrices || {});
+    if (analysis.extractors.length || analysis.idle.extractors || analysis.idle.factories || analysis.idle.expired) {
+        ctx.fillStyle = '#e8d900';
+        ctx.font = 'bold 14px Titillium Web, sans-serif';
+        ctx.fillText('EXTRACTOR PROGRAMS', x, y);
+        y += 22;
+
+        if (!analysis.extractors.length) {
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Titillium Web, sans-serif';
+            ctx.fillText('No active extraction programs', x, y);
+            y += 18;
+        }
+
+        const rightEdge = AppState.cssW - margin;
+        analysis.extractors.forEach(e => {
+            const st = extractorStatus(e);
+            const tierColor = PI_COLORS[e.tier] || '#888';
+            const cyclesLeft = (e.expired || !e.expiryMs || e.cycleTime <= 0)
+                ? 0
+                : Math.max(0, Math.floor((e.expiryMs - Date.now()) / (e.cycleTime * 1000)));
+            const price = AppState.colonyPrices[e.productId]?.sell || 0;
+            const remainingISK = cyclesLeft * e.qtyPerCycle * price;
+            const perDay = e.cycleTime > 0 ? (e.qtyPerCycle / e.cycleTime) * 86400 * price : 0;
+
+            ctx.fillStyle = st.expired ? '#f87171' : tierColor;
+            ctx.font = 'bold 12px Titillium Web, sans-serif';
+            ctx.fillText(e.productName, x, y);
+
+            ctx.fillStyle = '#999';
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.fillText(`${e.qtyPerCycle.toLocaleString()} per ${formatDuration(e.cycleTime * 1000)}`, x + 190, y);
+            ctx.fillText(`${cyclesLeft} cycle${cyclesLeft === 1 ? '' : 's'} left`, x + 360, y);
+
+            ctx.fillStyle = st.expired ? '#f87171' : '#aaa';
+            ctx.fillText(st.text, x + 490, y);
+
+            ctx.fillStyle = '#e8d900';
+            ctx.textAlign = 'right';
+            ctx.fillText(`≈${formatISK(remainingISK)} left`, rightEdge - 110, y);
+            ctx.fillText(`${formatISK(perDay)}/day`, rightEdge, y);
+            ctx.textAlign = 'left';
+            y += 17;
+        });
+
+        const warns = [];
+        if (analysis.idle.extractors) warns.push(`${analysis.idle.extractors} idle extractor${analysis.idle.extractors === 1 ? '' : 's'} (no program)`);
+        if (analysis.idle.factories) warns.push(`${analysis.idle.factories} idle factor${analysis.idle.factories === 1 ? 'y' : 'ies'} (no schematic)`);
+        if (warns.length) {
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.fillText(`Warning: ${warns.join(' · ')}`, x, y);
+            y += 17;
+        }
+        y += 8;
+    }
 
     // ---- Producing column ----
     let px = x;
@@ -1795,7 +2087,6 @@ function drawColonyDetail(c) {
     }
 
     // ---- Storage fill (below stored list) ----
-    const analysis = analyseColonyCached(c);
     let storageBottom = sy;
     if (analysis.storagePins.length) {
         let fy = sy + 16;
@@ -2181,6 +2472,7 @@ function setViewMode(mode) {
     }
 
     updateUrlState();
+    setColonyTick(mode === 'colonies');
     draw();
 }
 
