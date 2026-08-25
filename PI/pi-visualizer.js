@@ -877,7 +877,7 @@ const PIN_CAPACITY = {};
 LAUNCHPAD_TYPES.forEach(id => { PIN_CAPACITY[id] = 10000; });
 STORAGE_FACILITY_TYPES.forEach(id => { PIN_CAPACITY[id] = 12000; });
 COMMAND_CENTER_TYPES.forEach(id => { PIN_CAPACITY[id] = 500; });
-const PIN_KIND_NAMES = { launchpad: 'Launchpad', storage: 'Storage', cc: 'Command Center' };
+const PIN_KIND_NAMES = { launchpad: 'Launchpad', storage: 'Storage Facility', cc: 'Command Center', extractor: 'Extractor Control Unit', processor: 'Processor', other: 'Pin' };
 
 // Pin classification for idle detection (SDE groups 1063 / 1028)
 const ECU_TYPES = new Set([2848, 3060, 3061, 3062, 3063, 3064, 3067, 3068]);
@@ -1955,15 +1955,21 @@ function drawColonyCard(c, x, y, w, h) {
 }
 
 // ---------- Colony Layout View ----------
-// Projects planet-surface lat/long onto a disc the same way the in-game view
-// reads: equator on the rim, poles top/bottom centre. The cos(lat) term pulls
-// meridians together toward the poles so every point stays inside the circle.
-// ESI colony pins report latitude/longitude in RADIANS.
-function projectColonyPin(latRad, longRad, cx, cy, R) {
-    return {
-        x: cx + R * (longRad / Math.PI) * Math.cos(latRad),
-        y: cy - R * (latRad / (Math.PI / 2))
-    };
+// Flat schematic: pins grouped into functional columns (Command Center ->
+// Extractors -> Processors -> Storage) with links and material routes drawn
+// between them. Deliberately independent of ESI lat/long, which has proven
+// unreliable to project and only recalculates in the game client.
+
+const LAYOUT_CARD_W = 150;
+const LAYOUT_CARD_H = 46;
+const LAYOUT_COLUMN_NAMES = ['Command Center', 'Extractors', 'Processors', 'Storage', 'Other'];
+
+function pinColumnIndex(kind) {
+    if (kind === 'cc') return 0;
+    if (kind === 'extractor') return 1;
+    if (kind === 'processor') return 2;
+    if (kind === 'launchpad' || kind === 'storage') return 3;
+    return 4;
 }
 
 // Toggle button rects for the colony detail header (Details | Layout)
@@ -1994,25 +2000,13 @@ function drawDetailToggles() {
     });
 }
 
-// ESI reports radians; guard against out-of-range values (wrap longitude,
-// clamp latitude to the poles)
-function normalizePinLatLong(lat, long) {
-    const TWO_PI = Math.PI * 2;
-    let lng = long;
-    while (lng > Math.PI) lng -= TWO_PI;
-    while (lng < -Math.PI) lng += TWO_PI;
-    return { lat: Math.max(-Math.PI / 2, Math.min(Math.PI / 2, lat)), long: lng };
-}
-
-// Builds the drawable colony graph: pins projected onto the disc, links and routes
-function buildColonyLayout(detail, cx, cy, R) {
+// Builds the colony graph: classified pins, links and routes (no coordinates)
+function buildColonyLayout(detail) {
     const pins = [], links = [], routes = [];
     const byId = {};
     if (!detail || !Array.isArray(detail.pins)) return { pins, links, routes, byId };
 
     detail.pins.forEach(pin => {
-        const norm = normalizePinLatLong(pin.latitude || 0, pin.longitude || 0);
-        const pos = projectColonyPin(norm.lat, norm.long, cx, cy, R);
         let kind = 'other', label = 'Pin', color = '#888';
         if (ECU_TYPES.has(pin.type_id)) {
             const ed = pin.extractor_details;
@@ -2027,13 +2021,13 @@ function buildColonyLayout(detail, cx, cy, R) {
             label = recipe ? recipe.name : 'Processor';
             color = recipe ? (PI_COLORS[recipe.tier] || '#d29922') : '#d29922';
         } else if (LAUNCHPAD_TYPES.has(pin.type_id)) {
-            kind = 'launchpad'; label = 'LP'; color = '#58a6ff';
+            kind = 'launchpad'; label = 'Launchpad'; color = '#58a6ff';
         } else if (STORAGE_FACILITY_TYPES.has(pin.type_id)) {
             kind = 'storage'; label = 'Storage'; color = '#a371f7';
         } else if (COMMAND_CENTER_TYPES.has(pin.type_id)) {
-            kind = 'cc'; label = 'CC'; color = '#e8d900';
+            kind = 'cc'; label = 'Command Center'; color = '#e8d900';
         }
-        const p = { pinId: pin.pin_id, typeId: pin.type_id, kind, label, color, lat: pin.latitude || 0, long: pin.longitude || 0, x: pos.x, y: pos.y, raw: pin };
+        const p = { pinId: pin.pin_id, typeId: pin.type_id, kind, label, color, raw: pin };
         byId[p.pinId] = p;
         pins.push(p);
     });
@@ -2054,56 +2048,91 @@ function buildColonyLayout(detail, cx, cy, R) {
     return { pins, links, routes, byId };
 }
 
+// Assign flat positions: used columns spread across the width, pins within a
+// column spread evenly down the height.
+function assignFlatLayout(layout, margin, top, availW, availH) {
+    const columns = [[], [], [], [], []];
+    layout.pins.forEach(p => columns[pinColumnIndex(p.kind)].push(p));
+
+    const used = [];
+    columns.forEach((colPins, i) => {
+        if (colPins.length === 0) return;
+        used.push({ index: i, name: LAYOUT_COLUMN_NAMES[i], pins: colPins });
+    });
+
+    const nCols = Math.max(1, used.length);
+    const colW = availW / nCols;
+    used.forEach((col, idx) => {
+        col.cx = margin + colW * idx + colW / 2;
+        const n = col.pins.length;
+        col.pins.forEach((p, j) => {
+            p.x = col.cx;
+            p.y = top + availH * (j + 1) / (n + 1);
+        });
+    });
+    return { used, colW };
+}
+
+function pinSubLabel(p, analysis) {
+    if (p.kind === 'extractor') {
+        const e = (analysis.extractors || []).find(x => x.pinId === p.pinId);
+        if (!e) return 'no program';
+        return extractorStatus(e).text;
+    }
+    if (p.kind === 'launchpad' || p.kind === 'storage') {
+        const sp = (analysis.storagePins || []).find(x => x.typeId === p.typeId);
+        return sp ? `${Math.round(sp.fill * 100)}% full` : '';
+    }
+    if (p.kind === 'cc') return 'command center';
+    if (p.kind === 'processor') return 'processor';
+    return '';
+}
+
 function colonyLayoutPinAt(pos) {
     const data = AppState.colonyLayoutData;
     if (!data) return null;
-    let best = null, bestD = 14 * 14;
+    let best = null, bestD = Infinity;
     data.pins.forEach(p => {
-        const dx = pos.x - p.x, dy = pos.y - p.y;
+        const dx = Math.max(0, Math.abs(pos.x - p.x) - LAYOUT_CARD_W / 2);
+        const dy = Math.max(0, Math.abs(pos.y - p.y) - LAYOUT_CARD_H / 2);
         const d = dx * dx + dy * dy;
-        if (d <= bestD) { bestD = d; best = p; }
+        if (d < bestD) { bestD = d; best = p; }
     });
-    return best;
+    // Accept taps inside a card or within ~8px of one; ignore far clicks
+    return bestD <= 64 ? best : null;
 }
 
 function drawColonyLayout(c) {
     const margin = 30;
     const top = 130; // below the back button + colony header
+    const headerH = 22;
     const availW = AppState.cssW - margin * 2;
     const availH = AppState.cssH - top - margin;
     if (availW <= 0 || availH <= 0) return;
 
-    const R = Math.max(80, Math.min(availW, availH) / 2 - 24);
-    const cx = margin + availW / 2;
-    const cy = top + availH / 2;
-
-    const layout = buildColonyLayout(c.detail, cx, cy, R);
+    const layout = buildColonyLayout(c.detail);
+    const analysis = analyseColonyCached(c);
     AppState.colonyLayoutData = layout;
 
-    // Planet disc + grid
-    ctx.fillStyle = 'rgba(30, 30, 30, 0.55)';
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    if (!layout.pins.length) {
+        ctx.fillStyle = '#888';
+        ctx.font = '13px Titillium Web, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('No pins on this colony', AppState.cssW / 2, top + 40);
+        ctx.textAlign = 'left';
+        return;
+    }
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    const rad = Math.PI / 180;
-    [-60, -30, 0, 30, 60].forEach(latDeg => {
-        const latRad = latDeg * rad;
-        const p = projectColonyPin(latRad, 0, cx, cy, R);
-        const halfW = R * Math.cos(latRad);
-        ctx.beginPath();
-        ctx.moveTo(cx - halfW, p.y);
-        ctx.lineTo(cx + halfW, p.y);
-        ctx.stroke();
+    const flat = assignFlatLayout(layout, margin, top + headerH, availW, availH - headerH);
+
+    // Column headers
+    flat.used.forEach(col => {
+        ctx.fillStyle = '#888';
+        ctx.font = 'bold 11px Titillium Web, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(col.name.toUpperCase(), col.cx, top + 6);
     });
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - R);
-    ctx.lineTo(cx, cy + R);
-    ctx.stroke();
+    ctx.textAlign = 'left';
 
     const sel = AppState.layoutSel;
     // Adjacency for highlight dimming
@@ -2123,7 +2152,7 @@ function drawColonyLayout(c) {
         });
     }
 
-    // Links
+    // Links (under the cards)
     layout.links.forEach(l => {
         const a = layout.byId[l.source], b = layout.byId[l.dest];
         if (!a || !b) return;
@@ -2136,7 +2165,7 @@ function drawColonyLayout(c) {
         ctx.stroke();
     });
 
-    // Routes (material flows)
+    // Routes (material flows, under the cards)
     layout.routes.forEach(r => {
         const path = [layout.byId[r.source], ...(r.waypoints || []).map(w => layout.byId[w]), layout.byId[r.dest]];
         if (path.some(p => !p) || path.length < 2) return;
@@ -2150,55 +2179,65 @@ function drawColonyLayout(c) {
         for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
         ctx.stroke();
 
-        // Arrowhead at destination
+        // Arrowhead just outside the destination card edge
         const a2 = path[path.length - 2], b2 = path[path.length - 1];
         const ang = Math.atan2(b2.y - a2.y, b2.x - a2.x);
+        const tipX = b2.x - Math.cos(ang) * (LAYOUT_CARD_W / 2 + 4);
+        const tipY = b2.y - Math.sin(ang) * (LAYOUT_CARD_W / 2 + 4);
         ctx.fillStyle = dim ? color + '22' : color;
         ctx.beginPath();
-        ctx.moveTo(b2.x, b2.y);
-        ctx.lineTo(b2.x - 8 * Math.cos(ang - 0.4), b2.y - 8 * Math.sin(ang - 0.4));
-        ctx.lineTo(b2.x - 8 * Math.cos(ang + 0.4), b2.y - 8 * Math.sin(ang + 0.4));
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX - 8 * Math.cos(ang - 0.4), tipY - 8 * Math.sin(ang - 0.4));
+        ctx.lineTo(tipX - 8 * Math.cos(ang + 0.4), tipY - 8 * Math.sin(ang + 0.4));
         ctx.closePath();
         ctx.fill();
-
-        // Quantity at path midpoint
-        if (!dim && r.quantity) {
-            const m1 = path[Math.floor((path.length - 1) / 2)];
-            const m2 = path[Math.ceil((path.length - 1) / 2)];
-            ctx.fillStyle = '#ccc';
-            ctx.font = '9px Titillium Web, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(formatAmount(Math.round(r.quantity)), (m1.x + m2.x) / 2, (m1.y + m2.y) / 2 - 6);
-            ctx.textAlign = 'left';
-        }
     });
 
-    // Pins
+    // Pin cards
     layout.pins.forEach(p => {
         const isSel = sel === p.pinId;
         const dim = adjacent && !adjacent.has(p.pinId);
         ctx.globalAlpha = dim ? 0.3 : 1;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, isSel ? 9 : 6.5, 0, Math.PI * 2);
+        const x = p.x - LAYOUT_CARD_W / 2, y = p.y - LAYOUT_CARD_H / 2;
+        ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
+        ctx.strokeStyle = isSel ? '#fff' : p.color;
+        ctx.lineWidth = isSel ? 2 : 1.5;
+        roundRect(ctx, x, y, LAYOUT_CARD_W, LAYOUT_CARD_H, 6);
         ctx.fill();
-        if (isSel) {
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-        ctx.fillStyle = '#ccc';
-        ctx.font = '9px Titillium Web, sans-serif';
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px Titillium Web, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(p.label, p.x, p.y + 18);
+        ctx.fillText(p.label, p.x, y + 15, LAYOUT_CARD_W - 10);
+        const sub = pinSubLabel(p, analysis);
+        if (sub) {
+            ctx.fillStyle = /EXPIRED/.test(sub) ? '#f87171' : '#999';
+            ctx.font = '9px Titillium Web, sans-serif';
+            ctx.fillText(sub, p.x, y + 32, LAYOUT_CARD_W - 10);
+        }
         ctx.textAlign = 'left';
         ctx.globalAlpha = 1;
+    });
+
+    // Route quantity labels (on top of cards)
+    layout.routes.forEach(r => {
+        const path = [layout.byId[r.source], ...(r.waypoints || []).map(w => layout.byId[w]), layout.byId[r.dest]];
+        if (path.some(p => !p) || path.length < 2) return;
+        const dim = adjacent && !path.some(p => adjacent.has(p.pinId));
+        if (dim || !r.quantity) return;
+        const m1 = path[Math.floor((path.length - 1) / 2)];
+        const m2 = path[Math.ceil((path.length - 1) / 2)];
+        const mat = getMaterialById(r.contentTypeId);
+        ctx.fillStyle = PI_COLORS[mat ? mat.tier : 0] || '#888';
+        ctx.font = 'bold 9px Titillium Web, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(formatAmount(Math.round(r.quantity)), (m1.x + m2.x) / 2, (m1.y + m2.y) / 2 - 8);
+        ctx.textAlign = 'left';
     });
 
     // Selected pin info panel
     if (sel && layout.byId[sel]) {
         const p = layout.byId[sel];
-        const analysis = analyseColonyCached(c);
         const lines = [p.label, PIN_KIND_NAMES[p.kind] || 'Pin'];
         if (p.kind === 'extractor') {
             const e = (analysis.extractors || []).find(x => x.pinId === p.pinId);
@@ -2220,8 +2259,8 @@ function drawColonyLayout(c) {
                 });
             }
         }
-        const w = 190, lh = 15, h = 12 + lines.length * lh;
-        const px = cx - R + 4, py = top;
+        const w = 210, lh = 15, h = 12 + lines.length * lh;
+        const px = margin + 4, py = top;
         ctx.fillStyle = 'rgba(20, 20, 20, 0.9)';
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 1;
@@ -2235,12 +2274,12 @@ function drawColonyLayout(c) {
         });
     }
 
-    // Stale-data note + pin count
+    // Notes + pin count
     ctx.fillStyle = '#666';
     ctx.font = '10px Titillium Web, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText('Layout from ESI - recalculates when viewed in game', AppState.cssW - margin, AppState.cssH - margin + 8);
-    ctx.fillText(`${layout.pins.length} pin${layout.pins.length === 1 ? '' : 's'} on map`, AppState.cssW - margin, AppState.cssH - margin - 8);
+    ctx.fillText(`${layout.pins.length} pin${layout.pins.length === 1 ? '' : 's'}`, AppState.cssW - margin, AppState.cssH - margin - 8);
     ctx.textAlign = 'left';
 }
 
