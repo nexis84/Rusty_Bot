@@ -22,6 +22,9 @@ function makeCtx() {
             calls.fills.push({ x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y, fillStyle: this.fillStyle });
         },
         stroke() {}, save() {}, restore() {}, clearRect() {},
+        translate() {}, scale() {}, rotate() {}, setTransform() {}, resetTransform() {}, clip() {},
+        createLinearGradient() { return { addColorStop() {} }; },
+        createRadialGradient() { return { addColorStop() {} }; },
         measureText(t) { return { width: t.length * 5.5 }; },
         fillText(t, x, y) { calls.fillTexts.push({ t, x, y, font: this.font }); }
     };
@@ -36,6 +39,7 @@ const documentStub = {
     readyState: 'loading',
     addEventListener() {},
     getElementById: () => elStub(),
+    querySelector: () => elStub(),
     createElement: () => elStub(),
     body: elStub()
 };
@@ -45,7 +49,7 @@ const lsStore = {};
 const sandbox = {
     console: { log() {}, warn() {}, error() {} },
     document: documentStub,
-    window: { addEventListener() {}, PI_ASSET_VERSION: '13' },
+    window: { addEventListener() {}, PI_ASSET_VERSION: '13', history: { replaceState() {} } },
     localStorage: {
         getItem: k => (k in lsStore ? lsStore[k] : null),
         setItem(k, v) { lsStore[k] = String(v); },
@@ -76,7 +80,7 @@ const sandbox = {
 vm.createContext(sandbox);
 
 const code = fs.readFileSync(path.join(PI_DIR, 'pi-visualizer.js'), 'utf8')
-    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, analyseColony, colonyRadiusKm, setColonyRadiusOverride, LINK_CPU_BASE, LINK_CPU_PER_KM, LINK_PG_BASE, LINK_PG_PER_KM, ctx };';
+    + '\n;globalThis.__test = { AppState, drawColonyLayout, drawColonyLayoutOverlay, analyseColony, colonyRadiusKm, setColonyRadiusOverride, navigateToProduct, LINK_CPU_BASE, LINK_CPU_PER_KM, LINK_PG_BASE, LINK_PG_PER_KM, ctx };';
 vm.runInContext(code, sandbox, { filename: 'pi-visualizer.js' });
 const T = sandbox.__test;
 const drawOverlay = T.drawColonyLayoutOverlay;
@@ -265,6 +269,26 @@ totalFail += runScenario('shared', detail3, 1200, 600);
     if (T.colonyRadiusKm({ planet_id: 903, planet_type: 'unknown' }) !== 12000) { f++; console.error('[radius] FAIL: fallback != 12000'); }
     if (T.colonyRadiusKm({ planet_id: 904, planet_type: 'barren', _esiRadius: 0 }) !== 9000) { f++; console.error('[radius] FAIL: zero _esiRadius falls back to type default'); }
     console.log(`[radius] priority chain -> ${f ? f + ' FAIL' : 'PASS'}`);
+    totalFail += f;
+}
+
+{
+    // Chain "Prev" history: navigating products pushes, back pops without pushing
+    let f = 0;
+    T.AppState.targetProduct = null;
+    T.AppState.chainHistory.length = 0;
+    T.AppState.suppressHistoryPush = false;
+    T.navigateToProduct(2270);  // Water (first target: no previous)
+    T.navigateToProduct(2312);  // Bacterial Cultures -> push 2270
+    T.navigateToProduct(2401);  // Oxides            -> push 2312
+    if (T.AppState.targetProduct !== 2401) { f++; console.error('[chainback] FAIL: target != 2401'); }
+    const hist = T.AppState.chainHistory;
+    if (hist.length !== 2 || hist[0] !== 2270 || hist[1] !== 2312) { f++; console.error('[chainback] FAIL: history=' + JSON.stringify(hist)); }
+    T.AppState.suppressHistoryPush = true;  // simulate Prev button
+    T.navigateToProduct(hist.pop());
+    if (T.AppState.targetProduct !== 2312) { f++; console.error('[chainback] FAIL: back target != 2312'); }
+    if (T.AppState.chainHistory.length !== 1 || T.AppState.chainHistory[0] !== 2270) { f++; console.error('[chainback] FAIL: history after back=' + JSON.stringify(T.AppState.chainHistory)); }
+    console.log(`[chainback] product history -> ${f ? f + ' FAIL' : 'PASS'}`);
     totalFail += f;
 }
 

@@ -16,6 +16,8 @@ const AppState = {
     isDraggingCanvas: false,
     lastMousePos: { x: 0, y: 0 },
     chainLayout: null,
+    chainHistory: [],        // product navigation stack for the Prev button
+    suppressHistoryPush: false,
     currentTab: 'system',
     hoveredCard: null,
     systemsLoaded: false,
@@ -55,6 +57,7 @@ const elements = {
     viewPlanets: document.getElementById('viewPlanets'),
     viewColonies: document.getElementById('viewColonies'),
     backToRef: document.getElementById('backToRef'),
+    backChain: document.getElementById('backChain'),
     zoomIn: document.getElementById('zoomIn'),
     zoomOut: document.getElementById('zoomOut'),
     zoomLevel: document.getElementById('zoomLevel'),
@@ -332,6 +335,15 @@ function setupEventListeners() {
     });
     elements.backToRef.addEventListener('click', () => setViewMode('reference'));
 
+    if (elements.backChain) {
+        elements.backChain.addEventListener('click', () => {
+            const prev = AppState.chainHistory.pop();
+            if (prev == null) { updateChainBackButton(); return; }
+            AppState.suppressHistoryPush = true;
+            navigateToProduct(prev);
+        });
+    }
+
     elements.zoomIn.addEventListener('click', () => setZoom(AppState.zoom * 1.2));
     elements.zoomOut.addEventListener('click', () => setZoom(AppState.zoom * 0.8));
     elements.fitView.addEventListener('click', fitView);
@@ -407,23 +419,37 @@ function setupTabs() {
 }
 
 // ---------- Chain Calculation ----------
-function calculateChain() {
-    const productId = parseInt(elements.targetProduct.value);
-    if (!productId) return;
+function navigateToProduct(id) {
+    const idNum = parseInt(id);
+    if (!idNum || !getMaterialById(idNum)) return;
 
-    AppState.targetProduct = productId;
+    const prev = AppState.targetProduct;
+    elements.targetProduct.value = idNum;
+    AppState.targetProduct = idNum;
+
+    if (prev && prev !== idNum && !AppState.suppressHistoryPush) {
+        AppState.chainHistory.push(prev);
+    }
+    AppState.suppressHistoryPush = false;
 
     generateChainLayout();
     fetchMarketData();
     setViewMode('chain');
+    updateChainBackButton();
+}
+
+function calculateChain() {
+    navigateToProduct(elements.targetProduct.value);
 }
 
 function selectProduct(id) {
-    elements.targetProduct.value = id;
-    AppState.targetProduct = id;
-    generateChainLayout();
-    fetchMarketData();
-    setViewMode('chain');
+    navigateToProduct(id);
+}
+
+function updateChainBackButton() {
+    if (!elements.backChain) return;
+    const hasPrev = AppState.chainHistory.length > 0;
+    elements.backChain.classList.toggle('hidden', AppState.viewMode !== 'chain' || !hasPrev);
 }
 
 function generateChainLayout() {
@@ -3223,6 +3249,7 @@ function setViewMode(mode) {
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
     elements.backToRef.classList.toggle('hidden', mode === 'reference');
+    updateChainBackButton();
 
     const helpText = document.querySelector('.canvas-help p');
     if (mode === 'reference') {

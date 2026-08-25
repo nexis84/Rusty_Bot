@@ -172,6 +172,9 @@
                             <button id="backToRef" class="toolbar-btn hidden">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
+                            <button id="backChain" class="toolbar-btn hidden" title="Back to previous product">
+                                <i class="fas fa-undo-alt"></i> Prev
+                            </button>
                             <span class="toolbar-label">View:</span>
                             <button id="viewReference" class="toolbar-btn active">
                                 <i class="fas fa-th"></i> Reference
@@ -220,7 +223,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '31';
+        window.PI_ASSET_VERSION = '32';
 
         (function loadPiScripts() {
             function load(src, onok) {
