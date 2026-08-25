@@ -2233,44 +2233,77 @@ function drawColonyLayout(c) {
         ctx.globalAlpha = 1;
     });
 
-    // Route quantity labels (drawn last; nudged so they never sit on top of
-    // pin cards or on top of each other)
+    // Route quantity labels (drawn last). Anchored to a route *segment* so they
+    // sit on their line, clamped out of pin cards, with a bounded local search
+    // for label collisions (no unbounded downward cascade).
     const cardRects = layout.pins.map(p => ({
         x: p.x - LAYOUT_CARD_W / 2, y: p.y - LAYOUT_CARD_H / 2, w: LAYOUT_CARD_W, h: LAYOUT_CARD_H
     }));
     const placed = [];
     const LABEL_H = 13;
     const hits = (r, list) => list.some(o => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y);
+
+    // Pick the segment to anchor a label on: for 2-pin paths the only segment;
+    // for waypoint paths the longer of the two segments straddling the middle
+    // pin (avoids sitting on the pin's card centre).
+    function labelSegment(path) {
+        if (path.length === 2) return [path[0], path[1]];
+        const a = path[Math.floor((path.length - 1) / 2) - 1];
+        const b = path[Math.floor((path.length - 1) / 2)];
+        const c = path[Math.ceil((path.length - 1) / 2)];
+        const d = path[Math.ceil((path.length - 1) / 2) + 1];
+        const len2 = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+        return len2(b, c) >= len2(a, b) ? [b, c] : [a, b];
+    }
+
     layout.routes.forEach(r => {
         const path = [layout.byId[r.source], ...(r.waypoints || []).map(w => layout.byId[w]), layout.byId[r.dest]];
         if (path.some(p => !p) || path.length < 2) return;
         const dim = adjacent && !path.some(p => adjacent.has(p.pinId));
         if (dim || !r.quantity) return;
-        const m1 = path[Math.floor((path.length - 1) / 2)];
-        const m2 = path[Math.ceil((path.length - 1) / 2)];
         const mat = getMaterialById(r.contentTypeId);
         ctx.font = 'bold 9px Titillium Web, sans-serif';
         const text = formatAmount(Math.round(r.quantity));
         const lw = Math.max(28, ctx.measureText(text).width + 10);
-        let lx = (m1.x + m2.x) / 2;
-        let ly = (m1.y + m2.y) / 2 - 8;
-        const rect = { x: lx - lw / 2, y: ly - LABEL_H + 4, w: lw, h: LABEL_H };
+        const seg = labelSegment(path);
+        const ax = (seg[0].x + seg[1].x) / 2, ay = (seg[0].y + seg[1].y) / 2;
+        const dirx = seg[1].x - seg[0].x, diry = seg[1].y - seg[0].y;
+        const segLen = Math.hypot(dirx, diry) || 1;
+        const ux = dirx / segLen, uy = diry / segLen;        // along segment
+        const px = -uy, py = ux;                              // perpendicular
 
-        // Single-waypoint routes collapse the midpoint onto the waypoint pin's
-        // centre; slide such labels along the route to just outside the card.
-        if (hits(rect, cardRects)) {
-            const i1 = path.indexOf(m1);
-            const nxt = path[i1 + 1] || path[i1 - 1];
-            if (nxt) {
-                const ang = Math.atan2(nxt.y - m1.y, nxt.x - m1.x);
-                lx = m1.x + Math.cos(ang) * (LAYOUT_CARD_W / 2 + 22);
-                ly = m1.y + Math.sin(ang) * (LAYOUT_CARD_H / 2 + 18);
-                rect.x = lx - lw / 2;
-                rect.y = ly - LABEL_H + 4;
+        // Build the label rect centred at an offset along the segment.
+        const makeRect = (t, side) => {
+            const cx = ax + ux * t + px * side;
+            const cy = ay + uy * t + py * side;
+            return { x: cx - lw / 2, y: cy - LABEL_H + 4, w: lw, h: LABEL_H };
+        };
+
+        // Candidate offsets: stay on the route line (small along-segment t first),
+        // then spread perpendicular. Bounded so labels never drift far from the
+        // route, and we never move onto the endpoint pins/cards.
+        const maxT = Math.max(0, segLen / 2 - 30);
+        const perps = [0, 18, -18, 38, -38, 58, -58];
+        const alongs = [0, 16, -16, 34, -34, 50, -50];
+        const order = [];
+        for (const t of alongs) if (Math.abs(t) <= maxT) for (const s of perps) order.push([t, s]);
+
+        let rect = null;
+        for (const [t, side] of order) {
+            const cand = makeRect(t, side);
+            if (!hits(cand, cardRects) && !hits(cand, placed)) { rect = cand; break; }
+        }
+        // Fallback: walk along the segment in small steps until clear.
+        if (!rect) {
+            for (let t = 0; t <= maxT; t += 4) {
+                for (const s of [0, 18, -18, 38, -38, 58, -58]) {
+                    const cand = makeRect(t, s);
+                    if (!hits(cand, cardRects) && !hits(cand, placed)) { rect = cand; break; }
+                }
+                if (rect) break;
             }
         }
-        // Stagger downward until clear of cards and previously placed labels
-        while (hits(rect, cardRects) || hits(rect, placed)) rect.y += LABEL_H + 2;
+        if (!rect) rect = makeRect(0, 0); // give up gracefully
         placed.push(rect);
 
         ctx.fillStyle = 'rgba(15, 15, 15, 0.85)';

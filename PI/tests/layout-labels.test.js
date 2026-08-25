@@ -51,14 +51,16 @@ const sandbox = {
     setTimeout, clearTimeout, setInterval, clearInterval,
     Date, Math, JSON, Number, String, Object, Array, Set, Map, Infinity, isFinite, isNaN, parseFloat, parseInt,
     PI_DATA: {
-        tiers: { 0: [2270], 1: [2312] },
+        tiers: { 0: [2270], 1: [2312], 2: [2401] },
         materials: {
             2270: { id: 2270, name: 'Water', tier: 0, volume: 0.005 },
-            2312: { id: 2312, name: 'Bacterial Cultures', tier: 1, volume: 0.01 }
+            2312: { id: 2312, name: 'Bacterial Cultures', tier: 1, volume: 0.01 },
+            2401: { id: 2401, name: 'Oxides', tier: 2, volume: 0.01 }
         },
         recipes: {
             2270: { id: 1, name: 'Water', outputId: 2270, tier: 0, outputQty: 20, cycleTime: 1800 },
-            2312: { id: 2, name: 'Bacterial Cultures', outputId: 2312, tier: 1, outputQty: 20, cycleTime: 3600 }
+            2312: { id: 2, name: 'Bacterial Cultures', outputId: 2312, tier: 1, outputQty: 20, cycleTime: 3600 },
+            2401: { id: 3, name: 'Oxides', outputId: 2401, tier: 2, outputQty: 10, cycleTime: 3600 }
         },
         planetTypes: {}, regions: {}
     },
@@ -72,11 +74,65 @@ const code = fs.readFileSync(path.join(PI_DIR, 'pi-visualizer.js'), 'utf8')
 vm.runInContext(code, sandbox, { filename: 'pi-visualizer.js' });
 const T = sandbox.__test;
 
-// ---- Fabricated colony reproducing the screenshot ----
-// Extractor -> [Processor A, Processor B (stacked, tight)] -> Storage,
-// two routes A->B (20 + 20k => label collision), and one route E->S with
-// waypoint B (=> old code stamped the label on B's card centre).
-const detail = {
+// ---- Helpers ----
+const labelFont = f => /bold 9px/.test(f);
+const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+const distToSegment = (px, py, ax, ay, bx, by) => {
+    const dx = bx - ax, dy = by - ay;
+    const l2 = dx * dx + dy * dy;
+    if (l2 === 0) return Math.hypot(px - ax, py - ay);
+    let t = ((px - ax) * dx + (py - ay) * dy) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+};
+
+// Run one colony scenario and collect { routes, labels, cards, fail }.
+function runScenario(name, detail, cssW, cssH) {
+    const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: detail.pins.length, detail };
+    ctx.__calls.fills = [];
+    ctx.__calls.fillTexts = [];
+    T.AppState.cssW = cssW;
+    T.AppState.cssH = cssH;
+    T.AppState.layoutMode = true;
+    T.AppState.layoutSel = null;
+    T.AppState.systemsLoaded = false;
+    T.drawColonyLayout(colony);
+
+    const texts = ctx.__calls.fillTexts.filter(f => labelFont(f.font));
+    const labels = texts.map(f => {
+        const w = Math.max(28, f.t.length * 5.5 + 10); // mirror the code's chip width
+        return { x: f.x - w / 2, y: f.y - 9, w, h: 12, cx: f.x, cy: f.y, t: f.t };
+    });
+    const cards = ctx.__calls.fills.filter(r => r.fillStyle === 'rgba(30, 30, 30, 0.95)' && Math.abs(r.w - 150) < 0.5 && Math.abs(r.h - 46) < 0.5);
+
+    // Map each label (draw order) to its route's polyline, using the actual
+    // projected pin coordinates stored in AppState.colonyLayoutData.
+    const byId = T.AppState.colonyLayoutData.byId;
+    const polys = detail.routes.map(r => {
+        const ids = [r.source_pin_id, ...(r.waypoints || []), r.destination_pin_id];
+        return ids.map(id => {
+            const p = byId[id];
+            return { x: p ? p.x : null, y: p ? p.y : null };
+        }).filter(p => p.x !== null);
+    });
+
+    let fail = 0;
+    labels.forEach((c, i) => {
+        cards.forEach(k => { if (hit(c, k)) { fail++; console.error(`[${name}] FAIL: label "${c.t}" overlaps card`); } });
+        for (let j = 0; j < labels.length; j++) if (i !== j && hit(c, labels[j])) { fail++; console.error(`[${name}] FAIL: label "${c.t}" overlaps label "${labels[j].t}"`); }
+        // Bounded distance to its route polyline
+        const poly = polys[i] || [];
+        let best = Infinity;
+        for (let s = 0; s < poly.length - 1; s++) best = Math.min(best, distToSegment(c.cx, c.cy, poly[s].x, poly[s].y, poly[s + 1].x, poly[s + 1].y));
+        if (!isFinite(best)) best = 0;
+        if (best > 80) { fail++; console.error(`[${name}] FAIL: label "${c.t}" is ${Math.round(best)}px from its route (max 80)`); }
+    });
+    console.log(`[${name}] cards=${cards.length} labels=${labels.length}` + (fail ? ` -> ${fail} FAIL` : ' -> PASS'));
+    return fail;
+}
+
+// ---- Scenario 1: tight pair of processors + waypoint route (original bug) ----
+const detail1 = {
     pins: [
         { pin_id: 1, type_id: 2848, extractor_details: { product_type_id: 2270, qty_per_cycle: 3000, cycle_time: 900, expiry_time: new Date(Date.now() + 864e5).toISOString() } },
         { pin_id: 2, type_id: 2469, factory_details: { schematic_id: 1 } },
@@ -94,38 +150,71 @@ const detail = {
         { source_pin_id: 1, destination_pin_id: 4, content_type_id: 2270, quantity: 3000, waypoints: [3] }
     ]
 };
-const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: 4, detail };
 
-T.AppState.cssW = 1200;
-T.AppState.cssH = 420; // short canvas -> processors stacked with a small gap
-T.AppState.layoutMode = true;
-T.AppState.layoutSel = null;
-T.AppState.systemsLoaded = false;
-
-T.drawColonyLayout(colony);
-
-// Labels = quantity texts drawn in the bold-9px route-label font (works for
-// old code with bare text and new code with chip backgrounds).
-const labelFont = f => /bold 9px/.test(f);
-const texts = ctx.__calls.fillTexts.filter(f => labelFont(f.font));
-const labels = texts.map(f => {
-    const w = f.t.length * 5.5;
-    return { x: f.x - w / 2, y: f.y - 9, w, h: 12, t: f.t }; // centered, alphabetic baseline
+// ---- Scenario 2: screenshot-like dense colony (8 processors + waypoints/diagonals) ----
+const detail2 = { pins: [], links: [], routes: [] };
+// Columns: 1 extractor, 8 processors, 1 launchpad, 1 storage
+detail2.pins.push({ pin_id: 1, type_id: 2848, extractor_details: { product_type_id: 2270, qty_per_cycle: 3000, cycle_time: 900, expiry_time: new Date(Date.now() + 864e5).toISOString() } });
+for (let i = 0; i < 8; i++) detail2.pins.push({ pin_id: 10 + i, type_id: 2469, factory_details: { schematic_id: (i % 3) + 1 } });
+detail2.pins.push({ pin_id: 50, type_id: 2257 });
+detail2.pins.push({ pin_id: 51, type_id: 2256 });
+detail2.links.push({ source_pin_id: 1, destination_pin_id: 10, link_level: 0 });
+detail2.pins.filter(p => p.pin_id >= 10 && p.pin_id < 18).forEach((p, i) => {
+    if (i > 0) detail2.links.push({ source_pin_id: 10 + i - 1, destination_pin_id: 10 + i, link_level: 0 });
 });
-const cards = ctx.__calls.fills.filter(r => r.fillStyle === 'rgba(30, 30, 30, 0.95)' && Math.abs(r.w - 150) < 0.5 && Math.abs(r.h - 46) < 0.5); // pin cards
-const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+detail2.pins.filter(p => p.pin_id >= 10 && p.pin_id < 18).forEach(p => {
+    detail2.links.push({ source_pin_id: p.pin_id, destination_pin_id: 50, link_level: 0 });
+    detail2.links.push({ source_pin_id: p.pin_id, destination_pin_id: 51, link_level: 0 });
+});
+// Routes (realistic ESI shape: each processor feeds the launchpad on its own
+// distinct segment; a couple also feed storage; one multi-waypoint route).
+detail2.routes.push({ source_pin_id: 1, destination_pin_id: 51, content_type_id: 2270, quantity: 3000, waypoints: [10, 14, 17] });
+detail2.pins.filter(p => p.pin_id >= 10 && p.pin_id < 18).forEach((p, i) => {
+    detail2.routes.push({ source_pin_id: p.pin_id, destination_pin_id: 50, content_type_id: 2312, quantity: 20 + i * 5, waypoints: [] });
+});
+[10, 17].forEach((pid, k) => {
+    detail2.routes.push({ source_pin_id: pid, destination_pin_id: 51, content_type_id: 2401, quantity: 40 + k * 10, waypoints: [] });
+});
 
-let fail = 0;
-labels.forEach((c, i) => {
-    cards.forEach(k => {
-        if (hit(c, k)) { fail++; console.error(`FAIL: label "${c.t}" (${JSON.stringify(c)}) overlaps card ${JSON.stringify(k)}`); }
+let totalFail = 0;
+totalFail += runScenario('tight', detail1, 1200, 420);
+totalFail += runScenario('dense', detail2, 1200, 800);
+
+// ---- Scenario 3: many routes sharing ONE segment (stress: must never sit on a card) ----
+const detail3 = {
+    pins: [
+        { pin_id: 1, type_id: 2848, extractor_details: { product_type_id: 2270, qty_per_cycle: 3000, cycle_time: 900, expiry_time: new Date(Date.now() + 864e5).toISOString() } },
+        { pin_id: 2, type_id: 2469, factory_details: { schematic_id: 1 } },
+        { pin_id: 3, type_id: 2257 }
+    ],
+    links: [
+        { source_pin_id: 1, destination_pin_id: 2, link_level: 0 },
+        { source_pin_id: 2, destination_pin_id: 3, link_level: 0 }
+    ],
+    routes: Array.from({ length: 8 }, (_, k) => ({ source_pin_id: 2, destination_pin_id: 3, content_type_id: 2312, quantity: 20 + k * 5, waypoints: [] }))
+};
+// Custom check: no card overlap + bounded distance (label-label overlap acceptable
+// only if truly no room, but card overlap is never acceptable).
+{
+    const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: detail3.pins.length, detail: detail3 };
+    ctx.__calls.fills = []; ctx.__calls.fillTexts = [];
+    T.AppState.cssW = 1200; T.AppState.cssH = 600; T.AppState.layoutMode = true; T.AppState.layoutSel = null; T.AppState.systemsLoaded = false;
+    T.drawColonyLayout(colony);
+    const texts = ctx.__calls.fillTexts.filter(f => labelFont(f.font));
+    const labels = texts.map(f => { const w = Math.max(28, f.t.length * 5.5 + 10); return { x: f.x - w / 2, y: f.y - 9, w, h: 12, cx: f.x, cy: f.y, t: f.t }; });
+    const cards = ctx.__calls.fills.filter(r => r.fillStyle === 'rgba(30, 30, 30, 0.95)' && Math.abs(r.w - 150) < 0.5 && Math.abs(r.h - 46) < 0.5);
+    let f = 0;
+    labels.forEach(c => cards.forEach(k => { if (hit(c, k)) { f++; console.error(`[shared] FAIL: label "${c.t}" overlaps card`); } }));
+    const byId = T.AppState.colonyLayoutData.byId;
+    labels.forEach(c => {
+        // nearest point on the shared segment (pin2->pin3)
+        const a = byId[2], b = byId[3];
+        const d = distToSegment(c.cx, c.cy, a.x, a.y, b.x, b.y);
+        if (d > 80) { f++; console.error(`[shared] FAIL: label "${c.t}" ${Math.round(d)}px from route`); }
     });
-});
-for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
-    if (hit(labels[i], labels[j])) { fail++; console.error(`FAIL: label "${labels[i].t}" overlaps label "${labels[j].t}"`); }
+    console.log(`[shared] cards=${cards.length} labels=${labels.length}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
 }
 
-console.log(`cards=${cards.length} labels=${labels.length}`);
-labels.forEach(c => console.log(`label: "${c.t}" at (${Math.round(c.x)},${Math.round(c.y)})`));
-console.log(fail === 0 ? 'PASS: no label overlaps cards or other labels' : `FAIL: ${fail} overlap(s)`);
-process.exit(fail === 0 ? 0 : 1);
+console.log(totalFail === 0 ? '\nALL PASS' : `\n${totalFail} FAILURE(S)`);
+process.exit(totalFail === 0 ? 0 : 1);
