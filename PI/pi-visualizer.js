@@ -2288,7 +2288,7 @@ function drawColonyLayout(c) {
             ctx.fillStyle = p.color;
             ctx.font = '9px Titillium Web, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('CC L' + (c.upgrade_level || 0), p.x, y + 28, LAYOUT_CARD_W - 10);
+            ctx.fillText('Upgrade level: ' + (c.upgrade_level || 0), p.x, y + 28, LAYOUT_CARD_W - 10);
             const cap = ccCapacity(c.upgrade_level || 0);
             const cpuFrac = cap.cpu ? analysis.usedCpu / cap.cpu : 0;
             const pgFrac = cap.pg ? analysis.usedPg / cap.pg : 0;
