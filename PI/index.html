@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
-    <link rel="stylesheet" href="pi-style.css?v=3">
+    <link rel="stylesheet" href="pi-style.css?v=4">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -146,6 +146,10 @@
                                 <span class="label">Input Cost:</span>
                                 <span class="value isk" id="inputCost">—</span>
                             </div>
+                            <div class="profit-item">
+                                <span class="label" title="Cost of all raw (P0) materials in the chain">From Raw:</span>
+                                <span class="value isk" id="rawCost">—</span>
+                            </div>
                             <div class="profit-item highlight">
                                 <span class="label">Profit/Loss:</span>
                                 <span class="value isk" id="profitValue">—</span>
@@ -212,23 +216,30 @@
     </div>
 
     <script>
-        // Load scripts with timestamp to bypass cache
-        const timestamp = new Date().getTime();
-        const script1 = document.createElement('script');
-        script1.src = 'pi-data.js?t=' + timestamp;
-        document.body.appendChild(script1);
+        // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
+        // (A Date.now() buster was previously used, which defeated caching and
+        // re-downloaded the 4.5MB pi-systems.js on every session.)
+        window.PI_ASSET_VERSION = '4';
 
-        script1.onload = function() {
-            const authScript = document.createElement('script');
-            authScript.src = 'pi-esi-auth.js?t=' + timestamp;
-            document.body.appendChild(authScript);
-
-            authScript.onload = function() {
-                const script2 = document.createElement('script');
-                script2.src = 'pi-visualizer.js?t=' + timestamp;
-                document.body.appendChild(script2);
-            };
-        };
+        (function loadPiScripts() {
+            function load(src, onok) {
+                const s = document.createElement('script');
+                s.src = src + '?v=' + window.PI_ASSET_VERSION;
+                s.onload = onok;
+                s.onerror = function () {
+                    document.body.insertAdjacentHTML('beforeend',
+                        '<div style="position:fixed;bottom:1rem;left:1rem;background:#7f1d1d;color:#fff;' +
+                        'padding:.75rem 1rem;border-radius:8px;z-index:9999;font-family:sans-serif;font-size:.85rem">' +
+                        'Failed to load ' + src + ' &mdash; refresh the page (Ctrl+F5)</div>');
+                };
+                document.body.appendChild(s);
+            }
+            load('pi-data.js', function () {
+                load('pi-esi-auth.js', function () {
+                    load('pi-visualizer.js');
+                });
+            });
+        })();
     </script>
 </body>
 </html>

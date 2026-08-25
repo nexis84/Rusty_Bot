@@ -610,6 +610,7 @@ body {
 .pi-canvas {
     flex: 1;
     cursor: grab;
+    touch-action: none; /* pointer events handle panning; stop the browser scrolling/zooming the page */
 }
 
 .pi-canvas:active {

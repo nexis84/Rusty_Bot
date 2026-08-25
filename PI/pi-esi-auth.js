@@ -44,6 +44,7 @@ class PIESIAuth {
     constructor() {
         this.tokens = this.loadTokens();
         this.currentCharacter = this.loadCurrentCharacter();
+        this.refreshPromises = {};
     }
 
     generateState() {
@@ -136,21 +137,52 @@ class PIESIAuth {
     }
 
     async refreshToken(characterId) {
+        // Single-flight: concurrent callers near expiry share one in-flight refresh.
+        // (EVE SSO rotates refresh tokens, so two parallel refreshes would invalidate one.)
+        if (this.refreshPromises[characterId]) {
+            return this.refreshPromises[characterId];
+        }
+
+        const promise = this._doRefreshToken(characterId).finally(() => {
+            delete this.refreshPromises[characterId];
+        });
+        this.refreshPromises[characterId] = promise;
+        return promise;
+    }
+
+    async _doRefreshToken(characterId) {
         const tokens = this.tokens[characterId];
         if (!tokens || !tokens.refreshToken) throw new Error('No refresh token available');
 
-        const response = await fetch(PI_TOKEN_EXCHANGE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh_token: tokens.refreshToken, grant_type: 'refresh_token' })
-        });
-
-        if (!response.ok) {
-            this.removeCharacter(characterId);
-            throw new Error('Token refresh failed - please login again');
+        let response;
+        try {
+            response = await fetch(PI_TOKEN_EXCHANGE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: tokens.refreshToken, grant_type: 'refresh_token' })
+            });
+        } catch (err) {
+            // Network error - keep the tokens so the caller can retry when back online
+            throw new Error('Token refresh failed - network error, please retry');
         }
 
-        const newTokens = await response.json();
+        if (!response.ok) {
+            // Only a definitive rejection invalidates the stored login; transient
+            // server/network failures must not wipe the character.
+            if (response.status === 400) {
+                this.removeCharacter(characterId);
+                throw new Error('Session expired - please login again');
+            }
+            throw new Error(`Token refresh failed (HTTP ${response.status}) - please retry`);
+        }
+
+        let newTokens;
+        try {
+            newTokens = await response.json();
+        } catch (err) {
+            throw new Error('Token refresh returned invalid data - please retry');
+        }
+
         tokens.accessToken = newTokens.access_token;
         tokens.refreshToken = newTokens.refresh_token || tokens.refreshToken;
         tokens.expiresAt = Date.now() + (newTokens.expires_in * 1000);
@@ -177,8 +209,15 @@ class PIESIAuth {
     }
 
     loadTokens() {
-        const stored = localStorage.getItem('pi_esi_tokens');
-        return stored ? JSON.parse(stored) : {};
+        try {
+            const stored = localStorage.getItem('pi_esi_tokens');
+            const parsed = stored ? JSON.parse(stored) : {};
+            return (parsed && typeof parsed === 'object') ? parsed : {};
+        } catch (e) {
+            console.warn('Corrupted PI token storage - resetting');
+            try { localStorage.removeItem('pi_esi_tokens'); } catch (_) {}
+            return {};
+        }
     }
 
     setCurrentCharacter(characterId) {
@@ -248,6 +287,11 @@ class PIESIAuth {
 
             if (!response.ok) {
                 if (response.status === 401) {
+                    // Cap the refresh-retry at one attempt so a persistently bad
+                    // token can't loop forever.
+                    if (attempt > 0) {
+                        throw new Error('ESI authorization failed after token refresh');
+                    }
                     await this.refreshToken(characterId || this.currentCharacter);
                     return this.esiFetch(endpoint, characterId, options, attempt + 1);
                 }

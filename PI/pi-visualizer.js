@@ -22,7 +22,12 @@ const AppState = {
     colonies: null,
     coloniesLoading: false,
     colonyDetail: null,
-    colonyCards: []
+    colonyCards: [],
+    cssW: 0, // CSS-pixel canvas size (backing store is scaled by devicePixelRatio)
+    cssH: 0,
+    pendingHit: null,
+    pointerDown: null,
+    pointerId: null
 };
 
 const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
@@ -49,6 +54,7 @@ const elements = {
     marketContent: document.getElementById('marketContent'),
     outputValue: document.getElementById('outputValue'),
     inputCost: document.getElementById('inputCost'),
+    rawCost: document.getElementById('rawCost'),
     profitValue: document.getElementById('profitValue'),
     profitMargin: document.getElementById('profitMargin'),
     priceList: document.getElementById('priceList'),
@@ -239,8 +245,8 @@ function init() {
     setupSystemChecker();
     setupColonies();
     refreshColoniesAuthState();
-    animate();
     setViewMode('reference');
+    restoreFromUrl();
     console.log('Init complete');
 }
 
@@ -278,17 +284,26 @@ function setupCanvas() {
 
 function resizeCanvas() {
     const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+    AppState.cssW = container.clientWidth;
+    AppState.cssH = container.clientHeight;
+    canvas.width = Math.round(AppState.cssW * dpr);
+    canvas.height = Math.round(AppState.cssH * dpr);
+    canvas.style.width = AppState.cssW + 'px';
+    canvas.style.height = AppState.cssH + 'px';
+    // Draw in CSS pixels; the backing store is dpr-scaled for sharp HiDPI output.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     draw();
 }
 
 function setupEventListeners() {
-    // Canvas interactions
-    canvas.addEventListener('mousedown', onMouseDown);
-    canvas.addEventListener('mousemove', onMouseMove);
-    canvas.addEventListener('mouseup', onMouseUp);
-    canvas.addEventListener('wheel', onWheel);
+    // Canvas interactions - Pointer Events cover mouse, touch and pen, and
+    // setPointerCapture keeps drags alive even when the pointer leaves the canvas.
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerCancel);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 
     // Controls
@@ -465,41 +480,67 @@ function fitChainView(layout) {
     const width = maxX - minX + padding * 2;
     const height = maxY - minY + padding * 2;
 
-    const scaleX = canvas.width / width;
-    const scaleY = canvas.height / height;
+    const scaleX = AppState.cssW / width;
+    const scaleY = AppState.cssH / height;
 
     setZoom(Math.min(scaleX, scaleY, 1.5));
 
-    AppState.canvasOffset.x = -minX * AppState.zoom + padding * AppState.zoom + (canvas.width - width * AppState.zoom) / 2;
-    AppState.canvasOffset.y = -minY * AppState.zoom + padding * AppState.zoom + (canvas.height - height * AppState.zoom) / 2;
+    AppState.canvasOffset.x = -minX * AppState.zoom + padding * AppState.zoom + (AppState.cssW - width * AppState.zoom) / 2;
+    AppState.canvasOffset.y = -minY * AppState.zoom + padding * AppState.zoom + (AppState.cssH - height * AppState.zoom) / 2;
 
     draw();
 }
 
 // ---------- Market Data (ESI with light local caching) ----------
-const MARKET_CACHE_KEY = 'pi_market_cache_v1';
+const MARKET_CACHE_KEY = 'pi_market_cache_v2';
 const MARKET_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const MARKET_LOADING_HTML = '<i class="fas fa-spinner fa-spin"></i> Loading prices...';
+const MARKET_ERROR_HTML = '<i class="fas fa-exclamation-circle"></i> Error loading prices';
+let marketRequestId = 0;
 
-function getCachedPrices(regionId) {
+function readMarketCache() {
     try {
         const raw = localStorage.getItem(MARKET_CACHE_KEY);
-        if (!raw) return null;
+        if (!raw) return { region: null, entries: {} };
         const cache = JSON.parse(raw);
-        if (cache.region !== regionId) return null;
-        if (Date.now() - cache.timestamp > MARKET_CACHE_TTL) return null;
-        return cache.prices;
+        if (!cache || typeof cache !== 'object' || !cache.entries || typeof cache.entries !== 'object') {
+            return { region: null, entries: {} };
+        }
+        return cache;
     } catch (e) {
-        return null;
+        return { region: null, entries: {} };
     }
+}
+
+// Returns a (possibly partial) map of typeId -> {sell} for the requested ids,
+// using only entries that are fresh for this region.
+function getCachedPrices(regionId, ids) {
+    const cache = readMarketCache();
+    if (String(cache.region) !== String(regionId)) return {};
+
+    const now = Date.now();
+    const prices = {};
+    ids.forEach(id => {
+        const entry = cache.entries[id];
+        if (entry && entry.sell !== undefined && now - entry.ts <= MARKET_CACHE_TTL) {
+            prices[id] = { sell: entry.sell };
+        }
+    });
+    return prices;
 }
 
 function setCachedPrices(regionId, prices) {
     try {
-        localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({
-            region: regionId,
-            timestamp: Date.now(),
-            prices
-        }));
+        const cache = readMarketCache();
+        if (String(cache.region) !== String(regionId)) {
+            cache.region = String(regionId);
+            cache.entries = {};
+        }
+        const now = Date.now();
+        for (const id in prices) {
+            cache.entries[id] = { sell: prices[id].sell, ts: now };
+        }
+        localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify(cache));
     } catch (e) {
         // Storage may be full or unavailable - ignore
     }
@@ -508,30 +549,41 @@ function setCachedPrices(regionId, prices) {
 async function fetchMarketData() {
     if (!AppState.targetProduct) return;
 
-    elements.marketLoading.classList.remove('hidden');
-    elements.marketContent.classList.add('hidden');
-
+    const requestId = ++marketRequestId;
     const regionId = elements.regionSelect.value;
     const productId = AppState.targetProduct;
 
     const chain = getChainForProduct(productId);
-    const materialIds = collectMaterialIds(chain);
+    if (!chain) return;
+    const materialIds = Array.from(collectMaterialIds(chain));
+
+    elements.marketLoading.innerHTML = MARKET_LOADING_HTML;
+    elements.marketLoading.classList.remove('hidden');
+    elements.marketContent.classList.add('hidden');
 
     try {
-        // Try cache first
-        let prices = getCachedPrices(regionId);
-        if (!prices) {
-            prices = await fetchPricesForMaterials(Array.from(materialIds), regionId);
-            setCachedPrices(regionId, prices);
+        const cached = getCachedPrices(regionId, materialIds);
+        const missing = materialIds.filter(id => !cached[id]);
+        const prices = { ...cached };
+
+        if (missing.length > 0) {
+            const fetched = await fetchPricesForMaterials(missing, regionId);
+            if (requestId !== marketRequestId) return; // a newer request superseded this one
+            Object.assign(prices, fetched);
+            setCachedPrices(regionId, fetched);
         }
+
+        if (requestId !== marketRequestId) return; // stale
+
         AppState.marketPrices = prices;
         updateMarketDisplay(prices, chain);
 
         elements.marketLoading.classList.add('hidden');
         elements.marketContent.classList.remove('hidden');
     } catch (err) {
+        if (requestId !== marketRequestId) return;
         console.error('Failed to fetch market data:', err);
-        elements.marketLoading.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error loading prices';
+        elements.marketLoading.innerHTML = MARKET_ERROR_HTML;
     }
 }
 
@@ -553,25 +605,34 @@ function collectMaterialIds(chain, ids = new Set()) {
 async function fetchPricesForMaterials(ids, regionId) {
     const prices = {};
     const idArray = Array.from(ids);
+    if (idArray.length === 0) return prices;
 
-    // Fetch region-specific sell orders for each type
-    const jobs = idArray.map(async id => {
-        try {
-            const url = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${id}&order_type=sell`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const orders = await response.json();
-            const sells = orders.filter(o => o.is_buy_order === false && o.price > 0);
-            if (sells.length > 0) {
-                sells.sort((a, b) => a.price - b.price);
-                prices[id] = { sell: sells[0].price };
+    // ESI has no batched market-orders endpoint, so fetch per type but throttle
+    // to a small pool - firing all requests at once risked 420/429 rate limiting.
+    const POOL_SIZE = 5;
+    let cursor = 0;
+
+    async function worker() {
+        while (cursor < idArray.length) {
+            const id = idArray[cursor++];
+            try {
+                const url = `${ESI_BASE}/markets/${regionId}/orders/?type_id=${id}&order_type=sell`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const orders = await response.json();
+                const sells = orders.filter(o => o.is_buy_order === false && o.price > 0);
+                if (sells.length > 0) {
+                    sells.sort((a, b) => a.price - b.price);
+                    prices[id] = { sell: sells[0].price };
+                }
+            } catch (e) {
+                console.warn(`Failed to fetch orders for ${id}:`, e);
             }
-        } catch (e) {
-            console.warn(`Failed to fetch orders for ${id}:`, e);
         }
-    });
+    }
 
-    await Promise.all(jobs);
+    const workers = Array.from({ length: Math.min(POOL_SIZE, idArray.length) }, worker);
+    await Promise.all(workers);
 
     // Fill any missing prices from the region-wide price index
     const missing = idArray.filter(id => !prices[id]);
@@ -588,9 +649,15 @@ async function fetchPricesForMaterials(ids, regionId) {
                         }
                     }
                 });
+                // The index covers all tradeable types, so anything still missing
+                // definitively has no market data - cache it as 0 so we don't
+                // re-query these types on every fetch.
+                missing.forEach(id => {
+                    if (!prices[id]) prices[id] = { sell: 0 };
+                });
             }
         } catch (e) {
-            // Ignore fallback errors
+            // Ignore fallback errors - unresolved ids will retry on the next fetch
         }
     }
 
@@ -603,38 +670,50 @@ function updateMarketDisplay(prices, chain) {
     const targetBatch = chain.target.batchSize || 1;
     const outputValue = targetPrice * targetBatch;
 
-    let totalInputCost = 0;
-    const priceItems = [];
+    // A chain input is a "leaf" when it has no further inputs (raw/terminal material)
+    const isLeafInput = (input) =>
+        !input.subChain || !input.subChain.inputs || input.subChain.inputs.length === 0;
 
-    function calcInputCost(node) {
-        if (!node.inputs) return;
-        node.inputs.forEach(input => {
-            const matId = input.id;
-            const qty = input.qty || 1;
-            const price = prices[matId]?.sell || 0;
-            const cost = price * qty;
-            totalInputCost += cost;
-
-            priceItems.push({
-                name: input.name,
-                price,
-                qty,
-                total: cost,
-                tier: input.tier
-            });
-
-            if (input.subChain) {
-                calcInputCost(input.subChain);
+    // Raw (P0/leaf) cost only - what the inputs cost if you extract everything yourself
+    function sumRawCost(inputs) {
+        let total = 0;
+        (inputs || []).forEach(input => {
+            if (isLeafInput(input)) {
+                total += (prices[input.id]?.sell || 0) * (input.qty || 1);
+            } else {
+                total += sumRawCost(input.subChain.inputs);
             }
         });
+        return total;
     }
-    calcInputCost(chain);
+
+    // Buy cost: top-level inputs only (previously this recursed through every tier,
+    // double-counting intermediates and their ingredients)
+    const priceItems = [];
+    let totalInputCost = 0;
+    (chain.inputs || []).forEach(input => {
+        const qty = input.qty || 1;
+        const price = prices[input.id]?.sell || 0;
+        const cost = price * qty;
+        totalInputCost += cost;
+
+        priceItems.push({
+            name: input.name,
+            price,
+            qty,
+            total: cost,
+            tier: input.tier
+        });
+    });
+
+    const rawCost = sumRawCost(chain.inputs);
 
     const profit = outputValue - totalInputCost;
     const margin = totalInputCost > 0 ? (profit / totalInputCost) * 100 : 0;
 
     elements.outputValue.textContent = formatISK(outputValue);
     elements.inputCost.textContent = formatISK(totalInputCost);
+    if (elements.rawCost) elements.rawCost.textContent = formatISK(rawCost);
 
     const profitEl = elements.profitValue;
     profitEl.textContent = formatISK(profit);
@@ -820,9 +899,17 @@ function analyseColony(detail) {
     };
 }
 
+// analyseColony scans all pins; cache the result on the colony object so canvas
+// draws (which run on every pan/hover) don't recompute it. Cache invalidates
+// naturally because loadColonies replaces the colony objects.
+function analyseColonyCached(c) {
+    if (!c._analysis) c._analysis = analyseColony(c.detail);
+    return c._analysis;
+}
+
 function renderColonies(colonies, systemsLoaded) {
     const charName = piEsiAuth.getCurrentCharacterName();
-    elements.coloniesHeader.textContent = `${charName || 'Character'} - ${colonies.length} colony${colonies.length === 1 ? '' : 'ies'}`.replace('coloniesies', 'colonies');
+    elements.coloniesHeader.textContent = `${charName || 'Character'} - ${colonies.length} ${colonies.length === 1 ? 'colony' : 'colonies'}`;
 
     if (!colonies.length) {
         elements.coloniesList.innerHTML = '<div class="colony-item"><div class="colony-name">No colonies found</div><div class="colony-meta">Colonize a planet in-game to see it here</div></div>';
@@ -867,7 +954,7 @@ function renderColonies(colonies, systemsLoaded) {
             const lastUpdate = c.last_update ? new Date(c.last_update).toLocaleString() : '';
             const pinCount = c.num_pins ? `${c.num_pins} pins` : '';
 
-            const { producing, stored } = analyseColony(c.detail);
+            const { producing, stored } = analyseColonyCached(c);
 
             let produceHtml = '';
             if (producing.length) {
@@ -928,7 +1015,7 @@ function escapeHtml(str) {
 
 // ---------- Drawing ----------
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, AppState.cssW, AppState.cssH);
 
     drawBackgroundGrid();
 
@@ -958,8 +1045,8 @@ function draw() {
 }
 
 function drawNoSelectionPrompt() {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    const cx = AppState.cssW / 2;
+    const cy = AppState.cssH / 2;
 
     ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
     roundRect(ctx, cx - 220, cy - 60, 440, 120, 12);
@@ -987,43 +1074,33 @@ function drawBackgroundGrid() {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.lineWidth = 1;
 
-    for (let x = offsetX; x < canvas.width; x += gridSize) {
+    for (let x = offsetX; x < AppState.cssW; x += gridSize) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, AppState.cssH);
         ctx.stroke();
     }
 
-    for (let y = offsetY; y < canvas.height; y += gridSize) {
+    for (let y = offsetY; y < AppState.cssH; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(AppState.cssW, y);
         ctx.stroke();
     }
 }
 
 // ---------- Reference View ----------
 function drawReferenceView() {
-    const cols = Math.floor(canvas.width / 180) || 1;
-    const spacing = canvas.width / cols;
-    const cellWidth = spacing - 16;
-    const cellHeight = 95;
+    const L = refCardLayout();
 
-    const allMaterials = [
-        ...getMaterialsByTier(1),
-        ...getMaterialsByTier(2),
-        ...getMaterialsByTier(3),
-        ...getMaterialsByTier(4)
-    ];
+    L.materials.forEach((mat, i) => {
+        const col = i % L.cols;
+        const row = Math.floor(i / L.cols);
+        const x = col * L.spacing + 8;
+        const y = row * (L.cellHeight + 12) + 12 - AppState.canvasOffset.y;
 
-    allMaterials.forEach((mat, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const x = col * spacing + 8;
-        const y = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
-
-        if (y > -cellHeight && y < canvas.height) {
-            drawRefCard(mat, x, y, cellWidth, cellHeight, PI_COLORS[mat.tier]);
+        if (y > -L.cellHeight && y < AppState.cssH) {
+            drawRefCard(mat, x, y, L.cellWidth, L.cellHeight, PI_COLORS[mat.tier]);
         }
     });
 }
@@ -1349,7 +1426,7 @@ function drawColoniesView() {
     ctx.font = 'bold 18px Titillium Web, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(`${piEsiAuth.getCurrentCharacterName() || 'Character'} - ${colonies.length} colony${colonies.length === 1 ? '' : 'ies'}`, 20, 20);
+    ctx.fillText(`${piEsiAuth.getCurrentCharacterName() || 'Character'} - ${colonies.length} ${colonies.length === 1 ? 'colony' : 'colonies'}`, 20, 20);
 
     if (colonies.length === 0) {
         ctx.fillStyle = '#888';
@@ -1375,7 +1452,7 @@ function drawColoniesView() {
     const margin = 40;
     const offsetY = AppState.canvasOffset.y;
 
-    const cols = Math.max(1, Math.floor((canvas.width - margin * 2) / (cardWidth + gapX)));
+    const cols = Math.max(1, Math.floor((AppState.cssW - margin * 2) / (cardWidth + gapX)));
     let y = margin + headerH + offsetY;
 
     // Track card hit areas for click detection
@@ -1419,8 +1496,8 @@ function drawColoniesView() {
 }
 
 function drawColoniesPrompt(title, sub) {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    const cx = AppState.cssW / 2;
+    const cy = AppState.cssH / 2;
 
     ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
     roundRect(ctx, cx - 240, cy - 60, 480, 120, 12);
@@ -1486,7 +1563,7 @@ function drawColonyCard(c, x, y, w, h) {
     ctx.fillText(`${pinCount} pins • CC ${upgrades}`, x + 16, y + 32);
 
     // Producing / stored summary
-    const { producing, stored } = analyseColony(c.detail);
+    const { producing, stored } = analyseColonyCached(c);
     let py = y + 52;
     if (producing.length) {
         ctx.fillStyle = '#888';
@@ -1557,7 +1634,7 @@ function drawColonyDetail(c) {
     ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''} • CC ${c.upgrade_level || 0} • ${c.num_pins || 0} pins`, x, y + 28);
     y += 58;
 
-    const { producing, stored } = analyseColony(c.detail);
+    const { producing, stored } = analyseColonyCached(c);
 
     // ---- Producing column ----
     let px = x;
@@ -1585,7 +1662,7 @@ function drawColonyDetail(c) {
     }
 
     // ---- Stored column ----
-    let sx = canvas.width / 2;
+    let sx = AppState.cssW / 2;
     let sy = y;
     ctx.fillStyle = '#e8d900';
     ctx.font = 'bold 14px Titillium Web, sans-serif';
@@ -1604,7 +1681,7 @@ function drawColonyDetail(c) {
             ctx.fillStyle = '#e8d900';
             ctx.font = 'bold 12px Titillium Web, sans-serif';
             ctx.textAlign = 'right';
-            ctx.fillText(formatAmount(s.amount), canvas.width - margin, sy);
+            ctx.fillText(formatAmount(s.amount), AppState.cssW - margin, sy);
             ctx.textAlign = 'left';
             sy += 18;
         });
@@ -1629,7 +1706,7 @@ function drawColonyDetail(c) {
     producing.forEach(p => {
         // If a factory output, resolve the material by finding it in recipes
         const chain = resolveColonyChain(p);
-        drawChainRow(chain, x, cy, canvas.width - margin * 2);
+        drawChainRow(chain, x, cy, AppState.cssW - margin * 2);
         cy += chain ? chain.height : 34;
     });
 }
@@ -1701,138 +1778,176 @@ function drawChainRow(chain, x, y, width) {
 }
 
 // ---------- Canvas Event Handlers ----------
-function onMouseDown(e) {
-    const pos = getCanvasPos(e);
-    AppState.mouseDownPos = pos;
-    AppState.hasDragged = false;
-
-    if (AppState.viewMode === 'colonies') {
-        // Back button in detail view
-        if (AppState.colonyDetail) {
-            if (pos.x >= 30 && pos.x <= 120 && pos.y >= 30 && pos.y <= 58) {
-                AppState.colonyDetail = null;
-                draw();
-                return;
-            }
-            return; // detail view is fixed layout, no drag
-        } else {
-            // Click a colony card to open its detail
-            for (const card of AppState.colonyCards) {
-                if (pos.x >= card.x && pos.x <= card.x + card.w &&
-                    pos.y >= card.y && pos.y <= card.y + card.h) {
-                    AppState.colonyDetail = card.colony;
-                    draw();
-                    return;
-                }
-            }
-        }
-
-        AppState.isDraggingCanvas = true;
-        AppState.lastMousePos = pos;
-        return;
-    }
-
-    if (AppState.viewMode === 'reference') {
-        const cols = Math.floor(canvas.width / 180) || 1;
-        const spacing = canvas.width / cols;
-        const cellWidth = spacing - 16;
-        const cellHeight = 95;
-
-        const allMaterials = [
+// Shared layout for reference-view cards so drawing, hit-testing and hover
+// can never drift apart.
+function refCardLayout() {
+    const cols = Math.floor(AppState.cssW / 180) || 1;
+    const spacing = AppState.cssW / cols;
+    return {
+        cols,
+        spacing,
+        cellWidth: spacing - 16,
+        cellHeight: 95,
+        materials: [
             ...getMaterialsByTier(1),
             ...getMaterialsByTier(2),
             ...getMaterialsByTier(3),
             ...getMaterialsByTier(4)
-        ];
-
-        for (let i = 0; i < allMaterials.length; i++) {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const cardX = col * spacing + 8;
-            const cardY = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
-
-            if (pos.x >= cardX && pos.x <= cardX + cellWidth &&
-                pos.y >= cardY && pos.y <= cardY + cellHeight) {
-                selectProduct(allMaterials[i].id);
-                return;
-            }
-        }
-
-        AppState.isDraggingCanvas = true;
-        AppState.lastMousePos = pos;
-        return;
-    }
-
-    AppState.isDraggingCanvas = true;
-    AppState.lastMousePos = pos;
+        ]
+    };
 }
 
-function onMouseMove(e) {
+function refCardAt(pos) {
+    const L = refCardLayout();
+    const col = Math.floor(pos.x / L.spacing);
+    if (col < 0 || col >= L.cols) return null;
+    const row = Math.floor((pos.y + AppState.canvasOffset.y - 12) / (L.cellHeight + 12));
+    if (row < 0) return null;
+    const i = row * L.cols + col;
+    const mat = L.materials[i];
+    if (!mat) return null;
+    const cardX = col * L.spacing + 8;
+    const cardY = row * (L.cellHeight + 12) + 12 - AppState.canvasOffset.y;
+    if (pos.x < cardX || pos.x > cardX + L.cellWidth) return null;
+    if (pos.y < cardY || pos.y > cardY + L.cellHeight) return null;
+    return mat;
+}
+
+function colonyCardAt(pos) {
+    for (const card of AppState.colonyCards) {
+        if (pos.x >= card.x && pos.x <= card.x + card.w &&
+            pos.y >= card.y && pos.y <= card.y + card.h) {
+            return card;
+        }
+    }
+    return null;
+}
+
+// Hit-test chain nodes (world space: node.x/y are the node centres)
+function chainNodeAt(pos) {
+    if (AppState.viewMode !== 'chain' || !AppState.chainLayout) return null;
+    const wx = (pos.x - AppState.canvasOffset.x) / AppState.zoom;
+    const wy = (pos.y - AppState.canvasOffset.y) / AppState.zoom;
+    for (const node of AppState.chainLayout.nodes) {
+        const w = 140;
+        const h = node.tier === 0 ? 78 : 62;
+        if (wx >= node.x - w / 2 && wx <= node.x + w / 2 &&
+            wy >= node.y - h / 2 && wy <= node.y + h / 2) {
+            return node;
+        }
+    }
+    return null;
+}
+
+function onPointerDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    const pos = getCanvasPos(e);
+    AppState.pointerDown = pos;
+    AppState.pointerId = e.pointerId;
+    AppState.hasDragged = false;
+    AppState.isDraggingCanvas = true;
+    AppState.lastMousePos = pos;
+
+    // Remember what was pressed; the action fires on release (tap/click) only
+    // if the user didn't drag, so press-drag never mis-selects.
+    if (AppState.viewMode === 'colonies') {
+        if (AppState.colonyDetail) {
+            const overBack = pos.x >= 30 && pos.x <= 120 && pos.y >= 30 && pos.y <= 58;
+            AppState.pendingHit = overBack ? { type: 'colonyBack' } : null;
+        } else {
+            const card = colonyCardAt(pos);
+            AppState.pendingHit = card ? { type: 'colony', colony: card.colony } : null;
+        }
+    } else if (AppState.viewMode === 'reference') {
+        const mat = refCardAt(pos);
+        AppState.pendingHit = mat ? { type: 'product', id: mat.id } : null;
+    } else if (AppState.viewMode === 'chain') {
+        const node = chainNodeAt(pos);
+        AppState.pendingHit = node ? { type: 'product', id: node.materialId } : null;
+    } else {
+        AppState.pendingHit = null;
+    }
+
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+}
+
+function onPointerMove(e) {
     const pos = getCanvasPos(e);
 
-    if (AppState.mouseDownPos) {
-        const dx = pos.x - AppState.mouseDownPos.x;
-        const dy = pos.y - AppState.mouseDownPos.y;
+    if (AppState.pointerDown && !AppState.hasDragged) {
+        const dx = pos.x - AppState.pointerDown.x;
+        const dy = pos.y - AppState.pointerDown.y;
         if (Math.sqrt(dx * dx + dy * dy) > 5) {
             AppState.hasDragged = true;
         }
     }
 
-    if (AppState.viewMode === 'reference') {
-        const cols = Math.floor(canvas.width / 180) || 1;
-        const spacing = canvas.width / cols;
-        const cellWidth = spacing - 16;
-        const cellHeight = 95;
-
-        const allMaterials = [
-            ...getMaterialsByTier(1),
-            ...getMaterialsByTier(2),
-            ...getMaterialsByTier(3),
-            ...getMaterialsByTier(4)
-        ];
-
-        let foundHover = null;
-        for (let i = 0; i < allMaterials.length; i++) {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const cardX = col * spacing + 8;
-            const cardY = row * (cellHeight + 12) + 12 - AppState.canvasOffset.y;
-
-            if (pos.x >= cardX && pos.x <= cardX + cellWidth &&
-                pos.y >= cardY && pos.y <= cardY + cellHeight) {
-                foundHover = allMaterials[i].id;
-                break;
+    if (!AppState.isDraggingCanvas) {
+        if (AppState.viewMode === 'reference') {
+            const mat = refCardAt(pos);
+            const id = mat ? mat.id : null;
+            if (id !== AppState.hoveredCard) {
+                AppState.hoveredCard = id;
+                canvas.style.cursor = id ? 'pointer' : 'default';
+                draw();
             }
-        }
-
-        if (foundHover !== AppState.hoveredCard) {
-            AppState.hoveredCard = foundHover;
-            canvas.style.cursor = foundHover ? 'pointer' : 'default';
-            draw();
+        } else if (AppState.viewMode === 'chain') {
+            canvas.style.cursor = chainNodeAt(pos) ? 'pointer' : 'default';
         }
     }
 
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
-        AppState.canvasOffset.x += dx;
-        AppState.canvasOffset.y += dy;
+        // Reference and colonies views lay out vertically only - panning X there
+        // desyncs the grid from the background, so lock to the Y axis.
+        if (AppState.viewMode === 'reference' || AppState.viewMode === 'colonies') {
+            AppState.canvasOffset.y += dy;
+        } else {
+            AppState.canvasOffset.x += dx;
+            AppState.canvasOffset.y += dy;
+        }
         AppState.lastMousePos = pos;
         draw();
     }
 }
 
-function onMouseUp(e) {
-    AppState.isDraggingCanvas = false;
+function onPointerUp(e) {
+    const wasDrag = AppState.hasDragged;
+    const hit = AppState.pendingHit;
 
-    AppState.mouseDownPos = null;
+    AppState.isDraggingCanvas = false;
+    AppState.pointerDown = null;
+    AppState.pointerId = null;
+    AppState.pendingHit = null;
+    AppState.hasDragged = false;
+
+    if (!wasDrag && hit) {
+        if (hit.type === 'product') {
+            selectProduct(hit.id);
+        } else if (hit.type === 'colony') {
+            AppState.colonyDetail = hit.colony;
+            draw();
+        } else if (hit.type === 'colonyBack') {
+            AppState.colonyDetail = null;
+            draw();
+        }
+    }
+}
+
+function onPointerCancel() {
+    AppState.isDraggingCanvas = false;
+    AppState.pointerDown = null;
+    AppState.pointerId = null;
+    AppState.pendingHit = null;
     AppState.hasDragged = false;
 }
 
 function onWheel(e) {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoom(AppState.zoom * delta);
+    const factor = e.deltaY > 0 ? 0.9 : 1.1;
+    zoomAt(AppState.zoom * factor, getCanvasPos(e));
 }
 
 // Coordinate transforms
@@ -1859,10 +1974,21 @@ function worldToScreen(worldX, worldY) {
 }
 
 // View Controls
-function setZoom(zoom) {
-    AppState.zoom = Math.max(0.25, Math.min(4, zoom));
+function zoomAt(newZoom, anchor) {
+    const clamped = Math.max(0.25, Math.min(4, newZoom));
+    if (anchor && clamped !== AppState.zoom) {
+        // Keep the world point under the anchor stationary while zooming
+        const ratio = clamped / AppState.zoom;
+        AppState.canvasOffset.x = anchor.x - (anchor.x - AppState.canvasOffset.x) * ratio;
+        AppState.canvasOffset.y = anchor.y - (anchor.y - AppState.canvasOffset.y) * ratio;
+    }
+    AppState.zoom = clamped;
     elements.zoomLevel.textContent = Math.round(AppState.zoom * 100) + '%';
     draw();
+}
+
+function setZoom(zoom) {
+    zoomAt(zoom, { x: AppState.cssW / 2, y: AppState.cssH / 2 });
 }
 
 function setViewMode(mode) {
@@ -1889,13 +2015,50 @@ function setViewMode(mode) {
     } else {
         canvas.style.cursor = 'default';
         if (AppState.chainLayout) {
-            helpText.innerHTML = '<i class="fas fa-info-circle"></i> Viewing production chain • Use controls to zoom and pan';
+            helpText.innerHTML = '<i class="fas fa-info-circle"></i> Viewing production chain &bull; Click a node to re-target it &bull; Drag to pan, scroll to zoom';
         } else {
             helpText.innerHTML = '<i class="fas fa-info-circle"></i> Select a product to view its production chain';
         }
     }
 
+    updateUrlState();
     draw();
+}
+
+// ---------- Shareable URL state ----------
+// Encodes the current view/product in the hash (e.g. #view=chain&product=2286)
+// so chains can be bookmarked and shared.
+function updateUrlState() {
+    try {
+        const params = new URLSearchParams();
+        params.set('view', AppState.viewMode);
+        if (AppState.targetProduct) params.set('product', AppState.targetProduct);
+        const hash = '#' + params.toString();
+        if (window.location.hash !== hash) {
+            window.history.replaceState(null, '', hash);
+        }
+    } catch (e) { /* ignore */ }
+}
+
+function restoreFromUrl() {
+    if (!window.location.hash || window.location.hash === '#') return;
+    try {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const view = params.get('view');
+        const product = parseInt(params.get('product'));
+
+        if (product && getMaterialById(product)) {
+            elements.targetProduct.value = product;
+            AppState.targetProduct = product;
+            generateChainLayout();
+            fetchMarketData();
+        }
+        if (view && ['reference', 'chain', 'planets', 'colonies'].includes(view)) {
+            setViewMode(view);
+        } else if (product) {
+            setViewMode('chain');
+        }
+    } catch (e) { /* ignore malformed hash */ }
 }
 
 function fitView() {
@@ -1936,21 +2099,26 @@ function setupSystemChecker() {
     });
 }
 
-async function ensureSystemsLoaded() {
-    if (AppState.systemsLoaded) return true;
-    return new Promise((resolve) => {
+let systemsLoadPromise = null;
+function ensureSystemsLoaded() {
+    if (AppState.systemsLoaded) return Promise.resolve(true);
+    if (systemsLoadPromise) return systemsLoadPromise; // single-flight, avoids double 4.5MB download
+
+    systemsLoadPromise = new Promise((resolve) => {
         const script = document.createElement('script');
-        script.src = 'pi-systems.js?t=' + new Date().getTime();
+        script.src = 'pi-systems.js?v=' + (window.PI_ASSET_VERSION || '1');
         script.onload = () => {
             AppState.systemsLoaded = true;
             resolve(true);
         };
         script.onerror = () => {
             console.error('Failed to load pi-systems.js');
+            systemsLoadPromise = null; // allow a clean retry
             resolve(false);
         };
         document.head.appendChild(script);
     });
+    return systemsLoadPromise;
 }
 
 async function checkSystem() {
@@ -2162,11 +2330,8 @@ function formatISK(value) {
     return (value || 0).toFixed(2);
 }
 
-// Animation loop
-function animate() {
-    draw();
-    requestAnimationFrame(animate);
-}
+// Rendering is on-demand: every state change calls draw() explicitly. The old
+// requestAnimationFrame loop redrew the full canvas ~60x/second even when idle.
 
 // Initialize on load
 if (document.readyState === 'loading') {
