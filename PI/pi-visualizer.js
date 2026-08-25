@@ -1958,10 +1958,11 @@ function drawColonyCard(c, x, y, w, h) {
 // Projects planet-surface lat/long onto a disc the same way the in-game view
 // reads: equator on the rim, poles top/bottom centre. The cos(lat) term pulls
 // meridians together toward the poles so every point stays inside the circle.
-function projectColonyPin(lat, long, cx, cy, R) {
+// ESI colony pins report latitude/longitude in RADIANS.
+function projectColonyPin(latRad, longRad, cx, cy, R) {
     return {
-        x: cx + R * (long / 180) * Math.cos(lat * Math.PI / 180),
-        y: cy - R * (lat / 90)
+        x: cx + R * (longRad / Math.PI) * Math.cos(latRad),
+        y: cy - R * (latRad / (Math.PI / 2))
     };
 }
 
@@ -2078,9 +2079,11 @@ function drawColonyLayout(c) {
     ctx.stroke();
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-    [-60, -30, 0, 30, 60].forEach(lat => {
-        const p = projectColonyPin(lat, 0, cx, cy, R);
-        const halfW = R * Math.cos(lat * Math.PI / 180);
+    const rad = Math.PI / 180;
+    [-60, -30, 0, 30, 60].forEach(latDeg => {
+        const latRad = latDeg * rad;
+        const p = projectColonyPin(latRad, 0, cx, cy, R);
+        const halfW = R * Math.cos(latRad);
         ctx.beginPath();
         ctx.moveTo(cx - halfW, p.y);
         ctx.lineTo(cx + halfW, p.y);
