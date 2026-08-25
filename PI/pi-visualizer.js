@@ -1765,6 +1765,7 @@ function drawColoniesView() {
         ctx.fillStyle = anyFull ? '#f87171' : '#fbbf24';
         ctx.font = '12px Titillium Web, sans-serif';
         ctx.fillText(`${nearFull.length} ${nearFull.length === 1 ? 'colony' : 'colonies'} near storage capacity`, 20, headerY);
+        headerY += 20;
     }
 
     if (colonies.length === 0) {
@@ -1792,7 +1793,7 @@ function drawColoniesView() {
     const offsetY = AppState.canvasOffset.y;
 
     const cols = Math.max(1, Math.floor((AppState.cssW - margin * 2) / (cardWidth + gapX)));
-    let y = margin + headerH + offsetY;
+    let y = Math.max(margin + headerH, headerY + 4) + offsetY;
 
     // Track card hit areas for click detection
     AppState.colonyCards = [];
@@ -1913,13 +1914,15 @@ function drawColonyCard(c, x, y, w, h) {
 
     // Producing / stored summary
     const { producing, stored } = analysis;
+    const storageTop = y + h - 26;
     let py = y + 52;
     if (producing.length) {
         ctx.fillStyle = '#888';
         ctx.font = 'bold 10px Titillium Web, sans-serif';
         ctx.fillText('PRODUCING', x + 16, py);
         py += 16;
-        producing.slice(0, 3).forEach(p => {
+        producing.forEach(p => {
+            if (py + 13 > storageTop) return;
             const tierColor = PI_COLORS[p.tier] || '#888';
             ctx.fillStyle = tierColor;
             ctx.font = '10px Titillium Web, sans-serif';
@@ -1928,12 +1931,13 @@ function drawColonyCard(c, x, y, w, h) {
         });
     }
     if (stored.length) {
-        if (py < y + h - 26) {
+        const storedItems = stored.slice(0, 3);
+        if (py + 14 + storedItems.length * 13 <= storageTop) {
             ctx.fillStyle = '#888';
             ctx.font = 'bold 10px Titillium Web, sans-serif';
             ctx.fillText('STORED', x + 16, py);
             py += 14;
-            stored.slice(0, 3).forEach(s => {
+            storedItems.forEach(s => {
                 const tierColor = PI_COLORS[s.tier] || '#888';
                 ctx.fillStyle = tierColor;
                 ctx.font = '10px Titillium Web, sans-serif';
@@ -2298,6 +2302,9 @@ function drawColonyLayoutOverlay(c) {
     }
 
     // Notes + pin count
+    ctx.fillStyle = 'rgba(15, 15, 15, 0.6)';
+    roundRect(ctx, AppState.cssW - margin - 300, AppState.cssH - margin - 30, 300, 40, 6);
+    ctx.fill();
     ctx.fillStyle = '#666';
     ctx.font = '10px Titillium Web, sans-serif';
     ctx.textAlign = 'right';
@@ -2335,6 +2342,11 @@ function drawColonyChrome(c) {
     y += 40;
 
     // Header (shown in both Details and Layout modes)
+    if (AppState.layoutMode) {
+        ctx.fillStyle = 'rgba(15, 15, 15, 0.6)';
+        roundRect(ctx, x - 10, y - 8, AppState.cssW - 60, 52, 8);
+        ctx.fill();
+    }
     ctx.fillStyle = color;
     ctx.font = 'bold 22px Titillium Web, sans-serif';
     ctx.textAlign = 'left';
