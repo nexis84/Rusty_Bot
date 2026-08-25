@@ -882,6 +882,41 @@ STORAGE_FACILITY_TYPES.forEach(id => { PIN_CAPACITY[id] = 12000; });
 COMMAND_CENTER_TYPES.forEach(id => { PIN_CAPACITY[id] = 500; });
 const PIN_KIND_NAMES = { launchpad: 'Launchpad', storage: 'Storage Facility', cc: 'Command Center', extractor: 'Extractor Control Unit', processor: 'Processor', other: 'Pin' };
 
+// Per-pin CPU / Powergrid costs, sourced from the SDE (typeDogma attrs
+// 48/15 = CPU, 11/49 = Powergrid). Command Centres provide capacity and
+// consume nothing; every other pin type draws from it. Used by the colony
+// analysis to show CC capacity bars.
+const PIN_SPECS = {
+    2254:{cpu:1675,pg:6000},2256:{cpu:700,pg:3600},2257:{cpu:700,pg:500},
+    2469:{cpu:800,pg:200},2470:{cpu:700,pg:500},2471:{cpu:800,pg:200},2472:{cpu:700,pg:500},
+    2473:{cpu:800,pg:200},2474:{cpu:700,pg:500},2475:{cpu:400,pg:1100},2480:{cpu:700,pg:500},
+    2481:{cpu:800,pg:200},2482:{cpu:400,pg:1100},2483:{cpu:800,pg:200},2484:{cpu:700,pg:500},
+    2485:{cpu:700,pg:500},2490:{cpu:800,pg:200},2491:{cpu:700,pg:500},2492:{cpu:800,pg:200},
+    2493:{cpu:800,pg:200},2494:{cpu:700,pg:500},2524:{cpu:1675,pg:6000},2525:{cpu:1675,pg:6000},
+    2533:{cpu:1675,pg:6000},2534:{cpu:1675,pg:6000},2535:{cpu:700,pg:500},2536:{cpu:700,pg:500},
+    2541:{cpu:700,pg:500},2542:{cpu:700,pg:3600},2543:{cpu:700,pg:3600},2544:{cpu:700,pg:3600},
+    2549:{cpu:1675,pg:6000},2550:{cpu:1675,pg:6000},2551:{cpu:1675,pg:6000},2552:{cpu:700,pg:3600},
+    2555:{cpu:700,pg:3600},2556:{cpu:700,pg:3600},2557:{cpu:700,pg:3600},2558:{cpu:700,pg:500},
+    2560:{cpu:700,pg:500},2561:{cpu:700,pg:500},2562:{cpu:700,pg:500},2848:{cpu:2600,pg:400},
+    3060:{cpu:2600,pg:400},3061:{cpu:2600,pg:400},3062:{cpu:2600,pg:400},3063:{cpu:2600,pg:400},
+    3064:{cpu:2600,pg:400},3067:{cpu:2600,pg:400},3068:{cpu:2600,pg:400}
+};
+// Command Centre capacity scales +20% per upgrade level (SDE base 1675 CPU / 6000 PG).
+const CC_BASE_CPU = 1675, CC_BASE_PG = 6000, CC_PER_LEVEL = 0.2;
+function ccCapacity(level) {
+    const L = Math.max(0, Math.min(5, level || 0));
+    return { cpu: Math.round(CC_BASE_CPU * (1 + CC_PER_LEVEL * L)), pg: Math.round(CC_BASE_PG * (1 + CC_PER_LEVEL * L)) };
+}
+
+// Thin filled capacity bar (used vs max).
+function drawBar(x, y, w, h, frac, color) {
+    const r = Math.min(2, h / 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    roundRect(ctx, x, y, w, h, r); ctx.fill();
+    const fw = Math.max(0, Math.min(1, frac)) * w;
+    if (fw > 0.5) { ctx.fillStyle = color; roundRect(ctx, x, y, fw, h, r); ctx.fill(); }
+}
+
 // Pin classification for idle detection (SDE groups 1063 / 1028)
 const ECU_TYPES = new Set([2848, 3060, 3061, 3062, 3063, 3064, 3067, 3068]);
 const PROCESSOR_TYPES = new Set([2469, 2470, 2471, 2472, 2473, 2474, 2475, 2480, 2481, 2482, 2483, 2484, 2485, 2490, 2491, 2492, 2493, 2494]);
@@ -901,7 +936,7 @@ function storagePinInfo(pin) {
     return { kind, typeId: pin.type_id, used, capacity: PIN_CAPACITY[pin.type_id], fill: used / PIN_CAPACITY[pin.type_id] };
 }
 
-function analyseColony(detail) {
+function analyseColony(detail, level) {
     const producing = {}; // materialId -> {name, tier, count, amount}
     const stored = {};    // materialId -> amount
     const storagePins = [];
@@ -1011,6 +1046,19 @@ function analyseColony(detail) {
         }
     });
 
+    // CPU / Powergrid: sum what every non-CC pin draws, and the CC capacity it
+    // draws from (scales with the colony's command-centre upgrade level).
+    let usedCpu = 0, usedPg = 0, capCpu = 0, capPg = 0;
+    detail.pins.forEach(pin => {
+        const spec = PIN_SPECS[pin.type_id];
+        if (!spec) return;
+        if (COMMAND_CENTER_TYPES.has(pin.type_id)) {
+            const cap = ccCapacity(level || 0);
+            capCpu += cap.cpu; capPg += cap.pg;
+        } else {
+            usedCpu += spec.cpu; usedPg += spec.pg;
+        }
+    });
     storagePins.sort((a, b) => b.fill - a.fill);
     extractors.sort((a, b) => (a.expiryMs || Infinity) - (b.expiryMs || Infinity));
 
@@ -1025,7 +1073,8 @@ function analyseColony(detail) {
         extraStorage: Math.max(0, storagePins.length - 1),
         extractors,
         factories,
-        idle
+        idle,
+        usedCpu, usedPg, capCpu, capPg
     };
 }
 
@@ -1033,7 +1082,7 @@ function analyseColony(detail) {
 // draws (which run on every pan/hover) don't recompute it. Cache invalidates
 // naturally because loadColonies replaces the colony objects.
 function analyseColonyCached(c) {
-    if (!c._analysis) c._analysis = analyseColony(c.detail);
+    if (!c._analysis) c._analysis = analyseColony(c.detail, c.upgrade_level);
     return c._analysis;
 }
 
@@ -1978,6 +2027,7 @@ function drawColonyCard(c, x, y, w, h) {
 
 const LAYOUT_CARD_W = 150;
 const LAYOUT_CARD_H = 46;
+const CC_CARD_H = 72; // taller: fits the upgrade level + two capacity bars
 const LAYOUT_COLUMN_NAMES = ['Command Center', 'Extractors', 'Processors', 'Storage', 'Other'];
 
 function pinColumnIndex(kind) {
@@ -2084,6 +2134,7 @@ function assignFlatLayout(layout, margin, top, availW, availH) {
         col.pins.forEach((p, j) => {
             p.x = col.cx;
             p.y = top + availH * (j + 1) / (n + 1);
+            p.h = p.kind === 'cc' ? CC_CARD_H : LAYOUT_CARD_H;
         });
     });
     return { used, colW };
@@ -2109,8 +2160,9 @@ function colonyLayoutPinAt(pos) {
     if (!data) return null;
     let best = null, bestD = Infinity;
     data.pins.forEach(p => {
+        const halfH = (p.h || LAYOUT_CARD_H) / 2;
         const dx = Math.max(0, Math.abs(pos.x - p.x) - LAYOUT_CARD_W / 2);
-        const dy = Math.max(0, Math.abs(pos.y - p.y) - LAYOUT_CARD_H / 2);
+        const dy = Math.max(0, Math.abs(pos.y - p.y) - halfH);
         const d = dx * dx + dy * dy;
         if (d < bestD) { bestD = d; best = p; }
     });
@@ -2215,22 +2267,42 @@ function drawColonyLayout(c) {
         const isSel = sel === p.pinId;
         const dim = adjacent && !adjacent.has(p.pinId);
         ctx.globalAlpha = dim ? 0.3 : 1;
-        const x = p.x - LAYOUT_CARD_W / 2, y = p.y - LAYOUT_CARD_H / 2;
+        const ch = p.h || LAYOUT_CARD_H;
+        const x = p.x - LAYOUT_CARD_W / 2, y = p.y - ch / 2;
         ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
         ctx.strokeStyle = isSel ? '#fff' : p.color;
         ctx.lineWidth = isSel ? 2 : 1.5;
-        roundRect(ctx, x, y, LAYOUT_CARD_W, LAYOUT_CARD_H, 6);
+        roundRect(ctx, x, y, LAYOUT_CARD_W, ch, 6);
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 10px Titillium Web, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(p.label, p.x, y + 15, LAYOUT_CARD_W - 10);
-        const sub = pinSubLabel(p, analysis);
-        if (sub) {
-            ctx.fillStyle = /EXPIRED/.test(sub) ? '#f87171' : '#999';
+
+        if (p.kind === 'cc') {
+            // Upgrade level + two capacity bars (CPU red, Powergrid blue)
+            ctx.fillStyle = p.color;
             ctx.font = '9px Titillium Web, sans-serif';
-            ctx.fillText(sub, p.x, y + 32, LAYOUT_CARD_W - 10);
+            ctx.fillText('CC L' + (c.upgrade_level || 0), p.x, y + 29, LAYOUT_CARD_W - 10);
+            const cap = ccCapacity(c.upgrade_level || 0);
+            const cpuFrac = cap.cpu ? analysis.usedCpu / cap.cpu : 0;
+            const pgFrac = cap.pg ? analysis.usedPg / cap.pg : 0;
+            ctx.fillStyle = '#f87171';
+            ctx.font = '8px Titillium Web, sans-serif';
+            ctx.fillText('CPU ' + analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), p.x, y + 41, LAYOUT_CARD_W - 8);
+            drawBar(x + 12, y + 44, LAYOUT_CARD_W - 24, 5, cpuFrac, '#f87171');
+            ctx.fillStyle = '#58a6ff';
+            ctx.font = '8px Titillium Web, sans-serif';
+            ctx.fillText('PG ' + analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), p.x, y + 58, LAYOUT_CARD_W - 8);
+            drawBar(x + 12, y + 61, LAYOUT_CARD_W - 24, 5, pgFrac, '#58a6ff');
+        } else {
+            const sub = pinSubLabel(p, analysis);
+            if (sub) {
+                ctx.fillStyle = /EXPIRED/.test(sub) ? '#f87171' : '#999';
+                ctx.font = '9px Titillium Web, sans-serif';
+                ctx.fillText(sub, p.x, y + 32, LAYOUT_CARD_W - 10);
+            }
         }
         ctx.textAlign = 'left';
         ctx.globalAlpha = 1;
@@ -2239,9 +2311,10 @@ function drawColonyLayout(c) {
     // Route quantity labels: aggregate per wire (undirected segment) so one chip
     // summarises every material flowing on that link, each in its tier colour.
     // The full per-material breakdown is shown on hover/selection (overlay panel).
-    const cardRects = layout.pins.map(p => ({
-        x: p.x - LAYOUT_CARD_W / 2, y: p.y - LAYOUT_CARD_H / 2, w: LAYOUT_CARD_W, h: LAYOUT_CARD_H
-    }));
+    const cardRects = layout.pins.map(p => {
+        const h = p.h || LAYOUT_CARD_H;
+        return { x: p.x - LAYOUT_CARD_W / 2, y: p.y - h / 2, w: LAYOUT_CARD_W, h };
+    });
     const placed = [];
     const LABEL_H = 13;
     const GAP = 5;
@@ -2366,6 +2439,11 @@ function drawColonyLayoutOverlay(c) {
         if (p.kind === 'launchpad' || p.kind === 'storage' || p.kind === 'cc') {
             const sp = (analysis.storagePins || []).find(x => x.typeId === p.typeId);
             if (sp) lines.push({ text: `${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m3 (${Math.round(sp.fill * 100)}%)`, color: '#aaa' });
+            if (p.kind === 'cc') {
+                const cap = ccCapacity(c.upgrade_level || 0);
+                lines.push({ text: `CPU ${analysis.usedCpu.toLocaleString()} / ${cap.cpu.toLocaleString()}`, color: '#f87171' });
+                lines.push({ text: `PG ${analysis.usedPg.toLocaleString()} / ${cap.pg.toLocaleString()}`, color: '#58a6ff' });
+            }
             const raw = p.raw;
             if (raw && Array.isArray(raw.contents) && raw.contents.length) {
                 raw.contents.slice(0, 3).forEach(ct => {

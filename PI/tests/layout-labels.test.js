@@ -211,5 +211,33 @@ totalFail += runScenario('shared', detail3, 1200, 600);
     totalFail += f;
 }
 
+// ---- Scenario 5: Command Centre CPU/Powergrid capacity + usage ----
+{
+    const detail = {
+        pins: [
+            { pin_id: 1, type_id: 2254, extractor_details: null },                 // CC (level 3)
+            { pin_id: 2, type_id: 2848, extractor_details: { product_type_id: 2270, qty_per_cycle: 1, cycle_time: 1 } },
+            { pin_id: 3, type_id: 2469, factory_details: { schematic_id: 1 } },
+            { pin_id: 4, type_id: 2257 },
+            { pin_id: 5, type_id: 2256 }
+        ],
+        links: [], routes: []
+    };
+    const colony = { solar_system_id: 30000142, planet_type: 'barren', upgrade_level: 3, num_pins: detail.pins.length, detail };
+    T.AppState.layoutMode = true; T.AppState.layoutSel = null; T.AppState.layoutHover = null; T.AppState.systemsLoaded = false;
+    T.drawColonyLayout(colony);
+    const a = colony._analysis;
+    // PIN_SPECS: ECU 2848=2600/400, PROC 2469=800/200, STOR 2257=700/500, LAUN 2256=700/3600
+    const expUsedCpu = 2600 + 800 + 700 + 700, expUsedPg = 400 + 200 + 500 + 3600;
+    // CC L3 capacity: 1675*1.6=2680 CPU, 6000*1.6=9600 PG
+    let f = 0;
+    if (a.usedCpu !== expUsedCpu) { f++; console.error(`[ccpower] FAIL: usedCpu ${a.usedCpu} != ${expUsedCpu}`); }
+    if (a.usedPg !== expUsedPg) { f++; console.error(`[ccpower] FAIL: usedPg ${a.usedPg} != ${expUsedPg}`); }
+    if (a.capCpu !== 2680) { f++; console.error(`[ccpower] FAIL: capCpu ${a.capCpu} != 2680`); }
+    if (a.capPg !== 9600) { f++; console.error(`[ccpower] FAIL: capPg ${a.capPg} != 9600`); }
+    console.log(`[ccpower] usedCpu=${a.usedCpu} usedPg=${a.usedPg} capCpu=${a.capCpu} capPg=${a.capPg}` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
 console.log(totalFail === 0 ? '\nALL PASS' : `\n${totalFail} FAILURE(S)`);
 process.exit(totalFail === 0 ? 0 : 1);
