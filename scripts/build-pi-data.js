@@ -116,7 +116,6 @@ const SUBTYPE_P0_BY_NAME = {
   'Planet (Plasma)':    ['Non-CS Crystals', 'Suspended Plasma', 'Noble Metals', 'Base Metals', 'Heavy Metals'],
   'Planet (Storm)':     ['Ionic Solutions', 'Noble Gas', 'Suspended Plasma', 'Base Metals', 'Aqueous Liquids'],
   'Planet (Shattered)': [],
-  'Planet (Scorched Barren)': ['Microorganisms', 'Carbon Compounds', 'Noble Metals', 'Base Metals', 'Aqueous Liquids'],
 };
 
 const p0NameToId = {};
@@ -133,7 +132,6 @@ const subtypeToTypeId = {
   'Planet (Storm)': 2017,
   'Planet (Plasma)': 2063,
   'Planet (Shattered)': 30889,
-  'Planet (Scorched Barren)': 73911,
 };
 
 const SUBTYPE_COLORS = {
@@ -146,7 +144,6 @@ const SUBTYPE_COLORS = {
   'Planet (Gas)': '#14b8a6',
   'Planet (Ice)': '#bae6fd',
   'Planet (Shattered)': '#6b7280',
-  'Planet (Scorched Barren)': '#9a3412',
 };
 
 const planetTypes = {};   // subtype type id -> { name, color, p0Materials:[ids] }
