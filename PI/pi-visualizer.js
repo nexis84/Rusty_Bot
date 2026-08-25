@@ -26,6 +26,7 @@ const AppState = {
     colonyPrices: {},
     layoutMode: false,      // colony detail: show planet layout map instead of details
     layoutSel: null,        // selected pin id in layout view
+    layoutHover: null,      // hovered pin id in layout view (shows breakdown)
     colonyLayoutData: null, // projected layout for hit-testing (set during draw)
     pendingColonyId: null,  // deep link: open this colony once loaded
     pendingLayoutMode: false,
@@ -2149,19 +2150,20 @@ function drawColonyLayout(c) {
     ctx.textAlign = 'left';
 
     const sel = AppState.layoutSel;
-    // Adjacency for highlight dimming
+    const focus = sel || AppState.layoutHover;
+    // Adjacency for highlight dimming (works for both selection and hover)
     let adjacent = null;
-    if (sel) {
+    if (focus) {
         adjacent = new Set([sel]);
         layout.links.forEach(l => {
-            if (l.source === sel) adjacent.add(l.dest);
-            if (l.dest === sel) adjacent.add(l.source);
+            if (l.source === focus) adjacent.add(l.dest);
+            if (l.dest === focus) adjacent.add(l.source);
         });
         layout.routes.forEach(r => {
-            if (r.source === sel) adjacent.add(r.dest);
-            if (r.dest === sel) adjacent.add(r.source);
+            if (r.source === focus) adjacent.add(r.dest);
+            if (r.dest === focus) adjacent.add(r.source);
             (r.waypoints || []).forEach(w => {
-                if (w === sel) { adjacent.add(r.source); adjacent.add(r.dest); }
+                if (w === focus) { adjacent.add(r.source); adjacent.add(r.dest); }
             });
         });
     }
@@ -2171,7 +2173,7 @@ function drawColonyLayout(c) {
         const a = layout.byId[l.source], b = layout.byId[l.dest];
         if (!a || !b) return;
         const dim = adjacent && !adjacent.has(a.pinId) && !adjacent.has(b.pinId);
-        ctx.strokeStyle = dim ? 'rgba(255,255,255,0.05)' : (sel ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)');
+        ctx.strokeStyle = dim ? 'rgba(255,255,255,0.05)' : (focus ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)');
         ctx.lineWidth = 1 + (l.level || 0) / 3;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
@@ -2233,55 +2235,65 @@ function drawColonyLayout(c) {
         ctx.globalAlpha = 1;
     });
 
-    // Route quantity labels (drawn last). Anchored to a route *segment* so they
-    // sit on their line, clamped out of pin cards, with a bounded local search
-    // for label collisions (no unbounded downward cascade).
+    // Route quantity labels: aggregate per wire (undirected segment) so one chip
+    // summarises every material flowing on that link, each in its tier colour.
+    // The full per-material breakdown is shown on hover/selection (overlay panel).
     const cardRects = layout.pins.map(p => ({
         x: p.x - LAYOUT_CARD_W / 2, y: p.y - LAYOUT_CARD_H / 2, w: LAYOUT_CARD_W, h: LAYOUT_CARD_H
     }));
     const placed = [];
     const LABEL_H = 13;
+    const GAP = 5;
     const hits = (r, list) => list.some(o => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y);
 
-    // Pick the segment to anchor a label on: for 2-pin paths the only segment;
-    // for waypoint paths the longer of the two segments straddling the middle
-    // pin (avoids sitting on the pin's card centre).
-    function labelSegment(path) {
-        if (path.length === 2) return [path[0], path[1]];
-        const a = path[Math.floor((path.length - 1) / 2) - 1];
-        const b = path[Math.floor((path.length - 1) / 2)];
-        const c = path[Math.ceil((path.length - 1) / 2)];
-        const d = path[Math.ceil((path.length - 1) / 2) + 1];
-        const len2 = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
-        return len2(b, c) >= len2(a, b) ? [b, c] : [a, b];
-    }
-
+    // Tally material quantities per wire segment (a route credits every segment
+    // it traverses, so waypoint hops each show the flowing amount).
+    const segMap = new Map();
     layout.routes.forEach(r => {
+        if (!r.quantity) return;
         const path = [layout.byId[r.source], ...(r.waypoints || []).map(w => layout.byId[w]), layout.byId[r.dest]];
         if (path.some(p => !p) || path.length < 2) return;
-        const dim = adjacent && !path.some(p => adjacent.has(p.pinId));
-        if (dim || !r.quantity) return;
         const mat = getMaterialById(r.contentTypeId);
+        const tier = mat ? mat.tier : 0;
+        for (let i = 0; i < path.length - 1; i++) {
+            const a = path[i].pinId, b = path[i + 1].pinId;
+            const key = a < b ? a + '|' + b : b + '|' + a;
+            if (!segMap.has(key)) segMap.set(key, { a: Math.min(a, b), b: Math.max(a, b), mats: new Map() });
+            const e = segMap.get(key);
+            const cur = e.mats.get(tier) || { tier, qty: 0 };
+            cur.qty += r.quantity;
+            e.mats.set(tier, cur);
+        }
+    });
+
+    segMap.forEach(entry => {
+        const seg = [layout.byId[entry.a], layout.byId[entry.b]];
+        if (!seg[0] || !seg[1]) return;
+        const dim = adjacent && !adjacent.has(entry.a) && !adjacent.has(entry.b);
+        if (dim) return; // non-incident wires stay quiet when a pin is focused
+
+        // Coloured tokens, capped so the chip stays compact (+N if more).
+        const mats = [...entry.mats.values()].sort((x, y) => x.tier - y.tier);
+        const shown = mats.slice(0, 3);
+        const tokens = shown.map(m => ({ text: formatAmount(Math.round(m.qty)), color: PI_COLORS[m.tier] || '#888' }));
+        if (mats.length > shown.length) tokens.push({ text: '+' + (mats.length - shown.length), color: '#aaa' });
+
         ctx.font = 'bold 9px Titillium Web, sans-serif';
-        const text = formatAmount(Math.round(r.quantity));
-        const lw = Math.max(28, ctx.measureText(text).width + 10);
-        const seg = labelSegment(path);
+        const tokenW = tokens.reduce((s, t) => s + ctx.measureText(t.text).width, 0);
+        const lw = Math.max(28, tokenW + GAP * Math.max(0, tokens.length - 1) + 10);
+
         const ax = (seg[0].x + seg[1].x) / 2, ay = (seg[0].y + seg[1].y) / 2;
         const dirx = seg[1].x - seg[0].x, diry = seg[1].y - seg[0].y;
         const segLen = Math.hypot(dirx, diry) || 1;
-        const ux = dirx / segLen, uy = diry / segLen;        // along segment
-        const px = -uy, py = ux;                              // perpendicular
+        const ux = dirx / segLen, uy = diry / segLen;   // along segment
+        const px = -uy, py = ux;                         // perpendicular
 
-        // Build the label rect centred at an offset along the segment.
         const makeRect = (t, side) => {
             const cx = ax + ux * t + px * side;
             const cy = ay + uy * t + py * side;
             return { x: cx - lw / 2, y: cy - LABEL_H + 4, w: lw, h: LABEL_H };
         };
 
-        // Candidate offsets: stay on the route line (small along-segment t first),
-        // then spread perpendicular. Bounded so labels never drift far from the
-        // route, and we never move onto the endpoint pins/cards.
         const maxT = Math.max(0, segLen / 2 - 30);
         const perps = [0, 18, -18, 38, -38, 58, -58];
         const alongs = [0, 16, -16, 34, -34, 50, -50];
@@ -2293,25 +2305,30 @@ function drawColonyLayout(c) {
             const cand = makeRect(t, side);
             if (!hits(cand, cardRects) && !hits(cand, placed)) { rect = cand; break; }
         }
-        // Fallback: walk along the segment in small steps until clear.
         if (!rect) {
             for (let t = 0; t <= maxT; t += 4) {
-                for (const s of [0, 18, -18, 38, -38, 58, -58]) {
+                for (const s of perps) {
                     const cand = makeRect(t, s);
                     if (!hits(cand, cardRects) && !hits(cand, placed)) { rect = cand; break; }
                 }
                 if (rect) break;
             }
         }
-        if (!rect) rect = makeRect(0, 0); // give up gracefully
+        if (!rect) rect = makeRect(0, 0);
         placed.push(rect);
 
         ctx.fillStyle = 'rgba(15, 15, 15, 0.85)';
         roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 3);
         ctx.fill();
-        ctx.fillStyle = PI_COLORS[mat ? mat.tier : 0] || '#888';
-        ctx.textAlign = 'center';
-        ctx.fillText(text, rect.x + rect.w / 2, rect.y + 10);
+
+        let x = rect.x + rect.w / 2 - (tokenW + GAP * Math.max(0, tokens.length - 1)) / 2;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        tokens.forEach(t => {
+            ctx.fillStyle = t.color;
+            ctx.fillText(t.text, x, rect.y + 10);
+            x += ctx.measureText(t.text).width + GAP;
+        });
         ctx.textAlign = 'left';
     });
 }
@@ -2327,43 +2344,60 @@ function drawColonyLayoutOverlay(c) {
 
     const analysis = analyseColonyCached(c);
     const sel = AppState.layoutSel;
+    const focus = sel || AppState.layoutHover;
 
-    // Selected pin info panel
-    if (sel && layout.byId[sel]) {
-        const p = layout.byId[sel];
-        const lines = [p.label, PIN_KIND_NAMES[p.kind] || 'Pin'];
+    // Pin info panel (shown for the selected pin, or on hover)
+    if (focus && layout.byId[focus]) {
+        const p = layout.byId[focus];
+        const lines = [
+            { text: p.label, color: '#fff', bold: true },
+            { text: PIN_KIND_NAMES[p.kind] || 'Pin', color: '#aaa' }
+        ];
         if (p.kind === 'extractor') {
             const e = (analysis.extractors || []).find(x => x.pinId === p.pinId);
             if (e) {
-                lines.push(`${e.qtyPerCycle.toLocaleString()} / ${formatDuration(e.cycleTime * 1000)}`);
-                lines.push(extractorStatus(e).text);
+                lines.push({ text: `${e.qtyPerCycle.toLocaleString()} / ${formatDuration(e.cycleTime * 1000)}`, color: '#aaa' });
+                lines.push({ text: extractorStatus(e).text, color: extractorStatus(e).expired ? '#f87171' : '#aaa' });
             } else {
-                lines.push('No program');
+                lines.push({ text: 'No program', color: '#aaa' });
             }
         }
         if (p.kind === 'launchpad' || p.kind === 'storage' || p.kind === 'cc') {
             const sp = (analysis.storagePins || []).find(x => x.typeId === p.typeId);
-            if (sp) lines.push(`${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m3 (${Math.round(sp.fill * 100)}%)`);
+            if (sp) lines.push({ text: `${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m3 (${Math.round(sp.fill * 100)}%)`, color: '#aaa' });
             const raw = p.raw;
             if (raw && Array.isArray(raw.contents) && raw.contents.length) {
                 raw.contents.slice(0, 3).forEach(ct => {
                     const m = getMaterialById(ct.type_id);
-                    lines.push(`${m ? m.name : 'Type ' + ct.type_id}: ${formatAmount(ct.amount)}`);
+                    lines.push({ text: `${m ? m.name : 'Type ' + ct.type_id}: ${formatAmount(ct.amount)}`, color: '#aaa' });
                 });
             }
         }
-        const w = 210, lh = 15, h = 12 + lines.length * lh;
+        // Routes touching this pin, with material name + quantity, colour-coded
+        const routeLines = [];
+        layout.routes.forEach(r => {
+            const isOut = r.source === focus;
+            const isIn = r.dest === focus;
+            const isVia = (r.waypoints || []).indexOf(focus) !== -1;
+            if (!isOut && !isIn && !isVia) return;
+            const m = getMaterialById(r.contentTypeId);
+            const arrow = isOut ? '→' : isIn ? '←' : '↔';
+            routeLines.push({ text: `${arrow} ${m ? m.name : 'Type ' + r.content_type_id} ${formatAmount(Math.round(r.quantity))}`, color: PI_COLORS[m ? m.tier : 0] || '#888' });
+        });
+        routeLines.slice(0, 6).forEach(rl => lines.push(rl));
+
+        const w = 230, lh = 15, h = 12 + lines.length * lh;
         const px = margin + 4, py = top;
-        ctx.fillStyle = 'rgba(20, 20, 20, 0.9)';
+        ctx.fillStyle = 'rgba(20, 20, 20, 0.92)';
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 1;
         roundRect(ctx, px, py, w, h, 6);
         ctx.fill();
         ctx.stroke();
-        lines.forEach((t, i) => {
-            ctx.fillStyle = i === 0 ? '#fff' : '#aaa';
-            ctx.font = (i === 0 ? 'bold 11px' : '10px') + ' Titillium Web, sans-serif';
-            ctx.fillText(t, px + 10, py + 8 + i * lh);
+        lines.forEach((ln, i) => {
+            ctx.fillStyle = ln.color;
+            ctx.font = (ln.bold ? 'bold 11px' : '10px') + ' Titillium Web, sans-serif';
+            ctx.fillText(ln.text, px + 10, py + 8 + i * lh);
         });
     }
 
@@ -2812,6 +2846,15 @@ function onPointerMove(e) {
             }
         } else if (AppState.viewMode === 'chain') {
             canvas.style.cursor = chainNodeAt(pos) ? 'pointer' : 'default';
+        } else if (AppState.viewMode === 'colonies' && AppState.colonyDetail && AppState.layoutMode) {
+            const wpos = screenToWorld(pos.x, pos.y);
+            const pin = colonyLayoutPinAt(wpos);
+            const id = pin ? pin.pinId : null;
+            if (id !== AppState.layoutHover) {
+                AppState.layoutHover = id;
+                draw();
+            }
+            canvas.style.cursor = id ? 'pointer' : 'default';
         }
     }
 
@@ -2842,6 +2885,7 @@ function onPointerUp(e) {
     AppState.pointerDown = null;
     AppState.pointerId = null;
     AppState.pendingHit = null;
+    AppState.layoutHover = null;
     AppState.hasDragged = false;
 
     if (!wasDrag && hit) {
