@@ -2275,6 +2275,7 @@ function drawColonyLayout(c) {
         roundRect(ctx, x, y, LAYOUT_CARD_W, ch, 6);
         ctx.fill();
         ctx.stroke();
+        ctx.textBaseline = 'alphabetic'; // explicit: a previous view may leave 'top'
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 10px Titillium Web, sans-serif';
         ctx.textAlign = 'center';
@@ -2287,7 +2288,7 @@ function drawColonyLayout(c) {
             ctx.fillStyle = p.color;
             ctx.font = '9px Titillium Web, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('CC L' + (c.upgrade_level || 0), p.x, y + 27, LAYOUT_CARD_W - 10);
+            ctx.fillText('CC L' + (c.upgrade_level || 0), p.x, y + 28, LAYOUT_CARD_W - 10);
             const cap = ccCapacity(c.upgrade_level || 0);
             const cpuFrac = cap.cpu ? analysis.usedCpu / cap.cpu : 0;
             const pgFrac = cap.pg ? analysis.usedPg / cap.pg : 0;
@@ -2296,18 +2297,18 @@ function drawColonyLayout(c) {
             ctx.fillStyle = '#f87171';
             ctx.font = '8px Titillium Web, sans-serif';
             ctx.textAlign = 'left';
-            ctx.fillText('CPU', x + 8, y + 40);
+            ctx.fillText('CPU', x + 8, y + 43);
             ctx.textAlign = 'right';
-            ctx.fillText(analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 40);
-            drawBar(barX, y + 45, barW, 5, cpuFrac, '#f87171');
+            ctx.fillText(analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 43);
+            drawBar(barX, y + 51, barW, 5, cpuFrac, '#f87171');
             // Powergrid row
             ctx.fillStyle = '#58a6ff';
             ctx.font = '8px Titillium Web, sans-serif';
             ctx.textAlign = 'left';
-            ctx.fillText('PG', x + 8, y + 62);
+            ctx.fillText('PG', x + 8, y + 67);
             ctx.textAlign = 'right';
-            ctx.fillText(analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 62);
-            drawBar(barX, y + 67, barW, 5, pgFrac, '#58a6ff');
+            ctx.fillText(analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 67);
+            drawBar(barX, y + 75, barW, 5, pgFrac, '#58a6ff');
         } else {
             const sub = pinSubLabel(p, analysis);
             if (sub) {
