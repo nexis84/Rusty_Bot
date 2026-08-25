@@ -1078,7 +1078,7 @@ function drawRefCard(mat, x, y, w, h, color) {
         ctx.fillText(`${mat.volume}m³`, x + w - 12, y + 12);
     }
 
-    if (mat.inputs) {
+    if (mat.inputs && Object.keys(mat.inputs).length > 0) {
         const inputEntries = Object.entries(mat.inputs).slice(0, 2);
         let yPos = y + 38;
 
@@ -1194,7 +1194,7 @@ function drawChainNode(node) {
     ctx.font = '9px sans-serif';
 
     const mat = getMaterialById(node.materialId);
-    if (mat && mat.inputs) {
+    if (mat && mat.inputs && Object.keys(mat.inputs).length > 0) {
         const inputQty = Object.values(mat.inputs)[0];
         ctx.fillText(`${inputQty} → ${mat.batchSize} units`, node.x, y + 22);
     }
