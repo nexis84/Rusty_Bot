@@ -19,6 +19,7 @@ const AppState = {
     currentTab: 'system',
     hoveredCard: null,
     systemsLoaded: false,
+    planetsLoaded: false,
     colonies: null,
     coloniesLoading: false,
     colonyDetail: null,
@@ -823,8 +824,9 @@ async function loadColonies() {
         const characterId = piEsiAuth.getCurrentCharacter();
         const colonies = await piEsiAuth.esiFetch(`/characters/${characterId}/planets/`);
 
-        // Ensure system data is loaded so we can resolve solar system names
-        const systemsLoaded = await ensureSystemsLoaded();
+        // Ensure system + planet data is loaded so we can resolve solar system
+        // names and planet radii (radii power the link CPU/PG cost calc).
+        const [systemsLoaded] = await Promise.all([ensureSystemsLoaded(), ensurePlanetsLoaded()]);
 
         // Fetch per-colony detail for producing/stored info (cached 600s by ESI)
         const detailed = [];
@@ -954,26 +956,24 @@ const PLANET_RADIUS_KM = {
     temperate: 12000, barren: 9000, oceanic: 13000, ice: 10000,
     gas: 22000, lava: 6950, storm: 14000, plasma: 15000
 };
-// Planet info (radius + name) fetched from ESI /universe/planets/{id}/
-// (cached for the session; ESI itself caches the route for a day). Radius is
-// used for link distance so every colony's CPU/PG matches in-game without
-// manual radius entry; the name is shown on colony cards and headers.
+// Planet info (radius from the SDE pi-planets.js build; name from ESI
+// /universe/planets/{id}/). Cached for the session; ESI caches the name route
+// for a day. Radius is used for link distance so every colony's CPU/PG matches
+// in-game without manual radius entry.
 const planetInfoCache = {};
 async function ensurePlanetInfo(planetId) {
     if (planetId == null) return null;
     if (planetInfoCache[planetId] !== undefined) return planetInfoCache[planetId];
+    const info = { radius: null, name: null };
+    if (typeof PI_PLANET_RADII !== 'undefined' && PI_PLANET_RADII && typeof PI_PLANET_RADII[planetId] === 'number') {
+        info.radius = PI_PLANET_RADII[planetId];
+    }
     try {
         const data = await piEsiAuth.esiFetch('/universe/planets/' + planetId + '/');
-        const info = {
-            radius: data && typeof data.radius === 'number' ? data.radius : null,
-            name: data && typeof data.name === 'string' ? data.name : null
-        };
-        planetInfoCache[planetId] = info;
-        return info;
-    } catch (_) {
-        planetInfoCache[planetId] = { radius: null, name: null };
-        return planetInfoCache[planetId];
-    }
+        if (data && typeof data.name === 'string') info.name = data.name;
+    } catch (_) {}
+    planetInfoCache[planetId] = info;
+    return info;
 }
 async function ensurePlanetRadius(planetId) {
     const info = await ensurePlanetInfo(planetId);
@@ -3357,6 +3357,28 @@ function ensureSystemsLoaded() {
         document.head.appendChild(script);
     });
     return systemsLoadPromise;
+}
+
+let planetsLoadPromise = null;
+function ensurePlanetsLoaded() {
+    if (AppState.planetsLoaded) return Promise.resolve(true);
+    if (planetsLoadPromise) return planetsLoadPromise; // single-flight
+
+    planetsLoadPromise = new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'pi-planets.js?v=' + (window.PI_ASSET_VERSION || '1');
+        script.onload = () => {
+            AppState.planetsLoaded = true;
+            resolve(true);
+        };
+        script.onerror = () => {
+            console.error('Failed to load pi-planets.js');
+            planetsLoadPromise = null;
+            resolve(false);
+        };
+        document.head.appendChild(script);
+    });
+    return planetsLoadPromise;
 }
 
 async function checkSystem() {
