@@ -1312,6 +1312,7 @@ function renderColonies(colonies, systemsLoaded) {
     });
 
     elements.coloniesList.innerHTML = html;
+    elements.coloniesList.insertAdjacentHTML('beforeend', '<div class="colony-disclaimer"><i class="fas fa-info-circle"></i> CPU / Powergrid values are estimated and may differ slightly from in-game.</div>');
 }
 
 // ---------- Colony countdown / valuation helpers ----------
@@ -2423,7 +2424,7 @@ function drawColonyLayout(c) {
             ctx.textAlign = 'left';
             ctx.fillText('CPU', x + 8, y + 43);
             ctx.textAlign = 'right';
-            ctx.fillText(analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 43);
+            ctx.fillText('≈ ' + analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 43);
             drawBar(barX, y + 51, barW, 5, cpuFrac, '#f87171');
             // Powergrid row
             ctx.fillStyle = '#58a6ff';
@@ -2431,7 +2432,7 @@ function drawColonyLayout(c) {
             ctx.textAlign = 'left';
             ctx.fillText('PG', x + 8, y + 67);
             ctx.textAlign = 'right';
-            ctx.fillText(analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 67);
+            ctx.fillText('≈ ' + analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 67);
             drawBar(barX, y + 75, barW, 5, pgFrac, '#58a6ff');
         } else {
             const sub = pinSubLabel(p, analysis);
@@ -2581,6 +2582,7 @@ function drawColonyLayoutOverlay(c) {
                 lines.push({ text: 'Structures + links', color: '#aaa' });
                 lines.push({ text: `CPU ${analysis.usedCpu.toLocaleString()} / ${cap.cpu.toLocaleString()}`, color: '#f87171' });
                 lines.push({ text: `PG ${analysis.usedPg.toLocaleString()} / ${cap.pg.toLocaleString()}`, color: '#58a6ff' });
+                lines.push({ text: 'May differ slightly from in-game', color: '#777' });
             }
             const raw = p.raw;
             if (raw && Array.isArray(raw.contents) && raw.contents.length) {
