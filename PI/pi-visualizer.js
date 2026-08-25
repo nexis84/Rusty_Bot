@@ -838,11 +838,13 @@ async function loadColonies() {
             }
         }
 
-        // Fetch each planet's real radius (public ESI route) so link CPU/PG cost
-        // is exact for every colony, not just the per-type default.
+        // Fetch each planet's real radius + name (public ESI route) so link
+        // CPU/PG cost is exact for every colony and the planet name is shown.
         await Promise.all(detailed.map(async c => {
             if (c.planet_id == null) return;
-            c._esiRadius = await ensurePlanetRadius(c.planet_id);
+            const info = await ensurePlanetInfo(c.planet_id);
+            c._esiRadius = info ? info.radius : null;
+            c._planetName = info ? info.name : null;
         }));
 
         AppState.colonies = detailed;
@@ -952,22 +954,30 @@ const PLANET_RADIUS_KM = {
     temperate: 12000, barren: 9000, oceanic: 13000, ice: 10000,
     gas: 22000, lava: 6950, storm: 14000, plasma: 15000
 };
-// Real planet radii fetched from ESI /universe/planets/{id}/ (cached for the
-// session; ESI itself caches the route for a day). Used for link distance so
-// every colony's CPU/PG matches in-game without manual radius entry.
-const planetRadiusCache = {};
-async function ensurePlanetRadius(planetId) {
+// Planet info (radius + name) fetched from ESI /universe/planets/{id}/
+// (cached for the session; ESI itself caches the route for a day). Radius is
+// used for link distance so every colony's CPU/PG matches in-game without
+// manual radius entry; the name is shown on colony cards and headers.
+const planetInfoCache = {};
+async function ensurePlanetInfo(planetId) {
     if (planetId == null) return null;
-    if (planetRadiusCache[planetId] !== undefined) return planetRadiusCache[planetId];
+    if (planetInfoCache[planetId] !== undefined) return planetInfoCache[planetId];
     try {
         const data = await piEsiAuth.esiFetch('/universe/planets/' + planetId + '/');
-        const r = data && typeof data.radius === 'number' ? data.radius : null;
-        planetRadiusCache[planetId] = r;
-        return r;
+        const info = {
+            radius: data && typeof data.radius === 'number' ? data.radius : null,
+            name: data && typeof data.name === 'string' ? data.name : null
+        };
+        planetInfoCache[planetId] = info;
+        return info;
     } catch (_) {
-        planetRadiusCache[planetId] = null;
-        return null;
+        planetInfoCache[planetId] = { radius: null, name: null };
+        return planetInfoCache[planetId];
     }
+}
+async function ensurePlanetRadius(planetId) {
+    const info = await ensurePlanetInfo(planetId);
+    return info ? info.radius : null;
 }
 function getColonyRadiusOverride(planetId) {
     try {
@@ -1237,6 +1247,7 @@ function renderColonies(colonies, systemsLoaded) {
         coloniesInSystem.forEach(c => {
             const pt = getPlanetTypeByNameOrId(c.planet_type);
             const typeName = pt ? pt.name : `Planet type ${c.planet_type}`;
+            const planetName = c._planetName || null;
             const color = pt ? pt.color : '#666';
 
             const upgrades = c.upgrade_level || 0;
@@ -1282,10 +1293,11 @@ function renderColonies(colonies, systemsLoaded) {
 
             html += `<div class="colony-item" style="border-left-color: ${color}">
                 <div class="colony-top">
-                    <span class="colony-name" style="color: ${color}">${escapeHtml(typeName)}</span>
+                    <span class="colony-name" style="color: ${color}" title="${escapeHtml(planetName || typeName)}">${escapeHtml(planetName || typeName)}</span>
                     <span class="colony-upgrade" title="Command Center upgrade level">${upgradeBar}</span>
                 </div>
                 <div class="colony-meta">
+                    ${planetName ? `<span><i class="fas fa-layer-group"></i>${escapeHtml(typeName)}</span>` : ''}
                     ${pinCount ? `<span><i class="fas fa-thumbtack"></i>${pinCount}</span>` : ''}
                     <span><i class="fas fa-cubes"></i>CC ${upgrades}</span>
                     <span class="colony-radius"><i class="fas fa-globe"></i>R <input class="colony-radius-input" data-planet="${c.planet_id}" type="number" min="1" step="100" value="${radiusVal}" title="Planet radius (km) - used to calculate link CPU/Powergrid cost"></span>
@@ -2048,7 +2060,8 @@ function drawColonyCard(c, x, y, w, h) {
     ctx.font = 'bold 13px Titillium Web, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(typeName, x + 16, y + 12);
+    const title = c._planetName ? `${c._planetName} (${typeName})` : typeName;
+    ctx.fillText(title, x + 16, y + 12);
 
     // Upgrade dots
     const dotSize = 10;
@@ -2639,6 +2652,7 @@ function drawColonyChrome(c) {
     const sys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined') ? PI_SYSTEMS[c.solar_system_id] : null;
     const systemName = sys ? sys.name : `System ${c.solar_system_id}`;
     const regionName = sys && sys.regionId && PI_DATA.regions && PI_DATA.regions[sys.regionId] ? PI_DATA.regions[sys.regionId] : null;
+    const planetName = c._planetName ? `${c._planetName} (${typeName})` : typeName;
 
     const x = 30;
     let y = x;
@@ -2668,7 +2682,7 @@ function drawColonyChrome(c) {
     ctx.font = 'bold 22px Titillium Web, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(typeName, x, y);
+    ctx.fillText(planetName, x, y);
     ctx.fillStyle = '#aaa';
     ctx.font = '13px Titillium Web, sans-serif';
     ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''} • CC ${c.upgrade_level || 0} • ${c.num_pins || 0} pins`, x, y + 28);
