@@ -2027,7 +2027,7 @@ function drawColonyCard(c, x, y, w, h) {
 
 const LAYOUT_CARD_W = 150;
 const LAYOUT_CARD_H = 46;
-const CC_CARD_H = 72; // taller: fits the upgrade level + two capacity bars
+const CC_CARD_H = 84; // taller: fits the upgrade level + two capacity bars with clear gaps
 const LAYOUT_COLUMN_NAMES = ['Command Center', 'Extractors', 'Processors', 'Storage', 'Other'];
 
 function pinColumnIndex(kind) {
@@ -2281,21 +2281,33 @@ function drawColonyLayout(c) {
         ctx.fillText(p.label, p.x, y + 15, LAYOUT_CARD_W - 10);
 
         if (p.kind === 'cc') {
-            // Upgrade level + two capacity bars (CPU red, Powergrid blue)
+            // Upgrade level + two capacity bars (CPU red, Powergrid blue).
+            // Label + value share one line; the bar sits on its own line below
+            // with clear gaps so it never overlaps the text.
             ctx.fillStyle = p.color;
             ctx.font = '9px Titillium Web, sans-serif';
-            ctx.fillText('CC L' + (c.upgrade_level || 0), p.x, y + 29, LAYOUT_CARD_W - 10);
+            ctx.textAlign = 'center';
+            ctx.fillText('CC L' + (c.upgrade_level || 0), p.x, y + 27, LAYOUT_CARD_W - 10);
             const cap = ccCapacity(c.upgrade_level || 0);
             const cpuFrac = cap.cpu ? analysis.usedCpu / cap.cpu : 0;
             const pgFrac = cap.pg ? analysis.usedPg / cap.pg : 0;
+            const barX = x + 10, barW = LAYOUT_CARD_W - 20;
+            // CPU row
             ctx.fillStyle = '#f87171';
             ctx.font = '8px Titillium Web, sans-serif';
-            ctx.fillText('CPU ' + analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), p.x, y + 41, LAYOUT_CARD_W - 8);
-            drawBar(x + 12, y + 44, LAYOUT_CARD_W - 24, 5, cpuFrac, '#f87171');
+            ctx.textAlign = 'left';
+            ctx.fillText('CPU', x + 8, y + 40);
+            ctx.textAlign = 'right';
+            ctx.fillText(analysis.usedCpu.toLocaleString() + ' / ' + cap.cpu.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 40);
+            drawBar(barX, y + 45, barW, 5, cpuFrac, '#f87171');
+            // Powergrid row
             ctx.fillStyle = '#58a6ff';
             ctx.font = '8px Titillium Web, sans-serif';
-            ctx.fillText('PG ' + analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), p.x, y + 58, LAYOUT_CARD_W - 8);
-            drawBar(x + 12, y + 61, LAYOUT_CARD_W - 24, 5, pgFrac, '#58a6ff');
+            ctx.textAlign = 'left';
+            ctx.fillText('PG', x + 8, y + 62);
+            ctx.textAlign = 'right';
+            ctx.fillText(analysis.usedPg.toLocaleString() + ' / ' + cap.pg.toLocaleString(), x + LAYOUT_CARD_W - 8, y + 62);
+            drawBar(barX, y + 67, barW, 5, pgFrac, '#58a6ff');
         } else {
             const sub = pinSubLabel(p, analysis);
             if (sub) {
