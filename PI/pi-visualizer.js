@@ -2233,7 +2233,14 @@ function drawColonyLayout(c) {
         ctx.globalAlpha = 1;
     });
 
-    // Route quantity labels (on top of cards)
+    // Route quantity labels (drawn last; nudged so they never sit on top of
+    // pin cards or on top of each other)
+    const cardRects = layout.pins.map(p => ({
+        x: p.x - LAYOUT_CARD_W / 2, y: p.y - LAYOUT_CARD_H / 2, w: LAYOUT_CARD_W, h: LAYOUT_CARD_H
+    }));
+    const placed = [];
+    const LABEL_H = 13;
+    const hits = (r, list) => list.some(o => r.x < o.x + o.w && r.x + r.w > o.x && r.y < o.y + o.h && r.y + r.h > o.y);
     layout.routes.forEach(r => {
         const path = [layout.byId[r.source], ...(r.waypoints || []).map(w => layout.byId[w]), layout.byId[r.dest]];
         if (path.some(p => !p) || path.length < 2) return;
@@ -2242,10 +2249,36 @@ function drawColonyLayout(c) {
         const m1 = path[Math.floor((path.length - 1) / 2)];
         const m2 = path[Math.ceil((path.length - 1) / 2)];
         const mat = getMaterialById(r.contentTypeId);
-        ctx.fillStyle = PI_COLORS[mat ? mat.tier : 0] || '#888';
         ctx.font = 'bold 9px Titillium Web, sans-serif';
+        const text = formatAmount(Math.round(r.quantity));
+        const lw = Math.max(28, ctx.measureText(text).width + 10);
+        let lx = (m1.x + m2.x) / 2;
+        let ly = (m1.y + m2.y) / 2 - 8;
+        const rect = { x: lx - lw / 2, y: ly - LABEL_H + 4, w: lw, h: LABEL_H };
+
+        // Single-waypoint routes collapse the midpoint onto the waypoint pin's
+        // centre; slide such labels along the route to just outside the card.
+        if (hits(rect, cardRects)) {
+            const i1 = path.indexOf(m1);
+            const nxt = path[i1 + 1] || path[i1 - 1];
+            if (nxt) {
+                const ang = Math.atan2(nxt.y - m1.y, nxt.x - m1.x);
+                lx = m1.x + Math.cos(ang) * (LAYOUT_CARD_W / 2 + 22);
+                ly = m1.y + Math.sin(ang) * (LAYOUT_CARD_H / 2 + 18);
+                rect.x = lx - lw / 2;
+                rect.y = ly - LABEL_H + 4;
+            }
+        }
+        // Stagger downward until clear of cards and previously placed labels
+        while (hits(rect, cardRects) || hits(rect, placed)) rect.y += LABEL_H + 2;
+        placed.push(rect);
+
+        ctx.fillStyle = 'rgba(15, 15, 15, 0.85)';
+        roundRect(ctx, rect.x, rect.y, rect.w, rect.h, 3);
+        ctx.fill();
+        ctx.fillStyle = PI_COLORS[mat ? mat.tier : 0] || '#888';
         ctx.textAlign = 'center';
-        ctx.fillText(formatAmount(Math.round(r.quantity)), (m1.x + m2.x) / 2, (m1.y + m2.y) / 2 - 8);
+        ctx.fillText(text, rect.x + rect.w / 2, rect.y + 10);
         ctx.textAlign = 'left';
     });
 }
