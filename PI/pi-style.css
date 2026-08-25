@@ -325,6 +325,80 @@ body {
     opacity: 0.8;
 }
 
+/* Colony storage fill bars */
+.colony-item .storage-fill {
+    margin-top: 0.4rem;
+}
+
+.storage-fill-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+}
+
+.storage-fill-pct {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.storage-fill-pct.warn {
+    color: #fbbf24;
+}
+
+.storage-fill-pct.full {
+    color: #f87171;
+}
+
+.storage-warn-text {
+    font-weight: 700;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.storage-warn-text.warn {
+    color: #fbbf24;
+}
+
+.storage-warn-text.full {
+    color: #f87171;
+}
+
+.storage-extra {
+    color: var(--muted);
+    font-size: 0.6rem;
+}
+
+.storage-fill-bar {
+    height: 5px;
+    margin-top: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.storage-fill-bar-inner {
+    height: 100%;
+    background: #4ade80;
+    border-radius: 3px;
+}
+
+.storage-fill-bar-inner.warn {
+    background: #fbbf24;
+}
+
+.storage-fill-bar-inner.full {
+    background: #f87171;
+}
+
+.storage-fill-meta {
+    margin-top: 1px;
+    font-size: 0.6rem;
+    color: var(--muted);
+}
+
 .colony-system {
     margin-bottom: 0.25rem;
 }

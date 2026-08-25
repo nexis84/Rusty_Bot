@@ -840,15 +840,60 @@ function getRecipeBySchematicId(schematicId) {
 }
 
 // Summarise a colony's pins into "producing" and "stored" info.
+// ---------- Colony storage pins (launchpads / storage / command centers) ----------
+// Capacities from the SDE types.jsonl "capacity" attribute:
+//   Launchpads (group 1030) = 10,000 m3, Storage Facilities (group 1029) = 12,000 m3,
+//   Command Centers (group 1027, published) = 500 m3
+const LAUNCHPAD_TYPES = new Set([2256, 2542, 2543, 2544, 2552, 2555, 2556, 2557]);
+const STORAGE_FACILITY_TYPES = new Set([2257, 2535, 2536, 2541, 2558, 2560, 2561, 2562]);
+const COMMAND_CENTER_TYPES = new Set([2254, 2524, 2525, 2533, 2534, 2549, 2550, 2551]);
+const PIN_CAPACITY = {};
+LAUNCHPAD_TYPES.forEach(id => { PIN_CAPACITY[id] = 10000; });
+STORAGE_FACILITY_TYPES.forEach(id => { PIN_CAPACITY[id] = 12000; });
+COMMAND_CENTER_TYPES.forEach(id => { PIN_CAPACITY[id] = 500; });
+const PIN_KIND_NAMES = { launchpad: 'Launchpad', storage: 'Storage', cc: 'Command Center' };
+
+function storagePinInfo(pin) {
+    if (!pin || !PIN_CAPACITY[pin.type_id]) return null;
+    const kind = LAUNCHPAD_TYPES.has(pin.type_id) ? 'launchpad'
+        : STORAGE_FACILITY_TYPES.has(pin.type_id) ? 'storage'
+        : 'cc';
+    let used = 0;
+    (pin.contents || []).forEach(c => {
+        if (!c || !c.type_id || !c.amount) return;
+        const mat = getMaterialById(c.type_id);
+        if (!mat || mat.volume === undefined) return; // unknown volume: ignore, never warn on it
+        used += c.amount * mat.volume;
+    });
+    return { kind, typeId: pin.type_id, used, capacity: PIN_CAPACITY[pin.type_id], fill: used / PIN_CAPACITY[pin.type_id] };
+}
+
 function analyseColony(detail) {
     const producing = {}; // materialId -> {name, tier, count, amount}
     const stored = {};    // materialId -> amount
+    const storagePins = [];
 
     if (!detail || !Array.isArray(detail.pins)) {
-        return { producing: [], stored: [] };
+        return { producing: [], stored: [], storagePins: [], fullest: null, extraStorage: 0 };
     }
 
     detail.pins.forEach(pin => {
+        const sp = storagePinInfo(pin);
+        if (sp) {
+            // Top contents by m3 for the detail view
+            sp.top = (pin.contents || [])
+                .map(c => {
+                    const mat = getMaterialById(c.type_id);
+                    return {
+                        name: mat ? mat.name : `Type ${c.type_id}`,
+                        m3: (mat && mat.volume !== undefined && c.amount) ? c.amount * mat.volume : 0
+                    };
+                })
+                .filter(t => t.m3 > 0)
+                .sort((a, b) => b.m3 - a.m3)
+                .slice(0, 3);
+            storagePins.push(sp);
+        }
         // Extractors: pull a raw material
         if (pin.extractor_details && pin.extractor_details.product_type_id) {
             const matId = pin.extractor_details.product_type_id;
@@ -890,12 +935,17 @@ function analyseColony(detail) {
         }
     });
 
+    storagePins.sort((a, b) => b.fill - a.fill);
+
     return {
         producing: Object.values(producing),
         stored: Object.entries(stored).map(([id, amount]) => {
             const mat = getMaterialById(Number(id));
             return { id: Number(id), name: mat ? mat.name : `Type ${id}`, tier: mat ? mat.tier : 0, amount };
-        }).filter(s => s.amount > 0)
+        }).filter(s => s.amount > 0),
+        storagePins,
+        fullest: storagePins[0] || null,
+        extraStorage: Math.max(0, storagePins.length - 1)
     };
 }
 
@@ -954,7 +1004,8 @@ function renderColonies(colonies, systemsLoaded) {
             const lastUpdate = c.last_update ? new Date(c.last_update).toLocaleString() : '';
             const pinCount = c.num_pins ? `${c.num_pins} pins` : '';
 
-            const { producing, stored } = analyseColonyCached(c);
+            const analysis = analyseColonyCached(c);
+            const { producing, stored } = analysis;
 
             let produceHtml = '';
             if (producing.length) {
@@ -982,6 +1033,8 @@ function renderColonies(colonies, systemsLoaded) {
                 storedHtml += `</div>`;
             }
 
+            const storageHtml = storageFillHtml(analysis);
+
             html += `<div class="colony-item" style="border-left-color: ${color}">
                 <div class="colony-top">
                     <span class="colony-name" style="color: ${color}">${escapeHtml(typeName)}</span>
@@ -993,12 +1046,33 @@ function renderColonies(colonies, systemsLoaded) {
                 </div>
                 ${produceHtml}
                 ${storedHtml}
+                ${storageHtml}
                 ${lastUpdate ? `<div class="colony-updated"><i class="fas fa-clock"></i> Last update: ${escapeHtml(lastUpdate)}</div>` : ''}
             </div>`;
         });
     });
 
     elements.coloniesList.innerHTML = html;
+}
+
+// Sidebar storage fill block for the fullest storage pin on a colony
+function storageFillHtml(analysis) {
+    const sp = analysis && analysis.fullest;
+    if (!sp) return '';
+    const pct = Math.min(100, Math.round(sp.fill * 100));
+    const cls = sp.fill >= 1 ? 'full' : (sp.fill >= 0.8 ? 'warn' : '');
+    const warnText = sp.fill >= 1 ? '<span class="storage-warn-text full">FULL</span>'
+        : (sp.fill >= 0.8 ? '<span class="storage-warn-text warn">nearly full</span>' : '');
+    const extra = analysis.extraStorage > 0 ? `<span class="storage-extra">+${analysis.extraStorage} more</span>` : '';
+    return `<div class="storage-fill">
+        <div class="storage-fill-label">
+            <i class="fas fa-warehouse"></i> ${PIN_KIND_NAMES[sp.kind]}
+            <span class="storage-fill-pct ${cls}">${pct}%</span>
+            ${warnText}${extra}
+        </div>
+        <div class="storage-fill-bar"><div class="storage-fill-bar-inner ${cls}" style="width:${pct}%"></div></div>
+        <div class="storage-fill-meta">${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m&sup3;</div>
+    </div>`;
 }
 
 function formatAmount(n) {
@@ -1428,6 +1502,18 @@ function drawColoniesView() {
     ctx.textBaseline = 'top';
     ctx.fillText(`${piEsiAuth.getCurrentCharacterName() || 'Character'} - ${colonies.length} ${colonies.length === 1 ? 'colony' : 'colonies'}`, 20, 20);
 
+    // Near-capacity warning across colonies
+    const nearFull = colonies.filter(c => {
+        const a = analyseColonyCached(c);
+        return a.fullest && a.fullest.fill >= 0.8;
+    });
+    if (nearFull.length) {
+        const anyFull = nearFull.some(c => analyseColonyCached(c).fullest.fill >= 1);
+        ctx.fillStyle = anyFull ? '#f87171' : '#fbbf24';
+        ctx.font = '12px Titillium Web, sans-serif';
+        ctx.fillText(`${nearFull.length} ${nearFull.length === 1 ? 'colony' : 'colonies'} near storage capacity`, 20, 44);
+    }
+
     if (colonies.length === 0) {
         ctx.fillStyle = '#888';
         ctx.font = '14px Titillium Web, sans-serif';
@@ -1445,7 +1531,7 @@ function drawColoniesView() {
     const systemIds = Object.keys(bySystem).map(Number).sort((a, b) => a - b);
 
     const cardWidth = 320;
-    const cardHeight = 150;
+    const cardHeight = 164;
     const gapX = 24;
     const gapY = 24;
     const headerH = 34;
@@ -1593,6 +1679,27 @@ function drawColonyCard(c, x, y, w, h) {
             });
         }
     }
+
+    // Storage fill strip (fullest storage pin)
+    const analysis = analyseColonyCached(c);
+    if (analysis.fullest) {
+        const sp = analysis.fullest;
+        const pct = Math.min(1, sp.fill);
+        const barY = y + h - 14;
+        const barW = w - 32;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        roundRect(ctx, x + 16, barY, barW, 6, 3);
+        ctx.fill();
+        if (pct > 0) {
+            ctx.fillStyle = sp.fill >= 1 ? '#f87171' : (sp.fill >= 0.8 ? '#fbbf24' : '#4ade80');
+            roundRect(ctx, x + 16, barY, Math.max(6, barW * pct), 6, 3);
+            ctx.fill();
+        }
+        ctx.fillStyle = '#999';
+        ctx.font = '9px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${PIN_KIND_NAMES[sp.kind]} ${Math.round(sp.fill * 100)}%`, x + 16, barY - 12);
+    }
 }
 
 // ---------- Colony Detail View ----------
@@ -1687,9 +1794,61 @@ function drawColonyDetail(c) {
         });
     }
 
+    // ---- Storage fill (below stored list) ----
+    const analysis = analyseColonyCached(c);
+    let storageBottom = sy;
+    if (analysis.storagePins.length) {
+        let fy = sy + 16;
+        const colW = AppState.cssW - margin - sx;
+        ctx.fillStyle = '#e8d900';
+        ctx.font = 'bold 14px Titillium Web, sans-serif';
+        ctx.fillText('STORAGE', sx, fy);
+        fy += 24;
+
+        analysis.storagePins.forEach(sp => {
+            const pct = Math.min(100, Math.round(sp.fill * 100));
+            const color = sp.fill >= 1 ? '#f87171' : (sp.fill >= 0.8 ? '#fbbf24' : '#4ade80');
+
+            ctx.fillStyle = '#ccc';
+            ctx.font = 'bold 11px Titillium Web, sans-serif';
+            ctx.fillText(PIN_KIND_NAMES[sp.kind], sx, fy);
+            ctx.fillStyle = color;
+            ctx.textAlign = 'right';
+            ctx.fillText(`${pct}%`, sx + colW, fy);
+            ctx.textAlign = 'left';
+            fy += 16;
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            roundRect(ctx, sx, fy, colW, 6, 3);
+            ctx.fill();
+            if (pct > 0) {
+                ctx.fillStyle = color;
+                roundRect(ctx, sx, fy, Math.max(6, colW * Math.min(1, sp.fill)), 6, 3);
+                ctx.fill();
+            }
+            fy += 12;
+
+            ctx.fillStyle = '#888';
+            ctx.font = '10px Titillium Web, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m³`, sx + colW, fy);
+            ctx.textAlign = 'left';
+            fy += 14;
+
+            if (sp.top && sp.top.length) {
+                ctx.fillStyle = '#777';
+                ctx.font = '10px Titillium Web, sans-serif';
+                ctx.fillText(sp.top.map(t => `${t.name} ${formatAmount(Math.round(t.m3))}m³`).join(' · '), sx, fy);
+                fy += 16;
+            }
+            fy += 6;
+        });
+        storageBottom = fy;
+    }
+
     // ---- Production chain ----
     // Draw a chain box per produced material showing its inputs
-    let cy = Math.max(py, sy) + 20;
+    let cy = Math.max(py, storageBottom) + 20;
     ctx.fillStyle = '#e8d900';
     ctx.font = 'bold 14px Titillium Web, sans-serif';
     ctx.fillText('PRODUCTION CHAIN', x, cy);
