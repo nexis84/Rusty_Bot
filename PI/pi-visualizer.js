@@ -838,6 +838,7 @@ async function loadColonies() {
                 AppState.layoutMode = AppState.pendingLayoutMode;
                 AppState.layoutSel = null;
                 AppState.pendingLayoutMode = false;
+                resetViewport();
                 updateUrlState();
                 draw();
             }
@@ -1331,7 +1332,10 @@ function draw() {
         return;
     }
 
-    if (AppState.viewMode === 'colonies') {
+    const layoutWorld = AppState.viewMode === 'colonies' &&
+        AppState.colonyDetail && AppState.layoutMode;
+
+    if (AppState.viewMode === 'colonies' && !layoutWorld) {
         drawColoniesView();
         return;
     }
@@ -1340,7 +1344,9 @@ function draw() {
     ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
     ctx.scale(AppState.zoom, AppState.zoom);
 
-    if (AppState.viewMode === 'chain' && AppState.chainLayout) {
+    if (AppState.viewMode === 'colonies') {
+        drawColonyLayout(AppState.colonyDetail);
+    } else if (AppState.viewMode === 'chain' && AppState.chainLayout) {
         drawChain();
     } else if (AppState.viewMode === 'chain') {
         drawNoSelectionPrompt();
@@ -1349,6 +1355,10 @@ function draw() {
     }
 
     ctx.restore();
+
+    if (layoutWorld) {
+        drawColonyLayoutOverlay(AppState.colonyDetail);
+    }
 }
 
 function drawNoSelectionPrompt() {
@@ -2234,6 +2244,19 @@ function drawColonyLayout(c) {
         ctx.fillText(formatAmount(Math.round(r.quantity)), (m1.x + m2.x) / 2, (m1.y + m2.y) / 2 - 8);
         ctx.textAlign = 'left';
     });
+}
+
+// Fixed screen-space UI drawn on top of the zoomable layout canvas
+function drawColonyLayoutOverlay(c) {
+    drawColonyChrome(c);
+
+    const margin = 30;
+    const top = 130;
+    const layout = AppState.colonyLayoutData;
+    if (!layout) return;
+
+    const analysis = analyseColonyCached(c);
+    const sel = AppState.layoutSel;
 
     // Selected pin info panel
     if (sel && layout.byId[sel]) {
@@ -2285,7 +2308,7 @@ function drawColonyLayout(c) {
 
 // ---------- Colony Detail View ----------
 // Shows a single colony's production chain, producing items and stored items.
-function drawColonyDetail(c) {
+function drawColonyChrome(c) {
     const pt = getPlanetTypeByNameOrId(c.planet_type);
     const typeName = pt ? pt.name : `Planet type ${c.planet_type}`;
     const color = pt ? pt.color : '#666';
@@ -2293,9 +2316,8 @@ function drawColonyDetail(c) {
     const systemName = sys ? sys.name : `System ${c.solar_system_id}`;
     const regionName = sys && sys.regionId && PI_DATA.regions && PI_DATA.regions[sys.regionId] ? PI_DATA.regions[sys.regionId] : null;
 
-    const margin = 30;
-    let x = margin;
-    let y = margin;
+    const x = 30;
+    let y = x;
 
     // Back button
     ctx.fillStyle = 'rgba(40,40,40,0.95)';
@@ -2321,13 +2343,14 @@ function drawColonyDetail(c) {
     ctx.fillStyle = '#aaa';
     ctx.font = '13px Titillium Web, sans-serif';
     ctx.fillText(`${systemName}${regionName ? ` (${regionName})` : ''} • CC ${c.upgrade_level || 0} • ${c.num_pins || 0} pins`, x, y + 28);
-    y += 58;
+}
 
-    // Layout mode renders the planet map instead of the detail columns
-    if (AppState.layoutMode) {
-        drawColonyLayout(c);
-        return;
-    }
+function drawColonyDetail(c) {
+    const margin = 30;
+    const x = margin;
+    let y = 128;
+
+    drawColonyChrome(c);
 
     const analysis = analyseColonyCached(c);
     const { producing, stored } = analysis;
@@ -2666,7 +2689,8 @@ function onPointerDown(e) {
             } else if (toggle) {
                 AppState.pendingHit = { type: 'detailToggle', mode: toggle.mode };
             } else if (AppState.layoutMode) {
-                const pin = colonyLayoutPinAt(pos);
+                const wpos = screenToWorld(pos.x, pos.y);
+                const pin = colonyLayoutPinAt(wpos);
                 AppState.pendingHit = pin ? { type: 'layoutPin', pinId: pin.pinId } : { type: 'layoutClear' };
             } else {
                 AppState.pendingHit = null;
@@ -2716,9 +2740,12 @@ function onPointerMove(e) {
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
-        // Reference and colonies views lay out vertically only - panning X there
-        // desyncs the grid from the background, so lock to the Y axis.
-        if (AppState.viewMode === 'reference' || AppState.viewMode === 'colonies') {
+        // Reference and non-layout colonies views lay out vertically only -
+        // panning X there desyncs the grid from the background, so lock to Y.
+        // Colony layout mode is a full world-space view, so it pans freely.
+        const lockY = AppState.viewMode === 'reference' ||
+            (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
+        if (lockY) {
             AppState.canvasOffset.y += dy;
         } else {
             AppState.canvasOffset.x += dx;
@@ -2746,17 +2773,20 @@ function onPointerUp(e) {
             AppState.colonyDetail = hit.colony;
             AppState.layoutMode = false;
             AppState.layoutSel = null;
+            resetViewport();
             updateUrlState();
             draw();
         } else if (hit.type === 'colonyBack') {
             AppState.colonyDetail = null;
             AppState.layoutMode = false;
             AppState.layoutSel = null;
+            resetViewport();
             updateUrlState();
             draw();
         } else if (hit.type === 'detailToggle') {
             AppState.layoutMode = hit.mode;
             AppState.layoutSel = null;
+            resetViewport();
             draw();
         } else if (hit.type === 'layoutPin') {
             AppState.layoutSel = AppState.layoutSel === hit.pinId ? null : hit.pinId;
@@ -2914,9 +2944,13 @@ function fitView() {
     if (AppState.viewMode === 'chain' && AppState.chainLayout) {
         fitChainView(AppState.chainLayout);
     } else {
-        AppState.canvasOffset = { x: 0, y: 0 };
-        setZoom(1);
+        resetViewport();
     }
+}
+
+function resetViewport() {
+    AppState.canvasOffset = { x: 0, y: 0 };
+    setZoom(1);
 }
 
 // ---------- Reference Grids (sidebar) ----------
