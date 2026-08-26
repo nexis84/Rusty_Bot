@@ -18,7 +18,7 @@ const AppState = {
     chainLayout: null,
     chainHistory: [],        // product navigation stack for the Prev button
     suppressHistoryPush: false,
-    currentTab: 'system',
+    currentTab: 'ref',
     hoveredCard: null,
     hoverChainNode: null,    // material id of the chain node under the cursor (for tooltip)
     chainFocus: null,        // clicked node material id - highlights its input subtree, dims the rest
@@ -3376,6 +3376,12 @@ function onPointerUp(e) {
         if (hit) {
             if (hit.type === 'product') {
                 const id = hit.id;
+                // Reference view: single click immediately opens the chain (user expectation).
+                // Chain view retains single-click focus / double-click navigate behavior.
+                if (AppState.viewMode === 'reference') {
+                    selectProduct(id);
+                    return;
+                }
                 if (AppState.chainFocus === id) {
                     // Click the focused node again -> clear the highlight.
                     AppState.chainFocus = null;

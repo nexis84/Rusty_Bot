@@ -44,35 +44,15 @@
             <aside class="sidebar">
                 <div class="panel tabs-panel">
                     <div class="tabs">
-                        <button class="tab-btn active" data-tab="system"><i class="fas fa-search"></i> System</button>
-                        <button class="tab-btn" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
+                        <button class="tab-btn active" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
+                        <button class="tab-btn" data-tab="system"><i class="fas fa-search"></i> System</button>
                         <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> Colonies</button>
                         <button class="tab-btn" data-tab="finder"><i class="fas fa-location-arrow"></i> Finder</button>
                     </div>
                 </div>
 
-                <!-- System Checker Tab -->
-                <div class="panel tab-content active" id="tab-system">
-                    <h3><i class="fas fa-search"></i> System Checker</h3>
-                    <p class="hint">Search a system to see its planets and what it can produce (offline SDE)</p>
-                    <div class="system-search">
-                        <input type="text" id="systemInput" placeholder="Enter system name..." class="form-input">
-                        <button id="checkSystem" class="calc-btn">
-                            <i class="fas fa-search"></i> Check System
-                        </button>
-                    </div>
-                    <div class="system-results hidden" id="systemResults">
-                        <div class="system-info" id="systemInfo"></div>
-                        <div class="system-planets" id="systemPlanets"></div>
-                        <div class="producible-header">Can Produce Locally:</div>
-                        <div class="producible-p2" id="producibleP2"></div>
-                        <div class="producible-p3" id="producibleP3"></div>
-                        <div class="producible-p4" id="producibleP4"></div>
-                    </div>
-                </div>
-
                 <!-- Reference Tab -->
-                <div class="panel tab-content" id="tab-ref">
+                <div class="panel tab-content active" id="tab-ref">
                     <h3><i class="fas fa-book"></i> Reference</h3>
                     <p class="hint">Quick reference for PI materials</p>
 
@@ -94,6 +74,26 @@
                     <div class="ref-section">
                         <h4>P4 Materials</h4>
                         <div class="ref-grid" id="refP4"></div>
+                    </div>
+                </div>
+
+                <!-- System Checker Tab -->
+                <div class="panel tab-content" id="tab-system">
+                    <h3><i class="fas fa-search"></i> System Checker</h3>
+                    <p class="hint">Search a system to see its planets and what it can produce (offline SDE)</p>
+                    <div class="system-search">
+                        <input type="text" id="systemInput" placeholder="Enter system name..." class="form-input">
+                        <button id="checkSystem" class="calc-btn">
+                            <i class="fas fa-search"></i> Check System
+                        </button>
+                    </div>
+                    <div class="system-results hidden" id="systemResults">
+                        <div class="system-info" id="systemInfo"></div>
+                        <div class="system-planets" id="systemPlanets"></div>
+                        <div class="producible-header">Can Produce Locally:</div>
+                        <div class="producible-p2" id="producibleP2"></div>
+                        <div class="producible-p3" id="producibleP3"></div>
+                        <div class="producible-p4" id="producibleP4"></div>
                     </div>
                 </div>
 
