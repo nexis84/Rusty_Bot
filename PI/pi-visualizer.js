@@ -149,7 +149,8 @@ const elements = {
     finderEmpty: document.getElementById('finderEmpty'),
     finderMore: document.getElementById('finderMore'),
     finderNextBest: document.getElementById('finderNextBest'),
-    finderNextBestGrid: document.getElementById('finderNextBestGrid')
+    finderNextBestGrid: document.getElementById('finderNextBestGrid'),
+    finderKicker: document.getElementById('finderKicker')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -4576,7 +4577,8 @@ function renderFinderSpotResults() {
     if (!rows.length) {
         setFinderStatus(elements.finderSpotResults,
             'No plan within radius covers every planet type needed. Widen the radius, max systems or sec filter.');
-        draw();
+        resetViewport();
+        setViewMode('finder');
         return;
     }
     const multi = rows.filter(r => r.systems.length > 1).length;
@@ -4784,8 +4786,10 @@ function renderFinderDom() {
     const moreEl = elements.finderMore || document.getElementById('finderMore');
     if (!gridEl || !heroEl || !metricEl || !subEl) return;
 
+    const kickerEl = elements.finderKicker || document.getElementById('finderKicker');
     const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
     if (!authed) {
+        if (kickerEl) { kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
         heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">Sign in with EVE SSO to use Finder</div>';
         metricEl.innerHTML = '';
         subEl.textContent = 'Use the Finder tab to sign in and track your character location.';
@@ -4797,15 +4801,43 @@ function renderFinderDom() {
 
     const hasResults = f.activePanel === 'spot' && f.spotRows && f.spotRows.length;
     if (!hasResults) {
-        heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">No finder results yet</div>';
-        metricEl.innerHTML = '';
-        subEl.textContent = 'Set an origin in the Finder tab, pick a product, then press \u201cFind Best Systems\u201d or \u201cScan Market\u201d.';
+        // Product was searched but no system covers the required planet types
+        const attemptedProduct = f.spotProductName && f.activePanel === 'spot' ? f.spotProductName : null;
+        if (attemptedProduct) {
+            if (kickerEl) kickerEl.textContent = attemptedProduct + ' — not available';
+            if (kickerEl) kickerEl.style.color = '#f87171';
+            const mat = f.bestProductId ? getMaterialById(f.bestProductId) : null;
+            if (mat) {
+                const tierColor = PI_COLORS[mat.tier] || '#d29922';
+                heroEl.innerHTML = '<div class="finder-hero-card" id="finderHeroCard" title="Click to view chain">' +
+                    '<span class="finder-hero-badge" style="background:' + tierColor + '">P' + mat.tier + '</span>' +
+                    '<span class="finder-hero-text"><b>' + escapeHtml(mat.name) + '</b><span>best places to build &bull; click to view chain</span></span>' +
+                    '</div>';
+                const hc2 = document.getElementById('finderHeroCard');
+                if (hc2) hc2.onclick = () => navigateToProduct(mat.id);
+            } else {
+                heroEl.innerHTML = '<div style="color:var(--text);font-weight:700;padding:10px">' + escapeHtml(attemptedProduct) + '</div>';
+            }
+            metricEl.innerHTML = '';
+            const originSys2 = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined' && f.originSystemId) ? PI_SYSTEMS[f.originSystemId] : null;
+            const originName2 = originSys2 ? originSys2.name : 'origin';
+            subEl.textContent = 'No suitable systems found for ' + attemptedProduct + ' within ' + getFinderRadius() + 'j of ' + originName2 + ' — widen the radius, max systems or sec filter.';
+            // Hide next best when no main results
+            const nbWrapEmpty = elements.finderNextBest || document.getElementById('finderNextBest');
+            if (nbWrapEmpty) nbWrapEmpty.classList.add('hidden');
+        } else {
+            if (kickerEl) { kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
+            heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">No finder results yet</div>';
+            metricEl.innerHTML = '';
+            subEl.textContent = 'Set an origin in the Finder tab, pick a product, then press \u201cFind Best Systems\u201d or \u201cScan Market\u201d.';
+        }
         gridEl.innerHTML = '';
         if (emptyEl) emptyEl.textContent = '';
         if (moreEl) moreEl.textContent = '';
         return;
     }
 
+    if (kickerEl) { kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
     const chainMat = getMaterialById(f.bestProductId);
     const tierColor = chainMat ? (PI_COLORS[chainMat.tier] || '#d29922') : '#d29922';
     const name = chainMat ? chainMat.name : (f.spotProductName || 'Product');
