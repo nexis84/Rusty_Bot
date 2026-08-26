@@ -129,6 +129,12 @@
         }
 
         async function handleAuthentication() {
+            // Resolve where to return after auth (where the user clicked Login)
+            let preReturnTo = '';
+            try { preReturnTo = localStorage.getItem('pi_esi_return_to') || ''; } catch (_) {}
+            const preTarget = './' + (preReturnTo.startsWith('#') || preReturnTo === '' ? preReturnTo : '#' + preReturnTo);
+            document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = preTarget; });
+
             if (error) {
                 showState('error');
                 errorMessage.textContent = `EVE SSO Error: ${error} - ${errorDescription || 'Unknown error'}`;
@@ -178,8 +184,13 @@
                 showState('success');
                 successMessage.textContent = `Welcome, ${characterName}! Successfully authenticated with EVE Online.`;
 
+                let returnTo = '';
+                try { returnTo = localStorage.getItem('pi_esi_return_to') || ''; } catch (_) {}
+                try { localStorage.removeItem('pi_esi_return_to'); } catch (_) {}
+                const target = './' + (returnTo.startsWith('#') || returnTo === '' ? returnTo : '#' + returnTo);
+                document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = target; });
                 setTimeout(() => {
-                    window.location.replace('./');
+                    window.location.replace(target);
                 }, 2000);
 
             } catch (err) {

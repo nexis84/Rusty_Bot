@@ -54,6 +54,7 @@ class ESIAuth {
     async initiateLogin() {
         const state = this.generateState();
         localStorage.setItem('esi_state', state);
+        try { localStorage.setItem('esi_return_to', window.location.hash || window.location.search || ''); } catch (_) {}
         
         const params = new URLSearchParams({
             response_type: 'code',

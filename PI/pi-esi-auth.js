@@ -70,6 +70,7 @@ class PIESIAuth {
 
         const state = this.generateState();
         localStorage.setItem('pi_esi_state', state);
+        try { localStorage.setItem('pi_esi_return_to', window.location.hash || ''); } catch (_) {}
 
         const params = new URLSearchParams({
             response_type: 'code',

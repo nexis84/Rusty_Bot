@@ -143,6 +143,12 @@
         
         // Handle authentication
         async function handleAuthentication() {
+            // Pre-compute return target so error/success buttons both go back to the original view
+            let preReturnTo = '';
+            try { preReturnTo = localStorage.getItem('esi_return_to') || ''; } catch (_) {}
+            const preTarget = './' + (preReturnTo.startsWith('#') || preReturnTo.startsWith('?') || preReturnTo === '' ? preReturnTo : '#' + preReturnTo);
+            document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = preTarget; });
+
             // Check for OAuth errors
             if (error) {
                 showState('error');
@@ -216,9 +222,15 @@
                 showState('success');
                 successMessage.textContent = `Welcome, ${characterName}! Successfully authenticated with EVE Online.`;
                 
-                // Redirect back to the main app
+                // Return to where the user signed in from (preserves view/hash)
+                let returnTo = '';
+                try { returnTo = localStorage.getItem('esi_return_to') || ''; } catch (_) {}
+                try { localStorage.removeItem('esi_return_to'); } catch (_) {}
+                const target = './' + (returnTo.startsWith('#') || returnTo.startsWith('?') || returnTo === '' ? returnTo : '#' + returnTo);
+                // Update fallback links to also go to the original location
+                document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = target; });
                 setTimeout(() => {
-                    window.location.replace('./');
+                    window.location.replace(target);
                 }, 2000);
                 
             } catch (err) {
