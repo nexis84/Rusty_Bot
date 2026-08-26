@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=44">
+    <link rel="stylesheet" href="pi-style.css?v=45">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -293,13 +293,7 @@
                             <div class="finder-metric" id="finderMetric"></div>
                             <div class="finder-sub" id="finderSub"></div>
                         </div>
-                        <div class="finder-dom-controls views-only">
-                            <div class="finder-ctrl views-ctrl">
-                                <span>Views:</span>
-                                <button class="view-toggle active" data-view="grid" id="finderViewGrid" title="Grid view"><i class="fas fa-th"></i></button>
-                                <button class="view-toggle" data-view="list" id="finderViewList" title="List view"><i class="fas fa-list"></i></button>
-                            </div>
-                        </div>
+
                         <div id="finderGrid" class="finder-grid grid"></div>
                         <div class="finder-empty" id="finderEmpty"></div>
                         <div class="finder-more" id="finderMore"></div>
@@ -321,7 +315,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '44';
+        window.PI_ASSET_VERSION = '45';
 
         (function loadPiScripts() {
             function load(src, onok) {

@@ -59,9 +59,7 @@ const AppState = {
         bestProductId: null,    // #1 by Jita profit
         bestStats: null,        // {profit, margin, profitLocal, marginLocal} for the banner
         localRegionName: '',    // comparison region shown on next-best cards
-        locationAuthNeeded: false, // stale login lacks the location scope
-        domView: 'grid',        // 'grid' | 'list' for DOM Finder
-        domSearch: ''           // live filter text
+        locationAuthNeeded: false // stale login lacks the location scope
     },
     finderCards: [],             // canvas hit areas for the finder view
     systemData: null,            // last System Checker result {system, planetTypes, skyhookTotals, counts, producibleP2/P3/P4}
@@ -148,8 +146,6 @@ const elements = {
     finderMetric: document.getElementById('finderMetric'),
     finderSub: document.getElementById('finderSub'),
     finderGrid: document.getElementById('finderGrid'),
-    finderViewGrid: document.getElementById('finderViewGrid'),
-    finderViewList: document.getElementById('finderViewList'),
     finderEmpty: document.getElementById('finderEmpty'),
     finderMore: document.getElementById('finderMore'),
     finderNextBest: document.getElementById('finderNextBest'),
@@ -4833,7 +4829,7 @@ function renderFinderDom() {
     subEl.textContent = rowsAll.length + ' system' + (rowsAll.length === 1 ? '' : 's') + ' within ' + getFinderRadius() + 'j of ' + originName + ' \u2022 covering every planet type \u2022 click cards for details';
 
     const rows = rowsAll;
-    gridEl.className = 'finder-grid ' + (f.domView === 'list' ? 'list' : 'grid');
+    gridEl.className = 'finder-grid grid';
 
     if (!rows.length) {
         gridEl.innerHTML = '';
@@ -4911,7 +4907,7 @@ function renderFinderDom() {
             nbGrid.innerHTML = '';
         } else {
             nbWrap.classList.remove('hidden');
-            nbGrid.className = 'finder-grid ' + (f.domView === 'list' ? 'list' : 'grid');
+            nbGrid.className = 'finder-grid grid';
             let nbHtml = '';
             nextBest.forEach((r, idx) => {
                 const tierColor = PI_COLORS[r.mat.tier] || '#888';
@@ -5482,21 +5478,6 @@ function setupFinder() {
         }
     });
 
-    // Finder DOM controls: grid/list toggle only (filter/search live in sidebar)
-    const gv = elements.finderViewGrid || document.getElementById('finderViewGrid');
-    const lv = elements.finderViewList || document.getElementById('finderViewList');
-    if (gv && lv) {
-        gv.addEventListener('click', () => {
-            AppState.finder.domView = 'grid';
-            gv.classList.add('active'); lv.classList.remove('active');
-            renderFinderDom();
-        });
-        lv.addEventListener('click', () => {
-            AppState.finder.domView = 'list';
-            lv.classList.add('active'); gv.classList.remove('active');
-            renderFinderDom();
-        });
-    }
 }
 
 // ---------- Utility ----------
