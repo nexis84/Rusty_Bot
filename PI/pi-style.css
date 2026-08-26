@@ -1753,6 +1753,9 @@ body {
     background: rgba(30,30,30,0.6);
     flex-wrap: wrap;
 }
+.finder-dom-controls.views-only {
+    justify-content: center;
+}
 .finder-ctrl {
     display: inline-flex;
     align-items: center;
@@ -1760,18 +1763,35 @@ body {
     font-size: 0.72rem;
     color: var(--muted);
 }
-.finder-filter-select {
-    min-width: 132px;
-    padding: 6px 10px;
-    font-size: 0.78rem;
-}
-.finder-search-input {
-    min-width: 180px;
-    padding: 6px 10px;
-    font-size: 0.78rem;
-}
 .views-ctrl {
     gap: 6px;
+}
+.finder-nextbest {
+    margin-top: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+}
+.finder-nextbest-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    padding: 0 16px 4px;
+}
+.finder-nextbest .finder-grid {
+    padding-top: 8px;
+}
+.finder-rank {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+.finder-tier-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
 }
 .view-toggle {
     width: 30px;

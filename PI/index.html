@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=43">
+    <link rel="stylesheet" href="pi-style.css?v=44">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -293,29 +293,20 @@
                             <div class="finder-metric" id="finderMetric"></div>
                             <div class="finder-sub" id="finderSub"></div>
                         </div>
-                        <div class="finder-dom-controls">
-                            <label class="finder-ctrl">Filter:
-                                <select id="finderFilterRadius" class="form-input finder-filter-select">
-                                    <option value="5">5j radius</option>
-                                    <option value="10" selected>10j radius</option>
-                                    <option value="15">15j radius</option>
-                                    <option value="20">20j radius</option>
-                                    <option value="30">30j radius</option>
-                                    <option value="50">50j radius</option>
-                                </select>
-                            </label>
+                        <div class="finder-dom-controls views-only">
                             <div class="finder-ctrl views-ctrl">
                                 <span>Views:</span>
                                 <button class="view-toggle active" data-view="grid" id="finderViewGrid" title="Grid view"><i class="fas fa-th"></i></button>
                                 <button class="view-toggle" data-view="list" id="finderViewList" title="List view"><i class="fas fa-list"></i></button>
                             </div>
-                            <label class="finder-ctrl search-ctrl">Search:
-                                <input type="text" id="finderSearch" placeholder="Search systems..." class="form-input finder-search-input">
-                            </label>
                         </div>
                         <div id="finderGrid" class="finder-grid grid"></div>
                         <div class="finder-empty" id="finderEmpty"></div>
                         <div class="finder-more" id="finderMore"></div>
+                        <div id="finderNextBest" class="finder-nextbest hidden">
+                            <div class="finder-nextbest-title">NEXT BEST TO BUILD — ranked by Jita • click to see where to build it</div>
+                            <div id="finderNextBestGrid" class="finder-grid grid"></div>
+                        </div>
                     </div>
                     <div class="finder-dom-footer">Finder results &bull; Hover cards for tooltips &bull; Right-click for map location</div>
                 </div>
@@ -330,7 +321,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '43';
+        window.PI_ASSET_VERSION = '44';
 
         (function loadPiScripts() {
             function load(src, onok) {
