@@ -44,8 +44,15 @@ const AppState = {
         originSystemId: null,   // resolved starting system for searches
         originSource: null,     // 'esi' | 'manual'
         expandedSpot: null,     // system id whose route line is expanded
-        _bfs: null              // last BFS result Map (for route reconstruction)
-    }
+        _bfs: null,             // last BFS result Map (for route reconstruction)
+        spotRows: [],           // ranked build-spot results (canvas view)
+        profitRows: [],         // ranked profitable products (canvas view)
+        activePanel: null,      // which results the canvas shows: 'spot' | 'profit'
+        spotProductName: '',    // product the spot search ran for (card header)
+        profitRegionName: '',   // region the scan priced against (card header)
+        locationAuthNeeded: false // stale login lacks the location scope
+    },
+    finderCards: []             // canvas hit areas for the finder view
 };
 
 const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
@@ -63,6 +70,7 @@ const elements = {
     viewChain: document.getElementById('viewChain'),
     viewPlanets: document.getElementById('viewPlanets'),
     viewColonies: document.getElementById('viewColonies'),
+    viewFinder: document.getElementById('viewFinder'),
     backToRef: document.getElementById('backToRef'),
     backChain: document.getElementById('backChain'),
     zoomIn: document.getElementById('zoomIn'),
@@ -354,6 +362,7 @@ function setupEventListeners() {
             refreshColoniesAuthState();
         }
     });
+    elements.viewFinder.addEventListener('click', () => setViewMode('finder'));
     elements.backToRef.addEventListener('click', () => setViewMode('reference'));
 
     if (elements.backChain) {
@@ -1560,6 +1569,11 @@ function draw() {
 
     if (AppState.viewMode === 'reference') {
         drawReferenceView();
+        return;
+    }
+
+    if (AppState.viewMode === 'finder') {
+        drawFinderView();
         return;
     }
 
@@ -3106,6 +3120,9 @@ function onPointerDown(e) {
     } else if (AppState.viewMode === 'chain') {
         const node = chainNodeAt(pos);
         AppState.pendingHit = node ? { type: 'product', id: node.materialId } : null;
+    } else if (AppState.viewMode === 'finder') {
+        const card = finderCardAt(pos);
+        AppState.pendingHit = card ? { type: 'finderCard', card } : null;
     } else {
         AppState.pendingHit = null;
     }
@@ -3135,6 +3152,9 @@ function onPointerMove(e) {
             }
         } else if (AppState.viewMode === 'chain') {
             canvas.style.cursor = chainNodeAt(pos) ? 'pointer' : 'default';
+        } else if (AppState.viewMode === 'finder') {
+            const over = !!finderCardAt(pos);
+            canvas.style.cursor = over ? 'pointer' : 'default';
         } else if (AppState.viewMode === 'colonies' && AppState.colonyDetail && AppState.layoutMode) {
             const wpos = screenToWorld(pos.x, pos.y);
             const pin = colonyLayoutPinAt(wpos);
@@ -3152,10 +3172,11 @@ function onPointerMove(e) {
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
-        // Reference and non-layout colonies views lay out vertically only -
-        // panning X there desyncs the grid from the background, so lock to Y.
-        // Colony layout mode is a full world-space view, so it pans freely.
+        // Reference, finder and non-layout colonies views lay out vertically
+        // only - panning X there desyncs the grid from the background, so lock
+        // to Y. Colony layout mode is a full world-space view, so it pans free.
         const lockY = AppState.viewMode === 'reference' ||
+            AppState.viewMode === 'finder' ||
             (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
         if (lockY) {
             AppState.canvasOffset.y += dy;
@@ -3207,6 +3228,14 @@ function onPointerUp(e) {
         } else if (hit.type === 'layoutClear') {
             AppState.layoutSel = null;
             draw();
+        } else if (hit.type === 'finderCard') {
+            if (hit.card.kind === 'spot') {
+                const sysId = hit.card.row.sys.id;
+                AppState.finder.expandedSpot = AppState.finder.expandedSpot === sysId ? null : sysId;
+                draw();
+            } else {
+                selectProduct(hit.card.result.id);
+            }
         }
     }
 }
@@ -3277,10 +3306,12 @@ function setViewMode(mode) {
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
+    elements.viewFinder.classList.toggle('active', mode === 'finder');
     elements.backToRef.classList.toggle('hidden', mode === 'reference');
     updateChainBackButton();
 
     const helpText = document.querySelector('.canvas-help p');
+    if (helpText) {
     if (mode === 'reference') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Click any material to view its production chain and market data';
@@ -3293,6 +3324,9 @@ function setViewMode(mode) {
         helpText.innerHTML = authed
             ? '<i class="fas fa-info-circle"></i> My Colonies &bull; Click a colony card to open it, then use Layout to see the planet map - tap pins to inspect them'
             : '<i class="fas fa-info-circle"></i> My Colonies &bull; Sign in with EVE SSO to view your planetary colonies';
+    } else if (mode === 'finder') {
+        canvas.style.cursor = 'default';
+        helpText.innerHTML = '<i class="fas fa-location-arrow"></i> Finder results &bull; Click a system card to show its gate route &bull; Click a product to open its chain';
     } else {
         canvas.style.cursor = 'default';
         if (AppState.chainLayout) {
@@ -3300,6 +3334,7 @@ function setViewMode(mode) {
         } else {
             helpText.innerHTML = '<i class="fas fa-info-circle"></i> Select a product to view its production chain';
         }
+    }
     }
 
     updateUrlState();
@@ -3339,7 +3374,7 @@ function restoreFromUrl() {
             generateChainLayout();
             fetchMarketData();
         }
-        if (view && ['reference', 'chain', 'planets', 'colonies'].includes(view)) {
+        if (view && ['reference', 'chain', 'planets', 'colonies', 'finder'].includes(view)) {
             setViewMode(view);
         } else if (product) {
             setViewMode('chain');
@@ -3703,12 +3738,37 @@ function setFinderOrigin(systemId, source) {
         (region ? ` (${region})` : '');
 }
 
+// True when the stored login's JWT carries the location scope. Logins made
+// before the scope was added fail ESI calls until the user re-authenticates.
+async function finderHasLocationScope() {
+    try {
+        const token = await piEsiAuth.getAccessToken();
+        const payload = piEsiAuth.decodeJWT(token);
+        const scp = payload.scp || payload.scope || [];
+        const list = Array.isArray(scp) ? scp : String(scp).split(' ');
+        return list.indexOf('esi-location.read_location.v1') !== -1;
+    } catch (e) {
+        return false;
+    }
+}
+
+function startFinderRelogin() {
+    elements.finderOriginLabel.textContent = 'Redirecting to EVE SSO...';
+    piEsiAuth.initiateLogin().catch(err => {
+        elements.finderOriginLabel.textContent = err.message || 'Login failed';
+    });
+}
+
+function markFinderAuthNeeded(message) {
+    AppState.finder.locationAuthNeeded = true;
+    elements.finderLocate.innerHTML = '<i class="fas fa-user-lock"></i> Login to grant location';
+    elements.finderOriginLabel.textContent = message;
+}
+
 async function finderUseMyLocation() {
     if (!piEsiAuth.isAuthenticated()) {
-        elements.finderOriginLabel.textContent = 'Logging in with EVE SSO...';
-        piEsiAuth.initiateLogin().catch(err => {
-            elements.finderOriginLabel.textContent = err.message || 'Login failed';
-        });
+        AppState.finder.locationAuthNeeded = false;
+        startFinderRelogin();
         return;
     }
 
@@ -3716,6 +3776,10 @@ async function finderUseMyLocation() {
     elements.finderLocate.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
 
     try {
+        if (!(await finderHasLocationScope())) {
+            markFinderAuthNeeded('Your EVE login predates location tracking - click again to grant permission');
+            return;
+        }
         const charId = piEsiAuth.getCurrentCharacter();
         const loc = await piEsiAuth.esiFetch(`/characters/${charId}/location/`);
         await ensureSystemsLoaded();
@@ -3723,15 +3787,16 @@ async function finderUseMyLocation() {
             elements.finderOriginLabel.textContent = 'Ship is in an unknown system';
             return;
         }
+        AppState.finder.locationAuthNeeded = false;
+        elements.finderLocate.innerHTML = originalHtml;
         setFinderOrigin(loc.solar_system_id, 'esi');
     } catch (err) {
-        if (/ESI Error 403/.test(err.message)) {
-            elements.finderOriginLabel.textContent = 'Location scope missing - logout & login again to grant it';
+        if (/ESI Error 40[13]/.test(err.message) || /authorization/i.test(err.message)) {
+            markFinderAuthNeeded('Location permission needed - click again to login & grant it');
         } else {
+            elements.finderLocate.innerHTML = originalHtml;
             elements.finderOriginLabel.textContent = err.message || 'Location lookup failed';
         }
-    } finally {
-        elements.finderLocate.innerHTML = originalHtml;
     }
 }
 
@@ -3755,7 +3820,8 @@ function finderSetManualOrigin() {
     setFinderOrigin(sys.id, 'manual');
 }
 
-const FINDER_MAX_ROWS = 25;
+const FINDER_MAX_ROWS = 25;   // canvas cards per spot search (scrollable, but bounded)
+const PROFIT_MAX_ROWS = 60;
 
 // Coverage-first ordering: full-chain systems by fewest jumps (ties -> higher
 // security), then partial systems by fewest missing types, then jumps.
@@ -3774,18 +3840,21 @@ function sortFinderSpotRows(rows) {
     return rows;
 }
 
-let finderSpotRows = [];
+function setFinderStatus(el, message) {
+    if (!el) return;
+    el.textContent = message || '';
+}
 
 async function runFindBestSystems() {
-    elements.finderSpotResults.innerHTML = '';
+    setFinderStatus(elements.finderSpotResults, '');
 
     if (!AppState.finder.originSystemId) {
-        elements.finderSpotResults.innerHTML = '<div class="finder-empty">Set a starting location first.</div>';
+        setFinderStatus(elements.finderSpotResults, 'Set a starting location first.');
         return;
     }
     const productId = parseInt(elements.targetProduct.value, 10);
     if (!productId || !getMaterialById(productId)) {
-        elements.finderSpotResults.innerHTML = '<div class="finder-empty">Select a Target Product below first.</div>';
+        setFinderStatus(elements.finderSpotResults, 'Select a Target Product below first.');
         return;
     }
 
@@ -3819,84 +3888,41 @@ async function runFindBestSystems() {
 
         sortFinderSpotRows(rows);
 
-        finderSpotRows = rows;
+        AppState.finder.spotRows = rows;
+        AppState.finder.activePanel = 'spot';
         AppState.finder.expandedSpot = null;
+        AppState.finder.spotProductName = getMaterialById(productId).name;
         renderFinderSpotResults();
     } catch (err) {
         console.error('Find best systems failed:', err);
-        elements.finderSpotResults.innerHTML = `<div class="finder-empty">${escapeHtml(err.message)}</div>`;
+        setFinderStatus(elements.finderSpotResults, err.message);
     } finally {
         elements.finderSearchSpot.innerHTML = '<i class="fas fa-search-location"></i> Find Best Systems';
     }
 }
 
+// Sidebar keeps only a status line; the ranked cards live on the main canvas.
 function renderFinderSpotResults() {
-    const container = elements.finderSpotResults;
-    container.innerHTML = '';
-
-    if (!finderSpotRows.length) {
-        container.innerHTML = '<div class="finder-empty">No systems with any required planet type within radius. Try widening the radius or sec filter.</div>';
+    const rows = AppState.finder.spotRows;
+    if (!rows.length) {
+        setFinderStatus(elements.finderSpotResults,
+            'No systems with any required planet type within radius. Try widening the radius or sec filter.');
+        draw();
         return;
     }
-
-    const shown = finderSpotRows.slice(0, FINDER_MAX_ROWS);
-
-    container.innerHTML = shown.map(row => {
-        const sys = row.sys;
-        const band = secBandOf(sys.security);
-        const full = row.missing.length === 0;
-        const badges = row.requiredIds.map(tid => {
-            const pt = getPlanetTypeData(tid);
-            if (!pt) return '';
-            const has = !row.missing.includes(tid);
-            return `<span class="planet-type-badge" style="background: ${has ? pt.color : '#3a3f4a'};${has ? '' : ' opacity:.55;'}" title="${has ? escapeHtml(pt.name) : escapeHtml(pt.name) + ' - not found here'}">${escapeHtml(pt.name)}</span>`;
-        }).join('');
-        const regionName = PI_DATA.regions[sys.regionId] || 'Unknown';
-        const expanded = AppState.finder.expandedSpot === sys.id;
-
-        let html = `
-            <div class="finder-result${full ? ' best' : ''}" data-sys="${sys.id}">
-                <div class="row-main">
-                    ${escapeHtml(sys.name)}
-                    <span class="sec-badge ${band}">${formatSecurity(sys.security)}</span>
-                    ${full ? '<span class="full-chain-chip">Full chain</span>' : ''}
-                    <span class="jumps">${row.jumps}j</span>
-                </div>
-                <div class="row-meta">
-                    <span class="region-name">${escapeHtml(regionName)}</span>
-                    ${badges}
-                </div>`;
-        if (!full) {
-            const missingNames = row.missing.map(tid => {
-                const pt = getPlanetTypeData(tid);
-                return pt ? pt.name : tid;
-            });
-            html += `<div class="row-sub">Missing here: ${escapeHtml(missingNames.join(', '))}</div>`;
-        }
-        if (expanded) {
-            const names = row.route.map(id => (PI_SYSTEMS[id] ? PI_SYSTEMS[id].name : id));
-            const allowed = activeSecBands();
-            const crossed = [...new Set(row.route.map(id => PI_SYSTEMS[id] && secBandOf(PI_SYSTEMS[id].security)))]
-                .filter(b => b && !allowed.has(b));
-            html += `<div class="finder-route"><i class="fas fa-route"></i> ${names.join(' › ')}`;
-            if (crossed.length) {
-                html += ` <span class="finder-warn">(route crosses ${escapeHtml(crossed.join(' + '))} sec)</span>`;
-            }
-            html += '</div>';
-        }
-        html += '</div>';
-        return html;
-    }).join('') + (finderSpotRows.length > shown.length
-        ? `<div class="finder-empty">…and ${finderSpotRows.length - shown.length} more within radius</div>`
-        : '');
+    const fullCount = rows.filter(r => r.missing.length === 0).length;
+    setFinderStatus(elements.finderSpotResults,
+        `${rows.length} system${rows.length === 1 ? '' : 's'} found (${fullCount} full-chain) - results are on the main canvas`);
+    resetViewport();
+    setViewMode('finder');
 }
 
 async function runProfitScan() {
-    elements.finderProfitResults.innerHTML = '';
+    setFinderStatus(elements.finderProfitResults, '');
     elements.finderProgress.classList.add('hidden');
 
     if (!AppState.finder.originSystemId) {
-        elements.finderProfitResults.innerHTML = '<div class="finder-empty">Set a starting location first.</div>';
+        setFinderStatus(elements.finderProfitResults, 'Set a starting location first.');
         return;
     }
 
@@ -3930,8 +3956,8 @@ async function runProfitScan() {
         const candidateIds = [...prod.p1, ...prod.p2, ...prod.p3, ...prod.p4];
 
         if (!candidateIds.length || !systemsScanned) {
-            elements.finderProfitResults.innerHTML =
-                `<div class="finder-empty">Nothing producible within ${radius} jumps${systemsScanned ? '' : ' with the current sec filter'}. Widen the search.</div>`;
+            setFinderStatus(elements.finderProfitResults,
+                `Nothing producible within ${radius} jumps${systemsScanned ? '' : ' with the current sec filter'}. Widen the search.`);
             return;
         }
 
@@ -3959,42 +3985,394 @@ async function runProfitScan() {
         });
         results.sort((a, b) => b.profit - a.profit);
 
-        renderFinderProfitResults(results, radius, systemsScanned);
+        AppState.finder.profitRows = results;
+        AppState.finder.activePanel = 'profit';
+        AppState.finder.profitRegionName = regionName;
+        renderFinderProfitResults(radius, systemsScanned);
     } catch (err) {
         console.error('Profit scan failed:', err);
         elements.finderProgress.classList.add('hidden');
-        elements.finderProfitResults.innerHTML = `<div class="finder-empty">${escapeHtml(err.message)}</div>`;
+        setFinderStatus(elements.finderProfitResults, err.message);
     } finally {
         elements.finderScanProfit.innerHTML = '<i class="fas fa-chart-line"></i> Scan Market';
     }
 }
 
-function renderFinderProfitResults(results, radius, systemsScanned) {
-    const container = elements.finderProfitResults;
-    if (!results.length) {
-        container.innerHTML = '<div class="finder-empty">No priced products found in this market region.</div>';
+// Sidebar status line; the ranked product cards live on the main canvas.
+function renderFinderProfitResults(radius, systemsScanned) {
+    const rows = AppState.finder.profitRows;
+    if (!rows.length) {
+        setFinderStatus(elements.finderProfitResults, 'No priced products found in this market region.');
+        draw();
+        return;
+    }
+    setFinderStatus(elements.finderProfitResults,
+        `${rows.length} product${rows.length === 1 ? '' : 's'} ranked from ${systemsScanned} systems within ${radius} jumps - shown on the main canvas`);
+    resetViewport();
+    setViewMode('finder');
+}
+
+// ---------- Finder Canvas View ----------
+function finderCardAt(pos) {
+    return (AppState.finderCards || []).find(c =>
+        pos.x >= c.x && pos.x <= c.x + c.w && pos.y >= c.y && pos.y <= c.y + c.h) || null;
+}
+
+const SEC_BAND_COLORS = { high: '#2d7d46', low: '#a16207', null: '#b91c1c' };
+
+function drawFinderView() {
+    AppState.finderCards = [];
+    const f = AppState.finder;
+
+    if (f.activePanel === 'spot' && f.spotRows.length) {
+        drawFinderSpotCards();
+        return;
+    }
+    if (f.activePanel === 'profit' && f.profitRows.length) {
+        drawFinderProfitCards();
         return;
     }
 
-    container.innerHTML =
-        `<div class="finder-empty">${results.length} products producible from ${systemsScanned} systems within ${radius} jumps - click one to view its chain:</div>` +
-        results.map(r => `
-            <div class="finder-result" data-id="${r.id}">
-                <div class="row-main">
-                    <span class="producible-item p${r.mat.tier}" style="cursor:pointer">${escapeHtml(r.mat.name)}</span>
-                    <span class="jumps ${r.profit >= 0 ? '' : 'finder-warn'}">${formatISK(r.profit)} ISK</span>
-                </div>
-                <div class="row-meta">
-                    <span class="region-name">margin ${r.margin.toFixed(1)}%</span>
-                </div>
-            </div>
-        `).join('');
+    const cx = AppState.cssW / 2;
+    const cy = AppState.cssH / 2;
+    ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
+    roundRect(ctx, cx - 250, cy - 60, 500, 120, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 16px Titillium Web, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('No finder results yet', cx, cy - 18);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '13px Titillium Web, sans-serif';
+    ctx.fillText('Set an origin in the Finder tab, pick a Target Product,', cx, cy + 8);
+    ctx.fillText('then press "Find Best Systems" or "Scan Market"', cx, cy + 28);
+}
+
+// Wraps text into lines that fit maxWidth using the current ctx.font.
+function wrapCanvasText(text, maxWidth) {
+    if (!text) return [];
+    const words = String(text).split(/\s+/);
+    const lines = [];
+    let line = '';
+    words.forEach(word => {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width <= maxWidth || !line) {
+            line = test;
+        } else {
+            lines.push(line);
+            line = word;
+        }
+    });
+    if (line) lines.push(line);
+    return lines;
+}
+
+function drawTypeChip(label, color, dim, x, y, maxW) {
+    ctx.font = 'bold 10px Titillium Web, sans-serif';
+    let w = Math.ceil(ctx.measureText(label).width) + 14;
+    if (w > maxW) w = maxW;
+    roundRect(ctx, x, y, w, 17, 3);
+    ctx.fillStyle = dim ? '#3a3f4a' : color;
+    ctx.fill();
+    if (!dim) {
+        // Same darkening overlay as the CSS .planet-type-badge so white text reads
+        roundRect(ctx, x, y, w, 17, 3);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fill();
+    }
+    ctx.fillStyle = dim ? '#999' : '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x + w / 2, y + 9.5);
+    return w;
+}
+
+// Draws the required planet-type chips for a spot row, wrapped to maxW.
+// Returns total height used.
+function drawFinderBadges(row, x, y, maxW) {
+    const gapX = 6;
+    const gapY = 5;
+    let cx = x;
+    let cy = y;
+    row.requiredIds.forEach(tid => {
+        const pt = getPlanetTypeData(tid);
+        if (!pt) return;
+        const has = !row.missing.includes(tid);
+        ctx.font = 'bold 10px Titillium Web, sans-serif';
+        const estW = Math.ceil(ctx.measureText(pt.name).width) + 14;
+        if (cx > x && cx + Math.min(estW, maxW) > x + maxW) {
+            cx = x;
+            cy += 22;
+        }
+        const used = drawTypeChip(pt.name, pt.color, !has, cx, cy, maxW - (cx - x));
+        cx += used + gapX;
+    });
+    return (cy - y) + 22;
+}
+
+function finderRouteLines(row, maxW) {
+    const systemsLoaded = AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined';
+    const names = row.route.map(id => (systemsLoaded && PI_SYSTEMS[id]) ? PI_SYSTEMS[id].name : String(id));
+    const allowed = activeSecBands();
+    const crossed = [...new Set(row.route
+        .map(id => (systemsLoaded && PI_SYSTEMS[id]) ? secBandOf(PI_SYSTEMS[id].security) : null))]
+        .filter(b => b && !allowed.has(b));
+    let text = names.join(' › ');
+    if (crossed.length) text += `  (route crosses ${crossed.join(' + ')} sec)`;
+    ctx.font = '11px Titillium Web, sans-serif';
+    return wrapCanvasText(text, maxW);
+}
+
+function drawFinderSpotCards() {
+    const rows = AppState.finder.spotRows.slice(0, FINDER_MAX_ROWS);
+    const offsetY = AppState.canvasOffset.y;
+    const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined')
+        ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 18px Titillium Web, sans-serif';
+    const fullTotal = AppState.finder.spotRows.filter(r => r.missing.length === 0).length;
+    ctx.fillText(`${AppState.finder.spotProductName} - best places to build`, 20, 20);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '12px Titillium Web, sans-serif';
+    const originName = originSys ? originSys.name : 'origin';
+    let sub = `${rows.length} of ${AppState.finder.spotRows.length} systems shown within ${getFinderRadius()}j of ${originName}`;
+    if (fullTotal) sub += ` • ${fullTotal} can host the full chain`;
+    sub += ' • click a card for its route';
+    ctx.fillText(sub, 20, 44);
+
+    const colW = Math.min(620, Math.max(360, AppState.cssW - 80));
+    const x = Math.max(20, (AppState.cssW - colW) / 2);
+    let y = 78 + offsetY;
+    const gapY = 12;
+    const pad = 14;
+
+    rows.forEach(row => {
+        const sys = row.sys;
+        const full = row.missing.length === 0;
+        const expanded = AppState.finder.expandedSpot === sys.id;
+
+        // Pre-measure variable parts to size the card
+        const badgesTop = y + pad + 30;
+        const badgesH = measureFinderBadgesHeight(row, colW - pad * 2);
+        let h = pad + 30 + badgesH + pad;
+        let missingLine = '';
+        if (!full) {
+            missingLine = 'Missing here: ' + row.missing.map(tid => {
+                const pt = getPlanetTypeData(tid);
+                return pt ? pt.name : tid;
+            }).join(', ');
+            h += 18;
+        }
+        let routeLines = [];
+        if (expanded) {
+            routeLines = finderRouteLines(row, colW - pad * 2 - 8);
+            h += routeLines.length * 15 + 10;
+        }
+
+        // Card background + accent bar
+        const gradient = ctx.createLinearGradient(x, y, x, y + h);
+        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
+        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
+        ctx.fillStyle = gradient;
+        roundRect(ctx, x, y, colW, h, 8);
+        ctx.fill();
+        ctx.strokeStyle = full ? 'rgba(63, 185, 80, 0.55)' : 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = full ? '#3fb950' : '#58a6ff';
+        ctx.beginPath();
+        roundRect(ctx, x, y, 4, h, [8, 0, 0, 8]);
+        ctx.fill();
+
+        // Title: system name + security badge ... jumps on the right
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 15px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+        const nameW = Math.ceil(ctx.measureText(sys.name).width);
+        ctx.fillText(sys.name, x + pad + 6, y + pad + 13);
+
+        const band = secBandOf(sys.security);
+        ctx.font = 'bold 11px Titillium Web, sans-serif';
+        const secLabel = formatSecurity(sys.security);
+        const secW = Math.ceil(ctx.measureText(secLabel).width) + 10;
+        ctx.fillStyle = SEC_BAND_COLORS[band];
+        roundRect(ctx, x + pad + 14 + nameW, y + pad + 1, secW, 15, 3);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText(secLabel, x + pad + 14 + nameW + secW / 2, y + pad + 13);
+
+        ctx.font = 'bold 12px Titillium Web, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#58a6ff';
+        ctx.fillText(`${row.jumps}j`, x + colW - pad - 6, y + pad + 13);
+
+        if (full) {
+            ctx.font = 'bold 10px Titillium Web, sans-serif';
+            const chipLabel = 'FULL CHAIN';
+            const chipW = Math.ceil(ctx.measureText(chipLabel).width) + 12;
+            ctx.fillStyle = 'rgba(63, 185, 80, 0.18)';
+            roundRect(ctx, x + colW - pad - 6 - chipW - 34, y + pad + 2, chipW, 15, 3);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(63, 185, 80, 0.5)';
+            ctx.stroke();
+            ctx.fillStyle = '#3fb950';
+            ctx.textAlign = 'center';
+            ctx.fillText(chipLabel, x + colW - pad - 6 - chipW / 2 - 34, y + pad + 13);
+        }
+
+        // Planet type chips
+        ctx.textAlign = 'left';
+        drawFinderBadges(row, x + pad + 6, badgesTop, colW - pad * 2);
+
+        let cy = badgesTop + badgesH;
+        if (missingLine) {
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText(missingLine, x + pad + 6, cy + 4);
+            cy += 18;
+        }
+        if (expanded && routeLines.length) {
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            routeLines.forEach((line, i) => {
+                const isWarn = line.includes('sec)');
+                ctx.fillStyle = isWarn ? '#f59e0b' : '#9aa4b2';
+                ctx.fillText(line, x + pad + 6, cy + 4 + i * 15);
+            });
+        }
+
+        AppState.finderCards.push({ kind: 'spot', row, x, y, w: colW, h });
+        y += h + gapY;
+    });
+
+    if (AppState.finder.spotRows.length > rows.length) {
+        ctx.fillStyle = '#888';
+        ctx.font = '12px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`...and ${AppState.finder.spotRows.length - rows.length} more within radius - narrow the radius or filters`, x, y + 2);
+    }
+}
+
+// Height-only pass over the badge layout so cards can be sized before drawing.
+function measureFinderBadgesHeight(row, maxW) {
+    const gapX = 6;
+    const gapY = 5;
+    let cx = 0;
+    let cy = 0;
+    row.requiredIds.forEach(tid => {
+        const pt = getPlanetTypeData(tid);
+        if (!pt) return;
+        ctx.font = 'bold 10px Titillium Web, sans-serif';
+        const w = Math.min(Math.ceil(ctx.measureText(pt.name).width) + 14, maxW);
+        if (cx > 0 && cx + w > maxW) {
+            cx = 0;
+            cy += gapX + 17 + gapY;
+        }
+        cx += w + gapX;
+    });
+    return cy + 17;
+}
+
+function drawFinderProfitCards() {
+    const rows = AppState.finder.profitRows.slice(0, PROFIT_MAX_ROWS);
+    const offsetY = AppState.canvasOffset.y;
+    const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined')
+        ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 18px Titillium Web, sans-serif';
+    ctx.fillText(`Most profitable products - ${AppState.finder.profitRegionName}`, 20, 32);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '12px Titillium Web, sans-serif';
+    const originName = originSys ? originSys.name : 'origin';
+    let sub = `Ranked by profit per batch • producible from planets within ${getFinderRadius()}j of ${originName}`;
+    if (AppState.finder.profitRows.length > rows.length) {
+        sub += ` • top ${rows.length} of ${AppState.finder.profitRows.length}`;
+    }
+    sub += ' • click a product to open its chain';
+    ctx.fillText(sub, 20, 54);
+
+    const colW = Math.min(520, Math.max(340, AppState.cssW - 80));
+    const x = Math.max(20, (AppState.cssW - colW) / 2);
+    let y = 76 + offsetY;
+    const cardH = 52;
+    const gapY = 10;
+
+    rows.forEach((r, idx) => {
+        const tierColor = PI_COLORS[r.mat.tier] || '#888';
+
+        const gradient = ctx.createLinearGradient(x, y, x, y + cardH);
+        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
+        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
+        ctx.fillStyle = gradient;
+        roundRect(ctx, x, y, colW, cardH, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = tierColor;
+        ctx.beginPath();
+        roundRect(ctx, x, y, 4, cardH, [8, 0, 0, 8]);
+        ctx.fill();
+
+        // Rank + tier dot + product name
+        ctx.fillStyle = '#666';
+        ctx.font = 'bold 13px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        const rankText = `${idx + 1}`;
+        ctx.fillText(rankText, x + 16, y + cardH / 2);
+        const rankW = Math.ceil(ctx.measureText(rankText).width);
+
+        ctx.fillStyle = tierColor;
+        roundRect(ctx, x + 24 + rankW, y + cardH / 2 - 5, 10, 10, 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px Titillium Web, sans-serif';
+        ctx.fillText(r.mat.name, x + 42 + rankW, y + cardH / 2 - 8);
+
+        ctx.fillStyle = '#888';
+        ctx.font = '11px Titillium Web, sans-serif';
+        ctx.fillText(`P${r.mat.tier} • margin ${r.margin.toFixed(1)}%`, x + 42 + rankW, y + cardH / 2 + 10);
+
+        // Profit on the right
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 14px Titillium Web, sans-serif';
+        ctx.fillStyle = r.profit >= 0 ? '#3fb950' : '#f87171';
+        const profitText = `${formatISK(r.profit)} ISK`;
+        ctx.fillText(profitText, x + colW - 14, y + cardH / 2);
+
+        AppState.finderCards.push({ kind: 'profit', result: r, x, y, w: colW, h: cardH });
+        y += cardH + gapY;
+    });
 }
 
 function setupFinder() {
     if (!elements.finderLocate) return;
 
-    elements.finderLocate.addEventListener('click', finderUseMyLocation);
+    elements.finderLocate.addEventListener('click', () => {
+        // After a scope/auth failure the button doubles as the re-login trigger
+        if (AppState.finder.locationAuthNeeded) {
+            startFinderRelogin();
+            return;
+        }
+        finderUseMyLocation();
+    });
     elements.finderSetSystem.addEventListener('click', finderSetManualOrigin);
     elements.finderSystemInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') finderSetManualOrigin();
@@ -4009,20 +4387,6 @@ function setupFinder() {
         if (!elements.finderSecFilter.querySelector('.sec-chip.active')) {
             elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
         }
-    });
-
-    elements.finderSpotResults.addEventListener('click', (e) => {
-        const row = e.target.closest('.finder-result');
-        if (!row) return;
-        const sysId = parseInt(row.dataset.sys, 10);
-        AppState.finder.expandedSpot = AppState.finder.expandedSpot === sysId ? null : sysId;
-        renderFinderSpotResults();
-    });
-
-    elements.finderProfitResults.addEventListener('click', (e) => {
-        const row = e.target.closest('.finder-result');
-        if (!row) return;
-        selectProduct(parseInt(row.dataset.id, 10));
     });
 }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=9">
+    <link rel="stylesheet" href="pi-style.css?v=10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -158,11 +158,11 @@
 
                     <div class="finder-section">
                         <h4><i class="fas fa-industry"></i> Where Can I Build It?</h4>
-                        <p class="hint">Uses the Target Product selected below</p>
+                        <p class="hint">Uses the Target Product selected below - results open on the main canvas</p>
                         <button id="finderSearchSpot" class="calc-btn">
                             <i class="fas fa-search-location"></i> Find Best Systems
                         </button>
-                        <div id="finderSpotResults" class="finder-results"></div>
+                        <div id="finderSpotResults" class="finder-status"></div>
                     </div>
 
                     <div class="finder-section">
@@ -172,7 +172,7 @@
                         </button>
                         <span class="region-name" id="finderScanRegion"></span>
                         <div id="finderProgress" class="finder-progress hidden"></div>
-                        <div id="finderProfitResults" class="finder-results"></div>
+                        <div id="finderProfitResults" class="finder-status"></div>
                     </div>
                 </div>
 
@@ -243,6 +243,9 @@
                             <button id="viewColonies" class="toolbar-btn">
                                 <i class="fas fa-globe"></i> Colonies
                             </button>
+                            <button id="viewFinder" class="toolbar-btn">
+                                <i class="fas fa-location-arrow"></i> Finder
+                            </button>
                         </div>
                         <div class="toolbar-section">
                             <span class="toolbar-label">Zoom:</span>
@@ -278,7 +281,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '33';
+        window.PI_ASSET_VERSION = '34';
 
         (function loadPiScripts() {
             function load(src, onok) {

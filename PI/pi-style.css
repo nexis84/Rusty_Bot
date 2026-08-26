@@ -1421,6 +1421,12 @@ body {
 .sec-chip.active[data-sec="low"] { background: #a16207; border-color: #a16207; }
 .sec-chip.active[data-sec="null"] { background: #b91c1c; border-color: #b91c1c; }
 
+.finder-status {
+    margin-top: 0.6rem;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
 .finder-results {
     margin-top: 0.75rem;
     display: flex;

@@ -25,8 +25,7 @@ function makeCtx() {
     };
     ctx.__calls = calls;
     return ctx;
-}
-const ctx = makeCtx();
+}const ctx = makeCtx();
 
 const els = {};
 function makeEl(name) {
@@ -89,8 +88,8 @@ const code = files.map(f => fs.readFileSync(path.join(PI_DIR, f), 'utf8')).join(
     + '\n;globalThis.__test = { AppState, finderBFS, computeProducible, chainProfitMath,' +
       ' findSystemByName, secBandOf, activeSecBands, getFinderRadius, sortFinderSpotRows,' +
       ' getRequiredPlanetTypes, renderFinderSpotResults, renderFinderProfitResults,' +
-      ' getMaterialsByTier, getMaterialById, getChainForProduct, collectMaterialIds,' +
-      ' get spotRows() { return finderSpotRows; }, set spotRows(v) { finderSpotRows = v; } };';
+      ' drawFinderView, finderCardAt, getMaterialsByTier, getMaterialById, getChainForProduct,' +
+      ' collectMaterialIds };';
 vm.runInContext(code, sandbox, { filename: 'combined-pi.js' });
 const T = sandbox.__test;
 
@@ -261,26 +260,83 @@ let totalFail = 0;
     totalFail += f;
 }
 
-// ---- 10) Render smoke: spot results with expanded route ----
+// ---- 10) Canvas view: spot cards, expanded route, hit-testing ----
 {
     let f = 0;
     const jitaSys = vm.runInContext('PI_SYSTEMS["30000142"]', sandbox);
-    const sobaseki = vm.runInContext('PI_SYSTEMS["30000141"]', sandbox);
+    const sobaseki = vm.runInContext('PI_SYSTEMS["30001363"]', sandbox);
     const bfs = new Map([
         [30000142, { jumps: 0, parent: null }],
         [30001363, { jumps: 1, parent: 30000142 }]
     ]);
-    T.spotRows = [
+    T.AppState.finder.spotRows = [
         { sys: jitaSys, jumps: 0, requiredIds: [2016], missing: [], route: [30000142] },
         { sys: sobaseki, jumps: 1, requiredIds: [2016], missing: [2016], route: [30000142, 30001363] }
     ];
+    T.AppState.finder.activePanel = 'spot';
+    T.AppState.finder.spotProductName = 'Rocket Fuel';
     T.AppState.finder._bfs = bfs;
+    T.AppState.cssW = 1200; T.AppState.cssH = 900;
+    ctx.__calls.fillTexts = [];
+    T.drawFinderView();
+    const texts = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
+    if (!texts.includes('Jita')) { f++; console.error('[findercanvas] FAIL: Jita card not drawn'); }
+    if (!texts.includes('FULL CHAIN')) { f++; console.error('[findercanvas] FAIL: full-chain chip not drawn'); }
+    if (!texts.includes('Missing here: Barren')) { f++; console.error('[findercanvas] FAIL: partial-coverage line not drawn'); }
+    if (!texts.includes('best places to build')) { f++; console.error('[findercanvas] FAIL: header missing product name'); }
+    if (T.AppState.finderCards.length !== 2) { f++; console.error(`[findercanvas] FAIL: expected 2 hit areas, got ${T.AppState.finderCards.length}`); }
+
+    // Hit-test: center of first card hits it; a far corner misses
+    const c0 = T.AppState.finderCards[0];
+    if (T.finderCardAt({ x: c0.x + c0.w / 2, y: c0.y + c0.h / 2 }) !== c0) { f++; console.error('[findercanvas] FAIL: card centre should hit'); }
+    if (T.finderCardAt({ x: 5, y: 5 }) !== null) { f++; console.error('[findercanvas] FAIL: empty corner should miss'); }
+
+    // Expanded route renders system names joined by the arrow
+    T.AppState.finder.expandedSpot = 30001363;
+    ctx.__calls.fillTexts = [];
+    T.drawFinderView();
+    const texts2 = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
+    if (!/Jita .* Sobaseki|Jita.*Sobaseki/.test(texts2)) { f++; console.error('[findercanvas] FAIL: expanded route line missing'); }
+    console.log('[findercanvas] spot cards + hit areas' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+// ---- 11) Canvas view: profit cards ----
+{
+    let f = 0;
+    T.AppState.finder.profitRows = [
+        { id: 1, mat: { name: 'Rocket Fuel', tier: 2 }, profit: 12345.6, margin: 42.5 },
+        { id: 2, mat: { name: 'Biotech Research', tier: 3 }, profit: -50, margin: -3.1 }
+    ];
+    T.AppState.finder.activePanel = 'profit';
+    T.AppState.finder.profitRegionName = 'The Forge';
+    ctx.__calls.fillTexts = [];
+    T.drawFinderView();
+    const texts = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
+    if (!texts.includes('Rocket Fuel') || !texts.includes('12.35K ISK')) { f++; console.error('[profitcanvas] FAIL: top row content missing'); }
+    if (!texts.includes('-50.00 ISK')) { f++; console.error('[profitcanvas] FAIL: negative profit missing'); }
+    if (!texts.includes('margin 42.5%')) { f++; console.error('[profitcanvas] FAIL: margin text missing'); }
+    if (!texts.includes('Most profitable products - The Forge')) { f++; console.error('[profitcanvas] FAIL: header missing region'); }
+    console.log('[profitcanvas] profit cards' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+// ---- 12) Sidebar status lines after render* calls ----
+{
+    let f = 0;
+    // Spot status
+    T.AppState.finder.spotRows = [
+        { sys: { id: 1, security: 0.9, planets: [] }, jumps: 0, requiredIds: [2016], missing: [], route: [1] }
+    ];
     T.renderFinderSpotResults();
-    const html = els.finderSpotResults.innerHTML;
-    if (!html.includes('Jita')) { f++; console.error('[renderspot] FAIL: Jita row missing'); }
-    if (!html.includes('Full chain')) { f++; console.error('[renderspot] FAIL: full-chain chip missing'); }
-    if (!html.includes('Missing here:')) { f++; console.error('[renderspot] FAIL: missing line absent'); }
-    console.log('[renderspot] rows rendered (' + html.length + ' chars)' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    const st = els.finderSpotResults.textContent;
+    if (!st.includes('on the main canvas')) { f++; console.error('[status] FAIL: spot status not set, got: ' + st); }
+    // Profit status
+    T.AppState.finder.profitRows = [{ id: 1, mat: { name: 'X', tier: 1 }, profit: 1, margin: 1 }];
+    T.renderFinderProfitResults(10, 42);
+    const st2 = els.finderProfitResults.textContent;
+    if (!st2.includes('ranked from 42 systems within 10 jumps')) { f++; console.error('[status] FAIL: profit status not set, got: ' + st2); }
+    console.log('[status] sidebar summaries' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 

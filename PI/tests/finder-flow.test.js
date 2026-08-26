@@ -122,31 +122,36 @@ let totalFail = 0;
     // ---- Section A: find best systems ----
     await T.runFindBestSystems();
     let f = 0;
-    const spotHtml = els.finderSpotResults.innerHTML;
-    if (!spotHtml || spotHtml.includes('Set a starting location')) { f++; console.error('[flow] FAIL: no spot results rendered'); }
-    if (!spotHtml.includes('Full chain')) { f++; console.error('[flow] FAIL: expected at least one full-chain system near Jita'); }
-    if (!spotHtml.includes('finder-route') && !spotHtml.includes('row-sub')) { f++; console.error('[flow] FAIL: no detail lines rendered'); }
-    console.log(`[flow] spot search -> ${spotHtml.length} chars` + (f ? ` FAIL x${f}` : ' PASS'));
+    const spotStatus = els.finderSpotResults.textContent;
+    if (!spotStatus.includes('on the main canvas')) { f++; console.error('[flow] FAIL: spot status not set, got: ' + spotStatus); }
+    if (T.AppState.finder.activePanel !== 'spot') { f++; console.error('[flow] FAIL: activePanel not spot'); }
+    if (!T.AppState.finder.spotRows.length) { f++; console.error('[flow] FAIL: no spot rows stored'); }
+    if (T.AppState.viewMode !== 'finder') { f++; console.error(`[flow] FAIL: viewMode ${T.AppState.viewMode} != finder`); }
+    if (!spotStatus.includes('full-chain')) { f++; console.error('[flow] FAIL: expected full-chain count in status'); }
+    console.log(`[flow] spot search -> ${T.AppState.finder.spotRows.length} systems, panel=${T.AppState.viewMode}` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
     // ---- Section B: profit scan (mocked prices) ----
     f = 0;
     els.regionSelect.value = '10000002';
     await T.runProfitScan();
-    const profitHtml = els.finderProfitResults.innerHTML;
-    if (!profitHtml || profitHtml.includes('No priced products')) { f++; console.error('[flow] FAIL: no profit rows rendered'); }
-    if (!profitHtml.includes('ISK')) { f++; console.error('[flow] FAIL: profit rows missing ISK values'); }
-    if (!profitHtml.includes('producible from')) { f++; console.error('[flow] FAIL: summary line missing'); }
-    console.log(`[flow] profit scan -> ${profitHtml.length} chars` + (f ? ` FAIL x${f}` : ' PASS'));
+    const profitStatus = els.finderProfitResults.textContent;
+    if (!profitStatus.includes('ranked from')) { f++; console.error('[flow] FAIL: profit status not set, got: ' + profitStatus); }
+    if (T.AppState.finder.activePanel !== 'profit') { f++; console.error('[flow] FAIL: activePanel not profit'); }
+    if (!T.AppState.finder.profitRows.length) { f++; console.error('[flow] FAIL: no profit rows stored'); }
+    if (T.AppState.finder.profitRows[0].profit <= T.AppState.finder.profitRows[T.AppState.finder.profitRows.length - 1].profit) {
+        f++; console.error('[flow] FAIL: profit rows not sorted desc');
+    }
+    console.log(`[flow] profit scan -> ${T.AppState.finder.profitRows.length} products` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
     // ---- Guards: no origin -> friendly message, no crash ----
     f = 0;
     T.AppState.finder.originSystemId = null;
     await T.runFindBestSystems();
-    if (!els.finderSpotResults.innerHTML.includes('Set a starting location')) { f++; console.error('[flow] FAIL: missing-origin guard'); }
+    if (!els.finderSpotResults.textContent.includes('Set a starting location')) { f++; console.error('[flow] FAIL: missing-origin guard'); }
     await T.runProfitScan();
-    if (!els.finderProfitResults.innerHTML.includes('Set a starting location')) { f++; console.error('[flow] FAIL: missing-origin guard (scan)'); }
+    if (!els.finderProfitResults.textContent.includes('Set a starting location')) { f++; console.error('[flow] FAIL: missing-origin guard (scan)'); }
     console.log('[flow] origin guards' + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
