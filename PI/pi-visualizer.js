@@ -21,6 +21,9 @@ const AppState = {
     currentTab: 'system',
     hoveredCard: null,
     hoverChainNode: null,    // material id of the chain node under the cursor (for tooltip)
+    chainFocus: null,        // clicked node material id - highlights its input subtree, dims the rest
+    _lastClickId: null,      // for double-click detection (click = focus, dbl-click = navigate)
+    _lastClickTime: 0,
     systemsLoaded: false,
     planetsLoaded: false,
     colonies: null,
@@ -479,6 +482,7 @@ function navigateToProduct(id) {
         AppState.chainHistory.push(prev);
     }
     AppState.suppressHistoryPush = false;
+    AppState.chainFocus = null;
 
     generateChainLayout();
     fetchMarketData();
@@ -1903,17 +1907,45 @@ function drawChain() {
 
     const { nodes, links } = AppState.chainLayout;
 
+    // When a node is focused (clicked), highlight its input subtree and dim
+    // everything else. The subtree = the node plus every material it consumes
+    // (following input links downward to raw).
+    let focusSet = null;
+    if (AppState.chainFocus != null) {
+        const focusNode = nodes.find(n => n.materialId === AppState.chainFocus);
+        if (focusNode) {
+            const childrenMap = {};
+            links.forEach(l => {
+                (childrenMap[l.to] = childrenMap[l.to] || []).push(l.from);
+            });
+            focusSet = new Set([focusNode.id]);
+            const stack = [focusNode.id];
+            while (stack.length) {
+                const nid = stack.pop();
+                (childrenMap[nid] || []).forEach(c => {
+                    if (!focusSet.has(c)) { focusSet.add(c); stack.push(c); }
+                });
+            }
+        }
+    }
+
     links.forEach((link, index) => {
         const from = nodes.find(n => n.id === link.from);
         const to = nodes.find(n => n.id === link.to);
         if (from && to) {
+            const inFocus = focusSet ? (focusSet.has(from.id) && focusSet.has(to.id)) : true;
             const midX = (from.x + to.x) / 2;
             const midY = (from.y + to.y) / 2;
             const curveOffset = (index % 2 === 0 ? 10 : -10);
 
             ctx.beginPath();
-            ctx.strokeStyle = 'rgba(232, 217, 0, 0.3)';
-            ctx.lineWidth = 1;
+            if (inFocus) {
+                ctx.strokeStyle = 'rgba(232, 217, 0, 0.45)';
+                ctx.lineWidth = 1.4;
+            } else {
+                ctx.strokeStyle = 'rgba(120, 120, 120, 0.12)';
+                ctx.lineWidth = 1;
+            }
             ctx.moveTo(from.x, from.y);
             ctx.quadraticCurveTo(midX + curveOffset, midY, to.x, to.y);
             ctx.stroke();
@@ -1921,21 +1953,24 @@ function drawChain() {
     });
 
     nodes.forEach(node => {
-        drawChainNode(node);
+        drawChainNode(node, focusSet ? !focusSet.has(node.id) : false);
     });
 }
 
-function drawChainNode(node) {
+function drawChainNode(node, dimmed) {
     const width = 140;
     const height = node.tier === 0 ? 78 : 62;
     const x = node.x - width / 2;
     const y = node.y - height / 2;
 
-    const color = PI_COLORS[node.tier] || '#666';
+    const baseColor = PI_COLORS[node.tier] || '#666';
+    const color = dimmed ? '#555' : baseColor;
 
-    ctx.fillStyle = 'rgba(30, 30, 30, 0.95)';
+    ctx.globalAlpha = dimmed ? 0.35 : 1;
+
+    ctx.fillStyle = dimmed ? 'rgba(20, 20, 20, 0.9)' : 'rgba(30, 30, 30, 0.95)';
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = dimmed ? 1 : 2;
 
     roundRect(ctx, x, y, width, height, 6);
     ctx.fill();
@@ -1998,6 +2033,8 @@ function drawChainNode(node) {
         ctx.textAlign = 'center';
         ctx.fillText(formatISK(price), node.x, y + height - 10);
     }
+
+    ctx.globalAlpha = 1;
 }
 
 // ---------- Planets View ----------
@@ -3335,55 +3372,78 @@ function onPointerUp(e) {
     AppState.layoutHover = null;
     AppState.hasDragged = false;
 
-    if (!wasDrag && hit) {
-        if (hit.type === 'product') {
-            selectProduct(hit.id);
-        } else if (hit.type === 'colony') {
-            AppState.colonyDetail = hit.colony;
-            AppState.layoutMode = false;
-            AppState.layoutSel = null;
-            resetViewport();
-            updateUrlState();
-            draw();
-        } else if (hit.type === 'colonyBack') {
-            AppState.colonyDetail = null;
-            AppState.layoutMode = false;
-            AppState.layoutSel = null;
-            resetViewport();
-            updateUrlState();
-            draw();
-        } else if (hit.type === 'detailToggle') {
-            AppState.layoutMode = hit.mode;
-            AppState.layoutSel = null;
-            resetViewport();
-            draw();
-        } else if (hit.type === 'layoutPin') {
-            AppState.layoutSel = AppState.layoutSel === hit.pinId ? null : hit.pinId;
-            draw();
-        } else if (hit.type === 'layoutClear') {
-            AppState.layoutSel = null;
-            draw();
-        } else if (hit.type === 'finderCard') {
-            if (hit.card.kind === 'spot') {
-                const key = groupKey(hit.card.row);
-                AppState.finder.expandedSpot = AppState.finder.expandedSpot === key ? null : key;
+    if (!wasDrag) {
+        if (hit) {
+            if (hit.type === 'product') {
+                const id = hit.id;
+                if (AppState.chainFocus === id) {
+                    // Click the focused node again -> clear the highlight.
+                    AppState.chainFocus = null;
+                } else {
+                    const now = Date.now();
+                    if (AppState._lastClickId === id && (now - AppState._lastClickTime) < 350) {
+                        // Double-click -> drill into the product (navigate).
+                        AppState.chainFocus = null;
+                        AppState._lastClickId = null;
+                        selectProduct(id);
+                        return;
+                    }
+                    // Single click -> focus/highlight this node's input subtree.
+                    AppState._lastClickId = id;
+                    AppState._lastClickTime = now;
+                    AppState.chainFocus = id;
+                }
                 draw();
-            } else if (hit.card.kind === 'openChain') {
-                selectProduct(hit.card.productId);
-            } else if (hit.card.kind === 'nextProduct') {
-                const r = hit.card.result;
-                const rows = buildSpotGroups(r.id);
-                if (!rows.length) return;
-                AppState.finder.bestProductId = r.id;
-                AppState.finder.bestStats = { profit: r.profit, margin: r.margin, profitLocal: r.profitLocal, marginLocal: r.marginLocal };
-                AppState.finder.spotRows = rows;
-                AppState.finder.spotProductName = r.mat.name;
-                AppState.finder.activePanel = 'spot';
-                AppState.finder.expandedSpot = null;
-                renderFinderSpotResults();
-            } else {
-                selectProduct(hit.card.result.id);
+            } else if (hit.type === 'colony') {
+                AppState.colonyDetail = hit.colony;
+                AppState.layoutMode = false;
+                AppState.layoutSel = null;
+                resetViewport();
+                updateUrlState();
+                draw();
+            } else if (hit.type === 'colonyBack') {
+                AppState.colonyDetail = null;
+                AppState.layoutMode = false;
+                AppState.layoutSel = null;
+                resetViewport();
+                updateUrlState();
+                draw();
+            } else if (hit.type === 'detailToggle') {
+                AppState.layoutMode = hit.mode;
+                AppState.layoutSel = null;
+                resetViewport();
+                draw();
+            } else if (hit.type === 'layoutPin') {
+                AppState.layoutSel = AppState.layoutSel === hit.pinId ? null : hit.pinId;
+                draw();
+            } else if (hit.type === 'layoutClear') {
+                AppState.layoutSel = null;
+                draw();
+            } else if (hit.type === 'finderCard') {
+                if (hit.card.kind === 'spot') {
+                    const key = groupKey(hit.card.row);
+                    AppState.finder.expandedSpot = AppState.finder.expandedSpot === key ? null : key;
+                    draw();
+                } else if (hit.card.kind === 'openChain') {
+                    selectProduct(hit.card.productId);
+                } else if (hit.card.kind === 'nextProduct') {
+                    const r = hit.card.result;
+                    const rows = buildSpotGroups(r.id);
+                    if (!rows.length) return;
+                    AppState.finder.bestProductId = r.id;
+                    AppState.finder.bestStats = { profit: r.profit, margin: r.margin, profitLocal: r.profitLocal, marginLocal: r.marginLocal };
+                    AppState.finder.spotRows = rows;
+                    AppState.finder.spotProductName = r.mat.name;
+                    AppState.finder.activePanel = 'spot';
+                    AppState.finder.expandedSpot = null;
+                    renderFinderSpotResults();
+                } else {
+                    selectProduct(hit.card.result.id);
+                }
             }
+        } else if (!hit && AppState.chainFocus !== null) {
+            AppState.chainFocus = null;
+            draw();
         }
     }
 }
@@ -3498,6 +3558,7 @@ function setViewMode(mode) {
     AppState.viewMode = mode;
     AppState.hoverChainNode = null;
     AppState.hoveredCard = null;
+    AppState.chainFocus = null;
     elements.viewReference.classList.toggle('active', mode === 'reference');
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
