@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=11">
+    <link rel="stylesheet" href="pi-style.css?v=12">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -136,15 +136,13 @@
 
                     <div class="finder-section">
                         <h4><i class="fas fa-crosshairs"></i> Start From</h4>
-                        <div class="finder-origin-row">
-                            <button id="finderLocate" class="calc-btn">
-                                <i class="fas fa-satellite-dish"></i> Use my location
-                            </button>
-                            <span id="finderOriginLabel" class="finder-origin-label">no origin set</span>
-                        </div>
-                        <p class="hint">or</p>
+                        <button id="finderLocate" class="calc-btn finder-locate-btn">
+                            <i class="fas fa-satellite-dish"></i> Use my ship location
+                        </button>
+                        <div id="finderOriginLabel" class="finder-origin-status">No origin set yet</div>
+                        <div class="finder-divider">or</div>
                         <div class="finder-manual-row">
-                            <input type="text" id="finderSystemInput" placeholder="System name..." class="form-input">
+                            <input type="text" id="finderSystemInput" placeholder="Type a system name..." class="form-input">
                             <button id="finderSetSystem" class="calc-btn secondary">Set</button>
                         </div>
                     </div>
@@ -154,6 +152,10 @@
                         <div class="finder-controls">
                             <label>Jumps:
                                 <input type="number" id="finderJumps" min="1" max="50" value="10" class="form-input jumps-input">
+                            </label>
+                            <label title="How many nearby systems may share the production - 1 means the whole chain must fit in one system">
+                                Max systems:
+                                <input type="number" id="finderMaxSystems" min="1" max="6" value="1" class="form-input jumps-input">
                             </label>
                             <div class="sec-filter" id="finderSecFilter">
                                 <button class="sec-chip active" data-sec="high" title="0.5 and above">High</button>
@@ -165,7 +167,7 @@
 
                     <div class="finder-section">
                         <h4><i class="fas fa-industry"></i> Where Can I Build It?</h4>
-                        <p class="hint">Uses the Target Product selected below - only shows systems with every planet type needed</p>
+                        <p class="hint">Uses the Target Product selected below - only shows plans with every planet type needed (split across up to Max systems)</p>
                         <button id="finderSearchSpot" class="calc-btn">
                             <i class="fas fa-search-location"></i> Find Best Systems
                         </button>
@@ -290,7 +292,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '35';
+        window.PI_ASSET_VERSION = '36';
 
         (function loadPiScripts() {
             function load(src, onok) {

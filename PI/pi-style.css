@@ -1364,6 +1364,44 @@ body {
     gap: 0.5rem;
 }
 
+.finder-locate-btn {
+    width: 100%;
+}
+
+.finder-origin-status {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+    min-height: 1.15rem;
+    word-break: break-word;
+}
+
+.finder-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.6rem 0 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.finder-divider::before,
+.finder-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
 .finder-origin-label {
     font-size: 0.7rem;
     color: var(--text-secondary);

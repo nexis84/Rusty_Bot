@@ -121,6 +121,7 @@ const elements = {
     finderSystemInput: document.getElementById('finderSystemInput'),
     finderSetSystem: document.getElementById('finderSetSystem'),
     finderJumps: document.getElementById('finderJumps'),
+    finderMaxSystems: document.getElementById('finderMaxSystems'),
     finderSecFilter: document.getElementById('finderSecFilter'),
     finderSearchSpot: document.getElementById('finderSearchSpot'),
     finderSpotResults: document.getElementById('finderSpotResults'),
@@ -382,6 +383,22 @@ function setupEventListeners() {
     elements.zoomIn.addEventListener('click', () => setZoom(AppState.zoom * 1.2));
     elements.zoomOut.addEventListener('click', () => setZoom(AppState.zoom * 0.8));
     elements.fitView.addEventListener('click', fitView);
+
+    // Finder results scroll with the keyboard too
+    window.addEventListener('keydown', (e) => {
+        if (AppState.viewMode !== 'finder') return;
+        const tag = (e.target && e.target.tagName) || '';
+        if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
+        const step = { ArrowUp: -48, ArrowDown: 48, PageUp: -240, PageDown: 240 }[e.key];
+        if (step !== undefined) {
+            e.preventDefault();
+            AppState.canvasOffset.y += step;
+            draw();
+        } else if (e.key === 'Home' || e.key === 'End') {
+            e.preventDefault();
+            resetViewport();
+        }
+    });
 
     elements.regionSelect.addEventListener('change', () => {
         if (AppState.targetProduct) {
@@ -1581,11 +1598,8 @@ function draw() {
     }
 
     if (AppState.viewMode === 'finder') {
-        ctx.save();
-        ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
-        ctx.scale(AppState.zoom, AppState.zoom);
+        // Screen-space like the other list views - fixed size, wheel/keys scroll
         drawFinderView();
-        ctx.restore();
         return;
     }
 
@@ -3184,11 +3198,11 @@ function onPointerMove(e) {
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
-        // Reference and non-layout colonies views lay out vertically only -
-        // panning X there desyncs the grid from the background, so lock to Y.
-        // Colony layout mode and the finder are full world-space views, so they
-        // pan freely.
+        // Reference, finder and non-layout colonies views lay out vertically
+        // only - panning X there desyncs the list from the background, so lock
+        // to Y. Colony layout mode is a full world-space view, so it pans free.
         const lockY = AppState.viewMode === 'reference' ||
+            AppState.viewMode === 'finder' ||
             (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
         if (lockY) {
             AppState.canvasOffset.y += dy;
@@ -3242,12 +3256,14 @@ function onPointerUp(e) {
             draw();
         } else if (hit.type === 'finderCard') {
             if (hit.card.kind === 'spot') {
-                const sysId = hit.card.row.sys.id;
-                AppState.finder.expandedSpot = AppState.finder.expandedSpot === sysId ? null : sysId;
+                const key = groupKey(hit.card.row);
+                AppState.finder.expandedSpot = AppState.finder.expandedSpot === key ? null : key;
                 draw();
+            } else if (hit.card.kind === 'openChain') {
+                selectProduct(hit.card.productId);
             } else if (hit.card.kind === 'nextProduct') {
                 const r = hit.card.result;
-                const rows = buildFullCoverageSpotRows(r.id);
+                const rows = buildSpotGroups(r.id);
                 if (!rows.length) return;
                 AppState.finder.bestProductId = r.id;
                 AppState.finder.bestStats = { profit: r.profit, margin: r.margin, profitLocal: r.profitLocal, marginLocal: r.marginLocal };
@@ -3274,19 +3290,16 @@ function onPointerCancel() {
 function onWheel(e) {
     e.preventDefault();
 
-    // World-space views (chain graph, planets, colony layout map, finder
-    // results): the wheel zooms to the cursor - scroll up zooms in.
-    const worldViews = AppState.viewMode === 'chain' ||
-        AppState.viewMode === 'planets' || AppState.viewMode === 'finder' ||
-        (AppState.viewMode === 'colonies' && AppState.colonyDetail && AppState.layoutMode);
-    if (worldViews) {
+    // World-space views (chain graph, planets, colony layout map): the wheel
+    // zooms to the cursor - scroll up zooms in.
+    if (isWorldZoomView()) {
         const factor = e.deltaY > 0 ? 0.9 : 1.1;
         zoomAt(AppState.zoom * factor, getCanvasPos(e));
         return;
     }
 
-    // Flat list views (reference grid, colonies list): the wheel scrolls the
-    // list naturally - scroll down moves content up through the list.
+    // Flat list views (reference grid, colonies list, finder results): the
+    // wheel scrolls the list naturally - wheel down moves content up.
     AppState.canvasOffset.y -= e.deltaY;
     draw();
 }
@@ -3314,8 +3327,15 @@ function worldToScreen(worldX, worldY) {
     };
 }
 
+// Views rendered inside the world transform where zoom genuinely scales content
+function isWorldZoomView() {
+    return AppState.viewMode === 'chain' || AppState.viewMode === 'planets' ||
+        (AppState.viewMode === 'colonies' && AppState.colonyDetail && AppState.layoutMode);
+}
+
 // View Controls
 function zoomAt(newZoom, anchor) {
+    if (!isWorldZoomView()) return; // flat list views don't scale - avoid offset drift
     const clamped = Math.max(0.25, Math.min(4, newZoom));
     if (anchor && clamped !== AppState.zoom) {
         // Keep the world point under the anchor stationary while zooming
@@ -3731,6 +3751,14 @@ function getFinderRadius() {
     return Math.min(50, Math.max(1, n));
 }
 
+// How many nearby systems may share production: 1 = whole chain in one system,
+// higher allows splitting planets across up to N systems within radius.
+function getFinderMaxSystems() {
+    const n = parseInt(elements.finderMaxSystems && elements.finderMaxSystems.value, 10);
+    if (!Number.isFinite(n)) return 1;
+    return Math.min(6, Math.max(1, n));
+}
+
 // BFS over the stargate graph from originId up to maxJumps.
 // Returns Map(systemId -> {jumps, parent}) - parents allow route reconstruction.
 function finderBFS(originId, maxJumps) {
@@ -3756,7 +3784,9 @@ function finderBFS(originId, maxJumps) {
 function finderRoutePath(destId, bfsMap) {
     const path = [];
     let cur = destId;
-    while (cur !== null) {
+    // Safety bound: a valid chain can never exceed the number of visited nodes
+    const maxSteps = (bfsMap ? bfsMap.size : 0) + 1;
+    while (cur !== null && path.length <= maxSteps) {
         path.push(cur);
         const node = bfsMap ? bfsMap.get(cur) : null;
         cur = node ? node.parent : null;
@@ -3859,21 +3889,15 @@ function finderSetManualOrigin() {
 
 const FINDER_MAX_ROWS = 25;   // canvas cards per spot search (scrollable, but bounded)
 
-// Coverage-first ordering: full-chain systems by fewest jumps (ties -> higher
-// security), then partial systems by fewest missing types, then jumps.
-function sortFinderSpotRows(rows) {
-    rows.sort((a, b) => {
-        const fullA = a.missing.length === 0 ? 0 : 1;
-        const fullB = b.missing.length === 0 ? 0 : 1;
-        if (fullA !== fullB) return fullA - fullB;
-        if (fullA === 0) {
-            if (a.jumps !== b.jumps) return a.jumps - b.jumps;
-            return (b.sys.security || 0) - (a.sys.security || 0);
-        }
-        if (a.missing.length !== b.missing.length) return a.missing.length - b.missing.length;
-        return a.jumps - b.jumps;
+// Best plans first: fewer total jumps, then fewer systems, then safer security.
+function sortFinderSpotRows(groups) {
+    const minSec = g => Math.min(...g.systems.map(s => (s.sys.security == null ? -1 : s.sys.security)));
+    groups.sort((a, b) => {
+        if (a.totalJumps !== b.totalJumps) return a.totalJumps - b.totalJumps;
+        if (a.systems.length !== b.systems.length) return a.systems.length - b.systems.length;
+        return minSec(b) - minSec(a);
     });
-    return rows;
+    return groups;
 }
 
 function setFinderStatus(el, message) {
@@ -3904,7 +3928,7 @@ async function runFindBestSystems() {
         if (!ok[0] || !ok[1]) throw new Error('Failed to load system/jump data');
 
         finderBFS(AppState.finder.originSystemId, getFinderRadius()); // refreshes AppState.finder._bfs
-        AppState.finder.spotRows = buildFullCoverageSpotRows(productId);
+        AppState.finder.spotRows = buildSpotGroups(productId);
         AppState.finder.activePanel = 'spot';
         AppState.finder.expandedSpot = null;
         AppState.finder.bestProductId = productId;
@@ -3919,17 +3943,20 @@ async function runFindBestSystems() {
     }
 }
 
-// Sidebar keeps only a status line; the ranked cards live on the main canvas.
+// Sidebar keeps only a status line; the ranked plans live on the main canvas.
 function renderFinderSpotResults() {
     const rows = AppState.finder.spotRows;
     if (!rows.length) {
         setFinderStatus(elements.finderSpotResults,
-            'No system within radius has every planet type needed. Widen the radius or sec filter.');
+            'No plan within radius covers every planet type needed. Widen the radius, max systems or sec filter.');
         draw();
         return;
     }
+    const multi = rows.filter(r => r.systems.length > 1).length;
     setFinderStatus(elements.finderSpotResults,
-        `${rows.length} system${rows.length === 1 ? '' : 's'} can build ${AppState.finder.spotProductName} in full - shown on the main canvas`);
+        `${rows.length} plan${rows.length === 1 ? '' : 's'} can build ${AppState.finder.spotProductName} in full` +
+        (multi ? ` (${multi} split across systems)` : '') +
+        ' - shown on the main canvas');
     resetViewport();
     setViewMode('finder');
 }
@@ -4030,17 +4057,17 @@ async function runProfitScan() {
         AppState.finder.scanResults = results;
         AppState.finder.localRegionName = regionName;
 
-        // Merged flow: feature the highest-Jita-profit product that at least one
-        // system in radius can host IN FULL (all required planet types present).
+        // Merged flow: feature the highest-Jita-profit product whose planets
+        // fit within the allowed number of systems in radius.
         let best = null;
         let rows = [];
         for (const r of results) {
-            const candidate = buildFullCoverageSpotRows(r.id);
+            const candidate = buildSpotGroups(r.id);
             if (candidate.length) { best = r; rows = candidate; break; }
         }
         if (!best) {
             setFinderStatus(elements.finderProfitResults,
-                `No product in the scan can be built within a single system inside ${radius} jumps - widen the radius or sec filter.`);
+                `No product in the scan can be built within ${getFinderMaxSystems()} system(s) inside ${radius} jumps - widen the radius or max systems.`);
             draw();
             return;
         }
@@ -4053,10 +4080,10 @@ async function runProfitScan() {
         AppState.finder.spotProductName = best.mat.name;
 
         const skipped = best.id !== results[0].id
-            ? ` • ${results[0].mat.name} ranks highest but needs several systems - showing the next best buildable in one`
+            ? ` • ${results[0].mat.name} ranks highest but needs more than ${getFinderMaxSystems()} system(s) - showing the next best buildable`
             : '';
         setFinderStatus(elements.finderProfitResults,
-            `Best sell: ${best.mat.name} (${formatISK(best.profit)} ISK/batch on ${jitaName}) - ${rows.length} system${rows.length === 1 ? '' : 's'} can build it in full, shown on the main canvas${skipped}`);
+            `Best sell: ${best.mat.name} (${formatISK(best.profit)} ISK/batch on ${jitaName}) - ${rows.length} plan${rows.length === 1 ? '' : 's'} cover it fully, shown on the main canvas${skipped}`);
         resetViewport();
         setViewMode('finder');
     } catch (err) {
@@ -4069,11 +4096,10 @@ async function runProfitScan() {
 }
 
 // ---------- Finder Canvas View ----------
-// Cards are stored in world coordinates; convert screen input before testing.
+// Cards are stored in screen coordinates (finder is a flat, non-zooming list).
 function finderCardAt(pos) {
-    const w = screenToWorld(pos.x, pos.y);
     return (AppState.finderCards || []).find(c =>
-        w.x >= c.x && w.x <= c.x + c.w && w.y >= c.y && w.y <= c.y + c.h) || null;
+        pos.x >= c.x && pos.x <= c.x + c.w && pos.y >= c.y && pos.y <= c.y + c.h) || null;
 }
 
 const SEC_BAND_COLORS = { high: '#2d7d46', low: '#a16207', null: '#b91c1c' };
@@ -4156,40 +4182,42 @@ function drawTypeChip(label, color, dim, x, y, maxW) {
     return w;
 }
 
-// Draws the required planet-type chips for a spot row, wrapped to maxW.
+// Draws planet-type chips for a list of type ids, wrapped to maxW.
 // Returns total height used.
-function drawFinderBadges(row, x, y, maxW) {
+function drawChips(ids, x, y, maxW) {
     const gapX = 6;
-    const gapY = 5;
     let cx = x;
     let cy = y;
-    row.requiredIds.forEach(tid => {
+    ids.forEach(tid => {
         const pt = getPlanetTypeData(tid);
         if (!pt) return;
-        const has = !row.missing.includes(tid);
         ctx.font = 'bold 10px Titillium Web, sans-serif';
         const estW = Math.ceil(ctx.measureText(pt.name).width) + 14;
         if (cx > x && cx + Math.min(estW, maxW) > x + maxW) {
             cx = x;
             cy += 22;
         }
-        const used = drawTypeChip(pt.name, pt.color, !has, cx, cy, maxW - (cx - x));
+        const used = drawTypeChip(pt.name, pt.color, false, cx, cy, maxW - (cx - x));
         cx += used + gapX;
     });
     return (cy - y) + 22;
 }
 
-function finderRouteLines(row, maxW) {
+function finderRouteLines(route, maxW, label) {
     const systemsLoaded = AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined';
-    const names = row.route.map(id => (systemsLoaded && PI_SYSTEMS[id]) ? PI_SYSTEMS[id].name : String(id));
+    const names = route.map(id => (systemsLoaded && PI_SYSTEMS[id]) ? PI_SYSTEMS[id].name : String(id));
     const allowed = activeSecBands();
-    const crossed = [...new Set(row.route
+    const crossed = [...new Set(route
         .map(id => (systemsLoaded && PI_SYSTEMS[id]) ? secBandOf(PI_SYSTEMS[id].security) : null))]
         .filter(b => b && !allowed.has(b));
-    let text = names.join(' › ');
+    let text = (label ? label + ':  ' : '') + names.join(' › ');
     if (crossed.length) text += `  (route crosses ${crossed.join(' + ')} sec)`;
     ctx.font = '11px Titillium Web, sans-serif';
     return wrapCanvasText(text, maxW);
+}
+
+function groupKey(group) {
+    return group.systems.map(s => s.sys.id).join('+');
 }
 
 function drawFinderSpotCards() {
@@ -4204,6 +4232,25 @@ function drawFinderSpotCards() {
     ctx.font = 'bold 18px Titillium Web, sans-serif';
     ctx.fillText(`${AppState.finder.spotProductName} - best places to build`, 20, 20);
 
+    // "View chain" link for the featured product (top right of the header)
+    const chainMat = getMaterialById(AppState.finder.bestProductId);
+    if (chainMat) {
+        ctx.font = 'bold 11px Titillium Web, sans-serif';
+        const cw = Math.ceil(ctx.measureText('VIEW CHAIN').width) + 18;
+        const chipRect = { x: AppState.cssW - 20 - cw, y: 16, w: cw, h: 20 };
+        ctx.fillStyle = 'rgba(88, 166, 255, 0.15)';
+        roundRect(ctx, chipRect.x, chipRect.y, chipRect.w, chipRect.h, 5);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(88, 166, 255, 0.55)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = '#58a6ff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('VIEW CHAIN', chipRect.x + chipRect.w / 2, chipRect.y + chipRect.h / 2 + 0.5);
+        AppState.finderCards.push({ kind: 'openChain', productId: chainMat.id, ...chipRect });
+    }
+
     let headerY = 46;
     const stats = AppState.finder.bestStats;
     if (stats) {
@@ -4217,37 +4264,38 @@ function drawFinderSpotCards() {
     ctx.fillStyle = '#aaa';
     ctx.font = '12px Titillium Web, sans-serif';
     const originName = originSys ? originSys.name : 'origin';
-    ctx.fillText(`${rows.length} of ${AppState.finder.spotRows.length} systems within ${getFinderRadius()}j of ${originName}` +
-        ` have every planet type needed • click a card for its route`, 20, headerY);
+    const multiCount = rows.filter(r => r.systems.length > 1).length;
+    let sub = `${rows.length} plan${rows.length === 1 ? '' : 's'} within ${getFinderRadius()}j of ${originName}` +
+        ` covering every planet type (max ${getFinderMaxSystems()} system${getFinderMaxSystems() === 1 ? '' : 's'})`;
+    if (multiCount) sub += ` • ${multiCount} split across systems`;
+    sub += ' • click a card for routes';
+    ctx.fillText(sub, 20, headerY);
 
-    const viewW = AppState.cssW / AppState.zoom;
-    const colW = Math.min(620, Math.max(360, viewW - 80));
-    const x = Math.max(20, (viewW - colW) / 2);
+    const colW = Math.min(620, Math.max(360, AppState.cssW - 80));
+    const x = Math.max(20, (AppState.cssW - colW) / 2);
     let y = headerY + 26 + offsetY;
     const gapY = 12;
     const pad = 14;
 
-    rows.forEach(row => {
-        const sys = row.sys;
-        const full = row.missing.length === 0;
-        const expanded = AppState.finder.expandedSpot === sys.id;
+    rows.forEach(group => {
+        const single = group.systems.length === 1;
+        const expanded = AppState.finder.expandedSpot === groupKey(group);
 
-        // Pre-measure variable parts to size the card
-        const badgesTop = y + pad + 30;
-        const badgesH = measureFinderBadgesHeight(row, colW - pad * 2);
-        let h = pad + 30 + badgesH + pad;
-        let missingLine = '';
-        if (!full) {
-            missingLine = 'Missing here: ' + row.missing.map(tid => {
-                const pt = getPlanetTypeData(tid);
-                return pt ? pt.name : tid;
-            }).join(', ');
-            h += 18;
-        }
-        let routeLines = [];
+        // Pre-measure: per-system blocks (name line + covered-type chips)
+        const innerW = colW - pad * 2;
+        const blocks = group.systems.map(entry => ({
+            entry,
+            chipsH: measureChipsHeight(entry.covers, innerW - 16)
+        }));
+        let h = pad + 24 + 6;
+        blocks.forEach(b => { h += 18 + b.chipsH + 6; });
+        let routeLineCount = 0;
         if (expanded) {
-            routeLines = finderRouteLines(row, colW - pad * 2 - 8);
-            h += routeLines.length * 15 + 10;
+            group.systems.forEach(entry => {
+                routeLineCount += finderRouteLines(entry.route, innerW - 8,
+                    single ? null : entry.sys.name).length;
+            });
+            h += routeLineCount * 15 + 10;
         }
 
         // Card background + accent bar
@@ -4257,77 +4305,96 @@ function drawFinderSpotCards() {
         ctx.fillStyle = gradient;
         roundRect(ctx, x, y, colW, h, 8);
         ctx.fill();
-        ctx.strokeStyle = full ? 'rgba(63, 185, 80, 0.55)' : 'rgba(255, 255, 255, 0.1)';
+        ctx.strokeStyle = 'rgba(63, 185, 80, 0.55)';
         ctx.lineWidth = 1;
         ctx.stroke();
-        ctx.fillStyle = full ? '#3fb950' : '#58a6ff';
+        ctx.fillStyle = single ? '#3fb950' : '#58a6ff';
         ctx.beginPath();
         roundRect(ctx, x, y, 4, h, [8, 0, 0, 8]);
         ctx.fill();
 
-        // Title: system name + security badge ... jumps on the right
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 15px Titillium Web, sans-serif';
+        // Title row
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-        const nameW = Math.ceil(ctx.measureText(sys.name).width);
-        ctx.fillText(sys.name, x + pad + 6, y + pad + 13);
-
-        const band = secBandOf(sys.security);
-        ctx.font = 'bold 11px Titillium Web, sans-serif';
-        const secLabel = formatSecurity(sys.security);
-        const secW = Math.ceil(ctx.measureText(secLabel).width) + 10;
-        ctx.fillStyle = SEC_BAND_COLORS[band];
-        roundRect(ctx, x + pad + 14 + nameW, y + pad + 1, secW, 15, 3);
-        ctx.fill();
         ctx.fillStyle = '#fff';
+        ctx.font = 'bold 15px Titillium Web, sans-serif';
+        const title = single ? group.systems[0].sys.name
+            : `Split across ${group.systems.length} systems`;
+        ctx.fillText(title, x + pad + 6, y + pad + 13);
+
+        // FULL CHAIN / FULL COVERAGE chip
+        ctx.font = 'bold 10px Titillium Web, sans-serif';
+        const chipLabel = single ? 'FULL CHAIN' : 'FULL COVERAGE';
+        const chipW = Math.ceil(ctx.measureText(chipLabel).width) + 12;
+        const chipX = x + colW - pad - 6 - chipW - 44;
+        ctx.fillStyle = 'rgba(63, 185, 80, 0.18)';
+        roundRect(ctx, chipX, y + pad + 2, chipW, 15, 3);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(63, 185, 80, 0.5)';
+        ctx.stroke();
+        ctx.fillStyle = '#3fb950';
         ctx.textAlign = 'center';
-        ctx.fillText(secLabel, x + pad + 14 + nameW + secW / 2, y + pad + 13);
+        ctx.fillText(chipLabel, chipX + chipW / 2, y + pad + 13);
 
         ctx.font = 'bold 12px Titillium Web, sans-serif';
         ctx.textAlign = 'right';
         ctx.fillStyle = '#58a6ff';
-        ctx.fillText(`${row.jumps}j`, x + colW - pad - 6, y + pad + 13);
+        ctx.fillText(`${group.totalJumps}j`, x + colW - pad - 6, y + pad + 13);
 
-        if (full) {
-            ctx.font = 'bold 10px Titillium Web, sans-serif';
-            const chipLabel = 'FULL CHAIN';
-            const chipW = Math.ceil(ctx.measureText(chipLabel).width) + 12;
-            ctx.fillStyle = 'rgba(63, 185, 80, 0.18)';
-            roundRect(ctx, x + colW - pad - 6 - chipW - 34, y + pad + 2, chipW, 15, 3);
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(63, 185, 80, 0.5)';
-            ctx.stroke();
-            ctx.fillStyle = '#3fb950';
-            ctx.textAlign = 'center';
-            ctx.fillText(chipLabel, x + colW - pad - 6 - chipW / 2 - 34, y + pad + 13);
-        }
+        // Per-system blocks: name + sec + jumps, then the types it provides
+        let cy = y + pad + 30;
+        blocks.forEach(b => {
+            const e = b.entry;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = single ? '#9aa4b2' : '#e6edf3';
+            ctx.font = single ? '11px Titillium Web, sans-serif' : 'bold 13px Titillium Web, sans-serif';
+            const sysName = (single ? '' : '• ') + (single ? 'Provides:' : e.sys.name);
+            ctx.fillText(sysName, x + pad + 6, cy + 12);
+            const nameW = Math.ceil(ctx.measureText(sysName).width);
 
-        // Planet type chips
-        ctx.textAlign = 'left';
-        drawFinderBadges(row, x + pad + 6, badgesTop, colW - pad * 2);
+            if (!single) {
+                const band = secBandOf(e.sys.security);
+                ctx.font = 'bold 10px Titillium Web, sans-serif';
+                const secLabel = formatSecurity(e.sys.security);
+                const secW2 = Math.ceil(ctx.measureText(secLabel).width) + 8;
+                ctx.fillStyle = SEC_BAND_COLORS[band];
+                roundRect(ctx, x + pad + 14 + nameW, cy + 1, secW2, 13, 3);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.fillText(secLabel, x + pad + 14 + nameW + secW2 / 2, cy + 12);
+            }
 
-        let cy = badgesTop + badgesH;
-        if (missingLine) {
-            ctx.fillStyle = '#fbbf24';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = single ? '#9aa4b2' : '#888';
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.fillText(`${e.jumps}j`, x + colW - pad - 6, cy + 12);
+
+            ctx.textAlign = 'left';
+            drawChips(b.entry.covers, x + pad + 16, cy + 17, innerW - 16);
+            cy += 18 + b.chipsH + 6;
+        });
+
+        // Expanded: gate routes for every system in the plan
+        if (expanded) {
             ctx.font = '11px Titillium Web, sans-serif';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillText(missingLine, x + pad + 6, cy + 4);
-            cy += 18;
-        }
-        if (expanded && routeLines.length) {
-            ctx.font = '11px Titillium Web, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-            routeLines.forEach((line, i) => {
-                const isWarn = line.includes('sec)');
-                ctx.fillStyle = isWarn ? '#f59e0b' : '#9aa4b2';
-                ctx.fillText(line, x + pad + 6, cy + 4 + i * 15);
+            let li = 0;
+            group.systems.forEach(entry => {
+                const lines = finderRouteLines(entry.route, innerW - 8,
+                    single ? null : entry.sys.name);
+                lines.forEach(line => {
+                    const isWarn = line.includes('sec)');
+                    ctx.fillStyle = isWarn ? '#f59e0b' : '#9aa4b2';
+                    ctx.fillText(line, x + pad + 6, cy + 4 + li * 15);
+                    li++;
+                });
             });
         }
 
-        AppState.finderCards.push({ kind: 'spot', row, x, y, w: colW, h });
+        AppState.finderCards.push({ kind: 'spot', row: group, x, y, w: colW, h });
         y += h + gapY;
     });
 
@@ -4335,7 +4402,7 @@ function drawFinderSpotCards() {
         ctx.fillStyle = '#888';
         ctx.font = '12px Titillium Web, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(`...and ${AppState.finder.spotRows.length - rows.length} more within radius - narrow the radius or filters`, x, y + 2);
+        ctx.fillText(`...and ${AppState.finder.spotRows.length - rows.length} more plans within radius - narrow the radius or filters`, x, y + 2);
         y += 24;
     }
 
@@ -4362,8 +4429,7 @@ function drawNextBestCards(x, colW, yStart) {
     let y = yStart + 12;
     const cardH = 46;
     const gapY = 8;
-    const viewW = AppState.cssW / AppState.zoom;
-    const listW = Math.min(colW, Math.max(340, viewW - 80));
+    const listW = colW;
 
     results.forEach((r, idx) => {
         const tierColor = PI_COLORS[r.mat.tier] || '#888';
@@ -4414,20 +4480,19 @@ function drawNextBestCards(x, colW, yStart) {
     });
 }
 
-// Height-only pass over the badge layout so cards can be sized before drawing.
-function measureFinderBadgesHeight(row, maxW) {
+// Height-only pass over the chip layout so cards can be sized before drawing.
+function measureChipsHeight(ids, maxW) {
     const gapX = 6;
-    const gapY = 5;
     let cx = 0;
     let cy = 0;
-    row.requiredIds.forEach(tid => {
+    ids.forEach(tid => {
         const pt = getPlanetTypeData(tid);
         if (!pt) return;
         ctx.font = 'bold 10px Titillium Web, sans-serif';
         const w = Math.min(Math.ceil(ctx.measureText(pt.name).width) + 14, maxW);
         if (cx > 0 && cx + w > maxW) {
             cx = 0;
-            cy += gapX + 17 + gapY;
+            cy += 22;
         }
         cx += w + gapX;
     });
@@ -4444,9 +4509,11 @@ function refreshFinderAuthState() {
     elements.finderLoginGate.classList.toggle('hidden', authed);
 }
 
-function buildFullCoverageSpotRows(productId) {
-    // Reuses the scan's BFS (same radius/sec filter); when absent - e.g. a
-    // direct product click before any scan - recompute from current inputs.
+// Build "plans" for a product: every way to cover ALL required planet types
+// within the radius using at most getFinderMaxSystems() systems.
+// Returns groups sorted best-first:
+//   { systems: [{sys, jumps, route, covers}], requiredIds, totalJumps }
+function buildSpotGroups(productId) {
     if (!AppState.finder.originSystemId) return [];
     let bfs = AppState.finder._bfs;
     if (!bfs) {
@@ -4455,23 +4522,67 @@ function buildFullCoverageSpotRows(productId) {
     }
     const requiredIds = getRequiredPlanetTypes(productId).map(p => p.id);
     const allowedBands = activeSecBands();
-    const rows = [];
+
+    const candidates = [];
     for (const [sysIdStr, node] of bfs) {
         const sys = PI_SYSTEMS[sysIdStr];
         if (!sys) continue;
         if (!allowedBands.has(secBandOf(sys.security))) continue;
-        const presentIds = new Set(sys.planets.map(p => p.typeId));
-        const missing = requiredIds.filter(tid => !presentIds.has(tid));
-        if (missing.length > 0) continue; // full coverage only
-        rows.push({
+        const present = new Set(sys.planets.map(p => p.typeId));
+        const covers = requiredIds.filter(tid => present.has(tid));
+        if (!covers.length) continue;
+        candidates.push({
             sys,
             jumps: node.jumps,
-            requiredIds,
-            missing,
-            route: finderRoutePath(Number(sysIdStr), bfs)
+            route: finderRoutePath(Number(sysIdStr), bfs),
+            covers
         });
     }
-    return sortFinderSpotRows(rows);
+
+    // Single-system plans first - strictly better than splitting production.
+    const groups = candidates
+        .filter(c => c.covers.length === requiredIds.length)
+        .map(c => ({ systems: [c], requiredIds, totalJumps: c.jumps }));
+    if (groups.length) return sortFinderSpotRows(groups);
+
+    // No single system works: greedy set-cover combos up to maxSystems.
+    // Try each candidate as the anchor so a heavy-overlap top system can't
+    // mask valid splits; keep the best few by total jump distance.
+    const maxSys = Math.min(getFinderMaxSystems(), requiredIds.length);
+    if (maxSys < 2) return [];
+    const seen = new Set();
+    const solutions = [];
+    for (const anchor of candidates) {
+        const chosen = [anchor];
+        const need = new Set(requiredIds.filter(t => !anchor.covers.includes(t)));
+        while (chosen.length < maxSys && need.size) {
+            let pick = null;
+            let pickGain = 0;
+            for (const c of candidates) {
+                if (chosen.includes(c)) continue;
+                const gain = c.covers.filter(t => need.has(t)).length;
+                if (gain && (!pick || gain > pickGain ||
+                    (gain === pickGain && c.jumps < pick.jumps))) {
+                    pick = c;
+                    pickGain = gain;
+                }
+            }
+            if (!pick) break;
+            chosen.push(pick);
+            pick.covers.forEach(t => need.delete(t));
+        }
+        if (need.size) continue;
+        const key = chosen.map(c => c.sys.id).sort((a, b) => a - b).join('+');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        solutions.push({
+            systems: [...chosen].sort((a, b) => a.jumps - b.jumps),
+            requiredIds,
+            totalJumps: chosen.reduce((n, c) => n + c.jumps, 0)
+        });
+    }
+    solutions.sort((a, b) => a.totalJumps - b.totalJumps);
+    return solutions.slice(0, 10);
 }
 
 function setupFinder() {

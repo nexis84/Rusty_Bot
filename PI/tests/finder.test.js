@@ -86,9 +86,9 @@ vm.createContext(sandbox);
 const files = ['pi-data.js', 'pi-systems.js', 'pi-jumps.js', 'pi-esi-auth.js', 'pi-visualizer.js'];
 const code = files.map(f => fs.readFileSync(path.join(PI_DIR, f), 'utf8')).join('\n;\n')
     + '\n;globalThis.__test = { AppState, finderBFS, computeProducible, chainProfitMath,' +
-      ' findSystemByName, secBandOf, activeSecBands, getFinderRadius, sortFinderSpotRows,' +
-      ' getRequiredPlanetTypes, renderFinderSpotResults, drawFinderView, finderCardAt,' +
-      ' buildFullCoverageSpotRows, drawNextBestCards,' +
+      ' findSystemByName, secBandOf, activeSecBands, getFinderRadius, getFinderMaxSystems,' +
+      ' sortFinderSpotRows, getRequiredPlanetTypes, renderFinderSpotResults, drawFinderView,' +
+      ' finderCardAt, buildSpotGroups, drawNextBestCards,' +
       ' getMaterialsByTier, getMaterialById, getChainForProduct, collectMaterialIds };';
 vm.runInContext(code, sandbox, { filename: 'combined-pi.js' });
 const T = sandbox.__test;
@@ -237,23 +237,20 @@ let totalFail = 0;
     totalFail += f;
 }
 
-// ---- 8) Spot-row ordering ----
+// ---- 8) Plan ordering (groups: totalJumps, then size, then security) ----
 {
     let f = 0;
     const rows = [
-        { sys: { id: 1, security: 0.3 }, jumps: 2, missing: ['Gas'] },
-        { sys: { id: 2, security: 0.9 }, jumps: 4, missing: [] },
-        { sys: { id: 3, security: 0.6 }, jumps: 2, missing: [] },
-        { sys: { id: 4, security: -0.2 }, jumps: 1, missing: ['Lava', 'Ice'] },
-        { sys: { id: 5, security: 0.5 }, jumps: 9, missing: ['Storm'] }
+        { systems: [{ sys: { id: 1, security: 0.3 }, jumps: 2 }], totalJumps: 4 },
+        { systems: [{ sys: { id: 2, security: 0.9 }, jumps: 4 }], totalJumps: 8 },
+        { systems: [{ sys: { id: 3, security: 0.6 }, jumps: 2 }], totalJumps: 2 },
+        { systems: [{ sys: { id: 4, security: -0.2 }, jumps: 1 }, { sys: { id: 5, security: 0.5 }, jumps: 1 }], totalJumps: 6 },
+        { systems: [{ sys: { id: 6, security: 0.5 }, jumps: 9 }], totalJumps: 9 }
     ];
     const sorted = T.sortFinderSpotRows(rows.slice());
-    if (sorted[0].sys.id !== 3) { f++; console.error('[spotorder] FAIL: first should be id3 (2j, full, sec .6)'); }
-    if (sorted[1].sys.id !== 2) { f++; console.error('[spotorder] FAIL: second should be id2 (4j, full)'); }
-    if (sorted[2].sys.id !== 1) { f++; console.error('[spotorder] FAIL: third should be id1 (1 missing)'); }
-    if (sorted[3].sys.id !== 5) { f++; console.error('[spotorder] FAIL: fourth should be id5 (1 missing, closer)'); }
-    if (sorted[4].sys.id !== 4) { f++; console.error('[spotorder] FAIL: last should be id4 (2 missing)'); }
-    console.log('[spotorder] coverage-first ordering' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    const ids = sorted.map(g => g.systems[0].sys.id);
+    if (ids.join(',') !== '3,1,4,2,6') { f++; console.error(`[spotorder] FAIL: order ${ids} != 3,1,4,2,6`); }
+    console.log('[spotorder] totalJumps ordering' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 
@@ -280,38 +277,106 @@ let totalFail = 0;
         [30000142, { jumps: 0, parent: null }],
         [30001363, { jumps: 1, parent: 30000142 }]
     ]);
-    // Full-coverage only now: every row must have no missing types
+    // Full-coverage plans in group shape
     T.AppState.finder.spotRows = [
-        { sys: jitaSys, jumps: 0, requiredIds: [2016], missing: [], route: [30000142] },
-        { sys: sobaseki, jumps: 1, requiredIds: [2016], missing: [], route: [30000142, 30001363] }
+        { systems: [{ sys: jitaSys, jumps: 0, covers: [2016], route: [30000142] }], requiredIds: [2016], totalJumps: 0 },
+        { systems: [{ sys: sobaseki, jumps: 1, covers: [2016], route: [30000142, 30001363] }], requiredIds: [2016], totalJumps: 1 }
     ];
     T.AppState.finder.activePanel = 'spot';
     T.AppState.finder.spotProductName = 'Rocket Fuel';
+    T.AppState.finder.bestProductId = 2393; // Rocket Fuel type id (VIEW CHAIN chip)
     T.AppState.finder.bestStats = { profit: 12345.6, margin: 42.5, profitLocal: 11000, marginLocal: 38 };
     T.AppState.finder._bfs = bfs;
+    els.finderJumps.value = '10';
+    els.finderMaxSystems.value = '1';
     T.AppState.cssW = 1200; T.AppState.cssH = 900;
     ctx.__calls.fillTexts = [];
     T.drawFinderView();
     const texts = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
     if (!texts.includes('Jita')) { f++; console.error('[findercanvas] FAIL: Jita card not drawn'); }
     if (!texts.includes('FULL CHAIN')) { f++; console.error('[findercanvas] FAIL: full-chain chip not drawn'); }
+    if (!texts.includes('VIEW CHAIN')) { f++; console.error('[findercanvas] FAIL: view-chain link not drawn'); }
     if (!texts.includes('best places to build')) { f++; console.error('[findercanvas] FAIL: header missing product name'); }
     if (!/#1 by .+ profit: 12\.35K ISK\/batch/.test(texts)) { f++; console.error('[findercanvas] FAIL: best-stats banner missing'); }
-    if (!texts.includes('have every planet type needed')) { f++; console.error('[findercanvas] FAIL: full-coverage subline missing'); }
-    if (T.AppState.finderCards.length !== 2) { f++; console.error(`[findercanvas] FAIL: expected 2 hit areas, got ${T.AppState.finderCards.length}`); }
+    if (!texts.includes('covering every planet type')) { f++; console.error('[findercanvas] FAIL: coverage subline missing'); }
+    const spotCards = T.AppState.finderCards.filter(c => c.kind === 'spot');
+    const chainCards = T.AppState.finderCards.filter(c => c.kind === 'openChain');
+    if (spotCards.length !== 2) { f++; console.error(`[findercanvas] FAIL: expected 2 plan cards, got ${spotCards.length}`); }
+    if (chainCards.length !== 1 || chainCards[0].productId !== 2393) { f++; console.error('[findercanvas] FAIL: openChain hit area wrong'); }
 
-    // Hit-test: center of first card hits it; a far corner misses
-    const c0 = T.AppState.finderCards[0];
+    // Hit-test: centre of a plan card hits it; a far corner misses
+    const c0 = spotCards[0];
     if (T.finderCardAt({ x: c0.x + c0.w / 2, y: c0.y + c0.h / 2 }) !== c0) { f++; console.error('[findercanvas] FAIL: card centre should hit'); }
     if (T.finderCardAt({ x: 5, y: 5 }) !== null) { f++; console.error('[findercanvas] FAIL: empty corner should miss'); }
 
     // Expanded route renders system names joined by the arrow
-    T.AppState.finder.expandedSpot = 30001363;
+    T.AppState.finder.expandedSpot = '30001363';
     ctx.__calls.fillTexts = [];
     T.drawFinderView();
     const texts2 = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
     if (!/Jita .* Sobaseki|Jita.*Sobaseki/.test(texts2)) { f++; console.error('[findercanvas] FAIL: expanded route line missing'); }
-    console.log('[findercanvas] spot cards + hit areas' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    console.log('[findercanvas] plan cards + hit areas' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+// ---- 10b) Multi-system plans when maxSystems > 1 ----
+{
+    let f = 0;
+    // Curate two real systems whose COMBINED covers satisfy a product that
+    // neither satisfies alone, feed them via a hand-built BFS and verify the
+    // greedy splitter produces one valid 2-system plan.
+    const mats = vm.runInContext('PI_DATA.materials', sandbox);
+    T.AppState.finder.originSystemId = 30000142;
+    els.finderJumps.value = '10';
+    els.finderMaxSystems.value = '2';
+    T.AppState.finder._bfs = T.finderBFS(30000142, 10);
+
+    // Pick Plasmoids (needs Lava+Storm+Plasma) and find partial contributors
+    const target = 2389;
+    const reqIds = T.getRequiredPlanetTypes(target).map(p => p.id);
+    let sysA = null, sysB = null;
+    for (const [idStr, node] of T.AppState.finder._bfs) {
+        const sys = vm.runInContext('PI_SYSTEMS', sandbox)[idStr];
+        if (!sys || Number(idStr) === 30000142) continue; // origin can't be a split partner
+        const present = new Set(sys.planets.map(p => p.typeId));
+        const covers = reqIds.filter(t => present.has(t));
+        if (covers.length === 0 || covers.length === reqIds.length) continue;
+        if (!sysA && covers.length >= 1) sysA = { id: Number(idStr), node, covers };
+        else if (sysA) {
+            const have = new Set([...sysA.covers, ...covers]);
+            if (reqIds.every(t => have.has(t))) { sysB = { id: Number(idStr), node, covers }; break; }
+        }
+    }
+    if (!sysA || !sysB) {
+        console.log('[maxsys] no complementary partial systems found - scenario skipped');
+    } else {
+        T.AppState.finder._bfs = new Map([
+            [30000142, { jumps: 0, parent: null }],
+            [sysA.id, { jumps: 2, parent: 30000142 }],
+            [sysB.id, { jumps: 3, parent: 30000142 }]
+        ]);
+        els.finderMaxSystems.value = '1';
+        if (T.buildSpotGroups(target).length !== 0) { f++; console.error('[maxsys] FAIL: split needed but plans returned at max=1'); }
+        els.finderMaxSystems.value = '2';
+        const groups = T.buildSpotGroups(target);
+        if (!groups.length) { f++; console.error('[maxsys] FAIL: no combo plans at max=2'); }
+        let sawSplit = false;
+        groups.forEach(g => {
+            if (g.systems.length > 2) { f++; console.error('[maxsys] FAIL: plan exceeds max systems'); }
+            if (g.systems.length === 2) sawSplit = true;
+            const have = new Set();
+            g.systems.forEach(s => {
+                const sum = g.systems.reduce((n, x) => n + x.jumps, 0);
+                if (g.totalJumps !== sum) { f++; console.error('[maxsys] FAIL: totalJumps != sum of member jumps'); }
+                s.covers.forEach(t => have.add(t));
+            });
+            reqIds.forEach(t => {
+                if (!have.has(t)) { f++; console.error(`[maxsys] FAIL: plan missing type ${t}`); }
+            });
+        });
+        if (!sawSplit) { f++; console.error('[maxsys] FAIL: no 2-system plan among results'); }
+        console.log(`[maxsys] ${groups.length} plan(s), e.g. (${groups[0] ? groups[0].systems.map(s => s.sys.name).join(' + ') : '-'})` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    }
     totalFail += f;
 }
 
@@ -339,31 +404,39 @@ let totalFail = 0;
     totalFail += f;
 }
 
-// ---- 12) buildFullCoverageSpotRows filters to complete systems ----
+// ---- 12) buildSpotGroups returns complete coverage only ----
 {
     let f = 0;
-    // Every returned row must be complete; across all P1s at least one product
-    // must have a complete system within radius of Jita.
     T.AppState.finder._bfs = new Map([
         [30000142, { jumps: 0, parent: null }],
         [30001363, { jumps: 1, parent: 30000142 }]
     ]);
     T.AppState.finder.originSystemId = 30000142;
+    els.finderMaxSystems.value = '1';
     const mats = vm.runInContext('PI_DATA.materials', sandbox);
     const p1ids = Object.keys(mats).filter(id => mats[id].tier === 1);
     let anyComplete = 0;
     p1ids.forEach(pid => {
-        const rows = T.buildFullCoverageSpotRows(parseInt(pid, 10));
-        rows.forEach(r => {
-            const present = new Set(r.sys.planets.map(p => p.typeId));
-            r.requiredIds.forEach(tid => {
-                if (!present.has(tid)) { f++; console.error(`[fullcov] FAIL: ${r.sys.name} missing type ${tid}`); }
+        const groups = T.buildSpotGroups(parseInt(pid, 10));
+        groups.forEach(g => {
+            if (g.systems.length !== 1) { f++; console.error('[fullcov] FAIL: max=1 should yield single-system plans'); }
+            g.systems.forEach(s => {
+                s.covers.forEach(tid => {
+                    if (!s.sys.planets.some(p => p.typeId === tid)) {
+                        f++; console.error(`[fullcov] FAIL: ${s.sys.name} claims type ${tid} it lacks`);
+                    }
+                });
+            });
+            const have = new Set();
+            g.systems.forEach(s => s.covers.forEach(t => have.add(t)));
+            g.requiredIds.forEach(t => {
+                if (!have.has(t)) { f++; console.error(`[fullcov] FAIL: plan missing type ${t}`); }
             });
         });
-        if (rows.length > 0) anyComplete++;
+        if (groups.length > 0) anyComplete++;
     });
     if (anyComplete === 0) { f++; console.error('[fullcov] FAIL: no P1 has a complete system within 2j of Jita'); }
-    console.log(`[fullcov] ${anyComplete}/${p1ids.length} P1s have complete systems near Jita` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    console.log(`[fullcov] ${anyComplete}/${p1ids.length} P1s have complete plans near Jita` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 
@@ -371,7 +444,7 @@ let totalFail = 0;
 {
     let f = 0;
     T.AppState.finder.spotRows = [
-        { sys: { id: 1, name: 'Alpha', security: 0.9, regionId: 10000001, planets: [] }, jumps: 0, requiredIds: [2016], missing: [], route: [1] }
+        { systems: [{ sys: { id: 1, name: 'Alpha', security: 0.9, regionId: 10000001, planets: [] }, jumps: 0, covers: [2016], route: [1] }], requiredIds: [2016], totalJumps: 0 }
     ];
     T.renderFinderSpotResults();
     const st = els.finderSpotResults.textContent;

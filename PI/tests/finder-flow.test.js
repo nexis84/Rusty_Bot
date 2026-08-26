@@ -138,11 +138,16 @@ let totalFail = 0;
     if (!spotStatus.includes('in full')) { f++; console.error('[flow] FAIL: status should say full build'); }
     if (T.AppState.finder.activePanel !== 'spot') { f++; console.error('[flow] FAIL: activePanel not spot'); }
     if (!T.AppState.finder.spotRows.length) { f++; console.error('[flow] FAIL: no spot rows stored'); }
-    T.AppState.finder.spotRows.forEach(r => {
-        if (r.missing.length > 0) { f++; console.error('[flow] FAIL: partial-coverage row leaked through'); }
+    const coversAll = (g) => {
+        const have = new Set();
+        g.systems.forEach(s => s.covers.forEach(t => have.add(t)));
+        return g.requiredIds.every(t => have.has(t));
+    };
+    T.AppState.finder.spotRows.forEach(g => {
+        if (!coversAll(g)) { f++; console.error('[flow] FAIL: incomplete plan leaked through'); }
     });
     if (T.AppState.viewMode !== 'finder') { f++; console.error(`[flow] FAIL: viewMode ${T.AppState.viewMode} != finder`); }
-    console.log(`[flow] spot search -> ${T.AppState.finder.spotRows.length} complete systems` + (f ? ` FAIL x${f}` : ' PASS'));
+    console.log(`[flow] spot search -> ${T.AppState.finder.spotRows.length} complete plans` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
     // ---- Section B: merged market scan (Jita standard + local, mocked) ----
@@ -153,9 +158,9 @@ let totalFail = 0;
     if (!profitStatus.includes('Best sell:')) { f++; console.error('[flow] FAIL: best-sell status not set, got: ' + profitStatus); }
     if (T.AppState.finder.activePanel !== 'spot') { f++; console.error('[flow] FAIL: scan should switch to the best product build spots'); }
     const rows = T.AppState.finder.spotRows;
-    if (!rows.length) { f++; console.error('[flow] FAIL: no full-coverage systems for the best product'); }
-    rows.forEach(r => {
-        if (r.missing.length > 0) { f++; console.error('[flow] FAIL: non-complete system in best-product results'); }
+    if (!rows.length) { f++; console.error('[flow] FAIL: no plans for the best product'); }
+    rows.forEach(g => {
+        if (!coversAll(g)) { f++; console.error('[flow] FAIL: non-complete plan in best-product results'); }
     });
     const scan = T.AppState.finder.scanResults;
     if (!scan || scan.length < 2) { f++; console.error('[flow] FAIL: scanResults missing'); }
@@ -165,7 +170,7 @@ let totalFail = 0;
     if (!T.AppState.finder.bestStats || typeof T.AppState.finder.bestStats.profitLocal !== 'number') {
         f++; console.error('[flow] FAIL: bestStats with local column missing');
     }
-    console.log(`[flow] merged scan -> #1 ${(T.AppState.finder.scanResults[0] || {}).id}, ${rows.length} complete systems` + (f ? ` FAIL x${f}` : ' PASS'));
+    console.log(`[flow] merged scan -> #1 ${(T.AppState.finder.scanResults[0] || {}).id}, ${rows.length} complete plans` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
     // ---- Guards: unauthenticated -> friendly message, no crash ----
