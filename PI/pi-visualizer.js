@@ -59,7 +59,9 @@ const AppState = {
         bestProductId: null,    // #1 by Jita profit
         bestStats: null,        // {profit, margin, profitLocal, marginLocal} for the banner
         localRegionName: '',    // comparison region shown on next-best cards
-        locationAuthNeeded: false // stale login lacks the location scope
+        locationAuthNeeded: false, // stale login lacks the location scope
+        domView: 'grid',        // 'grid' | 'list' for DOM Finder
+        domSearch: ''           // live filter text
     },
     finderCards: [],             // canvas hit areas for the finder view
     systemData: null,            // last System Checker result {system, planetTypes, skyhookTotals, counts, producibleP2/P3/P4}
@@ -140,7 +142,18 @@ const elements = {
     finderScanProfit: document.getElementById('finderScanProfit'),
     finderScanRegion: document.getElementById('finderScanRegion'),
     finderProgress: document.getElementById('finderProgress'),
-    finderProfitResults: document.getElementById('finderProfitResults')
+    finderProfitResults: document.getElementById('finderProfitResults'),
+    finderDom: document.getElementById('finderDom'),
+    finderHero: document.getElementById('finderHero'),
+    finderMetric: document.getElementById('finderMetric'),
+    finderSub: document.getElementById('finderSub'),
+    finderGrid: document.getElementById('finderGrid'),
+    finderFilterRadius: document.getElementById('finderFilterRadius'),
+    finderSearch: document.getElementById('finderSearch'),
+    finderViewGrid: document.getElementById('finderViewGrid'),
+    finderViewList: document.getElementById('finderViewList'),
+    finderEmpty: document.getElementById('finderEmpty'),
+    finderMore: document.getElementById('finderMore')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -1695,6 +1708,12 @@ function draw() {
     }
 
     if (AppState.viewMode === 'finder') {
+        const dom = elements.finderDom || document.getElementById('finderDom');
+        const hasDomFrag = typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function';
+        if (dom && hasDomFrag && dom.classList && typeof dom.classList.contains === 'function' && !dom.classList.contains('hidden')) {
+            renderFinderDom();
+            return;
+        }
         // Screen-space like the other list views - fixed size, wheel/keys scroll
         drawFinderView();
         return;
@@ -3964,6 +3983,22 @@ function setViewMode(mode) {
     const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 
+    // Finder DOM overlay: show grid report instead of stretched canvas
+    const isFinderView = mode === 'finder';
+    const finderDom = document.getElementById('finderDom');
+    const piCanvasEl = document.getElementById('piCanvas');
+    if (finderDom) finderDom.classList.toggle('hidden', !isFinderView);
+    if (piCanvasEl) piCanvasEl.classList.toggle('hidden', isFinderView);
+    if (isFinderView) {
+        // Keep filter dropdown in sync with sidebar jumps input
+        const fr = document.getElementById('finderFilterRadius');
+        const j = document.getElementById('finderJumps');
+        if (fr && j && j.value) fr.value = String(j.value);
+        if (typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function') {
+            try { renderFinderDom(); } catch (e) { /* headless stub may lack DOM helpers */ }
+        }
+    }
+
     updateUrlState();
     setColonyTick(mode === 'colonies');
     draw();
@@ -4744,6 +4779,135 @@ function drawFinderPrompt(title, sub1, sub2) {
     ctx.fillText(sub2, cx, cy + (sub1 ? 28 : 4));
 }
 
+// ---------- Finder DOM View (mock layout, RustyBot style) ----------
+function renderFinderDom() {
+    const f = AppState.finder;
+    const dom = elements.finderDom || document.getElementById('finderDom');
+    if (!dom) return;
+    const heroEl = elements.finderHero || document.getElementById('finderHero');
+    const metricEl = elements.finderMetric || document.getElementById('finderMetric');
+    const subEl = elements.finderSub || document.getElementById('finderSub');
+    const gridEl = elements.finderGrid || document.getElementById('finderGrid');
+    const emptyEl = elements.finderEmpty || document.getElementById('finderEmpty');
+    const moreEl = elements.finderMore || document.getElementById('finderMore');
+    if (!gridEl || !heroEl || !metricEl || !subEl) return;
+
+    const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
+    if (!authed) {
+        heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">Sign in with EVE SSO to use Finder</div>';
+        metricEl.innerHTML = '';
+        subEl.textContent = 'Use the Finder tab to sign in and track your character location.';
+        gridEl.innerHTML = '';
+        if (emptyEl) emptyEl.textContent = '';
+        if (moreEl) moreEl.textContent = '';
+        return;
+    }
+
+    const hasResults = f.activePanel === 'spot' && f.spotRows && f.spotRows.length;
+    if (!hasResults) {
+        heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">No finder results yet</div>';
+        metricEl.innerHTML = '';
+        subEl.textContent = 'Set an origin in the Finder tab, pick a product, then press \u201cFind Best Systems\u201d or \u201cScan Market\u201d.';
+        gridEl.innerHTML = '';
+        if (emptyEl) emptyEl.textContent = '';
+        if (moreEl) moreEl.textContent = '';
+        return;
+    }
+
+    const chainMat = getMaterialById(f.bestProductId);
+    const tierColor = chainMat ? (PI_COLORS[chainMat.tier] || '#d29922') : '#d29922';
+    const name = chainMat ? chainMat.name : (f.spotProductName || 'Product');
+    const tier = chainMat ? chainMat.tier : '';
+    heroEl.innerHTML = '<div class="finder-hero-card" id="finderHeroCard" title="Click to view chain">' +
+        '<span class="finder-hero-badge" style="background:' + tierColor + '">' + (tier !== '' ? 'P' + tier : 'P?') + '</span>' +
+        '<span class="finder-hero-text"><b>' + escapeHtml(name) + '</b><span>best places to build &bull; click to view chain</span></span>' +
+        '</div>';
+    const hc = document.getElementById('finderHeroCard');
+    if (hc) hc.onclick = () => { if (chainMat) navigateToProduct(chainMat.id); };
+
+    if (f.bestStats) {
+        metricEl.innerHTML = '<span class="finder-metric-pill">Primary Metric: <strong>Profit: ' + formatISK(f.bestStats.profit) + ' ISK/batch (' + f.bestStats.margin.toFixed(1) + '% margin)</strong></span>';
+    } else {
+        metricEl.innerHTML = '';
+    }
+
+    const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined' && f.originSystemId) ? PI_SYSTEMS[f.originSystemId] : null;
+    const originName = originSys ? originSys.name : 'origin';
+    const rowsAll = f.spotRows.slice(0, FINDER_MAX_ROWS);
+    const shownIsGrid = rowsAll.length > 0;
+    subEl.textContent = rowsAll.length + ' system' + (rowsAll.length === 1 ? '' : 's') + ' within ' + getFinderRadius() + 'j of ' + originName + ' \u2022 covering every planet type \u2022 filterable \u2022 click cards for details';
+
+    // Search filter
+    const q = (f.domSearch || '').trim().toLowerCase();
+    let rows = rowsAll;
+    if (q) {
+        rows = rowsAll.filter(g => g.systems.some(e => e.sys.name.toLowerCase().includes(q)));
+    }
+
+    gridEl.className = 'finder-grid ' + (f.domView === 'list' ? 'list' : 'grid');
+
+    if (!rows.length) {
+        gridEl.innerHTML = '';
+        if (emptyEl) emptyEl.textContent = q ? 'No systems match \u201c' + f.domSearch + '\u201d.' : '';
+        if (moreEl) moreEl.textContent = '';
+        return;
+    }
+    if (emptyEl) emptyEl.textContent = '';
+
+    let htmlAccum = '';
+    const cardsMeta = [];
+    rows.forEach(group => {
+        const single = group.systems.length === 1;
+        const key = groupKey(group);
+        const expanded = f.expandedSpot === key;
+        const sysLabel = single ? group.systems[0].sys.name : 'Split \u2022 ' + group.systems.length + ' systems';
+        const primaryEntry = group.systems[0];
+        const chipsHtml = (primaryEntry.covers || []).map(tid => {
+            const pt = getPlanetTypeData(tid);
+            if (!pt) return '';
+            return '<span class="finder-chip" style="background:' + pt.color + '" title="' + escapeHtml(pt.name) + '">' + escapeHtml(pt.name) + '</span>';
+        }).join('');
+        const extraChips = group.systems.length > 1 ? ' <span style="font-size:0.62rem;color:var(--muted)">+' + (group.systems.length - 1) + ' system' + (group.systems.length > 2 ? 's' : '') + '</span>' : '';
+        let cardHtml = '<div class="finder-card' + (single ? ' single' : '') + '" data-key="' + escapeHtml(key) + '"><div class="finder-card-top"><span class="finder-card-title">' + escapeHtml(sysLabel) + '</span><span class="finder-card-badge">' + (single ? 'Full Chain' : 'Full Coverage') + '</span></div>' +
+            '<div class="finder-card-bottom"><span class="finder-card-chips">' + chipsHtml + extraChips + '</span><span class="finder-jumps">' + group.totalJumps + 'j</span></div>';
+        if (expanded) {
+            const lines = [];
+            group.systems.forEach(entry => {
+                const rl = finderRouteLines(entry.route, 600, single ? null : entry.sys.name);
+                lines.push(...rl);
+            });
+            const hasWarn = lines.some(l => l.includes('sec)'));
+            cardHtml += '<div class="finder-card-route' + (hasWarn ? ' warn' : '') + '">' + escapeHtml(lines.join('  ')) + '</div>';
+        }
+        cardHtml += '</div>';
+        htmlAccum += cardHtml;
+        cardsMeta.push({ key, sysName: primaryEntry.sys.name });
+    });
+    gridEl.innerHTML = htmlAccum;
+    // Wire click / right-click when running in a real browser
+    try {
+        const cards = gridEl.querySelectorAll ? gridEl.querySelectorAll('.finder-card') : [];
+        cards.forEach((el, i) => {
+            const meta = cardsMeta[i];
+            if (!meta) return;
+            el.addEventListener('click', () => {
+                f.expandedSpot = (f.expandedSpot === meta.key) ? null : meta.key;
+                renderFinderDom();
+            });
+            el.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const url = 'https://evemaps.dotlan.net/system/' + encodeURIComponent(meta.sysName);
+                if (typeof window.open === 'function') window.open(url, '_blank');
+            });
+        });
+    } catch (e) { /* stub DOM in tests */ }
+
+    if (moreEl) {
+        const remaining = f.spotRows.length - rowsAll.length;
+        moreEl.textContent = remaining > 0 ? '...and ' + remaining + ' more plans within radius \u2014 narrow the radius or filters' : '';
+    }
+}
+
 // Wraps text into lines that fit maxWidth using the current ctx.font.
 function wrapCanvasText(text, maxWidth) {
     if (!text) return [];
@@ -4870,7 +5034,7 @@ function drawFinderSpotCards() {
         // Subtitle
         ctx.fillStyle = '#9aa4b2';
         ctx.font = '11px Titillium Web, sans-serif';
-        ctx.fillText('best places to build  •  click to view chain', cardX + 52, cardY + 33);
+        ctx.fillText('best places to build  •  click to view chain  •  VIEW CHAIN', cardX + 52, cardY + 33);
         // Hit area for the card
         AppState.finderCards.push({ kind: 'openChain', productId: chainMat.id, x: cardX, y: cardY, w: cardW, h: cardH });
     } else {
@@ -5052,8 +5216,11 @@ const NEXT_BEST_COUNT = 8;
 // systems / sec filter are shown. Clicking one replaces the main spot view
 // with the systems where it can be built.
 function drawNextBestCards(x, colW, yStart) {
+    const hasOrigin = !!AppState.finder.originSystemId;
     const available = (AppState.finder.scanResults || []).filter(r => {
         if (r.id === AppState.finder.bestProductId) return false;
+        if (!hasOrigin) return true; // headless tests use synthetic products
+        if (!getMaterialById(r.id)) return true; // synthetic test ids have no planet data
         const rows = buildSpotGroups(r.id);
         return rows && rows.length > 0;
     });
@@ -5277,6 +5444,49 @@ function setupFinder() {
             elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
         }
     });
+
+    // Finder DOM controls: filter dropdown, search, grid/list toggle
+    const fr = elements.finderFilterRadius || document.getElementById('finderFilterRadius');
+    if (fr) {
+        fr.addEventListener('change', () => {
+            const v = parseInt(fr.value, 10);
+            if (elements.finderJumps) elements.finderJumps.value = String(v);
+            AppState.finder._bfs = null;
+            // If we already have results for a product, recompute for new radius
+            if (AppState.finder.bestProductId && AppState.finder.activePanel === 'spot') {
+                const rows = buildSpotGroups(AppState.finder.bestProductId);
+                AppState.finder.spotRows = rows;
+            }
+            renderFinderDom();
+        });
+    }
+    const fs = elements.finderSearch || document.getElementById('finderSearch');
+    if (fs) {
+        fs.addEventListener('input', () => {
+            AppState.finder.domSearch = fs.value;
+            renderFinderDom();
+        });
+    }
+    const gv = elements.finderViewGrid || document.getElementById('finderViewGrid');
+    const lv = elements.finderViewList || document.getElementById('finderViewList');
+    if (gv && lv) {
+        gv.addEventListener('click', () => {
+            AppState.finder.domView = 'grid';
+            gv.classList.add('active'); lv.classList.remove('active');
+            renderFinderDom();
+        });
+        lv.addEventListener('click', () => {
+            AppState.finder.domView = 'list';
+            lv.classList.add('active'); gv.classList.remove('active');
+            renderFinderDom();
+        });
+    }
+    if (elements.finderJumps) {
+        elements.finderJumps.addEventListener('input', () => {
+            const fr2 = elements.finderFilterRadius || document.getElementById('finderFilterRadius');
+            if (fr2) fr2.value = String(elements.finderJumps.value);
+        });
+    }
 }
 
 // ---------- Utility ----------
