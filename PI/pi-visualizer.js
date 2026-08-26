@@ -306,6 +306,9 @@ function init() {
     console.log('Init complete');
 }
 
+// Market data filter state
+AppState.hideMarketPrices = false;
+
 function populateProductDropdowns() {
     const groups = [
         { label: 'P4 Products', tier: 4 },
@@ -377,6 +380,15 @@ function setupEventListeners() {
         }
     });
     elements.viewFinder.addEventListener('click', () => setViewMode('finder'));
+    // Market data filter for reference page
+    const marketFilterBtn = document.getElementById('marketFilterBtn');
+    if (marketFilterBtn) {
+        marketFilterBtn.addEventListener('click', () => {
+            AppState.hideMarketPrices = !AppState.hideMarketPrices;
+            marketFilterBtn.innerHTML = `<i class="fas fa-${AppState.hideMarketPrices ? 'eye-slash' : 'chart-line'}"></i> Market Prices`;
+            draw();
+        });
+    }
     elements.backToRef.addEventListener('click', () => setViewMode('reference'));
 
     if (elements.backChain) {
@@ -1838,12 +1850,20 @@ function drawRefCard(mat, x, y, w, h, color) {
         ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos);
     }
 
-    const price = AppState.marketPrices[mat.id]?.sell;
+    // Market price - check filter first, then price data
+    const showMarket = !AppState.hideMarketPrices;
+    const price = showMarket && AppState.marketPrices && AppState.marketPrices[mat.id]?.sell;
     if (price) {
         ctx.fillStyle = '#e8d900';
         ctx.font = 'bold 11px sans-serif';
         ctx.textAlign = 'right';
         ctx.fillText(formatISK(price), x + w - 12, y + h - 12);
+    } else if (showMarket && !price) {
+        // Optionally show a "no data" indicator when filter is on but no price
+        ctx.fillStyle = '#555';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('—', x + w - 12, y + h - 12);
     }
 }
 
