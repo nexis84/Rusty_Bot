@@ -2509,7 +2509,7 @@ function drawColoniesView() {
     const offsetY = AppState.canvasOffset.y;
 
     const cols = Math.max(1, Math.floor((AppState.cssW - margin * 2) / (cardWidth + gapX)));
-    let y = Math.max(margin + headerH, headerY + 4) + offsetY;
+    let y = Math.max(margin + headerH, headerY + 4) - offsetY;
 
     // Track card hit areas for click detection
     AppState.colonyCards = [];
@@ -3835,12 +3835,20 @@ function clampListScroll() {
             contentHeight = rows * (L.cellHeight + 12) + 12;
         }
     } else if (isSystem) {
-        contentHeight = (AppState.systemCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
+        const off = AppState.canvasOffset.y;
+        contentHeight = (AppState.systemCards || []).reduce((m, c) => Math.max(m, c.y + off + c.h), 0);
         if (!contentHeight) contentHeight = AppState.cssH;
     } else if (isFinder) {
-        contentHeight = (AppState.finderCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
+        const off = AppState.canvasOffset.y;
+        // Header product card is fixed (y=10) - exclude it from scrollable height
+        const scrollable = (AppState.finderCards || []).filter(c => c.kind === 'spot' || c.kind === 'nextProduct');
+        const src = scrollable.length ? scrollable : (AppState.finderCards || []);
+        contentHeight = src.reduce((m, c) => Math.max(m, c.y + off + c.h), 0);
+        // Header itself is ~82px fixed at top, rows start below it - ensure height at least covers header + rows
+        if (contentHeight < 100) contentHeight = 100;
     } else if (isColoniesList) {
-        contentHeight = (AppState.colonyCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
+        const off = AppState.canvasOffset.y;
+        contentHeight = (AppState.colonyCards || []).reduce((m, c) => Math.max(m, c.y + off + c.h), 0);
     }
     if (!contentHeight) return;
 
@@ -4901,7 +4909,7 @@ function drawFinderSpotCards() {
 
     const colW = Math.min(620, Math.max(360, AppState.cssW - 80));
     const x = Math.max(20, (AppState.cssW - colW) / 2);
-    let y = headerY + 26 + offsetY;
+    let y = headerY + 26 - offsetY;
     const gapY = 12;
     const pad = 14;
 
