@@ -1815,7 +1815,7 @@ function drawRefCard(mat, x, y, w, h, color) {
                         const px = startX + j * spacing;
                         ctx.fillStyle = planet.color;
                         ctx.beginPath();
-                        ctx.arc(px, yPos + 10, 4, 0, Math.PI * 2);
+                        ctx.arc(px, yPos + 26, 4, 0, Math.PI * 2);
                         ctx.fill();
 
                         ctx.shadowColor = planet.color;
