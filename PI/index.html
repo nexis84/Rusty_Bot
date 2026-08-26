@@ -48,10 +48,11 @@
                         <button class="tab-btn" data-tab="system"><i class="fas fa-search"></i> System</button>
                         <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> Colonies</button>
                         <button class="tab-btn" data-tab="finder"><i class="fas fa-location-arrow"></i> Finder</button>
+                        <button class="tab-btn" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
                     </div>
                 </div>
 
-                <!-- Chain Tab (replaces the old Reference sidebar tab) -->
+                <!-- Chain Tab -->
                 <div class="panel tab-content" id="tab-chain">
                     <h3><i class="fas fa-project-diagram"></i> Chain</h3>
                     <p class="hint">Pick a product to view its full production chain</p>
@@ -188,6 +189,19 @@
                     </div>
                 </div>
 
+                <!-- Reference Tab (re-added; sub-tabs live inside the sidebar) -->
+                <div class="panel tab-content" id="tab-ref">
+                    <h3><i class="fas fa-book"></i> Reference</h3>
+                    <p class="hint">Reference materials &amp; planet breakdown</p>
+                    <div class="ref-subview-toggle sidebar-subview">
+                        <button class="subview-btn active" data-sub="materials"><i class="fas fa-th"></i> Materials</button>
+                        <button class="subview-btn" data-sub="planets"><i class="fas fa-globe"></i> Planets</button>
+                    </div>
+                    <button id="marketFilterBtn" class="calc-btn secondary market-filter-btn">
+                        <i class="fas fa-chart-line"></i> Market Prices
+                    </button>
+                </div>
+
                 <div class="panel market-panel" id="marketPanel">
                     <h3><i class="fas fa-chart-line"></i> Market Data</h3>
                     <div class="market-loading" id="marketLoading">
@@ -271,15 +285,6 @@
                     </div>
 
                     <!-- Reference view controls (Planets sub-view + Market filter) -->
-                    <div class="ref-controls hidden" id="refControls">
-                        <div class="ref-subview-toggle">
-                            <button class="subview-btn active" data-sub="materials"><i class="fas fa-th"></i> Materials</button>
-                            <button class="subview-btn" data-sub="planets"><i class="fas fa-globe"></i> Planets</button>
-                        </div>
-                        <button id="marketFilterBtn" class="calc-btn secondary market-filter-btn">
-                            <i class="fas fa-chart-line"></i> Market Prices
-                        </button>
-                    </div>
                 </div>
                 <canvas id="piCanvas" class="pi-canvas"></canvas>
                 <div class="canvas-help">

@@ -19,7 +19,7 @@ const AppState = {
     chainLayout: null,
     chainHistory: [],        // product navigation stack for the Prev button
     suppressHistoryPush: false,
-    currentTab: 'chain',
+    currentTab: 'ref',
     hoveredCard: null,
     hoverChainNode: null,    // material id of the chain node under the cursor (for tooltip)
     chainFocus: null,        // clicked node material id - highlights its input subtree, dims the rest
@@ -304,8 +304,6 @@ function init() {
     setupColonies();
     refreshColoniesAuthState();
     setViewMode('reference');
-    // Reference is no longer a sidebar tab; default the sidebar to Chain.
-    activateSidebarTab('chain');
     hideMarketData();
     restoreFromUrl();
     console.log('Init complete');
@@ -507,7 +505,7 @@ function activateSidebarTab(tab) {
 }
 
 function setupTabs() {
-    const TAB_TO_VIEW = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder' };
+    const TAB_TO_VIEW = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', ref: 'reference' };
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -3895,9 +3893,7 @@ function setViewMode(mode) {
     elements.backToRef.classList.remove('hidden');
     updateChainBackButton();
 
-    // Reference-only floating controls (Planets sub-view toggle + market filter)
-    const refControls = document.getElementById('refControls');
-    if (refControls) refControls.classList.toggle('hidden', mode !== 'reference');
+    // Keep the Reference sub-view toggle (now inside the sidebar) in sync
     if (mode === 'reference') {
         document.querySelectorAll('.subview-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.sub === AppState.refSubview));
@@ -3931,9 +3927,7 @@ function setViewMode(mode) {
     }
 
     // Sync sidebar tab (button highlight + panel content) with canvas view mode.
-    // Reference is intentionally NOT a sidebar tab (it's a main-toolbar view), so
-    // when in reference view no sidebar tab is highlighted.
-    const reverseViewToTab = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder' };
+    const reverseViewToTab = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', reference: 'ref' };
     const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 

@@ -1046,24 +1046,7 @@ body {
     margin-bottom: 0.5rem;
 }
 
-/* Reference view floating controls (Planets sub-view toggle + market filter) */
-.ref-controls {
-    position: absolute;
-    top: 64px;
-    right: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    z-index: 6;
-    background: rgba(20, 20, 20, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    padding: 8px;
-}
-.ref-controls.hidden {
-    display: none;
-}
+/* Reference sub-view toggle + market filter (now live inside the sidebar Ref tab) */
 .ref-subview-toggle {
     display: flex;
     flex-direction: column;
@@ -1071,6 +1054,8 @@ body {
     background: transparent;
     border: none;
     padding: 0;
+    margin-bottom: 10px;
+    width: 100%;
 }
 .subview-btn {
     background: rgba(40, 40, 40, 0.9);
@@ -1082,7 +1067,8 @@ body {
     font-size: 0.8rem;
     font-family: inherit;
     transition: background 0.15s, color 0.15s;
-    text-align: left;
+    text-align: center;
+    width: 100%;
 }
 .subview-btn:hover {
     color: #fff;
