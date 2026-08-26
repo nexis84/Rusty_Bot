@@ -38,7 +38,14 @@ const AppState = {
     cssH: 0,
     pendingHit: null,
     pointerDown: null,
-    pointerId: null
+    pointerId: null,
+    jumpsLoaded: false,
+    finder: {
+        originSystemId: null,   // resolved starting system for searches
+        originSource: null,     // 'esi' | 'manual'
+        expandedSpot: null,     // system id whose route line is expanded
+        _bfs: null              // last BFS result Map (for route reconstruction)
+    }
 };
 
 const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
@@ -94,7 +101,20 @@ const elements = {
     coloniesLogout: document.getElementById('coloniesLogout'),
     // Product breakdown (Planets Needed) panel
     productBreakdown: document.getElementById('productBreakdown'),
-    breakdownContent: document.getElementById('breakdownContent')
+    breakdownContent: document.getElementById('breakdownContent'),
+    // Finder elements
+    finderLocate: document.getElementById('finderLocate'),
+    finderOriginLabel: document.getElementById('finderOriginLabel'),
+    finderSystemInput: document.getElementById('finderSystemInput'),
+    finderSetSystem: document.getElementById('finderSetSystem'),
+    finderJumps: document.getElementById('finderJumps'),
+    finderSecFilter: document.getElementById('finderSecFilter'),
+    finderSearchSpot: document.getElementById('finderSearchSpot'),
+    finderSpotResults: document.getElementById('finderSpotResults'),
+    finderScanProfit: document.getElementById('finderScanProfit'),
+    finderScanRegion: document.getElementById('finderScanRegion'),
+    finderProgress: document.getElementById('finderProgress'),
+    finderProfitResults: document.getElementById('finderProfitResults')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -218,7 +238,7 @@ function getRequiredPlanetTypes(materialId) {
     const result = [];
     planetTypeIds.forEach(tid => {
         const pt = getPlanetTypeData(tid);
-        if (pt) result.push({ name: pt.name, color: pt.color });
+        if (pt) result.push({ id: tid, name: pt.name, color: pt.color });
     });
     result.sort((a, b) => a.name.localeCompare(b.name));
     return result;
@@ -255,6 +275,7 @@ function init() {
     setupTabs();
     setupReferenceGrids();
     setupSystemChecker();
+    setupFinder();
     setupColonies();
     refreshColoniesAuthState();
     setViewMode('reference');
@@ -656,7 +677,7 @@ function collectMaterialIds(chain, ids = new Set()) {
     return ids;
 }
 
-async function fetchPricesForMaterials(ids, regionId) {
+async function fetchPricesForMaterials(ids, regionId, onProgress) {
     const prices = {};
     const idArray = Array.from(ids);
     if (idArray.length === 0) return prices;
@@ -665,6 +686,7 @@ async function fetchPricesForMaterials(ids, regionId) {
     // to a small pool - firing all requests at once risked 420/429 rate limiting.
     const POOL_SIZE = 5;
     let cursor = 0;
+    let done = 0;
 
     async function worker() {
         while (cursor < idArray.length) {
@@ -682,6 +704,8 @@ async function fetchPricesForMaterials(ids, regionId) {
             } catch (e) {
                 console.warn(`Failed to fetch orders for ${id}:`, e);
             }
+            done++;
+            if (onProgress) onProgress(done, idArray.length);
         }
     }
 
@@ -718,17 +742,22 @@ async function fetchPricesForMaterials(ids, regionId) {
     return prices;
 }
 
-function updateMarketDisplay(prices, chain) {
-    const targetId = chain.target.id;
-    const targetPrice = prices[targetId]?.sell || 0;
-    const targetBatch = chain.target.batchSize || 1;
-    const outputValue = targetPrice * targetBatch;
+// Pure chain math shared by the market panel and the Finder ISK maximizer:
+// profit per batch = output sell value - buy cost of top-level inputs.
+function chainProfitMath(chain, prices) {
+    const targetPrice = prices[chain.target.id]?.sell || 0;
+    const outputValue = targetPrice * (chain.target.batchSize || 1);
 
-    // A chain input is a "leaf" when it has no further inputs (raw/terminal material)
+    // Buy cost: top-level inputs only (recursing would double-count intermediates)
+    let totalInputCost = 0;
+    (chain.inputs || []).forEach(input => {
+        totalInputCost += (prices[input.id]?.sell || 0) * (input.qty || 1);
+    });
+
+    // Raw (P0/leaf) cost only - what the inputs cost if you extract everything yourself
     const isLeafInput = (input) =>
         !input.subChain || !input.subChain.inputs || input.subChain.inputs.length === 0;
 
-    // Raw (P0/leaf) cost only - what the inputs cost if you extract everything yourself
     function sumRawCost(inputs) {
         let total = 0;
         (inputs || []).forEach(input => {
@@ -741,39 +770,39 @@ function updateMarketDisplay(prices, chain) {
         return total;
     }
 
-    // Buy cost: top-level inputs only (previously this recursed through every tier,
-    // double-counting intermediates and their ingredients)
-    const priceItems = [];
-    let totalInputCost = 0;
-    (chain.inputs || []).forEach(input => {
-        const qty = input.qty || 1;
-        const price = prices[input.id]?.sell || 0;
-        const cost = price * qty;
-        totalInputCost += cost;
-
-        priceItems.push({
-            name: input.name,
-            price,
-            qty,
-            total: cost,
-            tier: input.tier
-        });
-    });
-
     const rawCost = sumRawCost(chain.inputs);
 
     const profit = outputValue - totalInputCost;
     const margin = totalInputCost > 0 ? (profit / totalInputCost) * 100 : 0;
 
-    elements.outputValue.textContent = formatISK(outputValue);
-    elements.inputCost.textContent = formatISK(totalInputCost);
-    if (elements.rawCost) elements.rawCost.textContent = formatISK(rawCost);
+    return { outputValue, totalInputCost, rawCost, profit, margin };
+}
+
+function updateMarketDisplay(prices, chain) {
+    const math = chainProfitMath(chain, prices);
+
+    const priceItems = [];
+    (chain.inputs || []).forEach(input => {
+        const qty = input.qty || 1;
+        const price = prices[input.id]?.sell || 0;
+        priceItems.push({
+            name: input.name,
+            price,
+            qty,
+            total: price * qty,
+            tier: input.tier
+        });
+    });
+
+    elements.outputValue.textContent = formatISK(math.outputValue);
+    elements.inputCost.textContent = formatISK(math.totalInputCost);
+    if (elements.rawCost) elements.rawCost.textContent = formatISK(math.rawCost);
 
     const profitEl = elements.profitValue;
-    profitEl.textContent = formatISK(profit);
-    profitEl.className = 'value isk ' + (profit >= 0 ? 'positive' : 'negative');
+    profitEl.textContent = formatISK(math.profit);
+    profitEl.className = 'value isk ' + (math.profit >= 0 ? 'positive' : 'negative');
 
-    elements.profitMargin.textContent = margin.toFixed(1) + '%';
+    elements.profitMargin.textContent = math.margin.toFixed(1) + '%';
 
     elements.priceList.innerHTML = priceItems
         .sort((a, b) => b.tier - a.tier)
@@ -3427,22 +3456,7 @@ async function checkSystem() {
 
     const lower = systemName.toLowerCase();
 
-    // Exact match first, then substring
-    let system = null;
-    for (const key in PI_SYSTEMS) {
-        if (PI_SYSTEMS[key].name.toLowerCase() === lower) {
-            system = PI_SYSTEMS[key];
-            break;
-        }
-    }
-    if (!system) {
-        for (const key in PI_SYSTEMS) {
-            if (PI_SYSTEMS[key].name.toLowerCase().includes(lower)) {
-                system = PI_SYSTEMS[key];
-                break;
-            }
-        }
-    }
+    const system = findSystemByName(lower);
 
     if (!system) {
         elements.systemPlanets.innerHTML = '<div style="color: var(--danger)">System not found</div>';
@@ -3468,6 +3482,41 @@ async function checkSystem() {
     displaySystemResults(system, planetTypes, skyhookTotals);
 
     elements.checkSystem.innerHTML = '<i class="fas fa-search"></i> Check System';
+}
+
+// Shared tier cascade: which material ids become producible given a set of
+// available raw (P0) resources - used by the System Checker (one system) and
+// the Finder ISK maximizer (whole jump-radius area).
+function computeProducible(availableP0) {
+    const p1 = new Set();
+    for (const mat of getMaterialsByTier(1)) {
+        if (mat.inputs && Object.keys(mat.inputs).every(i => availableP0.has(parseInt(i)))) {
+            p1.add(mat.id);
+        }
+    }
+    const p2 = new Set();
+    for (const mat of getMaterialsByTier(2)) {
+        if (mat.inputs && Object.keys(mat.inputs).every(i =>
+            p1.has(parseInt(i)) || availableP0.has(parseInt(i)))) {
+            p2.add(mat.id);
+        }
+    }
+    const p3 = new Set();
+    for (const mat of getMaterialsByTier(3)) {
+        if (mat.inputs && Object.keys(mat.inputs).every(i =>
+            p2.has(parseInt(i)) || p1.has(parseInt(i)) || availableP0.has(parseInt(i)))) {
+            p3.add(mat.id);
+        }
+    }
+    const p4 = new Set();
+    for (const mat of getMaterialsByTier(4)) {
+        if (mat.inputs && Object.keys(mat.inputs).every(i =>
+            p3.has(parseInt(i)) || p2.has(parseInt(i)) ||
+            p1.has(parseInt(i)) || availableP0.has(parseInt(i)))) {
+            p4.add(mat.id);
+        }
+    }
+    return { p1, p2, p3, p4 };
 }
 
 function formatSecurity(sec) {
@@ -3527,36 +3576,10 @@ function displaySystemResults(system, planetTypes, skyhookTotals) {
         }
     });
 
-    // P1 producible
-    const producibleP1 = new Set();
-    for (const mat of getMaterialsByTier(1)) {
-        if (mat.inputs && Object.keys(mat.inputs).every(i => availableP0.has(parseInt(i)))) {
-            producibleP1.add(mat.id);
-        }
-    }
-
-    // P2 producible (inputs are P1 or P0)
-    const producibleP2 = getMaterialsByTier(2).filter(mat => {
-        if (!mat.inputs) return false;
-        return Object.keys(mat.inputs).every(i => producibleP1.has(parseInt(i)) || availableP0.has(parseInt(i)));
-    });
-
-    // P3 producible (inputs are P2, P1, or P0)
-    const producibleP2Ids = new Set(producibleP2.map(m => m.id));
-    const producibleP3 = getMaterialsByTier(3).filter(mat => {
-        if (!mat.inputs) return false;
-        return Object.keys(mat.inputs).every(i =>
-            producibleP2Ids.has(parseInt(i)) || producibleP1.has(parseInt(i)) || availableP0.has(parseInt(i)));
-    });
-
-    // P4 producible (inputs are P3, P2, P1, or P0)
-    const producibleP3Ids = new Set(producibleP3.map(m => m.id));
-    const producibleP4 = getMaterialsByTier(4).filter(mat => {
-        if (!mat.inputs) return false;
-        return Object.keys(mat.inputs).every(i =>
-            producibleP3Ids.has(parseInt(i)) || producibleP2Ids.has(parseInt(i)) ||
-            producibleP1.has(parseInt(i)) || availableP0.has(parseInt(i)));
-    });
+    const prod = computeProducible(availableP0);
+    const producibleP2 = [...prod.p2].map(id => getMaterialById(id)).filter(Boolean);
+    const producibleP3 = [...prod.p3].map(id => getMaterialById(id)).filter(Boolean);
+    const producibleP4 = [...prod.p4].map(id => getMaterialById(id)).filter(Boolean);
 
     elements.producibleP2.innerHTML = producibleP2.length > 0
         ? producibleP2.map(p => `<div class="producible-item p2" data-id="${p.id}">${p.name}</div>`).join('')
@@ -3577,6 +3600,430 @@ function displaySystemResults(system, planetTypes, skyhookTotals) {
     });
 
     elements.systemResults.classList.remove('hidden');
+}
+
+// ---------- Finder (location search + ISK maximizer) ----------
+let jumpsLoadPromise = null;
+function ensureJumpsLoaded() {
+    if (AppState.jumpsLoaded) return Promise.resolve(true);
+    if (jumpsLoadPromise) return jumpsLoadPromise; // single-flight
+
+    jumpsLoadPromise = new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'pi-jumps.js?v=' + (window.PI_ASSET_VERSION || '1');
+        script.onload = () => {
+            AppState.jumpsLoaded = true;
+            resolve(true);
+        };
+        script.onerror = () => {
+            console.error('Failed to load pi-jumps.js');
+            jumpsLoadPromise = null;
+            resolve(false);
+        };
+        document.head.appendChild(script);
+    });
+    return jumpsLoadPromise;
+}
+
+function findSystemByName(name) {
+    if (!name) return null;
+    const lower = name.toLowerCase();
+    for (const key in PI_SYSTEMS) {
+        if (PI_SYSTEMS[key].name.toLowerCase() === lower) return PI_SYSTEMS[key];
+    }
+    for (const key in PI_SYSTEMS) {
+        if (PI_SYSTEMS[key].name.toLowerCase().includes(lower)) return PI_SYSTEMS[key];
+    }
+    return null;
+}
+
+function secBandOf(sec) {
+    if (sec === null || sec === undefined) return 'null';
+    if (sec >= 0.5) return 'high';
+    if (sec > 0) return 'low';
+    return 'null';
+}
+
+function activeSecBands() {
+    const bands = new Set();
+    elements.finderSecFilter.querySelectorAll('.sec-chip.active').forEach(chip => {
+        bands.add(chip.dataset.sec);
+    });
+    if (bands.size === 0) return new Set(['high', 'low', 'null']);
+    return bands;
+}
+
+function getFinderRadius() {
+    const n = parseInt(elements.finderJumps.value, 10);
+    if (!Number.isFinite(n)) return 10;
+    return Math.min(50, Math.max(1, n));
+}
+
+// BFS over the stargate graph from originId up to maxJumps.
+// Returns Map(systemId -> {jumps, parent}) - parents allow route reconstruction.
+function finderBFS(originId, maxJumps) {
+    const dist = new Map([[originId, { jumps: 0, parent: null }]]);
+    let frontier = [originId];
+    let depth = 0;
+    while (frontier.length && depth < maxJumps) {
+        const next = [];
+        for (const sysId of frontier) {
+            const neighbors = (typeof PI_JUMPS !== 'undefined' && PI_JUMPS[sysId]) || [];
+            for (const nb of neighbors) {
+                if (dist.has(nb)) continue;
+                dist.set(nb, { jumps: depth + 1, parent: sysId });
+                next.push(nb);
+            }
+        }
+        frontier = next;
+        depth++;
+    }
+    return dist;
+}
+
+function finderRoutePath(destId, bfsMap) {
+    const path = [];
+    let cur = destId;
+    while (cur !== null) {
+        path.push(cur);
+        const node = bfsMap ? bfsMap.get(cur) : null;
+        cur = node ? node.parent : null;
+    }
+    return path.reverse();
+}
+
+function setFinderOrigin(systemId, source) {
+    const sys = PI_SYSTEMS[systemId];
+    AppState.finder.originSystemId = systemId;
+    AppState.finder.originSource = source;
+    AppState.finder.expandedSpot = null;
+    const prefix = source === 'esi' ? 'Ship: ' : 'Origin: ';
+    const region = sys ? (PI_DATA.regions[sys.regionId] || '') : '';
+    elements.finderOriginLabel.textContent = prefix + (sys ? sys.name : systemId) +
+        (region ? ` (${region})` : '');
+}
+
+async function finderUseMyLocation() {
+    if (!piEsiAuth.isAuthenticated()) {
+        elements.finderOriginLabel.textContent = 'Logging in with EVE SSO...';
+        piEsiAuth.initiateLogin().catch(err => {
+            elements.finderOriginLabel.textContent = err.message || 'Login failed';
+        });
+        return;
+    }
+
+    const originalHtml = elements.finderLocate.innerHTML;
+    elements.finderLocate.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+
+    try {
+        const charId = piEsiAuth.getCurrentCharacter();
+        const loc = await piEsiAuth.esiFetch(`/characters/${charId}/location/`);
+        await ensureSystemsLoaded();
+        if (!PI_SYSTEMS[loc.solar_system_id]) {
+            elements.finderOriginLabel.textContent = 'Ship is in an unknown system';
+            return;
+        }
+        setFinderOrigin(loc.solar_system_id, 'esi');
+    } catch (err) {
+        if (/ESI Error 403/.test(err.message)) {
+            elements.finderOriginLabel.textContent = 'Location scope missing - logout & login again to grant it';
+        } else {
+            elements.finderOriginLabel.textContent = err.message || 'Location lookup failed';
+        }
+    } finally {
+        elements.finderLocate.innerHTML = originalHtml;
+    }
+}
+
+function finderSetManualOrigin() {
+    const name = elements.finderSystemInput.value.trim();
+    if (!name) return;
+
+    if (!AppState.systemsLoaded) {
+        ensureSystemsLoaded().then(ok => {
+            if (ok) finderSetManualOrigin();
+            else elements.finderOriginLabel.textContent = 'Failed to load system data';
+        });
+        return;
+    }
+
+    const sys = findSystemByName(name);
+    if (!sys) {
+        elements.finderOriginLabel.textContent = `System "${name}" not found`;
+        return;
+    }
+    setFinderOrigin(sys.id, 'manual');
+}
+
+const FINDER_MAX_ROWS = 25;
+
+// Coverage-first ordering: full-chain systems by fewest jumps (ties -> higher
+// security), then partial systems by fewest missing types, then jumps.
+function sortFinderSpotRows(rows) {
+    rows.sort((a, b) => {
+        const fullA = a.missing.length === 0 ? 0 : 1;
+        const fullB = b.missing.length === 0 ? 0 : 1;
+        if (fullA !== fullB) return fullA - fullB;
+        if (fullA === 0) {
+            if (a.jumps !== b.jumps) return a.jumps - b.jumps;
+            return (b.sys.security || 0) - (a.sys.security || 0);
+        }
+        if (a.missing.length !== b.missing.length) return a.missing.length - b.missing.length;
+        return a.jumps - b.jumps;
+    });
+    return rows;
+}
+
+let finderSpotRows = [];
+
+async function runFindBestSystems() {
+    elements.finderSpotResults.innerHTML = '';
+
+    if (!AppState.finder.originSystemId) {
+        elements.finderSpotResults.innerHTML = '<div class="finder-empty">Set a starting location first.</div>';
+        return;
+    }
+    const productId = parseInt(elements.targetProduct.value, 10);
+    if (!productId || !getMaterialById(productId)) {
+        elements.finderSpotResults.innerHTML = '<div class="finder-empty">Select a Target Product below first.</div>';
+        return;
+    }
+
+    elements.finderSearchSpot.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+    try {
+        const ok = await Promise.all([ensureSystemsLoaded(), ensureJumpsLoaded()]);
+        if (!ok[0] || !ok[1]) throw new Error('Failed to load system/jump data');
+
+        const bfs = finderBFS(AppState.finder.originSystemId, getFinderRadius());
+        AppState.finder._bfs = bfs;
+        const requiredTypes = getRequiredPlanetTypes(productId);
+        const requiredIds = requiredTypes.map(p => p.id);
+        const allowedBands = activeSecBands();
+
+        const rows = [];
+        for (const [sysIdStr, node] of bfs) {
+            const sys = PI_SYSTEMS[sysIdStr];
+            if (!sys) continue;
+            if (!allowedBands.has(secBandOf(sys.security))) continue;
+
+            const presentIds = new Set(sys.planets.map(p => p.typeId));
+            const missing = requiredIds.filter(tid => !presentIds.has(tid));
+            rows.push({
+                sys,
+                jumps: node.jumps,
+                requiredIds,
+                missing,
+                route: finderRoutePath(Number(sysIdStr), bfs)
+            });
+        }
+
+        sortFinderSpotRows(rows);
+
+        finderSpotRows = rows;
+        AppState.finder.expandedSpot = null;
+        renderFinderSpotResults();
+    } catch (err) {
+        console.error('Find best systems failed:', err);
+        elements.finderSpotResults.innerHTML = `<div class="finder-empty">${escapeHtml(err.message)}</div>`;
+    } finally {
+        elements.finderSearchSpot.innerHTML = '<i class="fas fa-search-location"></i> Find Best Systems';
+    }
+}
+
+function renderFinderSpotResults() {
+    const container = elements.finderSpotResults;
+    container.innerHTML = '';
+
+    if (!finderSpotRows.length) {
+        container.innerHTML = '<div class="finder-empty">No systems with any required planet type within radius. Try widening the radius or sec filter.</div>';
+        return;
+    }
+
+    const shown = finderSpotRows.slice(0, FINDER_MAX_ROWS);
+
+    container.innerHTML = shown.map(row => {
+        const sys = row.sys;
+        const band = secBandOf(sys.security);
+        const full = row.missing.length === 0;
+        const badges = row.requiredIds.map(tid => {
+            const pt = getPlanetTypeData(tid);
+            if (!pt) return '';
+            const has = !row.missing.includes(tid);
+            return `<span class="planet-type-badge" style="background: ${has ? pt.color : '#3a3f4a'};${has ? '' : ' opacity:.55;'}" title="${has ? escapeHtml(pt.name) : escapeHtml(pt.name) + ' - not found here'}">${escapeHtml(pt.name)}</span>`;
+        }).join('');
+        const regionName = PI_DATA.regions[sys.regionId] || 'Unknown';
+        const expanded = AppState.finder.expandedSpot === sys.id;
+
+        let html = `
+            <div class="finder-result${full ? ' best' : ''}" data-sys="${sys.id}">
+                <div class="row-main">
+                    ${escapeHtml(sys.name)}
+                    <span class="sec-badge ${band}">${formatSecurity(sys.security)}</span>
+                    ${full ? '<span class="full-chain-chip">Full chain</span>' : ''}
+                    <span class="jumps">${row.jumps}j</span>
+                </div>
+                <div class="row-meta">
+                    <span class="region-name">${escapeHtml(regionName)}</span>
+                    ${badges}
+                </div>`;
+        if (!full) {
+            const missingNames = row.missing.map(tid => {
+                const pt = getPlanetTypeData(tid);
+                return pt ? pt.name : tid;
+            });
+            html += `<div class="row-sub">Missing here: ${escapeHtml(missingNames.join(', '))}</div>`;
+        }
+        if (expanded) {
+            const names = row.route.map(id => (PI_SYSTEMS[id] ? PI_SYSTEMS[id].name : id));
+            const allowed = activeSecBands();
+            const crossed = [...new Set(row.route.map(id => PI_SYSTEMS[id] && secBandOf(PI_SYSTEMS[id].security)))]
+                .filter(b => b && !allowed.has(b));
+            html += `<div class="finder-route"><i class="fas fa-route"></i> ${names.join(' › ')}`;
+            if (crossed.length) {
+                html += ` <span class="finder-warn">(route crosses ${escapeHtml(crossed.join(' + '))} sec)</span>`;
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        return html;
+    }).join('') + (finderSpotRows.length > shown.length
+        ? `<div class="finder-empty">…and ${finderSpotRows.length - shown.length} more within radius</div>`
+        : '');
+}
+
+async function runProfitScan() {
+    elements.finderProfitResults.innerHTML = '';
+    elements.finderProgress.classList.add('hidden');
+
+    if (!AppState.finder.originSystemId) {
+        elements.finderProfitResults.innerHTML = '<div class="finder-empty">Set a starting location first.</div>';
+        return;
+    }
+
+    const regionId = elements.regionSelect.value;
+    const regionName = PI_DATA.regions[regionId] || ('Region ' + regionId);
+    elements.finderScanRegion.textContent = ' · ' + regionName;
+
+    elements.finderScanProfit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+    try {
+        const ok = await Promise.all([ensureSystemsLoaded(), ensureJumpsLoaded()]);
+        if (!ok[0] || !ok[1]) throw new Error('Failed to load system/jump data');
+
+        const radius = getFinderRadius();
+        const bfs = finderBFS(AppState.finder.originSystemId, radius);
+        const allowedBands = activeSecBands();
+
+        const availableP0 = new Set();
+        let systemsScanned = 0;
+        for (const [sysIdStr] of bfs) {
+            const sys = PI_SYSTEMS[sysIdStr];
+            if (!sys) continue;
+            if (!allowedBands.has(secBandOf(sys.security))) continue;
+            systemsScanned++;
+            sys.planets.forEach(p => {
+                const pt = getPlanetTypeData(p.typeId);
+                if (pt) pt.p0Materials.forEach(id => availableP0.add(id));
+            });
+        }
+
+        const prod = computeProducible(availableP0);
+        const candidateIds = [...prod.p1, ...prod.p2, ...prod.p3, ...prod.p4];
+
+        if (!candidateIds.length || !systemsScanned) {
+            elements.finderProfitResults.innerHTML =
+                `<div class="finder-empty">Nothing producible within ${radius} jumps${systemsScanned ? '' : ' with the current sec filter'}. Widen the search.</div>`;
+            return;
+        }
+
+        // Gather every material id needed across all candidate chains
+        const chains = new Map();
+        const materialIds = new Set();
+        candidateIds.forEach(id => {
+            const chain = getChainForProduct(id);
+            if (!chain) return;
+            chains.set(id, chain);
+            collectMaterialIds(chain, materialIds);
+        });
+
+        elements.finderProgress.classList.remove('hidden');
+        const prices = await fetchPricesForMaterials(materialIds, regionId, (done, total) => {
+            elements.finderProgress.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Fetching prices (${regionName})… ${done}/${total}`;
+        });
+        elements.finderProgress.classList.add('hidden');
+
+        const results = [];
+        chains.forEach((chain, id) => {
+            const math = chainProfitMath(chain, prices);
+            if (!(math.outputValue > 0)) return; // no sell data for the output
+            results.push({ id, mat: getMaterialById(id), profit: math.profit, margin: math.margin });
+        });
+        results.sort((a, b) => b.profit - a.profit);
+
+        renderFinderProfitResults(results, radius, systemsScanned);
+    } catch (err) {
+        console.error('Profit scan failed:', err);
+        elements.finderProgress.classList.add('hidden');
+        elements.finderProfitResults.innerHTML = `<div class="finder-empty">${escapeHtml(err.message)}</div>`;
+    } finally {
+        elements.finderScanProfit.innerHTML = '<i class="fas fa-chart-line"></i> Scan Market';
+    }
+}
+
+function renderFinderProfitResults(results, radius, systemsScanned) {
+    const container = elements.finderProfitResults;
+    if (!results.length) {
+        container.innerHTML = '<div class="finder-empty">No priced products found in this market region.</div>';
+        return;
+    }
+
+    container.innerHTML =
+        `<div class="finder-empty">${results.length} products producible from ${systemsScanned} systems within ${radius} jumps - click one to view its chain:</div>` +
+        results.map(r => `
+            <div class="finder-result" data-id="${r.id}">
+                <div class="row-main">
+                    <span class="producible-item p${r.mat.tier}" style="cursor:pointer">${escapeHtml(r.mat.name)}</span>
+                    <span class="jumps ${r.profit >= 0 ? '' : 'finder-warn'}">${formatISK(r.profit)} ISK</span>
+                </div>
+                <div class="row-meta">
+                    <span class="region-name">margin ${r.margin.toFixed(1)}%</span>
+                </div>
+            </div>
+        `).join('');
+}
+
+function setupFinder() {
+    if (!elements.finderLocate) return;
+
+    elements.finderLocate.addEventListener('click', finderUseMyLocation);
+    elements.finderSetSystem.addEventListener('click', finderSetManualOrigin);
+    elements.finderSystemInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') finderSetManualOrigin();
+    });
+    elements.finderSearchSpot.addEventListener('click', runFindBestSystems);
+    elements.finderScanProfit.addEventListener('click', runProfitScan);
+
+    elements.finderSecFilter.addEventListener('click', (e) => {
+        const chip = e.target.closest('.sec-chip');
+        if (!chip) return;
+        chip.classList.toggle('active');
+        if (!elements.finderSecFilter.querySelector('.sec-chip.active')) {
+            elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
+        }
+    });
+
+    elements.finderSpotResults.addEventListener('click', (e) => {
+        const row = e.target.closest('.finder-result');
+        if (!row) return;
+        const sysId = parseInt(row.dataset.sys, 10);
+        AppState.finder.expandedSpot = AppState.finder.expandedSpot === sysId ? null : sysId;
+        renderFinderSpotResults();
+    });
+
+    elements.finderProfitResults.addEventListener('click', (e) => {
+        const row = e.target.closest('.finder-result');
+        if (!row) return;
+        selectProduct(parseInt(row.dataset.id, 10));
+    });
 }
 
 // ---------- Utility ----------

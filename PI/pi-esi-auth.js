@@ -16,7 +16,8 @@ const PI_ESI_CONFIG = {
     authorizeUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     scopes: [
-        'esi-planets.manage_planets.v1'
+        'esi-planets.manage_planets.v1',
+        'esi-location.read_location.v1'
     ]
 };
 
