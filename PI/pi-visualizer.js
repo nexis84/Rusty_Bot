@@ -1793,6 +1793,17 @@ function drawRefCard(mat, x, y, w, h, color) {
         const inputEntries = Object.entries(mat.inputs);
         let yPos = y + 36;
 
+        // Collect tier-0 planet types first (for bottom-of-card grouping)
+        const tier0Planets = [];
+        inputEntries.forEach(([id, qty], i) => {
+            const input = getMaterialById(parseInt(id));
+            if (!input) return;
+            if (input.tier === 0) {
+                const ptypes = getPlanetTypesForP0(parseInt(id));
+                if (ptypes.length > 0) tier0Planets.push(...ptypes);
+            }
+        });
+
         inputEntries.forEach(([id, qty], i) => {
             const input = getMaterialById(parseInt(id));
             if (!input) return;
@@ -1805,29 +1816,22 @@ function drawRefCard(mat, x, y, w, h, color) {
             if (inputName.length > 16) inputName = inputName.substring(0, 14) + '...';
             ctx.fillText(`${qty}x ${inputName}`, x + 12, yPos);
 
-            if (input.tier === 0) {
-                const planetTypes = getPlanetTypesForP0(parseInt(id));
-                if (planetTypes.length > 0) {
-                    const spacing = 11;
-                    const startX = x + 12;
-
-                    planetTypes.forEach((planet, j) => {
-                        const px = startX + j * spacing;
-                        ctx.fillStyle = planet.color;
-                        ctx.beginPath();
-                        ctx.arc(px, yPos + 26, 4, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        ctx.shadowColor = planet.color;
-                        ctx.shadowBlur = 4;
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                    });
-                }
-            }
-
             yPos += 16;
         });
+
+        // Draw all collected tier-0 planet markers at the card bottom
+        if (tier0Planets.length > 0) {
+            const markerY = y + 82; // near card bottom (cellHeight=95)
+            const markerSpacing = 10;
+            const baseX = x + 12; // align with input names
+            tier0Planets.forEach((planet, j) => {
+                const px = baseX + j * markerSpacing;
+                ctx.fillStyle = planet.color;
+                ctx.beginPath();
+                ctx.arc(px, markerY, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
 
         ctx.fillStyle = '#666';
         ctx.font = '8px sans-serif';
