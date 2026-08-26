@@ -116,6 +116,8 @@ const elements = {
     finderControls: document.getElementById('finderControls'),
     finderLoginGate: document.getElementById('finderLoginGate'),
     finderLoginBtn: document.getElementById('finderLoginBtn'),
+    finderCharacter: document.getElementById('finderCharacter'),
+    finderLogout: document.getElementById('finderLogout'),
     finderLocate: document.getElementById('finderLocate'),
     finderOriginLabel: document.getElementById('finderOriginLabel'),
     finderSystemInput: document.getElementById('finderSystemInput'),
@@ -4507,6 +4509,11 @@ function refreshFinderAuthState() {
     const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
     elements.finderControls.classList.toggle('hidden', !authed);
     elements.finderLoginGate.classList.toggle('hidden', authed);
+    if (elements.finderCharacter) {
+        elements.finderCharacter.textContent = authed
+            ? 'Signed in: ' + (piEsiAuth.getCurrentCharacterName() || 'pilot')
+            : '';
+    }
 }
 
 // Build "plans" for a product: every way to cover ALL required planet types
@@ -4595,6 +4602,21 @@ function setupFinder() {
             piEsiAuth.initiateLogin().catch(err => {
                 setFinderStatus(elements.finderSpotResults, err.message || 'Login failed');
             });
+        });
+    }
+
+    if (elements.finderLogout) {
+        elements.finderLogout.addEventListener('click', () => {
+            piEsiAuth.logout();
+            AppState.finder.locationAuthNeeded = false;
+            AppState.finder.originSystemId = null;
+            AppState.finder.originSource = null;
+            elements.finderLocate.innerHTML = '<i class="fas fa-satellite-dish"></i> Use my ship location';
+            setFinderStatus(elements.finderSpotResults, '');
+            setFinderStatus(elements.finderProfitResults, '');
+            refreshFinderAuthState();
+            refreshColoniesAuthState();
+            if (AppState.viewMode === 'finder') draw(); // prompt flips to signed-out card
         });
     }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=12">
+    <link rel="stylesheet" href="pi-style.css?v=13">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -49,6 +49,17 @@
                         <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> Colonies</button>
                         <button class="tab-btn" data-tab="finder"><i class="fas fa-location-arrow"></i> Finder</button>
                     </div>
+                </div>
+
+                <div class="panel">
+                    <h3><i class="fas fa-industry"></i> Target Product</h3>
+                    <p class="hint">Select what you want to produce</p>
+                    <select id="targetProduct" class="product-select">
+                        <option value="">-- Select a product --</option>
+                    </select>
+                    <button id="calculateChain" class="calc-btn">
+                        <i class="fas fa-calculator"></i> Calculate Chain
+                    </button>
                 </div>
 
                 <!-- System Checker Tab -->
@@ -132,6 +143,12 @@
                         </button>
                     </div>
                     <div id="finderControls">
+                    <div class="finder-session-row">
+                        <span id="finderCharacter" class="finder-character"></span>
+                        <button id="finderLogout" class="calc-btn secondary finder-logout-btn" title="Sign out of EVE SSO">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                     <p class="hint">Search around a starting system for the best places to build</p>
 
                     <div class="finder-section">
@@ -185,17 +202,6 @@
                         <div id="finderSpotResults" class="finder-status"></div>
                     </div>
                     </div>
-                </div>
-
-                <div class="panel">
-                    <h3><i class="fas fa-industry"></i> Target Product</h3>
-                    <p class="hint">Select what you want to produce</p>
-                    <select id="targetProduct" class="product-select">
-                        <option value="">-- Select a product --</option>
-                    </select>
-                    <button id="calculateChain" class="calc-btn">
-                        <i class="fas fa-calculator"></i> Calculate Chain
-                    </button>
                 </div>
 
                 <div class="panel market-panel" id="marketPanel">
@@ -292,7 +298,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '37';
+        window.PI_ASSET_VERSION = '38';
 
         (function loadPiScripts() {
             function load(src, onok) {
