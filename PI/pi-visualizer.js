@@ -544,7 +544,8 @@ function navigateToProduct(id) {
     if (!idNum || !getMaterialById(idNum)) return;
 
     const prev = AppState.targetProduct;
-    elements.finderProduct.value = idNum;
+    if (elements.finderProduct) elements.finderProduct.value = String(idNum);
+    if (elements.chainProductSelect) elements.chainProductSelect.value = String(idNum);
     AppState.targetProduct = idNum;
 
     if (prev && prev !== idNum && !AppState.suppressHistoryPush) {
@@ -553,9 +554,11 @@ function navigateToProduct(id) {
     AppState.suppressHistoryPush = false;
     AppState.chainFocus = null;
 
+    // Switch to chain view before generating layout so fitChainView's zoom math
+    // runs with isWorldZoomView()==true and the chain is centered.
+    setViewMode('chain');
     generateChainLayout();
     fetchMarketData();
-    setViewMode('chain');
     updateChainBackButton();
 }
 
@@ -660,7 +663,12 @@ function fitChainView(layout) {
     const scaleX = AppState.cssW / width;
     const scaleY = AppState.cssH / height;
 
-    setZoom(Math.min(scaleX, scaleY, 1.5));
+    // Fit zoom must apply even if called before viewMode switches to chain
+    // (reference -> chain navigation). Bypass isWorldZoomView guard.
+    const targetZoom = Math.max(0.25, Math.min(4, Math.min(scaleX, scaleY, 1.5)));
+    AppState.zoom = targetZoom;
+    const zl = document.getElementById('zoomLevel');
+    if (zl) zl.textContent = Math.round(AppState.zoom * 100) + '%';
 
     AppState.canvasOffset.x = -minX * AppState.zoom + padding * AppState.zoom + (AppState.cssW - width * AppState.zoom) / 2;
     AppState.canvasOffset.y = -minY * AppState.zoom + padding * AppState.zoom + (AppState.cssH - height * AppState.zoom) / 2;
@@ -3976,10 +3984,10 @@ function restoreFromUrl() {
         const product = parseInt(params.get('product'));
 
         if (product && getMaterialById(product)) {
-            if (elements.finderProduct) elements.finderProduct.value = product;
+            if (elements.finderProduct) elements.finderProduct.value = String(product);
+            if (elements.chainProductSelect) elements.chainProductSelect.value = String(product);
             AppState.targetProduct = product;
-            generateChainLayout();
-            fetchMarketData();
+            // Defer layout until after view is set so fitChainView centers correctly
         }
         if (view === 'planets') {
             // Planets is now a sub-view inside Reference.
@@ -3989,6 +3997,13 @@ function restoreFromUrl() {
             setViewMode(view);
         } else if (product) {
             setViewMode('chain');
+        }
+        // Now that the view is correct (chain mode enables world zoom), generate/fit the chain centered
+        if (product && getMaterialById(product)) {
+            generateChainLayout();
+            fetchMarketData();
+            // If restore landed on reference/system/etc but a product is set, chain is ready in background
+            // (no extra view switch needed — setViewMode already handled shareable URL case)
         }
 
         // Colony deep link: open this colony's detail once colonies have loaded
