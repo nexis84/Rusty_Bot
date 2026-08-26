@@ -4812,14 +4812,25 @@ function drawFinderSpotCards() {
     const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined')
         ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
 
-    ctx.textAlign = 'left';
+    const chainMat = getMaterialById(AppState.finder.bestProductId);
+    const titleText = `${AppState.finder.spotProductName} - best places to build`;
+    // Centered product title - clickable to view chain
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#e8d900';
     ctx.font = 'bold 18px Titillium Web, sans-serif';
-    ctx.fillText(`${AppState.finder.spotProductName} - best places to build`, 20, 20);
+    const titleW = Math.ceil(ctx.measureText(titleText).width);
+    const titleX = AppState.cssW / 2;
+    const titleY = 20;
+    ctx.fillText(titleText, titleX, titleY);
+    if (chainMat) {
+        const hitX = titleX - titleW / 2 - 10;
+        const hitW = titleW + 20;
+        AppState.finderCards.push({ kind: 'openChain', productId: chainMat.id, x: hitX, y: titleY - 2, w: hitW, h: 22 });
+        // Hint underline on hover (drawn during hover check, but also give subtle cue)
+    }
 
-    // "View chain" link for the featured product (top right of the header)
-    const chainMat = getMaterialById(AppState.finder.bestProductId);
+    // Keep VIEW CHAIN chip at top-right as secondary affordance
     if (chainMat) {
         ctx.font = 'bold 11px Titillium Web, sans-serif';
         const cw = Math.ceil(ctx.measureText('VIEW CHAIN').width) + 18;
@@ -4843,8 +4854,11 @@ function drawFinderSpotCards() {
         ctx.font = 'bold 12px Titillium Web, sans-serif';
         ctx.fillStyle = '#3fb950';
         const jitaName = PI_DATA.regions[FINDER_STANDARD_REGION] || 'Jita';
-        ctx.fillText(`#1 by ${jitaName} profit: ${formatISK(stats.profit)} ISK/batch (${stats.margin.toFixed(1)}% margin)` +
-            ` • local: ${formatISK(stats.profitLocal)} ISK`, 20, headerY);
+        const statsText = `#1 by ${jitaName} profit: ${formatISK(stats.profit)} ISK/batch (${stats.margin.toFixed(1)}% margin)` +
+            ` • local: ${formatISK(stats.profitLocal)} ISK`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(statsText, AppState.cssW / 2, headerY);
         headerY += 20;
     }
     ctx.fillStyle = '#aaa';
@@ -4855,7 +4869,9 @@ function drawFinderSpotCards() {
         ` covering every planet type (max ${getFinderMaxSystems()} system${getFinderMaxSystems() === 1 ? '' : 's'})`;
     if (multiCount) sub += ` • ${multiCount} split across systems`;
     sub += ' • click a card for routes';
-    ctx.fillText(sub, 20, headerY);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(sub, AppState.cssW / 2, headerY);
 
     const colW = Math.min(620, Math.max(360, AppState.cssW - 80));
     const x = Math.max(20, (AppState.cssW - colW) / 2);
