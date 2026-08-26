@@ -85,7 +85,6 @@ const elements = {
     viewColonies: document.getElementById('viewColonies'),
     viewFinder: document.getElementById('viewFinder'),
     backToRef: document.getElementById('backToRef'),
-    backChain: document.getElementById('backChain'),
     zoomIn: document.getElementById('zoomIn'),
     zoomOut: document.getElementById('zoomOut'),
     zoomLevel: document.getElementById('zoomLevel'),
@@ -425,6 +424,13 @@ function setupEventListeners() {
         });
     }
     elements.backToRef.addEventListener('click', () => {
+        // Chain product history takes priority while in chain view (replaces Prev button)
+        if (AppState.viewMode === 'chain' && AppState.chainHistory.length > 0) {
+            const prev = AppState.chainHistory.pop();
+            AppState.suppressHistoryPush = true;
+            navigateToProduct(prev);
+            return;
+        }
         const prev = AppState.viewHistory.pop();
         if (!prev) {
             setViewMode('reference');
@@ -433,15 +439,6 @@ function setupEventListeners() {
         AppState.suppressViewHistoryPush = true;
         setViewMode(prev);
     });
-
-    if (elements.backChain) {
-        elements.backChain.addEventListener('click', () => {
-            const prev = AppState.chainHistory.pop();
-            if (prev == null) { updateChainBackButton(); return; }
-            AppState.suppressHistoryPush = true;
-            navigateToProduct(prev);
-        });
-    }
 
     elements.zoomIn.addEventListener('click', () => setZoom(AppState.zoom * 1.2));
     elements.zoomOut.addEventListener('click', () => setZoom(AppState.zoom * 0.8));
@@ -569,17 +566,10 @@ function navigateToProduct(id) {
     setViewMode('chain');
     generateChainLayout();
     fetchMarketData();
-    updateChainBackButton();
 }
 
 function selectProduct(id) {
     navigateToProduct(id);
-}
-
-function updateChainBackButton() {
-    if (!elements.backChain) return;
-    const hasPrev = AppState.chainHistory.length > 0;
-    elements.backChain.classList.toggle('hidden', AppState.viewMode !== 'chain' || !hasPrev);
 }
 
 function generateChainLayout() {
@@ -3927,7 +3917,6 @@ function setViewMode(mode) {
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
     elements.viewFinder.classList.toggle('active', mode === 'finder');
     elements.backToRef.classList.remove('hidden');
-    updateChainBackButton();
 
     // Keep the Reference sub-view toggle (now inside the sidebar) in sync
     if (mode === 'reference') {
