@@ -453,6 +453,24 @@ function setupEventListeners() {
 }
 
 // Tab Management
+function activateSidebarTab(tab) {
+    // Toggle the tab-button highlight
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        if (b.dataset.tab === tab) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+    });
+    // Switch the visible tab-content panel
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const targetPanel = document.getElementById(`tab-${tab}`);
+    if (targetPanel) {
+        targetPanel.classList.add('active');
+    }
+    AppState.currentTab = tab;
+}
+
 function setupTabs() {
     const TAB_TO_VIEW = { ref: 'reference', system: 'system', colonies: 'colonies', finder: 'finder' };
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -463,16 +481,7 @@ function setupTabs() {
 
             const tab = btn.dataset.tab;
 
-            tabButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            const targetPanel = document.getElementById(`tab-${tab}`);
-            if (targetPanel) {
-                targetPanel.classList.add('active');
-            }
-
-            AppState.currentTab = tab;
+            activateSidebarTab(tab);
 
             // Auto-select matching main canvas view
             const view = TAB_TO_VIEW[tab];
@@ -3857,16 +3866,10 @@ function setViewMode(mode) {
     }
     }
 
-    // Sync sidebar tab active state with canvas view mode
+    // Sync sidebar tab (button highlight + panel content) with canvas view mode
     const reverseViewToTab = { reference: 'ref', system: 'system', colonies: 'colonies', finder: 'finder' };
     const activeTab = reverseViewToTab[mode] || 'ref';
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        if (b.dataset.tab === activeTab) {
-            b.classList.add('active');
-        } else {
-            b.classList.remove('active');
-        }
-    });
+    activateSidebarTab(activeTab);
 
     updateUrlState();
     setColonyTick(mode === 'colonies');
