@@ -3833,7 +3833,7 @@ function setViewMode(mode) {
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
     elements.viewFinder.classList.toggle('active', mode === 'finder');
-    elements.backToRef.classList.toggle('hidden', mode === 'reference');
+    elements.backToRef.classList.remove('hidden');
     updateChainBackButton();
 
     const helpText = document.querySelector('.canvas-help p');
