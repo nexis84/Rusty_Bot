@@ -166,15 +166,6 @@
                     </div>
 
                     <div class="finder-section">
-                        <h4><i class="fas fa-industry"></i> Where Can I Build It?</h4>
-                        <p class="hint">Uses the Target Product selected below - only shows plans with every planet type needed (split across up to Max systems)</p>
-                        <button id="finderSearchSpot" class="calc-btn">
-                            <i class="fas fa-search-location"></i> Find Best Systems
-                        </button>
-                        <div id="finderSpotResults" class="finder-status"></div>
-                    </div>
-
-                    <div class="finder-section">
                         <h4><i class="fas fa-coins"></i> Most Profitable Nearby</h4>
                         <p class="hint">Ranked by Jita prices (standard), with your selected region alongside - opens the build spots for the #1 product</p>
                         <button id="finderScanProfit" class="calc-btn">
@@ -183,6 +174,15 @@
                         <span class="region-name" id="finderScanRegion"></span>
                         <div id="finderProgress" class="finder-progress hidden"></div>
                         <div id="finderProfitResults" class="finder-status"></div>
+                    </div>
+
+                    <div class="finder-section">
+                        <h4><i class="fas fa-industry"></i> Where Can I Build It?</h4>
+                        <p class="hint">Uses the Target Product selected below - only shows plans with every planet type needed (split across up to Max systems)</p>
+                        <button id="finderSearchSpot" class="calc-btn">
+                            <i class="fas fa-search-location"></i> Find Best Systems
+                        </button>
+                        <div id="finderSpotResults" class="finder-status"></div>
                     </div>
                     </div>
                 </div>
@@ -292,7 +292,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '36';
+        window.PI_ASSET_VERSION = '37';
 
         (function loadPiScripts() {
             function load(src, onok) {
