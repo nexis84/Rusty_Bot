@@ -1332,8 +1332,11 @@ body {
 .producible-item.p4 { border-left: 2px solid var(--p4-color); }
 
 /* Finder Tab */
-.finder-login-gate {
-    padding: 0.25rem 0 0.5rem;
+.sso-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: stretch;
 }
 
 .finder-session-row {

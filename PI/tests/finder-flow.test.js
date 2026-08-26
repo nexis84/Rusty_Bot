@@ -128,7 +128,7 @@ let totalFail = 0;
         if (m.name === 'Rocket Fuel') { rocketFuel = m.id; break; }
     }
     if (!rocketFuel) { console.error('[flow] FAIL: Rocket Fuel not found in PI_DATA'); process.exit(1); }
-    els.targetProduct.value = String(rocketFuel);
+    els.finderProduct.value = String(rocketFuel);
 
     // ---- Section A: find best systems (full coverage only) ----
     await T.runFindBestSystems();

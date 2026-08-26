@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=14">
+    <link rel="stylesheet" href="pi-style.css?v=15">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -104,10 +104,10 @@
                     <h3><i class="fas fa-globe"></i> My Colonies</h3>
                     <div class="finder-section" id="coloniesSsoSection">
                         <h4><i class="fas fa-user"></i> EVE SSO</h4>
-                        <div class="finder-session-row">
+                        <div class="sso-stack">
                             <span id="coloniesCharacter" class="finder-character">Not signed in</span>
                             <button id="coloniesLogin" class="calc-btn">
-                                <i class="fas fa-sign-in-alt"></i> Login
+                                <i class="fas fa-sign-in-alt"></i> Login with EVE SSO
                             </button>
                             <button id="coloniesLogout" class="calc-btn secondary finder-logout-btn hidden">
                                 <i class="fas fa-sign-out-alt"></i> Logout
@@ -134,10 +134,10 @@
                     <h3><i class="fas fa-location-arrow"></i> Finder</h3>
                     <div class="finder-section" id="finderSsoSection">
                         <h4><i class="fas fa-user"></i> EVE SSO</h4>
-                        <div class="finder-session-row">
+                        <div class="sso-stack">
                             <span id="finderCharacter" class="finder-character">Not signed in</span>
                             <button id="finderLoginBtn" class="calc-btn">
-                                <i class="fas fa-sign-in-alt"></i> Login
+                                <i class="fas fa-sign-in-alt"></i> Login with EVE SSO
                             </button>
                             <button id="finderLogout" class="calc-btn secondary finder-logout-btn hidden">
                                 <i class="fas fa-sign-out-alt"></i> Logout
@@ -191,28 +191,17 @@
                     </div>
 
                     <div class="finder-section">
-                        <h4><i class="fas fa-industry"></i> Where Can I Build It?</h4>
-                        <p class="hint">Uses the Target Product selected below - only shows plans with every planet type needed (split across up to Max systems)</p>
+                        <h4><i class="fas fa-industry"></i> Find Best Systems</h4>
+                        <p class="hint">Pick a product, then find plans with every planet type needed (split across up to Max systems)</p>
+                        <select id="finderProduct" class="product-select">
+                            <option value="">-- Select a product --</option>
+                        </select>
                         <button id="finderSearchSpot" class="calc-btn">
                             <i class="fas fa-search-location"></i> Find Best Systems
                         </button>
                         <div id="finderSpotResults" class="finder-status"></div>
                     </div>
                     </div>
-                </div>
-
-                <div class="panel">
-                    <h3><i class="fas fa-industry"></i> Target Product</h3>
-                    <p class="hint">Select what you want to produce</p>
-                    <select id="targetProduct" class="product-select">
-                        <option value="">-- Select a product --</option>
-                    </select>
-                    <button id="calculateChain" class="calc-btn">
-                        <i class="fas fa-calculator"></i> Calculate Chain
-                    </button>
-                    <button id="clearChain" class="calc-btn secondary">
-                        <i class="fas fa-eraser"></i> Clear
-                    </button>
                 </div>
 
                 <div class="panel market-panel" id="marketPanel">
@@ -309,7 +298,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '39';
+        window.PI_ASSET_VERSION = '40';
 
         (function loadPiScripts() {
             function load(src, onok) {

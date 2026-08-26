@@ -66,9 +66,7 @@ const ctx = canvas.getContext('2d');
 // DOM Elements
 const elements = {
     regionSelect: document.getElementById('regionSelect'),
-    targetProduct: document.getElementById('targetProduct'),
-    calculateChain: document.getElementById('calculateChain'),
-    clearChain: document.getElementById('clearChain'),
+    finderProduct: document.getElementById('finderProduct'),
     viewReference: document.getElementById('viewReference'),
     viewChain: document.getElementById('viewChain'),
     viewPlanets: document.getElementById('viewPlanets'),
@@ -308,7 +306,8 @@ function populateProductDropdowns() {
         { label: 'P2 Products', tier: 2 },
         { label: 'P1 Materials', tier: 1 }
     ];
-    const select = elements.targetProduct;
+    const select = elements.finderProduct;
+    if (!select) return;
     const frag = document.createDocumentFragment();
     const placeholder = document.createElement('option');
     placeholder.value = '';
@@ -358,12 +357,6 @@ function setupEventListeners() {
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 
     // Controls
-    elements.calculateChain.addEventListener('click', () => runCalculate(elements.targetProduct.value));
-
-    if (elements.clearChain) {
-        elements.clearChain.addEventListener('click', clearChainCalc);
-    }
-
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
     elements.viewPlanets.addEventListener('click', () => setViewMode('planets'));
@@ -438,15 +431,6 @@ function setupEventListeners() {
     });
 }
 
-function runCalculate(productIdValue) {
-    if (!productIdValue) {
-        alert('Please select a target product first');
-        return;
-    }
-    elements.targetProduct.value = productIdValue;
-    calculateChain();
-}
-
 // Tab Management
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -486,7 +470,7 @@ function navigateToProduct(id) {
     if (!idNum || !getMaterialById(idNum)) return;
 
     const prev = AppState.targetProduct;
-    elements.targetProduct.value = idNum;
+    elements.finderProduct.value = idNum;
     AppState.targetProduct = idNum;
 
     if (prev && prev !== idNum && !AppState.suppressHistoryPush) {
@@ -498,29 +482,6 @@ function navigateToProduct(id) {
     fetchMarketData();
     setViewMode('chain');
     updateChainBackButton();
-}
-
-function calculateChain() {
-    navigateToProduct(elements.targetProduct.value);
-}
-
-// Reset the chain workspace: selection, canvas chain, history and market panel
-function clearChainCalc() {
-    elements.targetProduct.value = '';
-    AppState.targetProduct = null;
-    AppState.chainLayout = null;
-    AppState.chainHistory.length = 0;
-    AppState.suppressHistoryPush = false;
-    updateChainBackButton();
-    hideMarketData();
-    if (elements.productBreakdown) elements.productBreakdown.classList.add('hidden');
-    resetViewport();
-    if (AppState.viewMode === 'chain' || AppState.viewMode === 'planets') {
-        setViewMode('reference');
-    } else {
-        updateUrlState();
-        draw();
-    }
 }
 
 function selectProduct(id) {
@@ -3466,7 +3427,7 @@ function restoreFromUrl() {
         const product = parseInt(params.get('product'));
 
         if (product && getMaterialById(product)) {
-            elements.targetProduct.value = product;
+            if (elements.finderProduct) elements.finderProduct.value = product;
             AppState.targetProduct = product;
             generateChainLayout();
             fetchMarketData();
@@ -3956,9 +3917,9 @@ async function runFindBestSystems() {
         setFinderStatus(elements.finderSpotResults, 'Set a starting location first.');
         return;
     }
-    const productId = parseInt(elements.targetProduct.value, 10);
+    const productId = parseInt(elements.finderProduct.value, 10);
     if (!productId || !getMaterialById(productId)) {
-        setFinderStatus(elements.finderSpotResults, 'Select a Target Product below first.');
+        setFinderStatus(elements.finderSpotResults, 'Select a product first.');
         return;
     }
 
