@@ -44,43 +44,21 @@
             <aside class="sidebar">
                 <div class="panel tabs-panel">
                     <div class="tabs">
-                        <button class="tab-btn active" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
+                        <button class="tab-btn" data-tab="chain"><i class="fas fa-project-diagram"></i> Chain</button>
                         <button class="tab-btn" data-tab="system"><i class="fas fa-search"></i> System</button>
                         <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> Colonies</button>
                         <button class="tab-btn" data-tab="finder"><i class="fas fa-location-arrow"></i> Finder</button>
                     </div>
                 </div>
 
-                <!-- Reference Tab -->
-                <div class="panel tab-content active" id="tab-ref">
-                    <h3><i class="fas fa-book"></i> Reference</h3>
-                    <p class="hint">Quick reference for PI materials</p>
-
-                    <div class="ref-filter">
-                        <button id="marketFilterBtn" class="calc-btn secondary" style="width:100%;margin:4px 0;padding:6px;font-size:0.75rem;">
-                            <i class="fas fa-chart-line"></i> Market Prices
-                        </button>
-                    </div>
-
-                    <div class="ref-section">
-                        <h4>P1 Materials</h4>
-                        <div class="ref-grid" id="refP1"></div>
-                    </div>
-
-                    <div class="ref-section">
-                        <h4>P2 Materials</h4>
-                        <div class="ref-grid" id="refP2"></div>
-                    </div>
-
-                    <div class="ref-section">
-                        <h4>P3 Materials</h4>
-                        <div class="ref-grid" id="refP3"></div>
-                    </div>
-
-                    <div class="ref-section">
-                        <h4>P4 Materials</h4>
-                        <div class="ref-grid" id="refP4"></div>
-                    </div>
+                <!-- Chain Tab (replaces the old Reference sidebar tab) -->
+                <div class="panel tab-content" id="tab-chain">
+                    <h3><i class="fas fa-project-diagram"></i> Chain</h3>
+                    <p class="hint">Pick a product to view its full production chain</p>
+                    <select id="chainProductSelect" class="product-select">
+                        <option value="">Select Product...</option>
+                    </select>
+                    <button id="chainProductGo" class="calc-btn">View Chain</button>
                 </div>
 
                 <!-- System Checker Tab -->
@@ -245,34 +223,31 @@
 
             <main class="main-content">
                 <div class="canvas-container">
-                    <div class="canvas-toolbar">
-                        <div class="toolbar-section">
-                            <button id="backToRef" class="toolbar-btn hidden">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                            <button id="backChain" class="toolbar-btn hidden" title="Back to previous product">
-                                <i class="fas fa-undo-alt"></i> Prev
-                            </button>
-                            <span class="toolbar-label">View:</span>
-                            <button id="viewReference" class="toolbar-btn active">
-                                <i class="fas fa-th"></i> Reference
-                            </button>
-                            <button id="viewSystem" class="toolbar-btn">
-                                <i class="fas fa-search"></i> System
-                            </button>
-                            <button id="viewChain" class="toolbar-btn">
-                                <i class="fas fa-project-diagram"></i> Chain
-                            </button>
-                            <button id="viewPlanets" class="toolbar-btn">
-                                <i class="fas fa-globe"></i> Planets
-                            </button>
-                            <button id="viewColonies" class="toolbar-btn">
-                                <i class="fas fa-globe"></i> Colonies
-                            </button>
-                            <button id="viewFinder" class="toolbar-btn">
-                                <i class="fas fa-location-arrow"></i> Finder
-                            </button>
-                        </div>
+                <div class="canvas-toolbar">
+                    <div class="toolbar-section">
+                        <button id="backToRef" class="toolbar-btn">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button id="backChain" class="toolbar-btn hidden" title="Back to previous product">
+                            <i class="fas fa-undo-alt"></i> Prev
+                        </button>
+                        <span class="toolbar-label">View:</span>
+                        <button id="viewSystem" class="toolbar-btn">
+                            <i class="fas fa-search"></i> System
+                        </button>
+                        <button id="viewChain" class="toolbar-btn">
+                            <i class="fas fa-project-diagram"></i> Chain
+                        </button>
+                        <button id="viewColonies" class="toolbar-btn">
+                            <i class="fas fa-globe"></i> Colonies
+                        </button>
+                        <button id="viewFinder" class="toolbar-btn">
+                            <i class="fas fa-location-arrow"></i> Finder
+                        </button>
+                        <button id="viewReference" class="toolbar-btn">
+                            <i class="fas fa-th"></i> Reference
+                        </button>
+                    </div>
                         <div class="toolbar-section">
                             <span class="toolbar-label">Zoom:</span>
                             <button id="zoomOut" class="toolbar-btn"><i class="fas fa-minus"></i></button>
@@ -293,6 +268,17 @@
                     <div class="product-breakdown hidden" id="productBreakdown">
                         <h4><i class="fas fa-globe"></i> Planets Needed</h4>
                         <div id="breakdownContent"></div>
+                    </div>
+
+                    <!-- Reference view controls (Planets sub-view + Market filter) -->
+                    <div class="ref-controls hidden" id="refControls">
+                        <div class="ref-subview-toggle">
+                            <button class="subview-btn active" data-sub="materials"><i class="fas fa-th"></i> Materials</button>
+                            <button class="subview-btn" data-sub="planets"><i class="fas fa-globe"></i> Planets</button>
+                        </div>
+                        <button id="marketFilterBtn" class="calc-btn secondary market-filter-btn">
+                            <i class="fas fa-chart-line"></i> Market Prices
+                        </button>
                     </div>
                 </div>
                 <canvas id="piCanvas" class="pi-canvas"></canvas>

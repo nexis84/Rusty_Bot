@@ -11,6 +11,7 @@ const AppState = {
     canvasOffset: { x: 0, y: 0 },
     zoom: 1,
     viewMode: 'reference', // 'reference', 'system', 'chain', 'planets', 'colonies', 'finder'
+    refSubview: 'materials', // 'materials' | 'planets' - sub-view inside the Reference canvas
     marketPrices: {},
     targetProduct: null,
     isDraggingCanvas: false,
@@ -18,7 +19,7 @@ const AppState = {
     chainLayout: null,
     chainHistory: [],        // product navigation stack for the Prev button
     suppressHistoryPush: false,
-    currentTab: 'ref',
+    currentTab: 'chain',
     hoveredCard: null,
     hoverChainNode: null,    // material id of the chain node under the cursor (for tooltip)
     chainFocus: null,        // clicked node material id - highlights its input subtree, dims the rest
@@ -76,7 +77,9 @@ const elements = {
     viewReference: document.getElementById('viewReference'),
     viewSystem: document.getElementById('viewSystem'),
     viewChain: document.getElementById('viewChain'),
-    viewPlanets: document.getElementById('viewPlanets'),
+    viewPlanets: null, // standalone Planets toolbar tab removed; planets now live inside Reference
+    chainProductSelect: document.getElementById('chainProductSelect'),
+    chainProductGo: document.getElementById('chainProductGo'),
     viewColonies: document.getElementById('viewColonies'),
     viewFinder: document.getElementById('viewFinder'),
     backToRef: document.getElementById('backToRef'),
@@ -301,6 +304,8 @@ function init() {
     setupColonies();
     refreshColoniesAuthState();
     setViewMode('reference');
+    // Reference is no longer a sidebar tab; default the sidebar to Chain.
+    activateSidebarTab('chain');
     hideMarketData();
     restoreFromUrl();
     console.log('Init complete');
@@ -309,15 +314,14 @@ function init() {
 // Market data filter state
 AppState.hideMarketPrices = false;
 
-function populateProductDropdowns() {
+function populateProductSelect(select) {
+    if (!select) return;
     const groups = [
         { label: 'P4 Products', tier: 4 },
         { label: 'P3 Products', tier: 3 },
         { label: 'P2 Products', tier: 2 },
         { label: 'P1 Materials', tier: 1 }
     ];
-    const select = elements.finderProduct;
-    if (!select) return;
     const frag = document.createDocumentFragment();
     const placeholder = document.createElement('option');
     placeholder.value = '';
@@ -335,6 +339,11 @@ function populateProductDropdowns() {
         frag.appendChild(optGroup);
     });
     select.appendChild(frag);
+}
+
+function populateProductDropdowns() {
+    populateProductSelect(elements.finderProduct);
+    populateProductSelect(elements.chainProductSelect);
 }
 
 function setupCanvas() {
@@ -370,7 +379,6 @@ function setupEventListeners() {
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
     if (elements.viewSystem) elements.viewSystem.addEventListener('click', () => setViewMode('system'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
-    elements.viewPlanets.addEventListener('click', () => setViewMode('planets'));
     elements.viewColonies.addEventListener('click', () => {
         setViewMode('colonies');
         if (AppState.coloniesLoading || AppState.colonies) {
@@ -387,6 +395,33 @@ function setupEventListeners() {
             AppState.hideMarketPrices = !AppState.hideMarketPrices;
             marketFilterBtn.innerHTML = `<i class="fas fa-${AppState.hideMarketPrices ? 'eye-slash' : 'chart-line'}"></i> Market Prices`;
             draw();
+        });
+    }
+
+    // Reference sub-view toggle (Materials <-> Planets), integrated inside Reference
+    document.querySelectorAll('.subview-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const sub = btn.dataset.sub;
+            if (sub === AppState.refSubview) return;
+            AppState.refSubview = sub;
+            document.querySelectorAll('.subview-btn').forEach(b => b.classList.toggle('active', b === btn));
+            // Reset scroll when switching sub-views so the new content starts at the top
+            AppState.canvasOffset = { x: 0, y: 0 };
+            draw();
+        });
+    });
+
+    // Chain sidebar panel: pick a product to view its production chain
+    const goChain = () => {
+        const id = parseInt(elements.chainProductSelect?.value, 10);
+        if (id) navigateToProduct(id);
+    };
+    if (elements.chainProductSelect) {
+        elements.chainProductSelect.addEventListener('change', goChain);
+    }
+    if (elements.chainProductGo) {
+        elements.chainProductGo.addEventListener('click', function () {
+            goChain();
         });
     }
     elements.backToRef.addEventListener('click', () => setViewMode('reference'));
@@ -472,7 +507,7 @@ function activateSidebarTab(tab) {
 }
 
 function setupTabs() {
-    const TAB_TO_VIEW = { ref: 'reference', system: 'system', colonies: 'colonies', finder: 'finder' };
+    const TAB_TO_VIEW = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder' };
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1739,6 +1774,16 @@ function drawBackgroundGrid() {
 
 // ---------- Reference View ----------
 function drawReferenceView() {
+    // Planets breakdown is now integrated as a sub-view inside Reference.
+    if (AppState.refSubview === 'planets') {
+        ctx.save();
+        ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
+        ctx.scale(AppState.zoom, AppState.zoom);
+        drawPlanetsView();
+        ctx.restore();
+        return;
+    }
+
     const L = refCardLayout();
 
     let hoveredRect = null;
@@ -2300,7 +2345,7 @@ function drawPlanetsView() {
     const headerH = 22;
     const cols = 5;
 
-    let yOffset = -300;
+    let yOffset = 10;
 
     for (const typeId of planetTypeIds) {
         const pt = PI_DATA.planetTypes[typeId];
@@ -3752,9 +3797,24 @@ function clampListScroll() {
 
     let contentHeight = 0;
     if (isRef) {
-        const L = refCardLayout();
-        const rows = Math.ceil(L.materials.length / L.cols);
-        contentHeight = rows * (L.cellHeight + 12) + 12;
+        if (AppState.refSubview === 'planets') {
+            // Mirror the layout maths from drawPlanetsView() so scrolling is bounded correctly.
+            const planetTypeIds = Object.keys(PI_DATA.planetTypes)
+                .map(Number).sort((a, b) => a - b)
+                .filter(id => (PI_DATA.planetTypes[id].p0Materials || []).length > 0);
+            const cols = 5, nodeHeight = 44, groupGap = 24, rowGap = 12, headerH = 22;
+            let h = 10;
+            planetTypeIds.forEach(typeId => {
+                const p0Ids = PI_DATA.planetTypes[typeId].p0Materials || [];
+                const rows = Math.ceil(p0Ids.length / cols);
+                h += (headerH + rows * (nodeHeight + rowGap)) + groupGap;
+            });
+            contentHeight = h;
+        } else {
+            const L = refCardLayout();
+            const rows = Math.ceil(L.materials.length / L.cols);
+            contentHeight = rows * (L.cellHeight + 12) + 12;
+        }
     } else if (isSystem) {
         contentHeight = (AppState.systemCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
         if (!contentHeight) contentHeight = AppState.cssH;
@@ -3830,11 +3890,18 @@ function setViewMode(mode) {
     elements.viewReference.classList.toggle('active', mode === 'reference');
     if (elements.viewSystem) elements.viewSystem.classList.toggle('active', mode === 'system');
     elements.viewChain.classList.toggle('active', mode === 'chain');
-    elements.viewPlanets.classList.toggle('active', mode === 'planets');
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
     elements.viewFinder.classList.toggle('active', mode === 'finder');
     elements.backToRef.classList.remove('hidden');
     updateChainBackButton();
+
+    // Reference-only floating controls (Planets sub-view toggle + market filter)
+    const refControls = document.getElementById('refControls');
+    if (refControls) refControls.classList.toggle('hidden', mode !== 'reference');
+    if (mode === 'reference') {
+        document.querySelectorAll('.subview-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.sub === AppState.refSubview));
+    }
 
     const helpText = document.querySelector('.canvas-help p');
     if (helpText) {
@@ -3844,9 +3911,6 @@ function setViewMode(mode) {
     } else if (mode === 'system') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-search"></i> System view &bull; Search a system in the side bar to see its planets and what it can produce';
-    } else if (mode === 'planets') {
-        canvas.style.cursor = 'default';
-        helpText.innerHTML = '<i class="fas fa-info-circle"></i> Planet breakdown view • Shows which raw materials each planet subtype can extract';
     } else if (mode === 'colonies') {
         canvas.style.cursor = 'default';
         const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
@@ -3866,9 +3930,11 @@ function setViewMode(mode) {
     }
     }
 
-    // Sync sidebar tab (button highlight + panel content) with canvas view mode
-    const reverseViewToTab = { reference: 'ref', system: 'system', colonies: 'colonies', finder: 'finder' };
-    const activeTab = reverseViewToTab[mode] || 'ref';
+    // Sync sidebar tab (button highlight + panel content) with canvas view mode.
+    // Reference is intentionally NOT a sidebar tab (it's a main-toolbar view), so
+    // when in reference view no sidebar tab is highlighted.
+    const reverseViewToTab = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder' };
+    const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 
     updateUrlState();
@@ -3908,7 +3974,11 @@ function restoreFromUrl() {
             generateChainLayout();
             fetchMarketData();
         }
-        if (view && ['reference', 'system', 'chain', 'planets', 'colonies', 'finder'].includes(view)) {
+        if (view === 'planets') {
+            // Planets is now a sub-view inside Reference.
+            AppState.refSubview = 'planets';
+            setViewMode('reference');
+        } else if (view && ['reference', 'system', 'chain', 'colonies', 'finder'].includes(view)) {
             setViewMode(view);
         } else if (product) {
             setViewMode('chain');
@@ -3938,6 +4008,9 @@ function resetViewport() {
 
 // ---------- Reference Grids (sidebar) ----------
 function setupReferenceGrids() {
+    // The Reference sidebar panel was removed (Reference is now a main-toolbar view),
+    // so these grid containers no longer exist. Guard to avoid null dereferences.
+    if (!elements.refP1) return;
     [
         [elements.refP1, 1],
         [elements.refP2, 2],

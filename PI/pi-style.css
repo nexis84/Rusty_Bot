@@ -1045,6 +1045,52 @@ body {
     padding: 0.75rem;
     margin-bottom: 0.5rem;
 }
+
+/* Reference view floating controls (Planets sub-view toggle + market filter) */
+.ref-controls {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 6;
+}
+.ref-controls.hidden {
+    display: none;
+}
+.ref-subview-toggle {
+    display: flex;
+    gap: 4px;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 4px;
+}
+.subview-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+}
+.subview-btn:hover {
+    color: #fff;
+}
+.subview-btn.active {
+    background: #2d6cdf;
+    color: #fff;
+}
+.market-filter-btn {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+}
 .product-breakdown h4 {
     font-size: 0.75rem;
     color: var(--text-muted);
