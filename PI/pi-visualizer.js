@@ -1831,9 +1831,13 @@ function drawRefCard(mat, x, y, w, h, color) {
             yPos += 16;
         });
 
+        // Cap yPos at card bottom, leaving room for footer
+        const cardBottom = y + 88; // 3px below planet markers at y + 82
+        if (yPos > cardBottom) yPos = cardBottom;
+
         // Draw all collected tier-0 planet markers at the card bottom
         if (tier0Planets.length > 0) {
-            const markerY = y + 82; // near card bottom (cellHeight=95)
+            const markerY = y + 82; // near card bottom
             const markerSpacing = 10;
             const baseX = x + 12; // align with input names
             tier0Planets.forEach((planet, j) => {
@@ -1845,9 +1849,10 @@ function drawRefCard(mat, x, y, w, h, color) {
             });
         }
 
+        // Draw "→ X units" footer at capped position
         ctx.fillStyle = '#666';
         ctx.font = '8px sans-serif';
-        ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos);
+        ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos + 6);
     }
 
     // Market price - check filter first, then price data
