@@ -4818,7 +4818,7 @@ function renderFinderDom() {
     if (hc) hc.onclick = () => { if (chainMat) navigateToProduct(chainMat.id); };
 
     if (f.bestStats) {
-        metricEl.innerHTML = '<span class="finder-metric-pill">Primary Metric: <strong>Profit: ' + formatISK(f.bestStats.profit) + ' ISK/batch (' + f.bestStats.margin.toFixed(1) + '% margin)</strong></span>';
+        metricEl.innerHTML = '<span class="finder-metric-pill"><strong>Profit: ' + formatISK(f.bestStats.profit) + ' ISK/batch (' + f.bestStats.margin.toFixed(1) + '% margin)</strong></span>';
     } else {
         metricEl.innerHTML = '';
     }
