@@ -19,6 +19,8 @@ const AppState = {
     chainLayout: null,
     chainHistory: [],        // product navigation stack for the Prev button
     suppressHistoryPush: false,
+    viewHistory: [],           // view navigation stack for the Back button
+    suppressViewHistoryPush: false,
     currentTab: 'ref',
     hoveredCard: null,
     hoverChainNode: null,    // material id of the chain node under the cursor (for tooltip)
@@ -422,7 +424,15 @@ function setupEventListeners() {
             goChain();
         });
     }
-    elements.backToRef.addEventListener('click', () => setViewMode('reference'));
+    elements.backToRef.addEventListener('click', () => {
+        const prev = AppState.viewHistory.pop();
+        if (!prev) {
+            setViewMode('reference');
+            return;
+        }
+        AppState.suppressViewHistoryPush = true;
+        setViewMode(prev);
+    });
 
     if (elements.backChain) {
         elements.backChain.addEventListener('click', () => {
@@ -3897,6 +3907,11 @@ function setZoom(zoom) {
 }
 
 function setViewMode(mode) {
+    if (!AppState.suppressViewHistoryPush && AppState.viewMode !== mode) {
+        AppState.viewHistory.push(AppState.viewMode);
+        if (AppState.viewHistory.length > 20) AppState.viewHistory.shift();
+    }
+    if (AppState.suppressViewHistoryPush) AppState.suppressViewHistoryPush = false;
     if (mode !== 'colonies') {
         AppState.colonyDetail = null;
         AppState.layoutMode = false;
@@ -3992,10 +4007,13 @@ function restoreFromUrl() {
         if (view === 'planets') {
             // Planets is now a sub-view inside Reference.
             AppState.refSubview = 'planets';
+            AppState.suppressViewHistoryPush = true;
             setViewMode('reference');
         } else if (view && ['reference', 'system', 'chain', 'colonies', 'finder'].includes(view)) {
+            AppState.suppressViewHistoryPush = true;
             setViewMode(view);
         } else if (product) {
+            AppState.suppressViewHistoryPush = true;
             setViewMode('chain');
         }
         // Now that the view is correct (chain mode enables world zoom), generate/fit the chain centered
