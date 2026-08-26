@@ -4820,42 +4820,61 @@ function drawFinderSpotCards() {
         ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
 
     const chainMat = getMaterialById(AppState.finder.bestProductId);
-    const titleText = `${AppState.finder.spotProductName} - best places to build`;
-    // Centered product title - clickable to view chain
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillStyle = '#e8d900';
-    ctx.font = 'bold 18px Titillium Web, sans-serif';
-    const titleW = Math.ceil(ctx.measureText(titleText).width);
-    const titleX = AppState.cssW / 2;
-    const titleY = 20;
-    ctx.fillText(titleText, titleX, titleY);
+    // Product card in the middle - clickable to view chain (replaces plain title text)
     if (chainMat) {
-        const hitX = titleX - titleW / 2 - 10;
-        const hitW = titleW + 20;
-        AppState.finderCards.push({ kind: 'openChain', productId: chainMat.id, x: hitX, y: titleY - 2, w: hitW, h: 22 });
-        // Hint underline on hover (drawn during hover check, but also give subtle cue)
-    }
-
-    // Keep VIEW CHAIN chip at top-right as secondary affordance
-    if (chainMat) {
-        ctx.font = 'bold 11px Titillium Web, sans-serif';
-        const cw = Math.ceil(ctx.measureText('VIEW CHAIN').width) + 18;
-        const chipRect = { x: AppState.cssW - 20 - cw, y: 16, w: cw, h: 20 };
-        ctx.fillStyle = 'rgba(88, 166, 255, 0.15)';
-        roundRect(ctx, chipRect.x, chipRect.y, chipRect.w, chipRect.h, 5);
+        const cardW = 360;
+        const cardH = 62;
+        const cardX = AppState.cssW / 2 - cardW / 2;
+        const cardY = 10;
+        const tierColor = PI_COLORS[chainMat.tier] || '#888';
+        const isCardHovered = AppState.finderCards.some(c => c.kind === 'hoverChainTitle') ? false : false;
+        // Background
+        const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+        grad.addColorStop(0, 'rgba(40,40,40,0.98)');
+        grad.addColorStop(1, 'rgba(25,25,25,0.98)');
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = tierColor;
+        ctx.lineWidth = 1.4;
+        roundRect(ctx, cardX, cardY, cardW, cardH, 10);
         ctx.fill();
-        ctx.strokeStyle = 'rgba(88, 166, 255, 0.55)';
-        ctx.lineWidth = 1;
         ctx.stroke();
-        ctx.fillStyle = '#58a6ff';
+        // Tier accent bar
+        ctx.fillStyle = tierColor;
+        roundRect(ctx, cardX, cardY, 5, cardH, [10, 0, 0, 10]);
+        ctx.fill();
+        // P-tier badge
+        ctx.fillStyle = tierColor;
+        roundRect(ctx, cardX + 16, cardY + 14, 28, 18, 4);
+        ctx.fill();
+        ctx.fillStyle = '#121212';
+        ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('VIEW CHAIN', chipRect.x + chipRect.w / 2, chipRect.y + chipRect.h / 2 + 0.5);
-        AppState.finderCards.push({ kind: 'openChain', productId: chainMat.id, ...chipRect });
+        ctx.fillText(`P${chainMat.tier}`, cardX + 30, cardY + 23);
+        // Name
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Titillium Web, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        let displayName = chainMat.name;
+        if (displayName.length > 28) displayName = displayName.slice(0, 26) + '…';
+        ctx.fillText(displayName, cardX + 52, cardY + 12);
+        // Subtitle
+        ctx.fillStyle = '#9aa4b2';
+        ctx.font = '11px Titillium Web, sans-serif';
+        ctx.fillText('best places to build  •  click to view chain', cardX + 52, cardY + 33);
+        // Hit area for the card
+        AppState.finderCards.push({ kind: 'openChain', productId: chainMat.id, x: cardX, y: cardY, w: cardW, h: cardH });
+    } else {
+        // Fallback plain title if material not found
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = '#e8d900';
+        ctx.font = 'bold 18px Titillium Web, sans-serif';
+        ctx.fillText(`${AppState.finder.spotProductName} - best places to build`, AppState.cssW / 2, 20);
     }
 
-    let headerY = 46;
+    let headerY = 82;
     const stats = AppState.finder.bestStats;
     if (stats) {
         ctx.font = 'bold 12px Titillium Web, sans-serif';
@@ -5021,11 +5040,16 @@ function drawFinderSpotCards() {
 const NEXT_BEST_COUNT = 8;
 
 // Compact ranked list under the build spots: every other product from the
-// market scan. Clicking one re-runs the full-coverage spot search for it.
+// market scan. Only products buildable within the current jump radius / max
+// systems / sec filter are shown. Clicking one replaces the main spot view
+// with the systems where it can be built.
 function drawNextBestCards(x, colW, yStart) {
-    const results = (AppState.finder.scanResults || [])
-        .filter(r => r.id !== AppState.finder.bestProductId)
-        .slice(0, NEXT_BEST_COUNT);
+    const available = (AppState.finder.scanResults || []).filter(r => {
+        if (r.id === AppState.finder.bestProductId) return false;
+        const rows = buildSpotGroups(r.id);
+        return rows && rows.length > 0;
+    });
+    const results = available.slice(0, NEXT_BEST_COUNT);
     if (!results.length) return;
 
     ctx.textAlign = 'left';
