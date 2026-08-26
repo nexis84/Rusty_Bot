@@ -2383,12 +2383,15 @@ function drawPlanetsView() {
 function drawPlanetP0Node(mat, x, y, w, h, color) {
     if (!mat) return;
 
-    ctx.fillStyle = 'rgba(40, 40, 40, 0.95)';
+    // Flat, static "info chip" styling - these nodes are not interactive.
+    ctx.fillStyle = 'rgba(30, 30, 30, 0.45)';
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.45;
     roundRect(ctx, x, y, w, h, 6);
     ctx.fill();
     ctx.stroke();
+    ctx.globalAlpha = 1;
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 11px Titillium Web, sans-serif';
@@ -3569,7 +3572,9 @@ function onPointerDown(e) {
             AppState.pendingHit = card ? { type: 'colony', colony: card.colony } : null;
         }
     } else if (AppState.viewMode === 'reference') {
-        const mat = refCardAt(pos);
+        // The Planets sub-view is purely informational - its product nodes are
+        // not clickable, so never treat them as navigable product hits.
+        const mat = AppState.refSubview === 'planets' ? null : refCardAt(pos);
         AppState.pendingHit = mat ? { type: 'product', id: mat.id } : null;
     } else if (AppState.viewMode === 'system') {
         const card = systemCardAt(pos);
@@ -3600,7 +3605,9 @@ function onPointerMove(e) {
 
     if (!AppState.isDraggingCanvas) {
         if (AppState.viewMode === 'reference') {
-            const mat = refCardAt(pos);
+            // Planets sub-view is read-only: keep its product nodes non-interactive
+            // (default cursor, no hover tooltip) so they read as static info.
+            const mat = AppState.refSubview === 'planets' ? null : refCardAt(pos);
             const id = mat ? mat.id : null;
             if (id !== AppState.hoveredCard) {
                 AppState.hoveredCard = id;
