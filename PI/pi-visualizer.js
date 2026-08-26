@@ -20,6 +20,7 @@ const AppState = {
     suppressHistoryPush: false,
     currentTab: 'system',
     hoveredCard: null,
+    hoverChainNode: null,    // material id of the chain node under the cursor (for tooltip)
     systemsLoaded: false,
     planetsLoaded: false,
     colonies: null,
@@ -393,6 +394,7 @@ function setupEventListeners() {
         if (step !== undefined) {
             e.preventDefault();
             AppState.canvasOffset.y += step;
+            clampListScroll();
             draw();
         } else if (e.key === 'Home' || e.key === 'End') {
             e.preventDefault();
@@ -519,38 +521,44 @@ function generateChainLayout() {
     const levelWidth = 170;
     const nodeHeight = 110;
     const levelIndices = {};
-    const visited = new Set();
+    const nodeIdByMaterial = {};
 
     const addNode = (nodeData, depth, parentId = null) => {
-        if (visited.has(nodeData.id)) return;
-        visited.add(nodeData.id);
+        let nodeId = nodeIdByMaterial[nodeData.id];
 
-        levelIndices[depth] = (levelIndices[depth] || 0) + 1;
-        const index = levelIndices[depth] - 1;
-        const levelCount = nodeCounts[depth] || 1;
-        const totalWidth = (levelCount - 1) * levelWidth;
-        const x = (index * levelWidth) - totalWidth / 2;
-        const y = (maxDepth.value - depth) * nodeHeight;
+        if (!nodeId) {
+            levelIndices[depth] = (levelIndices[depth] || 0) + 1;
+            const index = levelIndices[depth] - 1;
+            const levelCount = nodeCounts[depth] || 1;
+            const totalWidth = (levelCount - 1) * levelWidth;
+            const x = (index * levelWidth) - totalWidth / 2;
+            const y = (maxDepth.value - depth) * nodeHeight;
 
-        const node = {
-            id: `node-${layout.nodes.length}`,
-            materialId: nodeData.id,
-            name: nodeData.name,
-            tier: nodeData.tier,
-            x,
-            y,
-            qty: nodeData.qty || 1,
-            planetTypes: nodeData.tier === 0 ? getPlanetTypesForP0(nodeData.id) : []
-        };
+            const node = {
+                id: `node-${layout.nodes.length}`,
+                materialId: nodeData.id,
+                name: nodeData.name,
+                tier: nodeData.tier,
+                x,
+                y,
+                qty: nodeData.qty || 1,
+                planetTypes: nodeData.tier === 0 ? getPlanetTypesForP0(nodeData.id) : []
+            };
 
-        layout.nodes.push(node);
+            layout.nodes.push(node);
+            nodeIdByMaterial[nodeData.id] = node.id;
+            nodeId = node.id;
+        }
+
+        // Always record the edge, even when the child node is shared by
+        // multiple parents (otherwise one parent's link would be dropped).
         if (parentId) {
-            layout.links.push({ from: node.id, to: parentId });
+            layout.links.push({ from: nodeId, to: parentId });
         }
 
         if (nodeData.inputs) {
             nodeData.inputs.forEach(input => {
-                addNode(nodeFor(input), depth + 1, node.id);
+                addNode(nodeFor(input), depth + 1, nodeId);
             });
         }
     };
@@ -1589,6 +1597,8 @@ function escapeHtml(str) {
 
 // ---------- Drawing ----------
 function draw() {
+    clampListScroll();
+
     ctx.clearRect(0, 0, AppState.cssW, AppState.cssH);
 
     drawBackgroundGrid();
@@ -1627,6 +1637,16 @@ function draw() {
     }
 
     ctx.restore();
+
+    if (AppState.viewMode === 'chain' && AppState.hoverChainNode && AppState.chainLayout) {
+        const hn = AppState.chainLayout.nodes.find(n => n.materialId === AppState.hoverChainNode);
+        if (hn) {
+            const halfH = (hn.tier === 0 ? 78 : 62) / 2 * AppState.zoom;
+            const sx = hn.x * AppState.zoom + AppState.canvasOffset.x;
+            const sy = hn.y * AppState.zoom + AppState.canvasOffset.y - halfH;
+            drawProductTooltip(AppState.hoverChainNode, sx, sy, true);
+        }
+    }
 
     if (layoutWorld) {
         drawColonyLayoutOverlay(AppState.colonyDetail);
@@ -1682,6 +1702,8 @@ function drawBackgroundGrid() {
 function drawReferenceView() {
     const L = refCardLayout();
 
+    let hoveredRect = null;
+
     L.materials.forEach((mat, i) => {
         const col = i % L.cols;
         const row = Math.floor(i / L.cols);
@@ -1690,8 +1712,13 @@ function drawReferenceView() {
 
         if (y > -L.cellHeight && y < AppState.cssH) {
             drawRefCard(mat, x, y, L.cellWidth, L.cellHeight, PI_COLORS[mat.tier]);
+            if (mat.id === AppState.hoveredCard) hoveredRect = { x, y, w: L.cellWidth, h: L.cellHeight };
         }
     });
+
+    if (hoveredRect && AppState.hoveredCard != null) {
+        drawProductTooltip(AppState.hoveredCard, hoveredRect.x + hoveredRect.w / 2, hoveredRect.y, false);
+    }
 }
 
 function drawRefCard(mat, x, y, w, h, color) {
@@ -1745,8 +1772,8 @@ function drawRefCard(mat, x, y, w, h, color) {
     }
 
     if (mat.inputs && Object.keys(mat.inputs).length > 0) {
-        const inputEntries = Object.entries(mat.inputs).slice(0, 2);
-        let yPos = y + 38;
+        const inputEntries = Object.entries(mat.inputs);
+        let yPos = y + 36;
 
         inputEntries.forEach(([id, qty], i) => {
             const input = getMaterialById(parseInt(id));
@@ -1781,7 +1808,7 @@ function drawRefCard(mat, x, y, w, h, color) {
                 }
             }
 
-            yPos += 18;
+            yPos += 16;
         });
 
         ctx.fillStyle = '#666';
@@ -1796,6 +1823,78 @@ function drawRefCard(mat, x, y, w, h, color) {
         ctx.textAlign = 'right';
         ctx.fillText(formatISK(price), x + w - 12, y + h - 12);
     }
+}
+
+// ---------- Hover Tooltip ----------
+// Shows what goes INTO a material (its inputs) when the user hovers a
+// reference card or a chain node. anchorX/anchorY are screen pixels at the
+// top-centre of the hovered element; worldSpace is unused (callers pass
+// screen coords). The box is drawn in screen space so text stays crisp.
+function drawProductTooltip(materialId, anchorX, anchorY) {
+    const mat = getMaterialById(materialId);
+    if (!mat) return;
+
+    const inputEntries = Object.entries(mat.inputs || {});
+    const lines = []; // { text, color }
+
+    if (inputEntries.length > 0) {
+        inputEntries.forEach(([idStr, qty]) => {
+            const sub = getMaterialById(parseInt(idStr));
+            lines.push({
+                text: `${qty}x ${sub ? sub.name : String(idStr)}`,
+                color: sub ? (PI_COLORS[sub.tier] || '#bbb') : '#bbb'
+            });
+        });
+    } else if (mat.tier === 0) {
+        lines.push({ text: 'Raw resource — extract from a planet', color: '#999' });
+    } else {
+        lines.push({ text: 'No inputs', color: '#999' });
+    }
+
+    const title = `${mat.name}  (P${mat.tier})`;
+    const lineH = 18;
+    const padX = 12, padY = 10;
+
+    ctx.save();
+    ctx.font = '11px Titillium Web, sans-serif';
+    let boxW = ctx.measureText(title).width;
+    lines.forEach(l => { boxW = Math.max(boxW, ctx.measureText(l.text).width); });
+    boxW += padX * 2 + 14; // +14 for the tier colour swatch
+    const boxH = padY * 2 + 18 + lines.length * lineH;
+
+    // Prefer below the anchor; flip above if it would clip the bottom.
+    let bx = Math.round(anchorX - boxW / 2);
+    let by = Math.round(anchorY + 14);
+    bx = Math.max(6, Math.min(bx, AppState.cssW - boxW - 6));
+    if (by + boxH > AppState.cssH - 6) by = Math.round(anchorY - boxH - 14);
+
+    ctx.fillStyle = 'rgba(12, 12, 12, 0.97)';
+    ctx.strokeStyle = 'rgba(232, 217, 0, 0.55)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, bx, by, boxW, boxH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 12px Titillium Web, sans-serif';
+    ctx.fillText(title, bx + padX, by + padY);
+
+    let ty = by + padY + 22;
+    ctx.font = '11px Titillium Web, sans-serif';
+    lines.forEach(l => {
+        ctx.fillStyle = l.color;
+        ctx.beginPath();
+        ctx.arc(bx + padX + 4, ty + 6, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ddd';
+        ctx.fillText(l.text, bx + padX + 14, ty);
+        ty += lineH;
+    });
+
+    ctx.restore();
 }
 
 // ---------- Chain View ----------
@@ -1861,8 +1960,9 @@ function drawChainNode(node) {
 
     const mat = getMaterialById(node.materialId);
     if (mat && mat.inputs && Object.keys(mat.inputs).length > 0) {
-        const inputQty = Object.values(mat.inputs)[0];
-        ctx.fillText(`${inputQty} → ${mat.batchSize} units`, node.x, y + 22);
+        const qtys = Object.values(mat.inputs);
+        const label = qtys.join(' + ') + ` → ${mat.batchSize} units`;
+        ctx.fillText(label, node.x, y + 22);
     }
 
     if (node.tier === 0 && node.planetTypes.length > 0) {
@@ -3178,7 +3278,14 @@ function onPointerMove(e) {
                 draw();
             }
         } else if (AppState.viewMode === 'chain') {
-            canvas.style.cursor = chainNodeAt(pos) ? 'pointer' : 'default';
+            const node = chainNodeAt(pos);
+            const id = node ? node.materialId : null;
+            canvas.style.cursor = node ? 'pointer' : 'default';
+            if (id !== AppState.hoverChainNode) {
+                AppState.hoverChainNode = id;
+                AppState.hoverPos = pos;
+                draw();
+            }
         } else if (AppState.viewMode === 'finder') {
             const over = !!finderCardAt(pos);
             canvas.style.cursor = over ? 'pointer' : 'default';
@@ -3207,6 +3314,7 @@ function onPointerMove(e) {
             (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
         if (lockY) {
             AppState.canvasOffset.y += dy;
+            clampListScroll();
         } else {
             AppState.canvasOffset.x += dx;
             AppState.canvasOffset.y += dy;
@@ -3302,7 +3410,35 @@ function onWheel(e) {
     // Flat list views (reference grid, colonies list, finder results): the
     // wheel scrolls the list naturally - wheel down moves content up.
     AppState.canvasOffset.y -= e.deltaY;
+    clampListScroll();
     draw();
+}
+
+// Keep flat list views (reference grid, finder, colonies list) locked to the
+// screen. When all content fits there is nothing to scroll (offset stays 0);
+// when it overflows, scrolling is clamped so you can't drift past the top or
+// bottom of the content.
+function clampListScroll() {
+    const isRef = AppState.viewMode === 'reference';
+    const isFinder = AppState.viewMode === 'finder';
+    const isColoniesList = AppState.viewMode === 'colonies' &&
+        !(AppState.colonyDetail && AppState.layoutMode);
+    if (!isRef && !isFinder && !isColoniesList) return;
+
+    let contentHeight = 0;
+    if (isRef) {
+        const L = refCardLayout();
+        const rows = Math.ceil(L.materials.length / L.cols);
+        contentHeight = rows * (L.cellHeight + 12) + 12;
+    } else if (isFinder) {
+        contentHeight = (AppState.finderCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
+    } else if (isColoniesList) {
+        contentHeight = (AppState.colonyCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
+    }
+    if (!contentHeight) return;
+
+    const maxScroll = Math.max(0, contentHeight - AppState.cssH);
+    AppState.canvasOffset.y = Math.min(Math.max(AppState.canvasOffset.y, 0), maxScroll);
 }
 
 // Coordinate transforms
@@ -3360,6 +3496,8 @@ function setViewMode(mode) {
         AppState.layoutSel = null;
     }
     AppState.viewMode = mode;
+    AppState.hoverChainNode = null;
+    AppState.hoveredCard = null;
     elements.viewReference.classList.toggle('active', mode === 'reference');
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
