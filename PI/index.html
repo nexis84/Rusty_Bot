@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=48">
+    <link rel="stylesheet" href="pi-style.css?v=49">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -301,7 +301,6 @@
                             <div class="finder-nextbest-title">NEXT BEST TO BUILD — ranked by Jita • click to see where to build it</div>
                             <div id="finderNextBestGrid" class="finder-grid grid"></div>
                         </div>
-                        <div class="finder-hint">Hover cards for tooltips &bull; Right-click for map location</div>
                     </div>
                 </div>
                 <div class="canvas-help">
@@ -315,7 +314,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '48';
+        window.PI_ASSET_VERSION = '49';
 
         (function loadPiScripts() {
             function load(src, onok) {

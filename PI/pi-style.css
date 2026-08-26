@@ -1907,10 +1907,3 @@ body {
     font-size: 0.72rem;
     color: var(--muted);
 }
-.finder-hint {
-    text-align: center;
-    font-size: 0.68rem;
-    color: var(--muted);
-    padding: 12px 16px 8px;
-    opacity: 0.9;
-}
