@@ -3846,6 +3846,12 @@ function setViewMode(mode) {
     }
     }
 
+    // Sync sidebar tab active state with canvas view mode
+    const TAB_TO_VIEW = { ref: 'reference', system: 'system', colonies: 'colonies', finder: 'finder' };
+    const reverseViewToTab = { reference: 'ref', system: 'system', colonies: 'colonies', finder: 'finder' };
+    const activeTab = reverseViewToTab[mode] || 'ref';
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+
     updateUrlState();
     setColonyTick(mode === 'colonies');
     draw();
