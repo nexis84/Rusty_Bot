@@ -502,6 +502,12 @@ function activateSidebarTab(tab) {
         targetPanel.classList.add('active');
     }
     AppState.currentTab = tab;
+    // Market Data only belongs on Chain and Ref tabs — hide on System/Colonies/Finder
+    const marketPanel = document.getElementById('marketPanel');
+    if (marketPanel) {
+        const showMarket = tab === 'chain' || tab === 'ref';
+        marketPanel.classList.toggle('hidden', !showMarket);
+    }
 }
 
 function setupTabs() {
