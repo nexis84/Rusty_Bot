@@ -173,6 +173,28 @@ let totalFail = 0;
     console.log(`[flow] merged scan -> #1 ${(T.AppState.finder.scanResults[0] || {}).id}, ${rows.length} complete plans` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
+    // ---- Bug regression: manual origin change must override the previous scan origin ----
+    f = 0;
+    const prevOrigin = T.AppState.finder.originSystemId;
+    // Pick a different real system far enough away that BFS from it differs
+    const amarr = vm.runInContext('PI_SYSTEMS["30002187"]', sandbox);
+    T.AppState.finder.originSystemId = amarr.id;
+    els.finderJumps.value = '10';
+    await T.runProfitScan();
+    // _bfs must be rebuilt around the NEW origin (root cause of stale-origin scans)
+    if (T.AppState.finder._bfs.get(amarr.id)) {
+        if (T.AppState.finder._bfs.get(amarr.id).jumps !== 0) { f++; console.error('[staleorigin] FAIL: new origin not at jump 0 in _bfs'); }
+    } else {
+        f++; console.error('[staleorigin] FAIL: _bfs does not contain the new origin');
+    }
+    // If the stale bug existed, _bfs would still be rooted at the old origin
+    if (T.AppState.finder._bfs.get(prevOrigin) && T.AppState.finder._bfs.get(prevOrigin).jumps === 0) {
+        f++; console.error('[staleorigin] FAIL: _bfs still rooted at previous origin');
+    }
+    console.log('[staleorigin] manual origin overrides previous scan' + (f ? ` FAIL x${f}` : ' PASS'));
+    totalFail += f;
+    T.AppState.finder.originSystemId = prevOrigin;
+
     // ---- Guards: unauthenticated -> friendly message, no crash ----
     f = 0;
     vm.runInContext('piEsiAuth.logout()', sandbox);

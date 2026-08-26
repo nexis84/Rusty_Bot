@@ -3800,7 +3800,7 @@ function setFinderOrigin(systemId, source) {
     AppState.finder.originSystemId = systemId;
     AppState.finder.originSource = source;
     AppState.finder.expandedSpot = null;
-    const prefix = source === 'esi' ? 'Ship: ' : 'Origin: ';
+    const prefix = source === 'esi' ? 'Character: ' : 'Origin: ';
     const region = sys ? (PI_DATA.regions[sys.regionId] || '') : '';
     elements.finderOriginLabel.textContent = prefix + (sys ? sys.name : systemId) +
         (region ? ` (${region})` : '');
@@ -3852,7 +3852,7 @@ async function finderUseMyLocation() {
         const loc = await piEsiAuth.esiFetch(`/characters/${charId}/location/`);
         await ensureSystemsLoaded();
         if (!PI_SYSTEMS[loc.solar_system_id]) {
-            elements.finderOriginLabel.textContent = 'Ship is in an unknown system';
+            elements.finderOriginLabel.textContent = 'Character is in an unknown system';
             return;
         }
         AppState.finder.locationAuthNeeded = false;
@@ -3928,7 +3928,7 @@ async function runFindBestSystems() {
         const ok = await Promise.all([ensureSystemsLoaded(), ensureJumpsLoaded()]);
         if (!ok[0] || !ok[1]) throw new Error('Failed to load system/jump data');
 
-        finderBFS(AppState.finder.originSystemId, getFinderRadius()); // refreshes AppState.finder._bfs
+        AppState.finder._bfs = finderBFS(AppState.finder.originSystemId, getFinderRadius());
         AppState.finder.spotRows = buildSpotGroups(productId);
         AppState.finder.activePanel = 'spot';
         AppState.finder.expandedSpot = null;
@@ -3991,6 +3991,7 @@ async function runProfitScan() {
 
         const radius = getFinderRadius();
         const bfs = finderBFS(AppState.finder.originSystemId, radius);
+        AppState.finder._bfs = bfs; // buildSpotGroups must use THIS origin, not a stale one
         const allowedBands = activeSecBands();
 
         const availableP0 = new Set();
@@ -4111,7 +4112,7 @@ function drawFinderView() {
 
     if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
         drawFinderPrompt('Sign in with EVE SSO',
-            'The Finder needs your login to track your ship location',
+            'The Finder needs your login to track your character location',
             'and scan nearby markets. Use the Finder tab to sign in.');
         return;
     }
@@ -4605,7 +4606,7 @@ function setupFinder() {
             AppState.finder.locationAuthNeeded = false;
             AppState.finder.originSystemId = null;
             AppState.finder.originSource = null;
-            elements.finderLocate.innerHTML = '<i class="fas fa-satellite-dish"></i> Use my ship location';
+            elements.finderLocate.innerHTML = '<i class="fas fa-satellite-dish"></i> Character location';
             setFinderStatus(elements.finderSpotResults, '');
             setFinderStatus(elements.finderProfitResults, '');
             refreshFinderAuthState();
