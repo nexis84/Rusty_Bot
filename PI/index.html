@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=13">
+    <link rel="stylesheet" href="pi-style.css?v=14">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -49,17 +49,6 @@
                         <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> Colonies</button>
                         <button class="tab-btn" data-tab="finder"><i class="fas fa-location-arrow"></i> Finder</button>
                     </div>
-                </div>
-
-                <div class="panel">
-                    <h3><i class="fas fa-industry"></i> Target Product</h3>
-                    <p class="hint">Select what you want to produce</p>
-                    <select id="targetProduct" class="product-select">
-                        <option value="">-- Select a product --</option>
-                    </select>
-                    <button id="calculateChain" class="calc-btn">
-                        <i class="fas fa-calculator"></i> Calculate Chain
-                    </button>
                 </div>
 
                 <!-- System Checker Tab -->
@@ -113,11 +102,21 @@
                 <!-- My Colonies Tab -->
                 <div class="panel tab-content" id="tab-colonies">
                     <h3><i class="fas fa-globe"></i> My Colonies</h3>
-                    <div id="coloniesStatus">
-                        <p class="hint">Sign in with EVE SSO to view your planetary colonies</p>
-                        <button id="coloniesLogin" class="calc-btn">
-                            <i class="fas fa-sign-in-alt"></i> Login with EVE SSO
-                        </button>
+                    <div class="finder-section" id="coloniesSsoSection">
+                        <h4><i class="fas fa-user"></i> EVE SSO</h4>
+                        <div class="finder-session-row">
+                            <span id="coloniesCharacter" class="finder-character">Not signed in</span>
+                            <button id="coloniesLogin" class="calc-btn">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                            <button id="coloniesLogout" class="calc-btn secondary finder-logout-btn hidden">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                        <p class="hint">Sign in to view your planetary colonies.</p>
+                    </div>
+                    <div id="coloniesStatus" class="hidden">
+                        <p class="hint">Sign in with EVE SSO above to view your colonies</p>
                     </div>
                     <div class="colonies-content hidden" id="coloniesContent">
                         <div class="colonies-header" id="coloniesHeader"></div>
@@ -126,9 +125,6 @@
                             <button id="coloniesRefresh" class="calc-btn">
                                 <i class="fas fa-sync"></i> Refresh
                             </button>
-                            <button id="coloniesLogout" class="calc-btn secondary">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -136,19 +132,20 @@
                 <!-- Finder Tab -->
                 <div class="panel tab-content" id="tab-finder">
                     <h3><i class="fas fa-location-arrow"></i> Finder</h3>
-                    <div id="finderLoginGate" class="finder-login-gate hidden">
-                        <p class="hint">Sign in with EVE SSO to use the Finder - it tracks your ship's location and scans nearby markets.</p>
-                        <button id="finderLoginBtn" class="calc-btn">
-                            <i class="fas fa-sign-in-alt"></i> Login with EVE SSO
-                        </button>
+                    <div class="finder-section" id="finderSsoSection">
+                        <h4><i class="fas fa-user"></i> EVE SSO</h4>
+                        <div class="finder-session-row">
+                            <span id="finderCharacter" class="finder-character">Not signed in</span>
+                            <button id="finderLoginBtn" class="calc-btn">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                            <button id="finderLogout" class="calc-btn secondary finder-logout-btn hidden">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                        <p class="hint">Sign in to track your ship location and scan nearby markets.</p>
                     </div>
                     <div id="finderControls">
-                    <div class="finder-session-row">
-                        <span id="finderCharacter" class="finder-character"></span>
-                        <button id="finderLogout" class="calc-btn secondary finder-logout-btn" title="Sign out of EVE SSO">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
                     <p class="hint">Search around a starting system for the best places to build</p>
 
                     <div class="finder-section">
@@ -158,22 +155,22 @@
                         </button>
                         <div id="finderOriginLabel" class="finder-origin-status">No origin set yet</div>
                         <div class="finder-divider">or</div>
-                        <div class="finder-manual-row">
-                            <input type="text" id="finderSystemInput" placeholder="Type a system name..." class="form-input">
-                            <button id="finderSetSystem" class="calc-btn secondary">Set</button>
-                        </div>
+                        <input type="text" id="finderSystemInput" placeholder="Type a system name..." class="form-input">
+                        <button id="finderSetSystem" class="calc-btn secondary finder-set-btn">Set origin</button>
                     </div>
 
                     <div class="finder-section">
                         <h4><i class="fas fa-route"></i> Search Radius</h4>
                         <div class="finder-controls">
-                            <label>Jumps:
-                                <input type="number" id="finderJumps" min="1" max="50" value="10" class="form-input jumps-input">
-                            </label>
-                            <label title="How many nearby systems may share the production - 1 means the whole chain must fit in one system">
-                                Max systems:
-                                <input type="number" id="finderMaxSystems" min="1" max="6" value="1" class="form-input jumps-input">
-                            </label>
+                            <div class="radius-row">
+                                <label>Jumps:
+                                    <input type="number" id="finderJumps" min="1" max="50" value="10" class="form-input jumps-input">
+                                </label>
+                                <label title="How many nearby systems may share the production - 1 means the whole chain must fit in one system">
+                                    Max systems:
+                                    <input type="number" id="finderMaxSystems" min="1" max="6" value="1" class="form-input jumps-input">
+                                </label>
+                            </div>
                             <div class="sec-filter" id="finderSecFilter">
                                 <button class="sec-chip active" data-sec="high" title="0.5 and above">High</button>
                                 <button class="sec-chip active" data-sec="low" title="0.1 to 0.4">Low</button>
@@ -202,6 +199,20 @@
                         <div id="finderSpotResults" class="finder-status"></div>
                     </div>
                     </div>
+                </div>
+
+                <div class="panel">
+                    <h3><i class="fas fa-industry"></i> Target Product</h3>
+                    <p class="hint">Select what you want to produce</p>
+                    <select id="targetProduct" class="product-select">
+                        <option value="">-- Select a product --</option>
+                    </select>
+                    <button id="calculateChain" class="calc-btn">
+                        <i class="fas fa-calculator"></i> Calculate Chain
+                    </button>
+                    <button id="clearChain" class="calc-btn secondary">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
                 </div>
 
                 <div class="panel market-panel" id="marketPanel">
@@ -298,7 +309,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '38';
+        window.PI_ASSET_VERSION = '39';
 
         (function loadPiScripts() {
             function load(src, onok) {

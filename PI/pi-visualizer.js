@@ -68,6 +68,7 @@ const elements = {
     regionSelect: document.getElementById('regionSelect'),
     targetProduct: document.getElementById('targetProduct'),
     calculateChain: document.getElementById('calculateChain'),
+    clearChain: document.getElementById('clearChain'),
     viewReference: document.getElementById('viewReference'),
     viewChain: document.getElementById('viewChain'),
     viewPlanets: document.getElementById('viewPlanets'),
@@ -103,6 +104,7 @@ const elements = {
     refP4: document.getElementById('refP4'),
     // Colonies elements
     coloniesStatus: document.getElementById('coloniesStatus'),
+    coloniesCharacter: document.getElementById('coloniesCharacter'),
     coloniesContent: document.getElementById('coloniesContent'),
     coloniesHeader: document.getElementById('coloniesHeader'),
     coloniesList: document.getElementById('coloniesList'),
@@ -114,7 +116,6 @@ const elements = {
     breakdownContent: document.getElementById('breakdownContent'),
     // Finder elements
     finderControls: document.getElementById('finderControls'),
-    finderLoginGate: document.getElementById('finderLoginGate'),
     finderLoginBtn: document.getElementById('finderLoginBtn'),
     finderCharacter: document.getElementById('finderCharacter'),
     finderLogout: document.getElementById('finderLogout'),
@@ -359,6 +360,10 @@ function setupEventListeners() {
     // Controls
     elements.calculateChain.addEventListener('click', () => runCalculate(elements.targetProduct.value));
 
+    if (elements.clearChain) {
+        elements.clearChain.addEventListener('click', clearChainCalc);
+    }
+
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
     elements.viewPlanets.addEventListener('click', () => setViewMode('planets'));
@@ -497,6 +502,25 @@ function navigateToProduct(id) {
 
 function calculateChain() {
     navigateToProduct(elements.targetProduct.value);
+}
+
+// Reset the chain workspace: selection, canvas chain, history and market panel
+function clearChainCalc() {
+    elements.targetProduct.value = '';
+    AppState.targetProduct = null;
+    AppState.chainLayout = null;
+    AppState.chainHistory.length = 0;
+    AppState.suppressHistoryPush = false;
+    updateChainBackButton();
+    hideMarketData();
+    if (elements.productBreakdown) elements.productBreakdown.classList.add('hidden');
+    resetViewport();
+    if (AppState.viewMode === 'chain' || AppState.viewMode === 'planets') {
+        setViewMode('reference');
+    } else {
+        updateUrlState();
+        draw();
+    }
 }
 
 function selectProduct(id) {
@@ -883,6 +907,7 @@ function setupColonies() {
 
 function refreshColoniesAuthState() {
     if (!window.piEsiAuth) return;
+    updateSsoUI();
     if (piEsiAuth.isAuthenticated()) {
         loadColonies();
     } else {
@@ -891,8 +916,21 @@ function refreshColoniesAuthState() {
 }
 
 function showColoniesLoggedOut() {
+    updateSsoUI();
     elements.coloniesStatus.classList.remove('hidden');
     elements.coloniesContent.classList.add('hidden');
+}
+
+// Shared login/logout state for the Finder + Colonies SSO sections
+function updateSsoUI() {
+    const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
+    const label = authed ? 'Signed in: ' + (piEsiAuth.getCurrentCharacterName() || 'pilot') : 'Not signed in';
+    if (elements.finderCharacter) elements.finderCharacter.textContent = label;
+    if (elements.finderLoginBtn) elements.finderLoginBtn.classList.toggle('hidden', authed);
+    if (elements.finderLogout) elements.finderLogout.classList.toggle('hidden', !authed);
+    if (elements.coloniesCharacter) elements.coloniesCharacter.textContent = label;
+    if (elements.coloniesLogin) elements.coloniesLogin.classList.toggle('hidden', authed);
+    if (elements.coloniesLogout) elements.coloniesLogout.classList.toggle('hidden', !authed);
 }
 
 function showColoniesLoading() {
@@ -4505,15 +4543,10 @@ function measureChipsHeight(ids, maxW) {
 // The Finder (and its canvas results) require an SSO login: the ship location
 // comes from ESI and market scans are tied to the character session.
 function refreshFinderAuthState() {
-    if (!elements.finderControls || !elements.finderLoginGate) return;
+    if (!elements.finderControls) return;
     const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
     elements.finderControls.classList.toggle('hidden', !authed);
-    elements.finderLoginGate.classList.toggle('hidden', authed);
-    if (elements.finderCharacter) {
-        elements.finderCharacter.textContent = authed
-            ? 'Signed in: ' + (piEsiAuth.getCurrentCharacterName() || 'pilot')
-            : '';
-    }
+    updateSsoUI();
 }
 
 // Build "plans" for a product: every way to cover ALL required planet types
