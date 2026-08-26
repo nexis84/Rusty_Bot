@@ -10,7 +10,7 @@ const DEFAULT_REGION = '10000002'; // Jita/The Forge
 const AppState = {
     canvasOffset: { x: 0, y: 0 },
     zoom: 1,
-    viewMode: 'reference', // 'reference', 'chain', 'planets', 'colonies'
+    viewMode: 'reference', // 'reference', 'system', 'chain', 'planets', 'colonies', 'finder'
     marketPrices: {},
     targetProduct: null,
     isDraggingCanvas: false,
@@ -58,7 +58,9 @@ const AppState = {
         localRegionName: '',    // comparison region shown on next-best cards
         locationAuthNeeded: false // stale login lacks the location scope
     },
-    finderCards: []             // canvas hit areas for the finder view
+    finderCards: [],             // canvas hit areas for the finder view
+    systemData: null,            // last System Checker result {system, planetTypes, skyhookTotals, counts, producibleP2/P3/P4}
+    systemCards: []              // hit areas for producible items in system canvas view
 };
 
 const PI_COLORS = ['#6e7681', '#58a6ff', '#d29922', '#a371f7', '#3fb950'];
@@ -72,6 +74,7 @@ const elements = {
     regionSelect: document.getElementById('regionSelect'),
     finderProduct: document.getElementById('finderProduct'),
     viewReference: document.getElementById('viewReference'),
+    viewSystem: document.getElementById('viewSystem'),
     viewChain: document.getElementById('viewChain'),
     viewPlanets: document.getElementById('viewPlanets'),
     viewColonies: document.getElementById('viewColonies'),
@@ -362,6 +365,7 @@ function setupEventListeners() {
 
     // Controls
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
+    if (elements.viewSystem) elements.viewSystem.addEventListener('click', () => setViewMode('system'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
     elements.viewPlanets.addEventListener('click', () => setViewMode('planets'));
     elements.viewColonies.addEventListener('click', () => {
@@ -388,9 +392,9 @@ function setupEventListeners() {
     elements.zoomOut.addEventListener('click', () => setZoom(AppState.zoom * 0.8));
     elements.fitView.addEventListener('click', fitView);
 
-    // Finder results scroll with the keyboard too
+    // List views scroll with the keyboard too
     window.addEventListener('keydown', (e) => {
-        if (AppState.viewMode !== 'finder') return;
+        if (AppState.viewMode !== 'finder' && AppState.viewMode !== 'system' && AppState.viewMode !== 'reference' && !(AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode))) return;
         const tag = (e.target && e.target.tagName) || '';
         if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
         const step = { ArrowUp: -48, ArrowDown: 48, PageUp: -240, PageDown: 240 }[e.key];
@@ -438,6 +442,7 @@ function setupEventListeners() {
 
 // Tab Management
 function setupTabs() {
+    const TAB_TO_VIEW = { ref: 'reference', system: 'system', colonies: 'colonies', finder: 'finder' };
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -456,6 +461,10 @@ function setupTabs() {
             }
 
             AppState.currentTab = tab;
+
+            // Auto-select matching main canvas view
+            const view = TAB_TO_VIEW[tab];
+            if (view) setViewMode(view);
 
             if (tab === 'colonies') {
                 refreshColoniesAuthState();
@@ -1612,6 +1621,11 @@ function draw() {
         return;
     }
 
+    if (AppState.viewMode === 'system') {
+        drawSystemView();
+        return;
+    }
+
     if (AppState.viewMode === 'finder') {
         // Screen-space like the other list views - fixed size, wheel/keys scroll
         drawFinderView();
@@ -1899,6 +1913,195 @@ function drawProductTooltip(materialId, anchorX, anchorY) {
     });
 
     ctx.restore();
+}
+
+// ---------- System View ----------
+function drawSystemPrompt() {
+    const cx = AppState.cssW / 2;
+    const cy = AppState.cssH / 2;
+    ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
+    roundRect(ctx, cx - 220, cy - 50, 440, 100, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 16px Titillium Web, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Select a system from the side bar', cx, cy - 12);
+    ctx.fillStyle = '#888';
+    ctx.font = '12px Titillium Web, sans-serif';
+    ctx.fillText('Use the System Checker to search a system', cx, cy + 16);
+}
+
+function systemCardAt(pos) {
+    return (AppState.systemCards || []).find(c =>
+        pos.x >= c.x && pos.x <= c.x + c.w && pos.y >= c.y && pos.y <= c.y + c.h) || null;
+}
+
+function drawSystemView() {
+    AppState.systemCards = [];
+    if (!AppState.systemData) {
+        drawSystemPrompt();
+        return;
+    }
+    const d = AppState.systemData;
+    const sys = d.system;
+    const margin = 20;
+    const offsetY = AppState.canvasOffset.y;
+    let y = 20 - offsetY;
+
+    // Header
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    const regionName = PI_DATA.regions[sys.regionId] || 'Unknown Region';
+    const secClass = sys.security >= 0.5 ? '#2ecc71' : (sys.security >= 0.1 ? '#e67e22' : '#e74c3c');
+    // System name + sec badge
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 20px Titillium Web, sans-serif';
+    ctx.fillText(sys.name, margin, y);
+    const nameW = ctx.measureText(sys.name).width;
+    ctx.fillStyle = secClass;
+    ctx.font = 'bold 11px sans-serif';
+    const secText = (sys.security != null ? sys.security.toFixed(1) : '?');
+    const secW = ctx.measureText(secText).width + 12;
+    const secX = margin + nameW + 10;
+    roundRect(ctx, secX, y + 2, secW, 18, 4);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.textAlign = 'center';
+    ctx.fillText(secText, secX + secW/2, y + 6);
+    ctx.textAlign = 'left';
+    y += 6;
+    ctx.fillStyle = '#888';
+    ctx.font = '12px Titillium Web, sans-serif';
+    ctx.fillText(regionName, margin, y + 22);
+    y += 44;
+
+    // Planet counts
+    ctx.fillStyle = '#aaa';
+    ctx.font = 'bold 11px Titillium Web, sans-serif';
+    ctx.fillText(d.planetTypes.length + ' PLANETS', margin, y);
+    y += 16;
+    // Planet type badges - wrap
+    {
+        const gapX = 6; const gapY = 6;
+        let cx = margin; let cy = y;
+        const maxW = AppState.cssW - margin*2;
+        for (const [typeId, count] of Object.entries(d.counts)) {
+            const pt = getPlanetTypeData(parseInt(typeId));
+            if (!pt) continue;
+            const label = pt.name + ' x' + count;
+            ctx.font = 'bold 11px Titillium Web, sans-serif';
+            let w = Math.ceil(ctx.measureText(label).width) + 16;
+            if (cx + w > margin + maxW) { cx = margin; cy += 22; }
+            roundRect(ctx, cx, cy, w, 18, 4);
+            ctx.fillStyle = pt.color;
+            ctx.fill();
+            // darken overlay for readability
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            roundRect(ctx, cx, cy, w, 18, 4);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, cx + w/2, cy + 9);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            cx += w + gapX;
+        }
+        y = cy + 26;
+    }
+
+    // Skyhooks if any
+    if (d.skyhookTotals && (d.skyhookTotals.power || d.skyhookTotals.workforce || Object.keys(d.skyhookTotals.reagents).length)) {
+        y += 4;
+        ctx.fillStyle = 'rgba(30,30,30,0.85)';
+        const boxX = margin; const boxW = AppState.cssW - margin*2;
+        // estimate height
+        let skyLines = 1;
+        if (d.skyhookTotals.power) skyLines++;
+        if (d.skyhookTotals.workforce) skyLines++;
+        skyLines += Object.keys(d.skyhookTotals.reagents).length;
+        const boxH = 14 + skyLines*18 + 10;
+        roundRect(ctx, boxX, y, boxW, boxH, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.stroke();
+        ctx.fillStyle = '#e8d900';
+        ctx.font = 'bold 11px Titillium Web, sans-serif';
+        ctx.fillText('SKYHOOKS', boxX + 10, y + 10);
+        let sy = y + 28;
+        ctx.font = '12px Titillium Web, sans-serif';
+        if (d.skyhookTotals.power) { ctx.fillStyle = '#f1c40f'; ctx.fillText('Power: ' + d.skyhookTotals.power.toLocaleString(), boxX + 10, sy); sy += 18; }
+        if (d.skyhookTotals.workforce) { ctx.fillStyle = '#3498db'; ctx.fillText('Workforce: ' + d.skyhookTotals.workforce.toLocaleString(), boxX + 10, sy); sy += 18; }
+        for (const [typeId, amount] of Object.entries(d.skyhookTotals.reagents)) {
+            const nm = (PI_DATA.reagentTypes && PI_DATA.reagentTypes[typeId]) || ('Reagent ' + typeId);
+            ctx.fillStyle = '#2ecc71'; ctx.fillText(nm + ': ' + amount.toLocaleString(), boxX + 10, sy); sy += 18;
+        }
+        y += boxH + 16;
+    } else {
+        y += 8;
+    }
+
+    // Producible header
+    ctx.fillStyle = '#e8d900';
+    ctx.font = 'bold 13px Titillium Web, sans-serif';
+    ctx.fillText('CAN PRODUCE LOCALLY', margin, y);
+    y += 20;
+
+    const sections = [
+        { label: 'P2', tier: 2, items: d.producibleP2 },
+        { label: 'P3', tier: 3, items: d.producibleP3 },
+        { label: 'P4', tier: 4, items: d.producibleP4 },
+    ];
+
+    const cardW = 160; const cardH = 34; const gap = 8;
+    const cols = Math.max(1, Math.floor((AppState.cssW - margin*2 + gap) / (cardW + gap)));
+
+    sections.forEach(sec => {
+        ctx.fillStyle = PI_COLORS[sec.tier] || '#888';
+        ctx.font = 'bold 12px Titillium Web, sans-serif';
+        ctx.fillText(sec.label, margin, y);
+        y += 18;
+        if (!sec.items.length) {
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.fillText('No ' + sec.label + ' producible locally', margin, y);
+            y += 22;
+            return;
+        }
+        let col = 0; let rowY = y;
+        sec.items.forEach(mat => {
+            const x = margin + col * (cardW + gap);
+            const yy = rowY;
+            // card bg
+            ctx.fillStyle = 'rgba(40,40,40,0.95)';
+            ctx.strokeStyle = PI_COLORS[mat.tier] || '#666';
+            ctx.lineWidth = 1;
+            roundRect(ctx, x, yy, cardW, cardH, 6);
+            ctx.fill(); ctx.stroke();
+            // left accent
+            ctx.fillStyle = PI_COLORS[mat.tier] || '#666';
+            roundRect(ctx, x, yy, 4, cardH, [6,0,0,6]);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            let nm = mat.name; if (nm.length > 18) nm = nm.substring(0,16) + '...';
+            ctx.fillText(nm, x + 10, yy + cardH/2);
+            AppState.systemCards.push({ x, y: yy, w: cardW, h: cardH, productId: mat.id });
+            col++;
+            if (col >= cols) { col = 0; rowY += cardH + gap; }
+        });
+        if (col !== 0) rowY += cardH + gap;
+        else rowY += 0;
+        y = rowY + 12;
+    });
+
+    // store total height for scroll clamping via systemCards extent
 }
 
 // ---------- Chain View ----------
@@ -3281,6 +3484,9 @@ function onPointerDown(e) {
     } else if (AppState.viewMode === 'reference') {
         const mat = refCardAt(pos);
         AppState.pendingHit = mat ? { type: 'product', id: mat.id } : null;
+    } else if (AppState.viewMode === 'system') {
+        const card = systemCardAt(pos);
+        AppState.pendingHit = card ? { type: 'systemProduct', id: card.productId } : null;
     } else if (AppState.viewMode === 'chain') {
         const node = chainNodeAt(pos);
         AppState.pendingHit = node ? { type: 'product', id: node.materialId } : null;
@@ -3314,6 +3520,9 @@ function onPointerMove(e) {
                 canvas.style.cursor = id ? 'pointer' : 'default';
                 draw();
             }
+        } else if (AppState.viewMode === 'system') {
+            const over = !!systemCardAt(pos);
+            canvas.style.cursor = over ? 'pointer' : 'default';
         } else if (AppState.viewMode === 'chain') {
             const node = chainNodeAt(pos);
             const id = node ? node.materialId : null;
@@ -3343,10 +3552,11 @@ function onPointerMove(e) {
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
-        // Reference, finder and non-layout colonies views lay out vertically
+        // Reference, system, finder and non-layout colonies views lay out vertically
         // only - panning X there desyncs the list from the background, so lock
         // to Y. Colony layout mode is a full world-space view, so it pans free.
         const lockY = AppState.viewMode === 'reference' ||
+            AppState.viewMode === 'system' ||
             AppState.viewMode === 'finder' ||
             (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
         if (lockY) {
@@ -3374,6 +3584,10 @@ function onPointerUp(e) {
 
     if (!wasDrag) {
         if (hit) {
+            if (hit.type === 'systemProduct') {
+                selectProduct(hit.id);
+                return;
+            }
             if (hit.type === 'product') {
                 const id = hit.id;
                 // Reference view: single click immediately opens the chain (user expectation).
@@ -3480,22 +3694,26 @@ function onWheel(e) {
     draw();
 }
 
-// Keep flat list views (reference grid, finder, colonies list) locked to the
+// Keep flat list views (reference grid, system, finder, colonies list) locked to the
 // screen. When all content fits there is nothing to scroll (offset stays 0);
 // when it overflows, scrolling is clamped so you can't drift past the top or
 // bottom of the content.
 function clampListScroll() {
     const isRef = AppState.viewMode === 'reference';
+    const isSystem = AppState.viewMode === 'system';
     const isFinder = AppState.viewMode === 'finder';
     const isColoniesList = AppState.viewMode === 'colonies' &&
         !(AppState.colonyDetail && AppState.layoutMode);
-    if (!isRef && !isFinder && !isColoniesList) return;
+    if (!isRef && !isSystem && !isFinder && !isColoniesList) return;
 
     let contentHeight = 0;
     if (isRef) {
         const L = refCardLayout();
         const rows = Math.ceil(L.materials.length / L.cols);
         contentHeight = rows * (L.cellHeight + 12) + 12;
+    } else if (isSystem) {
+        contentHeight = (AppState.systemCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
+        if (!contentHeight) contentHeight = AppState.cssH;
     } else if (isFinder) {
         contentHeight = (AppState.finderCards || []).reduce((m, c) => Math.max(m, c.y + c.h), 0);
     } else if (isColoniesList) {
@@ -3566,6 +3784,7 @@ function setViewMode(mode) {
     AppState.hoveredCard = null;
     AppState.chainFocus = null;
     elements.viewReference.classList.toggle('active', mode === 'reference');
+    if (elements.viewSystem) elements.viewSystem.classList.toggle('active', mode === 'system');
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewPlanets.classList.toggle('active', mode === 'planets');
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
@@ -3578,6 +3797,9 @@ function setViewMode(mode) {
     if (mode === 'reference') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Click any material to view its production chain and market data';
+    } else if (mode === 'system') {
+        canvas.style.cursor = 'default';
+        helpText.innerHTML = '<i class="fas fa-search"></i> System view &bull; Search a system in the side bar to see its planets and what it can produce';
     } else if (mode === 'planets') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Planet breakdown view • Shows which raw materials each planet subtype can extract';
@@ -3637,7 +3859,7 @@ function restoreFromUrl() {
             generateChainLayout();
             fetchMarketData();
         }
-        if (view && ['reference', 'chain', 'planets', 'colonies', 'finder'].includes(view)) {
+        if (view && ['reference', 'system', 'chain', 'planets', 'colonies', 'finder'].includes(view)) {
             setViewMode(view);
         } else if (product) {
             setViewMode('chain');
@@ -3898,6 +4120,19 @@ function displaySystemResults(system, planetTypes, skyhookTotals) {
     });
 
     elements.systemResults.classList.remove('hidden');
+
+    // Mirror to main canvas System tab
+    AppState.systemData = {
+        system,
+        planetTypes,
+        skyhookTotals,
+        counts,
+        producibleP2,
+        producibleP3,
+        producibleP4
+    };
+    AppState.canvasOffset.y = 0;
+    setViewMode('system');
 }
 
 // ---------- Finder (location search + ISK maximizer) ----------
