@@ -87,13 +87,24 @@ const files = ['pi-data.js', 'pi-systems.js', 'pi-jumps.js', 'pi-esi-auth.js', '
 const code = files.map(f => fs.readFileSync(path.join(PI_DIR, f), 'utf8')).join('\n;\n')
     + '\n;globalThis.__test = { AppState, finderBFS, computeProducible, chainProfitMath,' +
       ' findSystemByName, secBandOf, activeSecBands, getFinderRadius, sortFinderSpotRows,' +
-      ' getRequiredPlanetTypes, renderFinderSpotResults, renderFinderProfitResults,' +
-      ' drawFinderView, finderCardAt, getMaterialsByTier, getMaterialById, getChainForProduct,' +
-      ' collectMaterialIds };';
+      ' getRequiredPlanetTypes, renderFinderSpotResults, drawFinderView, finderCardAt,' +
+      ' buildFullCoverageSpotRows, drawNextBestCards,' +
+      ' getMaterialsByTier, getMaterialById, getChainForProduct, collectMaterialIds };';
 vm.runInContext(code, sandbox, { filename: 'combined-pi.js' });
 const T = sandbox.__test;
 
 let totalFail = 0;
+
+// Authenticate the sandbox auth module - Finder paths are gated behind SSO.
+{
+    const A = vm.runInContext('piEsiAuth', sandbox);
+    A.tokens['1'] = {
+        characterId: '1', characterName: 'Test Pilot',
+        accessToken: 'a.b.' + Buffer.from(JSON.stringify({ scp: ['esi-location.read_location.v1'] })).toString('base64'),
+        refreshToken: 'r', expiresAt: Date.now() + 3600000
+    };
+    A.setCurrentCharacter('1');
+}
 
 // ---- 1) Jump graph BFS ----
 {
@@ -260,7 +271,7 @@ let totalFail = 0;
     totalFail += f;
 }
 
-// ---- 10) Canvas view: spot cards, expanded route, hit-testing ----
+// ---- 10) Canvas view: full-coverage spot cards, expanded route, hit-testing ----
 {
     let f = 0;
     const jitaSys = vm.runInContext('PI_SYSTEMS["30000142"]', sandbox);
@@ -269,12 +280,14 @@ let totalFail = 0;
         [30000142, { jumps: 0, parent: null }],
         [30001363, { jumps: 1, parent: 30000142 }]
     ]);
+    // Full-coverage only now: every row must have no missing types
     T.AppState.finder.spotRows = [
         { sys: jitaSys, jumps: 0, requiredIds: [2016], missing: [], route: [30000142] },
-        { sys: sobaseki, jumps: 1, requiredIds: [2016], missing: [2016], route: [30000142, 30001363] }
+        { sys: sobaseki, jumps: 1, requiredIds: [2016], missing: [], route: [30000142, 30001363] }
     ];
     T.AppState.finder.activePanel = 'spot';
     T.AppState.finder.spotProductName = 'Rocket Fuel';
+    T.AppState.finder.bestStats = { profit: 12345.6, margin: 42.5, profitLocal: 11000, marginLocal: 38 };
     T.AppState.finder._bfs = bfs;
     T.AppState.cssW = 1200; T.AppState.cssH = 900;
     ctx.__calls.fillTexts = [];
@@ -282,8 +295,9 @@ let totalFail = 0;
     const texts = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
     if (!texts.includes('Jita')) { f++; console.error('[findercanvas] FAIL: Jita card not drawn'); }
     if (!texts.includes('FULL CHAIN')) { f++; console.error('[findercanvas] FAIL: full-chain chip not drawn'); }
-    if (!texts.includes('Missing here: Barren')) { f++; console.error('[findercanvas] FAIL: partial-coverage line not drawn'); }
     if (!texts.includes('best places to build')) { f++; console.error('[findercanvas] FAIL: header missing product name'); }
+    if (!/#1 by .+ profit: 12\.35K ISK\/batch/.test(texts)) { f++; console.error('[findercanvas] FAIL: best-stats banner missing'); }
+    if (!texts.includes('have every planet type needed')) { f++; console.error('[findercanvas] FAIL: full-coverage subline missing'); }
     if (T.AppState.finderCards.length !== 2) { f++; console.error(`[findercanvas] FAIL: expected 2 hit areas, got ${T.AppState.finderCards.length}`); }
 
     // Hit-test: center of first card hits it; a far corner misses
@@ -301,41 +315,67 @@ let totalFail = 0;
     totalFail += f;
 }
 
-// ---- 11) Canvas view: profit cards ----
+// ---- 11) Next-best product cards under the spot list ----
 {
     let f = 0;
-    T.AppState.finder.profitRows = [
-        { id: 1, mat: { name: 'Rocket Fuel', tier: 2 }, profit: 12345.6, margin: 42.5 },
-        { id: 2, mat: { name: 'Biotech Research', tier: 3 }, profit: -50, margin: -3.1 }
+    T.AppState.finder.scanResults = [
+        { id: 100, mat: { name: 'Rocket Fuel', tier: 2 }, profit: 20000, margin: 50, profitLocal: 18000, marginLocal: 44 },
+        { id: 101, mat: { name: 'Biotech Research', tier: 3 }, profit: 9000, margin: 30, profitLocal: 8500, marginLocal: 28 },
+        { id: 102, mat: { name: 'Supercomputers', tier: 4 }, profit: -50, margin: -3.1, profitLocal: -60, marginLocal: -4 }
     ];
-    T.AppState.finder.activePanel = 'profit';
-    T.AppState.finder.profitRegionName = 'The Forge';
+    T.AppState.finder.bestProductId = 100;
+    T.AppState.finder.localRegionName = 'Sinq Laison';
     ctx.__calls.fillTexts = [];
-    T.drawFinderView();
+    T.drawNextBestCards(20, 620, 500);
     const texts = ctx.__calls.fillTexts.map(t => t.t).join(' | ');
-    if (!texts.includes('Rocket Fuel') || !texts.includes('12.35K ISK')) { f++; console.error('[profitcanvas] FAIL: top row content missing'); }
-    if (!texts.includes('-50.00 ISK')) { f++; console.error('[profitcanvas] FAIL: negative profit missing'); }
-    if (!texts.includes('margin 42.5%')) { f++; console.error('[profitcanvas] FAIL: margin text missing'); }
-    if (!texts.includes('Most profitable products - The Forge')) { f++; console.error('[profitcanvas] FAIL: header missing region'); }
-    console.log('[profitcanvas] profit cards' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    if (!texts.includes('NEXT BEST TO SELL')) { f++; console.error('[nextbest] FAIL: section header missing'); }
+    if (!texts.includes('Biotech Research') || !texts.includes('#2')) { f++; console.error('[nextbest] FAIL: runner-up card missing'); }
+    if (texts.includes('Rocket Fuel')) { f++; console.error('[nextbest] FAIL: best product should be excluded from next-best list'); }
+    if (!texts.includes('9.00K ISK')) { f++; console.error('[nextbest] FAIL: Jita profit column missing'); }
+    if (!texts.includes('Sinq Laison: 8.50K ISK')) { f++; console.error('[nextbest] FAIL: local region column missing'); }
+    const nextCards = T.AppState.finderCards.filter(c => c.kind === 'nextProduct');
+    if (nextCards.length !== 2) { f++; console.error(`[nextbest] FAIL: expected 2 hit areas, got ${nextCards.length}`); }
+    console.log('[nextbest] compact ranked cards' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 
-// ---- 12) Sidebar status lines after render* calls ----
+// ---- 12) buildFullCoverageSpotRows filters to complete systems ----
 {
     let f = 0;
-    // Spot status
+    // Every returned row must be complete; across all P1s at least one product
+    // must have a complete system within radius of Jita.
+    T.AppState.finder._bfs = new Map([
+        [30000142, { jumps: 0, parent: null }],
+        [30001363, { jumps: 1, parent: 30000142 }]
+    ]);
+    T.AppState.finder.originSystemId = 30000142;
+    const mats = vm.runInContext('PI_DATA.materials', sandbox);
+    const p1ids = Object.keys(mats).filter(id => mats[id].tier === 1);
+    let anyComplete = 0;
+    p1ids.forEach(pid => {
+        const rows = T.buildFullCoverageSpotRows(parseInt(pid, 10));
+        rows.forEach(r => {
+            const present = new Set(r.sys.planets.map(p => p.typeId));
+            r.requiredIds.forEach(tid => {
+                if (!present.has(tid)) { f++; console.error(`[fullcov] FAIL: ${r.sys.name} missing type ${tid}`); }
+            });
+        });
+        if (rows.length > 0) anyComplete++;
+    });
+    if (anyComplete === 0) { f++; console.error('[fullcov] FAIL: no P1 has a complete system within 2j of Jita'); }
+    console.log(`[fullcov] ${anyComplete}/${p1ids.length} P1s have complete systems near Jita` + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+// ---- 13) Sidebar status lines after render* calls ----
+{
+    let f = 0;
     T.AppState.finder.spotRows = [
-        { sys: { id: 1, security: 0.9, planets: [] }, jumps: 0, requiredIds: [2016], missing: [], route: [1] }
+        { sys: { id: 1, name: 'Alpha', security: 0.9, regionId: 10000001, planets: [] }, jumps: 0, requiredIds: [2016], missing: [], route: [1] }
     ];
     T.renderFinderSpotResults();
     const st = els.finderSpotResults.textContent;
-    if (!st.includes('on the main canvas')) { f++; console.error('[status] FAIL: spot status not set, got: ' + st); }
-    // Profit status
-    T.AppState.finder.profitRows = [{ id: 1, mat: { name: 'X', tier: 1 }, profit: 1, margin: 1 }];
-    T.renderFinderProfitResults(10, 42);
-    const st2 = els.finderProfitResults.textContent;
-    if (!st2.includes('ranked from 42 systems within 10 jumps')) { f++; console.error('[status] FAIL: profit status not set, got: ' + st2); }
+    if (!st.includes('on the main canvas') || !st.includes('in full')) { f++; console.error('[status] FAIL: spot status not set, got: ' + st); }
     console.log('[status] sidebar summaries' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }

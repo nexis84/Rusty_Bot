@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PI Visualizer - RustyBot</title>
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=10">
+    <link rel="stylesheet" href="pi-style.css?v=11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -125,6 +125,13 @@
                 <!-- Finder Tab -->
                 <div class="panel tab-content" id="tab-finder">
                     <h3><i class="fas fa-location-arrow"></i> Finder</h3>
+                    <div id="finderLoginGate" class="finder-login-gate hidden">
+                        <p class="hint">Sign in with EVE SSO to use the Finder - it tracks your ship's location and scans nearby markets.</p>
+                        <button id="finderLoginBtn" class="calc-btn">
+                            <i class="fas fa-sign-in-alt"></i> Login with EVE SSO
+                        </button>
+                    </div>
+                    <div id="finderControls">
                     <p class="hint">Search around a starting system for the best places to build</p>
 
                     <div class="finder-section">
@@ -158,7 +165,7 @@
 
                     <div class="finder-section">
                         <h4><i class="fas fa-industry"></i> Where Can I Build It?</h4>
-                        <p class="hint">Uses the Target Product selected below - results open on the main canvas</p>
+                        <p class="hint">Uses the Target Product selected below - only shows systems with every planet type needed</p>
                         <button id="finderSearchSpot" class="calc-btn">
                             <i class="fas fa-search-location"></i> Find Best Systems
                         </button>
@@ -167,12 +174,14 @@
 
                     <div class="finder-section">
                         <h4><i class="fas fa-coins"></i> Most Profitable Nearby</h4>
+                        <p class="hint">Ranked by Jita prices (standard), with your selected region alongside - opens the build spots for the #1 product</p>
                         <button id="finderScanProfit" class="calc-btn">
                             <i class="fas fa-chart-line"></i> Scan Market
                         </button>
                         <span class="region-name" id="finderScanRegion"></span>
                         <div id="finderProgress" class="finder-progress hidden"></div>
                         <div id="finderProfitResults" class="finder-status"></div>
+                    </div>
                     </div>
                 </div>
 
@@ -281,7 +290,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '34';
+        window.PI_ASSET_VERSION = '35';
 
         (function loadPiScripts() {
             function load(src, onok) {

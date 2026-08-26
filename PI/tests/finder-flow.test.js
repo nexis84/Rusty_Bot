@@ -108,6 +108,17 @@ let totalFail = 0;
     // loaded here, so short-circuit them like the site does after load.
     T.AppState.systemsLoaded = true;
     T.AppState.jumpsLoaded = true;
+
+    // Finder paths are gated behind SSO - authenticate the sandbox auth module
+    // with a token whose JWT carries the location scope.
+    const A = vm.runInContext('piEsiAuth', sandbox);
+    A.tokens['1'] = {
+        characterId: '1', characterName: 'Test Pilot',
+        accessToken: 'a.b.' + Buffer.from(JSON.stringify({ scp: ['esi-location.read_location.v1'] })).toString('base64'),
+        refreshToken: 'r', expiresAt: Date.now() + 3600000
+    };
+    A.setCurrentCharacter('1');
+
     T.AppState.finder.originSystemId = 30000142; // Jita
     T.AppState.finder.originSource = 'manual';
 
@@ -119,39 +130,52 @@ let totalFail = 0;
     if (!rocketFuel) { console.error('[flow] FAIL: Rocket Fuel not found in PI_DATA'); process.exit(1); }
     els.targetProduct.value = String(rocketFuel);
 
-    // ---- Section A: find best systems ----
+    // ---- Section A: find best systems (full coverage only) ----
     await T.runFindBestSystems();
     let f = 0;
     const spotStatus = els.finderSpotResults.textContent;
     if (!spotStatus.includes('on the main canvas')) { f++; console.error('[flow] FAIL: spot status not set, got: ' + spotStatus); }
+    if (!spotStatus.includes('in full')) { f++; console.error('[flow] FAIL: status should say full build'); }
     if (T.AppState.finder.activePanel !== 'spot') { f++; console.error('[flow] FAIL: activePanel not spot'); }
     if (!T.AppState.finder.spotRows.length) { f++; console.error('[flow] FAIL: no spot rows stored'); }
+    T.AppState.finder.spotRows.forEach(r => {
+        if (r.missing.length > 0) { f++; console.error('[flow] FAIL: partial-coverage row leaked through'); }
+    });
     if (T.AppState.viewMode !== 'finder') { f++; console.error(`[flow] FAIL: viewMode ${T.AppState.viewMode} != finder`); }
-    if (!spotStatus.includes('full-chain')) { f++; console.error('[flow] FAIL: expected full-chain count in status'); }
-    console.log(`[flow] spot search -> ${T.AppState.finder.spotRows.length} systems, panel=${T.AppState.viewMode}` + (f ? ` FAIL x${f}` : ' PASS'));
+    console.log(`[flow] spot search -> ${T.AppState.finder.spotRows.length} complete systems` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
-    // ---- Section B: profit scan (mocked prices) ----
+    // ---- Section B: merged market scan (Jita standard + local, mocked) ----
     f = 0;
     els.regionSelect.value = '10000002';
     await T.runProfitScan();
     const profitStatus = els.finderProfitResults.textContent;
-    if (!profitStatus.includes('ranked from')) { f++; console.error('[flow] FAIL: profit status not set, got: ' + profitStatus); }
-    if (T.AppState.finder.activePanel !== 'profit') { f++; console.error('[flow] FAIL: activePanel not profit'); }
-    if (!T.AppState.finder.profitRows.length) { f++; console.error('[flow] FAIL: no profit rows stored'); }
-    if (T.AppState.finder.profitRows[0].profit <= T.AppState.finder.profitRows[T.AppState.finder.profitRows.length - 1].profit) {
-        f++; console.error('[flow] FAIL: profit rows not sorted desc');
+    if (!profitStatus.includes('Best sell:')) { f++; console.error('[flow] FAIL: best-sell status not set, got: ' + profitStatus); }
+    if (T.AppState.finder.activePanel !== 'spot') { f++; console.error('[flow] FAIL: scan should switch to the best product build spots'); }
+    const rows = T.AppState.finder.spotRows;
+    if (!rows.length) { f++; console.error('[flow] FAIL: no full-coverage systems for the best product'); }
+    rows.forEach(r => {
+        if (r.missing.length > 0) { f++; console.error('[flow] FAIL: non-complete system in best-product results'); }
+    });
+    const scan = T.AppState.finder.scanResults;
+    if (!scan || scan.length < 2) { f++; console.error('[flow] FAIL: scanResults missing'); }
+    for (let i = 1; i < scan.length; i++) {
+        if (scan[i - 1].profit < scan[i].profit) { f++; console.error('[flow] FAIL: scan not sorted desc by Jita profit'); break; }
     }
-    console.log(`[flow] profit scan -> ${T.AppState.finder.profitRows.length} products` + (f ? ` FAIL x${f}` : ' PASS'));
+    if (!T.AppState.finder.bestStats || typeof T.AppState.finder.bestStats.profitLocal !== 'number') {
+        f++; console.error('[flow] FAIL: bestStats with local column missing');
+    }
+    console.log(`[flow] merged scan -> #1 ${(T.AppState.finder.scanResults[0] || {}).id}, ${rows.length} complete systems` + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 
-    // ---- Guards: no origin -> friendly message, no crash ----
+    // ---- Guards: unauthenticated -> friendly message, no crash ----
     f = 0;
+    vm.runInContext('piEsiAuth.logout()', sandbox);
     T.AppState.finder.originSystemId = null;
     await T.runFindBestSystems();
-    if (!els.finderSpotResults.textContent.includes('Set a starting location')) { f++; console.error('[flow] FAIL: missing-origin guard'); }
+    if (!els.finderSpotResults.textContent.includes('Sign in')) { f++; console.error('[flow] FAIL: signed-out guard (spots), got: ' + els.finderSpotResults.textContent); }
     await T.runProfitScan();
-    if (!els.finderProfitResults.textContent.includes('Set a starting location')) { f++; console.error('[flow] FAIL: missing-origin guard (scan)'); }
+    if (!els.finderProfitResults.textContent.includes('Sign in')) { f++; console.error('[flow] FAIL: signed-out guard (scan), got: ' + els.finderProfitResults.textContent); }
     console.log('[flow] origin guards' + (f ? ` FAIL x${f}` : ' PASS'));
     totalFail += f;
 

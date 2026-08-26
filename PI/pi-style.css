@@ -1332,6 +1332,10 @@ body {
 .producible-item.p4 { border-left: 2px solid var(--p4-color); }
 
 /* Finder Tab */
+.finder-login-gate {
+    padding: 0.25rem 0 0.5rem;
+}
+
 .finder-section {
     margin-bottom: 1rem;
     padding-bottom: 0.75rem;

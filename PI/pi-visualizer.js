@@ -45,11 +45,13 @@ const AppState = {
         originSource: null,     // 'esi' | 'manual'
         expandedSpot: null,     // system id whose route line is expanded
         _bfs: null,             // last BFS result Map (for route reconstruction)
-        spotRows: [],           // ranked build-spot results (canvas view)
-        profitRows: [],         // ranked profitable products (canvas view)
-        activePanel: null,      // which results the canvas shows: 'spot' | 'profit'
-        spotProductName: '',    // product the spot search ran for (card header)
-        profitRegionName: '',   // region the scan priced against (card header)
+        spotRows: [],           // full-coverage build-spot results (canvas view)
+        activePanel: null,      // which results the canvas shows: 'spot'
+        spotProductName: '',    // product the spot cards are for (card header)
+        scanResults: [],        // ranked products from the market scan
+        bestProductId: null,    // #1 by Jita profit
+        bestStats: null,        // {profit, margin, profitLocal, marginLocal} for the banner
+        localRegionName: '',    // comparison region shown on next-best cards
         locationAuthNeeded: false // stale login lacks the location scope
     },
     finderCards: []             // canvas hit areas for the finder view
@@ -111,6 +113,9 @@ const elements = {
     productBreakdown: document.getElementById('productBreakdown'),
     breakdownContent: document.getElementById('breakdownContent'),
     // Finder elements
+    finderControls: document.getElementById('finderControls'),
+    finderLoginGate: document.getElementById('finderLoginGate'),
+    finderLoginBtn: document.getElementById('finderLoginBtn'),
     finderLocate: document.getElementById('finderLocate'),
     finderOriginLabel: document.getElementById('finderOriginLabel'),
     finderSystemInput: document.getElementById('finderSystemInput'),
@@ -443,6 +448,9 @@ function setupTabs() {
                 refreshColoniesAuthState();
             } else {
                 setColonyTick(false);
+            }
+            if (tab === 'finder') {
+                refreshFinderAuthState();
             }
         });
     });
@@ -1573,7 +1581,11 @@ function draw() {
     }
 
     if (AppState.viewMode === 'finder') {
+        ctx.save();
+        ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
+        ctx.scale(AppState.zoom, AppState.zoom);
         drawFinderView();
+        ctx.restore();
         return;
     }
 
@@ -3172,11 +3184,11 @@ function onPointerMove(e) {
     if (AppState.isDraggingCanvas) {
         const dx = pos.x - AppState.lastMousePos.x;
         const dy = pos.y - AppState.lastMousePos.y;
-        // Reference, finder and non-layout colonies views lay out vertically
-        // only - panning X there desyncs the grid from the background, so lock
-        // to Y. Colony layout mode is a full world-space view, so it pans free.
+        // Reference and non-layout colonies views lay out vertically only -
+        // panning X there desyncs the grid from the background, so lock to Y.
+        // Colony layout mode and the finder are full world-space views, so they
+        // pan freely.
         const lockY = AppState.viewMode === 'reference' ||
-            AppState.viewMode === 'finder' ||
             (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
         if (lockY) {
             AppState.canvasOffset.y += dy;
@@ -3233,6 +3245,17 @@ function onPointerUp(e) {
                 const sysId = hit.card.row.sys.id;
                 AppState.finder.expandedSpot = AppState.finder.expandedSpot === sysId ? null : sysId;
                 draw();
+            } else if (hit.card.kind === 'nextProduct') {
+                const r = hit.card.result;
+                const rows = buildFullCoverageSpotRows(r.id);
+                if (!rows.length) return;
+                AppState.finder.bestProductId = r.id;
+                AppState.finder.bestStats = { profit: r.profit, margin: r.margin, profitLocal: r.profitLocal, marginLocal: r.marginLocal };
+                AppState.finder.spotRows = rows;
+                AppState.finder.spotProductName = r.mat.name;
+                AppState.finder.activePanel = 'spot';
+                AppState.finder.expandedSpot = null;
+                renderFinderSpotResults();
             } else {
                 selectProduct(hit.card.result.id);
             }
@@ -3250,8 +3273,22 @@ function onPointerCancel() {
 
 function onWheel(e) {
     e.preventDefault();
-    const factor = e.deltaY > 0 ? 0.9 : 1.1;
-    zoomAt(AppState.zoom * factor, getCanvasPos(e));
+
+    // World-space views (chain graph, planets, colony layout map, finder
+    // results): the wheel zooms to the cursor - scroll up zooms in.
+    const worldViews = AppState.viewMode === 'chain' ||
+        AppState.viewMode === 'planets' || AppState.viewMode === 'finder' ||
+        (AppState.viewMode === 'colonies' && AppState.colonyDetail && AppState.layoutMode);
+    if (worldViews) {
+        const factor = e.deltaY > 0 ? 0.9 : 1.1;
+        zoomAt(AppState.zoom * factor, getCanvasPos(e));
+        return;
+    }
+
+    // Flat list views (reference grid, colonies list): the wheel scrolls the
+    // list naturally - scroll down moves content up through the list.
+    AppState.canvasOffset.y -= e.deltaY;
+    draw();
 }
 
 // Coordinate transforms
@@ -3821,7 +3858,6 @@ function finderSetManualOrigin() {
 }
 
 const FINDER_MAX_ROWS = 25;   // canvas cards per spot search (scrollable, but bounded)
-const PROFIT_MAX_ROWS = 60;
 
 // Coverage-first ordering: full-chain systems by fewest jumps (ties -> higher
 // security), then partial systems by fewest missing types, then jumps.
@@ -3848,6 +3884,10 @@ function setFinderStatus(el, message) {
 async function runFindBestSystems() {
     setFinderStatus(elements.finderSpotResults, '');
 
+    if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
+        setFinderStatus(elements.finderSpotResults, 'Sign in with EVE SSO first.');
+        return;
+    }
     if (!AppState.finder.originSystemId) {
         setFinderStatus(elements.finderSpotResults, 'Set a starting location first.');
         return;
@@ -3863,34 +3903,12 @@ async function runFindBestSystems() {
         const ok = await Promise.all([ensureSystemsLoaded(), ensureJumpsLoaded()]);
         if (!ok[0] || !ok[1]) throw new Error('Failed to load system/jump data');
 
-        const bfs = finderBFS(AppState.finder.originSystemId, getFinderRadius());
-        AppState.finder._bfs = bfs;
-        const requiredTypes = getRequiredPlanetTypes(productId);
-        const requiredIds = requiredTypes.map(p => p.id);
-        const allowedBands = activeSecBands();
-
-        const rows = [];
-        for (const [sysIdStr, node] of bfs) {
-            const sys = PI_SYSTEMS[sysIdStr];
-            if (!sys) continue;
-            if (!allowedBands.has(secBandOf(sys.security))) continue;
-
-            const presentIds = new Set(sys.planets.map(p => p.typeId));
-            const missing = requiredIds.filter(tid => !presentIds.has(tid));
-            rows.push({
-                sys,
-                jumps: node.jumps,
-                requiredIds,
-                missing,
-                route: finderRoutePath(Number(sysIdStr), bfs)
-            });
-        }
-
-        sortFinderSpotRows(rows);
-
-        AppState.finder.spotRows = rows;
+        finderBFS(AppState.finder.originSystemId, getFinderRadius()); // refreshes AppState.finder._bfs
+        AppState.finder.spotRows = buildFullCoverageSpotRows(productId);
         AppState.finder.activePanel = 'spot';
         AppState.finder.expandedSpot = null;
+        AppState.finder.bestProductId = productId;
+        AppState.finder.bestStats = null;
         AppState.finder.spotProductName = getMaterialById(productId).name;
         renderFinderSpotResults();
     } catch (err) {
@@ -3906,21 +3924,28 @@ function renderFinderSpotResults() {
     const rows = AppState.finder.spotRows;
     if (!rows.length) {
         setFinderStatus(elements.finderSpotResults,
-            'No systems with any required planet type within radius. Try widening the radius or sec filter.');
+            'No system within radius has every planet type needed. Widen the radius or sec filter.');
         draw();
         return;
     }
-    const fullCount = rows.filter(r => r.missing.length === 0).length;
     setFinderStatus(elements.finderSpotResults,
-        `${rows.length} system${rows.length === 1 ? '' : 's'} found (${fullCount} full-chain) - results are on the main canvas`);
+        `${rows.length} system${rows.length === 1 ? '' : 's'} can build ${AppState.finder.spotProductName} in full - shown on the main canvas`);
     resetViewport();
     setViewMode('finder');
 }
+
+// Jita (The Forge) is the standard pricing reference for ranking; the
+// selected region is priced alongside for comparison.
+const FINDER_STANDARD_REGION = '10000002';
 
 async function runProfitScan() {
     setFinderStatus(elements.finderProfitResults, '');
     elements.finderProgress.classList.add('hidden');
 
+    if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
+        setFinderStatus(elements.finderProfitResults, 'Sign in with EVE SSO first.');
+        return;
+    }
     if (!AppState.finder.originSystemId) {
         setFinderStatus(elements.finderProfitResults, 'Set a starting location first.');
         return;
@@ -3928,7 +3953,8 @@ async function runProfitScan() {
 
     const regionId = elements.regionSelect.value;
     const regionName = PI_DATA.regions[regionId] || ('Region ' + regionId);
-    elements.finderScanRegion.textContent = ' · ' + regionName;
+    const jitaName = PI_DATA.regions[FINDER_STANDARD_REGION] || 'Jita';
+    elements.finderScanRegion.textContent = ' · ranked by ' + jitaName;
 
     elements.finderScanProfit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
     try {
@@ -3971,24 +3997,68 @@ async function runProfitScan() {
             collectMaterialIds(chain, materialIds);
         });
 
+        // Price against both markets (each cached per region by type id)
         elements.finderProgress.classList.remove('hidden');
-        const prices = await fetchPricesForMaterials(materialIds, regionId, (done, total) => {
-            elements.finderProgress.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Fetching prices (${regionName})… ${done}/${total}`;
-        });
+        const total = materialIds.size * 2;
+        let done = 0;
+        const tick = () => {
+            done++;
+            elements.finderProgress.innerHTML =
+                `<i class="fas fa-spinner fa-spin"></i> Fetching prices (${jitaName} + ${regionName})… ${done}/${total}`;
+        };
+        const jitaPrices = await fetchPricesForMaterials(materialIds, FINDER_STANDARD_REGION, tick);
+        const localPrices = await fetchPricesForMaterials(materialIds, regionId, tick);
         elements.finderProgress.classList.add('hidden');
 
         const results = [];
         chains.forEach((chain, id) => {
-            const math = chainProfitMath(chain, prices);
-            if (!(math.outputValue > 0)) return; // no sell data for the output
-            results.push({ id, mat: getMaterialById(id), profit: math.profit, margin: math.margin });
+            const j = chainProfitMath(chain, jitaPrices);
+            const l = chainProfitMath(chain, localPrices);
+            if (!(j.outputValue > 0)) return; // no sell data for the output
+            results.push({
+                id,
+                mat: getMaterialById(id),
+                profit: j.profit,
+                margin: j.margin,
+                profitLocal: l.profit,
+                marginLocal: l.margin
+            });
         });
+        // Standard ranking: Jita profit per batch
         results.sort((a, b) => b.profit - a.profit);
 
-        AppState.finder.profitRows = results;
-        AppState.finder.activePanel = 'profit';
-        AppState.finder.profitRegionName = regionName;
-        renderFinderProfitResults(radius, systemsScanned);
+        AppState.finder.scanResults = results;
+        AppState.finder.localRegionName = regionName;
+
+        // Merged flow: feature the highest-Jita-profit product that at least one
+        // system in radius can host IN FULL (all required planet types present).
+        let best = null;
+        let rows = [];
+        for (const r of results) {
+            const candidate = buildFullCoverageSpotRows(r.id);
+            if (candidate.length) { best = r; rows = candidate; break; }
+        }
+        if (!best) {
+            setFinderStatus(elements.finderProfitResults,
+                `No product in the scan can be built within a single system inside ${radius} jumps - widen the radius or sec filter.`);
+            draw();
+            return;
+        }
+
+        AppState.finder.bestProductId = best.id;
+        AppState.finder.bestStats = { profit: best.profit, margin: best.margin, profitLocal: best.profitLocal, marginLocal: best.marginLocal };
+        AppState.finder.spotRows = rows;
+        AppState.finder.activePanel = 'spot';
+        AppState.finder.expandedSpot = null;
+        AppState.finder.spotProductName = best.mat.name;
+
+        const skipped = best.id !== results[0].id
+            ? ` • ${results[0].mat.name} ranks highest but needs several systems - showing the next best buildable in one`
+            : '';
+        setFinderStatus(elements.finderProfitResults,
+            `Best sell: ${best.mat.name} (${formatISK(best.profit)} ISK/batch on ${jitaName}) - ${rows.length} system${rows.length === 1 ? '' : 's'} can build it in full, shown on the main canvas${skipped}`);
+        resetViewport();
+        setViewMode('finder');
     } catch (err) {
         console.error('Profit scan failed:', err);
         elements.finderProgress.classList.add('hidden');
@@ -3998,24 +4068,12 @@ async function runProfitScan() {
     }
 }
 
-// Sidebar status line; the ranked product cards live on the main canvas.
-function renderFinderProfitResults(radius, systemsScanned) {
-    const rows = AppState.finder.profitRows;
-    if (!rows.length) {
-        setFinderStatus(elements.finderProfitResults, 'No priced products found in this market region.');
-        draw();
-        return;
-    }
-    setFinderStatus(elements.finderProfitResults,
-        `${rows.length} product${rows.length === 1 ? '' : 's'} ranked from ${systemsScanned} systems within ${radius} jumps - shown on the main canvas`);
-    resetViewport();
-    setViewMode('finder');
-}
-
 // ---------- Finder Canvas View ----------
+// Cards are stored in world coordinates; convert screen input before testing.
 function finderCardAt(pos) {
+    const w = screenToWorld(pos.x, pos.y);
     return (AppState.finderCards || []).find(c =>
-        pos.x >= c.x && pos.x <= c.x + c.w && pos.y >= c.y && pos.y <= c.y + c.h) || null;
+        w.x >= c.x && w.x <= c.x + c.w && w.y >= c.y && w.y <= c.y + c.h) || null;
 }
 
 const SEC_BAND_COLORS = { high: '#2d7d46', low: '#a16207', null: '#b91c1c' };
@@ -4024,15 +4082,22 @@ function drawFinderView() {
     AppState.finderCards = [];
     const f = AppState.finder;
 
+    if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
+        drawFinderPrompt('Sign in with EVE SSO',
+            'The Finder needs your login to track your ship location',
+            'and scan nearby markets. Use the Finder tab to sign in.');
+        return;
+    }
     if (f.activePanel === 'spot' && f.spotRows.length) {
         drawFinderSpotCards();
         return;
     }
-    if (f.activePanel === 'profit' && f.profitRows.length) {
-        drawFinderProfitCards();
-        return;
-    }
 
+    drawFinderPrompt('No finder results yet', null,
+        'Set an origin in the Finder tab, pick a Target Product, then press "Find Best Systems" or "Scan Market"');
+}
+
+function drawFinderPrompt(title, sub1, sub2) {
     const cx = AppState.cssW / 2;
     const cy = AppState.cssH / 2;
     ctx.fillStyle = 'rgba(20, 20, 20, 0.75)';
@@ -4045,11 +4110,11 @@ function drawFinderView() {
     ctx.font = 'bold 16px Titillium Web, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('No finder results yet', cx, cy - 18);
+    ctx.fillText(title, cx, cy - (sub1 ? 18 : 24));
     ctx.fillStyle = '#aaa';
     ctx.font = '13px Titillium Web, sans-serif';
-    ctx.fillText('Set an origin in the Finder tab, pick a Target Product,', cx, cy + 8);
-    ctx.fillText('then press "Find Best Systems" or "Scan Market"', cx, cy + 28);
+    if (sub1) ctx.fillText(sub1, cx, cy + 8);
+    ctx.fillText(sub2, cx, cy + (sub1 ? 28 : 4));
 }
 
 // Wraps text into lines that fit maxWidth using the current ctx.font.
@@ -4137,19 +4202,28 @@ function drawFinderSpotCards() {
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#e8d900';
     ctx.font = 'bold 18px Titillium Web, sans-serif';
-    const fullTotal = AppState.finder.spotRows.filter(r => r.missing.length === 0).length;
     ctx.fillText(`${AppState.finder.spotProductName} - best places to build`, 20, 20);
+
+    let headerY = 46;
+    const stats = AppState.finder.bestStats;
+    if (stats) {
+        ctx.font = 'bold 12px Titillium Web, sans-serif';
+        ctx.fillStyle = '#3fb950';
+        const jitaName = PI_DATA.regions[FINDER_STANDARD_REGION] || 'Jita';
+        ctx.fillText(`#1 by ${jitaName} profit: ${formatISK(stats.profit)} ISK/batch (${stats.margin.toFixed(1)}% margin)` +
+            ` • local: ${formatISK(stats.profitLocal)} ISK`, 20, headerY);
+        headerY += 20;
+    }
     ctx.fillStyle = '#aaa';
     ctx.font = '12px Titillium Web, sans-serif';
     const originName = originSys ? originSys.name : 'origin';
-    let sub = `${rows.length} of ${AppState.finder.spotRows.length} systems shown within ${getFinderRadius()}j of ${originName}`;
-    if (fullTotal) sub += ` • ${fullTotal} can host the full chain`;
-    sub += ' • click a card for its route';
-    ctx.fillText(sub, 20, 44);
+    ctx.fillText(`${rows.length} of ${AppState.finder.spotRows.length} systems within ${getFinderRadius()}j of ${originName}` +
+        ` have every planet type needed • click a card for its route`, 20, headerY);
 
-    const colW = Math.min(620, Math.max(360, AppState.cssW - 80));
-    const x = Math.max(20, (AppState.cssW - colW) / 2);
-    let y = 78 + offsetY;
+    const viewW = AppState.cssW / AppState.zoom;
+    const colW = Math.min(620, Math.max(360, viewW - 80));
+    const x = Math.max(20, (viewW - colW) / 2);
+    let y = headerY + 26 + offsetY;
     const gapY = 12;
     const pad = 14;
 
@@ -4262,7 +4336,82 @@ function drawFinderSpotCards() {
         ctx.font = '12px Titillium Web, sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(`...and ${AppState.finder.spotRows.length - rows.length} more within radius - narrow the radius or filters`, x, y + 2);
+        y += 24;
     }
+
+    drawNextBestCards(x, colW, y + 14);
+}
+
+const NEXT_BEST_COUNT = 8;
+
+// Compact ranked list under the build spots: every other product from the
+// market scan. Clicking one re-runs the full-coverage spot search for it.
+function drawNextBestCards(x, colW, yStart) {
+    const results = (AppState.finder.scanResults || [])
+        .filter(r => r.id !== AppState.finder.bestProductId)
+        .slice(0, NEXT_BEST_COUNT);
+    if (!results.length) return;
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#58a6ff';
+    ctx.font = 'bold 13px Titillium Web, sans-serif';
+    const jitaName = PI_DATA.regions[FINDER_STANDARD_REGION] || 'Jita';
+    ctx.fillText(`NEXT BEST TO SELL - ranked by ${jitaName} • click to see where to build it`, x, yStart);
+
+    let y = yStart + 12;
+    const cardH = 46;
+    const gapY = 8;
+    const viewW = AppState.cssW / AppState.zoom;
+    const listW = Math.min(colW, Math.max(340, viewW - 80));
+
+    results.forEach((r, idx) => {
+        const tierColor = PI_COLORS[r.mat.tier] || '#888';
+        const gradient = ctx.createLinearGradient(x, y, x, y + cardH);
+        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
+        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
+        ctx.fillStyle = gradient;
+        roundRect(ctx, x, y, listW, cardH, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = tierColor;
+        ctx.beginPath();
+        roundRect(ctx, x, y, 4, cardH, [8, 0, 0, 8]);
+        ctx.fill();
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#666';
+        ctx.font = 'bold 12px Titillium Web, sans-serif';
+        const rankText = `#${idx + 2}`;
+        ctx.fillText(rankText, x + 16, y + cardH / 2);
+        const rankW = Math.ceil(ctx.measureText(rankText).width);
+
+        ctx.fillStyle = tierColor;
+        roundRect(ctx, x + 22 + rankW, y + cardH / 2 - 4, 9, 9, 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px Titillium Web, sans-serif';
+        ctx.fillText(r.mat.name, x + 38 + rankW, y + cardH / 2 - 7);
+        ctx.fillStyle = '#888';
+        ctx.font = '10px Titillium Web, sans-serif';
+        ctx.fillText(`${r.margin.toFixed(1)}% margin`, x + 38 + rankW, y + cardH / 2 + 9);
+
+        // Right side: Jita (standard) over local region
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 12px Titillium Web, sans-serif';
+        ctx.fillStyle = r.profit >= 0 ? '#3fb950' : '#f87171';
+        ctx.fillText(`${formatISK(r.profit)} ISK`, x + listW - 14, y + cardH / 2 - 7);
+        ctx.font = '10px Titillium Web, sans-serif';
+        ctx.fillStyle = '#9aa4b2';
+        ctx.fillText(`${AppState.finder.localRegionName || 'Local'}: ${formatISK(r.profitLocal)} ISK`, x + listW - 14, y + cardH / 2 + 9);
+
+        AppState.finderCards.push({ kind: 'nextProduct', result: r, x, y, w: listW, h: cardH });
+        y += cardH + gapY;
+    });
 }
 
 // Height-only pass over the badge layout so cards can be sized before drawing.
@@ -4285,85 +4434,58 @@ function measureFinderBadgesHeight(row, maxW) {
     return cy + 17;
 }
 
-function drawFinderProfitCards() {
-    const rows = AppState.finder.profitRows.slice(0, PROFIT_MAX_ROWS);
-    const offsetY = AppState.canvasOffset.y;
-    const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined')
-        ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
 
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = '#e8d900';
-    ctx.font = 'bold 18px Titillium Web, sans-serif';
-    ctx.fillText(`Most profitable products - ${AppState.finder.profitRegionName}`, 20, 32);
-    ctx.fillStyle = '#aaa';
-    ctx.font = '12px Titillium Web, sans-serif';
-    const originName = originSys ? originSys.name : 'origin';
-    let sub = `Ranked by profit per batch • producible from planets within ${getFinderRadius()}j of ${originName}`;
-    if (AppState.finder.profitRows.length > rows.length) {
-        sub += ` • top ${rows.length} of ${AppState.finder.profitRows.length}`;
+// The Finder (and its canvas results) require an SSO login: the ship location
+// comes from ESI and market scans are tied to the character session.
+function refreshFinderAuthState() {
+    if (!elements.finderControls || !elements.finderLoginGate) return;
+    const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
+    elements.finderControls.classList.toggle('hidden', !authed);
+    elements.finderLoginGate.classList.toggle('hidden', authed);
+}
+
+function buildFullCoverageSpotRows(productId) {
+    // Reuses the scan's BFS (same radius/sec filter); when absent - e.g. a
+    // direct product click before any scan - recompute from current inputs.
+    if (!AppState.finder.originSystemId) return [];
+    let bfs = AppState.finder._bfs;
+    if (!bfs) {
+        bfs = finderBFS(AppState.finder.originSystemId, getFinderRadius());
+        AppState.finder._bfs = bfs;
     }
-    sub += ' • click a product to open its chain';
-    ctx.fillText(sub, 20, 54);
-
-    const colW = Math.min(520, Math.max(340, AppState.cssW - 80));
-    const x = Math.max(20, (AppState.cssW - colW) / 2);
-    let y = 76 + offsetY;
-    const cardH = 52;
-    const gapY = 10;
-
-    rows.forEach((r, idx) => {
-        const tierColor = PI_COLORS[r.mat.tier] || '#888';
-
-        const gradient = ctx.createLinearGradient(x, y, x, y + cardH);
-        gradient.addColorStop(0, 'rgba(40, 40, 40, 0.98)');
-        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.98)');
-        ctx.fillStyle = gradient;
-        roundRect(ctx, x, y, colW, cardH, 8);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.fillStyle = tierColor;
-        ctx.beginPath();
-        roundRect(ctx, x, y, 4, cardH, [8, 0, 0, 8]);
-        ctx.fill();
-
-        // Rank + tier dot + product name
-        ctx.fillStyle = '#666';
-        ctx.font = 'bold 13px Titillium Web, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        const rankText = `${idx + 1}`;
-        ctx.fillText(rankText, x + 16, y + cardH / 2);
-        const rankW = Math.ceil(ctx.measureText(rankText).width);
-
-        ctx.fillStyle = tierColor;
-        roundRect(ctx, x + 24 + rankW, y + cardH / 2 - 5, 10, 10, 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px Titillium Web, sans-serif';
-        ctx.fillText(r.mat.name, x + 42 + rankW, y + cardH / 2 - 8);
-
-        ctx.fillStyle = '#888';
-        ctx.font = '11px Titillium Web, sans-serif';
-        ctx.fillText(`P${r.mat.tier} • margin ${r.margin.toFixed(1)}%`, x + 42 + rankW, y + cardH / 2 + 10);
-
-        // Profit on the right
-        ctx.textAlign = 'right';
-        ctx.font = 'bold 14px Titillium Web, sans-serif';
-        ctx.fillStyle = r.profit >= 0 ? '#3fb950' : '#f87171';
-        const profitText = `${formatISK(r.profit)} ISK`;
-        ctx.fillText(profitText, x + colW - 14, y + cardH / 2);
-
-        AppState.finderCards.push({ kind: 'profit', result: r, x, y, w: colW, h: cardH });
-        y += cardH + gapY;
-    });
+    const requiredIds = getRequiredPlanetTypes(productId).map(p => p.id);
+    const allowedBands = activeSecBands();
+    const rows = [];
+    for (const [sysIdStr, node] of bfs) {
+        const sys = PI_SYSTEMS[sysIdStr];
+        if (!sys) continue;
+        if (!allowedBands.has(secBandOf(sys.security))) continue;
+        const presentIds = new Set(sys.planets.map(p => p.typeId));
+        const missing = requiredIds.filter(tid => !presentIds.has(tid));
+        if (missing.length > 0) continue; // full coverage only
+        rows.push({
+            sys,
+            jumps: node.jumps,
+            requiredIds,
+            missing,
+            route: finderRoutePath(Number(sysIdStr), bfs)
+        });
+    }
+    return sortFinderSpotRows(rows);
 }
 
 function setupFinder() {
     if (!elements.finderLocate) return;
+
+    refreshFinderAuthState();
+
+    if (elements.finderLoginBtn) {
+        elements.finderLoginBtn.addEventListener('click', () => {
+            piEsiAuth.initiateLogin().catch(err => {
+                setFinderStatus(elements.finderSpotResults, err.message || 'Login failed');
+            });
+        });
+    }
 
     elements.finderLocate.addEventListener('click', () => {
         // After a scope/auth failure the button doubles as the re-login trigger
