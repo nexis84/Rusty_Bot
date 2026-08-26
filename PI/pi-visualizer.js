@@ -1831,28 +1831,34 @@ function drawRefCard(mat, x, y, w, h, color) {
             yPos += 16;
         });
 
-        // Cap yPos at card bottom, leaving room for footer
-        const cardBottom = y + 88; // 3px below planet markers at y + 82
+        // Cap yPos at card bottom with generous padding (cellHeight=95)
+        // Keep inputs/planet markers/ footer all within y + 95 bounds
+        const cardBottom = y + 85; // 10px from card bottom
         if (yPos > cardBottom) yPos = cardBottom;
 
-        // Draw all collected tier-0 planet markers at the card bottom
+        // Draw tier-0 planet markers in a row at the card bottom
+        // Row at y + 78 (17px from bottom), with small 2.5px markers
         if (tier0Planets.length > 0) {
-            const markerY = y + 82; // near card bottom
-            const markerSpacing = 10;
+            const markerY = y + 78;
+            const markerSpacing = 8;
             const baseX = x + 12; // align with input names
+            const maxPerRow = Math.max(1, Math.floor(60 / markerSpacing));
             tier0Planets.forEach((planet, j) => {
-                const px = baseX + j * markerSpacing;
-                ctx.fillStyle = planet.color;
-                ctx.beginPath();
-                ctx.arc(px, markerY, 3, 0, Math.PI * 2);
-                ctx.fill();
+                const px = baseX + (j % maxPerRow) * markerSpacing;
+                // Only draw marker if within card bounds
+                if (px >= x + 12 && px <= x + 200) { // 200 is rough card width limit
+                    ctx.fillStyle = planet.color;
+                    ctx.beginPath();
+                    ctx.arc(px, markerY, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             });
         }
 
-        // Draw "→ X units" footer at capped position
+        // Draw "→ X units" footer at capped position with bottom padding
         ctx.fillStyle = '#666';
         ctx.font = '8px sans-serif';
-        ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos + 6);
+        ctx.fillText(`→ ${mat.batchSize} units`, x + 12, yPos + 4);
     }
 
     // Market price - check filter first, then price data
@@ -3193,11 +3199,11 @@ function drawColonyDetail(c) {
             const perDay = e.cycleTime > 0 ? (e.qtyPerCycle / e.cycleTime) * 86400 * price : 0;
 
             ctx.fillStyle = st.expired ? '#f87171' : tierColor;
-            ctx.font = 'bold 12px Titillium Web, sans-serif';
+            ctx.font = 'bold 14px Titillium Web, sans-serif';
             ctx.fillText(e.productName, x, y);
 
             ctx.fillStyle = '#999';
-            ctx.font = '11px Titillium Web, sans-serif';
+            ctx.font = '13px Titillium Web, sans-serif';
             ctx.fillText(`${e.qtyPerCycle.toLocaleString()} per ${formatDuration(e.cycleTime * 1000)}`, x + 190, y);
             ctx.fillText(`${cyclesLeft} cycle${cyclesLeft === 1 ? '' : 's'} left`, x + 360, y);
 
@@ -3209,7 +3215,7 @@ function drawColonyDetail(c) {
             ctx.fillText(`≈${formatISK(remainingISK)} left`, rightEdge - 110, y);
             ctx.fillText(`${formatISK(perDay)}/day`, rightEdge, y);
             ctx.textAlign = 'left';
-            y += 17;
+            y += 19;
         });
 
         const warns = [];
@@ -3852,10 +3858,15 @@ function setViewMode(mode) {
     }
 
     // Sync sidebar tab active state with canvas view mode
-    const TAB_TO_VIEW = { ref: 'reference', system: 'system', colonies: 'colonies', finder: 'finder' };
     const reverseViewToTab = { reference: 'ref', system: 'system', colonies: 'colonies', finder: 'finder' };
     const activeTab = reverseViewToTab[mode] || 'ref';
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        if (b.dataset.tab === activeTab) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+    });
 
     updateUrlState();
     setColonyTick(mode === 'colonies');
