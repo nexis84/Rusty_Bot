@@ -4955,6 +4955,14 @@ function setViewMode(mode) {
 // so chains can be bookmarked and shared.
 function updateUrlState() {
     try {
+        // Welcome is the default landing view — keep the URL clean (no hash)
+        // so a product selected earlier doesn't linger in the address bar.
+        if (AppState.viewMode === 'welcome') {
+            if (window.location.hash && window.location.hash !== '#') {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+            return;
+        }
         const params = new URLSearchParams();
         params.set('view', AppState.viewMode);
         if (AppState.targetProduct) params.set('product', AppState.targetProduct);
@@ -4976,7 +4984,7 @@ function restoreFromUrl() {
         const view = params.get('view');
         const product = parseInt(params.get('product'));
 
-        if (product && getMaterialById(product)) {
+        if (product && getMaterialById(product) && view !== 'welcome') {
             if (elements.finderProduct) elements.finderProduct.value = String(product);
             if (elements.chainProductSelect) elements.chainProductSelect.value = String(product);
             AppState.targetProduct = product;
@@ -4995,7 +5003,7 @@ function restoreFromUrl() {
             setViewMode('chain');
         }
         // Now that the view is correct (chain mode enables world zoom), generate/fit the chain centered
-        if (product && getMaterialById(product)) {
+        if (product && getMaterialById(product) && view !== 'welcome') {
             generateChainLayout();
             fetchMarketData();
             // If restore landed on reference/system/etc but a product is set, chain is ready in background
