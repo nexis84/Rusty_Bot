@@ -1515,6 +1515,8 @@ function renderColonies(colonies, systemsLoaded) {
     if (AppState.colonyIdleOnly) {
         filtered = colonies.filter(c => {
             const a = analyseColonyCached(c);
+            const allExp = a.extractors && a.extractors.length && a.extractors.every(e=>e.expired);
+            if (allExp) return false;
             return (a.idleDetails && a.idleDetails.length) || a.idle.factories || a.idle.extractors;
         });
         if (!filtered.length) {
@@ -1738,10 +1740,10 @@ function renderColoniesDom(colonies, systemsLoaded) {
             timelineDom.innerHTML = th;
         }
     }
-    // Filtered colonies
+    // Filtered colonies (exclude fully expired — not useful idle)
     let filtered = colonies;
     if (AppState.colonyIdleOnly) {
-        filtered = colonies.filter(c=>{const a=analyseColonyCached(c); return (a.idleDetails&&a.idleDetails.length)||a.idle.factories||a.idle.extractors;});
+        filtered = colonies.filter(c=>{const a=analyseColonyCached(c); const allExp=a.extractors&&a.extractors.length&&a.extractors.every(e=>e.expired); if(allExp) return false; return (a.idleDetails&&a.idleDetails.length)||a.idle.factories||a.idle.extractors;});
     }
     if (!filtered.length) {
         grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:0.78rem;padding:12px;text-align:center">No idle colonies — all factories have schematics and routes</div>';
@@ -1792,7 +1794,8 @@ function renderColoniesDom(colonies, systemsLoaded) {
             if (expiredN) metaBits.push(`<span style="color:#f87171;font-weight:700">${expiredN} EXPIRED</span>`);
             else if (active[0]) metaBits.push(`<span><i class="fas fa-hourglass-half"></i> ends in ${formatDuration(active[0].expiryMs - Date.now())}</span>`);
             if (val.extractPerDay||val.factoryPerDay) metaBits.push(`<span>${formatISK(val.extractPerDay+val.factoryPerDay)}/d</span>`);
-            const idle = (()=>{ if (analysis.idleDetails && analysis.idleDetails.length) { const noSchem=analysis.idleDetails.filter(d=>d.reason==='no schematic').length; const noRoute=analysis.idleDetails.filter(d=>d.reason==='no input route').length; const parts=[]; if(noSchem) parts.push(`${noSchem} no schematic`); if(noRoute) parts.push(`${noRoute} no input route`); return `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${escapeHtml(parts.join(' · '))}</div>`; } return (analysis.idle.factories||analysis.idle.extractors ? `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${analysis.idle.factories||0} idle factories</div>` : ''); })();
+            const allExpiredDom = analysis.extractors && analysis.extractors.length && analysis.extractors.every(e=>e.expired);
+            const idle = (()=>{ if (!allExpiredDom && analysis.idleDetails && analysis.idleDetails.length) { const noSchem=analysis.idleDetails.filter(d=>d.reason==='no schematic').length; const noRoute=analysis.idleDetails.filter(d=>d.reason==='no input route').length; const parts=[]; if(noSchem) parts.push(`${noSchem} no schematic`); if(noRoute) parts.push(`${noRoute} no input route`); return `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${escapeHtml(parts.join(' · '))}</div>`; } return (!allExpiredDom && (analysis.idle.factories||analysis.idle.extractors) ? `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${analysis.idle.factories||0} idle factories</div>` : ''); })();
             html += `<div class="finder-card colony-card" data-planet="${c.planet_id}" style="border-left:4px solid ${color}"><div class="colony-card-top"><span class="colony-card-title" style="color:${color}">${escapeHtml(planetName)}</span><span>${dots}</span></div><div class="colony-card-meta">${metaBits.join(' • ')}</div><div class="colony-card-chips"><span style="font-size:0.62rem;color:var(--muted);margin-right:4px">PRODUCING</span>${producing}</div>${stored?`<div class="colony-card-chips"><span style="font-size:0.62rem;color:var(--muted);margin-right:4px">STORED</span>${stored}</div>`:''}${barHtml}${idle}<div class="colony-card-isk" style="margin-top:6px"><span title="Stored"><i class="fas fa-boxes-stacked"></i> ${formatISK(val.storedValue)}</span><span><i class="fas fa-industry"></i> ${formatISK(val.extractPerDay)}/d</span><span><i class="fas fa-flask"></i> ${formatISK(val.factoryPerDay)}/d</span></div></div>`;
         });
     });
@@ -1818,6 +1821,8 @@ function updateColonyIdleFilterCount(colonies) {
     if (!cntEl) return;
     const idleCount = (colonies || []).filter(c => {
         const a = analyseColonyCached(c);
+        const allExp = a.extractors && a.extractors.length && a.extractors.every(e=>e.expired);
+        if (allExp) return false;
         return (a.idleDetails && a.idleDetails.length) || a.idle.factories || a.idle.extractors;
     }).length;
     cntEl.textContent = idleCount ? `${idleCount} idle` : '';
@@ -2036,15 +2041,16 @@ function colonyInsightHtml(analysis, val) {
         </div>`;
     }
 
-    // Idle warnings (enhanced with per-reason)
+    // Idle warnings (enhanced with per-reason) — suppress when colony fully expired (extractors all EXPIRED)
+    const allExpired = (analysis.extractors && analysis.extractors.length && analysis.extractors.every(e=>e.expired));
     const warns = [];
     if (analysis.idle.extractors) warns.push(`${analysis.idle.extractors} idle extractor${analysis.idle.extractors === 1 ? '' : 's'}`);
-    if (analysis.idleDetails && analysis.idleDetails.length) {
+    if (!allExpired && analysis.idleDetails && analysis.idleDetails.length) {
         const noSchem = analysis.idleDetails.filter(d => d.reason === 'no schematic').length;
         const noRoute = analysis.idleDetails.filter(d => d.reason === 'no input route').length;
         if (noSchem) warns.push(`${noSchem} no schematic`);
         if (noRoute) warns.push(`${noRoute} no input route`);
-    } else if (analysis.idle.factories) warns.push(`${analysis.idle.factories} idle factor${analysis.idle.factories === 1 ? 'y' : 'ies'}`);
+    } else if (!allExpired && analysis.idle.factories) warns.push(`${analysis.idle.factories} idle factor${analysis.idle.factories === 1 ? 'y' : 'ies'}`);
     if (warns.length) html += `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${escapeHtml(warns.join(' · '))}</div>`;
 
     return html;
