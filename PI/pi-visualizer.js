@@ -64,7 +64,8 @@ const AppState = {
         bestProductId: null,    // #1 by Jita profit
         bestStats: null,        // {profit, margin, profitLocal, marginLocal} for the banner
         localRegionName: '',    // comparison region shown on next-best cards
-        locationAuthNeeded: false // stale login lacks the location scope
+        locationAuthNeeded: false, // stale login lacks the location scope
+        searchTerm: '' // filter the build-spot list by system name
     },
     finderCards: [],             // canvas hit areas for the finder view
     systemData: null,            // last System Checker result {system, planetTypes, skyhookTotals, counts, producibleP2/P3/P4}
@@ -178,6 +179,7 @@ const elements = {
     finderGrid: document.getElementById('finderGrid'),
     finderEmpty: document.getElementById('finderEmpty'),
     finderMore: document.getElementById('finderMore'),
+    finderSystemSearch: document.getElementById('finderSystemSearch'),
     finderNextBest: document.getElementById('finderNextBest'),
     finderNextBestGrid: document.getElementById('finderNextBestGrid'),
     finderKicker: document.getElementById('finderKicker'),
@@ -5528,6 +5530,8 @@ function setFinderStatus(el, message) {
 }
 
 async function runFindBestSystems() {
+    AppState.finder.searchTerm = '';
+    if (elements.finderSystemSearch) elements.finderSystemSearch.value = '';
     setFinderStatus(elements.finderSpotResults, '');
 
     if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
@@ -5589,6 +5593,8 @@ function renderFinderSpotResults() {
 const FINDER_STANDARD_REGION = '10000002';
 
 async function runProfitScan() {
+    AppState.finder.searchTerm = '';
+    if (elements.finderSystemSearch) elements.finderSystemSearch.value = '';
     setFinderStatus(elements.finderProfitResults, '');
     elements.finderProgress.classList.add('hidden');
 
@@ -5768,6 +5774,17 @@ function drawFinderPrompt(title, sub1, sub2) {
 }
 
 // ---------- Finder DOM View (mock layout, RustyBot style) ----------
+// Build-spot plans filtered by the system-search box (top-right of Finder).
+function finderFilteredRows() {
+    const f = AppState.finder;
+    const term = (f.searchTerm || '').trim().toLowerCase();
+    if (!term) return f.spotRows || [];
+    return (f.spotRows || []).filter(g =>
+        g.systems.some(s => s.sys && s.sys.name && s.sys.name.toLowerCase().includes(term)) ||
+        (f.spotProductName && f.spotProductName.toLowerCase().includes(term))
+    );
+}
+
 function renderFinderDom() {
     const f = AppState.finder;
     const dom = elements.finderDom || document.getElementById('finderDom');
@@ -5868,15 +5885,19 @@ function renderFinderDom() {
 
     const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined' && f.originSystemId) ? PI_SYSTEMS[f.originSystemId] : null;
     const originName = originSys ? originSys.name : 'origin';
-    const rowsAll = f.spotRows.slice(0, FINDER_MAX_ROWS);
-    subEl.textContent = rowsAll.length + ' system' + (rowsAll.length === 1 ? '' : 's') + ' within ' + getFinderRadius() + 'j of ' + originName + ' \u2022 covering every required raw material \u2022 click cards for details';
+    const term = (f.searchTerm || '').trim();
+    const rowsAll = finderFilteredRows().slice(0, FINDER_MAX_ROWS);
+    const total = f.spotRows.length;
+    const shown = rowsAll.length;
+    subEl.textContent = shown + (term ? ' of ' + total + ' match' : (total === 1 ? ' system' : ' systems')) +
+        ' within ' + getFinderRadius() + 'j of ' + originName + ' \u2022 covering every required raw material \u2022 click cards for details';
 
     const rows = rowsAll;
     gridEl.className = 'finder-grid grid';
 
     if (!rows.length) {
         gridEl.innerHTML = '';
-        if (emptyEl) emptyEl.textContent = '';
+        if (emptyEl) emptyEl.textContent = term ? 'No systems match "' + term + '"' : '';
         if (moreEl) moreEl.textContent = '';
     } else {
         if (emptyEl) emptyEl.textContent = '';
@@ -5927,8 +5948,12 @@ function renderFinderDom() {
             });
         } catch (e) { /* stub DOM in tests */ }
         if (moreEl) {
-            const remaining = f.spotRows.length - rowsAll.length;
-            moreEl.textContent = remaining > 0 ? '...and ' + remaining + ' more plans within radius \u2014 narrow the radius or filters' : '';
+            const remaining = total - rowsAll.length;
+            moreEl.textContent = remaining > 0
+                ? (term
+                    ? '...and ' + remaining + ' more match — refine your search'
+                    : '...and ' + remaining + ' more plans within radius \u2014 narrow the radius or filters')
+                : '';
         }
     }
 
@@ -6074,7 +6099,7 @@ function groupKey(group) {
 }
 
 function drawFinderSpotCards() {
-    const rows = AppState.finder.spotRows.slice(0, FINDER_MAX_ROWS);
+    const rows = finderFilteredRows().slice(0, FINDER_MAX_ROWS);
     const offsetY = AppState.canvasOffset.y;
     const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined')
         ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
@@ -6539,6 +6564,12 @@ function setupFinder() {
         if (e.key === 'Enter') finderSetManualOrigin();
     });
     elements.finderSearchSpot.addEventListener('click', runFindBestSystems);
+    if (elements.finderSystemSearch) {
+        elements.finderSystemSearch.addEventListener('input', () => {
+            AppState.finder.searchTerm = elements.finderSystemSearch.value || '';
+            if (AppState.viewMode === 'finder') renderFinderDom();
+        });
+    }
     elements.finderScanProfit.addEventListener('click', runProfitScan);
 
     elements.finderSecFilter.addEventListener('click', (e) => {

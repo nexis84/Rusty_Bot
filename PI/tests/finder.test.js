@@ -88,7 +88,7 @@ const code = files.map(f => fs.readFileSync(path.join(PI_DIR, f), 'utf8')).join(
     + '\n;globalThis.__test = { AppState, finderBFS, computeProducible, chainProfitMath,' +
       ' findSystemByName, secBandOf, activeSecBands, getFinderRadius, getFinderMaxSystems,' +
       ' sortFinderSpotRows, getRequiredPlanetTypes, getRequiredP0, systemExtractableP0, renderFinderSpotResults, drawFinderView,' +
-      ' finderCardAt, buildSpotGroups, drawNextBestCards,' +
+      ' finderCardAt, buildSpotGroups, drawNextBestCards, finderFilteredRows,' +
       ' getMaterialsByTier, getMaterialById, getChainForProduct, collectMaterialIds };';
 vm.runInContext(code, sandbox, { filename: 'combined-pi.js' });
 const T = sandbox.__test;
@@ -472,6 +472,31 @@ let totalFail = 0;
     const sysP0 = T.systemExtractableP0(vm.runInContext('PI_SYSTEMS["30003165"]', sandbox));
     if (!T.computeProducible(sysP0).p2.has(9830)) { f++; console.error('[reg-7pj38] FAIL: System Checker disagrees'); }
     console.log('[reg-7pj38] 7P-J38 single-system Rocket Fuel' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+// ---- 15) System-search filter on build-spot list ----
+{
+    let f = 0;
+    const rows = [
+        { systems: [{ sys: { id: 1, name: '7P-J38' } }] },
+        { systems: [{ sys: { id: 2, name: 'O4T-Z5' } }] },
+        { systems: [{ sys: { id: 3, name: 'Jita' } }] }
+    ];
+    T.AppState.finder.spotRows = rows;
+    T.AppState.finder.spotProductName = 'Rocket Fuel';
+    T.AppState.finder.searchTerm = '';
+    if (T.finderFilteredRows().length !== 3) { f++; console.error('[filter] FAIL: empty term should return all'); }
+    T.AppState.finder.searchTerm = '7p';
+    const filt = T.finderFilteredRows();
+    if (filt.length !== 1 || filt[0].systems[0].sys.name !== '7P-J38') { f++; console.error('[filter] FAIL: "7p" should match 7P-J38 only, got ' + filt.map(g => g.systems[0].sys.name)); }
+    T.AppState.finder.searchTerm = 'Z5';
+    const filt2 = T.finderFilteredRows();
+    if (filt2.length !== 1 || filt2[0].systems[0].sys.name !== 'O4T-Z5') { f++; console.error('[filter] FAIL: "Z5" should match O4T-Z5, got ' + filt2.map(g => g.systems[0].sys.name)); }
+    T.AppState.finder.searchTerm = 'rocket';
+    if (T.finderFilteredRows().length !== 3) { f++; console.error('[filter] FAIL: product-name term should match all'); }
+    T.AppState.finder.searchTerm = '';
+    console.log('[filter] system-name filter' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 

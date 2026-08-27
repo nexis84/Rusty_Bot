@@ -1796,6 +1796,15 @@ body {
     z-index: 2;
 }
 .finder-dom.hidden { display: none !important; }
+.finder-search-wrap {
+    position: absolute; top: 8px; right: 14px; z-index: 5;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(18,18,18,0.92); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 4px 8px;
+}
+.finder-search-wrap i { color: var(--muted); font-size: 0.8rem; }
+.finder-search-input { background: transparent; border: none; outline: none; color: var(--text); font-size: 0.8rem; width: 150px; }
+.finder-search-input::placeholder { color: var(--muted); }
 .finder-dom-inner {
     flex: 1;
     overflow-y: auto;
