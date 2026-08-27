@@ -2332,11 +2332,17 @@ function draw() {
         return;
     }
 
+    // Colony detail (info page) is screen-space, not world-space
+    if (AppState.viewMode === 'colonies' && AppState.colonyDetail && !layoutWorld) {
+        drawColonyDetail(AppState.colonyDetail);
+        return;
+    }
+
     ctx.save();
     ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
     ctx.scale(AppState.zoom, AppState.zoom);
 
-    if (AppState.viewMode === 'colonies') {
+    if (AppState.viewMode === 'colonies' && layoutWorld) {
         drawColonyLayout(AppState.colonyDetail);
     } else if (AppState.viewMode === 'chain' && AppState.chainLayout) {
         drawChain();

@@ -344,7 +344,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '61';
+        window.PI_ASSET_VERSION = '62';
 
         (function loadPiScripts() {
             function load(src, onok) {
