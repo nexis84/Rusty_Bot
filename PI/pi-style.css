@@ -1131,8 +1131,6 @@ body {
 .colony-eta{ font-size:0.6rem; color:var(--muted); margin-top:1px; }
 .colony-eta.warn{ color:#fbbf24; }
 .colony-eta.full{ color:#f87171; }
-.finder-share-row{ display:flex; gap:0.4rem; }
-.finder-share-row .calc-btn{ flex:1; }
 
 /* Template Builder (disabled until reworked) */
 

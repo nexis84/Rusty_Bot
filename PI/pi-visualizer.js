@@ -49,7 +49,6 @@ const AppState = {
     pointerDown: null,
     pointerId: null,
     jumpsLoaded: false,
-    _pendingFinderOrigin: null,
     finder: {
         originSystemId: null,   // resolved starting system for searches
         originSource: null,     // 'esi' | 'manual'
@@ -154,9 +153,6 @@ const elements = {
     finderNextBest: document.getElementById('finderNextBest'),
     finderNextBestGrid: document.getElementById('finderNextBestGrid'),
     finderKicker: document.getElementById('finderKicker'),
-    finderCopyLink: document.getElementById('finderCopyLink'),
-    finderCopyDotlan: document.getElementById('finderCopyDotlan'),
-    finderShareStatus: document.getElementById('finderShareStatus'),
     colonyTimeline: document.getElementById('colonyTimeline'),
     coloniesTimelineMain: document.getElementById('coloniesTimelineMain'),
     colonySkillBanner: document.getElementById('colonySkillBanner'),
@@ -338,9 +334,6 @@ function init() {
     if (!elements.colonySkillBanner) elements.colonySkillBanner = document.getElementById('colonySkillBanner');
     if (!elements.colonyIdleFilter) elements.colonyIdleFilter = document.getElementById('colonyIdleFilter');
     if (!elements.colonyFilterCount) elements.colonyFilterCount = document.getElementById('colonyFilterCount');
-    if (!elements.finderCopyLink) elements.finderCopyLink = document.getElementById('finderCopyLink');
-    if (!elements.finderCopyDotlan) elements.finderCopyDotlan = document.getElementById('finderCopyDotlan');
-    if (!elements.finderShareStatus) elements.finderShareStatus = document.getElementById('finderShareStatus');
     console.log('Init complete');
 }
 
@@ -4267,68 +4260,9 @@ function setViewMode(mode) {
     draw();
 }
 
-// ---------- Finder share helpers ----------
-function buildFinderShareHash() {
-    const p = new URLSearchParams();
-    p.set('view', 'finder');
-    if (AppState.targetProduct) p.set('product', AppState.targetProduct);
-    if (AppState.finder.originSystemId) {
-        const sys = (typeof PI_SYSTEMS !== 'undefined' && PI_SYSTEMS[AppState.finder.originSystemId]) ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
-        p.set('origin', sys ? sys.name : String(AppState.finder.originSystemId));
-    }
-    if (elements.finderJumps) p.set('jumps', String(getFinderRadius()));
-    if (elements.finderMaxSystems) p.set('maxSys', String(getFinderMaxSystems()));
-    const bands = [...activeSecBands()].sort().join(',');
-    if (bands) p.set('sec', bands);
-    return '#' + p.toString();
-}
-function finderShareUrl() {
-    return window.location.origin + window.location.pathname + buildFinderShareHash();
-}
-function dotlanUrlForFinderGroup(group) {
-    if (!group || !group.systems) return null;
-    const names = group.systems.map(s => s.sys.name);
-    if (!names.length) return null;
-    return 'https://evemaps.dotlan.net/route/' + names.map(n => encodeURIComponent(n)).join(':');
-}
-function dotlanUrlForBestFinder() {
-    const rows = AppState.finder.spotRows;
-    if (!rows || !rows.length) return null;
-    // Use expanded or first row for dotlan
-    const key = AppState.finder.expandedSpot;
-    let grp = null;
-    if (key) grp = rows.find(r => groupKey(r) === key);
-    if (!grp) grp = rows[0];
-    return dotlanUrlForFinderGroup(grp);
-}
-function setupFinderShareButtons() {
-    const copyLinkEl = elements.finderCopyLink || document.getElementById('finderCopyLink');
-    const copyDotlanEl = elements.finderCopyDotlan || document.getElementById('finderCopyDotlan');
-    const statusEl = elements.finderShareStatus || document.getElementById('finderShareStatus');
-    if (copyLinkEl && !elements.finderCopyLink) elements.finderCopyLink = copyLinkEl;
-    if (copyDotlanEl && !elements.finderCopyDotlan) elements.finderCopyDotlan = copyDotlanEl;
-    if (statusEl && !elements.finderShareStatus) elements.finderShareStatus = statusEl;
-    if (copyLinkEl) {
-        copyLinkEl.addEventListener('click', async () => {
-            const url = finderShareUrl();
-            try { await navigator.clipboard.writeText(url); } catch (_) { prompt('Copy link:', url); return; }
-            if (statusEl) { statusEl.textContent = 'Link copied!'; setTimeout(()=>{if(statusEl.textContent==='Link copied!') statusEl.textContent='';},2500); }
-            try { window.history.replaceState(null,'',buildFinderShareHash()); } catch (_) {}
-        });
-    }
-    if (copyDotlanEl) {
-        copyDotlanEl.addEventListener('click', async () => {
-            const url = dotlanUrlForBestFinder();
-            if (!url) { if(statusEl) statusEl.textContent='No route yet — run Finder first'; return; }
-            try { await navigator.clipboard.writeText(url); } catch (_) { prompt('Copy Dotlan:', url); return; }
-            if (statusEl) { statusEl.textContent='Dotlan link copied!'; setTimeout(()=>{if(statusEl.textContent==='Dotlan link copied!') statusEl.textContent='';},2500); }
-        });
-    }
-}
-
 // ---------- Shareable URL state ----------
 // Encodes the current view/product in the hash (e.g. #view=chain&product=2286)
-// so chains can be bookmarked and shared. Finder adds origin/jumps/maxSys/sec.
+// so chains can be bookmarked and shared.
 function updateUrlState() {
     try {
         const params = new URLSearchParams();
@@ -4337,16 +4271,6 @@ function updateUrlState() {
         if (AppState.viewMode === 'colonies' && AppState.colonyDetail) {
             params.set('colony', AppState.colonyDetail.planet_id);
             if (AppState.layoutMode) params.set('layout', '1');
-        }
-        if (AppState.viewMode === 'finder') {
-            if (AppState.finder.originSystemId) {
-                const sys = (typeof PI_SYSTEMS !== 'undefined' && PI_SYSTEMS[AppState.finder.originSystemId]) ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
-                params.set('origin', sys ? sys.name : String(AppState.finder.originSystemId));
-            }
-            params.set('jumps', String(getFinderRadius()));
-            params.set('maxSys', String(getFinderMaxSystems()));
-            const bands = [...activeSecBands()].sort().join(',');
-            if (bands) params.set('sec', bands);
         }
         const hash = '#' + params.toString();
         if (window.location.hash !== hash) {
@@ -4367,28 +4291,6 @@ function restoreFromUrl() {
             if (elements.chainProductSelect) elements.chainProductSelect.value = String(product);
             AppState.targetProduct = product;
             // Defer layout until after view is set so fitChainView centers correctly
-        }
-        // Finder params for later async restore
-        const finderOriginRaw = params.get('origin');
-        const finderJumpsRaw = params.get('jumps');
-        const finderMaxSysRaw = params.get('maxSys');
-        const finderSecRaw = params.get('sec');
-        if (finderJumpsRaw && elements.finderJumps) {
-            const j = parseInt(finderJumpsRaw,10); if (isFinite(j)) elements.finderJumps.value = String(Math.min(50,Math.max(1,j)));
-        }
-        if (finderMaxSysRaw && elements.finderMaxSystems) {
-            const m = parseInt(finderMaxSysRaw,10); if (isFinite(m)) elements.finderMaxSystems.value = String(Math.min(6,Math.max(1,m)));
-        }
-        if (finderSecRaw && elements.finderSecFilter) {
-            const wanted = new Set(finderSecRaw.split(',').map(s=>s.trim()).filter(Boolean));
-            if (wanted.size) {
-                elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => {
-                    c.classList.toggle('active', wanted.has(c.dataset.sec));
-                });
-                if (!elements.finderSecFilter.querySelector('.sec-chip.active')) {
-                    elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
-                }
-            }
         }
         if (view === 'planets') {
             // Planets is now a sub-view inside Reference.
@@ -4415,23 +4317,6 @@ function restoreFromUrl() {
         if (view === 'colonies' && colony) {
             AppState.pendingColonyId = colony;
             AppState.pendingLayoutMode = params.get('layout') === '1';
-        }
-        // Finder origin deep link: resolve after systems load
-        if (finderOriginRaw) {
-            AppState._pendingFinderOrigin = finderOriginRaw;
-            // defer resolve until systems ready; also trigger if already loaded
-            const tryResolve = () => {
-                const name = AppState._pendingFinderOrigin;
-                if (!name) return;
-                const sys = findSystemByName(name) || (typeof PI_SYSTEMS !== 'undefined' && PI_SYSTEMS[name] ? PI_SYSTEMS[name] : null);
-                if (sys) {
-                    setFinderOrigin(sys.id, 'manual');
-                    AppState._pendingFinderOrigin = null;
-                    updateUrlState();
-                }
-            };
-            if (AppState.systemsLoaded) tryResolve();
-            else ensureSystemsLoaded().then(ok => { if (ok) tryResolve(); });
         }
     } catch (e) { /* ignore malformed hash */ }
 }
@@ -4809,7 +4694,6 @@ function setFinderOrigin(systemId, source) {
     const region = sys ? (PI_DATA.regions[sys.regionId] || '') : '';
     elements.finderOriginLabel.textContent = prefix + (sys ? sys.name : systemId) +
         (region ? ` (${region})` : '');
-    updateUrlState();
 }
 
 // True when the stored login's JWT carries the location scope. Logins made
@@ -5887,12 +5771,8 @@ function setupFinder() {
         if (!elements.finderSecFilter.querySelector('.sec-chip.active')) {
             elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
         }
-        if (AppState.viewMode === 'finder') updateUrlState();
     });
-    setupFinderShareButtons();
-    // keep URL in sync when jumps/maxSys change
-    if (elements.finderJumps) elements.finderJumps.addEventListener('change', () => { if (AppState.viewMode==='finder') updateUrlState(); });
-    if (elements.finderMaxSystems) elements.finderMaxSystems.addEventListener('change', () => { if (AppState.viewMode==='finder') updateUrlState(); });
+
 }
 
 // ---------- Utility ----------

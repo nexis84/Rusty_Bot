@@ -191,14 +191,6 @@
                         </button>
                         <div id="finderSpotResults" class="finder-status"></div>
                     </div>
-                    <div class="finder-section" id="finderShareSection">
-                        <h4><i class="fas fa-share-alt"></i> Share</h4>
-                        <div class="finder-share-row">
-                            <button id="finderCopyLink" class="calc-btn secondary" title="Copy shareable Finder link"><i class="fas fa-link"></i> Copy Link</button>
-                            <button id="finderCopyDotlan" class="calc-btn secondary" title="Copy Dotlan route for best plan"><i class="fas fa-route"></i> Dotlan</button>
-                        </div>
-                        <div id="finderShareStatus" class="finder-status"></div>
-                    </div>
                     </div>
                 </div>
 
@@ -330,7 +322,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '52';
+        window.PI_ASSET_VERSION = '53';
 
         (function loadPiScripts() {
             function load(src, onok) {
