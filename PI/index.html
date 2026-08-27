@@ -460,18 +460,6 @@
                             </ol>
                         </div>
 
-                        <div class="welcome-sidebar-preview">
-                            <h3><i class="fas fa-columns"></i> Sidebar — where the tools live</h3>
-                            <p class="hint">The left sidebar (like all other pages) holds the controls. On Welcome you can jump anywhere — the same tabs are available in the bottom toolbar too.</p>
-                            <div class="welcome-sidebar-chips">
-                                <span><i class="fas fa-project-diagram"></i> Chain — pick a product</span>
-                                <span><i class="fas fa-search"></i> System — type a name</span>
-                                <span><i class="fas fa-globe"></i> Colonies — SSO login</span>
-                                <span><i class="fas fa-location-arrow"></i> Finder — origin &amp; radius</span>
-                                <span><i class="fas fa-book"></i> Ref — Materials / Planets</span>
-                            </div>
-                        </div>
-
                         <div class="welcome-tips">
                             <h3><i class="fas fa-lightbulb"></i> Tips</h3>
                             <ul>
@@ -564,7 +552,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '73';
+        window.PI_ASSET_VERSION = '74';
 
         (function loadPiScripts() {
             function load(src, onok) {
