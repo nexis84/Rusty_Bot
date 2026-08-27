@@ -3980,6 +3980,10 @@ function setViewMode(mode) {
     const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 
+    // Hide the bottom canvas help pill in Finder (it was the clipped bar at screen bottom)
+    const canvasHelp = document.querySelector('.canvas-help');
+    if (canvasHelp) canvasHelp.classList.toggle('hidden', mode === 'finder');
+
     // Finder DOM overlay: show grid report instead of stretched canvas
     const isFinderView = mode === 'finder';
     const finderDom = document.getElementById('finderDom');
