@@ -34,6 +34,8 @@ const AppState = {
     colonyDetail: null,
     colonyCards: [],
     colonyPrices: {},
+    colonySkills: null,     // { consolidation, ccUpgrades, fetchedAt } or null
+    colonyIdleOnly: false,
     layoutMode: false,      // colony detail: show planet layout map instead of details
     layoutSel: null,        // selected pin id in layout view
     layoutHover: null,      // hovered pin id in layout view (shows breakdown)
@@ -47,6 +49,7 @@ const AppState = {
     pointerDown: null,
     pointerId: null,
     jumpsLoaded: false,
+    _pendingFinderOrigin: null,
     finder: {
         originSystemId: null,   // resolved starting system for searches
         originSource: null,     // 'esi' | 'manual'
@@ -150,7 +153,14 @@ const elements = {
     finderMore: document.getElementById('finderMore'),
     finderNextBest: document.getElementById('finderNextBest'),
     finderNextBestGrid: document.getElementById('finderNextBestGrid'),
-    finderKicker: document.getElementById('finderKicker')
+    finderKicker: document.getElementById('finderKicker'),
+    finderCopyLink: document.getElementById('finderCopyLink'),
+    finderCopyDotlan: document.getElementById('finderCopyDotlan'),
+    finderShareStatus: document.getElementById('finderShareStatus'),
+    colonyTimeline: document.getElementById('colonyTimeline'),
+    colonySkillBanner: document.getElementById('colonySkillBanner'),
+    colonyIdleFilter: document.getElementById('colonyIdleFilter'),
+    colonyFilterCount: document.getElementById('colonyFilterCount')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -963,6 +973,15 @@ function setupColonies() {
             showColoniesLoggedOut();
         });
     }
+    const idleEl = elements.colonyIdleFilter || document.getElementById('colonyIdleFilter');
+    if (idleEl) {
+        if (!elements.colonyIdleFilter) elements.colonyIdleFilter = idleEl;
+        idleEl.addEventListener('change', (e) => {
+            AppState.colonyIdleOnly = !!e.target.checked;
+            if (AppState.colonies) renderColonies(AppState.colonies, AppState.systemsLoaded);
+            if (AppState.viewMode === 'colonies') draw();
+        });
+    }
 }
 
 function refreshColoniesAuthState() {
@@ -1044,6 +1063,7 @@ async function loadColonies() {
         renderColonies(detailed, systemsLoaded);
         if (AppState.viewMode === 'colonies') draw();
         ensureColonyPrices();
+        ensureColonySkills().then(() => { if (AppState.colonies) renderColonies(AppState.colonies, AppState.systemsLoaded); });
 
         // Colony deep link: open the requested colony once data is in
         if (AppState.pendingColonyId) {
@@ -1218,7 +1238,60 @@ function storagePinInfo(pin) {
         if (!mat || mat.volume === undefined) return; // unknown volume: ignore, never warn on it
         used += c.amount * mat.volume;
     });
-    return { kind, typeId: pin.type_id, used, capacity: PIN_CAPACITY[pin.type_id], fill: used / PIN_CAPACITY[pin.type_id] };
+    return { kind, typeId: pin.type_id, pinId: pin.pin_id, used, capacity: PIN_CAPACITY[pin.type_id], fill: used / PIN_CAPACITY[pin.type_id] };
+}
+
+// Days until a storage pin fills, based on inbound route volume per day.
+// Returns Infinity if no inflow, 0 if already full.
+function storageEtaDays(sp, detail, analysis) {
+    if (!sp || sp.fill >= 1) return 0;
+    if (!detail || !Array.isArray(detail.routes)) return Infinity;
+    const inbound = detail.routes.filter(r => r.destination_pin_id === sp.pinId);
+    if (!inbound.length) return Infinity;
+    let m3PerDay = 0;
+    // Route quantity is amount moved; volume derived via material volume (m3 per unit).
+    // Factories cycleTime gives per-day throughput as fallback when route qty missing.
+    inbound.forEach(r => {
+        if (r.quantity && r.content_type_id) {
+            const mat = getMaterialById(r.content_type_id);
+            if (mat && mat.volume !== undefined) m3PerDay += r.quantity * mat.volume;
+        }
+    });
+    // Fallback: factory output per day routing to this pin (when routes have no qty yet)
+    if (m3PerDay === 0 && analysis && analysis.factories) {
+        // approximate via factory per-day m3 if route exists but qty zero
+        analysis.factories.forEach(f => {
+            const mat = getMaterialById(f.outputId);
+            if (!mat || mat.volume === undefined || !f.cycleTime) return;
+            // check if this factory routes to this pin at all
+            const hasRoute = inbound.some(r => r.source_pin_id === f.pinId);
+            if (hasRoute) m3PerDay += (f.outputQty / f.cycleTime) * 86400 * mat.volume;
+        });
+    }
+    if (m3PerDay <= 0) return Infinity;
+    const remain = sp.capacity - sp.used;
+    return remain / m3PerDay;
+}
+function formatEtaDays(d) {
+    if (!isFinite(d) || d === Infinity) return '';
+    if (d < 0.05) return 'hours';
+    if (d < 1) return Math.ceil(d * 24) + 'h';
+    if (d < 7) return d.toFixed(1) + 'd';
+    return Math.round(d) + 'd';
+}
+
+// Idle factory details: pinIds that are idle and why
+function getIdleFactoryDetails(detail) {
+    if (!detail || !Array.isArray(detail.pins)) return [];
+    const routesByDest = new Set((detail.routes || []).map(r => r.destination_pin_id));
+    const out = [];
+    detail.pins.forEach(pin => {
+        if (!PROCESSOR_TYPES.has(pin.type_id)) return;
+        const sched = pin.factory_details && pin.factory_details.schematic_id;
+        if (!sched) { out.push({ pinId: pin.pin_id, reason: 'no schematic' }); return; }
+        if (!routesByDest.has(pin.pin_id)) { out.push({ pinId: pin.pin_id, reason: 'no input route' }); }
+    });
+    return out;
 }
 
 function analyseColony(detail, level, radiusKm) {
@@ -1370,6 +1443,8 @@ function analyseColony(detail, level, radiusKm) {
 
     storagePins.sort((a, b) => b.fill - a.fill);
     extractors.sort((a, b) => (a.expiryMs || Infinity) - (b.expiryMs || Infinity));
+    // attach ETA days per storage pin (for overflow predictor)
+    storagePins.forEach(sp => { sp.etaDays = storageEtaDays(sp, detail, { factories, extractors }); });
 
     return {
         producing: Object.values(producing),
@@ -1383,6 +1458,7 @@ function analyseColony(detail, level, radiusKm) {
         extractors,
         factories,
         idle,
+        idleDetails: getIdleFactoryDetails(detail),
         usedCpu, usedPg, capCpu, capPg
     };
 }
@@ -1404,14 +1480,31 @@ function renderColonies(colonies, systemsLoaded) {
     }
     elements.coloniesHeader.textContent = header;
 
-    if (!colonies.length) {
+    // Timeline + skill banner + idle filter UI above list
+    renderColonyTimeline(colonies);
+    renderColonySkillBanner(colonies);
+    updateColonyIdleFilterCount(colonies);
+
+    let filtered = colonies;
+    if (AppState.colonyIdleOnly) {
+        filtered = colonies.filter(c => {
+            const a = analyseColonyCached(c);
+            return (a.idleDetails && a.idleDetails.length) || a.idle.factories || a.idle.extractors;
+        });
+        if (!filtered.length) {
+            elements.coloniesList.innerHTML = '<div class="colony-item"><div class="colony-name">No idle colonies</div><div class="colony-meta">All factories have schematics and routes</div></div>';
+            return;
+        }
+    }
+
+    if (!filtered.length) {
         elements.coloniesList.innerHTML = '<div class="colony-item"><div class="colony-name">No colonies found</div><div class="colony-meta">Colonize a planet in-game to see it here</div></div>';
         return;
     }
 
     // Group by system for readability
     const bySystem = {};
-    colonies.forEach(c => {
+    filtered.forEach(c => {
         const sysId = c.solar_system_id;
         if (!bySystem[sysId]) bySystem[sysId] = [];
         bySystem[sysId].push(c);
@@ -1503,6 +1596,133 @@ function renderColonies(colonies, systemsLoaded) {
 
     elements.coloniesList.innerHTML = html;
     elements.coloniesList.insertAdjacentHTML('beforeend', '<div class="colony-disclaimer"><i class="fas fa-info-circle"></i> CPU / Powergrid values are estimated and may differ slightly from in-game.</div>');
+}
+
+// ---------- New: Timeline + Idle Filter + Skill Banner ----------
+function buildExpiryEntries(colonies) {
+    const entries = [];
+    const now = Date.now();
+    (colonies || []).forEach(c => {
+        const a = analyseColonyCached(c);
+        const pt = getPlanetTypeByNameOrId(c.planet_type);
+        const name = c._planetName || (pt ? pt.name : `Planet ${c.planet_id}`);
+        (a.extractors || []).forEach(e => {
+            if (!e.expiryMs) return;
+            const msLeft = e.expiryMs - now;
+            const expired = e.expired || msLeft <= 0;
+            const hoursLeft = msLeft / 3600000;
+            let cls = 'ok';
+            if (expired) cls = 'expired';
+            else if (hoursLeft < 24) cls = 'warn';
+            else if (hoursLeft < 72) cls = 'amber';
+            entries.push({ colony: c, extractor: e, name, cls, msLeft, expired });
+        });
+    });
+    entries.sort((a, b) => a.msLeft - b.msLeft);
+    return entries;
+}
+function renderColonyTimeline(colonies) {
+    const el = elements.colonyTimeline || document.getElementById('colonyTimeline');
+    if (!el) return;
+    if (!colonies || !colonies.length) { el.classList.add('hidden'); el.innerHTML=''; return; }
+    const entries = buildExpiryEntries(colonies);
+    if (!entries.length) { el.classList.add('hidden'); el.innerHTML=''; return; }
+    el.classList.remove('hidden');
+    const maxAbs = Math.max(...entries.map(e => Math.abs(e.msLeft)), 86400000);
+    let html = '<div class="colony-timeline"><div class="colony-timeline-header"><i class="fas fa-hourglass-half"></i> Expiry Timeline — soonest first</div>';
+    entries.slice(0, 12).forEach(e => {
+        const text = e.expired ? `EXPIRED ${formatDuration(-e.msLeft)} ago` : `ends in ${formatDuration(e.msLeft)}`;
+        const pct = e.expired ? 100 : Math.max(6, Math.min(100, 100 - (e.msLeft / (maxAbs || 1)) * 40));
+        const barCls = e.cls === 'expired' ? 'expired' : (e.cls === 'warn' ? 'warn' : 'ok');
+        const dotColor = e.cls === 'expired' ? '#f87171' : (e.cls === 'warn' ? '#fbbf24' : (e.cls === 'amber' ? '#f59e0b' : '#4ade80'));
+        html += `<div class="colony-timeline-row ${e.cls}"><span class="timeline-dot" style="background:${dotColor}"></span><span style="flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(e.name)}">${escapeHtml(e.name)}</span><span style="flex:0 0 90px">${escapeHtml(e.extractor.productName)}</span><span style="flex:1" class="timeline-bar"><span class="timeline-bar-inner ${barCls}" style="width:${pct}%"></span></span><span style="flex:0 0 90px;text-align:right">${escapeHtml(text)}</span></div>`;
+    });
+    if (entries.length > 12) html += `<div style="font-size:0.62rem;color:var(--muted);margin-top:0.25rem">+${entries.length - 12} more programs</div>`;
+    html += '</div>';
+    // Canvas Gantt strip (tiny) appended below — reuses same entries
+    html += '<canvas id="colonyGanttCanvas" width="300" height="1" style="display:none"></canvas>';
+    el.innerHTML = html;
+}
+function updateColonyIdleFilterCount(colonies) {
+    const cntEl = elements.colonyFilterCount || document.getElementById('colonyFilterCount');
+    if (!cntEl) return;
+    const idleCount = (colonies || []).filter(c => {
+        const a = analyseColonyCached(c);
+        return (a.idleDetails && a.idleDetails.length) || a.idle.factories || a.idle.extractors;
+    }).length;
+    cntEl.textContent = idleCount ? `${idleCount} idle` : '';
+}
+async function fetchColonySkills(characterId) {
+    if (!characterId) return null;
+    const cacheKey = 'pi_skills_' + characterId;
+    try {
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached && Date.now() - cached.fetchedAt < 3600000) return cached;
+        }
+    } catch (_) {}
+    try {
+        const data = await piEsiAuth.esiFetch(`/characters/${characterId}/skills/`, null, {}, 0);
+        // ESI returns { skills: [{skill_id, active_skill_level}], total_sp }
+        const byId = {};
+        (data.skills || []).forEach(s => { byId[s.skill_id] = s.active_skill_level; });
+        const result = { consolidation: byId[2495] ?? byId[2395] ?? 0, ccUpgrades: byId[2505] ?? byId[2403] ?? 0, fetchedAt: Date.now() };
+        // skill 2495 = Interplanetary Consolidation, 2505 = Command Center Upgrades (fallbacks for older IDs)
+        try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch (_) {}
+        return result;
+    } catch (e) {
+        // 403 means missing scope
+        if (/40[13]/.test(e.message)) return { needLogin: true };
+        return null;
+    }
+}
+async function ensureColonySkills() {
+    if (!piEsiAuth.isAuthenticated()) { AppState.colonySkills = null; return null; }
+    const charId = piEsiAuth.getCurrentCharacter();
+    // quick scope check without network: decode JWT
+    try {
+        const tok = await piEsiAuth.getAccessToken(charId);
+        const payload = piEsiAuth.decodeJWT(tok);
+        const scp = payload.scp || payload.scope || [];
+        const list = Array.isArray(scp) ? scp : String(scp).split(' ');
+        if (!list.includes('esi-skills.read_skills.v1')) {
+            AppState.colonySkills = { needLogin: true };
+            return AppState.colonySkills;
+        }
+    } catch (_) {}
+    const sk = await fetchColonySkills(charId);
+    AppState.colonySkills = sk;
+    return sk;
+}
+function renderColonySkillBanner(colonies) {
+    const el = elements.colonySkillBanner || document.getElementById('colonySkillBanner');
+    if (!el) return;
+    if (!colonies || !colonies.length) { el.classList.add('hidden'); el.innerHTML=''; return; }
+    const sk = AppState.colonySkills;
+    if (!sk) { el.classList.add('hidden'); el.innerHTML=''; return; }
+    if (sk.needLogin) {
+        el.className = 'colony-skill-banner need-login';
+        el.classList.remove('hidden');
+        el.innerHTML = '<i class="fas fa-user-lock"></i> Re-login to enable Skill Gate — your token lacks <code>esi-skills.read_skills.v1</code> <button id="skillRelogin" class="calc-btn secondary" style="margin-top:0.35rem;padding:0.3rem 0.6rem;font-size:0.68rem"><i class="fas fa-sign-in-alt"></i> Login again</button>';
+        const btn = document.getElementById('skillRelogin');
+        if (btn) btn.onclick = () => piEsiAuth.initiateLogin().catch(()=>{});
+        return;
+    }
+    const maxLevel = Math.max(...colonies.map(c => c.upgrade_level || 0), 0);
+    const count = colonies.length;
+    const warns = [];
+    if (maxLevel > (sk.ccUpgrades ?? 0)) warns.push(`CC Upgrades ${sk.ccUpgrades}/5 — colony needs level ${maxLevel}`);
+    if (count > ((sk.consolidation ?? 0) + 1)) warns.push(`Consolidation ${sk.consolidation}/5 — you have ${count} colonies (max ${ (sk.consolidation ?? 0)+1})`);
+    if (!warns.length) {
+        el.className = 'colony-skill-banner ok';
+        el.classList.remove('hidden');
+        el.innerHTML = `<i class="fas fa-check-circle"></i> Skills OK — CC Upgrades ${sk.ccUpgrades}/5, Consolidation ${sk.consolidation}/5`;
+    } else {
+        el.className = 'colony-skill-banner warn';
+        el.classList.remove('hidden');
+        el.innerHTML = `<i class="fas fa-triangle-exclamation"></i> Skill Gate: ${escapeHtml(warns.join(' · '))} — train or decommission`;
+    }
 }
 
 // ---------- Colony countdown / valuation helpers ----------
@@ -1646,16 +1866,21 @@ function colonyInsightHtml(analysis, val) {
         </div>`;
     }
 
-    // Idle warnings
+    // Idle warnings (enhanced with per-reason)
     const warns = [];
     if (analysis.idle.extractors) warns.push(`${analysis.idle.extractors} idle extractor${analysis.idle.extractors === 1 ? '' : 's'}`);
-    if (analysis.idle.factories) warns.push(`${analysis.idle.factories} idle factor${analysis.idle.factories === 1 ? 'y' : 'ies'}`);
+    if (analysis.idleDetails && analysis.idleDetails.length) {
+        const noSchem = analysis.idleDetails.filter(d => d.reason === 'no schematic').length;
+        const noRoute = analysis.idleDetails.filter(d => d.reason === 'no input route').length;
+        if (noSchem) warns.push(`${noSchem} no schematic`);
+        if (noRoute) warns.push(`${noRoute} no input route`);
+    } else if (analysis.idle.factories) warns.push(`${analysis.idle.factories} idle factor${analysis.idle.factories === 1 ? 'y' : 'ies'}`);
     if (warns.length) html += `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${escapeHtml(warns.join(' · '))}</div>`;
 
     return html;
 }
 
-// Sidebar storage fill block for the fullest storage pin on a colony
+// Sidebar storage fill block for the fullest storage pin on a colony (with ETA)
 function storageFillHtml(analysis) {    const sp = analysis && analysis.fullest;
     if (!sp) return '';
     const pct = Math.min(100, Math.round(sp.fill * 100));
@@ -1663,6 +1888,18 @@ function storageFillHtml(analysis) {    const sp = analysis && analysis.fullest;
     const warnText = sp.fill >= 1 ? '<span class="storage-warn-text full">FULL</span>'
         : (sp.fill >= 0.8 ? '<span class="storage-warn-text warn">nearly full</span>' : '');
     const extra = analysis.extraStorage > 0 ? `<span class="storage-extra">+${analysis.extraStorage} more</span>` : '';
+    let etaHtml = '';
+    if (sp.etaDays !== undefined && isFinite(sp.etaDays) && sp.etaDays !== Infinity) {
+        const etaStr = formatEtaDays(sp.etaDays);
+        if (sp.fill < 1 && etaStr) {
+            const etaCls = sp.etaDays < 2 ? 'warn' : '';
+            etaHtml = `<div class="colony-eta ${etaCls}"><i class="fas fa-clock"></i> ~${escapeHtml(etaStr)} until full</div>`;
+        } else if (sp.fill >= 1) {
+            etaHtml = `<div class="colony-eta full"><i class="fas fa-triangle-exclamation"></i> Storage full — will jam</div>`;
+        }
+    } else if (sp.fill >= 0.8) {
+        etaHtml = `<div class="colony-eta warn"><i class="fas fa-triangle-exclamation"></i> Inflow unknown — may jam</div>`;
+    }
     return `<div class="storage-fill">
         <div class="storage-fill-label">
             <i class="fas fa-warehouse"></i> ${PIN_KIND_NAMES[sp.kind]}
@@ -1671,6 +1908,7 @@ function storageFillHtml(analysis) {    const sp = analysis && analysis.fullest;
         </div>
         <div class="storage-fill-bar"><div class="storage-fill-bar-inner ${cls}" style="width:${pct}%"></div></div>
         <div class="storage-fill-meta">${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m&sup3;</div>
+        ${etaHtml}
     </div>`;
 }
 
@@ -4001,9 +4239,68 @@ function setViewMode(mode) {
     draw();
 }
 
+// ---------- Finder share helpers ----------
+function buildFinderShareHash() {
+    const p = new URLSearchParams();
+    p.set('view', 'finder');
+    if (AppState.targetProduct) p.set('product', AppState.targetProduct);
+    if (AppState.finder.originSystemId) {
+        const sys = (typeof PI_SYSTEMS !== 'undefined' && PI_SYSTEMS[AppState.finder.originSystemId]) ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
+        p.set('origin', sys ? sys.name : String(AppState.finder.originSystemId));
+    }
+    if (elements.finderJumps) p.set('jumps', String(getFinderRadius()));
+    if (elements.finderMaxSystems) p.set('maxSys', String(getFinderMaxSystems()));
+    const bands = [...activeSecBands()].sort().join(',');
+    if (bands) p.set('sec', bands);
+    return '#' + p.toString();
+}
+function finderShareUrl() {
+    return window.location.origin + window.location.pathname + buildFinderShareHash();
+}
+function dotlanUrlForFinderGroup(group) {
+    if (!group || !group.systems) return null;
+    const names = group.systems.map(s => s.sys.name);
+    if (!names.length) return null;
+    return 'https://evemaps.dotlan.net/route/' + names.map(n => encodeURIComponent(n)).join(':');
+}
+function dotlanUrlForBestFinder() {
+    const rows = AppState.finder.spotRows;
+    if (!rows || !rows.length) return null;
+    // Use expanded or first row for dotlan
+    const key = AppState.finder.expandedSpot;
+    let grp = null;
+    if (key) grp = rows.find(r => groupKey(r) === key);
+    if (!grp) grp = rows[0];
+    return dotlanUrlForFinderGroup(grp);
+}
+function setupFinderShareButtons() {
+    const copyLinkEl = elements.finderCopyLink || document.getElementById('finderCopyLink');
+    const copyDotlanEl = elements.finderCopyDotlan || document.getElementById('finderCopyDotlan');
+    const statusEl = elements.finderShareStatus || document.getElementById('finderShareStatus');
+    if (copyLinkEl && !elements.finderCopyLink) elements.finderCopyLink = copyLinkEl;
+    if (copyDotlanEl && !elements.finderCopyDotlan) elements.finderCopyDotlan = copyDotlanEl;
+    if (statusEl && !elements.finderShareStatus) elements.finderShareStatus = statusEl;
+    if (copyLinkEl) {
+        copyLinkEl.addEventListener('click', async () => {
+            const url = finderShareUrl();
+            try { await navigator.clipboard.writeText(url); } catch (_) { prompt('Copy link:', url); return; }
+            if (statusEl) { statusEl.textContent = 'Link copied!'; setTimeout(()=>{if(statusEl.textContent==='Link copied!') statusEl.textContent='';},2500); }
+            try { window.history.replaceState(null,'',buildFinderShareHash()); } catch (_) {}
+        });
+    }
+    if (copyDotlanEl) {
+        copyDotlanEl.addEventListener('click', async () => {
+            const url = dotlanUrlForBestFinder();
+            if (!url) { if(statusEl) statusEl.textContent='No route yet — run Finder first'; return; }
+            try { await navigator.clipboard.writeText(url); } catch (_) { prompt('Copy Dotlan:', url); return; }
+            if (statusEl) { statusEl.textContent='Dotlan link copied!'; setTimeout(()=>{if(statusEl.textContent==='Dotlan link copied!') statusEl.textContent='';},2500); }
+        });
+    }
+}
+
 // ---------- Shareable URL state ----------
 // Encodes the current view/product in the hash (e.g. #view=chain&product=2286)
-// so chains can be bookmarked and shared.
+// so chains can be bookmarked and shared. Finder adds origin/jumps/maxSys/sec.
 function updateUrlState() {
     try {
         const params = new URLSearchParams();
@@ -4012,6 +4309,16 @@ function updateUrlState() {
         if (AppState.viewMode === 'colonies' && AppState.colonyDetail) {
             params.set('colony', AppState.colonyDetail.planet_id);
             if (AppState.layoutMode) params.set('layout', '1');
+        }
+        if (AppState.viewMode === 'finder') {
+            if (AppState.finder.originSystemId) {
+                const sys = (typeof PI_SYSTEMS !== 'undefined' && PI_SYSTEMS[AppState.finder.originSystemId]) ? PI_SYSTEMS[AppState.finder.originSystemId] : null;
+                params.set('origin', sys ? sys.name : String(AppState.finder.originSystemId));
+            }
+            params.set('jumps', String(getFinderRadius()));
+            params.set('maxSys', String(getFinderMaxSystems()));
+            const bands = [...activeSecBands()].sort().join(',');
+            if (bands) params.set('sec', bands);
         }
         const hash = '#' + params.toString();
         if (window.location.hash !== hash) {
@@ -4032,6 +4339,28 @@ function restoreFromUrl() {
             if (elements.chainProductSelect) elements.chainProductSelect.value = String(product);
             AppState.targetProduct = product;
             // Defer layout until after view is set so fitChainView centers correctly
+        }
+        // Finder params for later async restore
+        const finderOriginRaw = params.get('origin');
+        const finderJumpsRaw = params.get('jumps');
+        const finderMaxSysRaw = params.get('maxSys');
+        const finderSecRaw = params.get('sec');
+        if (finderJumpsRaw && elements.finderJumps) {
+            const j = parseInt(finderJumpsRaw,10); if (isFinite(j)) elements.finderJumps.value = String(Math.min(50,Math.max(1,j)));
+        }
+        if (finderMaxSysRaw && elements.finderMaxSystems) {
+            const m = parseInt(finderMaxSysRaw,10); if (isFinite(m)) elements.finderMaxSystems.value = String(Math.min(6,Math.max(1,m)));
+        }
+        if (finderSecRaw && elements.finderSecFilter) {
+            const wanted = new Set(finderSecRaw.split(',').map(s=>s.trim()).filter(Boolean));
+            if (wanted.size) {
+                elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => {
+                    c.classList.toggle('active', wanted.has(c.dataset.sec));
+                });
+                if (!elements.finderSecFilter.querySelector('.sec-chip.active')) {
+                    elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
+                }
+            }
         }
         if (view === 'planets') {
             // Planets is now a sub-view inside Reference.
@@ -4058,6 +4387,23 @@ function restoreFromUrl() {
         if (view === 'colonies' && colony) {
             AppState.pendingColonyId = colony;
             AppState.pendingLayoutMode = params.get('layout') === '1';
+        }
+        // Finder origin deep link: resolve after systems load
+        if (finderOriginRaw) {
+            AppState._pendingFinderOrigin = finderOriginRaw;
+            // defer resolve until systems ready; also trigger if already loaded
+            const tryResolve = () => {
+                const name = AppState._pendingFinderOrigin;
+                if (!name) return;
+                const sys = findSystemByName(name) || (typeof PI_SYSTEMS !== 'undefined' && PI_SYSTEMS[name] ? PI_SYSTEMS[name] : null);
+                if (sys) {
+                    setFinderOrigin(sys.id, 'manual');
+                    AppState._pendingFinderOrigin = null;
+                    updateUrlState();
+                }
+            };
+            if (AppState.systemsLoaded) tryResolve();
+            else ensureSystemsLoaded().then(ok => { if (ok) tryResolve(); });
         }
     } catch (e) { /* ignore malformed hash */ }
 }
@@ -4435,6 +4781,7 @@ function setFinderOrigin(systemId, source) {
     const region = sys ? (PI_DATA.regions[sys.regionId] || '') : '';
     elements.finderOriginLabel.textContent = prefix + (sys ? sys.name : systemId) +
         (region ? ` (${region})` : '');
+    updateUrlState();
 }
 
 // True when the stored login's JWT carries the location scope. Logins made
@@ -5512,8 +5859,12 @@ function setupFinder() {
         if (!elements.finderSecFilter.querySelector('.sec-chip.active')) {
             elements.finderSecFilter.querySelectorAll('.sec-chip').forEach(c => c.classList.add('active'));
         }
+        if (AppState.viewMode === 'finder') updateUrlState();
     });
-
+    setupFinderShareButtons();
+    // keep URL in sync when jumps/maxSys change
+    if (elements.finderJumps) elements.finderJumps.addEventListener('change', () => { if (AppState.viewMode==='finder') updateUrlState(); });
+    if (elements.finderMaxSystems) elements.finderMaxSystems.addEventListener('change', () => { if (AppState.viewMode==='finder') updateUrlState(); });
 }
 
 // ---------- Utility ----------

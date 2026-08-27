@@ -1103,6 +1103,32 @@ body {
     font-weight: 500;
 }
 
+/* Colony timeline + skill banner + idle filter */
+.colony-timeline { margin: 0.5rem 0; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem; }
+.colony-timeline-header { font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 0.35rem; display:flex; align-items:center; gap:0.3rem; }
+.colony-timeline-row { display:flex; align-items:center; gap:0.4rem; padding:0.2rem 0; font-size:0.68rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+.colony-timeline-row:last-child{ border-bottom:none; }
+.colony-timeline-row.expired{ color:#f87171; }
+.colony-timeline-row.warn{ color:#fbbf24; }
+.colony-timeline-row.ok{ color:var(--text-secondary); }
+.timeline-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.timeline-bar{ flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+.timeline-bar-inner{ height:100%; border-radius:2px; }
+.timeline-bar-inner.expired{ background:#f87171; }
+.timeline-bar-inner.warn{ background:#fbbf24; }
+.timeline-bar-inner.ok{ background:#4ade80; }
+.colony-skill-banner{ margin:0.4rem 0; padding:0.5rem 0.6rem; border-radius:6px; font-size:0.7rem; border:1px solid transparent; }
+.colony-skill-banner.warn{ background:rgba(251,191,36,0.12); border-color:rgba(251,191,36,0.35); color:#fbbf24; }
+.colony-skill-banner.ok{ background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.25); color:#4ade80; }
+.colony-skill-banner.need-login{ background:rgba(88,166,255,0.08); border-color:rgba(88,166,255,0.3); color:#58a6ff; }
+.colony-filter-row{ display:flex; align-items:center; gap:0.5rem; margin:0.35rem 0; font-size:0.68rem; color:var(--muted); }
+.colony-filter-label{ display:flex; align-items:center; gap:0.3rem; cursor:pointer; }
+.colony-eta{ font-size:0.6rem; color:var(--muted); margin-top:1px; }
+.colony-eta.warn{ color:#fbbf24; }
+.colony-eta.full{ color:#f87171; }
+.finder-share-row{ display:flex; gap:0.4rem; }
+.finder-share-row .calc-btn{ flex:1; }
+
 /* Template Builder (disabled until reworked) */
 
 /* System Checker */
