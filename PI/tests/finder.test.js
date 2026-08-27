@@ -465,6 +465,9 @@ let totalFail = 0;
     const hit = groups.find(g => g.systems.length === 1 && g.systems[0].sys.id === 30003165);
     if (!hit) { f++; console.error('[reg-7pj38] FAIL: 7P-J38 not listed as a single-system Rocket Fuel producer'); }
     else if (hit.systems[0].sys.name !== '7P-J38') { f++; console.error('[reg-7pj38] FAIL: matched wrong system ' + hit.systems[0].sys.name); }
+    // Display must surface the system's actual planet types (coloured chips).
+    const planets = hit.systems[0].planetTypes || [];
+    if (!planets.includes(2017) || !planets.includes(13)) { f++; console.error('[reg-7pj38] FAIL: planet types not surfaced for display (got ' + planets + ')'); }
     // Must agree with the System Checker's own producibility check.
     const sysP0 = T.systemExtractableP0(vm.runInContext('PI_SYSTEMS["30003165"]', sandbox));
     if (!T.computeProducible(sysP0).p2.has(9830)) { f++; console.error('[reg-7pj38] FAIL: System Checker disagrees'); }

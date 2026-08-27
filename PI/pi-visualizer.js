@@ -5888,7 +5888,7 @@ function renderFinderDom() {
             const expanded = f.expandedSpot === key;
             const sysLabel = single ? group.systems[0].sys.name : 'Split \u2022 ' + group.systems.length + ' systems';
             const primaryEntry = group.systems[0];
-            const chipsHtml = (primaryEntry.covers || []).map(tid => {
+            const chipsHtml = (primaryEntry.planetTypes || []).map(tid => {
                 const info = chipInfo(tid);
                 if (!info) return '';
                 return '<span class="finder-chip" style="background:' + info.color + '" title="' + escapeHtml(info.name) + '">' + escapeHtml(info.name) + '</span>';
@@ -6025,18 +6025,19 @@ function drawTypeChip(label, color, dim, x, y, maxW) {
 
 // Draws planet-type chips for a list of type ids, wrapped to maxW.
 // Returns total height used.
-// Resolve a chip id to a label + colour. The Finder's `covers` now stores raw
-// (P0) material ids, but hand-built rows may still carry planet-type ids, so
-// accept both.
+// Resolve a chip id to a label + colour. Finder cards display a system's
+// planet types (distinct colours), so resolve planet types first; fall back
+// to a raw-material id if one is ever passed.
 function chipInfo(tid) {
-    const m = getMaterialById(tid);
-    if (m) return { name: m.name, color: PI_COLORS[m.tier] || '#6e7681' };
     const pt = getPlanetTypeData(tid);
     if (pt) return { name: pt.name, color: pt.color };
+    const m = getMaterialById(tid);
+    if (m) return { name: m.name, color: PI_COLORS[m.tier] || '#6e7681' };
     return null;
 }
 
 function drawChips(ids, x, y, maxW) {
+    ids = ids || [];
     const gapX = 6;
     let cx = x;
     let cy = y;
@@ -6172,7 +6173,7 @@ function drawFinderSpotCards() {
         const innerW = colW - pad * 2;
         const blocks = group.systems.map(entry => ({
             entry,
-            chipsH: measureChipsHeight(entry.covers, innerW - 16)
+            chipsH: measureChipsHeight(entry.planetTypes, innerW - 16)
         }));
         let h = pad + 24 + 6;
         blocks.forEach(b => { h += 18 + b.chipsH + 6; });
@@ -6259,7 +6260,7 @@ function drawFinderSpotCards() {
             ctx.fillText(`${e.jumps}j`, x + colW - pad - 6, cy + 12);
 
             ctx.textAlign = 'left';
-            drawChips(b.entry.covers, x + pad + 16, cy + 17, innerW - 16);
+            drawChips(b.entry.planetTypes, x + pad + 16, cy + 17, innerW - 16);
             cy += 18 + b.chipsH + 6;
         });
 
@@ -6377,6 +6378,7 @@ function drawNextBestCards(x, colW, yStart) {
 
 // Height-only pass over the chip layout so cards can be sized before drawing.
 function measureChipsHeight(ids, maxW) {
+    ids = ids || [];
     const gapX = 6;
     let cx = 0;
     let cy = 0;
@@ -6409,7 +6411,7 @@ function refreshFinderAuthState() {
 // Coverage uses the SAME model as the System Checker (computeProducible over
 // the system's extractable P0 set), so the two views always agree.
 // Returns groups sorted best-first:
-//   { systems: [{sys, jumps, route, covers, sysP0}], requiredP0, totalJumps }
+//   { systems: [{sys, jumps, route, covers, sysP0, planetTypes}], requiredP0, totalJumps }
 function buildSpotGroups(productId) {
     if (!AppState.finder.originSystemId) return [];
     let bfs = AppState.finder._bfs;
@@ -6431,12 +6433,14 @@ function buildSpotGroups(productId) {
         const sysP0 = systemExtractableP0(sys);
         const covers = [...requiredP0].filter(id => sysP0.has(id));
         if (!covers.length) continue;
+        const planetTypes = [...new Set(sys.planets.map(p => p.typeId))];
         candidates.push({
             sys,
             jumps: node.jumps,
             route: finderRoutePath(Number(sysIdStr), bfs),
             covers,
-            sysP0
+            sysP0,
+            planetTypes
         });
     }
 
