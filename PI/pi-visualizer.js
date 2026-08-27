@@ -155,6 +155,15 @@ const elements = {
     finderKicker: document.getElementById('finderKicker'),
     colonyTimeline: document.getElementById('colonyTimeline'),
     coloniesTimelineMain: document.getElementById('coloniesTimelineMain'),
+    coloniesDom: document.getElementById('coloniesDom'),
+    coloniesHero: document.getElementById('coloniesHero'),
+    coloniesMetric: document.getElementById('coloniesMetric'),
+    coloniesSub: document.getElementById('coloniesSub'),
+    coloniesTimelineDom: document.getElementById('coloniesTimelineDom'),
+    coloniesGrid: document.getElementById('coloniesGrid'),
+    coloniesEmpty: document.getElementById('coloniesEmpty'),
+    coloniesMore: document.getElementById('coloniesMore'),
+    coloniesKicker: document.getElementById('coloniesKicker'),
     colonySkillBanner: document.getElementById('colonySkillBanner'),
     colonyIdleFilter: document.getElementById('colonyIdleFilter'),
     colonyFilterCount: document.getElementById('colonyFilterCount')
@@ -330,6 +339,15 @@ function init() {
     }
     // Ensure timeline elements that were null at script load (before DOM) are bound now
     if (!elements.coloniesTimelineMain) elements.coloniesTimelineMain = document.getElementById('coloniesTimelineMain');
+    if (!elements.coloniesDom) elements.coloniesDom = document.getElementById('coloniesDom');
+    if (!elements.coloniesHero) elements.coloniesHero = document.getElementById('coloniesHero');
+    if (!elements.coloniesMetric) elements.coloniesMetric = document.getElementById('coloniesMetric');
+    if (!elements.coloniesSub) elements.coloniesSub = document.getElementById('coloniesSub');
+    if (!elements.coloniesTimelineDom) elements.coloniesTimelineDom = document.getElementById('coloniesTimelineDom');
+    if (!elements.coloniesGrid) elements.coloniesGrid = document.getElementById('coloniesGrid');
+    if (!elements.coloniesEmpty) elements.coloniesEmpty = document.getElementById('coloniesEmpty');
+    if (!elements.coloniesMore) elements.coloniesMore = document.getElementById('coloniesMore');
+    if (!elements.coloniesKicker) elements.coloniesKicker = document.getElementById('coloniesKicker');
     if (!elements.colonyTimeline) elements.colonyTimeline = document.getElementById('colonyTimeline');
     if (!elements.colonySkillBanner) elements.colonySkillBanner = document.getElementById('colonySkillBanner');
     if (!elements.colonyIdleFilter) elements.colonyIdleFilter = document.getElementById('colonyIdleFilter');
@@ -1487,10 +1505,11 @@ function renderColonies(colonies, systemsLoaded) {
     }
     elements.coloniesHeader.textContent = header;
 
-    // Timeline + skill banner + idle filter UI above list
+    // Timeline (legacy hidden) + skill banner + idle filter UI + main DOM (Finder-style)
     renderColonyTimeline(colonies);
     renderColonySkillBanner(colonies);
     updateColonyIdleFilterCount(colonies);
+    renderColoniesDom(colonies, systemsLoaded);
 
     let filtered = colonies;
     if (AppState.colonyIdleOnly) {
@@ -1629,32 +1648,170 @@ function buildExpiryEntries(colonies) {
     return entries;
 }
 function renderColonyTimeline(colonies) {
-    // Main panel is the primary location; sidebar element kept for backwards compat but hidden
-    const mainEl = elements.coloniesTimelineMain || document.getElementById('coloniesTimelineMain');
+    // Legacy: #coloniesTimelineMain is now display:none (superseded by coloniesDom). Keep sidebar tidy.
     const sideEl = elements.colonyTimeline || document.getElementById('colonyTimeline');
-    // hide sidebar timeline (moved to main)
     if (sideEl) { sideEl.classList.add('hidden'); sideEl.innerHTML=''; }
-    const el = mainEl;
-    if (!el) return;
-    if (!colonies || !colonies.length) { el.classList.add('hidden'); el.innerHTML=''; return; }
-    const entries = buildExpiryEntries(colonies);
-    if (!entries.length) { el.classList.add('hidden'); el.innerHTML=''; return; }
-    el.classList.remove('hidden');
-    const maxAbs = Math.max(...entries.map(e => Math.abs(e.msLeft)), 86400000);
-    let html = '<div class="colony-timeline"><div class="colony-timeline-header"><i class="fas fa-hourglass-half"></i> Expiry Timeline — soonest first</div>';
-    entries.slice(0, 12).forEach(e => {
-        const text = e.expired ? `EXPIRED ${formatDuration(-e.msLeft)} ago` : `ends in ${formatDuration(e.msLeft)}`;
-        const pct = e.expired ? 100 : Math.max(6, Math.min(100, 100 - (e.msLeft / (maxAbs || 1)) * 40));
-        const barCls = e.cls === 'expired' ? 'expired' : (e.cls === 'warn' ? 'warn' : 'ok');
-        const dotColor = e.cls === 'expired' ? '#f87171' : (e.cls === 'warn' ? '#fbbf24' : (e.cls === 'amber' ? '#f59e0b' : '#4ade80'));
-        html += `<div class="colony-timeline-row ${e.cls}"><span class="timeline-dot" style="background:${dotColor}"></span><span style="flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(e.name)}">${escapeHtml(e.name)}</span><span style="flex:0 0 90px">${escapeHtml(e.extractor.productName)}</span><span style="flex:1" class="timeline-bar"><span class="timeline-bar-inner ${barCls}" style="width:${pct}%"></span></span><span style="flex:0 0 90px;text-align:right">${escapeHtml(text)}</span></div>`;
+    const mainEl = elements.coloniesTimelineMain || document.getElementById('coloniesTimelineMain');
+    if (mainEl) { mainEl.classList.add('hidden'); mainEl.innerHTML=''; }
+}
+
+// Finder-style colonies DOM — replaces canvas colony cards
+function renderColoniesDom(colonies, systemsLoaded) {
+    const dom = elements.coloniesDom || document.getElementById('coloniesDom');
+    const hero = elements.coloniesHero || document.getElementById('coloniesHero');
+    const metric = elements.coloniesMetric || document.getElementById('coloniesMetric');
+    const sub = elements.coloniesSub || document.getElementById('coloniesSub');
+    const kicker = elements.coloniesKicker || document.getElementById('coloniesKicker');
+    const grid = elements.coloniesGrid || document.getElementById('coloniesGrid');
+    const empty = elements.coloniesEmpty || document.getElementById('coloniesEmpty');
+    const timelineDom = elements.coloniesTimelineDom || document.getElementById('coloniesTimelineDom');
+    if (!dom || !grid) return;
+    // lazy bind
+    if (!elements.coloniesDom) elements.coloniesDom = dom;
+    if (!elements.coloniesTimelineDom) elements.coloniesTimelineDom = timelineDom;
+
+    const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
+    if (!authed) {
+        if (kicker) kicker.textContent = 'My Colonies';
+        if (hero) hero.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">Sign in with EVE SSO to view your colonies</div>';
+        if (metric) metric.innerHTML = '';
+        if (sub) sub.textContent = 'Use the Colonies tab to sign in.';
+        grid.innerHTML = ''; if (timelineDom) timelineDom.innerHTML=''; if (empty) empty.textContent='';
+        return;
+    }
+    if (AppState.coloniesLoading) {
+        if (kicker) kicker.textContent = 'My Colonies';
+        if (hero) hero.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px"><i class="fas fa-spinner fa-spin"></i> Loading colonies...</div>';
+        if (metric) metric.innerHTML='';
+        grid.innerHTML='';
+        return;
+    }
+    if (!colonies || !colonies.length) {
+        if (kicker) kicker.textContent = 'My Colonies';
+        if (hero) hero.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">No colonies found — colonize a planet in-game</div>';
+        if (metric) metric.innerHTML='';
+        grid.innerHTML='';
+        return;
+    }
+    // Totals
+    const totals = totalColonyValuation();
+    const charName = (piEsiAuth && piEsiAuth.getCurrentCharacterName()) || 'Character';
+    if (kicker) kicker.textContent = `${charName} — ${colonies.length} ${colonies.length===1?'colony':'colonies'}`;
+    if (hero) {
+        const cCount = colonies.length;
+        const sysCount = new Set(colonies.map(c=>c.solar_system_id)).size;
+        hero.innerHTML = `<div class="finder-hero-card" style="cursor:default"><span class="finder-hero-badge" style="background:var(--accent);color:#121212"><i class="fas fa-globe"></i></span><span class="finder-hero-text"><b>${cCount} colonies in ${sysCount} system${sysCount===1?'':'s'}</b><span>Click a card to open • Layout shows planet map</span></span></div>`;
+    }
+    if (metric) {
+        let pills = '';
+        if (totals.storedValue) pills += `<span class="finder-metric-pill"><strong>${formatISK(totals.storedValue)} ISK</strong>&nbsp;stored</span>`;
+        pills += `<span class="finder-metric-pill"><strong>${formatISK(totals.extractPerDay + totals.factoryPerDay)}/day</strong></span>`;
+        const nearFull = colonies.filter(c=>{const a=analyseColonyCached(c); return a.fullest && a.fullest.fill>=0.8;}).length;
+        if (nearFull) pills += `<span class="finder-metric-pill" style="border-color:rgba(251,191,36,0.5);background:rgba(251,191,36,0.1);color:#fbbf24">${nearFull} near full</span>`;
+        const expiredTotal = colonies.reduce((n,c)=> n + analyseColonyCached(c).idle.expired, 0);
+        if (expiredTotal) pills += `<span class="finder-metric-pill" style="border-color:rgba(248,113,113,0.5);background:rgba(248,113,113,0.1);color:#f87171">${expiredTotal} expired</span>`;
+        metric.innerHTML = pills;
+    }
+    if (sub) {
+        const idleCount = colonies.filter(c=>{const a=analyseColonyCached(c); return (a.idleDetails&&a.idleDetails.length)||a.idle.factories||a.idle.extractors;}).length;
+        let txt = `${colonies.length} colonies • ${formatISK(totals.storedValue)} stored • ${formatISK(totals.extractPerDay + totals.factoryPerDay)}/day`;
+        if (idleCount) txt += ` • ${idleCount} idle`;
+        sub.textContent = txt;
+    }
+    // Timeline — Finder-style cards (compact, 2-3 columns)
+    if (timelineDom) {
+        const entries = buildExpiryEntries(colonies);
+        if (!entries.length) timelineDom.innerHTML = '';
+        else {
+            let th = '<div class="colonies-timeline-header"><i class="fas fa-hourglass-half"></i> Expiry Timeline — soonest first</div><div class="finder-grid grid" style="padding:0;gap:8px">';
+            entries.slice(0,12).forEach(e=>{
+                const text = e.expired ? `EXPIRED ${formatDuration(-e.msLeft)} ago` : `ends in ${formatDuration(e.msLeft)}`;
+                const cls = e.cls;
+                const cardCls = cls==='expired' ? 'expired' : (cls==='warn' ? 'warn' : '');
+                const dotColor = cls==='expired' ? '#f87171' : (cls==='warn' ? '#fbbf24' : (cls==='amber' ? '#f59e0b' : '#4ade80'));
+                const pt = getPlanetTypeByNameOrId(e.colony.planet_type);
+                const col = pt ? pt.color : '#666';
+                th += `<div class="colonies-timeline-card ${cardCls}"><span class="timeline-dot" style="background:${dotColor}"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600" title="${escapeHtml(e.name)}">${escapeHtml(e.name)}</span><span class="finder-chip" style="background:${col}">${escapeHtml(e.extractor.productName)}</span><span style="flex:0 0 110px;text-align:right;white-space:nowrap;${cls==='expired'?'color:#f87171':'color:var(--muted)'}">${escapeHtml(text)}</span></div>`;
+            });
+            th += '</div>';
+            if (entries.length>12) th += `<div style="font-size:0.62rem;color:var(--muted);margin-top:6px">+${entries.length-12} more programs</div>`;
+            timelineDom.innerHTML = th;
+        }
+    }
+    // Filtered colonies
+    let filtered = colonies;
+    if (AppState.colonyIdleOnly) {
+        filtered = colonies.filter(c=>{const a=analyseColonyCached(c); return (a.idleDetails&&a.idleDetails.length)||a.idle.factories||a.idle.extractors;});
+    }
+    if (!filtered.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:0.78rem;padding:12px;text-align:center">No idle colonies — all factories have schematics and routes</div>';
+        if (empty) empty.textContent='';
+        return;
+    }
+    // Group by system like Finder
+    const bySystem = {};
+    filtered.forEach(c=>{ const id=c.solar_system_id; if(!bySystem[id]) bySystem[id]=[]; bySystem[id].push(c); });
+    const sids = Object.keys(bySystem).map(Number).sort((a,b)=>a-b);
+    let html='';
+    sids.forEach(sysId=>{
+        const sys = (systemsLoaded && typeof PI_SYSTEMS!=='undefined') ? PI_SYSTEMS[sysId] : null;
+        const sysName = sys? sys.name : `System ${sysId}`;
+        const region = sys && PI_DATA.regions[sys.regionId] ? PI_DATA.regions[sys.regionId] : '';
+        const sec = sys? sys.security : null;
+        const secCls = sec==null?'null':(sec>=0.5?'high':(sec>=0.1?'low':'null'));
+        const secBadge = sec!=null ? `<span class="sec-badge ${secCls}">${sec.toFixed(1)}</span>` : '';
+        const group = bySystem[sysId];
+        const totalUp = group.reduce((s,c)=>s+(c.upgrade_level||0),0);
+        html += `<div class="colony-system-header"><span class="sys-name"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(sysName)}${region?` <span style="color:var(--muted);font-weight:400">(${escapeHtml(region)})</span>`:''}</span>${secBadge}<span class="sys-meta">${group.length} planet${group.length>1?'s':''} • ${totalUp} upgrades</span></div>`;
+        group.forEach(c=>{
+            const pt = getPlanetTypeByNameOrId(c.planet_type);
+            const typeName = pt? pt.name : `Planet type ${c.planet_type}`;
+            const color = pt? pt.color : '#666';
+            const planetName = c._planetName ? `${c._planetName} (${typeName})` : typeName;
+            const analysis = analyseColonyCached(c);
+            const val = valueColony(analysis, AppState.colonyPrices||{});
+            const upgrades = c.upgrade_level||0;
+            const dots = [1,2,3,4,5].map(i=>`<span class="upgrade-dot ${i<=upgrades?'active':''}" style="${i<=upgrades?'background:'+color:''}"></span>`).join('');
+            const producing = analysis.producing.slice(0,3).map(p=>`<span class="finder-chip" style="background:${PI_COLORS[p.tier]||'#666'}">${escapeHtml(p.name)}</span>`).join('') || '<span style="color:var(--muted);font-size:0.62rem">No production</span>';
+            const stored = analysis.stored.slice(0,3).map(s=>`<span class="finder-chip" style="background:${PI_COLORS[s.tier]||'#666'}">${escapeHtml(s.name)} ×${formatAmount(s.amount)}</span>`).join('');
+            const sp = analysis.fullest;
+            let barHtml='';
+            if (sp) {
+                const pct = Math.min(100, Math.round(sp.fill*100));
+                const cls = sp.fill>=1?'full':(sp.fill>=0.8?'warn':'ok');
+                const eta = sp.etaDays;
+                let etaTxt='';
+                if (sp.fill>=1) etaTxt='FULL — will jam';
+                else if (eta!=null && isFinite(eta) && eta!==Infinity) etaTxt=`~${formatEtaDays(eta)} until full`;
+                else if (sp.fill>=0.8) etaTxt='Inflow unknown';
+                barHtml = `<div style="margin-top:6px"><div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--muted)"><span><i class="fas fa-warehouse"></i> ${PIN_KIND_NAMES[sp.kind]} ${pct}%</span><span class="${cls==='full'?'colony-eta full':cls==='warn'?'colony-eta warn':'colony-eta'}">${escapeHtml(etaTxt)}</span></div><div class="colony-card-bar"><div class="colony-card-bar-inner ${cls}" style="width:${pct}%"></div></div><div style="font-size:0.6rem;color:var(--muted)">${formatAmount(Math.round(sp.used))} / ${formatAmount(sp.capacity)} m³</div></div>`;
+            }
+            const active = analysis.extractors.filter(e=>e.expiryMs && !e.expired);
+            const expiredN = analysis.extractors.filter(e=>e.expired).length;
+            let metaBits = [`<span><i class="fas fa-thumbtack"></i> ${c.num_pins||0} pins</span>`, `<span>CC ${upgrades}</span>`];
+            if (expiredN) metaBits.push(`<span style="color:#f87171;font-weight:700">${expiredN} EXPIRED</span>`);
+            else if (active[0]) metaBits.push(`<span><i class="fas fa-hourglass-half"></i> ends in ${formatDuration(active[0].expiryMs - Date.now())}</span>`);
+            if (val.extractPerDay||val.factoryPerDay) metaBits.push(`<span>${formatISK(val.extractPerDay+val.factoryPerDay)}/d</span>`);
+            const idle = analysis.idleDetails && analysis.idleDetails.length ? `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${escapeHtml(analysis.idleDetails.map(d=>d.reason).join(' · '))}</div>` : (analysis.idle.factories||analysis.idle.extractors ? `<div class="colony-warn-line"><i class="fas fa-triangle-exclamation"></i> ${analysis.idle.factories} idle factories</div>` : '');
+            html += `<div class="finder-card colony-card" data-planet="${c.planet_id}" style="border-left:4px solid ${color}"><div class="colony-card-top"><span class="colony-card-title" style="color:${color}">${escapeHtml(planetName)}</span><span>${dots}</span></div><div class="colony-card-meta">${metaBits.join(' • ')}</div><div class="colony-card-chips"><span style="font-size:0.62rem;color:var(--muted);margin-right:4px">PRODUCING</span>${producing}</div>${stored?`<div class="colony-card-chips"><span style="font-size:0.62rem;color:var(--muted);margin-right:4px">STORED</span>${stored}</div>`:''}${barHtml}${idle}<div class="colony-card-isk" style="margin-top:6px"><span title="Stored"><i class="fas fa-boxes-stacked"></i> ${formatISK(val.storedValue)}</span><span><i class="fas fa-industry"></i> ${formatISK(val.extractPerDay)}/d</span><span><i class="fas fa-flask"></i> ${formatISK(val.factoryPerDay)}/d</span></div></div>`;
+        });
     });
-    if (entries.length > 12) html += `<div style="font-size:0.62rem;color:var(--muted);margin-top:0.25rem">+${entries.length - 12} more programs</div>`;
-    html += '</div>';
-    html += '<canvas id="colonyGanttCanvas" width="300" height="1" style="display:none"></canvas>';
-    el.innerHTML = html;
-    // lazy-bind real element if initially null
-    if (!elements.coloniesTimelineMain) elements.coloniesTimelineMain = el;
+    grid.innerHTML = html;
+    grid.querySelectorAll('.colony-card').forEach(card=>{
+        card.addEventListener('click',()=>{
+            const pid = Number(card.dataset.planet);
+            const target = (AppState.colonies||[]).find(x=>x.planet_id===pid);
+            if (!target) return;
+            AppState.colonyDetail = target;
+            AppState.layoutMode = false;
+            AppState.layoutSel = null;
+            resetViewport();
+            updateUrlState();
+            draw();
+        });
+    });
+    if (empty) empty.textContent = '';
+    if (elements.coloniesGrid) elements.coloniesGrid = grid;
 }
 function updateColonyIdleFilterCount(colonies) {
     const cntEl = elements.colonyFilterCount || document.getElementById('colonyFilterCount');
@@ -1969,8 +2126,25 @@ function draw() {
 
     const layoutWorld = AppState.viewMode === 'colonies' &&
         AppState.colonyDetail && AppState.layoutMode;
+    const coloniesListView = AppState.viewMode === 'colonies' && !AppState.colonyDetail;
 
-    if (AppState.viewMode === 'colonies' && !layoutWorld) {
+    // Sync coloniesDom visibility (DOM list vs canvas detail/layout)
+    const cDomSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('coloniesDom') : null;
+    const fDomSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('finderDom') : null;
+    const piCanvasSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('piCanvas') : null;
+    if (cDomSync) cDomSync.classList.toggle('hidden', !coloniesListView);
+    if (fDomSync && AppState.viewMode !== 'finder') { /* finder handled elsewhere */ }
+    if (piCanvasSync) {
+        const hideCanvas = (AppState.viewMode === 'finder') || coloniesListView;
+        piCanvasSync.classList.toggle('hidden', hideCanvas);
+    }
+
+    if (coloniesListView) {
+        const hasDomFrag = typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function';
+        if (hasDomFrag) {
+            renderColoniesDom(AppState.colonies, AppState.systemsLoaded);
+            return;
+        }
         drawColoniesView();
         return;
     }
@@ -4079,6 +4253,11 @@ function clampListScroll() {
     const isFinder = AppState.viewMode === 'finder';
     const isColoniesList = AppState.viewMode === 'colonies' &&
         !(AppState.colonyDetail && AppState.layoutMode);
+    // Colonies now uses DOM (coloniesDom) like Finder — no canvas scroll
+    if (isColoniesList) {
+        const cDom = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('coloniesDom') : null;
+        if (cDom && cDom.classList && !cDom.classList.contains('hidden')) return;
+    }
     if (!isRef && !isSystem && !isFinder && !isColoniesList) return;
 
     let contentHeight = 0;
@@ -4238,23 +4417,25 @@ function setViewMode(mode) {
     // Finder DOM overlay: show grid report instead of stretched canvas
     const isFinderView = mode === 'finder';
     const finderDom = document.getElementById('finderDom');
+    const isColoniesListView = mode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode);
+    const coloniesDom = document.getElementById('coloniesDom') || elements.coloniesDom;
     const piCanvasEl = document.getElementById('piCanvas');
     if (finderDom) finderDom.classList.toggle('hidden', !isFinderView);
-    if (piCanvasEl) piCanvasEl.classList.toggle('hidden', isFinderView);
+    if (coloniesDom) coloniesDom.classList.toggle('hidden', !isColoniesListView);
+    if (piCanvasEl) piCanvasEl.classList.toggle('hidden', isFinderView || isColoniesListView);
     if (isFinderView) {
         if (typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function') {
             try { renderFinderDom(); } catch (e) { /* headless stub may lack DOM helpers */ }
         }
     }
-
-    // Colonies timeline lives in the main panel — hide when leaving colonies or entering detail view
-    const tlMain = document.getElementById('coloniesTimelineMain') || elements.coloniesTimelineMain;
-    if (tlMain) {
-        const showTl = mode === 'colonies' && !AppState.colonyDetail && AppState.colonies && AppState.colonies.length;
-        // visibility is ultimately driven by renderColonyTimeline's hidden toggle, but hide outright when not in colonies
-        if (!showTl) tlMain.classList.add('hidden');
-        else if (AppState.colonies) renderColonyTimeline(AppState.colonies);
+    if (isColoniesListView) {
+        if (typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function') {
+            try { renderColoniesDom(AppState.colonies, AppState.systemsLoaded); } catch (e) { /* headless */ }
+        }
     }
+    // Legacy timeline element (now hidden via CSS, kept for compat)
+    const tlMain = document.getElementById('coloniesTimelineMain') || elements.coloniesTimelineMain;
+    if (tlMain) tlMain.classList.add('hidden');
     updateUrlState();
     setColonyTick(mode === 'colonies');
     draw();

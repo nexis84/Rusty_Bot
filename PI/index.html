@@ -286,12 +286,24 @@
                         <div id="breakdownContent"></div>
                     </div>
 
-                    <!-- Colonies Expiry Timeline (main panel) -->
-                    <div id="coloniesTimelineMain" class="hidden"></div>
-
                     <!-- Reference view controls (Planets sub-view + Market filter) -->
                 </div>
                 <canvas id="piCanvas" class="pi-canvas"></canvas>
+                <!-- Colonies DOM view — Finder-style report (replaces canvas colony cards) -->
+                <div id="coloniesDom" class="finder-dom colonies-dom hidden">
+                    <div class="finder-dom-inner">
+                        <div class="finder-report" id="coloniesReport">
+                            <div class="finder-kicker" id="coloniesKicker">Colony Status</div>
+                            <div class="finder-hero" id="coloniesHero"></div>
+                            <div class="finder-metric" id="coloniesMetric"></div>
+                            <div class="finder-sub" id="coloniesSub"></div>
+                            <div id="coloniesTimelineDom" class="colonies-timeline-dom"></div>
+                        </div>
+                        <div id="coloniesGrid" class="finder-grid grid colonies-grid"></div>
+                        <div class="finder-empty" id="coloniesEmpty"></div>
+                        <div class="finder-more" id="coloniesMore"></div>
+                    </div>
+                </div>
                 <!-- Finder DOM view — replaces single-column canvas list with the 2-up report layout -->
                 <div id="finderDom" class="finder-dom hidden">
                     <div class="finder-dom-inner">
@@ -322,7 +334,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '53';
+        window.PI_ASSET_VERSION = '54';
 
         (function loadPiScripts() {
             function load(src, onok) {
