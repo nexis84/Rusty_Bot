@@ -87,7 +87,7 @@ const files = ['pi-data.js', 'pi-systems.js', 'pi-jumps.js', 'pi-esi-auth.js', '
 const code = files.map(f => fs.readFileSync(path.join(PI_DIR, f), 'utf8')).join('\n;\n')
     + '\n;globalThis.__test = { AppState, finderBFS, computeProducible, chainProfitMath,' +
       ' findSystemByName, secBandOf, activeSecBands, getFinderRadius, getFinderMaxSystems,' +
-      ' sortFinderSpotRows, getRequiredPlanetTypes, renderFinderSpotResults, drawFinderView,' +
+      ' sortFinderSpotRows, getRequiredPlanetTypes, getRequiredP0, systemExtractableP0, renderFinderSpotResults, drawFinderView,' +
       ' finderCardAt, buildSpotGroups, drawNextBestCards,' +
       ' getMaterialsByTier, getMaterialById, getChainForProduct, collectMaterialIds };';
 vm.runInContext(code, sandbox, { filename: 'combined-pi.js' });
@@ -298,7 +298,7 @@ let totalFail = 0;
     if (!texts.includes('VIEW CHAIN')) { f++; console.error('[findercanvas] FAIL: view-chain link not drawn'); }
     if (!texts.includes('best places to build')) { f++; console.error('[findercanvas] FAIL: header missing product name'); }
     if (!/#1 by .+ profit: 12\.35K ISK\/batch/.test(texts)) { f++; console.error('[findercanvas] FAIL: best-stats banner missing'); }
-    if (!texts.includes('covering every planet type')) { f++; console.error('[findercanvas] FAIL: coverage subline missing'); }
+     if (!texts.includes('covering every required raw material')) { f++; console.error('[findercanvas] FAIL: coverage subline missing'); }
     const spotCards = T.AppState.finderCards.filter(c => c.kind === 'spot');
     const chainCards = T.AppState.finderCards.filter(c => c.kind === 'openChain');
     if (spotCards.length !== 2) { f++; console.error(`[findercanvas] FAIL: expected 2 plan cards, got ${spotCards.length}`); }
@@ -319,41 +319,42 @@ let totalFail = 0;
     totalFail += f;
 }
 
-// ---- 10b) Multi-system plans when maxSystems > 1 ----
+// ---- 10b) Multi-system plans when maxSystems > 1 (P0 coverage model) ----
 {
     let f = 0;
-    // Curate two real systems whose COMBINED covers satisfy a product that
-    // neither satisfies alone, feed them via a hand-built BFS and verify the
-    // greedy splitter produces one valid 2-system plan.
-    const mats = vm.runInContext('PI_DATA.materials', sandbox);
+    // Find two real systems whose COMBINED extractable P0 set satisfies a
+    // product neither satisfies alone, then verify the greedy splitter yields
+    // one valid 2-system plan.
+    const target = 2389; // Plasmoids (P2)
+    const reqP0 = T.getRequiredP0(target);
     T.AppState.finder.originSystemId = 30000142;
-    els.finderJumps.value = '10';
-    els.finderMaxSystems.value = '2';
-    T.AppState.finder._bfs = T.finderBFS(30000142, 10);
+    els.finderJumps.value = '30';
+    els.finderMaxSystems.value = '1';
+    T.AppState.finder._bfs = T.finderBFS(30000142, 30);
 
-    // Pick Plasmoids (needs Lava+Storm+Plasma) and find partial contributors
-    const target = 2389;
-    const reqIds = T.getRequiredPlanetTypes(target).map(p => p.id);
     let sysA = null, sysB = null;
     for (const [idStr, node] of T.AppState.finder._bfs) {
+        if (Number(idStr) === 30000142) continue;
         const sys = vm.runInContext('PI_SYSTEMS', sandbox)[idStr];
-        if (!sys || Number(idStr) === 30000142) continue; // origin can't be a split partner
-        const present = new Set(sys.planets.map(p => p.typeId));
-        const covers = reqIds.filter(t => present.has(t));
-        if (covers.length === 0 || covers.length === reqIds.length) continue;
-        if (!sysA && covers.length >= 1) sysA = { id: Number(idStr), node, covers };
-        else if (sysA) {
+        if (!sys) continue;
+        const sp0 = T.systemExtractableP0(sys);
+        const covers = [...reqP0].filter(x => sp0.has(x));
+        if (covers.length === 0 || covers.length === reqP0.size) continue;
+        if (!sysA) sysA = { id: Number(idStr), node, sp0, covers };
+        else {
             const have = new Set([...sysA.covers, ...covers]);
-            if (reqIds.every(t => have.has(t))) { sysB = { id: Number(idStr), node, covers }; break; }
+            if ([...reqP0].every(x => have.has(x))) { sysB = { id: Number(idStr), node, sp0, covers }; break; }
         }
     }
     if (!sysA || !sysB) {
         console.log('[maxsys] no complementary partial systems found - scenario skipped');
     } else {
+        // Build a tiny BFS of just the two partial systems around sysA as origin
+        // so neither alone is a full producer but the pair is.
+        T.AppState.finder.originSystemId = sysA.id;
         T.AppState.finder._bfs = new Map([
-            [30000142, { jumps: 0, parent: null }],
-            [sysA.id, { jumps: 2, parent: 30000142 }],
-            [sysB.id, { jumps: 3, parent: 30000142 }]
+            [sysA.id, { jumps: 0, parent: null }],
+            [sysB.id, { jumps: 3, parent: sysA.id }]
         ]);
         els.finderMaxSystems.value = '1';
         if (T.buildSpotGroups(target).length !== 0) { f++; console.error('[maxsys] FAIL: split needed but plans returned at max=1'); }
@@ -370,8 +371,8 @@ let totalFail = 0;
                 if (g.totalJumps !== sum) { f++; console.error('[maxsys] FAIL: totalJumps != sum of member jumps'); }
                 s.covers.forEach(t => have.add(t));
             });
-            reqIds.forEach(t => {
-                if (!have.has(t)) { f++; console.error(`[maxsys] FAIL: plan missing type ${t}`); }
+            g.requiredP0.forEach(t => {
+                if (!have.has(t)) { f++; console.error(`[maxsys] FAIL: plan missing P0 ${t}`); }
             });
         });
         if (!sawSplit) { f++; console.error('[maxsys] FAIL: no 2-system plan among results'); }
@@ -422,15 +423,15 @@ let totalFail = 0;
             if (g.systems.length !== 1) { f++; console.error('[fullcov] FAIL: max=1 should yield single-system plans'); }
             g.systems.forEach(s => {
                 s.covers.forEach(tid => {
-                    if (!s.sys.planets.some(p => p.typeId === tid)) {
-                        f++; console.error(`[fullcov] FAIL: ${s.sys.name} claims type ${tid} it lacks`);
+                    if (!s.sysP0.has(tid)) {
+                        f++; console.error(`[fullcov] FAIL: ${s.sys.name} claims P0 ${tid} it cannot extract`);
                     }
                 });
             });
             const have = new Set();
             g.systems.forEach(s => s.covers.forEach(t => have.add(t)));
-            g.requiredIds.forEach(t => {
-                if (!have.has(t)) { f++; console.error(`[fullcov] FAIL: plan missing type ${t}`); }
+            g.requiredP0.forEach(t => {
+                if (!have.has(t)) { f++; console.error(`[fullcov] FAIL: plan missing P0 ${t}`); }
             });
         });
         if (groups.length > 0) anyComplete++;
@@ -450,6 +451,24 @@ let totalFail = 0;
     const st = els.finderSpotResults.textContent;
     if (!st.includes('on the main canvas') || !st.includes('in full')) { f++; console.error('[status] FAIL: spot status not set, got: ' + st); }
     console.log('[status] sidebar summaries' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
+    totalFail += f;
+}
+
+// ---- 14) Regression: 7P-J38 builds Rocket Fuel (P0 model, matches System Checker) ----
+{
+    let f = 0;
+    T.AppState.finder.originSystemId = 30004691; // O4T-Z5
+    T.AppState.finder._bfs = null;
+    els.finderJumps.value = '10';
+    els.finderMaxSystems.value = '1';
+    const groups = T.buildSpotGroups(9830); // Rocket Fuel
+    const hit = groups.find(g => g.systems.length === 1 && g.systems[0].sys.id === 30003165);
+    if (!hit) { f++; console.error('[reg-7pj38] FAIL: 7P-J38 not listed as a single-system Rocket Fuel producer'); }
+    else if (hit.systems[0].sys.name !== '7P-J38') { f++; console.error('[reg-7pj38] FAIL: matched wrong system ' + hit.systems[0].sys.name); }
+    // Must agree with the System Checker's own producibility check.
+    const sysP0 = T.systemExtractableP0(vm.runInContext('PI_SYSTEMS["30003165"]', sandbox));
+    if (!T.computeProducible(sysP0).p2.has(9830)) { f++; console.error('[reg-7pj38] FAIL: System Checker disagrees'); }
+    console.log('[reg-7pj38] 7P-J38 single-system Rocket Fuel' + (f ? ` -> ${f} FAIL` : ' -> PASS'));
     totalFail += f;
 }
 

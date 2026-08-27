@@ -141,7 +141,7 @@ let totalFail = 0;
     const coversAll = (g) => {
         const have = new Set();
         g.systems.forEach(s => s.covers.forEach(t => have.add(t)));
-        return g.requiredIds.every(t => have.has(t));
+        return [...g.requiredP0].every(t => have.has(t));
     };
     T.AppState.finder.spotRows.forEach(g => {
         if (!coversAll(g)) { f++; console.error('[flow] FAIL: incomplete plan leaked through'); }

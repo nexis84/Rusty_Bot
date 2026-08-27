@@ -5187,6 +5187,39 @@ function computeProducible(availableP0) {
     return { p1, p2, p3, p4 };
 }
 
+// Extractable raw (P0) material ids for a system, derived from its planet
+// types. Mirrors the System Checker's `availableP0` computation
+// (pi-visualizer.js displaySystemResults) so the Finder and System Checker
+// agree on what a system can produce.
+function systemExtractableP0(sys) {
+    const set = new Set();
+    (sys.planets || []).forEach(p => {
+        const pt = getPlanetTypeData(p.typeId);
+        if (pt && pt.p0Materials) pt.p0Materials.forEach(id => set.add(id));
+    });
+    return set;
+}
+
+// Leaf (raw) P0 material ids required by a product's full production chain.
+function getRequiredP0(productId) {
+    const set = new Set();
+    const root = getMaterialById(productId);
+    if (!root) return set;
+    const collect = node => {
+        if (!node || !node.inputs) return;
+        for (const k in node.inputs) {
+            const id = parseInt(k, 10);
+            const sub = getMaterialById(id);
+            const isRaw = !sub || sub.tier === 0 || !sub.inputs || Object.keys(sub.inputs).length === 0;
+            if (isRaw) set.add(id);
+            else collect(sub);
+        }
+    };
+    collect(root);
+    if (!root.inputs || Object.keys(root.inputs).length === 0) set.add(productId);
+    return set;
+}
+
 function formatSecurity(sec) {
     if (sec === null || sec === undefined) return '?';
     return sec.toFixed(1);
@@ -5537,7 +5570,7 @@ function renderFinderSpotResults() {
     const rows = AppState.finder.spotRows;
     if (!rows.length) {
         setFinderStatus(elements.finderSpotResults,
-            'No plan within radius covers every planet type needed. Widen the radius, max systems or sec filter.');
+            'No plan within radius covers every required raw material. Widen the radius, max systems or sec filter.');
         resetViewport();
         setViewMode('finder');
         return;
@@ -5836,7 +5869,7 @@ function renderFinderDom() {
     const originSys = (AppState.systemsLoaded && typeof PI_SYSTEMS !== 'undefined' && f.originSystemId) ? PI_SYSTEMS[f.originSystemId] : null;
     const originName = originSys ? originSys.name : 'origin';
     const rowsAll = f.spotRows.slice(0, FINDER_MAX_ROWS);
-    subEl.textContent = rowsAll.length + ' system' + (rowsAll.length === 1 ? '' : 's') + ' within ' + getFinderRadius() + 'j of ' + originName + ' \u2022 covering every planet type \u2022 click cards for details';
+    subEl.textContent = rowsAll.length + ' system' + (rowsAll.length === 1 ? '' : 's') + ' within ' + getFinderRadius() + 'j of ' + originName + ' \u2022 covering every required raw material \u2022 click cards for details';
 
     const rows = rowsAll;
     gridEl.className = 'finder-grid grid';
@@ -5856,9 +5889,9 @@ function renderFinderDom() {
             const sysLabel = single ? group.systems[0].sys.name : 'Split \u2022 ' + group.systems.length + ' systems';
             const primaryEntry = group.systems[0];
             const chipsHtml = (primaryEntry.covers || []).map(tid => {
-                const pt = getPlanetTypeData(tid);
-                if (!pt) return '';
-                return '<span class="finder-chip" style="background:' + pt.color + '" title="' + escapeHtml(pt.name) + '">' + escapeHtml(pt.name) + '</span>';
+                const info = chipInfo(tid);
+                if (!info) return '';
+                return '<span class="finder-chip" style="background:' + info.color + '" title="' + escapeHtml(info.name) + '">' + escapeHtml(info.name) + '</span>';
             }).join('');
             const extraChips = group.systems.length > 1 ? ' <span style="font-size:0.62rem;color:var(--muted)">+' + (group.systems.length - 1) + ' system' + (group.systems.length > 2 ? 's' : '') + '</span>' : '';
             let cardHtml = '<div class="finder-card' + (single ? ' single' : '') + '" data-key="' + escapeHtml(key) + '"><div class="finder-card-top"><span class="finder-card-title">' + escapeHtml(sysLabel) + '</span><span class="finder-card-badge">' + (single ? 'Full Chain' : 'Full Coverage') + '</span></div>' +
@@ -5992,20 +6025,31 @@ function drawTypeChip(label, color, dim, x, y, maxW) {
 
 // Draws planet-type chips for a list of type ids, wrapped to maxW.
 // Returns total height used.
+// Resolve a chip id to a label + colour. The Finder's `covers` now stores raw
+// (P0) material ids, but hand-built rows may still carry planet-type ids, so
+// accept both.
+function chipInfo(tid) {
+    const m = getMaterialById(tid);
+    if (m) return { name: m.name, color: PI_COLORS[m.tier] || '#6e7681' };
+    const pt = getPlanetTypeData(tid);
+    if (pt) return { name: pt.name, color: pt.color };
+    return null;
+}
+
 function drawChips(ids, x, y, maxW) {
     const gapX = 6;
     let cx = x;
     let cy = y;
     ids.forEach(tid => {
-        const pt = getPlanetTypeData(tid);
-        if (!pt) return;
+        const info = chipInfo(tid);
+        if (!info) return;
         ctx.font = 'bold 10px Titillium Web, sans-serif';
-        const estW = Math.ceil(ctx.measureText(pt.name).width) + 14;
+        const estW = Math.ceil(ctx.measureText(info.name).width) + 14;
         if (cx > x && cx + Math.min(estW, maxW) > x + maxW) {
             cx = x;
             cy += 22;
         }
-        const used = drawTypeChip(pt.name, pt.color, false, cx, cy, maxW - (cx - x));
+        const used = drawTypeChip(info.name, info.color, false, cx, cy, maxW - (cx - x));
         cx += used + gapX;
     });
     return (cy - y) + 22;
@@ -6107,7 +6151,7 @@ function drawFinderSpotCards() {
     const originName = originSys ? originSys.name : 'origin';
     const multiCount = rows.filter(r => r.systems.length > 1).length;
     let sub = `${rows.length} plan${rows.length === 1 ? '' : 's'} within ${getFinderRadius()}j of ${originName}` +
-        ` covering every planet type (max ${getFinderMaxSystems()} system${getFinderMaxSystems() === 1 ? '' : 's'})`;
+        ` covering every required raw material (max ${getFinderMaxSystems()} system${getFinderMaxSystems() === 1 ? '' : 's'})`;
     if (multiCount) sub += ` • ${multiCount} split across systems`;
     sub += ' • click a card for routes';
     ctx.textAlign = 'center';
@@ -6337,10 +6381,10 @@ function measureChipsHeight(ids, maxW) {
     let cx = 0;
     let cy = 0;
     ids.forEach(tid => {
-        const pt = getPlanetTypeData(tid);
-        if (!pt) return;
+        const info = chipInfo(tid);
+        if (!info) return;
         ctx.font = 'bold 10px Titillium Web, sans-serif';
-        const w = Math.min(Math.ceil(ctx.measureText(pt.name).width) + 14, maxW);
+        const w = Math.min(Math.ceil(ctx.measureText(info.name).width) + 14, maxW);
         if (cx > 0 && cx + w > maxW) {
             cx = 0;
             cy += 22;
@@ -6360,10 +6404,12 @@ function refreshFinderAuthState() {
     updateSsoUI();
 }
 
-// Build "plans" for a product: every way to cover ALL required planet types
-// within the radius using at most getFinderMaxSystems() systems.
+// Build "plans" for a product: every way to cover ALL required raw (P0)
+// materials within the radius using at most getFinderMaxSystems() systems.
+// Coverage uses the SAME model as the System Checker (computeProducible over
+// the system's extractable P0 set), so the two views always agree.
 // Returns groups sorted best-first:
-//   { systems: [{sys, jumps, route, covers}], requiredIds, totalJumps }
+//   { systems: [{sys, jumps, route, covers, sysP0}], requiredP0, totalJumps }
 function buildSpotGroups(productId) {
     if (!AppState.finder.originSystemId) return [];
     let bfs = AppState.finder._bfs;
@@ -6371,7 +6417,10 @@ function buildSpotGroups(productId) {
         bfs = finderBFS(AppState.finder.originSystemId, getFinderRadius());
         AppState.finder._bfs = bfs;
     }
-    const requiredIds = getRequiredPlanetTypes(productId).map(p => p.id);
+    const mat = getMaterialById(productId);
+    if (!mat) return [];
+    const tierKey = 'p' + mat.tier;
+    const requiredP0 = getRequiredP0(productId);
     const allowedBands = activeSecBands();
 
     const candidates = [];
@@ -6379,33 +6428,38 @@ function buildSpotGroups(productId) {
         const sys = PI_SYSTEMS[sysIdStr];
         if (!sys) continue;
         if (!allowedBands.has(secBandOf(sys.security))) continue;
-        const present = new Set(sys.planets.map(p => p.typeId));
-        const covers = requiredIds.filter(tid => present.has(tid));
+        const sysP0 = systemExtractableP0(sys);
+        const covers = [...requiredP0].filter(id => sysP0.has(id));
         if (!covers.length) continue;
         candidates.push({
             sys,
             jumps: node.jumps,
             route: finderRoutePath(Number(sysIdStr), bfs),
-            covers
+            covers,
+            sysP0
         });
     }
 
-    // Single-system plans first - strictly better than splitting production.
+    // A system builds the whole chain in-system iff it can extract every
+    // required P0 - the exact check the System Checker uses.
+    const producible = c => mat.tier === 0
+        ? c.covers.length === requiredP0.size
+        : computeProducible(c.sysP0)[tierKey].has(productId);
     const groups = candidates
-        .filter(c => c.covers.length === requiredIds.length)
-        .map(c => ({ systems: [c], requiredIds, totalJumps: c.jumps }));
+        .filter(producible)
+        .map(c => ({ systems: [c], requiredP0, totalJumps: c.jumps }));
     if (groups.length) return sortFinderSpotRows(groups);
 
     // No single system works: greedy set-cover combos up to maxSystems.
     // Try each candidate as the anchor so a heavy-overlap top system can't
     // mask valid splits; keep the best few by total jump distance.
-    const maxSys = Math.min(getFinderMaxSystems(), requiredIds.length);
+    const maxSys = Math.min(getFinderMaxSystems(), requiredP0.size);
     if (maxSys < 2) return [];
     const seen = new Set();
     const solutions = [];
     for (const anchor of candidates) {
         const chosen = [anchor];
-        const need = new Set(requiredIds.filter(t => !anchor.covers.includes(t)));
+        const need = new Set([...requiredP0].filter(t => !anchor.covers.includes(t)));
         while (chosen.length < maxSys && need.size) {
             let pick = null;
             let pickGain = 0;
@@ -6423,12 +6477,16 @@ function buildSpotGroups(productId) {
             pick.covers.forEach(t => need.delete(t));
         }
         if (need.size) continue;
+        // Authoritative multi-system check: P0s shipped between systems.
+        const unionP0 = new Set();
+        chosen.forEach(c => c.sysP0.forEach(t => unionP0.add(t)));
+        if (!producible({ sysP0: unionP0 })) continue;
         const key = chosen.map(c => c.sys.id).sort((a, b) => a - b).join('+');
         if (seen.has(key)) continue;
         seen.add(key);
         solutions.push({
             systems: [...chosen].sort((a, b) => a.jumps - b.jumps),
-            requiredIds,
+            requiredP0,
             totalJumps: chosen.reduce((n, c) => n + c.jumps, 0)
         });
     }
