@@ -80,10 +80,10 @@
         .section-header .line { flex: 1; height: 1px; background: var(--border); }
         .section-header i { color: var(--accent); font-size: 0.85rem; }
 
-        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 24px; }
+        .panel { background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%); border: 1px solid var(--border); border-radius: 6px; padding: 24px; }
 
         .stat-row { display: flex; flex-wrap: wrap; gap: 12px; }
-        .stat { flex: 1 1 180px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 18px; text-align: center; }
+        .stat { flex: 1 1 180px; background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%); border: 1px solid var(--border); border-radius: 6px; padding: 18px; text-align: center; }
         .stat .num { font-size: 2rem; font-weight: 700; color: var(--accent); }
         .stat .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); }
 
@@ -112,7 +112,7 @@
         .msg.ok { background: rgba(81, 207, 102, 0.12); border: 1px solid rgba(81, 207, 102, 0.4); color: #51cf66; }
         .msg.err { background: rgba(255, 107, 107, 0.12); border: 1px solid rgba(255, 107, 107, 0.4); color: #ff6b6b; }
 
-        .last-winner { margin-top: 16px; padding: 22px 16px; text-align: center; background: var(--panel-hover); border: 1px solid var(--border); border-radius: 6px; font-size: 1.2rem; line-height: 1.4; }
+        .last-winner { margin-top: 16px; padding: 22px 16px; text-align: center; background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%); border: 1px solid var(--border); border-radius: 6px; font-size: 1.2rem; line-height: 1.4; }
         .last-winner .lw-label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
         .last-winner .lw-label i { color: var(--accent); margin-right: 6px; }
         .last-winner b { color: var(--accent); font-size: 1.6rem; font-weight: 700; display: inline-block; margin-top: 2px; }
@@ -171,13 +171,56 @@
         .contact-card-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600; }
         .contact-card-value { font-size: 1rem; color: var(--text); font-weight: 700; }
 
-        .support-box { text-align: center; padding: 24px 0; }
-        .support-box p { color: var(--dim); font-size: 0.95rem; margin-bottom: 4px; }
+        .support-card {
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px 18px;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            transition: background 0.15s, border-color 0.2s;
+        }
+        .support-card:hover {
+            background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%);
+            border-color: var(--accent-dim);
+        }
+        .support-card-icon {
+            font-size: 1.5rem;
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .support-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .support-card-desc {
+            font-size: 0.875rem;
+            color: var(--dim);
+            max-width: 360px;
+            margin: 0 auto 20px;
+        }
+        .support-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .ko-fi-wrap {
+            display: flex;
+            justify-content: center;
+        }
         .support-wall-link {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            margin-top: 8px;
             color: var(--accent);
             text-decoration: none;
             font-size: 0.8rem;
@@ -195,6 +238,22 @@
             border-color: var(--accent);
             transform: translateY(-2px);
         }
+        .wehype-code {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin: 14px auto 0;
+            color: var(--text);
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+        .wehype-code i { color: var(--accent); font-size: 1.15rem; flex-shrink: 0; }
+        .wehype-text { display: inline; line-height: 1.4; }
+        .wehype-code .wehype-label { font-weight: 700; color: var(--text); }
+        .wehype-code strong { color: var(--accent); font-weight: 700; letter-spacing: 0.5px; font-size: 1.05rem; }
 
         @media (max-width: 600px) {
             .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
@@ -340,14 +399,18 @@
                 <h2>Support</h2>
                 <span class="line"></span>
             </div>
-            <div class="support-box">
-                <p>If you would like to support us you can do that via Ko-fi.</p>
-                <p>All support is welcomed and very appreciated!</p>
-                <div style="margin-top:12px;">
-                    <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+            <div class="support-card">
+                <div class="support-card-icon"><i class="fa-solid fa-heart"></i></div>
+                <h3 class="support-card-title">Support RustyBot</h3>
+                <p class="support-card-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
+                <div class="support-actions">
+                    <div class="ko-fi-wrap">
+                        <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+                        <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                    </div>
+                    <a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a>
+                    <span class="wehype-code"><i class="fa-solid fa-hand-holding-dollar"></i> <span class="wehype-text"><span class="wehype-label">WeHype Partner</span> &mdash; use code <strong>Rusty</strong> at checkout on the EVE store</span></span>
                 </div>
-                <p style="margin-top:20px;"><a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a></p>
             </div>
         </section>
 
