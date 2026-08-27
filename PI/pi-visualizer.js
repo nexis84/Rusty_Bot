@@ -192,7 +192,9 @@ const elements = {
     colonyFilterCount: document.getElementById('colonyFilterCount'),
     viewWelcome: document.getElementById('viewWelcome'),
     viewWelcomeToolbar: document.getElementById('viewWelcomeToolbar'),
-    welcomeDom: document.getElementById('welcomeDom')
+    welcomeDom: document.getElementById('welcomeDom'),
+    chainHero: document.getElementById('chainHero'),
+    systemHero: document.getElementById('systemHero')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -1828,9 +1830,99 @@ function renderColonyTimeline(colonies) {
     if (mainEl) { mainEl.classList.add('hidden'); mainEl.innerHTML=''; }
 }
 
+// Logged-out SSO explainer panel — shown in the Finder/Colonies main views
+// when not signed in (matches the Welcome page section styling).
+function bindSsoWelcomeLogin(handler) {
+    const btn = document.getElementById('ssoWelcomeLogin');
+    if (btn && !btn._ssoBound) {
+        btn._ssoBound = true;
+        btn.addEventListener('click', handler);
+    }
+}
+
+function heroIntroPanel(opts) {
+    const heading = opts.heading || 'Welcome';
+    const items = (opts.points || []).map(p =>
+        '<div class="sso-welcome-card"><i class="fas fa-check-circle sso-welcome-tick"></i><span>' + p + '</span></div>'
+    ).join('');
+    const cta = opts.ctaLabel ? '<button class="calc-btn sso-welcome-cta" id="' + opts.ctaId + '"><i class="fas fa-arrow-right"></i> ' + escapeHtml(opts.ctaLabel) + '</button>' : '';
+    return '<div class="sso-welcome">' +
+        '<div class="sso-welcome-hero">' +
+            '<img src="../rusty_bot.png" alt="RustyBot" class="sso-welcome-logo">' +
+            '<div class="sso-welcome-hero-text"><h2>' + escapeHtml(heading) + '</h2></div>' +
+        '</div>' +
+        (opts.intro ? '<p class="sso-welcome-intro">' + opts.intro + '</p>' : '') +
+        cta +
+        '<div class="sso-welcome-grid">' + items + '</div>' +
+        (opts.foot ? '<div class="sso-welcome-foot">' + opts.foot + '</div>' : '') +
+        '</div>';
+}
+
+function renderEmptyHeroes() {
+    if (elements.chainHero && !elements.chainHero.dataset.rendered) {
+        elements.chainHero.innerHTML = '<div class="finder-dom-inner">' + heroIntroPanel({
+            heading: 'Production Chains',
+            intro: 'Pick any P1–P4 product and see its full build down to raw P0 — with planet types, batch sizes and live Jita market pricing.',
+            points: [
+                'Full chain from final product back to every raw P0 input',
+                'Planet types required per step, with batch sizes',
+                'Live Jita market pricing, profit and margin per product',
+                'Click any node to re-target; double-click drills deeper'
+            ],
+            ctaLabel: 'Choose a product',
+            ctaId: 'chainHeroCta'
+        }) + '</div>';
+        elements.chainHero.dataset.rendered = '1';
+        const cta = document.getElementById('chainHeroCta');
+        if (cta) cta.addEventListener('click', () => {
+            const sel = elements.chainProductSelect || document.getElementById('chainProductSelect');
+            if (sel) { sel.focus(); sel.click && sel.click(); }
+        });
+    }
+    if (elements.systemHero && !elements.systemHero.dataset.rendered) {
+        elements.systemHero.innerHTML = '<div class="finder-dom-inner">' + heroIntroPanel({
+            heading: 'System Checker',
+            intro: 'Search any system to see its planets, skyhooks and which P2/P3/P4 it can produce locally — straight from the offline SDE.',
+            points: [
+                'Planets present and their planet types',
+                'Skyhook power, workforce and reagent details',
+                'Which P2 / P3 / P4 are producible locally',
+                'Click a result to open its full production chain'
+            ],
+            ctaLabel: 'Search a system',
+            ctaId: 'systemHeroCta'
+        }) + '</div>';
+        elements.systemHero.dataset.rendered = '1';
+        const cta = document.getElementById('systemHeroCta');
+        if (cta) cta.addEventListener('click', () => {
+            const inp = elements.systemInput || document.getElementById('systemInput');
+            if (inp) inp.focus();
+        });
+    }
+}
+
+function ssoExplainerPanel(opts) {
+    const heading = opts.heading || opts.title || 'Sign in with EVE SSO';
+    const items = (opts.points || []).map(p =>
+        '<div class="sso-welcome-card"><i class="fas fa-check-circle sso-welcome-tick"></i><span>' + p + '</span></div>'
+    ).join('');
+    const cta = '<button class="calc-btn sso-welcome-cta" id="ssoWelcomeLogin"><i class="fas fa-sign-in-alt"></i> Log in with EVE SSO</button>';
+    return '<div class="sso-welcome">' +
+        '<div class="sso-welcome-hero">' +
+            '<img src="../rusty_bot.png" alt="RustyBot" class="sso-welcome-logo">' +
+            '<div class="sso-welcome-hero-text">' +
+                '<h2>' + escapeHtml(heading) + '</h2>' +
+            '</div>' +
+        '</div>' +
+        cta +
+        (opts.intro ? '<p class="sso-welcome-intro">' + opts.intro + '</p>' : '') +
+        '<div class="sso-welcome-grid">' + items + '</div>' +
+        (opts.foot ? '<div class="sso-welcome-foot">' + opts.foot + '</div>' : '') +
+        '</div>';
+}
+
 // Finder-style colonies DOM — replaces canvas colony cards
-function renderColoniesDom(colonies, systemsLoaded) {
-    const dom = elements.coloniesDom || document.getElementById('coloniesDom');
+function renderColoniesDom(colonies, systemsLoaded) {    const dom = elements.coloniesDom || document.getElementById('coloniesDom');
     const hero = elements.coloniesHero || document.getElementById('coloniesHero');
     const metric = elements.coloniesMetric || document.getElementById('coloniesMetric');
     const sub = elements.coloniesSub || document.getElementById('coloniesSub');
@@ -1845,22 +1937,44 @@ function renderColoniesDom(colonies, systemsLoaded) {
 
     const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
     if (!authed) {
-        if (kicker) kicker.textContent = 'My Colonies';
-        if (hero) hero.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">Sign in with EVE SSO to view your colonies</div>';
+        if (kicker) { kicker.style.display = 'none'; kicker.textContent = ''; }
+        if (hero) hero.innerHTML = ssoExplainerPanel({
+            icon: 'fas fa-globe',
+            heading: 'My Colonies',
+            title: 'Sign in with EVE SSO',
+            intro: 'Login (read-only, <code>esi-planets</code>) pulls your live planetary colonies straight from ESI:',
+            points: [
+                'Storage fill bars with overflow ETAs per launchpad / storage facility',
+                'Extractor expiry countdowns with expired warnings &amp; timeline',
+                'Idle factory detection \u2014 missing schematics or input routes',
+                'ISK/day estimates, stored value and Command Centre skill checks',
+                'Planet layout maps with per-pin inspection'
+            ],
+            foot: 'Read-only access \u2014 we never move or post anything on your behalf. Use the <strong>Colonies tab</strong> to sign in.'
+        });
         if (metric) metric.innerHTML = '';
-        if (sub) sub.textContent = 'Use the Colonies tab to sign in.';
+        if (sub) sub.textContent = '';
         grid.innerHTML = ''; if (timelineDom) timelineDom.innerHTML=''; if (empty) empty.textContent='';
+        bindSsoWelcomeLogin(() => {
+            if (!window.piEsiAuth) return;
+            piEsiAuth.initiateLogin().catch(err => {
+                if (elements.coloniesStatus) {
+                    elements.coloniesStatus.classList.remove('hidden');
+                    elements.coloniesStatus.innerHTML = '<div style="color: var(--danger)"><i class="fas fa-exclamation-circle"></i> ' + escapeHtml(err.message) + '</div>';
+                }
+            });
+        });
         return;
     }
     if (AppState.coloniesLoading) {
-        if (kicker) kicker.textContent = 'My Colonies';
+        if (kicker) { kicker.style.display = ''; kicker.textContent = 'My Colonies'; }
         if (hero) hero.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px"><i class="fas fa-spinner fa-spin"></i> Loading colonies...</div>';
         if (metric) metric.innerHTML='';
         grid.innerHTML='';
         return;
     }
     if (!colonies || !colonies.length) {
-        if (kicker) kicker.textContent = 'My Colonies';
+        if (kicker) { kicker.style.display = ''; kicker.textContent = 'My Colonies'; }
         if (hero) hero.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">No colonies found — colonize a planet in-game</div>';
         if (metric) metric.innerHTML='';
         grid.innerHTML='';
@@ -2319,6 +2433,15 @@ function escapeHtml(str) {
 function draw() {
     clampListScroll();
 
+    // Empty-state hero landing pages for Chain / System (when nothing is selected)
+    renderEmptyHeroes();
+    const showChainHero = AppState.viewMode === 'chain' && !AppState.chainLayout;
+    const showSystemHero = AppState.viewMode === 'system' && !AppState.systemData;
+    if (elements.chainHero) elements.chainHero.classList.toggle('hidden', !showChainHero);
+    if (elements.systemHero) elements.systemHero.classList.toggle('hidden', !showSystemHero);
+    const piCanvasHero = document.getElementById('piCanvas');
+    if (piCanvasHero) piCanvasHero.classList.toggle('hidden', showChainHero || showSystemHero);
+
     ctx.clearRect(0, 0, AppState.cssW, AppState.cssH);
 
     drawBackgroundGrid();
@@ -2363,7 +2486,7 @@ function draw() {
     if (cDomSync) cDomSync.classList.toggle('hidden', !coloniesListView);
     if (fDomSync && AppState.viewMode !== 'finder') { /* finder handled elsewhere */ }
     if (piCanvasSync) {
-        const hideCanvas = (AppState.viewMode === 'finder') || coloniesListView || AppState.viewMode === 'welcome';
+        const hideCanvas = (AppState.viewMode === 'finder') || coloniesListView || AppState.viewMode === 'welcome' || showChainHero || showSystemHero;
         piCanvasSync.classList.toggle('hidden', hideCanvas);
     }
 
@@ -4652,9 +4775,9 @@ function setViewMode(mode) {
     const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 
-    // Hide the bottom canvas help pill in Finder & Welcome ( Finder pill was the clipped bar at screen bottom)
+    // The bottom canvas help pill just repeats info already shown in the panels, so keep it hidden in all views
     const canvasHelp = document.querySelector('.canvas-help');
-    if (canvasHelp) canvasHelp.classList.toggle('hidden', mode === 'finder' || mode === 'welcome');
+    if (canvasHelp) canvasHelp.classList.add('hidden');
 
     // Welcome / Finder / Colonies DOM overlays: show grid report instead of stretched canvas
     const isWelcomeView = mode === 'welcome';
@@ -5429,8 +5552,8 @@ function drawFinderView() {
 
     if (!window.piEsiAuth || !piEsiAuth.isAuthenticated()) {
         drawFinderPrompt('Sign in with EVE SSO',
-            'The Finder needs your login to track your character location',
-            'and scan nearby markets. Use the Finder tab to sign in.');
+            'Login unlocks live features: auto-detect your character\u2019s current system as the search origin,',
+            'and scan nearby markets for the most profitable PI builds. Read-only \u2014 no login needed to browse chains & systems.');
         return;
     }
     if (f.activePanel === 'spot' && f.spotRows.length) {
@@ -5478,13 +5601,30 @@ function renderFinderDom() {
     const kickerEl = elements.finderKicker || document.getElementById('finderKicker');
     const authed = window.piEsiAuth && piEsiAuth.isAuthenticated();
     if (!authed) {
-        if (kickerEl) { kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
-        heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">Sign in with EVE SSO to use Finder</div>';
+        if (kickerEl) { kickerEl.style.display = 'none'; kickerEl.textContent = ''; }
+        heroEl.innerHTML = ssoExplainerPanel({
+            icon: 'fas fa-location-arrow',
+            heading: 'Finder',
+            title: 'Sign in with EVE SSO',
+            intro: 'Login unlocks the live Finder features (<code>esi-location</code>):',
+            points: [
+                'Auto-detect your character\u2019s current system as the search origin',
+                'Scan nearby markets across your jump radius for top-profit products',
+                'Full-coverage build plans ranked by Jita profit per batch &amp; margin',
+                'Gate routes with security warnings, plus clickable Next-Best alternatives'
+            ],
+            foot: 'Read-only access \u2014 no login needed to browse chains &amp; systems. Use the <strong>Finder tab</strong> to sign in.'
+        });
         metricEl.innerHTML = '';
-        subEl.textContent = 'Use the Finder tab to sign in and track your character location.';
+        subEl.textContent = '';
         gridEl.innerHTML = '';
         if (emptyEl) emptyEl.textContent = '';
         if (moreEl) moreEl.textContent = '';
+        bindSsoWelcomeLogin(() => {
+            piEsiAuth.initiateLogin().catch(err => {
+                setFinderStatus(elements.finderSpotResults, err.message || 'Login failed');
+            });
+        });
         return;
     }
 
@@ -5493,7 +5633,7 @@ function renderFinderDom() {
         // Product was searched but no system covers the required planet types
         const attemptedProduct = f.spotProductName && f.activePanel === 'spot' ? f.spotProductName : null;
         if (attemptedProduct) {
-            if (kickerEl) kickerEl.textContent = attemptedProduct + ' — not available';
+            if (kickerEl) { kickerEl.style.display = ''; kickerEl.textContent = attemptedProduct + ' — not available'; }
             if (kickerEl) kickerEl.style.color = '#f87171';
             const mat = f.bestProductId ? getMaterialById(f.bestProductId) : null;
             if (mat) {
@@ -5515,7 +5655,7 @@ function renderFinderDom() {
             const nbWrapEmpty = elements.finderNextBest || document.getElementById('finderNextBest');
             if (nbWrapEmpty) nbWrapEmpty.classList.add('hidden');
         } else {
-            if (kickerEl) { kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
+            if (kickerEl) { kickerEl.style.display = ''; kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
             heroEl.innerHTML = '<div style="color:var(--muted);font-size:0.78rem;padding:10px">No finder results yet</div>';
             metricEl.innerHTML = '';
             subEl.textContent = 'Set an origin in the Finder tab, pick a product, then press \u201cFind Best Systems\u201d or \u201cScan Market\u201d.';
@@ -5526,7 +5666,7 @@ function renderFinderDom() {
         return;
     }
 
-    if (kickerEl) { kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
+    if (kickerEl) { kickerEl.style.display = ''; kickerEl.textContent = 'Top Profit Report'; kickerEl.style.color = ''; }
     const chainMat = getMaterialById(f.bestProductId);
     const tierColor = chainMat ? (PI_COLORS[chainMat.tier] || '#d29922') : '#d29922';
     const name = chainMat ? chainMat.name : (f.spotProductName || 'Product');

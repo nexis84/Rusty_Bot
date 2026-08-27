@@ -20,7 +20,7 @@
     <meta name="twitter:title" content="EVE Online PI Visualizer | RustyBot">
     <meta name="twitter:description" content="PI chains, system checker, profit finder and live colony tracker — free EVE Online tool.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
-    <link rel="stylesheet" href="pi-style.css?v=51">
+    <link rel="stylesheet" href="pi-style.css?v=52">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
@@ -160,7 +160,6 @@
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </button>
                         </div>
-                        <p class="hint">Sign in to view your planetary colonies.</p>
                     </div>
                     <div id="coloniesStatus" class="hidden">
                         <p class="hint">Sign in with EVE SSO above to view your colonies</p>
@@ -205,7 +204,6 @@
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </button>
                         </div>
-                        <p class="hint">Sign in to track your character location and scan nearby markets.</p>
                     </div>
                     <div id="finderControls">
                     <p class="hint">Search around a starting system for the best places to build</p>
@@ -520,6 +518,10 @@
                         </div>
                     </div>
                 </div>
+                <!-- Chain empty-state hero (shown when no product selected) -->
+                <div id="chainHero" class="finder-dom hidden"></div>
+                <!-- System empty-state hero (shown when no system searched) -->
+                <div id="systemHero" class="finder-dom hidden"></div>
                 <div class="canvas-help">
                     <p><i class="fas fa-info-circle"></i> Click any material to view its production chain • Use System Checker to scout systems</p>
                 </div>
@@ -531,7 +533,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '64';
+        window.PI_ASSET_VERSION = '65';
 
         (function loadPiScripts() {
             function load(src, onok) {
