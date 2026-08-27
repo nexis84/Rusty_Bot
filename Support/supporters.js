@@ -36,5 +36,11 @@ window.SUPPORTERS = [
     "type": "member",
     "date": "2026-08-12",
     "total": 1
+  },
+  {
+    "name": "Reed Voss",
+    "type": "oneoff",
+    "date": "2026-08-20",
+    "total": 10
   }
 ];
