@@ -155,7 +155,7 @@
 
         .card-grid .card {
             flex: 0 1 200px;
-            background: var(--panel);
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 14px 12px;
@@ -170,7 +170,7 @@
         }
 
         .card-grid .card:hover {
-            background: var(--panel-hover);
+            background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%);
             border-color: #ffd700;
             transform: translateY(-4px);
         }
@@ -230,8 +230,8 @@
         }
 
         #tools .card-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 300px));
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             gap: 1rem;
             max-width: 1000px;
@@ -239,8 +239,8 @@
         }
 
         #tools .card-grid .card {
-            flex: none;
-            width: 100%;
+            flex: 0 1 300px;
+            width: auto;
             padding: 1rem 0.9rem;
         }
 
@@ -262,7 +262,7 @@
         }
 
         .feat-grid .feat {
-            background: var(--panel);
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 20px;
@@ -272,7 +272,7 @@
         }
 
         .feat-grid .feat:hover {
-            background: var(--panel-hover);
+            background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%);
             border-color: var(--accent-dim);
         }
 
@@ -295,7 +295,7 @@
         }
 
         .support-card {
-            background: var(--panel);
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 0.75rem 0.75rem;
@@ -303,6 +303,42 @@
             margin: 0 auto;
             text-align: center;
             transition: background 0.15s, border-color 0.2s;
+        }
+
+        .wehype-code {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin: 14px auto 0;
+            color: #eee;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+
+        .wehype-code i {
+            color: var(--accent);
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .wehype-text {
+            display: inline;
+            line-height: 1.4;
+        }
+
+        .wehype-code .wehype-label {
+            font-weight: 700;
+            color: #eee;
+        }
+
+        .wehype-code strong {
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            font-size: 1.05rem;
         }
 
         .support-card:hover {
@@ -692,6 +728,7 @@
                         <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
                     </div>
                     <a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a>
+                    <span class="wehype-code"><i class="fa-solid fa-hand-holding-dollar"></i> <span class="wehype-text"><span class="wehype-label">WeHype Partner</span> &mdash; use code <strong>Rusty</strong> at checkout on the EVE store</span></span>
                 </div>
             </div>
         </section>
