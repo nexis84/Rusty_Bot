@@ -117,6 +117,8 @@ const elements = {
     zoomLevel: document.getElementById('zoomLevel'),
     fitView: document.getElementById('fitView'),
     topSsoBtn: document.getElementById('topSsoBtn'),
+    welcomeSso: document.getElementById('welcomeSso'),
+    welcomeSsoLogin: document.getElementById('welcomeSsoLogin'),
     marketLoading: document.getElementById('marketLoading'),
     marketContent: document.getElementById('marketContent'),
     outputValue: document.getElementById('outputValue'),
@@ -571,6 +573,11 @@ function setupEventListeners() {
     }
     if (elements.chainClear) {
         elements.chainClear.addEventListener('click', clearChain);
+    }
+    if (elements.welcomeSsoLogin) {
+        elements.welcomeSsoLogin.addEventListener('click', () => {
+            piEsiAuth.initiateLogin().catch(err => console.error('Welcome SSO login failed:', err));
+        });
     }
     elements.backToRef.addEventListener('click', () => {
         // Chain product history takes priority while in chain view (replaces Prev button)
@@ -1318,6 +1325,14 @@ function updateSsoUI() {
         }
     }
     toggleChainSendToFinder();
+    updateWelcomeSso();
+}
+
+// Welcome-page SSO prompt: show when logged out, hide once signed in.
+function updateWelcomeSso() {
+    if (!elements.welcomeSso) return;
+    const authed = !!(window.piEsiAuth && piEsiAuth.isAuthenticated());
+    elements.welcomeSso.classList.toggle('hidden', authed);
 }
 
 // Chain "Send to Finder" is always visible but greyed/disabled until BOTH a

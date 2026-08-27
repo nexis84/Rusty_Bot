@@ -401,6 +401,17 @@
                             </div>
                         </div>
 
+                        <div class="welcome-sso" id="welcomeSso">
+                            <div class="welcome-sso-text">
+                                <i class="fas fa-user-lock"></i>
+                                <div>
+                                    <strong>Unlock extended features</strong>
+                                    <p>Sign in with EVE SSO to use your live in-game location in Finder and pull your real colonies.</p>
+                                </div>
+                            </div>
+                            <button class="calc-btn welcome-sso-btn" id="welcomeSsoLogin"><i class="fas fa-sign-in-alt"></i> Sign in with SSO</button>
+                        </div>
+
                         <div class="welcome-grid">
                             <div class="welcome-card" data-welcome-act="chain">
                                 <div class="welcome-card-head"><i class="fas fa-project-diagram"></i> Chain</div>
@@ -553,7 +564,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '71';
+        window.PI_ASSET_VERSION = '72';
 
         (function loadPiScripts() {
             function load(src, onok) {
