@@ -10,7 +10,7 @@ const DEFAULT_REGION = '10000002'; // Jita/The Forge
 const AppState = {
     canvasOffset: { x: 0, y: 0 },
     zoom: 1,
-    viewMode: 'reference', // 'reference', 'system', 'chain', 'planets', 'colonies', 'finder'
+    viewMode: 'welcome', // 'welcome', 'reference', 'system', 'chain', 'planets', 'colonies', 'finder'
     refSubview: 'materials', // 'materials' | 'planets' - sub-view inside the Reference canvas
     marketPrices: {},
     targetProduct: null,
@@ -189,7 +189,10 @@ const elements = {
     coloniesKicker: document.getElementById('coloniesKicker'),
     colonySkillBanner: document.getElementById('colonySkillBanner'),
     colonyIdleFilter: document.getElementById('colonyIdleFilter'),
-    colonyFilterCount: document.getElementById('colonyFilterCount')
+    colonyFilterCount: document.getElementById('colonyFilterCount'),
+    viewWelcome: document.getElementById('viewWelcome'),
+    viewWelcomeToolbar: document.getElementById('viewWelcomeToolbar'),
+    welcomeDom: document.getElementById('welcomeDom')
 };
 
 // ---------- Data access helpers (new SDE-driven structure) ----------
@@ -358,9 +361,12 @@ function init() {
     if (window.location.hash && window.location.hash.length > 1) {
         restoreFromUrl();
     } else {
-        setViewMode('reference');
+        setViewMode('welcome');
     }
-    // Ensure timeline elements that were null at script load (before DOM) are bound now
+    // Ensure elements that were null at script load (before DOM) are bound now
+    if (!elements.viewWelcome) elements.viewWelcome = document.getElementById('viewWelcome');
+    if (!elements.viewWelcomeToolbar) elements.viewWelcomeToolbar = document.getElementById('viewWelcomeToolbar');
+    if (!elements.welcomeDom) elements.welcomeDom = document.getElementById('welcomeDom');
     if (!elements.coloniesTimelineMain) elements.coloniesTimelineMain = document.getElementById('coloniesTimelineMain');
     if (!elements.coloniesDom) elements.coloniesDom = document.getElementById('coloniesDom');
     if (!elements.coloniesHero) elements.coloniesHero = document.getElementById('coloniesHero');
@@ -443,6 +449,24 @@ function setupEventListeners() {
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 
     // Controls
+    // Welcome / Help — top bar + toolbar
+    function bindWelcomeBtn(el) { if (el && !el._welcomeBound) { el._welcomeBound = true; el.addEventListener('click', () => setViewMode('welcome')); } }
+    bindWelcomeBtn(elements.viewWelcome);
+    bindWelcomeBtn(elements.viewWelcomeToolbar);
+    bindWelcomeBtn(document.getElementById('viewWelcome'));
+    bindWelcomeBtn(document.getElementById('viewWelcomeToolbar'));
+    // Welcome cards/CTAs inside main window
+    document.querySelectorAll('[data-welcome-act]').forEach(el => {
+        if (el._welcomeBound) return; el._welcomeBound = true;
+        el.addEventListener('click', () => {
+            const act = el.dataset.welcomeAct;
+            if (act === 'chain') setViewMode('chain');
+            else if (act === 'system') setViewMode('system');
+            else if (act === 'colonies') { setViewMode('colonies'); if (!AppState.colonies && !AppState.coloniesLoading) refreshColoniesAuthState(); }
+            else if (act === 'finder') setViewMode('finder');
+            else if (act === 'reference') setViewMode('reference');
+        });
+    });
     elements.viewReference.addEventListener('click', () => setViewMode('reference'));
     if (elements.viewSystem) elements.viewSystem.addEventListener('click', () => setViewMode('system'));
     elements.viewChain.addEventListener('click', () => setViewMode('chain'));
@@ -455,6 +479,7 @@ function setupEventListeners() {
         }
     });
     elements.viewFinder.addEventListener('click', () => setViewMode('finder'));
+
     // Market data filter for reference page
     const marketFilterBtn = document.getElementById('marketFilterBtn');
     if (marketFilterBtn) {
@@ -501,7 +526,7 @@ function setupEventListeners() {
         }
         const prev = AppState.viewHistory.pop();
         if (!prev) {
-            setViewMode('reference');
+            setViewMode('welcome');
             return;
         }
         AppState.suppressViewHistoryPush = true;
@@ -514,7 +539,7 @@ function setupEventListeners() {
 
     // List views scroll with the keyboard too
     window.addEventListener('keydown', (e) => {
-        if (AppState.viewMode !== 'finder' && AppState.viewMode !== 'system' && AppState.viewMode !== 'reference' && !(AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode))) return;
+        if (AppState.viewMode !== 'finder' && AppState.viewMode !== 'system' && AppState.viewMode !== 'reference' && AppState.viewMode !== 'welcome' && !(AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode))) return;
         const tag = (e.target && e.target.tagName) || '';
         if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
         const step = { ArrowUp: -48, ArrowDown: 48, PageUp: -240, PageDown: 240 }[e.key];
@@ -562,6 +587,15 @@ function setupEventListeners() {
 
 // Tab Management
 function activateSidebarTab(tab) {
+    // Welcome has no sidebar tab — deselect all but keep sidebar usable
+    if (tab === 'welcome' || !tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        AppState.currentTab = tab || 'welcome';
+        const marketPanel = document.getElementById('marketPanel');
+        if (marketPanel) marketPanel.classList.add('hidden');
+        return;
+    }
     // Toggle the tab-button highlight
     document.querySelectorAll('.tab-btn').forEach(b => {
         if (b.dataset.tab === tab) {
@@ -577,7 +611,7 @@ function activateSidebarTab(tab) {
         targetPanel.classList.add('active');
     }
     AppState.currentTab = tab;
-    // Market Data only belongs on Chain and Ref tabs — hide on System/Colonies/Finder
+    // Market Data only belongs on Chain and Ref tabs — hide on System/Colonies/Finder/Welcome
     const marketPanel = document.getElementById('marketPanel');
     if (marketPanel) {
         const showMarket = tab === 'chain' || tab === 'ref';
@@ -2289,6 +2323,11 @@ function draw() {
 
     drawBackgroundGrid();
 
+    if (AppState.viewMode === 'welcome') {
+        // Welcome is DOM-only — nothing to draw on canvas
+        return;
+    }
+
     if (AppState.viewMode === 'reference') {
         drawReferenceView();
         return;
@@ -2319,10 +2358,12 @@ function draw() {
     const cDomSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('coloniesDom') : null;
     const fDomSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('finderDom') : null;
     const piCanvasSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('piCanvas') : null;
+    const wDomSync = (typeof document !== 'undefined' && document.getElementById) ? document.getElementById('welcomeDom') : null;
+    if (wDomSync) wDomSync.classList.toggle('hidden', AppState.viewMode !== 'welcome');
     if (cDomSync) cDomSync.classList.toggle('hidden', !coloniesListView);
     if (fDomSync && AppState.viewMode !== 'finder') { /* finder handled elsewhere */ }
     if (piCanvasSync) {
-        const hideCanvas = (AppState.viewMode === 'finder') || coloniesListView;
+        const hideCanvas = (AppState.viewMode === 'finder') || coloniesListView || AppState.viewMode === 'welcome';
         piCanvasSync.classList.toggle('hidden', hideCanvas);
     }
 
@@ -4297,7 +4338,8 @@ function onPointerMove(e) {
         // Reference, system, finder and non-layout colonies views lay out vertically
         // only - panning X there desyncs the list from the background, so lock
         // to Y. Colony layout mode is a full world-space view, so it pans free.
-        const lockY = AppState.viewMode === 'reference' ||
+        const lockY = AppState.viewMode === 'welcome' ||
+            AppState.viewMode === 'reference' ||
             AppState.viewMode === 'system' ||
             AppState.viewMode === 'finder' ||
             (AppState.viewMode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode));
@@ -4563,7 +4605,11 @@ function setViewMode(mode) {
     elements.viewChain.classList.toggle('active', mode === 'chain');
     elements.viewColonies.classList.toggle('active', mode === 'colonies');
     elements.viewFinder.classList.toggle('active', mode === 'finder');
-    elements.backToRef.classList.remove('hidden');
+    const welcomeTopBtn = elements.viewWelcome || document.getElementById('viewWelcome');
+    const welcomeTbBtn = elements.viewWelcomeToolbar || document.getElementById('viewWelcomeToolbar');
+    if (welcomeTopBtn) welcomeTopBtn.classList.toggle('active', mode === 'welcome');
+    if (welcomeTbBtn) welcomeTbBtn.classList.toggle('active', mode === 'welcome');
+    elements.backToRef.classList.toggle('hidden', mode === 'welcome');
 
     // Keep the Reference sub-view toggle (now inside the sidebar) in sync
     if (mode === 'reference') {
@@ -4573,7 +4619,10 @@ function setViewMode(mode) {
 
     const helpText = document.querySelector('.canvas-help p');
     if (helpText) {
-    if (mode === 'reference') {
+    if (mode === 'welcome') {
+        canvas.style.cursor = 'default';
+        helpText.innerHTML = '<i class="fas fa-compass"></i> Welcome — pick a card above or use the sidebar to get started';
+    } else if (mode === 'reference') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-info-circle"></i> Click any material to view its production chain and market data';
     } else if (mode === 'system') {
@@ -4599,23 +4648,26 @@ function setViewMode(mode) {
     }
 
     // Sync sidebar tab (button highlight + panel content) with canvas view mode.
-    const reverseViewToTab = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', reference: 'ref' };
+    const reverseViewToTab = { welcome: 'welcome', chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', reference: 'ref' };
     const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 
-    // Hide the bottom canvas help pill in Finder (it was the clipped bar at screen bottom)
+    // Hide the bottom canvas help pill in Finder & Welcome ( Finder pill was the clipped bar at screen bottom)
     const canvasHelp = document.querySelector('.canvas-help');
-    if (canvasHelp) canvasHelp.classList.toggle('hidden', mode === 'finder');
+    if (canvasHelp) canvasHelp.classList.toggle('hidden', mode === 'finder' || mode === 'welcome');
 
-    // Finder DOM overlay: show grid report instead of stretched canvas
+    // Welcome / Finder / Colonies DOM overlays: show grid report instead of stretched canvas
+    const isWelcomeView = mode === 'welcome';
+    const welcomeDom = document.getElementById('welcomeDom') || elements.welcomeDom;
     const isFinderView = mode === 'finder';
     const finderDom = document.getElementById('finderDom');
     const isColoniesListView = mode === 'colonies' && !(AppState.colonyDetail && AppState.layoutMode);
     const coloniesDom = document.getElementById('coloniesDom') || elements.coloniesDom;
     const piCanvasEl = document.getElementById('piCanvas');
+    if (welcomeDom) welcomeDom.classList.toggle('hidden', !isWelcomeView);
     if (finderDom) finderDom.classList.toggle('hidden', !isFinderView);
     if (coloniesDom) coloniesDom.classList.toggle('hidden', !isColoniesListView);
-    if (piCanvasEl) piCanvasEl.classList.toggle('hidden', isFinderView || isColoniesListView);
+    if (piCanvasEl) piCanvasEl.classList.toggle('hidden', isFinderView || isColoniesListView || isWelcomeView);
     if (isFinderView) {
         if (typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function') {
             try { renderFinderDom(); } catch (e) { /* headless stub may lack DOM helpers */ }
@@ -4671,7 +4723,7 @@ function restoreFromUrl() {
             AppState.refSubview = 'planets';
             AppState.suppressViewHistoryPush = true;
             setViewMode('reference');
-        } else if (view && ['reference', 'system', 'chain', 'colonies', 'finder'].includes(view)) {
+        } else if (view && ['welcome', 'reference', 'system', 'chain', 'colonies', 'finder'].includes(view)) {
             AppState.suppressViewHistoryPush = true;
             setViewMode(view);
         } else if (product) {

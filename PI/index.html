@@ -3,16 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PI Visualizer - RustyBot</title>
+    <title>EVE Online PI Visualizer - Planetary Interaction Chains, System Checker & Finder | RustyBot</title>
+    <meta name="description" content="Free EVE Online PI Visualizer — explore P0-P4 production chains, check any system's planets and skyhooks, find the most profitable build locations near you, and track live colonies with ESI. Live market pricing (Jita/Amarr/Dodixie/Hek/Rens) with batch profit & margin.">
+    <meta name="keywords" content="EVE Online PI, planetary interaction, PI visualizer, PI chains, P0 P1 P2 P3 P4, system checker, PI finder, colonies, ESI, RustyBot, EVE Online tools">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="author" content="RustyBot">
     <base href="/PI/">
-    <link rel="stylesheet" href="pi-style.css?v=50">
+    <link rel="canonical" href="https://www.rustybot.co.uk/PI/">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.rustybot.co.uk/PI/">
+    <meta property="og:title" content="EVE Online PI Visualizer — Chains, System Checker & Finder | RustyBot">
+    <meta property="og:description" content="Plan, price and place your PI. Browse every PI chain P0-P4, check systems, find best build spots ranked by Jita profit, and monitor live ESI colonies.">
+    <meta property="og:image" content="https://www.rustybot.co.uk/rusty_bot.png">
+    <meta property="og:site_name" content="RustyBot">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="EVE Online PI Visualizer | RustyBot">
+    <meta name="twitter:description" content="PI chains, system checker, profit finder and live colony tracker — free EVE Online tool.">
+    <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
+    <link rel="stylesheet" href="pi-style.css?v=51">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="../rusty_bot.png">
-  <link rel="canonical" href="https://www.rustybot.co.uk/PI/">
-  <meta name="robots" content="index, follow">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1EELB9VSCK');
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "RustyBot EVE Online PI Visualizer",
+      "url": "https://www.rustybot.co.uk/PI/",
+      "description": "Free EVE Online PI tool — view every P0-P4 production chain, check any system's planets/skyhooks, find profitable build systems within jump range, and monitor live planetary colonies via ESI with ISK valuations.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "ISK" },
+      "author": { "@type": "Organization", "name": "RustyBot", "url": "https://www.rustybot.co.uk/" },
+      "featureList": ["P0-P4 chain visualizer", "System checker (SDE planets & skyhooks)", "Finder — most profitable systems by jump range", "Live ESI colonies with expiry & ISK/day", "Live market pricing by region"]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/" },
+        { "@type": "ListItem", "position": 2, "name": "PI Visualizer", "item": "https://www.rustybot.co.uk/PI/" }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is the EVE Online PI Visualizer?", "acceptedAnswer": { "@type": "Answer", "text": "A free RustyBot tool that shows every Planetary Interaction production chain from P0 raw resources to P4 advanced commodities, with planet types, batch sizes and live market profit." } },
+        { "@type": "Question", "name": "Can I check if a system can build a PI product?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — use System Checker. Enter any New Eden system to see its planets, skyhook totals and which P2/P3/P4 products are producible locally from its raw resources." } },
+        { "@type": "Question", "name": "How do I find the best system to build PI nearby?", "acceptedAnswer": { "@type": "Answer", "text": "Use Finder: set an origin (your character via ESI or any system), choose jump radius and security filters, then Scan Market (ranked by Jita) or Find Best Systems for full-coverage build plans." } },
+        { "@type": "Question", "name": "Does it show my live colonies?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Login with EVE SSO (esi-planets) to pull colonies — storage fill, extractor expiry, idle factories and ISK per day valuations. Updates respect the 10-minute ESI cache." } }
+      ]
+    }
+    </script>
 </head>
 <body>
     <div class="app">
@@ -26,6 +85,9 @@
                 <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
                 <h1>PI <span class="accent">Visualizer</span></h1>
             </div>
+            <button id="viewWelcome" class="toolbar-btn welcome-top-btn" title="Welcome & Help">
+                <i class="fas fa-compass"></i> Welcome
+            </button>
             <div class="region-selector">
                 <label><i class="fas fa-map-marker-alt"></i> Market:</label>
                 <select id="regionSelect">
@@ -257,6 +319,9 @@
                         <button id="backToRef" class="toolbar-btn">
                             <i class="fas fa-arrow-left"></i> Back
                         </button>
+                        <button id="viewWelcomeToolbar" class="toolbar-btn" title="Welcome & Help">
+                            <i class="fas fa-compass"></i> Welcome
+                        </button>
                         <span class="toolbar-label">View:</span>
                         <button id="viewChain" class="toolbar-btn">
                             <i class="fas fa-project-diagram"></i> Chain
@@ -299,6 +364,128 @@
                     <!-- Reference view controls (Planets sub-view + Market filter) -->
                 </div>
                 <canvas id="piCanvas" class="pi-canvas"></canvas>
+                <!-- Welcome / Help — entry page on first load, doubles as Help -->
+                <div id="welcomeDom" class="welcome-dom hidden">
+                    <div class="welcome-inner">
+                        <div class="welcome-hero">
+                            <img src="../rusty_bot.png" alt="RustyBot Logo" class="welcome-logo">
+                            <div class="welcome-hero-text">
+                                <h2>PI <span class="accent">Visualizer</span></h2>
+                                <p class="welcome-subtitle">Plan, price and place your Planetary Interaction — all in one place.</p>
+                                <p class="welcome-tagline">First time here? Start below. Returning? Jump straight to a tool from the sidebar — or use the cards.</p>
+                                <div class="welcome-cta-row">
+                                    <button class="calc-btn welcome-cta" data-welcome-act="finder"><i class="fas fa-location-arrow"></i> Find Best Systems</button>
+                                    <button class="calc-btn secondary welcome-cta" data-welcome-act="chain"><i class="fas fa-project-diagram"></i> View a Chain</button>
+                                    <button class="calc-btn secondary welcome-cta" data-welcome-act="system"><i class="fas fa-search"></i> Check a System</button>
+                                    <button class="calc-btn secondary welcome-cta" data-welcome-act="colonies"><i class="fas fa-globe"></i> My Colonies</button>
+                                    <button class="calc-btn secondary welcome-cta" data-welcome-act="reference"><i class="fas fa-book"></i> Reference</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="welcome-grid">
+                            <div class="welcome-card" data-welcome-act="chain">
+                                <div class="welcome-card-head"><i class="fas fa-project-diagram"></i> Chain</div>
+                                <div class="welcome-card-title">Production Chains</div>
+                                <p>Pick any P1–P4 product and see every input down to raw P0, with planet types and batch sizes.</p>
+                                <span class="welcome-card-link">Open Chain <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                            <div class="welcome-card" data-welcome-act="system">
+                                <div class="welcome-card-head"><i class="fas fa-search"></i> System Checker</div>
+                                <div class="welcome-card-title">Can this system build it?</div>
+                                <p>Search any system — see its planets, skyhooks, and which P2/P3/P4 are producible locally. Click a result to open its chain.</p>
+                                <span class="welcome-card-link">Check a System <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                            <div class="welcome-card" data-welcome-act="finder">
+                                <div class="welcome-card-head"><i class="fas fa-location-arrow"></i> Finder</div>
+                                <div class="welcome-card-title">Where should I build?</div>
+                                <p>Set an origin (your character or any system), pick radius &amp; security, then Scan Market or Find Best Systems — ranked by Jita profit.</p>
+                                <span class="welcome-card-link">Open Finder <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                            <div class="welcome-card" data-welcome-act="colonies">
+                                <div class="welcome-card-head"><i class="fas fa-globe"></i> My Colonies</div>
+                                <div class="welcome-card-title">Live ESI Colonies</div>
+                                <p>Login with EVE SSO to pull your colonies — storage fill, expiry countdowns, idle factories, and ISK/day estimates.</p>
+                                <span class="welcome-card-link">View Colonies <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                            <div class="welcome-card" data-welcome-act="reference">
+                                <div class="welcome-card-head"><i class="fas fa-book"></i> Reference</div>
+                                <div class="welcome-card-title">Materials &amp; Planets</div>
+                                <p>Browse every PI material by tier and every planet type — with colours, extraction tables and market pricing.</p>
+                                <span class="welcome-card-link">Open Reference <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                            <div class="welcome-card welcome-card--muted">
+                                <div class="welcome-card-head"><i class="fas fa-chart-line"></i> Market</div>
+                                <div class="welcome-card-title">Live Market Prices</div>
+                                <p>Top-right Market selector switches hub (Jita/Amarr/Dodixie...). Chain &amp; Finder both price against Jita as the standard, with your hub alongside.</p>
+                                <span class="welcome-card-link" style="opacity:.55;cursor:default">Use the Market dropdown <i class="fas fa-arrow-up"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="welcome-steps">
+                            <h3><i class="fas fa-list-ol"></i> Getting Started — 3 steps</h3>
+                            <ol>
+                                <li><strong>New to PI?</strong> Open <em>Reference → Planets</em> to see which planet makes what, then pick a product in <em>Chain</em> to see its full build.</li>
+                                <li><strong>Have a home system?</strong> Use <em>System Checker</em> to see if it can build locally — or let <em>Finder</em> scan nearby systems for the most profitable build.</li>
+                                <li><strong>Already have colonies?</strong> <em>Login with EVE SSO</em> in Colonies or Finder — expires &amp; fill bars update from live ESI.</li>
+                            </ol>
+                        </div>
+
+                        <div class="welcome-sidebar-preview">
+                            <h3><i class="fas fa-columns"></i> Sidebar — where the tools live</h3>
+                            <p class="hint">The left sidebar (like all other pages) holds the controls. On Welcome you can jump anywhere — the same tabs are available in the bottom toolbar too.</p>
+                            <div class="welcome-sidebar-chips">
+                                <span><i class="fas fa-project-diagram"></i> Chain — pick a product</span>
+                                <span><i class="fas fa-search"></i> System — type a name</span>
+                                <span><i class="fas fa-globe"></i> Colonies — SSO login</span>
+                                <span><i class="fas fa-location-arrow"></i> Finder — origin &amp; radius</span>
+                                <span><i class="fas fa-book"></i> Ref — Materials / Planets</span>
+                            </div>
+                        </div>
+
+                        <div class="welcome-tips">
+                            <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+                            <ul>
+                                <li>Click any material node in a chain to re-target it; double-click drills in.</li>
+                                <li>In Finder, cards show a gate route — click again to expand it. Next Best is ranked by Jita and clickable.</li>
+                                <li>Colonies: <em>Idle only</em> filters factories missing schematics/routes. Timeline shows expiry soonest-first.</li>
+                                <li>Share a chain: the URL hash updates (<code>#view=chain&amp;product=...</code>) — copy it.</li>
+                            </ul>
+                        </div>
+
+                        <div class="welcome-foot">
+                            <img src="../rusty_bot.png" alt="" class="welcome-foot-logo">
+                            <span>RustyBot — PI Visualizer · Data: EVE SDE &amp; ESI · Prices: ESI Market</span>
+                        </div>
+
+                        <!-- SEO: crawlable static copy of the Welcome/Help (also credits data sources & noscript fallback) -->
+                        <section class="welcome-seo" aria-label="About PI Visualizer">
+                            <h2>EVE Online PI Visualizer — Chains, System Checker &amp; Finder</h2>
+                            <p>Free, no-signup EVE Online Planetary Interaction tool. Browse every <strong>P0 raw → P1 → P2 → P3 → P4</strong> production chain with exact inputs, batch sizes and planet types. Powered by the EVE SDE and live <strong>ESI</strong> market pricing across <strong>Jita (The Forge), Amarr (Domain), Dodixie, Rens, Hek</strong> and Manifest.</p>
+                            <p><strong>Chain view</strong> shows the full build down to raw extraction. <strong>System Checker</strong> uses offline SDE data: type any system to see its planets, skyhook power/workforce/reagents and which P2/P3/P4 are producible locally. <strong>Finder</strong> searches by gate jumps (1–50, via <code>pi-jumps.js</code>) and max systems (1–6) to surface full-coverage build plans — <em>Scan Market</em> ranks every producible product by <strong>Jita profit/batch &amp; margin</strong>.</p>
+                            <p><strong>My Colonies</strong> is ESI-live: SSO (<code>esi-planets</code>, optional <code>esi-skills</code>/<code>esi-location</code>) pulls colony pins, launchpad/storage fill, extractor expiry countdowns, idle factories and ISK/day estimates. Link radius calibrates CPU/Powergrid to in-game values. Data respects ESI's 600s cache.</p>
+                            <p>Built by <a href="../">RustyBot</a> — EVE Online Partner. Open the <a href="../market/">Market Browser</a> or <a href="../gatecheck/">Gate Check</a> from the RustyBot suite. Questions? See Tips on this page or open Help (<code>#view=welcome</code>) anytime from the top-bar Welcome button.</p>
+                            <noscript><p><em>JavaScript is required for the interactive canvas, market pricing and ESI colony sync. The chain and system data is still authoritative SDE.</em></p></noscript>
+                        </section>
+
+                        <!-- Support RustyBot (Ko-fi) -->
+                        <section class="welcome-support" aria-label="Support RustyBot">
+                            <div class="welcome-support-card">
+                                <div class="welcome-support-icon"><i class="fa-solid fa-heart"></i></div>
+                                <h2 class="welcome-support-title">Support RustyBot</h2>
+                                <p class="welcome-support-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
+                                <div class="ko-fi-wrap">
+                                    <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+                                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                                </div>
+                            </div>
+                        </section>
+
+                        <footer class="welcome-legal">
+                            EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank" rel="noopener">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.
+                        </footer>
+                    </div>
+                </div>
                 <!-- Colonies DOM view — Finder-style report (replaces canvas colony cards) -->
                 <div id="coloniesDom" class="finder-dom colonies-dom hidden">
                     <div class="finder-dom-inner">
@@ -344,7 +531,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '63';
+        window.PI_ASSET_VERSION = '64';
 
         (function loadPiScripts() {
             function load(src, onok) {
