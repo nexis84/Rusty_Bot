@@ -2173,18 +2173,22 @@ function setColonyTick(active) {
                 renderColonies(AppState.colonies, AppState.systemsLoaded);
             }
         }, 60000);
-        // Also tick every second for the countdown text smoothness when visible
+        // Also tick every second for the countdown text smoothness when visible + immediate auto-refresh at exact expiry
         if (!AppState._esiCountdownTimer) {
             AppState._esiCountdownTimer = setInterval(() => {
                 const expiresAt2 = AppState.coloniesExpiresAt || (AppState.coloniesFetchedAt ? AppState.coloniesFetchedAt + 600000 : 0);
                 if (AppState.viewMode !== 'colonies' || !expiresAt2) return;
                 const cd = document.getElementById('esiCountdown');
-                if (!cd) return;
-                const remain = Math.max(0, expiresAt2 - Date.now());
-                const sec = Math.ceil(remain/1000);
-                const mm = String(Math.floor(sec/60)).padStart(2,'0');
-                const ss = String(sec%60).padStart(2,'0');
-                cd.textContent = remain>0 ? `${mm}:${ss} until refresh` : 'refreshing...';
+                if (cd) {
+                    const remain = Math.max(0, expiresAt2 - Date.now());
+                    const sec = Math.ceil(remain/1000);
+                    const mm = String(Math.floor(sec/60)).padStart(2,'0');
+                    const ss = String(sec%60).padStart(2,'0');
+                    cd.textContent = remain>0 ? `${mm}:${ss} until refresh` : 'refreshing...';
+                }
+                if (Date.now() >= expiresAt2 && !AppState.coloniesLoading && window.piEsiAuth && piEsiAuth.isAuthenticated()) {
+                    loadColonies();
+                }
             }, 1000);
         }
     } else if (!active && colonyTickTimer) {
