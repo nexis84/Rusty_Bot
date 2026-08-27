@@ -475,16 +475,6 @@
                             <span>RustyBot — PI Visualizer · Data: EVE SDE &amp; ESI · Prices: ESI Market</span>
                         </div>
 
-                        <!-- SEO: crawlable static copy of the Welcome/Help (also credits data sources & noscript fallback) -->
-                        <section class="welcome-seo" aria-label="About PI Visualizer">
-                            <h2>EVE Online PI Visualizer — Chains, System Checker &amp; Finder</h2>
-                            <p>Free, no-signup EVE Online Planetary Interaction tool. Browse every <strong>P0 raw → P1 → P2 → P3 → P4</strong> production chain with exact inputs, batch sizes and planet types. Powered by the EVE SDE and live <strong>ESI</strong> market pricing across <strong>Jita (The Forge), Amarr (Domain), Dodixie, Rens, Hek</strong> and Manifest.</p>
-                            <p><strong>Chain view</strong> shows the full build down to raw extraction. <strong>System Checker</strong> uses offline SDE data: type any system to see its planets, skyhook power/workforce/reagents and which P2/P3/P4 are producible locally. <strong>Finder</strong> searches by gate jumps (1–50, via <code>pi-jumps.js</code>) and max systems (1–6) to surface full-coverage build plans — <em>Scan Market</em> ranks every producible product by <strong>Jita profit/batch &amp; margin</strong>.</p>
-                            <p><strong>My Colonies</strong> is ESI-live: SSO (<code>esi-planets</code>, optional <code>esi-skills</code>/<code>esi-location</code>) pulls colony pins, launchpad/storage fill, extractor expiry countdowns, idle factories and ISK/day estimates. Link radius calibrates CPU/Powergrid to in-game values. Data respects ESI's 600s cache.</p>
-                            <p>Built by <a href="../">RustyBot</a> — EVE Online Partner. Open the <a href="../market/">Market Browser</a> or <a href="../gatecheck/">Gate Check</a> from the RustyBot suite. Questions? See Tips on this page or open Help (<code>#view=welcome</code>) anytime from the top-bar Welcome button.</p>
-                            <noscript><p><em>JavaScript is required for the interactive canvas, market pricing and ESI colony sync. The chain and system data is still authoritative SDE.</em></p></noscript>
-                        </section>
-
                         <!-- Support RustyBot (Ko-fi) -->
                         <section class="welcome-support" aria-label="Support RustyBot">
                             <div class="welcome-support-card">
@@ -496,6 +486,16 @@
                                     <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
                                 </div>
                             </div>
+                        </section>
+
+                        <!-- SEO: crawlable static copy of the Welcome/Help (also credits data sources & noscript fallback) -->
+                        <section class="welcome-seo" aria-label="About PI Visualizer">
+                            <h2>EVE Online PI Visualizer — Chains, System Checker &amp; Finder</h2>
+                            <p>Free, no-signup EVE Online Planetary Interaction tool. Browse every <strong>P0 raw → P1 → P2 → P3 → P4</strong> production chain with exact inputs, batch sizes and planet types. Powered by the EVE SDE and live <strong>ESI</strong> market pricing across <strong>Jita (The Forge), Amarr (Domain), Dodixie, Rens, Hek</strong> and Manifest.</p>
+                            <p><strong>Chain view</strong> shows the full build down to raw extraction. <strong>System Checker</strong> uses offline SDE data: type any system to see its planets, skyhook power/workforce/reagents and which P2/P3/P4 are producible locally. <strong>Finder</strong> searches by gate jumps (1–50, via <code>pi-jumps.js</code>) and max systems (1–6) to surface full-coverage build plans — <em>Scan Market</em> ranks every producible product by <strong>Jita profit/batch &amp; margin</strong>.</p>
+                            <p><strong>My Colonies</strong> is ESI-live: SSO (<code>esi-planets</code>, optional <code>esi-skills</code>/<code>esi-location</code>) pulls colony pins, launchpad/storage fill, extractor expiry countdowns, idle factories and ISK/day estimates. Link radius calibrates CPU/Powergrid to in-game values. Data respects ESI's 600s cache.</p>
+                            <p>Built by <a href="../">RustyBot</a> — EVE Online Partner. Open the <a href="../market/">Market Browser</a> or <a href="../gatecheck/">Gate Check</a> from the RustyBot suite. Questions? See Tips on this page or open Help (<code>#view=welcome</code>) anytime from the top-bar Welcome button.</p>
+                            <noscript><p><em>JavaScript is required for the interactive canvas, market pricing and ESI colony sync. The chain and system data is still authoritative SDE.</em></p></noscript>
                         </section>
 
                         <footer class="welcome-legal">
@@ -552,7 +552,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '74';
+        window.PI_ASSET_VERSION = '75';
 
         (function loadPiScripts() {
             function load(src, onok) {
