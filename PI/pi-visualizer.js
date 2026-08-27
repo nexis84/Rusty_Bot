@@ -1015,7 +1015,7 @@ function setupColonies() {
     setupDiscordDM();
 }
 
-const PI_DISCORD_API = (isLocalhost ? 'http://localhost:8080/api/pi/discord' : 'https://api.rustybot.co.uk/api/pi/discord');
+const PI_DISCORD_API = (isLocalhost ? 'http://localhost:3000/api/pi/discord' : 'https://api.rustybot.co.uk/api/pi/discord');
 
 async function refreshDiscordStatus() {
     const statusEl = elements.discordStatus || document.getElementById('discordStatus');
