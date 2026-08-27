@@ -5509,7 +5509,7 @@ function finderSetManualOrigin() {
     setFinderOrigin(sys.id, 'manual');
 }
 
-const FINDER_MAX_ROWS = 25;   // canvas cards per spot search (scrollable, but bounded)
+const FINDER_MAX_ROWS = 1000; // canvas/sidebar cards per spot search (both lists scroll; 7P-J38 sat at rank 25 under the old cap of 25)
 
 // Best plans first: fewer total jumps, then fewer systems, then safer security.
 function sortFinderSpotRows(groups) {
