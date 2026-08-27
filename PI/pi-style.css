@@ -1469,6 +1469,21 @@ body {
     width: 1.1rem;
 }
 
+/* Chain "Send to Finder" button */
+.chain-send-finder {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.chain-send-finder:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.chain-send-finder-hint {
+    margin-top: 0.4rem;
+}
+
 /* SSO panels — restyled to match the Welcome page card aesthetic */
 #coloniesSsoSection,
 #finderSsoSection {

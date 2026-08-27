@@ -103,6 +103,11 @@ const elements = {
     viewPlanets: null, // standalone Planets toolbar tab removed; planets now live inside Reference
     chainProductSelect: document.getElementById('chainProductSelect'),
     chainProductGo: document.getElementById('chainProductGo'),
+    chainSsoSection: document.getElementById('chainSsoSection'),
+    chainCharacter: document.getElementById('chainCharacter'),
+    chainLogin: document.getElementById('chainLogin'),
+    chainLogout: document.getElementById('chainLogout'),
+    chainSendToFinder: document.getElementById('chainSendToFinder'),
     viewColonies: document.getElementById('viewColonies'),
     viewFinder: document.getElementById('viewFinder'),
     backToRef: document.getElementById('backToRef'),
@@ -384,6 +389,8 @@ function init() {
     if (!elements.colonyIdleFilter) elements.colonyIdleFilter = document.getElementById('colonyIdleFilter');
     if (!elements.colonyFilterCount) elements.colonyFilterCount = document.getElementById('colonyFilterCount');
     console.log('Init complete');
+    // Reflect SSO / product state on the Chain "Send to Finder" button
+    toggleChainSendToFinder();
 }
 
 // Market data filter state
@@ -517,6 +524,29 @@ function setupEventListeners() {
         elements.chainProductGo.addEventListener('click', function () {
             goChain();
         });
+    }
+
+    // Chain tab EVE SSO login/logout (mirrors the Finder/Colonies SSO panels)
+    if (elements.chainLogin) {
+        elements.chainLogin.addEventListener('click', () => {
+            piEsiAuth.initiateLogin().catch(err => console.error('Chain SSO login failed:', err));
+        });
+    }
+    if (elements.chainLogout) {
+        elements.chainLogout.addEventListener('click', () => {
+            piEsiAuth.logout();
+            AppState.finder.locationAuthNeeded = false;
+            AppState.finder.originSystemId = null;
+            AppState.finder.originSource = null;
+            if (elements.finderLocate) {
+                elements.finderLocate.innerHTML = '<i class="fas fa-satellite-dish"></i> Character location';
+            }
+            refreshFinderAuthState();
+            refreshColoniesAuthState();
+        });
+    }
+    if (elements.chainSendToFinder) {
+        elements.chainSendToFinder.addEventListener('click', sendChainToFinder);
     }
     elements.backToRef.addEventListener('click', () => {
         // Chain product history takes priority while in chain view (replaces Prev button)
@@ -670,10 +700,40 @@ function navigateToProduct(id) {
     setViewMode('chain');
     generateChainLayout();
     fetchMarketData();
+    toggleChainSendToFinder();
 }
 
 function selectProduct(id) {
     navigateToProduct(id);
+}
+
+// "Send to Finder" (Chain tab): jump to Finder with the selected product,
+// auto-use the character's current ESI location as origin, and run Find Best
+// Systems with 10 jumps / 2 systems as defaults. Button is only enabled when a
+// product is selected AND the user is signed in (see toggleChainSendToFinder).
+async function sendChainToFinder() {
+    const id = AppState.targetProduct;
+    if (!id || !(window.piEsiAuth && piEsiAuth.isAuthenticated())) return;
+
+    if (elements.finderProduct) elements.finderProduct.value = String(id);
+    if (elements.finderJumps) elements.finderJumps.value = '10';
+    if (elements.finderMaxSystems) elements.finderMaxSystems.value = '2';
+
+    activateSidebarTab('finder');
+    setViewMode('finder');
+    refreshFinderAuthState();
+
+    // Auto-fetch the current in-game location as the Finder origin.
+    await finderUseMyLocation();
+
+    if (AppState.finder.originSystemId) {
+        await runFindBestSystems();
+    } else {
+        // Location scope missing after login — leave user on Finder with the
+        // product preset; they re-grant via the "Login to grant location" UI.
+        setFinderStatus(elements.finderSpotResults,
+            'Grant location access to search around your current system.');
+    }
 }
 
 function generateChainLayout() {
@@ -1203,6 +1263,21 @@ function updateSsoUI() {
     if (elements.coloniesCharacter) elements.coloniesCharacter.textContent = label;
     if (elements.coloniesLogin) elements.coloniesLogin.classList.toggle('hidden', authed);
     if (elements.coloniesLogout) elements.coloniesLogout.classList.toggle('hidden', !authed);
+    if (elements.chainCharacter) elements.chainCharacter.textContent = label;
+    if (elements.chainLogin) elements.chainLogin.classList.toggle('hidden', authed);
+    if (elements.chainLogout) elements.chainLogout.classList.toggle('hidden', !authed);
+    toggleChainSendToFinder();
+}
+
+// Chain "Send to Finder" is always visible but greyed/disabled until BOTH a
+// product is selected AND the user is signed in with EVE SSO.
+function toggleChainSendToFinder() {
+    if (!elements.chainSendToFinder) return;
+    const hasProduct = !!AppState.targetProduct;
+    const authed = !!(window.piEsiAuth && piEsiAuth.isAuthenticated());
+    elements.chainSendToFinder.disabled = !(hasProduct && authed);
+    elements.chainSendToFinder.title = !authed ? 'Log in with EVE SSO first'
+        : !hasProduct ? 'Select a product first' : '';
 }
 
 function showColoniesLoading() {
