@@ -47,7 +47,9 @@ class PIESIAuth {
         this.tokens = this.loadTokens();
         this.currentCharacter = this.loadCurrentCharacter();
         this.refreshPromises = {};
+        this.lastEsiHeaders = null;
     }
+    getLastEsiHeaders() { return this.lastEsiHeaders; }
 
     generateState() {
         const array = new Uint8Array(16);
@@ -289,6 +291,15 @@ class PIESIAuth {
             clearTimeout(timeoutId);
 
             if (!response.ok) {
+                if (response.status === 304) {
+                    this.lastEsiHeaders = {
+                        expires: response.headers.get('Expires'),
+                        cacheControl: response.headers.get('Cache-Control'),
+                        etag: response.headers.get('ETag'),
+                        date: response.headers.get('Date')
+                    };
+                    return null; // Not Modified
+                }
                 if (response.status === 401) {
                     // Cap the refresh-retry at one attempt so a persistently bad
                     // token can't loop forever.
@@ -308,6 +319,12 @@ class PIESIAuth {
                 throw new Error(`ESI Error ${response.status}: ${await response.text()}`);
             }
 
+            this.lastEsiHeaders = {
+                expires: response.headers.get('Expires'),
+                cacheControl: response.headers.get('Cache-Control'),
+                etag: response.headers.get('ETag'),
+                date: response.headers.get('Date')
+            };
             return response.json();
         } catch (error) {
             clearTimeout(timeoutId);
