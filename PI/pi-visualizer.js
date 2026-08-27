@@ -31,6 +31,8 @@ const AppState = {
     planetsLoaded: false,
     colonies: null,
     coloniesLoading: false,
+    coloniesFetchedAt: 0,   // timestamp of last successful colonies fetch (for ESI 600s cache)
+    _esiCountdownTimer: null,
     colonyDetail: null,
     colonyCards: [],
     colonyPrices: {},
@@ -1198,6 +1200,7 @@ async function loadColonies() {
 
         AppState.colonies = detailed;
         AppState.coloniesLoading = false;
+        AppState.coloniesFetchedAt = Date.now();
         renderColonies(detailed, systemsLoaded);
         if (AppState.viewMode === 'colonies') draw();
         ensureColonyPrices();
@@ -1838,7 +1841,16 @@ function renderColoniesDom(colonies, systemsLoaded) {
         const entries = buildExpiryEntries(colonies);
         if (!entries.length) timelineDom.innerHTML = '';
         else {
-            let th = '<div class="colonies-timeline-header"><i class="fas fa-hourglass-half"></i> Expiry Timeline — soonest first</div><div class="finder-grid grid" style="padding:0;gap:8px">';
+            const now2 = Date.now();
+            const fetchedAt = AppState.coloniesFetchedAt || now2;
+            const elapsed = now2 - fetchedAt;
+            const remainMs = Math.max(0, 600000 - elapsed);
+            const remainSec = Math.ceil(remainMs/1000);
+            const mm = String(Math.floor(remainSec/60)).padStart(2,'0');
+            const ss = String(remainSec%60).padStart(2,'0');
+            const countdown = remainMs>0 ? `${mm}:${ss} until refresh` : 'refreshing...';
+            const esiMsg = `<div style="text-align:center; font-size:0.68rem; color:var(--muted); margin-bottom:8px"><i class="fas fa-clock"></i> Delayed by 10 mins due to ESI restrictions — <span id="esiCountdown">${countdown}</span></div>`;
+            let th = esiMsg + '<div class="colonies-timeline-header"><i class="fas fa-hourglass-half"></i> Expiry Timeline — soonest first</div><div class="finder-grid grid" style="padding:0;gap:8px">';
             entries.slice(0,12).forEach(e=>{
                 const text = e.expired ? `EXPIRED ${formatDuration(-e.msLeft)} ago` : `ends in ${formatDuration(e.msLeft)}`;
                 const cls = e.cls;
@@ -2119,14 +2131,44 @@ let colonyTickTimer = null;
 function setColonyTick(active) {
     if (active && !colonyTickTimer) {
         colonyTickTimer = setInterval(() => {
+            // Auto-refresh after ESI 600s cache — makes restart feel live
+            const now = Date.now();
+            if (AppState.viewMode === 'colonies' && AppState.coloniesFetchedAt && !AppState.coloniesLoading && window.piEsiAuth && piEsiAuth.isAuthenticated()) {
+                const elapsed = now - AppState.coloniesFetchedAt;
+                const cd = document.getElementById('esiCountdown');
+                if (cd) {
+                    const remain = Math.max(0, 600000 - elapsed);
+                    const sec = Math.ceil(remain/1000);
+                    const mm = String(Math.floor(sec/60)).padStart(2,'0');
+                    const ss = String(sec%60).padStart(2,'0');
+                    cd.textContent = remain>0 ? `${mm}:${ss} until refresh` : 'refreshing...';
+                }
+                if (elapsed >= 600000) {
+                    loadColonies();
+                }
+            }
             if (AppState.viewMode === 'colonies') draw();
             if (AppState.currentTab === 'colonies' && AppState.colonies && !AppState.coloniesLoading) {
                 renderColonies(AppState.colonies, AppState.systemsLoaded);
             }
         }, 60000);
+        // Also tick every second for the countdown text smoothness when visible
+        if (!AppState._esiCountdownTimer) {
+            AppState._esiCountdownTimer = setInterval(() => {
+                if (AppState.viewMode !== 'colonies' || !AppState.coloniesFetchedAt) return;
+                const cd = document.getElementById('esiCountdown');
+                if (!cd) return;
+                const remain = Math.max(0, 600000 - (Date.now() - AppState.coloniesFetchedAt));
+                const sec = Math.ceil(remain/1000);
+                const mm = String(Math.floor(sec/60)).padStart(2,'0');
+                const ss = String(sec%60).padStart(2,'0');
+                cd.textContent = remain>0 ? `${mm}:${ss} until refresh` : 'refreshing...';
+            }, 1000);
+        }
     } else if (!active && colonyTickTimer) {
         clearInterval(colonyTickTimer);
         colonyTickTimer = null;
+        if (AppState._esiCountdownTimer) { clearInterval(AppState._esiCountdownTimer); AppState._esiCountdownTimer = null; }
     }
 }
 
