@@ -1103,6 +1103,11 @@ body {
     font-weight: 500;
 }
 
+/* Colony timeline (main panel) */
+#coloniesTimelineMain { margin: 0.5rem 0.75rem 0; }
+#coloniesTimelineMain.hidden { display:none !important; }
+#coloniesTimelineMain .colony-timeline { margin:0; max-height: 260px; overflow-y:auto; }
+
 /* Colony timeline + skill banner + idle filter */
 .colony-timeline { margin: 0.5rem 0; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem; }
 .colony-timeline-header { font-size: 0.72rem; font-weight: 700; color: var(--accent); margin-bottom: 0.35rem; display:flex; align-items:center; gap:0.3rem; }

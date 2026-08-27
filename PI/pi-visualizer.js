@@ -158,6 +158,7 @@ const elements = {
     finderCopyDotlan: document.getElementById('finderCopyDotlan'),
     finderShareStatus: document.getElementById('finderShareStatus'),
     colonyTimeline: document.getElementById('colonyTimeline'),
+    coloniesTimelineMain: document.getElementById('coloniesTimelineMain'),
     colonySkillBanner: document.getElementById('colonySkillBanner'),
     colonyIdleFilter: document.getElementById('colonyIdleFilter'),
     colonyFilterCount: document.getElementById('colonyFilterCount')
@@ -324,9 +325,22 @@ function init() {
     setupFinder();
     setupColonies();
     refreshColoniesAuthState();
-    setViewMode('reference');
     hideMarketData();
-    restoreFromUrl();
+    // Respect SSO return hash — don't clobber it with a default view
+    if (window.location.hash && window.location.hash.length > 1) {
+        restoreFromUrl();
+    } else {
+        setViewMode('reference');
+    }
+    // Ensure timeline elements that were null at script load (before DOM) are bound now
+    if (!elements.coloniesTimelineMain) elements.coloniesTimelineMain = document.getElementById('coloniesTimelineMain');
+    if (!elements.colonyTimeline) elements.colonyTimeline = document.getElementById('colonyTimeline');
+    if (!elements.colonySkillBanner) elements.colonySkillBanner = document.getElementById('colonySkillBanner');
+    if (!elements.colonyIdleFilter) elements.colonyIdleFilter = document.getElementById('colonyIdleFilter');
+    if (!elements.colonyFilterCount) elements.colonyFilterCount = document.getElementById('colonyFilterCount');
+    if (!elements.finderCopyLink) elements.finderCopyLink = document.getElementById('finderCopyLink');
+    if (!elements.finderCopyDotlan) elements.finderCopyDotlan = document.getElementById('finderCopyDotlan');
+    if (!elements.finderShareStatus) elements.finderShareStatus = document.getElementById('finderShareStatus');
     console.log('Init complete');
 }
 
@@ -1622,7 +1636,12 @@ function buildExpiryEntries(colonies) {
     return entries;
 }
 function renderColonyTimeline(colonies) {
-    const el = elements.colonyTimeline || document.getElementById('colonyTimeline');
+    // Main panel is the primary location; sidebar element kept for backwards compat but hidden
+    const mainEl = elements.coloniesTimelineMain || document.getElementById('coloniesTimelineMain');
+    const sideEl = elements.colonyTimeline || document.getElementById('colonyTimeline');
+    // hide sidebar timeline (moved to main)
+    if (sideEl) { sideEl.classList.add('hidden'); sideEl.innerHTML=''; }
+    const el = mainEl;
     if (!el) return;
     if (!colonies || !colonies.length) { el.classList.add('hidden'); el.innerHTML=''; return; }
     const entries = buildExpiryEntries(colonies);
@@ -1639,9 +1658,10 @@ function renderColonyTimeline(colonies) {
     });
     if (entries.length > 12) html += `<div style="font-size:0.62rem;color:var(--muted);margin-top:0.25rem">+${entries.length - 12} more programs</div>`;
     html += '</div>';
-    // Canvas Gantt strip (tiny) appended below — reuses same entries
     html += '<canvas id="colonyGanttCanvas" width="300" height="1" style="display:none"></canvas>';
     el.innerHTML = html;
+    // lazy-bind real element if initially null
+    if (!elements.coloniesTimelineMain) elements.coloniesTimelineMain = el;
 }
 function updateColonyIdleFilterCount(colonies) {
     const cntEl = elements.colonyFilterCount || document.getElementById('colonyFilterCount');
@@ -4234,6 +4254,14 @@ function setViewMode(mode) {
         }
     }
 
+    // Colonies timeline lives in the main panel — hide when leaving colonies or entering detail view
+    const tlMain = document.getElementById('coloniesTimelineMain') || elements.coloniesTimelineMain;
+    if (tlMain) {
+        const showTl = mode === 'colonies' && !AppState.colonyDetail && AppState.colonies && AppState.colonies.length;
+        // visibility is ultimately driven by renderColonyTimeline's hidden toggle, but hide outright when not in colonies
+        if (!showTl) tlMain.classList.add('hidden');
+        else if (AppState.colonies) renderColonyTimeline(AppState.colonies);
+    }
     updateUrlState();
     setColonyTick(mode === 'colonies');
     draw();

@@ -106,7 +106,6 @@
                     <div class="colonies-content hidden" id="coloniesContent">
                         <div class="colonies-header" id="coloniesHeader"></div>
                         <div id="colonySkillBanner" class="hidden"></div>
-                        <div id="colonyTimeline" class="hidden"></div>
                         <div class="colony-filter-row" id="colonyFilterRow">
                             <label class="colony-filter-label"><input type="checkbox" id="colonyIdleFilter"> Idle only</label>
                             <span id="colonyFilterCount" class="colony-filter-count"></span>
@@ -295,6 +294,9 @@
                         <div id="breakdownContent"></div>
                     </div>
 
+                    <!-- Colonies Expiry Timeline (main panel) -->
+                    <div id="coloniesTimelineMain" class="hidden"></div>
+
                     <!-- Reference view controls (Planets sub-view + Market filter) -->
                 </div>
                 <canvas id="piCanvas" class="pi-canvas"></canvas>
@@ -328,7 +330,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '51';
+        window.PI_ASSET_VERSION = '52';
 
         (function loadPiScripts() {
             function load(src, onok) {
