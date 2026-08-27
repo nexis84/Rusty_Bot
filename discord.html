@@ -145,7 +145,7 @@
         }
 
         .contact-card {
-            background: var(--panel);
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 8px 6px;
@@ -156,12 +156,13 @@
             align-items: center;
             text-align: center;
             gap: 2px 4px;
-            transition: background 0.15s, border-color 0.2s;
+            transition: background 0.15s, border-color 0.2s, transform 0.15s;
         }
 
         .contact-card:hover {
-            background: var(--panel-hover);
+            background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%);
             border-color: var(--accent-dim);
+            transform: translateY(-3px);
         }
 
         .contact-card-icon {
@@ -253,44 +254,138 @@
 
         .feat-grid .feat {
             flex: 0 1 280px;
-            background: var(--panel);
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 20px;
+            padding: 20px 16px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            transition: background 0.15s, border-color 0.2s;
+            gap: 4px;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.15s;
         }
 
         .feat-grid .feat:hover {
-            background: var(--panel-hover);
-            border-color: var(--accent-dim);
+            background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%);
+            border-color: var(--accent);
+            transform: translateY(-4px);
         }
 
         .feat-grid .feat i {
-            color: var(--accent);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            color: var(--dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
             margin-bottom: 6px;
+            transition: color 0.15s;
         }
 
+        .feat-grid .feat:hover i { color: var(--accent); }
+
         .feat-grid .feat h4 {
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin-bottom: 2px;
+            color: #eee;
+            margin: 0.2rem 0 0;
         }
 
         .feat-grid .feat p {
-            font-size: 0.78rem;
+            font-size: 0.8rem;
             color: var(--dim);
+            opacity: 0.8;
             line-height: 1.4;
         }
 
-        .support-box {
+        .support-card {
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px 18px;
+            max-width: 500px;
+            margin: 0 auto;
             text-align: center;
-            padding: 24px 0;
+            transition: background 0.15s, border-color 0.2s;
         }
-
-        .support-box p { color: var(--dim); font-size: 0.95rem; margin-bottom: 4px; }
-        .support-box .highlight { color: var(--accent); font-weight: 700; }
+        .support-card:hover {
+            background: linear-gradient(160deg, var(--panel-hover) 0%, var(--bg) 100%);
+            border-color: var(--accent-dim);
+        }
+        .support-card-icon {
+            font-size: 1.5rem;
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .support-card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .support-card-desc {
+            font-size: 0.875rem;
+            color: var(--dim);
+            max-width: 360px;
+            margin: 0 auto 20px;
+        }
+        .support-card-desc .highlight { color: var(--accent); font-weight: 700; }
+        .support-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .ko-fi-wrap {
+            display: flex;
+            justify-content: center;
+        }
+        .support-wall-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 8px 18px;
+            background: var(--panel);
+            border: 1px solid var(--accent-dim);
+            border-radius: 6px;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+        }
+        .support-wall-link:hover {
+            color: #111;
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .wehype-code {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 360px;
+            margin: 14px auto 0;
+            color: var(--text);
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+        }
+        .wehype-code i { color: var(--accent); font-size: 1.15rem; flex-shrink: 0; }
+        .wehype-text { display: inline; line-height: 1.4; }
+        .wehype-code .wehype-label { font-weight: 700; color: var(--text); }
+        .wehype-code strong { color: var(--accent); font-weight: 700; letter-spacing: 0.5px; font-size: 1.05rem; }
 
         footer {
             text-align: center;
@@ -388,13 +483,17 @@
                 <h2>Support</h2>
                 <span class="line"></span>
             </div>
-            <div class="support-box">
-                <p>If you would like to support us you can do that via Ko-fi or via ISK.</p>
-                <p>Send ISK to IGN <span class="highlight">"Virxens"</span></p>
-                <p>All support is welcomed and very appreciated!</p>
-                <div style="margin-top:12px;">
-                    <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+            <div class="support-card">
+                <div class="support-card-icon"><i class="fa-solid fa-heart"></i></div>
+                <h3 class="support-card-title">Support RustyBot</h3>
+                <p class="support-card-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
+                <div class="support-actions">
+                    <div class="ko-fi-wrap">
+                        <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+                        <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                    </div>
+                    <a href="Support/" class="support-wall-link"><i class="fa-solid fa-heart"></i> See our supporters wall</a>
+                    <span class="wehype-code"><i class="fa-solid fa-hand-holding-dollar"></i> <span class="wehype-text"><span class="wehype-label">WeHype Partner</span> &mdash; use code <strong>Rusty</strong> at checkout on the EVE store</span></span>
                 </div>
             </div>
         </section>
