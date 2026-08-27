@@ -106,15 +106,15 @@
                     <div class="colonies-content hidden" id="coloniesContent">
                         <div class="colonies-header" id="coloniesHeader"></div>
                         <div id="colonySkillBanner" class="hidden"></div>
-                        <div id="discordDmSection" class="finder-section">
-                            <h4><i class="fab fa-discord"></i> Discord DMs — DM only, no server</h4>
+                        <div id="discordDmSection" class="finder-section" style="opacity:0.55">
+                            <h4><i class="fab fa-discord"></i> Discord DMs — coming soon</h4>
                             <div class="sso-stack">
-                                <span id="discordStatus" class="finder-character">Not linked</span>
-                                <button id="discordLinkBtn" class="calc-btn" style="background:#5865F2;color:#fff"><i class="fab fa-discord"></i> Enable Discord DMs</button>
-                                <button id="discordUnlinkBtn" class="calc-btn secondary hidden"><i class="fas fa-unlink"></i> Unlink</button>
-                                <button id="discordTestBtn" class="calc-btn secondary hidden"><i class="fas fa-paper-plane"></i> Test DM</button>
+                                <span id="discordStatus" class="finder-character">Temporarily disabled — rework in progress</span>
+                                <button id="discordLinkBtn" class="calc-btn" style="background:#5865F2;color:#fff;opacity:0.45;cursor:not-allowed" disabled title="Discord DMs greyed out for rework"><i class="fab fa-discord"></i> Enable Discord DMs</button>
+                                <button id="discordUnlinkBtn" class="calc-btn secondary hidden" disabled><i class="fas fa-unlink"></i> Unlink</button>
+                                <button id="discordTestBtn" class="calc-btn secondary hidden" disabled><i class="fas fa-paper-plane"></i> Test DM</button>
                             </div>
-                            <p class="hint">We DM you on extractors &lt;24h / EXPIRED — even when site is closed. One click OAuth (identify only).</p>
+                            <p class="hint">Greyed out while we rework the flow — will return as DM-only, no server.</p>
                         </div>
                         <div class="colony-filter-row" id="colonyFilterRow">
                             <label class="colony-filter-label"><input type="checkbox" id="colonyIdleFilter"> Idle only</label>
@@ -344,7 +344,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '58';
+        window.PI_ASSET_VERSION = '59';
 
         (function loadPiScripts() {
             function load(src, onok) {

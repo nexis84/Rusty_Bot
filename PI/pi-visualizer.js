@@ -1023,6 +1023,15 @@ async function refreshDiscordStatus() {
     const unlinkBtn = elements.discordUnlinkBtn || document.getElementById('discordUnlinkBtn');
     const testBtn = elements.discordTestBtn || document.getElementById('discordTestBtn');
     if (!statusEl) return;
+    // Greyed out for rework — keep disabled regardless of auth/link state
+    const dmSection = document.getElementById('discordDmSection');
+    if (dmSection && dmSection.style.opacity === '0.55') {
+        statusEl.textContent = 'Temporarily disabled — rework in progress';
+        if (linkBtn) { linkBtn.disabled = true; linkBtn.classList.remove('hidden'); }
+        if (unlinkBtn) unlinkBtn.classList.add('hidden');
+        if (testBtn) testBtn.classList.add('hidden');
+        return;
+    }
     if (!piEsiAuth.isAuthenticated()) {
         statusEl.textContent = 'Log in with EVE SSO first';
         if (linkBtn) linkBtn.classList.add('hidden');
@@ -1051,6 +1060,8 @@ async function refreshDiscordStatus() {
 }
 
 async function initiateDiscordLink() {
+    const dmSection = document.getElementById('discordDmSection');
+    if (dmSection && dmSection.style.opacity === '0.55') return; // greyed for rework
     if (!piEsiAuth.isAuthenticated()) { alert('Log in with EVE SSO first'); return; }
     const charId = piEsiAuth.getCurrentCharacter();
     try {
