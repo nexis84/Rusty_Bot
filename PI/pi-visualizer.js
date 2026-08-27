@@ -153,6 +153,10 @@ const elements = {
     finderNextBest: document.getElementById('finderNextBest'),
     finderNextBestGrid: document.getElementById('finderNextBestGrid'),
     finderKicker: document.getElementById('finderKicker'),
+    discordStatus: document.getElementById('discordStatus'),
+    discordLinkBtn: document.getElementById('discordLinkBtn'),
+    discordUnlinkBtn: document.getElementById('discordUnlinkBtn'),
+    discordTestBtn: document.getElementById('discordTestBtn'),
     colonyTimeline: document.getElementById('colonyTimeline'),
     coloniesTimelineMain: document.getElementById('coloniesTimelineMain'),
     coloniesDom: document.getElementById('coloniesDom'),
@@ -1007,11 +1011,109 @@ function setupColonies() {
             if (AppState.viewMode === 'colonies') draw();
         });
     }
+    // Discord DM — DM only, no guild
+    setupDiscordDM();
+}
+
+const PI_DISCORD_API = (isLocalhost ? 'http://localhost:8080/api/pi/discord' : 'https://api.rustybot.co.uk/api/pi/discord');
+
+async function refreshDiscordStatus() {
+    const statusEl = elements.discordStatus || document.getElementById('discordStatus');
+    const linkBtn = elements.discordLinkBtn || document.getElementById('discordLinkBtn');
+    const unlinkBtn = elements.discordUnlinkBtn || document.getElementById('discordUnlinkBtn');
+    const testBtn = elements.discordTestBtn || document.getElementById('discordTestBtn');
+    if (!statusEl) return;
+    if (!piEsiAuth.isAuthenticated()) {
+        statusEl.textContent = 'Log in with EVE SSO first';
+        if (linkBtn) linkBtn.classList.add('hidden');
+        if (unlinkBtn) unlinkBtn.classList.add('hidden');
+        if (testBtn) testBtn.classList.add('hidden');
+        return;
+    }
+    const charId = piEsiAuth.getCurrentCharacter();
+    try {
+        const res = await fetch(`${PI_DISCORD_API}/status?character_id=${charId}`);
+        const data = await res.json().catch(()=>({}));
+        if (data.linked && data.username) {
+            statusEl.textContent = `Linked — ${data.username} will get DMs`;
+            if (linkBtn) linkBtn.classList.add('hidden');
+            if (unlinkBtn) unlinkBtn.classList.remove('hidden');
+            if (testBtn) testBtn.classList.remove('hidden');
+        } else {
+            statusEl.textContent = 'Not linked — enable to get expiry DMs';
+            if (linkBtn) linkBtn.classList.remove('hidden');
+            if (unlinkBtn) unlinkBtn.classList.add('hidden');
+            if (testBtn) testBtn.classList.add('hidden');
+        }
+    } catch (e) {
+        statusEl.textContent = 'Discord status unavailable';
+    }
+}
+
+async function initiateDiscordLink() {
+    if (!piEsiAuth.isAuthenticated()) { alert('Log in with EVE SSO first'); return; }
+    const charId = piEsiAuth.getCurrentCharacter();
+    try {
+        const cfgRes = await fetch(`${PI_DISCORD_API}/config`);
+        const cfg = await cfgRes.json();
+        if (!cfg.discord_client_id) throw new Error('Discord not configured');
+        const state = btoa(`${charId}:${Date.now()}:${Math.random().toString(36).slice(2)}`).replace(/=+$/,'');
+        localStorage.setItem('pi_discord_state', state);
+        localStorage.setItem('pi_discord_char', charId);
+        const redirectUri = cfg.redirect_uri || (isLocalhost ? 'http://localhost:8080/api/pi/discord/callback' : 'https://api.rustybot.co.uk/api/pi/discord/callback');
+        const url = `https://discord.com/api/oauth2/authorize?client_id=${cfg.discord_client_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify&state=${encodeURIComponent(state)}`;
+        window.location.href = url;
+    } catch (e) {
+        alert('Discord link failed: ' + e.message);
+    }
+}
+
+async function unlinkDiscord() {
+    const charId = piEsiAuth.getCurrentCharacter();
+    if (!charId) return;
+    try {
+        await fetch(`${PI_DISCORD_API}/link`, { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({character_id: charId})});
+    } catch(e) {}
+    refreshDiscordStatus();
+}
+
+async function testDiscordDM() {
+    const charId = piEsiAuth.getCurrentCharacter();
+    const statusEl = elements.discordStatus || document.getElementById('discordStatus');
+    if (statusEl) statusEl.textContent = 'Sending test DM...';
+    try {
+        const res = await fetch(`${PI_DISCORD_API}/test`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({character_id: charId})});
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
+        if (statusEl) statusEl.textContent = 'Test DM sent — check Discord';
+    } catch(e) {
+        if (statusEl) statusEl.textContent = 'Test failed: ' + e.message;
+    }
+    setTimeout(refreshDiscordStatus, 3000);
+}
+
+function setupDiscordDM() {
+    const linkBtn = elements.discordLinkBtn || document.getElementById('discordLinkBtn');
+    const unlinkBtn = elements.discordUnlinkBtn || document.getElementById('discordUnlinkBtn');
+    const testBtn = elements.discordTestBtn || document.getElementById('discordTestBtn');
+    if (linkBtn && !linkBtn._bound) { linkBtn._bound=true; linkBtn.addEventListener('click', initiateDiscordLink); }
+    if (unlinkBtn && !unlinkBtn._bound) { unlinkBtn._bound=true; unlinkBtn.addEventListener('click', unlinkDiscord); }
+    if (testBtn && !testBtn._bound) { testBtn._bound=true; testBtn.addEventListener('click', testDiscordDM); }
+    refreshDiscordStatus();
+    // Persist EVE tokens server-side for offline DM (one-time per login)
+    if (piEsiAuth.isAuthenticated()) {
+        const c = piEsiAuth.getCurrentCharacter();
+        const t = piEsiAuth.tokens[c];
+        if (t && t.refreshToken) {
+            fetch(`${PI_DISCORD_API.replace('/discord','')}/tokens/persist`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({character_id:c, character_name:t.characterName, refresh_token:t.refreshToken, access_token:t.accessToken, expires_at:t.expiresAt})}).catch(()=>{});
+        }
+    }
 }
 
 function refreshColoniesAuthState() {
     if (!window.piEsiAuth) return;
     updateSsoUI();
+    refreshDiscordStatus();
     if (piEsiAuth.isAuthenticated()) {
         loadColonies();
     } else {
