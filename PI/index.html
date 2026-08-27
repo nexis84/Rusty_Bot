@@ -85,6 +85,9 @@
                 <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
                 <h1>PI <span class="accent">Visualizer</span></h1>
             </div>
+            <button id="topSsoBtn" class="toolbar-btn">
+                <i class="fas fa-sign-in-alt"></i> Sign in with SSO
+            </button>
             <button id="viewWelcome" class="toolbar-btn welcome-top-btn" title="Welcome & Help">
                 <i class="fas fa-compass"></i> Welcome
             </button>
@@ -121,7 +124,10 @@
                     <select id="chainProductSelect" class="product-select">
                         <option value="">Select Product...</option>
                     </select>
-                    <button id="chainProductGo" class="calc-btn">View Chain</button>
+                    <div class="chain-btn-row">
+                        <button id="chainProductGo" class="calc-btn">View Chain</button>
+                        <button id="chainClear" class="calc-btn secondary chain-clear-btn">Clear</button>
+                    </div>
                 </div>
 
                 <!-- System Checker Tab -->
@@ -547,7 +553,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '68';
+        window.PI_ASSET_VERSION = '71';
 
         (function loadPiScripts() {
             function load(src, onok) {

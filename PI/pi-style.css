@@ -1484,6 +1484,38 @@ body {
     margin-top: 0.4rem;
 }
 
+/* Chain product action row (View Chain / Clear) */
+.chain-btn-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.chain-btn-row .calc-btn {
+    flex: 1;
+}
+
+/* Top-bar SSO button (sign in / sign out) */
+#topSsoBtn {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+#topSsoBtn:hover {
+    background: var(--accent);
+    color: #121212;
+}
+
+#topSsoBtn.logged-in {
+    border-color: var(--border-color);
+    color: var(--text);
+}
+
+#topSsoBtn.logged-in:hover {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+}
+
 /* SSO panels — restyled to match the Welcome page card aesthetic */
 #coloniesSsoSection,
 #finderSsoSection {

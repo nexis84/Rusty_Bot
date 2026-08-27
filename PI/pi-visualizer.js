@@ -103,6 +103,7 @@ const elements = {
     viewPlanets: null, // standalone Planets toolbar tab removed; planets now live inside Reference
     chainProductSelect: document.getElementById('chainProductSelect'),
     chainProductGo: document.getElementById('chainProductGo'),
+    chainClear: document.getElementById('chainClear'),
     chainSsoSection: document.getElementById('chainSsoSection'),
     chainCharacter: document.getElementById('chainCharacter'),
     chainLogin: document.getElementById('chainLogin'),
@@ -115,6 +116,7 @@ const elements = {
     zoomOut: document.getElementById('zoomOut'),
     zoomLevel: document.getElementById('zoomLevel'),
     fitView: document.getElementById('fitView'),
+    topSsoBtn: document.getElementById('topSsoBtn'),
     marketLoading: document.getElementById('marketLoading'),
     marketContent: document.getElementById('marketContent'),
     outputValue: document.getElementById('outputValue'),
@@ -489,6 +491,25 @@ function setupEventListeners() {
     });
     elements.viewFinder.addEventListener('click', () => setViewMode('finder'));
 
+    // Top-bar SSO button: sign in when logged out, sign out when logged in
+    if (elements.topSsoBtn) {
+        elements.topSsoBtn.addEventListener('click', () => {
+            if (window.piEsiAuth && piEsiAuth.isAuthenticated()) {
+                piEsiAuth.logout();
+                AppState.finder.locationAuthNeeded = false;
+                AppState.finder.originSystemId = null;
+                AppState.finder.originSource = null;
+                if (elements.finderLocate) {
+                    elements.finderLocate.innerHTML = '<i class="fas fa-satellite-dish"></i> Character location';
+                }
+                refreshFinderAuthState();
+                refreshColoniesAuthState();
+            } else {
+                piEsiAuth.initiateLogin().catch(err => console.error('Top-bar SSO login failed:', err));
+            }
+        });
+    }
+
     // Market data filter for reference page
     const marketFilterBtn = document.getElementById('marketFilterBtn');
     if (marketFilterBtn) {
@@ -547,6 +568,9 @@ function setupEventListeners() {
     }
     if (elements.chainSendToFinder) {
         elements.chainSendToFinder.addEventListener('click', sendChainToFinder);
+    }
+    if (elements.chainClear) {
+        elements.chainClear.addEventListener('click', clearChain);
     }
     elements.backToRef.addEventListener('click', () => {
         // Chain product history takes priority while in chain view (replaces Prev button)
@@ -705,6 +729,21 @@ function navigateToProduct(id) {
 
 function selectProduct(id) {
     navigateToProduct(id);
+}
+
+// Clear the current Chain selection: resets the product, layout, history and
+// market data, returning the Chain view to its empty-state hero.
+function clearChain() {
+    AppState.targetProduct = null;
+    AppState.chainLayout = null;
+    AppState.chainHistory = [];
+    AppState.chainFocus = null;
+    if (elements.chainProductSelect) elements.chainProductSelect.value = '';
+    if (elements.finderProduct) elements.finderProduct.value = '';
+    hideMarketData();
+    setViewMode('chain');
+    draw();
+    toggleChainSendToFinder();
 }
 
 // "Send to Finder" (Chain tab): jump to Finder with the selected product,
@@ -1266,6 +1305,18 @@ function updateSsoUI() {
     if (elements.chainCharacter) elements.chainCharacter.textContent = label;
     if (elements.chainLogin) elements.chainLogin.classList.toggle('hidden', authed);
     if (elements.chainLogout) elements.chainLogout.classList.toggle('hidden', !authed);
+    // Top-bar SSO button doubles as sign in / sign out
+    if (elements.topSsoBtn) {
+        if (authed) {
+            elements.topSsoBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Sign out';
+            elements.topSsoBtn.title = 'Signed in: ' + (piEsiAuth.getCurrentCharacterName() || 'pilot');
+            elements.topSsoBtn.classList.add('logged-in');
+        } else {
+            elements.topSsoBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign in with SSO';
+            elements.topSsoBtn.title = '';
+            elements.topSsoBtn.classList.remove('logged-in');
+        }
+    }
     toggleChainSendToFinder();
 }
 
