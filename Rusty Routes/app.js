@@ -610,11 +610,10 @@ async function pushRouteToEve(r) {
             body: JSON.stringify({
                 access_token: state.auth.access_token,
                 character_id: state.auth.character_id,
-                // Skip systems[0] (the origin) — the autopilot always departs from
-                // the pilot's CURRENT location, so pushing the origin as a waypoint
-                // would force a detour back to it. Push origin+1 .. destination so
-                // the chain runs start -> finish from wherever the pilot is.
-                systems:      r.systems.slice(1).map(s => s.id),
+                // Full saved chain (origin -> ... -> destination). The autopilot flies
+                // them in order; the FINAL system is the destination you end at, and
+                // the intermediate systems are the saved waypoints along the route.
+                systems:      r.systems.map(s => s.id),
                 clear_first:  true,
             }),
         });
