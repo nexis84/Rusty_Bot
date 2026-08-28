@@ -604,7 +604,7 @@ async function pushRouteToEve(r) {
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 0/' + r.systems.length; }
 
     try {
-        const res = await fetch('/api/waypoints/push', {
+        const res = await fetch(`${RR_API}/waypoints/push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
