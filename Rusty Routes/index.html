@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" "no-cache">
+    <meta http-equiv="Expires" "0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Rusty Routes - EVE Online Route Planner</title>
+    <link rel="stylesheet" href="style.css?v=1">
+    <link rel="icon" type="image/png" href="../rusty_bot.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="canonical" href="https://www.rustybot.co.uk/rusty-routes/">
+    <meta name="description" content="Plan, save, and push EVE Online autopilot routes directly from your browser.">
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand">
+        <a href="../" class="brand-link">
+            <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+            <h1 class="brand-name">Rusty <span class="accent">Routes</span></h1>
+        </a>
+    </div>
+    <div class="breadcrumb">
+        <span class="breadcrumb-item"><a href="../">Home</a></span>
+        <span class="breadcrumb-item"><a href="./">Rusty Routes</a></span>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Login strip -->
+    <section class="login-strip">
+        <div id="authState" class="auth-logged-out">
+            <button id="loginBtn" class="btn btn-primary">
+                <i class="fa-brands fa-ev"></i> Log in with EVE
+            </button>
+            <span class="auth-hint">Required to push routes to EVE.</span>
+        </div>
+    </section>
+
+    <!-- Tip -->
+    <p class="tip-line">
+        <i class="fa-solid fa-circle-info"></i>
+        In EVE, open the star map (<kbd>F10</kbd>), pick a destination, then copy the system list from the <strong>Manage Autopilot Route</strong> panel and paste it below.
+    </p>
+
+    <!-- Paste panel -->
+    <section class="form-card">
+        <h2 class="card-title"><i class="fa-solid fa-paste"></i> Paste a route from EVE</h2>
+        <p class="card-sub">Accepts the copy-from-Plan-Route format (Current location / bullets / 1. destination).</p>
+
+        <textarea id="pasteBox" class="paste-box" rows="10" spellcheck="false"
+            placeholder="Current location: Jita
+• Perimeter
+• Maurasi
+• Sival
+1. Amarr VIII (Oris) - Emperor Family Academy / Amarr / Domain"></textarea>
+
+        <div class="paste-actions">
+            <button id="pasteClipboardBtn" class="btn btn-primary">
+                <i class="fa-solid fa-clipboard"></i> Paste from clipboard
+            </button>
+            <button id="loadPlannerBtn" class="btn btn-ghost">
+                <i class="fa-solid fa-arrow-right"></i> Load into planner
+            </button>
+            <span id="parseStatus" class="parse-status"></span>
+        </div>
+    </section>
+
+    <!-- Planner panel -->
+    <section class="form-card">
+        <h2 class="card-title"><i class="fa-solid fa-route"></i> Plan</h2>
+        <p class="card-sub">From and To auto-fill from your paste. Hit Plan to recompute the chain from ESI.</p>
+
+        <div class="form-row">
+            <div class="field">
+                <label>From</label>
+                <div class="ac-wrap">
+                    <input id="origin" type="text" placeholder="Jita" autocomplete="off">
+                    <div id="origin-ac" class="ac-box"></div>
+                </div>
+            </div>
+            <div class="field">
+                <label>To</label>
+                <div class="ac-wrap">
+                    <input id="destination" type="text" placeholder="Amarr" autocomplete="off">
+                    <div id="destination-ac" class="ac-box"></div>
+                </div>
+            </div>
+            <div class="field short">
+                <label>Prefer</label>
+                <select id="preference">
+                    <option value="shortest">Shortest</option>
+                    <option value="secure">Secure</option>
+                    <option value="insecure">Insecure</option>
+                </select>
+            </div>
+            <button id="planBtn" class="btn btn-primary">
+                <span id="planBtnText">Plan Route</span>
+                <span id="planSpinner" class="spinner hidden"></span>
+            </button>
+        </div>
+
+        <div class="field avoid-field">
+            <label>Avoid systems (comma separated, optional)</label>
+            <input id="avoid" type="text" placeholder="e.g. Uedama, Niarja" autocomplete="off">
+        </div>
+        <div id="planError" class="error hidden"></div>
+    </section>
+
+    <!-- Result strip -->
+    <section id="resultSection" class="form-card hidden">
+        <h2 class="card-title"><i class="fa-solid fa-list-ol"></i> Route <span id="routeCount" class="muted"></span></h2>
+        <div id="routeChain" class="route-chain"></div>
+
+        <div class="save-row">
+            <input id="saveName" type="text" placeholder="Route name (e.g. Jita → Amarr haul)" class="save-name">
+            <input id="saveTag" type="text" placeholder="Tag (optional, e.g. trade, nullsec)" class="save-tag">
+            <button id="saveBtn" class="btn btn-primary" disabled title="Plan a route first">
+                <i class="fa-solid fa-floppy-disk"></i> Save
+            </button>
+        </div>
+    </section>
+
+    <!-- Saved routes -->
+    <section class="saved-section">
+        <div class="section-header">
+            <h2><i class="fa-solid fa-bookmark"></i> Saved Routes</h2>
+            <div class="line"></div>
+        </div>
+        <div id="savedList" class="saved-grid"></div>
+        <p id="savedEmpty" class="muted">No saved routes yet — paste a route above to get started.</p>
+    </section>
+
+    <footer>
+        <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
+    </footer>
+
+</div>
+
+<!-- Preview access gate (server returns 403 without the key) -->
+<div id="gate" class="gate hidden">
+    <div class="gate-box">
+        <h2><i class="fa-solid fa-lock"></i> Rusty Routes — Preview</h2>
+        <p>This page is private. Enter the access key to continue.</p>
+        <div class="gate-row">
+            <input id="gateKey" type="password" placeholder="Access key" autocomplete="off">
+            <button id="gateBtn" class="btn btn-primary">Enter</button>
+        </div>
+        <p id="gateErr" class="gate-err"></p>
+    </div>
+</div>
+
+<script>
+(function () {
+    // If the page loaded fine (no 403), do nothing. If the server gated us,
+    // app.js sets window.__gated = true after a failed fetch probe.
+    function showGate() {
+        var g = document.getElementById('gate');
+        if (g) g.classList.remove('hidden');
+    }
+    // Probe by fetching nothing sensitive — just check the page itself is allowed.
+    // We rely on app.js calling window.__showGate() on 403. As a fallback,
+    // if the container is empty after load, show the gate.
+    window.__showGate = showGate;
+})();
+</script>
+<script src="app.js?v=1"></script>
+</body>
+</html>

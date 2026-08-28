@@ -344,6 +344,197 @@ app.post('/api/pi/token-exchange', tokenExchangeLimiter, async (req, res) => {
     }
 });
 
+// ── Rusty Routes ───────────────────────────────────────────────
+// Separate EVE SSO app credentials, kept isolated from the main app.
+// Client ID / secret live in EVE_RR_CLIENT_ID / EVE_RR_CLIENT_SECRET.
+
+// Rusty Routes login — returns the authorize URL with a fresh state nonce.
+app.get('/api/auth/rr/login', (req, res) => {
+    const clientId = process.env.EVE_RR_CLIENT_ID || '';
+    const clientSecret = process.env.EVE_RR_CLIENT_SECRET || '';
+    if (!clientId || !clientSecret) {
+        return res.status(500).json({ error: 'Rusty Routes SSO not configured on server' });
+    }
+    const state = crypto.randomBytes(16).toString('hex');
+    pendingStates.set(state, { created: Date.now(), scope: 'rr' });
+    // Callback URL must match what's registered in the EVE dev portal exactly.
+    const callbackUrl = process.env.EVE_RR_CALLBACK_URL
+        || 'https://www.rustybot.co.uk/Rusty%20Routes/auth-callback.html';
+    const scope = [
+        'publicData',
+        'esi-ui.write_waypoint.v1',
+    ].join(' ');
+    const url = 'https://login.eveonline.com/v2/oauth/authorize/?' + new URLSearchParams({
+        response_type: 'code',
+        redirect_uri:  callbackUrl,
+        client_id:     clientId,
+        scope,
+        state,
+    }).toString();
+    res.json({ state, url, callback: callbackUrl });
+});
+
+// Rusty Routes token exchange — swaps the auth code for an access token.
+// Uses the Rusty Routes SSO app credentials (separate from main app).
+app.post('/api/auth/rr/token-exchange', tokenExchangeLimiter, async (req, res) => {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'Missing required parameter: code' });
+
+    const clientId = process.env.EVE_RR_CLIENT_ID;
+    const clientSecret = process.env.EVE_RR_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+        console.error('RR token exchange blocked: EVE_RR_CLIENT_ID and EVE_RR_CLIENT_SECRET must be set');
+        return res.status(500).json({ error: 'Rusty Routes SSO not configured on server' });
+    }
+
+    try {
+        const tokenResponse = await fetchWithTimeout('https://login.eveonline.com/v2/oauth/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64'),
+            },
+            body: new URLSearchParams({ grant_type: 'authorization_code', code }),
+        });
+        if (!tokenResponse.ok) {
+            const errData = await tokenResponse.json().catch(() => ({}));
+            console.error('RR token exchange error:', errData);
+            return res.status(400).json({ error: errData.error_description || 'Token exchange failed' });
+        }
+        const tokenData = await tokenResponse.json();
+        const decodedJWT = await verifyJWT(tokenData.access_token);
+        if (!decodedJWT || !decodedJWT.sub) {
+            return res.status(500).json({ error: 'Invalid access token' });
+        }
+        const characterId = decodedJWT.sub.split(':').pop();
+
+        let characterName = 'Unknown';
+        try {
+            const r = await fetchWithTimeout(
+                `https://esi.evetech.net/latest/characters/${characterId}/?datasource=tranquility`
+            );
+            if (r.ok) {
+                const d = await r.json();
+                characterName = d.name;
+            }
+        } catch (e) {
+            console.error('RR ESI character fetch failed:', e.message);
+        }
+
+        return res.status(200).json({
+            access_token:   tokenData.access_token,
+            refresh_token:  tokenData.refresh_token,
+            expires_in:     tokenData.expires_in,
+            character_id:   characterId,
+            character_name: characterName,
+        });
+    } catch (e) {
+        console.error('Server error during RR token exchange:', e);
+        return res.status(500).json({ error: 'Internal server error during Rusty Routes token exchange' });
+    }
+});
+
+// Rusty Routes waypoint push — loops POST /ui/autopilot/waypoint on the server
+// so the access token is not held longer than necessary in browser code.
+const waypointPushLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many push attempts, please slow down.' },
+});
+
+app.post('/api/waypoints/push', waypointPushLimiter, async (req, res) => {
+    const { access_token, character_id, systems, clear_first } = req.body || {};
+    if (!access_token) return res.status(400).json({ error: 'Missing access_token' });
+    if (!Array.isArray(systems) || !systems.length) {
+        return res.status(400).json({ error: 'systems must be a non-empty array of system ids' });
+    }
+    if (systems.length > 50) {
+        return res.status(400).json({ error: 'Too many waypoints in a single push (max 50)' });
+    }
+
+    let pushed = 0;
+    for (let i = 0; i < systems.length; i++) {
+        const sysId = systems[i];
+        const url =
+            `https://esi.evetech.net/latest/ui/autopilot/waypoint/?` +
+            new URLSearchParams({
+                add_to_beginning:     'false',
+                clear_other_waypoints: i === 0 && clear_first ? 'true' : 'false',
+                destination_id:       String(sysId),
+            }).toString();
+        try {
+            const r = await fetchWithTimeout(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + access_token,
+                    'X-Compatibility-Date': '2020-01-01',
+                    'User-Agent':   'RustyBot-RustyRoutes/1.0',
+                },
+            });
+            if (!r.ok) {
+                const txt = await r.text().catch(() => '');
+                return res.status(502).json({
+                    error: `ESI ${r.status} on system ${sysId}: ${txt || 'waypoint push failed'}`,
+                    failedAt: i,
+                    pushed,
+                });
+            }
+            pushed++;
+        } catch (e) {
+            return res.status(502).json({
+                error: `Network error on system ${sysId}: ${e.message}`,
+                failedAt: i,
+                pushed,
+            });
+        }
+        // Small delay between calls to be friendlier to the client
+        if (i < systems.length - 1) {
+            await new Promise(r => setTimeout(r, 150));
+        }
+    }
+    return res.json({ ok: true, pushed });
+});
+
+// Permissions-Policy + access gate for the Rusty Routes folder.
+// When RR_ACCESS_KEY is set, the planner (and its assets) require the key via
+// ?access=<key> or a cookie rr_access=<key>. The SSO callback is exempt so the
+// EVE login round-trip still works. No key set = open (dev default off).
+function getCookie(req, name) {
+    const c = req.headers.cookie || '';
+    const m = c.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+}
+
+app.use((req, res, next) => {
+    const decoded = decodeURIComponent(req.path || '');
+    if (!(decoded.startsWith('/Rusty Routes/') || decoded === '/Rusty Routes')) {
+        return next();
+    }
+    res.setHeader('Permissions-Policy', 'clipboard-read=self');
+
+    const isHtml = decoded.endsWith('.html');
+    const isCallback = decoded.endsWith('auth-callback.html');
+    const key = process.env.RR_ACCESS_KEY;
+    if (key && isHtml && !isCallback) {
+        const provided = req.query.access || getCookie(req, 'rr_access') || '';
+        if (provided !== key) {
+            res.status(403).send(
+                '<!doctype html><meta charset="utf-8">' +
+                '<title>Access denied</title>' +
+                '<body style="font-family:sans-serif;background:#0d0d0d;color:#ddd;' +
+                'display:flex;align-items:center;justify-content:center;height:100vh;margin:0">' +
+                '<div style="text-align:center"><h1 style="color:#e8d900">Rusty Routes</h1>' +
+                '<p>This preview is private. Add <code>?access=KEY</code> or set the access cookie.</p></div>' +
+                '</body>'
+            );
+            return;
+        }
+    }
+    next();
+});
+
 // Static file serving (after routes for route priority).
 // Only whitelisted extensions are served; sensitive files are always blocked.
 const STATIC_ROOT = path.join(__dirname, '..');
