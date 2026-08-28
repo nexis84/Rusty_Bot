@@ -598,13 +598,45 @@ function handleSavedAction(act, id) {
     }
 }
 
+// Refresh the Rusty Routes access token using the stored refresh token.
+// Returns true on success (state.auth is updated) or false if it can't.
+async function refreshRRAuth() {
+    if (!state.auth?.refresh_token) return false;
+    try {
+        const res = await fetch(`${RR_API}/auth/rr/token-exchange`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                refresh_token: state.auth.refresh_token,
+                grant_type:    'refresh_token',
+            }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (!data.access_token) return false;
+        state.auth.access_token  = data.access_token;
+        if (data.refresh_token) state.auth.refresh_token = data.refresh_token;
+        state.auth.expires_at   = Date.now() + (data.expires_in || 1200) * 1000;
+        saveAuth(state.auth);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 async function pushRouteToEve(r) {
     const btn = document.querySelector(`button[data-act="push"][data-id="${r.id}"]`);
     const originalHtml = btn?.innerHTML;
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 0/' + r.systems.length; }
 
     try {
-        const res = await fetch(`${RR_API}/waypoints/push`, {
+        // EVE SSO tokens expire (~20 min). Refresh proactively if we're within 60s of expiry.
+        if (state.auth.expires_at && Date.now() >= state.auth.expires_at - 60000) {
+            const ok = await refreshRRAuth();
+            if (!ok) throw new Error('Session expired — please log in again.');
+        }
+
+        const doPush = () => fetch(`${RR_API}/waypoints/push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -617,6 +649,14 @@ async function pushRouteToEve(r) {
                 clear_first:  true,
             }),
         });
+
+        let res = await doPush();
+        // If the token was already stale, refresh once and retry.
+        if (res.status === 401) {
+            const ok = await refreshRRAuth();
+            if (ok) res = await doPush();
+        }
+
         const data = await res.json();
         if (!res.ok || !data.ok) {
             throw new Error(data.error || `HTTP ${res.status}`);
