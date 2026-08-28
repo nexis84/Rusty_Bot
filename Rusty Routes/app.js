@@ -636,16 +636,21 @@ async function pushRouteToEve(r) {
             if (!ok) throw new Error('Session expired — please log in again.');
         }
 
+        // Push mode: 'full' = every saved system as waypoints (origin -> ... -> dest),
+        // 'dest' = only the final system as the destination (EVE auto-routes from
+        // your current location).
+        const mode = document.getElementById('pushMode')?.value || 'full';
+        const sysIds = mode === 'dest'
+            ? [r.systems[r.systems.length - 1].id]
+            : r.systems.map(s => s.id);
+
         const doPush = () => fetch(`${RR_API}/waypoints/push`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 access_token: state.auth.access_token,
                 character_id: state.auth.character_id,
-                // Full saved chain (origin -> ... -> destination). The autopilot flies
-                // them in order; the FINAL system is the destination you end at, and
-                // the intermediate systems are the saved waypoints along the route.
-                systems:      r.systems.map(s => s.id),
+                systems:      sysIds,
                 clear_first:  true,
             }),
         });

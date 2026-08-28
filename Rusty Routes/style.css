@@ -471,6 +471,30 @@ header.top-bar {
 .section-header h2 i { margin-right: 6px; font-size: 0.85em; }
 .section-header .line { flex: 1; height: 1px; background: var(--border); }
 
+.push-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.push-mode select {
+    background: #0a0a0a;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.push-mode select:focus { outline: none; border-color: var(--accent); }
+
 .saved-grid {
     display: flex;
     flex-wrap: wrap;

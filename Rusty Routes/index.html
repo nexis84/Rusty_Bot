@@ -132,6 +132,13 @@
         <div class="section-header">
             <h2><i class="fa-solid fa-bookmark"></i> Saved Routes</h2>
             <div class="line"></div>
+            <label class="push-mode">
+                <span>Push mode</span>
+                <select id="pushMode">
+                    <option value="full">Full saved route (waypoints)</option>
+                    <option value="dest">Destination only (auto-route)</option>
+                </select>
+            </label>
         </div>
         <div id="savedList" class="saved-grid"></div>
         <p id="savedEmpty" class="muted">No saved routes yet — paste a route above to get started.</p>
