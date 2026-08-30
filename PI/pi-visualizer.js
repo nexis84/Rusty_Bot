@@ -4930,6 +4930,12 @@ function setViewMode(mode) {
     }
     }
 
+    // Center Template view on entry
+    if (mode === 'template') {
+        try { if (typeof tplFitView === 'function') setTimeout(() => tplFitView(), 40); } catch (_) {}
+        if (typeof tplEnsureCurrent === 'function') try { tplEnsureCurrent(); } catch (_) {}
+    }
+
     // Sync sidebar tab (button highlight + panel content) with canvas view mode.
     const reverseViewToTab = { welcome: 'welcome', chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', reference: 'ref', template: 'template' };
     const activeTab = reverseViewToTab[mode];

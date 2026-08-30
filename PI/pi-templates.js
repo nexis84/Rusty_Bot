@@ -31,6 +31,7 @@ const CUR_KEY = 'pi_template_current';
 function tplPlanetTypeList() {
     return Object.keys(PI_DATA.planetTypes)
         .map(id => ({ id: Number(id), name: PI_DATA.planetTypes[id].name }))
+        .filter(p => p.name !== 'Shattered' && p.id !== 30889)
         .sort((a, b) => a.name.localeCompare(b.name));
 }
 
