@@ -1,60 +1,8 @@
 [
   {
     "date": "2026-08-29",
-    "title": "RustyBot Client Update 2.0.64",
-    "raw": "WHAT'S NEW
-
-Fully Modular UI & Customization
-
-Remove UI Elements: When the UI is unlocked (Custom UI Mode), each removable element shows an × button. Click it to hide elements like Current Prize & Donator, Entry Requirement, Selected Winner, Prize Controls, Entrants Panel, and more.
-
-Restore Hidden Elements: Navigate to Options ➔ Layout ➔ "Removed UI Elements" to bring back any hidden panels with a single click.
-
-Master Switch Toggle: A new "Allow removing UI elements" toggle lets you disable the × buttons and lock down your interface.
-
-Protected Core Panels: Core elements (Main Action Buttons, Main Panel, and Confirmation & Response) are protected so you can never accidentally remove vital controls.
-
-Multi-Monitor & Layout Controls
-
-Launch on Monitor: Added a new "Launch on Monitor" option under Options ➔ Layout. Pick which screen RustyBot opens on, and it will start there maximized.
-
-Relocated Options Button: The OPTIONS button has been moved to the status bar, keeping it separate from action buttons and accessible at all times.
-
-Simplified Text Controls
-
-Preset Text Sizes: Replaced the font slider with a simple Small / Medium / Large dropdown menu for instant adjustments.
-
-Previous winners
-
-Feature request * included a separate box that shows the last prize!
-
-Monitor (used to be called log)
-
-changed the name to Monitor and included a clear button, this window has overgone a rework removing all non vital logs from it.
-
-WHAT'S FIXED & IMPROVED
-
-Display & Window Behaviour
-
-Multi-Monitor Scaling Fix: Moving RustyBot to a different screen now automatically scales the interface (panels and text) to fit, eliminating overlapping panels and cut-off content.
-
-Options Window Screen Tracking: The Options window now opens on the same screen as the main app and resizes dynamically so it never extends past display bounds.
-
-Smart Window Bounds: Panels can no longer be dragged or resized off-screen; they will automatically snap back inside the visible window.
-
-Text & Layout Stability
-
-Universal Text Scaling: Text size settings now apply uniformly across the entire app—including the confirmation log and message cards—rather than just the buttons.
-
-Preserved Panel Layouts: Changing font size now only adjusts the text, keeping your custom panel arrangements intact without shifting them.
-
-Animations
-
-Fixed all sound and flow issues with all animations, animations will no longer show old winners
-
-Token control across all platforms
-
-With the future plan to move to a central token system, work has gone into reinforcing that token delivery to the client. this should mean less drops from kick and a more stable connection to Velora and twitch"
+    "title": "RustyBot Client 2.0.64 — 29/08/26",
+    "raw": "**WHAT'S NEW**\n\n**Fully Modular UI & Customization**\n- **Remove UI Elements:** When the UI is unlocked (Custom UI Mode), each removable element shows an × button. Click it to hide elements like Current Prize & Donator, Entry Requirement, Selected Winner, Prize Controls, Entrants Panel, and more.\n- **Restore Hidden Elements:** Navigate to Options ➔ Layout ➔ \"Removed UI Elements\" to bring back any hidden panels with a single click.\n- **Master Switch Toggle:** A new \"Allow removing UI elements\" toggle lets you disable the × buttons and lock down your interface.\n- **Protected Core Panels:** Core elements (Main Action Buttons, Main Panel, and Confirmation & Response) are protected so you can never accidentally remove vital controls.\n\n**Multi-Monitor & Layout Controls**\n- **Launch on Monitor:** Added a new \"Launch on Monitor\" option under Options ➔ Layout. Pick which screen RustyBot opens on, and it will start there maximized.\n- **Relocated Options Button:** The OPTIONS button has been moved to the status bar, keeping it separate from action buttons and accessible at all times.\n\n**Simplified Text Controls**\n- **Preset Text Sizes:** Replaced the font slider with a simple Small / Medium / Large dropdown menu for instant adjustments.\n\n**Previous winners**\nFeature request * included a separate box that shows the last prize!\n\n**Monitor (used to be called log)**\nchanged the name to Monitor and included a clear button, this window has overgone a rework removing all non vital logs from it.\n\n**WHAT'S FIXED & IMPROVED**\n\n**Display & Window Behaviour**\n- **Multi-Monitor Scaling Fix:** Moving RustyBot to a different screen now automatically scales the interface (panels and text) to fit, eliminating overlapping panels and cut-off content.\n- **Options Window Screen Tracking:** The Options window now opens on the same screen as the main app and resizes dynamically so it never extends past display bounds.\n- **Smart Window Bounds:** Panels can no longer be dragged or resized off-screen; they will automatically snap back inside the visible window.\n\n**Text & Layout Stability**\n- **Universal Text Scaling:** Text size settings now apply uniformly across the entire app—including the confirmation log and message cards—rather than just the buttons.\n- **Preserved Panel Layouts:** Changing font size now only adjusts the text, keeping your custom panel arrangements intact without shifting them.\n\n**Animations**\n- Fixed all sound and flow issues with all animations, animations will no longer show old winners\n\n**Token control across all platforms**\nWith the future plan to move to a central token system, work has gone into reinforcing that token delivery to the client. this should mean less drops from kick and a more stable connection to Velora and twitch\n\n**Patch Version**\n2.0.64\n**Release Date**\n29/08/26\n**Support / Contact**\nWant to support RustyBot's development?\nhttps://ko-fi.com/ne_x_is (memberships now available)"
   },
   {
     "date": "2026-08-29",
