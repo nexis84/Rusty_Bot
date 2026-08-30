@@ -114,6 +114,7 @@
                         <button class="tab-btn" data-tab="colonies"><i class="fas fa-globe"></i> Colonies</button>
                         <button class="tab-btn" data-tab="finder"><i class="fas fa-location-arrow"></i> Finder</button>
                         <button class="tab-btn" data-tab="ref"><i class="fas fa-book"></i> Ref</button>
+                        <button class="tab-btn" data-tab="template"><i class="fas fa-cubes"></i> Template</button>
                     </div>
                 </div>
 
@@ -150,7 +151,8 @@
                     </div>
                 </div>
 
-                <!-- Template Builder Tab (disabled until reworked) -->
+                <!-- Template Builder Tab -->
+                <div class="panel tab-content" id="tab-template"></div>
 
                 <!-- My Colonies Tab -->
                 <div class="panel tab-content" id="tab-colonies">
@@ -553,7 +555,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '76';
+        window.PI_ASSET_VERSION = '77';
 
         (function loadPiScripts() {
             function load(src, onok) {
@@ -570,7 +572,9 @@
             }
             load('pi-data.js', function () {
                 load('pi-esi-auth.js', function () {
-                    load('pi-visualizer.js');
+                    load('pi-visualizer.js', function () {
+                        load('pi-templates.js');
+                    });
                 });
             });
         })();

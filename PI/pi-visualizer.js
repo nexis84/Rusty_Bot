@@ -685,7 +685,7 @@ function activateSidebarTab(tab) {
 }
 
 function setupTabs() {
-    const TAB_TO_VIEW = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', ref: 'reference' };
+    const TAB_TO_VIEW = { chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', ref: 'reference', template: 'template' };
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -2633,6 +2633,16 @@ function draw() {
         piCanvasSync.classList.toggle('hidden', hideCanvas);
     }
 
+    if (AppState.viewMode === 'template') {
+        ctx.save();
+        ctx.translate(AppState.canvasOffset.x, AppState.canvasOffset.y);
+        ctx.scale(AppState.zoom, AppState.zoom);
+        if (typeof tplDrawView === 'function') tplDrawView();
+        else drawNoSelectionPrompt();
+        ctx.restore();
+        return;
+    }
+
     if (coloniesListView) {
         const hasDomFrag = typeof document !== 'undefined' && typeof document.createDocumentFragment === 'function';
         if (hasDomFrag) {
@@ -4495,6 +4505,7 @@ function chainNodeAt(pos) {
 }
 
 function onPointerDown(e) {
+    if (AppState.viewMode === 'template' && typeof tplPointerDown === 'function') { tplPointerDown(e); return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
     const pos = getCanvasPos(e);
@@ -4548,6 +4559,7 @@ function onPointerDown(e) {
 }
 
 function onPointerMove(e) {
+    if (AppState.viewMode === 'template' && typeof tplPointerMove === 'function') { tplPointerMove(e); return; }
     const pos = getCanvasPos(e);
 
     if (AppState.pointerDown && !AppState.hasDragged) {
@@ -4622,6 +4634,7 @@ function onPointerMove(e) {
 }
 
 function onPointerUp(e) {
+    if (AppState.viewMode === 'template' && typeof tplPointerUp === 'function') { tplPointerUp(e); return; }
     const wasDrag = AppState.hasDragged;
     const hit = AppState.pendingHit;
 
@@ -4718,7 +4731,8 @@ function onPointerUp(e) {
     }
 }
 
-function onPointerCancel() {
+function onPointerCancel(e) {
+    if (AppState.viewMode === 'template' && typeof tplPointerCancel === 'function') { tplPointerCancel(e); return; }
     AppState.isDraggingCanvas = false;
     AppState.pointerDown = null;
     AppState.pointerId = null;
@@ -4828,7 +4842,7 @@ function worldToScreen(worldX, worldY) {
 
 // Views rendered inside the world transform where zoom genuinely scales content
 function isWorldZoomView() {
-    return AppState.viewMode === 'chain' || AppState.viewMode === 'planets' ||
+    return AppState.viewMode === 'chain' || AppState.viewMode === 'planets' || AppState.viewMode === 'template' ||
         (AppState.viewMode === 'colonies' && AppState.colonyDetail && AppState.layoutMode);
 }
 
@@ -4885,7 +4899,10 @@ function setViewMode(mode) {
 
     const helpText = document.querySelector('.canvas-help p');
     if (helpText) {
-    if (mode === 'welcome') {
+    if (mode === 'template') {
+        canvas.style.cursor = 'grab';
+        helpText.innerHTML = '<i class="fas fa-cubes"></i> Template Builder &bull; Place buildings, hover for handles and drag to link (Shift+drag for route flow)';
+    } else if (mode === 'welcome') {
         canvas.style.cursor = 'default';
         helpText.innerHTML = '<i class="fas fa-compass"></i> Welcome — pick a card above or use the sidebar to get started';
     } else if (mode === 'reference') {
@@ -4914,7 +4931,7 @@ function setViewMode(mode) {
     }
 
     // Sync sidebar tab (button highlight + panel content) with canvas view mode.
-    const reverseViewToTab = { welcome: 'welcome', chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', reference: 'ref' };
+    const reverseViewToTab = { welcome: 'welcome', chain: 'chain', system: 'system', colonies: 'colonies', finder: 'finder', reference: 'ref', template: 'template' };
     const activeTab = reverseViewToTab[mode];
     activateSidebarTab(activeTab);
 
