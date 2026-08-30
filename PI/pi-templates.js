@@ -487,7 +487,7 @@ function tplBuildPanel() {
         b.className = 'tpl-planet-btn';
         b.dataset.planet = pt.name;
         b.type = 'button';
-        b.innerHTML = '<img src="planet-images/' + pt.name.toLowerCase() + '.jpg" alt="' + escapeHtml(pt.name) + '">' +
+        b.innerHTML = '<img src="planet-images/' + pt.name.toLowerCase() + '.jpg" alt="" onerror="this.style.display=\'none\'">' +
             '<span>' + escapeHtml(pt.name) + '</span>';
         b.addEventListener('click', () => {
             if (!TS.current) return;
