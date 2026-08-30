@@ -64,4 +64,8 @@
     <loc>https://www.rustybot.co.uk/Rustybot%20Giveaway%20guides/complete_user_guide.html</loc>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://www.rustybot.co.uk/patchnotes</loc>
+    <priority>0.6</priority>
+  </url>
 </urlset>

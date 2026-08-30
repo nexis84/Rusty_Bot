@@ -1,0 +1,12 @@
+[
+  {
+    "date": "2026-08-30",
+    "title": "Example Patch - Replace With Your Discord Copy",
+    "raw": "**Added**\n- New Patchnotes page - copy a Discord message into patches.json to publish\n- Hotlink added next to Rusty Stats on main page\n\n**How to update**\n- Copy your Discord announcement message\n- Paste it as the `raw` field of a new entry at the TOP of this file\n- Set `date` to YYYY-MM-DD and `title` to a short summary\n- Save and deploy - no HTML editing needed\n\n> Tip: **bold**, *italic*, __underline__, ~~strike~~, `code`, ```code block```, > quote, and - lists all render automatically."
+  },
+  {
+    "date": "2026-08-29",
+    "title": "Site Maintenance",
+    "raw": "**Changed**\n- Hero subtitle updated: Twitch and Discord -> streaming and Discord\n\n**Fixed**\n- Minor layout tweaks on mobile"
+  }
+]

@@ -2,3 +2,5 @@
 /:path/index.html /:path/ 301
 /website-giveaway.html /website-giveaway 301
 /website-giveaway /website-giveaway.html 200
+/patchnotes.html /patchnotes 301
+/patchnotes /patchnotes/ 200
