@@ -506,12 +506,10 @@ function startGame() {
 // ─── ROUND TIMER ───────────────────────────────────
 let timeLeft = ROUND_SECONDS
 let timerInterval = null
-let timerRAF = null
 let timerStart = 0
 
 function clearTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null }
-  if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null }
+  if (timerInterval) { clearTimeout(timerInterval); timerInterval = null }
 }
 
 function updateTimerUI(frac) {
@@ -524,20 +522,26 @@ function updateTimerUI(frac) {
 
 function startTimer() {
   clearTimer()
-  timerStart = performance.now()
+  timerStart = Date.now()
+  const deadline = timerStart + ROUND_SECONDS * 1000
   timeLeft = ROUND_SECONDS
-  const tick = (now) => {
-    const elapsed = (now - timerStart) / 1000
-    timeLeft = Math.max(0, ROUND_SECONDS - Math.floor(elapsed))
-    updateTimerUI(1 - elapsed / ROUND_SECONDS)
-    if (elapsed >= ROUND_SECONDS) {
+  updateTimerUI(1)
+  // Strict wall-clock: the deadline is absolute, so time spent in a
+  // background tab still counts (setInterval is throttled but re-checked
+  // against Date.now() on every tick, so no time can be gained).
+  const tick = () => {
+    const remaining = deadline - Date.now()
+    const elapsed = Math.max(0, ROUND_SECONDS * 1000 - remaining) / 1000
+    timeLeft = Math.max(0, Math.ceil(remaining / 1000))
+    updateTimerUI(Math.max(0, remaining / (ROUND_SECONDS * 1000)))
+    if (remaining <= 0) {
       clearTimer()
       handleTimeout()
     } else {
-      timerRAF = requestAnimationFrame(tick)
+      timerInterval = setTimeout(tick, 250)
     }
   }
-  timerRAF = requestAnimationFrame(tick)
+  timerInterval = setTimeout(tick, 250)
 }
 
 function handleTimeout() {
@@ -565,16 +569,13 @@ function handleTimeout() {
     cardEls[1 - winnerIndex].card.classList.add('loser')
     lives--
     streak = 0
-    wrongCount++
     resultMsg.textContent = `⏰ TIME'S UP! ${currentShips[winnerIndex].name} wins with ${formatStatValue(currentStat, winnerIndex === 0 ? v0 : v1)}`
     resultMsg.className = 'wrong'
     playWrong()
   }
   updateGameUI()
   renderDifference()
-  if (level >= MAX_LEVEL) {
-    finishRun(true)
-  } else if (lives <= 0) {
+  if (lives <= 0) {
     finishRun(false)
   } else {
     resultOverlay.classList.remove('hidden')
@@ -630,6 +631,11 @@ function deal() {
     cardEls.forEach(el => el.card.classList.add('disabled'))
     return
   }
+  if (pool.reduce((n, s, i) => n + (i > 0 && s.id === pool[i - 1].id ? 1 : 0), 0)) {
+    statLabel.textContent = 'Data error: duplicate ships — regenerate data files.'
+    cardEls.forEach(el => el.card.classList.add('disabled'))
+    return
+  }
 
   const statKeys = Object.keys(statsData.stats)
   const byStat = {}
@@ -652,9 +658,13 @@ function deal() {
   const stat = statPool[Math.floor(Math.random() * statPool.length)]
   const entries = byStat[stat]
   const a = entries[Math.floor(Math.random() * entries.length)]
-  const tieVal = a[1]
-  const partners = entries.filter(e => e[0] !== a[0] && e[1] !== tieVal)
-  const b = partners.length ? partners[Math.floor(Math.random() * partners.length)] : entries.find(e => e[0] !== a[0])
+  // Tie-proof pairing: only pair with ships whose value differs on this stat.
+  const partners = entries.filter(e => e[0] !== a[0] && e[1] !== a[1])
+  if (!partners.length) {
+    // No different-valued partner exists for this pick — re-deal.
+    return deal()
+  }
+  const b = partners[Math.floor(Math.random() * partners.length)]
 
   currentShips = [a[0], b[0]]
   currentStat = stat
@@ -970,6 +980,23 @@ async function init() {
 
   loadStatus.textContent = ''
   playBtn.disabled = false
+
+  // Data integrity: dedupe roster by id, warn on roster/stats drift.
+  const seen = new Set()
+  for (let i = SHIPS.length - 1; i >= 0; i--) {
+    if (seen.has(SHIPS[i].id)) SHIPS.splice(i, 1)
+    else seen.add(SHIPS[i].id)
+  }
+  const missingStats = SHIPS.filter(s => !statsData.ships[s.id])
+  if (missingStats.length) {
+    console.warn(`[top-trumps] ${missingStats.length} roster ships missing from ship-stats.json:`,
+      missingStats.map(s => `${s.id} ${s.name}`).join(', '))
+  }
+  const statsIds = new Set(Object.keys(statsData.ships).map(Number))
+  const missingRoster = [...statsIds].filter(id => !seen.has(id))
+  if (missingRoster.length) {
+    console.warn(`[top-trumps] ${missingRoster.length} ships in ship-stats.json are not in the roster and will never appear.`)
+  }
 
   playBtn.addEventListener('click', startGame)
   backToMenuBtn.addEventListener('click', goToMenu)

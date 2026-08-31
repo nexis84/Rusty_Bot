@@ -1,21 +1,43 @@
 #!/usr/bin/env python3
+"""Top Trumps data generator.
+
+Single source of truth for the game's data files. One pass over the local
+SDE JSONL snapshot emits BOTH:
+  - ship-stats.json  (per-ship stat values + stat metadata, consumed by app.js)
+  - ships.js         (roster: {id, name, class, race}, consumed as global SHIPS)
+
+Run after syncing the SDE (SDE tracker `node tracker.mjs`):
+    python build_stats.py
+"""
 import json
+from datetime import date
 from pathlib import Path
 
-SDE_DIR = Path(r"c:\Users\nexis\Desktop\Rusty_Bot-main\sde")
-OUTPUT_FILE = Path(r"c:\Users\nexis\Desktop\Rusty_Bot-main\top-trumps\ship-stats.json")
+SDE_DIR = Path(__file__).resolve().parent.parent / 'sde'
+OUTPUT_STATS = Path(__file__).resolve().parent / 'ship-stats.json'
+OUTPUT_ROSTER = Path(__file__).resolve().parent / 'ships.js'
 
-def load_jsonl(filename):
-    data = {}
-    filepath = SDE_DIR / filename
-    with open(filepath, 'r', encoding='utf-8') as f:
-        for line in f:
-            if line.strip():
-                obj = json.loads(line)
-                data[obj['_key']] = obj
-    return data
+# Dogma attribute IDs used as card stats (order defines card display order)
+STATS_META = {
+    'hp':                  {'name': 'Structure HP',      'unit': 'HP',  'highIsGood': True},
+    'armorHP':             {'name': 'Armor HP',          'unit': 'HP',  'highIsGood': True},
+    'shieldCapacity':     {'name': 'Shield HP',          'unit': 'HP',  'highIsGood': True},
+    'maxVelocity':         {'name': 'Max Velocity',      'unit': 'm/s', 'highIsGood': True},
+    'capacitorCapacity':  {'name': 'Capacitor',         'unit': 'GJ',  'highIsGood': True},
+    'mass':                {'name': 'Mass',              'unit': 'kg',  'highIsGood': False},
+    'agility':             {'name': 'Inertia Modifier',  'unit': '',    'highIsGood': False},
+    'capacity':            {'name': 'Cargo',             'unit': 'm³',  'highIsGood': True},
+    'droneCapacity':       {'name': 'Drone Bay',        'unit': 'm³',  'highIsGood': True},
+    'scanResolution':      {'name': 'Scan Resolution',   'unit': 'mm',  'highIsGood': True},
+    'warpSpeedMultiplier': {'name': 'Warp Speed',        'unit': 'x',   'highIsGood': True},
+    'signatureRadius':     {'name': 'Signature Radius',  'unit': 'm',   'highIsGood': False},
+    'maxTargetRange':      {'name': 'Target Range',      'unit': 'km', 'highIsGood': True},
+    'maxLockedTargets':    {'name': 'Max Targets',       'unit': '',   'highIsGood': True},
+    'basePrice':           {'name': 'Base Price',        'unit': 'ISK','highIsGood': True},
+}
 
-ATTR_IDS = {
+# dogma attributeID lookup (basePrice/mass/capacity come from the type itself)
+DOGMA_ATTR_IDS = {
     'hp': 9,
     'maxVelocity': 37,
     'capacity': 38,
@@ -31,145 +53,145 @@ ATTR_IDS = {
     'maxTargetRange': 76,
 }
 
+
+def load_jsonl(filename):
+    data = {}
+    with open(SDE_DIR / filename, 'r', encoding='utf-8') as f:
+        for line in f:
+            if line.strip():
+                obj = json.loads(line)
+                data[obj['_key']] = obj
+    return data
+
+
+def read_build_meta():
+    try:
+        with open(SDE_DIR / '_sde.jsonl', 'r', encoding='utf-8') as f:
+            meta = json.loads(f.read())
+        return str(meta.get('buildNumber', '?'))
+    except Exception:
+        return '?'
+
+
 def main():
-    print("Loading SDE files...")
+    build = read_build_meta()
+    print(f"SDE dir: {SDE_DIR} (build {build})")
+
     categories = load_jsonl('categories.jsonl')
     groups = load_jsonl('groups.jsonl')
     races = load_jsonl('races.jsonl')
     type_dogma = load_jsonl('typeDogma.jsonl')
 
-    # Find ship category (should be ID 6)
-    ship_cat_id = None
-    for cid, c in categories.items():
-        if c.get('name', {}).get('en') == 'Ship':
-            ship_cat_id = cid
-            break
+    ship_cat_id = next(
+        (cid for cid, c in categories.items()
+         if c.get('name', {}).get('en') == 'Ship' and c.get('published')),
+        None,
+    )
+    if ship_cat_id is None:
+        raise SystemExit('Ship category not found in categories.jsonl')
     print(f"Ship category ID: {ship_cat_id}")
 
-    # Collect ship group IDs
-    ship_group_ids = set()
-    group_names = {}
+    ship_group_ids, group_names = set(), {}
     for gid, g in groups.items():
         if g.get('categoryID') == ship_cat_id and g.get('published'):
-            ship_group_ids.add(gid)
-            group_names[gid] = g.get('name', {}).get('en', 'Unknown')
-
-    race_names = {}
-    for rid, r in races.items():
-        race_names[rid] = r.get('name', {}).get('en', 'Unknown')
-
+            ship_group_ids.add(int(gid))
+            group_names[int(gid)] = g.get('name', {}).get('en', 'Unknown')
     print(f"Ship groups: {len(ship_group_ids)}")
 
-    # Build lookups from hashes to ints for filtering ships later
-    ship_group_ids_int = set()
-    for x in ship_group_ids:
-        if isinstance(x, str):
-            ship_group_ids_int.add(int(x))
-        else:
-            ship_group_ids_int.add(x)
+    race_names = {int(rid): r.get('name', {}).get('en', 'Unknown')
+                  for rid, r in races.items()}
 
-    group_names_int = {}
-    for k, v in group_names.items():
-        if isinstance(k, str):
-            group_names_int[int(k)] = v
-        else:
-            group_names_int[k] = v
-
-    race_names_int = {}
-    for k, v in race_names.items():
-        if isinstance(k, str):
-            race_names_int[int(k)] = v
-        else:
-            race_names_int[k] = v
-
-    print("Processing types.jsonl...")
-    ships_data = {}
+    print("Processing types.jsonl ...")
+    ships = {}
     with open(SDE_DIR / 'types.jsonl', 'r', encoding='utf-8') as f:
         for line in f:
             if not line.strip():
                 continue
             t = json.loads(line)
-            type_id_raw = t['_key']
-            type_id = int(type_id_raw) if isinstance(type_id_raw, str) else type_id_raw
-
             if not t.get('published', False):
                 continue
-
             gid = t.get('groupID')
-            if gid not in ship_group_ids_int:
+            if gid not in ship_group_ids:
                 continue
-
-            name = t.get('name', {}).get('en', 'Unknown')
-            race_id = t.get('raceID')
-            race = race_names_int.get(race_id, 'Unknown')
-            ship_class = group_names_int.get(gid, 'Unknown')
-            base_price = t.get('basePrice', 0)
-            mass = t.get('mass', 0)
-            cargo_capacity = t.get('capacity', 0)
-
-            ships_data[type_id] = {
-                'name': name,
-                'race': race,
-                'class': ship_class,
-                'basePrice': base_price,
-                'mass': mass,
-                'capacity': cargo_capacity,
+            type_id = int(t['_key'])
+            ships[type_id] = {
+                'name': t.get('name', {}).get('en', 'Unknown'),
+                'race': race_names.get(t.get('raceID'), 'Unknown'),
+                'class': group_names.get(gid, 'Unknown'),
+                'basePrice': t.get('basePrice', 0),
+                'mass': t.get('mass', 0),
+                'capacity': t.get('capacity', 0),
             }
+    print(f"Found {len(ships)} published ships")
 
-    print(f"Found {len(ships_data)} ships in types.jsonl")
-
-    # Apply dogma attributes
-    print("Applying dogma attributes...")
-    for raw_type_id, dogma_entry in type_dogma.items():
-        type_id = int(raw_type_id) if isinstance(raw_type_id, str) else raw_type_id
-        if type_id not in ships_data:
+    print("Applying dogma attributes ...")
+    attr_name_by_id = {v: k for k, v in DOGMA_ATTR_IDS.items()}
+    for raw_id, dogma_entry in type_dogma.items():
+        type_id = int(raw_id)
+        if type_id not in ships:
             continue
-        attrs = dogma_entry.get('dogmaAttributes', [])
-        for a in attrs:
-            aid = a['attributeID']
-            val = a['value']
-            for stat_name, attr_id in ATTR_IDS.items():
-                if aid == attr_id:
-                    ships_data[type_id][stat_name] = val
-                    break
+        for a in dogma_entry.get('dogmaAttributes', []):
+            stat_name = attr_name_by_id.get(a['attributeID'])
+            if stat_name:
+                ships[type_id][stat_name] = a['value']
 
-    # Build final output: for each stat name, have display info and ship values
-    stats_meta = {
-        'hp': {'name': 'Structure HP', 'unit': 'HP', 'highIsGood': True},
-        'armorHP': {'name': 'Armor HP', 'unit': 'HP', 'highIsGood': True},
-        'shieldCapacity': {'name': 'Shield HP', 'unit': 'HP', 'highIsGood': True},
-        'maxVelocity': {'name': 'Max Velocity', 'unit': 'm/s', 'highIsGood': True},
-        'capacitorCapacity': {'name': 'Capacitor', 'unit': 'GJ', 'highIsGood': True},
-        'mass': {'name': 'Mass', 'unit': 'kg', 'highIsGood': False},
-        'agility': {'name': 'Inertia Modifier', 'unit': '', 'highIsGood': False},
-        'capacity': {'name': 'Cargo', 'unit': 'm³', 'highIsGood': True},
-        'droneCapacity': {'name': 'Drone Bay', 'unit': 'm³', 'highIsGood': True},
-        'scanResolution': {'name': 'Scan Resolution', 'unit': 'mm', 'highIsGood': True},
-        'warpSpeedMultiplier': {'name': 'Warp Speed', 'unit': 'x', 'highIsGood': True},
-        'signatureRadius': {'name': 'Signature Radius', 'unit': 'm', 'highIsGood': False},
-        'maxTargetRange': {'name': 'Target Range', 'unit': 'km', 'highIsGood': True},
-        'maxLockedTargets': {'name': 'Max Targets', 'unit': '', 'highIsGood': True},
-        'basePrice': {'name': 'Base Price', 'unit': 'ISK', 'highIsGood': True},
+    # ---- build outputs (roster sorted by id for deterministic diffs) ----
+    roster = [
+        {'id': tid, 'name': s['name'], 'class': s['class'], 'race': s['race']}
+        for tid, s in sorted(ships.items())
+    ]
+    stats_out = {
+        'generated': date.today().isoformat(),
+        'sdeBuild': build,
+        'stats': STATS_META,
+        'ships': {
+            str(tid): {k: s[k] for k in STATS_META if k in s}
+            for tid, s in sorted(ships.items())
+        },
     }
 
-    output = {
-        'generated': '2026-07-31',
-        'stats': stats_meta,
-        'ships': {},
-    }
+    OUTPUT_STATS.parent.mkdir(parents=True, exist_ok=True)
+    with open(OUTPUT_STATS, 'w', encoding='utf-8') as f:
+        json.dump(stats_out, f, indent=2, ensure_ascii=False)
+    print(f"Wrote {len(stats_out['ships'])} ships -> {OUTPUT_STATS.name}")
 
-    for type_id, ship in ships_data.items():
-        entry = {}
-        for stat_name in stats_meta:
-            if stat_name in ship:
-                entry[stat_name] = ship[stat_name]
-        output['ships'][str(type_id)] = entry
+    roster_js = (
+        '// Auto-generated from EVE Online SDE by build_stats.py — do not edit by hand\n'
+        f'// SDE build: {build}\n'
+        f'// Ships: {len(roster)}\n'
+        f'// Generated: {stats_out["generated"]}\n\n'
+        f'var SHIPS = {json.dumps(roster, indent=2, ensure_ascii=False)};\n'
+    )
+    with open(OUTPUT_ROSTER, 'w', encoding='utf-8') as f:
+        f.write(roster_js)
+    print(f"Wrote {len(roster)} ships -> {OUTPUT_ROSTER.name}")
 
-    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(output, f, indent=2, ensure_ascii=False)
+    # ---- validation ----
+    print('\nValidation:')
+    class_counts = {}
+    for s in roster:
+        class_counts[s['class']] = class_counts.get(s['class'], 0) + 1
+    print(f'  classes: {len(class_counts)}')
 
-    print(f"Written {len(ships_data)} ships to ship-stats.json")
+    statless = [tid for tid, s in ships.items()
+                if not any(k in s for k in STATS_META
+                           if k not in ('basePrice', 'mass', 'capacity'))]
+    print(f'  ships with no dogma stats: {len(statless)}'
+          + (f' e.g. {[ships[t]["name"] for t in statless[:5]]}' if statless else ''))
+
+    missing = []
+    for stat in STATS_META:
+        n = sum(1 for s in ships.values() if stat not in s)
+        if n:
+            missing.append(f'{stat}: {n} ships missing')
+    print('  stat coverage: ' + ('all 15 stats on all ships'
+          if not missing else '; '.join(missing)))
+
+    roster_ids = {s['id'] for s in roster}
+    stats_ids = {int(i) for i in stats_out['ships']}
+    assert roster_ids == stats_ids, 'roster/stats id mismatch!'
+    print('  cross-check: every roster id has stats OK')
+
 
 if __name__ == '__main__':
     main()
