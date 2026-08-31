@@ -40,19 +40,6 @@ body {
 .logo { max-width: 100px; margin-bottom: 0.5rem; filter: drop-shadow(0 0 18px rgba(232, 217, 0, 0.25)); }
 .tool-header h1 { font-size: 2.5rem; font-weight: 700; }
 .tool-header h1 span { color: var(--accent); text-shadow: 0 0 24px var(--accent-glow); }
-.beta-badge {
-  display: inline-block;
-  transform: rotate(-8deg);
-  margin-top: 0.5rem;
-  padding: 2px 14px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #111;
-  background: var(--accent);
-  border-radius: 6px;
-}
 .tool-header .subtitle { font-size: 1rem; color: var(--dim); margin-bottom: 0.5rem; }
 .sound-btn {
   margin-top: 12px; background: var(--p1); color: var(--text);
@@ -510,6 +497,54 @@ footer .fineprint a:hover { color: var(--accent); }
 .support-content .kofi-button:hover { filter: brightness(1.1); color: #1a0e08; }
 .kofi-icon { width: 20px; height: 20px; }
 
+/* ── PILOT BAR / LEADERBOARD ── */
+.pilot-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1rem; flex-wrap: wrap; }
+.pilot-status { color: var(--dim); font-size: 0.95rem; }
+.pilot-status.logged-in { color: var(--accent); font-weight: 700; }
+.login-btn, .logout-btn {
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #f5e53b, var(--accent) 60%, #d4c700);
+  color: #1a0e08;
+  transition: filter 0.2s;
+}
+.login-btn:hover, .logout-btn:hover { filter: brightness(1.1); }
+.logout-btn { background: #2a2a2a; color: var(--dim); border: 1px solid var(--border); }
+.lb-section { margin-top: 1rem; }
+.lb-panel {
+  max-width: 640px;
+  margin: 12px auto 0;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: left;
+}
+.lb-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.92rem;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row.me { background: rgba(232, 217, 0, 0.08); border-radius: 6px; }
+.lb-rank { font-weight: 700; color: var(--dim); }
+.lb-row.top3 .lb-rank { color: var(--accent); }
+.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-isk { font-weight: 700; color: var(--accent); white-space: nowrap; }
+.lb-acc, .lb-date { color: var(--dim); white-space: nowrap; font-size: 0.85rem; }
+.lb-empty { text-align: center; color: var(--dim); padding: 10px; }
+.go-score-status { margin-top: 10px; font-size: 0.85rem; color: var(--dim); }
+.go-score-status.ok { color: #6bd968; }
+.go-score-status.err { color: #ff6b6b; }
+
 /* ── MOBILE ── */
 @media (max-width: 700px) {
   #cards { grid-template-columns: 1fr; gap: 16px; }
@@ -521,4 +556,7 @@ footer .fineprint a:hover { color: var(--accent); }
   .menu-stats { flex-direction: column; gap: 8px; align-items: stretch; }
   .menu-stats span { text-align: center; }
   .ut-row { flex-wrap: wrap; }
+  .pilot-bar { flex-direction: column; gap: 6px; }
+  .lb-row { grid-template-columns: 36px 1fr auto; font-size: 0.85rem; }
+  .lb-acc, .lb-date { display: none; }
 }

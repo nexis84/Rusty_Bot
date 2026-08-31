@@ -17,6 +17,10 @@ const SPECIAL_SHIP_IDS = new Set([617, 33081, 615, 33079, 33083])
 
 const IMG_BASE = 'https://images.evetech.net/types'
 const LS_KEY = 'toptrumps_data'
+const AUTH_KEY = 'toptrumps_auth'
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8080/api'
+  : 'https://api.rustybot.co.uk/api'
 
 // ─── UNLOCK TREE ────────────────────────────────────
 const UNLOCK_TREE = [
@@ -180,6 +184,145 @@ function showAchievementToast(a) {
   achToast.classList.add('show')
   clearTimeout(achToastTimer)
   achToastTimer = setTimeout(() => { achToast.classList.remove('show') }, 4000)
+}
+
+// ─── PILOT AUTH / LEADERBOARD ───────────────────────
+let pilot = null // { character_id, character_name, access_token, expires_at }
+
+const pilotStatus = document.getElementById('pilotStatus')
+const loginBtn = document.getElementById('loginBtn')
+const logoutBtn = document.getElementById('logoutBtn')
+const lbPanelBtn = document.getElementById('lbPanelBtn')
+const lbPanel = document.getElementById('lbPanel')
+const lbList = document.getElementById('lbList')
+const goScoreStatus = document.getElementById('goScoreStatus')
+
+function loadPilot() {
+  try {
+    pilot = JSON.parse(localStorage.getItem(AUTH_KEY))
+  } catch { pilot = null }
+  if (pilot && (!pilot.access_token || pilot.expires_at < Date.now())) pilot = null
+}
+
+function savePilot() {
+  if (pilot) localStorage.setItem(AUTH_KEY, JSON.stringify(pilot))
+  else localStorage.removeItem(AUTH_KEY)
+}
+
+function renderPilotBar() {
+  if (pilot) {
+    pilotStatus.textContent = `Pilot: ${pilot.character_name}`
+    pilotStatus.classList.add('logged-in')
+    loginBtn.classList.add('hidden')
+    logoutBtn.classList.remove('hidden')
+  } else {
+    pilotStatus.textContent = 'Playing as guest'
+    pilotStatus.classList.remove('logged-in')
+    loginBtn.classList.remove('hidden')
+    logoutBtn.classList.add('hidden')
+  }
+}
+
+async function startPilotLogin() {
+  try {
+    const res = await fetch(`${API_BASE}/auth/eve/login?redirect=toptrumps`)
+    const data = await res.json()
+    if (!data.url) throw new Error(data.error || 'Login unavailable')
+    window.location.href = data.url
+  } catch (e) {
+    pilotStatus.textContent = `Login failed: ${e.message}`
+  }
+}
+
+function pilotLogout() {
+  pilot = null
+  savePilot()
+  renderPilotBar()
+}
+
+// Handle SSO callback: ?code=...&state=toptrumps:...
+async function handleSsoCallback() {
+  const params = new URLSearchParams(window.location.search)
+  const code = params.get('code')
+  if (!code) return
+  try {
+    const res = await fetch(`${API_BASE}/token-exchange`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Token exchange failed')
+    pilot = {
+      character_id: data.character_id,
+      character_name: data.character_name,
+      access_token: data.access_token,
+      expires_at: Date.now() + (data.expires_in || 1200) * 1000 - 60000,
+    }
+    savePilot()
+  } catch (e) {
+    console.error('[top-trumps] SSO callback failed:', e)
+  } finally {
+    window.history.replaceState({}, '', window.location.pathname)
+  }
+}
+
+async function submitScore(runSummary) {
+  if (!pilot) return
+  goScoreStatus.textContent = 'Submitting to leaderboard…'
+  goScoreStatus.className = 'go-score-status'
+  try {
+    let res = await fetch(`${API_BASE}/toptrumps/score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${pilot.access_token}` },
+      body: JSON.stringify(runSummary),
+    })
+    if (res.status === 401) {
+      // Token expired mid-session — drop it; user can re-login for next run.
+      pilot = null
+      savePilot()
+      renderPilotBar()
+      goScoreStatus.textContent = 'Session expired — sign in again to save future runs.'
+      goScoreStatus.className = 'go-score-status err'
+      return
+    }
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Submit failed')
+    goScoreStatus.textContent = data.isPersonalBest
+      ? `🏅 Saved — new personal best! Leaderboard rank #${data.rank}`
+      : `Saved to leaderboard (rank #${data.rank})`
+    goScoreStatus.className = 'go-score-status ok'
+    loadLeaderboard(true)
+  } catch (e) {
+    goScoreStatus.textContent = `Leaderboard submit failed: ${e.message}`
+    goScoreStatus.className = 'go-score-status err'
+  }
+}
+
+async function loadLeaderboard(force = false) {
+  if (!lbList) return
+  if (!force && lbPanel.classList.contains('hidden')) return
+  lbList.innerHTML = '<p class="lb-empty">Loading…</p>'
+  try {
+    const res = await fetch(`${API_BASE}/toptrumps/leaderboard`, { cache: 'no-store' })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Failed to load')
+    if (!data.leaderboard.length) {
+      lbList.innerHTML = '<p class="lb-empty">No runs yet — be the first on the board!</p>'
+      return
+    }
+    lbList.innerHTML = data.leaderboard.map(r => `
+      <div class="lb-row${r.rank <= 3 ? ' top3' : ''}${pilot && r.name === pilot.character_name ? ' me' : ''}">
+        <span class="lb-rank">#${r.rank}</span>
+        <span class="lb-name">${r.name}</span>
+        <span class="lb-isk">${formatISK(r.isk)} ISK</span>
+        <span class="lb-acc">${r.accuracy}%</span>
+        <span class="lb-date">${new Date(r.date).toISOString().slice(0, 10)}</span>
+      </div>
+    `).join('')
+  } catch (e) {
+    lbList.innerHTML = `<p class="lb-empty">Leaderboard unavailable: ${e.message}</p>`
+  }
 }
 
 function loadData() {
@@ -917,6 +1060,21 @@ function finishRun(won) {
   }
   checkAchievements(runData)
 
+  if (pilot) {
+    submitScore({
+      isk,
+      level,
+      rounds: roundsPlayed,
+      correct: correctCount,
+      streak: bestStreak,
+      won,
+      accuracy: roundsPlayed > 0 ? Math.round((correctCount / roundsPlayed) * 100) : 0,
+    })
+  } else if (goScoreStatus) {
+    goScoreStatus.textContent = 'Sign in with EVE (menu screen) to save runs to the leaderboard.'
+    goScoreStatus.className = 'go-score-status'
+  }
+
   populateSharePoster(runData)
 }
 
@@ -962,7 +1120,7 @@ async function init() {
   playBtn.disabled = true
 
   try {
-    const res = await fetch('ship-stats.json')
+    const res = await fetch('ship-stats.json?v=3')
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     statsData = await res.json()
   } catch (err) {
@@ -980,6 +1138,20 @@ async function init() {
 
   loadStatus.textContent = ''
   playBtn.disabled = false
+
+  // Pilot auth: handle SSO callback (?code=...), then render bar.
+  await handleSsoCallback()
+  loadPilot()
+  renderPilotBar()
+  if (loginBtn) loginBtn.addEventListener('click', startPilotLogin)
+  if (logoutBtn) logoutBtn.addEventListener('click', pilotLogout)
+  if (lbPanelBtn) {
+    lbPanelBtn.addEventListener('click', () => {
+      const hidden = lbPanel.classList.toggle('hidden')
+      lbPanelBtn.classList.toggle('open', !hidden)
+      if (!hidden) loadLeaderboard(true)
+    })
+  }
 
   // Data integrity: dedupe roster by id, warn on roster/stats drift.
   const seen = new Set()

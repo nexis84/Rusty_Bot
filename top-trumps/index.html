@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="rusty_bot.png">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
   <link rel="canonical" href="https://www.rustybot.co.uk/top-trumps/">
   <meta name="robots" content="index, follow">
 </head>
@@ -26,7 +26,6 @@
     <header class="tool-header">
       <img src="rusty_bot.png" alt="RustyBot Logo" class="logo">
       <h1>EVE <span>Top Trumps</span></h1>
-      <span class="beta-badge">Beta</span>
       <p class="subtitle">Unlock ship classes, earn ISK, climb the leaderboard.</p>
       <button id="soundBtn" class="sound-btn" type="button">🔊 Sound On</button>
     </header>
@@ -36,6 +35,12 @@
       <span>🏆 Best Run: <strong id="bestRunDisplay">0</strong> ISK</span>
     </div>
 
+    <div class="pilot-bar">
+      <span id="pilotStatus" class="pilot-status">Playing as guest</span>
+      <button id="loginBtn" class="login-btn" type="button">Sign in with EVE</button>
+      <button id="logoutBtn" class="logout-btn hidden" type="button">Sign out</button>
+    </div>
+
     <p class="howto">Pick the card with the <strong>higher</strong> (or <strong>lower</strong>, as prompted) trump stat before the timer runs out. Keys <strong>1</strong>/<strong>2</strong> or <strong>←</strong>/<strong>→</strong> also work.</p>
 
     <div class="unlock-tree" id="unlockTree"></div>
@@ -43,6 +48,13 @@
     <div class="ach-section">
       <button id="achPanelBtn" type="button" class="ach-panel-btn">🏆 Achievements (0/17)</button>
       <div id="achPanel" class="ach-panel hidden"><div id="achList"></div></div>
+    </div>
+
+    <div class="lb-section">
+      <button id="lbPanelBtn" type="button" class="ach-panel-btn">🏅 Leaderboard</button>
+      <div id="lbPanel" class="lb-panel hidden">
+        <div id="lbList" class="lb-list"><p class="lb-empty">Loading…</p></div>
+      </div>
     </div>
 
     <div class="menu-actions">
@@ -167,6 +179,7 @@
         <button id="goDownloadBtn" class="back-btn">🖼️ Save PNG</button>
         <button id="goCopyBtn" class="back-btn">📋 Copy Summary</button>
       </div>
+      <div id="goScoreStatus" class="go-score-status"></div>
     </div>
   </div>
 
@@ -189,7 +202,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="ships.js"></script>
-<script src="app.js"></script>
+<script src="ships.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
