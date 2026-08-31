@@ -515,6 +515,21 @@ footer .fineprint a:hover { color: var(--accent); }
 .login-btn:hover, .logout-btn:hover { filter: brightness(1.1); }
 .logout-btn { background: #2a2a2a; color: var(--dim); border: 1px solid var(--border); }
 .lb-section { margin-top: 1rem; }
+.lb-guest-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: rgba(232, 217, 0, 0.07);
+  border: 1px solid rgba(232, 217, 0, 0.25);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.lb-inline-login { padding: 6px 14px; font-size: 0.8rem; white-space: nowrap; }
 .lb-panel {
   max-width: 640px;
   margin: 12px auto 0;

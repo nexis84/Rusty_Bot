@@ -36,7 +36,7 @@
     </div>
 
     <div class="pilot-bar">
-      <span id="pilotStatus" class="pilot-status">Playing as guest</span>
+      <span id="pilotStatus" class="pilot-status">Playing as guest — runs won't appear on the leaderboard</span>
       <button id="loginBtn" class="login-btn" type="button">Sign in with EVE</button>
       <button id="logoutBtn" class="logout-btn hidden" type="button">Sign out</button>
     </div>
@@ -53,6 +53,10 @@
     <div class="lb-section">
       <button id="lbPanelBtn" type="button" class="ach-panel-btn">🏅 Leaderboard</button>
       <div id="lbPanel" class="lb-panel hidden">
+        <div id="lbGuestNotice" class="lb-guest-notice hidden">
+          <span>🔒 Sign in with EVE to get on the board — guest runs aren't saved.</span>
+          <button id="lbLoginBtn" class="login-btn lb-inline-login" type="button">Sign in with EVE</button>
+        </div>
         <div id="lbList" class="lb-list"><p class="lb-empty">Loading…</p></div>
       </div>
     </div>

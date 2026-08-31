@@ -210,16 +210,19 @@ function savePilot() {
 }
 
 function renderPilotBar() {
+  const lbGuestNotice = document.getElementById('lbGuestNotice')
   if (pilot) {
     pilotStatus.textContent = `Pilot: ${pilot.character_name}`
     pilotStatus.classList.add('logged-in')
     loginBtn.classList.add('hidden')
     logoutBtn.classList.remove('hidden')
+    if (lbGuestNotice) lbGuestNotice.classList.add('hidden')
   } else {
-    pilotStatus.textContent = 'Playing as guest'
+    pilotStatus.textContent = 'Playing as guest — runs won\'t appear on the leaderboard'
     pilotStatus.classList.remove('logged-in')
     loginBtn.classList.remove('hidden')
     logoutBtn.classList.add('hidden')
+    if (lbGuestNotice) lbGuestNotice.classList.remove('hidden')
   }
 }
 
@@ -1145,6 +1148,8 @@ async function init() {
   renderPilotBar()
   if (loginBtn) loginBtn.addEventListener('click', startPilotLogin)
   if (logoutBtn) logoutBtn.addEventListener('click', pilotLogout)
+  const lbLoginBtn = document.getElementById('lbLoginBtn')
+  if (lbLoginBtn) lbLoginBtn.addEventListener('click', startPilotLogin)
   if (lbPanelBtn) {
     lbPanelBtn.addEventListener('click', () => {
       const hidden = lbPanel.classList.toggle('hidden')
