@@ -246,7 +246,7 @@ async function handleSsoCallback() {
   const code = params.get('code')
   if (!code) return
   try {
-    const res = await fetch(`${API_BASE}/token-exchange`, {
+    const res = await fetch(`${API_BASE}/auth/tt/token-exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
