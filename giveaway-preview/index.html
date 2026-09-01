@@ -181,7 +181,6 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
       <button disabled title="Demo version — prize is preset">CLEAR PRIZE</button>
       <span class="combo anim" style="flex:0 0 130px;"><select id="anim-type">
         <option value="Random" selected>Random</option>
-        <option value="Vertical List">Vertical List</option>
         <option value="Triglavian Translation">Triglavian Translation</option>
         <option value="Triglavian Code Reveal">Triglavian Code Reveal</option>
         <option value="Neon Encrypted">Neon Encrypted</option>
@@ -816,6 +815,7 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
     }
     function doStartAnimation(winner) {
       let animType = animTypeSel.value;
+      if (animType === 'Vertical List') animType = 'Triglavian Translation'; // vertical reel disabled
       if (animType === 'Random') {
         const pool = ['Triglavian Translation','Neon Encrypted','Triglavian Conduit','Node Path Reveal','Deep Seek','Neural Interface Decode'];
         animType = pool[Math.floor(Math.random()*pool.length)];
