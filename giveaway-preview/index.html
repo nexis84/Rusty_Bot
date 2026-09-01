@@ -142,6 +142,20 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
 #options-button:disabled { color: var(--text-dim); }
 ::-webkit-scrollbar { width: 10px; height: 10px; background: var(--bg-input); border: 1px solid var(--border); }
 ::-webkit-scrollbar-thumb { background: var(--text-accent); border-radius: 3px; min-height: 20px; }
+/* end-of-preview fog + CTA */
+#end-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;background:rgba(5,8,10,0.78);backdrop-filter:blur(7px) saturate(1.2);-webkit-backdrop-filter:blur(7px) saturate(1.2);padding:24px;opacity:0;transition:opacity 0.35s ease;}
+#end-overlay.visible{display:flex;opacity:1;}
+#end-overlay .end-card{max-width:520px;width:100%;background:linear-gradient(160deg,#121a24 0%,#0a0e14 100%);border:1px solid #1e2e42;border-radius:12px;padding:28px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.6),0 0 30px rgba(90,169,230,0.15);}
+#end-overlay .end-card .end-badge{font-family:'Shentox-SemiBold','Segoe UI',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#5aa9e6;border:1px solid #1e2e42;border-radius:99px;padding:4px 10px;display:inline-block;margin-bottom:12px;}
+#end-overlay .end-card h3{font-family:'Shentox-SemiBold','Segoe UI',sans-serif;font-size:22px;color:#cbd6e0;margin:0 0 8px;}
+#end-overlay .end-card h3 span{color:#e8d900;}
+#end-overlay .end-card p{color:#5a6d82;font-size:13px;line-height:1.5;margin:0 auto 18px;max-width:420px;}
+#end-overlay .end-cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#end-overlay .end-btn{font-family:'Shentox-SemiBold','Segoe UI',sans-serif;font-weight:700;font-size:13px;padding:10px 18px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:transform 0.15s,background 0.15s,border-color 0.15s;}
+#end-overlay .end-btn.primary{background:#e8d900;color:#0a0e14;border-color:#e8d900;}
+#end-overlay .end-btn.primary:hover{background:#f5e53b;transform:translateY(-1px);}
+#end-overlay .end-btn.ghost{background:#162131;color:#5aa9e6;border-color:#1e2e42;}
+#end-overlay .end-btn.ghost:hover{background:#1e344d;color:#cbd6e0;border-color:#2a4a6b;}
 /* layout locked — handles disabled */
 @media (max-width: 900px) {
   body { overflow: auto; height: auto; min-height: 100vh; }
@@ -249,6 +263,18 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
   <span class="conn-light" title="Velora: Connected" style="color:#ffb700;">&#9679;</span>
   <button id="ign-button" style="background:#ffb700; color:#000; border:none; font-weight:800; padding:3px 12px;" disabled title="Not available in preview">IGN GRABBER</button>
   <button id="options-button" style="background:#2a3441; color:#cbd6e0; border:1px solid #3a4a5e;" disabled title="Not available in preview">OPTIONS</button>
+</div>
+
+<div id="end-overlay" role="dialog" aria-modal="true" aria-label="Preview complete">
+  <div class="end-card">
+    <div class="end-badge">Preview Complete</div>
+    <h3>Want the <span>live</span> version?</h3>
+    <p>This is the real RustyBot Client. Run draws live on Twitch &amp; Kick with ESI-verified winners, chat integration, and custom animations.</p>
+    <div class="end-cta-row">
+      <button id="retry-preview-btn" class="end-btn ghost" type="button">Retry Preview</button>
+      <a id="cta-client-btn" class="end-btn primary" href="/giveaway.html" target="_top" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Get RustyBot Client</a>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -636,6 +662,21 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
     addHistory(lastWinner, prizeForHistory + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + currentDonator + ')' : ''));
     try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
     setState(State.IDLE);
+    // Fog out preview + CTA after IGN sheet is done
+    setTimeout(function(){ showEndOverlay(); }, 400);
+  }
+
+  function showEndOverlay(){
+    var ov=document.getElementById('end-overlay');
+    if(!ov) return;
+    ov.style.display='flex';
+    requestAnimationFrame(function(){ ov.classList.add('visible'); });
+  }
+  function hideEndOverlay(){
+    var ov=document.getElementById('end-overlay');
+    if(!ov) return;
+    ov.classList.remove('visible');
+    setTimeout(function(){ ov.style.display='none'; }, 350);
   }
 
   function removeWinner(name) {
@@ -864,6 +905,20 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
   animTypeSel.addEventListener('change', function(){
     setStatusRaw('Animation: ' + animTypeSel.value);
   });
+
+  // Retry / CTA wiring
+  (function(){
+    var rb=document.getElementById('retry-preview-btn');
+    var ov=document.getElementById('end-overlay');
+    if(rb) rb.addEventListener('click', function(){
+      hideEndOverlay();
+      // clear winner display, keep entries for quick retry
+      try { winnerDisplay.textContent='---'; } catch(e){}
+      setState(State.IDLE);
+      logStatus('Ready for next preview — hit START DRAW again.');
+    });
+    if(ov) ov.addEventListener('click', function(e){ if(e.target===ov) hideEndOverlay(); });
+  })();
 
   document.addEventListener('pointerdown', function(){ ensureAudioUnlocked(); });
 
