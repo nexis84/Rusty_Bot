@@ -72,24 +72,53 @@
 
         .giveaway-live-banner {
             display: none;
-            margin: 12px auto 0;
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 1rem;
-            letter-spacing: 0.3px;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            text-decoration-color: rgba(232, 217, 0, 0.6);
-            transition: color 0.2s, text-decoration-color 0.2s;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 16px auto 0;
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #e8d900 0%, #f5e53b 100%);
+            color: #0d0d0d;
+            font-weight: 800;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            text-decoration: none;
+            border-radius: 6px;
+            border: 1px solid #e8d900;
+            box-shadow: 0 0 18px rgba(232, 217, 0, 0.4);
+            animation: giveaway-pulse 1.8s infinite;
+            transition: transform 0.15s, box-shadow 0.15s;
+            width: fit-content;
         }
 
         .giveaway-live-banner.visible {
-            display: block;
+            display: inline-flex;
         }
 
         .giveaway-live-banner:hover {
-            color: #f5e53b;
-            text-decoration-color: #f5e53b;
+            transform: translateY(-2px);
+            box-shadow: 0 0 26px rgba(232, 217, 0, 0.65);
+        }
+
+        .giveaway-live-banner .live-dot {
+            width: 9px;
+            height: 9px;
+            background: #e60000;
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(230, 0, 0, 0.9);
+            animation: live-blink 1s infinite alternate;
+            flex-shrink: 0;
+        }
+
+        @keyframes giveaway-pulse {
+            0%, 100% { box-shadow: 0 0 18px rgba(232, 217, 0, 0.4); }
+            50% { box-shadow: 0 0 26px rgba(232, 217, 0, 0.7); }
+        }
+
+        @keyframes live-blink {
+            from { opacity: 1; }
+            to { opacity: 0.45; }
         }
 
         .hero-rule {
@@ -606,7 +635,12 @@
             <h1>Welcome to <span>Rusty Bot</span></h1>
             <p>Your suite of powerful EVE Online tools for streaming and Discord.</p>
             <img class="partner-badge" src="PartnerBadge2.png" alt="EVE Online Partner badge">
-            <a id="giveaway-live-banner" href="website-giveaway" class="giveaway-live-banner">giveaway now open</a>
+            <a id="giveaway-live-banner" href="website-giveaway" class="giveaway-live-banner" aria-label="Giveaway now live - enter the website giveaway">
+                <span class="live-dot" aria-hidden="true"></span>
+                <i class="fa-solid fa-gift" aria-hidden="true"></i>
+                Giveaway Now Live
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
         </header>
     </div>
 
