@@ -272,7 +272,7 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
     <p>This is the real RustyBot Client. Run draws live on Twitch &amp; Kick with ESI-verified winners, chat integration, and custom animations.</p>
     <div class="end-cta-row">
       <button id="retry-preview-btn" class="end-btn ghost" type="button">Retry Preview</button>
-      <a id="cta-client-btn" class="end-btn primary" href="/giveaway.html" target="_top" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Get RustyBot Client</a>
+      <a id="cta-client-btn" class="end-btn primary" href="https://discord.gg/w3WA2vfCSW" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">Join Discord</a>
     </div>
   </div>
 </div>
@@ -662,8 +662,8 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
     addHistory(lastWinner, prizeForHistory + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + currentDonator + ')' : ''));
     try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
     setState(State.IDLE);
-    // Fog out preview + CTA after IGN sheet is done
-    setTimeout(function(){ showEndOverlay(); }, 400);
+    // Fog out preview + CTA 2s after IGN sheet is visible in monitor
+    setTimeout(function(){ showEndOverlay(); }, 2000);
   }
 
   function showEndOverlay(){
