@@ -1,0 +1,3445 @@
+/* --- Triglavian Conduit Reveal Styling (Mode 7) --- */
+#trig-conduit-reveal-mode {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.trig-conduit-nodes-container {
+    position: relative;
+    width: var(--trig-conduit-nodes-container-size);
+    height: var(--trig-conduit-nodes-container-size);
+    margin-bottom: 3vmin;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.5s ease-out var(--trig-conduit-appear-delay), transform 0.5s ease-out var(--trig-conduit-appear-delay);
+}
+#trig-conduit-reveal-mode.visible .trig-conduit-nodes-container.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* NEW: SVG Overlay for lines */
+.trig-conduit-svg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: visible;
+}
+
+/* NEW: Conduit line styling */
+.trig-conduit-line {
+    stroke: var(--trig-cyan);
+    stroke-width: var(--node-path-line-width);
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0.15;
+    stroke-dasharray: 100%;
+    stroke-dashoffset: 100%;
+    transition: stroke-dashoffset 0.4s cubic-bezier(0.6, 0, 0.4, 1), opacity 0.4s ease-out;
+    filter: drop-shadow(0 0 0.5vmin var(--node-path-line-glow-color));
+}
+
+.trig-conduit-line.visible {
+    opacity: 0.8;
+    stroke-dashoffset: 0;
+}
+
+
+@keyframes trigConduitNodePulse {
+    0% {
+        transform: translate(var(--node-lean-x, 0px), var(--node-lean-y, 0px)) rotate(var(--node-rotation, 0deg)) rotate(var(--node-lean-rot, 0deg)) scale(1);
+        box-shadow: 0 0 1vmin 0.2vmin var(--trig-conduit-node-border-color);
+        background-color: var(--trig-conduit-node-bg);
+        border-color: var(--trig-conduit-node-border-color);
+    }
+    30% {
+        transform: translate(var(--node-lean-x, 0px), var(--node-lean-y, 0px)) rotate(var(--node-rotation, 0deg)) rotate(var(--node-lean-rot, 0deg)) scale(1.25);
+        box-shadow: 0 0 3vmin 0.8vmin var(--trig-conduit-node-pulse-glow);
+        background-color: var(--trig-conduit-node-active-bg);
+        border-color: var(--trig-conduit-node-active-border-color);
+    }
+    60% {
+        transform: translate(var(--node-lean-x, 0px), var(--node-lean-y, 0px)) rotate(var(--node-rotation, 0deg)) rotate(var(--node-lean-rot, 0deg)) scale(1.15);
+        box-shadow: 0 0 2.5vmin 0.6vmin var(--trig-conduit-node-pulse-glow);
+        background-color: var(--trig-conduit-node-active-bg);
+        border-color: var(--trig-conduit-node-active-border-color);
+    }
+    100% {
+        transform: translate(var(--node-lean-x, 0px), var(--node-lean-y, 0px)) rotate(var(--node-rotation, 0deg)) rotate(var(--node-lean-rot, 0deg)) scale(1.05);
+        box-shadow: 0 0 1.5vmin 0.3vmin var(--trig-conduit-node-pulse-glow);
+        background-color: var(--trig-conduit-node-active-bg);
+        border-color: var(--trig-conduit-node-active-border-color);
+    }
+}
+
+.trig-conduit-node.active {
+    animation: trigConduitNodePulse var(--trig-conduit-pulse-anim-duration-ms, 1000ms) ease-in-out infinite;
+}
+
+@keyframes finalConduitPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.trig-conduit-nodes-container.final-pulse-effect .trig-conduit-node.visible {
+    animation: finalConduitPulse 1s ease-in-out 2;
+}
+
+.trig-conduit-winner-display {
+    /* Basic layout for winner display — keep lightweight to avoid impacting reveal animations */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8vmin;
+}
+/* Central conduit core */
+.trig-conduit-core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(var(--trig-conduit-node-size) * 1.2);
+    height: calc(var(--trig-conduit-node-size) * 1.2);
+    border-radius: 50%;
+    /* Strong red-centered glow with bluish rim for contrast */
+    background: radial-gradient(circle at 50% 45%, var(--trig-beam-inner), rgba(255,30,10,0.25) 40%, rgba(0,0,0,0.2) 70%), radial-gradient(circle at 25% 25%, rgba(255,120,100,0.08), transparent 50%);
+    border: calc(var(--trig-conduit-node-border-width) / 1.2) solid rgba(255,80,60,0.06);
+    box-shadow: 0 0 2.5vmin 0.6vmin var(--trig-beam-glow), 0 0 1.2vmin 0.35vmin rgba(255,140,120,0.18) inset;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.6s ease-out, transform 1.0s cubic-bezier(.2,.9,.2,1);
+}
+.trig-conduit-nodes-container.visible .trig-conduit-core { opacity: 1; }
+
+/* Moving energy orb (elongated streak-style to simulate motion blur) */
+.conduit-orb {
+    position: absolute;
+    width: 10px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,200,180,0.9) 20%, var(--trig-beam-inner) 60%, rgba(255,40,10,0.8) 100%);
+    box-shadow: 0 0 2vmin 0.6vmin rgba(255,80,60,0.22), 0 0 0.6vmin 0.15vmin rgba(255,255,255,0.8) inset;
+    transform: translate(0,0) rotate(0deg) scale(1);
+    transition: transform 0.8s cubic-bezier(.15,.9,.25,1), opacity 0.35s ease-out;
+    opacity: 0.98;
+    z-index: 6;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+/* Streak effect: when orb has class .streak, make the trail more pronounced */
+.conduit-orb.streak {
+    filter: blur(1.2px);
+    opacity: 0.95;
+}
+
+/* Trig conduit arms (Y-shaped beams) */
+.trig-conduit-arm {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 55%;
+    height: 8%;
+    transform-origin: 50% 50%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.0;
+    transition: opacity 0.6s ease-out, transform 0.8s cubic-bezier(.2,.9,.2,1);
+}
+.trig-conduit-arm::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 6px;
+    width: 100%;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255,40,10,0.0) 20%, var(--trig-beam-inner) 60%, var(--trig-beam-red) 100%);
+    filter: blur(1.2px) drop-shadow(0 0 1vmin var(--trig-beam-glow));
+    mix-blend-mode: screen;
+    border-radius: 6px;
+}
+.trig-conduit-arm.visible { opacity: 1; }
+
+/* Darken and add smoky background vignette for mood */
+.animation-content::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(40,30,30,0.0) 30%, rgba(10,6,6,0.55) 80%);
+    z-index: 0;
+}
+
+/* letter arrived visual state */
+.trig-conduit-winner-display .letter-arrived {
+    color: var(--trig-electric-blue);
+    text-shadow: 0 0 0.8vmin rgba(135,206,250,0.6);
+}
+
+/* --- Spark Animation for Triglavian Box Reveal --- */
+.triglavian-sparks {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    z-index: 10;
+}
+.triglavian-spark {
+    position: absolute;
+    width: 6px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--trig-cyan), var(--trig-yellow));
+    border-radius: 2px;
+    opacity: 0.85;
+    transform: scaleX(1.2);
+    animation: spark-fly 0.5s linear forwards;
+}
+@keyframes spark-fly {
+    0% { opacity: 1; transform: translate(0,0) scaleX(1.2) rotate(0deg); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--spark-x), var(--spark-y)) scaleX(0.7) rotate(var(--spark-rot)); }
+}
+.triglavian-box.showing-reveal { position: relative; overflow: visible; }
+/* START style.css */
+
+/* --- Font Definitions --- */
+@font-face { font-family: 'Shentox-SemiBold'; src: url('Shentox-SemiBold.ttf') format('truetype'); font-weight: 600; font-style: normal; }
+@font-face { font-family: 'Triglavian - Complete Regular'; src: url('triglavian-complete.otf') format('opentype'); font-weight: normal; font-style: normal; }
+
+
+/* --- Color Palette --- */
+:root {
+    /* Base Colors */
+    --trig-cyan: #4af1f2; --trig-white: #ffffff; --trig-dark: #05080a; --trig-dark-blue: #0a2845; --trig-grey: #9099a1; --trig-cyan-bright: #c0ffff; --trig-red: #d4351e; --trig-yellow: #f2d44a;
+    /* Arm / beam colors for Trig Conduit (game-like red) */
+    --trig-beam-red: #ff2a1a; --trig-beam-inner: rgba(255,80,60,0.95); --trig-beam-glow: rgba(255,60,40,0.18);
+    --trig-electric-blue: #87CEFA; /* Lighter blue for electric feel */
+
+    /* Deep Seek theme palette (canvas + DOM) */
+    --ds-scan: #00b4ff; --ds-scan-bright: #00dcff; --ds-lock: #ff2020; --ds-resolved: #00ff44;
+
+    /* --- SCALED DIMENSIONS --- */
+
+    /* Box Reveal */
+    --box-pulse-glow: rgba(100, 255, 255, 0.85);
+    --box-width: clamp(35px, 5vmin, 70px);
+    --box-height: clamp(40px, 6vmin, 80px);
+    --box-margin: 0.5vmin;
+    --box-font-size: clamp(14px, 2.8vmin, 30px);
+    --box-border-width: max(1px, 0.2vmin);
+    --boxes-row-max-width: clamp(320px, 75vw, 1600px);
+
+    /* Countdown */
+    --countdown-size: clamp(80px, 10vmin, 160px);
+    --countdown-border: clamp(3px, 0.7vmin, 10px);
+    --countdown-font-size: clamp(18px, 3vmin, 36px);
+    --countdown-yellow: var(--trig-yellow); --countdown-red: var(--trig-red); --countdown-track-color: #2a3b4d; --countdown-text-color: var(--trig-white);
+    --countdown-reveal-delay: 0.3s; --countdown-reveal-duration: 0.5s;
+
+    /* List Scroll */
+    --list-max-width-px: 700px;
+    --list-height: clamp(180px, 30vmin, 450px);
+    --list-item-height: clamp(30px, 5.5vmin, 65px);
+    --list-font-size: clamp(12px, 1.8vmin, 24px);
+    --list-item-margin: 0.5vmin;
+    --list-padding: 1.5vmin;
+    --list-winner-font-size: clamp(16px, 2.6vmin, 32px);
+    --list-winner-padding: 1.5vmin 3.5vmin;
+    --list-item-color: var(--trig-grey); --list-active-item-color: var(--trig-white); --list-pointer-color: var(--trig-cyan);
+    --list-winner-bg: #080c10; --list-winner-text-color: var(--trig-yellow);
+    --list-shadow: rgba(0, 0, 0, 0.3); --list-fade-color: var(--trig-dark);
+    --list-perspective: 800px;
+    --list-rotateX: 10deg;
+    --list-glow-color: rgba(74, 241, 242, 0.2);
+    --list-bg-gradient-start: rgba(10, 40, 69, 0.3);
+    --list-bg-gradient-end: rgba(5, 8, 10, 0.5);
+    --list-edge-fade-height-multiplier: 1.5;
+    /* NEW: List Lights */
+    --list-light-size: clamp(10px, 2vmin, 20px);
+    --list-light-margin: clamp(3px, 0.6vmin, 6px);
+    --list-light-border-width: max(1px, 0.15vmin);
+    --list-light-color-on: var(--trig-yellow);
+    --list-light-glow-on: rgba(242, 212, 74, 0.7);
+    --list-light-color-off: #2a3b4d; /* Darker, dimmer */
+    --list-light-color-dim: #50667e; /* Intermediate dim state for flashing */
+    --list-lights-indicator-margin-bottom: 1.5vmin;
+
+    /* Triglavian Translation */
+    --trig-box-count: 5;
+    --trig-box-width: clamp(40px, 6.5vmin, 85px);
+    --trig-box-height: clamp(45px, 7.5vmin, 95px);
+    --trig-box-margin: 0.6vmin;
+    --trig-box-font-size: clamp(20px, 4vmin, 48px);
+    --trig-box-border-width: max(1px, 0.25vmin);
+    --trig-winner-font-size: clamp(18px, 3.3vmin, 40px);
+    --trig-winner-padding: 1.5vmin 3.5vmin;
+    --trig-winner-letter-spacing: 0.25em;
+    --trig-winner-min-height: calc(var(--trig-winner-font-size) + (2 * var(--trig-winner-padding)) + (2 * var(--trig-box-border-width)));
+    --trig-winner-bg: #080c10; --trig-winner-text-color: var(--trig-yellow);
+    --trig-temp-reveal-font-size: clamp(18px, 3.5vmin, 42px);
+
+    /* Node Path Reveal */
+    --node-path-grid-max-width: clamp(320px, 65vmin, 900px);
+    --node-path-grid-aspect-ratio: 0.9;
+    --node-path-node-size: clamp(18px, 3vmin, 40px);
+    --node-path-node-border: max(1px, 0.18vmin);
+    --node-path-node-color-empty: rgba(135, 206, 250, 0.28); /* lighter, more visible empty nodes */
+    --node-path-node-color-path: rgba(135, 206, 250, 1); /* brighter path color */
+    --node-path-node-color-target: var(--trig-yellow);
+    --node-path-node-color-active: var(--trig-white);
+    --node-path-line-color: rgba(140, 220, 255, 0.95); /* slightly brighter lines */
+    --node-path-line-width: max(1px, 0.25vmin);
+    --node-path-line-glow-color: rgba(135, 206, 250, 0.55); /* soften glow so nodes read lighter */
+    --node-path-line-dash-length: 0.6vmin;
+    --node-path-reveal-step-duration: 120ms;
+    --node-path-winner-font-size: clamp(16px, 2.6vmin, 32px);
+    --node-path-winner-padding: 1.5vmin 3.5vmin;
+    --node-path-winner-bg: #080c10;
+    --node-path-winner-text-color: var(--trig-yellow);
+    --node-path-winner-reveal-delay: 250ms;
+    --node-path-node-pulse-glow: rgba(220, 220, 255, 0.9);
+    --node-path-grid-gap: 0.5vmin;
+
+    /* Triglavian Conduit Reveal */
+    --trig-conduit-nodes-container-size: clamp(250px, 45vmin, 550px);
+    --trig-conduit-node-count: 7;
+    --trig-conduit-node-size: clamp(30px, 5.5vmin, 65px);
+    --trig-conduit-node-border-width: max(1px, 0.2vmin);
+    --trig-conduit-node-bg: var(--trig-dark-blue);
+    --trig-conduit-node-border-color: var(--trig-cyan);
+    --trig-conduit-node-active-bg: var(--trig-cyan); /* Bright background when active */
+    --trig-conduit-node-active-border-color: var(--trig-cyan-bright);
+    --trig-conduit-node-pulse-glow: var(--trig-cyan-bright);
+    --trig-conduit-pulse-anim-duration-ms: 1000ms; /* Duration for CSS pulse */
+    --trig-conduit-winner-display-font-size: clamp(20px, 4vmin, 48px);
+    --trig-conduit-winner-display-padding: 1.5vmin 2vmin;
+    --trig-conduit-winner-letter-spacing: 0.1em;
+    --trig-conduit-winner-bg: rgba(8, 12, 16, 0.7);
+    --trig-conduit-winner-text-color: var(--trig-yellow);
+    --trig-conduit-winner-placeholder-color: var(--trig-grey);
+    --trig-conduit-appear-delay: 100ms;
+    --trig-conduit-node-appear-stagger: 80ms;
+    /* Step durations for JS are in OPTIONS block in script.js */
+    --trig-conduit-countdown-delay: 600ms;
+
+    /* Network Background (used by network_animation.js) */
+    --network-node-color: rgba(135, 206, 250, 0.35);
+    --network-link-color: rgba(135, 206, 250, 0.45);
+    --network-link-pulse-color: rgba(200, 240, 255, 0.9);
+    --network-link-fade-to-color: var(--trig-red);
+
+    /* Background Lists */
+    --bg-list-width: 20vw;
+    --bg-list-item-height: 3.8vh;
+    --bg-list-font-size: clamp(11px, calc(0.8vw + 0.5vh), 18px);
+    --bg-list-max-font-size: 18px;
+    --bg-list-min-font-size: 11px;
+    --bg-list-color: rgba(144, 153, 161, 0.4);
+    --bg-list-trig-color: rgba(74, 241, 242, 0.4);
+    --bg-list-scroll-duration: 80s;
+    --bg-list-gap: 2vw;
+    --bg-list-top-offset: 5%;
+    --bg-list-bottom-offset: 5%;
+
+    /* Layout Adjustment */
+    --adjustable-border-color: rgba(255, 255, 0, 0.6);
+    --adjustable-border-style: 2px dashed var(--adjustable-border-color);
+
+    /* === Triglavian Code Reveal Specific === */
+    --trig-code-participants-height: clamp(300px, 60vh, 700px); 
+    --trig-code-participants-width: clamp(300px, 60vw, 700px);
+    --trig-code-participant-item-height: clamp(28px, 3.5vh, 45px);
+    --trig-code-participant-font-size: clamp(12px, 1.5vmin, 20px);
+    --trig-code-participant-name-color: var(--trig-grey);
+    --trig-code-participant-code-color: var(--trig-cyan);
+    --trig-code-participant-eliminated-color: rgba(144, 153, 161, 0.2);
+    --trig-code-participant-eliminated-code-color: rgba(74, 241, 242, 0.15);
+    --trig-code-winner-code-font-size: clamp(20px, 3.5vmin, 48px);
+    --trig-code-winner-code-letter-spacing: 0.15em;
+    --trig-code-winner-code-padding: 1.2vmin 2vmin;
+    --trig-code-winner-code-bg: rgba(10, 40, 69, 0.6);
+    --trig-code-winner-code-border-color: var(--trig-cyan);
+    --trig-code-winner-name-font-size: clamp(18px, 3vmin, 36px);
+    --trig-code-winner-name-padding: 1vmin 2vmin;
+    --trig-code-winner-name-bg: #080c10;
+    --trig-code-winner-name-text-color: var(--trig-yellow);
+    --trig-code-reveal-step-duration: 300ms;
+    --trig-code-elimination-duration: 0.4s;
+    --trig-code-highlight-color: var(--trig-yellow);
+    --trig-code-matching-char-color: var(--trig-yellow);
+    --trig-code-placeholder-char-color: rgba(144, 153, 161, 0.5);
+    --trig-code-final-two-pause-ms: 3000ms; /* For JS logic, not direct CSS */
+    /* Terminal sizing to avoid overlapping neon text */
+    --neon-terminal-height: clamp(84px, 14%, 140px);
+}
+
+/* Countdown UI styling */
+.countdown-container {
+    position: absolute;
+    right: 2.5vmin;
+    bottom: 2.5vmin;
+    width: var(--countdown-size);
+    height: var(--countdown-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 30;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.2,.9,.2,1);
+}
+.countdown-container.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.countdown-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.countdown-track { fill: none; stroke: var(--countdown-track-color); stroke-width: var(--countdown-border); }
+.countdown-progress { fill: none; stroke: var(--countdown-yellow); stroke-width: var(--countdown-border); stroke-linecap: round; stroke-dasharray: 283; stroke-dashoffset: 0; transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease-out; }
+.countdown-text {
+    position: absolute;
+    color: var(--countdown-text-color);
+    font-weight: 800;
+    font-size: var(--countdown-font-size);
+    text-align: center;
+    line-height: 1;
+    user-select: none;
+    -webkit-user-select: none;
+    text-shadow: 0 0 0.6vmin rgba(0,0,0,0.6);
+    pointer-events: none;
+    z-index: 31;
+}
+
+/* --- Countdown Urgency (<= 5s) flash animations --- */
+@keyframes countdownFlash {
+    0%, 100% { stroke: var(--countdown-red); }
+    50% { stroke: rgba(212, 53, 30, 0.2); }
+}
+@keyframes countdownTextPulse {
+    0%, 100% { color: var(--countdown-text-color); text-shadow: 0 0 0.6vmin rgba(0,0,0,0.6); }
+    50% { color: var(--trig-red); text-shadow: 0 0 1.2vmin rgba(212, 53, 30, 0.8), 0 0 0.6vmin rgba(0,0,0,0.6); }
+}
+.countdown-container.countdown-urgent .countdown-progress {
+    animation: countdownFlash 0.5s ease-in-out infinite;
+    transition: none;
+}
+.countdown-container.countdown-urgent .countdown-text {
+    animation: countdownTextPulse 0.5s ease-in-out infinite;
+}
+
+
+/* --- General Styling --- */
+html { background-color: var(--trig-dark); color: var(--trig-grey); height: 100%; box-sizing: border-box; font-size: 16px; }
+*, *:before, *:after { box-sizing: inherit; }
+body { background-color: var(--trig-dark); color: var(--trig-grey); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; overflow: hidden; position: relative; }
+
+/* --- Background Canvas Styling --- */
+.background-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+/* --- Main Container Styling --- */
+.container { width: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; position: relative; z-index: 5; padding-top: 5vh; padding-bottom: 3vh; padding-left: 1.5vmin; padding-right: 1.5vmin; min-height: 0; height: 100%; background-color: transparent; }
+
+/* --- Background Lists Styling (SCALED) --- */
+.background-list { position: absolute; top: var(--bg-list-top-offset); bottom: var(--bg-list-bottom-offset); width: var(--bg-list-width); overflow: hidden; z-index: 1; pointer-events: none; }
+.left-list { left: var(--bg-list-gap); }
+.right-list { right: var(--bg-list-gap); }
+.background-list ul { list-style: none; padding: 0; margin: 0; position: absolute; top: 0; left: 0; width: 100%; animation: none !important; transform: translateY(0%); }
+.background-list li { display: block; height: var(--bg-list-item-height); line-height: var(--bg-list-item-height); font-size: var(--bg-list-font-size); font-family: 'Shentox-SemiBold', Consolas, 'Courier New', monospace; color: var(--bg-list-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 0.5vw; box-sizing: border-box; width: 100%; }
+.right-list ul { font-family: 'Triglavian - Complete Regular', Consolas, 'Courier New', monospace; color: var(--bg-list-trig-color); }
+.right-list li { font-family: inherit; color: inherit; text-align: right; }
+.left-list li { text-align: left; }
+
+/* --- Animation Content & Mode Visibility --- */
+.animation-content { width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column; position: relative; z-index: 10; background-color: transparent; flex-shrink: 0; flex-grow: 1; min-height: 40vh; transition: opacity 0.2s ease; }
+.reveal-mode { display: none; max-width: 100%; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.5s ease-out, margin-top 0.5s ease-out, opacity 0.5s ease-out; opacity: 0; position: relative; z-index: 1; background-color: transparent; }
+body.show-boxes #box-reveal-mode,
+body.show-list #list-reveal-mode,
+body.show-triglavian #triglavian-reveal-mode,
+body.show-node-path #node-path-reveal-mode,
+body.show-trig-conduit #trig-conduit-reveal-mode,
+body.show-trig-code #trig-code-reveal-mode {
+    display: flex;
+}
+body.show-deepseek #deepseek-reveal-mode {
+    display: flex;
+}
+.reveal-mode.visible { opacity: 1; }
+#box-reveal-mode.slide-up,
+#list-reveal-mode.slide-up,
+#triglavian-reveal-mode.slide-up,
+#node-path-reveal-mode.slide-up,
+#trig-conduit-reveal-mode.slide-up,
+#trig-code-reveal-mode.slide-up,
+#deepseek-reveal-mode.slide-up {
+    transform: translateY(-6vmin);
+}
+
+/* === NEW/MODIFIED: PRIZE REVEAL CONTAINER === */
+.prize-reveal-container {
+    /* Use position:fixed to create a full-screen overlay */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Use flexbox to perfectly center the content box inside */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    background-color: rgba(5, 8, 10, 0.85);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+    padding: 2vmin; /* Add some padding to the overlay itself */
+    box-sizing: border-box;
+}
+.prize-reveal-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear;
+}
+.prize-reveal-display {
+    /* This is now the bordered content box */
+    padding: 2vmin 3vmin;
+    border: 0.2vmin solid var(--trig-cyan);
+    border-radius: 4px;
+    width: 90%;
+    max-width: 1200px;
+    box-sizing: border-box;
+    /* And it uses flexbox to manage its internal lines */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: font-family 0.8s ease-in-out;
+    font-family: 'Triglavian - Complete Regular', monospace;
+}
+.prize-reveal-display.revealed {
+    font-family: 'Shentox-SemiBold', sans-serif;
+}
+.prize-reveal-line {
+    display: block;
+    width: 100%;
+    color: var(--trig-cyan);
+    text-shadow: 0 0 10px var(--trig-cyan);
+    letter-spacing: 0.1em;
+    transition: color 0.8s ease-in-out, text-shadow 0.8s ease-in-out, letter-spacing 0.8s ease-in-out;
+}
+.prize-reveal-display.revealed .prize-reveal-line {
+    color: var(--trig-yellow);
+    text-shadow: 0 0 10px var(--trig-yellow);
+    letter-spacing: 0.05em;
+}
+#prize-reveal-name {
+    font-size: clamp(20px, 4vmin, 52px);
+    line-height: 1.3;
+    margin-bottom: 0.5em; /* Space between prize and donator */
+}
+#prize-reveal-donator {
+    font-size: clamp(14px, 2.5vmin, 32px);
+    line-height: 1.2;
+    opacity: 0.8;
+}
+/* === NEW: Neon Encrypted Reveal Mode === */
+#neon-encrypted-mode {
+    width: 100%;
+    height: 60vh; /* tall showcase */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+.neon-encrypted-current { display: none !important; }
+/* Frame fills the full mode area so corner decorations span the full height */
+#neon-encrypted-frame {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 4.5vmin 5vmin 3.5vmin;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.neon-encrypted-stage {
+    width: 65%;
+    max-width: none;
+    min-width: 400px;
+    height: 48%;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(4,20,6,0.75), rgba(3,12,3,0.9));
+    border: 0.35vmin solid rgba(74,241,242,0.08);
+    box-shadow: 0 0 3vmin 0.6vmin rgba(74,241,242,0.05) inset, 0 0 2vmin 0.4vmin rgba(12,255,60,0.03) ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden; /* clip the matrix-rain canvas cleanly to the panel */
+}
+.neon-encrypted-canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0; top: 0; pointer-events: none;
+}
+.neon-encrypted-inner {
+    position: relative;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+.neon-encrypted-inner {
+    /* Reserve bottom space so neon letters can't overlap the terminal */
+    padding-bottom: calc(var(--neon-terminal-height) + 1.2vmin);
+    box-sizing: border-box;
+}
+.neon-encrypted-letters {
+    font-family: 'Shentox-SemiBold', 'Triglavian - Complete Regular', monospace;
+    font-size: clamp(44px, 10vmin, 160px);
+    color: rgba(16,255,50,0.95);
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 0.6vmin rgba(16,255,50,0.15), 0 0 1.2vmin rgba(16,255,50,0.25), 0 0 2.6vmin rgba(30,255,80,0.18);
+    mix-blend-mode: screen;
+    text-transform: uppercase;
+}
+.neon-encrypted-letters {
+    /* Let the letters size naturally and center inside the inner area. We reserve
+       space below via .neon-encrypted-inner padding so they won't overlap the terminal. */
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+
+/* Font switch states for the winner text */
+.neon-encrypted-letters.trig-font {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    font-size: 2.2em;
+    transform-origin: center center;
+    text-shadow: 0 0 1.2vmin rgba(16,255,50,0.35), 0 0 2.4vmin rgba(30,255,80,0.18);
+}
+.neon-encrypted-letters.final-font {
+    font-family: Arial, sans-serif;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    font-size: 2.2em !important;
+    transition: color 220ms ease, text-shadow 220ms ease, font-family 220ms ease, font-size 220ms ease;
+    text-shadow: 0 0 1.2vmin rgba(16,255,50,0.35), 0 0 2.4vmin rgba(30,255,80,0.18);
+}
+.neon-encrypted-letters.scrambling {
+    filter: blur(0.6px) contrast(1.05) brightness(1.05);
+}
+.neon-encrypted-left-noise {
+    position: absolute;
+    left: 2.5vmin;
+    top: 2.5vmin;
+    width: 28%;
+    height: 36%;
+    color: rgba(74,241,242,0.08);
+    font-family: 'Triglavian - Complete Regular', monospace;
+    font-size: clamp(8px, 0.9vmin, 12px);
+    line-height: 1.05;
+    white-space: pre-wrap;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+    text-shadow: none;
+}
+/* Neon-specific countdown placement (only active when Neon mode is shown) */
+.show-neon-encrypted .countdown-container {
+    left: 50% !important;
+    top: 66% !important; /* moved further down so timer sits beneath the large winner name */
+    right: auto !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) scale(0.92);
+    z-index: 90; /* elevate above neon elements */
+}
+.show-neon-encrypted .countdown-container.visible {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Re-enable the background glyph noise panel (subtle, behind the matrix rain) */
+#neon-encrypted-left-noise { display: block; }
+.neon-encrypted-status {
+    position: absolute;
+    /* place status above the terminal region to avoid overlap */
+    bottom: calc(var(--neon-terminal-height) + 1.6vmin);
+    left: 2.5vmin;
+    right: 2.5vmin;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--trig-cyan);
+    font-family: 'Shentox-SemiBold', monospace;
+    font-size: clamp(12px, 1.8vmin, 18px);
+}
+.neon-encrypted-progress {
+    height: 0.9vmin;
+    background: linear-gradient(90deg, rgba(74,241,242,0.2), rgba(74,241,242,0.05));
+    border-radius: 4px;
+    width: 55%;
+    margin-left: 1vmin;
+    box-shadow: 0 0 0.8vmin 0.18vmin rgba(74,241,242,0.06) inset;
+    overflow: hidden;
+}
+.neon-encrypted-progress .fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(74,241,242,0.95), rgba(157,255,120,0.9));
+    box-shadow: 0 0 1.8vmin 0.4vmin rgba(34,255,100,0.08);
+    transition: width 0.25s linear;
+}
+.neon-encrypted-current {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    color: var(--trig-yellow);
+    text-shadow: 0 0 0.6vmin rgba(255,220,80,0.12), 0 0 1vmin rgba(255,200,60,0.08);
+}
+.neon-hacking-terminal {
+    position: absolute;
+    bottom: 0.8vmin;
+    left: 2.5vmin;
+    right: 2.5vmin;
+    z-index: 9;
+    height: 12%;
+    max-height: 120px;
+    min-height: 44px;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6vmin;
+    pointer-events: none;
+}
+.neon-terminal-inner {
+    width: 100%;
+    max-height: var(--neon-terminal-height);
+    /* Hide overflow to remove the scrollbar (we trim lines in JS to keep content height stable) */
+    overflow-y: hidden;
+    overflow-x: hidden;
+    padding: 0.8vmin 1vmin 1.6vmin 1vmin; /* extra bottom padding to reserve space for caret */
+    box-sizing: border-box;
+    background: rgba(0,0,0,0.18);
+    border-radius: 6px;
+    border: 1px solid rgba(16,255,50,0.06);
+    color: rgba(140, 255, 170, 0.95);
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: clamp(10px, 1.0vmin, 12px);
+    line-height: 1.45;
+    text-shadow: 0 0 0.6vmin rgba(16,255,50,0.06);
+    box-shadow: 0 0 1.2vmin 0.12vmin rgba(16,255,50,0.02) inset;
+    display: block;
+}
+.neon-terminal-inner .line {
+    display: block;
+    /* Force single-line entries so each line has stable height and cannot push other lines out */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.95;
+    margin: 0.16em 0; /* slightly larger vertical spacing between lines */
+    padding-right: 1ch; /* leave room so text doesn't collide with caret */
+}
+.neon-terminal-caret {
+    color: rgba(140, 255, 170, 0.95);
+    font-family: 'Courier New', Consolas, monospace;
+    opacity: 0.95;
+    text-shadow: 0 0 0.6vmin rgba(16,255,50,0.12);
+    pointer-events: none;
+    /* Use CSS animation for smoother blink */
+    animation: neonCaretBlink 1s steps(1, end) infinite;
+    position: absolute; /* position caret on top-right of terminal */
+    right: 1.2vmin;
+    bottom: calc(0.9vmin + 0.2vmin); /* small nudge to sit above padding */
+    z-index: 12;
+}
+
+@keyframes neonCaretBlink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Terminal entrance and typing visuals */
+.neon-hacking-terminal {
+    transform: translateY(10px) scaleY(0.98);
+    opacity: 0;
+    transition: transform 360ms cubic-bezier(.2,.9,.2,1), opacity 280ms ease-out;
+}
+.neon-hacking-terminal.visible {
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+}
+.neon-terminal-inner {
+    scroll-behavior: smooth; /* smooth auto-scroll */
+}
+.neon-terminal-inner .typing {
+    opacity: 1;
+}
+.neon-terminal-inner .line .cursor {
+    display: inline-block;
+    width: 0.6ch;
+}
+/* Small-screen tweak */
+@media (max-width: 700px) {
+    .neon-hacking-terminal { height: 18%; max-height: 160px; }
+    .neon-terminal-inner { font-size: clamp(9px, 2.2vmin, 12px); }
+}
+.neon-placeholder-letter { color: rgba(120,240,210,0.12); }
+.neon-revealed-letter { color: rgba(16,255,50,1); text-shadow: 0 0 1.2vmin rgba(16,255,50,0.35), 0 0 2.4vmin rgba(30,255,80,0.18); font-weight: 700; }
+
+/* small responsive tweak for the status panel */
+@media (max-width: 700px) {
+    .neon-encrypted-letters { font-size: clamp(28px, 12vmin, 84px); }
+    .neon-encrypted-left-noise { display: none; }
+    .neon-encrypted-stage { height: 62%; }
+}
+
+/* --- Neon Encrypted Frame (circuit-board border) --- */
+/* Corner L-bracket SVGs — green tint to match neon palette */
+.neon-corner {
+    position: absolute;
+    width: 6vmin; height: 6vmin;
+    fill: rgba(16,255,50,0.08);
+    stroke: rgba(16,255,80,0.75);
+    stroke-width: 2.2;
+    pointer-events: none;
+    filter: drop-shadow(0 0 0.6vmin rgba(16,255,50,0.5));
+}
+.neon-corner polyline { fill: none; }
+.neon-corner-tl { top: 0; left: 0; }
+.neon-corner-tr { top: 0; right: 0; }
+.neon-corner-bl { bottom: 0; left: 0; }
+.neon-corner-br { bottom: 0; right: 0; }
+/* Blinking LED dots — one per corner, offset inward */
+.neon-led {
+    position: absolute;
+    width: 0.9vmin; height: 0.9vmin;
+    border-radius: 50%;
+    background: rgba(16,255,50,0.9);
+    box-shadow: 0 0 0.8vmin 0.3vmin rgba(16,255,50,0.6);
+    pointer-events: none;
+    animation: neonLedBlink 1.8s ease-in-out infinite;
+}
+.neon-led-tl { top: 1.5vmin; left: 1.5vmin; animation-delay: 0s; }
+.neon-led-tr { top: 1.5vmin; right: 1.5vmin; animation-delay: 0.6s; }
+.neon-led-bl { bottom: 1.5vmin; left: 1.5vmin; animation-delay: 1.1s; }
+.neon-led-br { bottom: 1.5vmin; right: 1.5vmin; animation-delay: 0.3s; }
+@keyframes neonLedBlink {
+    0%, 45%, 100% { opacity: 1; box-shadow: 0 0 0.8vmin 0.3vmin rgba(16,255,50,0.6); }
+    50%            { opacity: 0.12; box-shadow: 0 0 0.2vmin 0.05vmin rgba(16,255,50,0.15); }
+    55%            { opacity: 0.85; box-shadow: 0 0 0.6vmin 0.2vmin rgba(16,255,50,0.45); }
+}
+/* Scan line */
+.neon-enc-scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent 0%, rgba(16,255,50,0.45) 25%, rgba(120,255,130,0.9) 50%, rgba(16,255,50,0.45) 75%, transparent 100%);
+    box-shadow: 0 0 6px 2px rgba(16,255,50,0.4);
+    opacity: 0;
+    pointer-events: none;
+    animation: neonEncScanDown 5s ease-in-out infinite;
+}
+@keyframes neonEncScanDown {
+    0%   { top: 0;    opacity: 0; }
+    4%   { opacity: 0.65; }
+    90%  { opacity: 0.45; }
+    100% { top: 100%; opacity: 0; }
+}
+/* Protocol label */
+.neon-frame-label {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: 1.1vmin;
+    color: rgba(16,255,80,0.65);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 1vmin;
+    pointer-events: none;
+    user-select: none;
+    text-shadow: 0 0 0.8vmin rgba(16,255,50,0.4);
+}
+/* --- END Neon Encrypted Frame --- */
+
+/* --- Neon Encrypted: per-letter flash reveal --- */
+@keyframes neonLetterReveal {
+    0%   {
+        opacity: 1;
+        color: #ffffff;
+        text-shadow: 0 0 1vmin #fff, 0 0 3vmin rgba(200,255,210,0.95), 0 0 6vmin rgba(16,255,50,0.8), 0 0 12vmin rgba(16,255,50,0.5);
+        filter: brightness(3);
+    }
+    18%  {
+        color: #c8ffd8;
+        text-shadow: 0 0 2vmin rgba(16,255,50,1), 0 0 5vmin rgba(16,255,80,0.85), 0 0 10vmin rgba(16,255,50,0.55);
+        filter: brightness(1.9);
+    }
+    65%  {
+        color: rgba(16,255,50,1);
+        text-shadow: 0 0 1vmin rgba(16,255,50,0.6), 0 0 2.5vmin rgba(30,255,80,0.4), 0 0 5vmin rgba(16,255,50,0.22);
+        filter: brightness(1.15);
+    }
+    100% {
+        color: rgba(16,255,50,0.95);
+        text-shadow: 0 0 0.6vmin rgba(16,255,50,0.15), 0 0 1.2vmin rgba(16,255,50,0.25), 0 0 2.6vmin rgba(30,255,80,0.18);
+        filter: brightness(1);
+    }
+}
+/* Invisible slot — holds the letter space before it fires */
+.neon-letter-slot {
+    display: inline-block;
+    opacity: 0;
+}
+/* Trigger flash: white → bright green → settled */
+.neon-letter-slot.neon-letter-flash {
+    opacity: 1;
+    animation: neonLetterReveal 0.55s ease-out forwards;
+    font-family: Arial, sans-serif;
+    font-size: 2.2em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+/* --- END per-letter flash reveal --- */
+
+/* === END OF MODIFIED STYLING === */
+
+/* Full-screen confirmation timer overlay */
+.fulltimer-overlay {
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2,4,6,0.85);
+    z-index: 10050; /* above other overlays */
+    pointer-events: none;
+    /* start invisible — we'll animate opacity to avoid instant flashing */
+    opacity: 0;
+    transition: opacity 320ms cubic-bezier(.2,.9,.2,1);
+    will-change: opacity;
+}
+.fulltimer-overlay.visible { pointer-events: auto; opacity: 1; }
+.fulltimer-content { text-align: center; color: var(--trig-white); }
+.fulltimer-winner { font-family: 'Shentox-SemiBold', sans-serif; font-size: clamp(36px, 6vmin, 96px); letter-spacing: 0.06em; color: var(--trig-yellow); text-shadow: 0 0 1.6vmin rgba(255,220,80,0.12); margin-bottom: 1vmin; }
+.fulltimer-timer { font-family: 'Shentox-SemiBold', sans-serif; font-size: clamp(28px, 5vmin, 64px); color: var(--trig-white); text-shadow: 0 0 1vmin rgba(0,0,0,0.6); }
+
+.fulltimer-content { display: flex; flex-direction: column; align-items: center; gap: 2.8vmin; padding: 2vmin; }
+.fulltimer-winner { margin: 0; line-height: 1; word-break: break-word; max-width: 88vw; font-weight: 700; }
+.fulltimer-timer { margin: 0; }
+.fulltimer-platform {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(12px, 1.8vmin, 28px);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 0.6vmin;
+    opacity: 0;
+    position: relative;
+    z-index: 100001;
+    transition: opacity 0.4s ease 0.15s;
+}
+.fulltimer-platform.visible {
+    opacity: 1;
+}
+.fulltimer-platform .platform-name {
+    font-weight: 800;
+    letter-spacing: 0.15em;
+}
+.fulltimer-platform .platform-name.kick {
+    color: #53fc18;
+    text-shadow: 0 0 1.2vmin rgba(83, 252, 24, 0.45), 0 0 0.4vmin rgba(0,0,0,0.7);
+}
+.fulltimer-platform .platform-name.twitch {
+    color: #9146FF;
+    text-shadow: 0 0 1.2vmin rgba(145, 70, 255, 0.45), 0 0 0.4vmin rgba(0,0,0,0.7);
+}
+
+/* Multi-winners list in the fulltimer overlay */
+.fulltimer-overlay .fulltimer-content .inner-panel .fulltimer-winners-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6vmin;
+    max-height: 30vh;
+    overflow-y: auto;
+    width: 100%;
+    padding: 0 2vmin;
+    margin-bottom: 1vmin;
+}
+.fulltimer-overlay .fulltimer-content .inner-panel .fulltimer-winners-list .multi-winner-item {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(18px, 3.2vmin, 48px);
+    color: var(--trig-yellow);
+    text-shadow: 0 0 1vmin rgba(255,220,80,0.12);
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    opacity: 0;
+    animation: multiWinnerFadeIn 0.4s ease-out forwards;
+    text-align: center;
+}
+@keyframes multiWinnerFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Strong overlay-scoped adjustments to avoid winner/timer overlap */
+.fulltimer-overlay .fulltimer-content .inner-panel .fulltimer-winner {
+    /* ensure an explicit large gap below the name for very large font sizes */
+    margin-bottom: 6vmin !important;
+}
+.fulltimer-overlay .fulltimer-content .inner-panel .countdown-container {
+    /* make the ring slightly smaller inside the fullscreen overlay to avoid collisions */
+    width: calc(var(--countdown-size) * 0.85) !important;
+    height: calc(var(--countdown-size) * 0.85) !important;
+    /* push the ring further down from the name */
+    margin-top: 9vmin !important;
+    margin-bottom: 2vmin !important;
+    pointer-events: none; /* visual only — clicks should pass through */
+}
+
+/* Hide the slot placeholder — the live ring is moved directly into the panel by JS */
+.fulltimer-overlay .fulltimer-content .inner-panel .countdown-ring-slot {
+    display: none !important;
+}
+
+/* Live countdown ring placed directly inside the fulltimer gold panel as a flex item */
+.fulltimer-overlay .fulltimer-content .inner-panel .countdown-container.in-ft-panel {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: scale(1) !important; /* show at full size, skip entrance scale animation */
+    z-index: 1 !important;
+    width: calc(var(--countdown-size) * 2.2) !important;
+    height: calc(var(--countdown-size) * 2.2) !important;
+    margin: 1.2vmin auto 1.2vmin !important;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+.fulltimer-overlay .fulltimer-content .inner-panel .countdown-container.in-ft-panel .countdown-text {
+    font-size: calc(var(--countdown-font-size) * 1.6) !important;
+}
+.fulltimer-overlay .fulltimer-content .inner-panel .countdown-text {
+    font-size: calc(var(--countdown-font-size) * 0.9) !important;
+}
+
+/* Frosted glass backdrop for the overlay content */
+.fulltimer-overlay .fulltimer-content {
+    /* Make the frosted glass layer fill the viewport edge-to-edge */
+    background: rgba(10, 14, 16, 0.25);
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Gold Alert Panel themed box around winner name + timer */
+.fulltimer-overlay .fulltimer-content .inner-panel {
+    background: rgba(4, 8, 14, 0.84) !important;
+    border: 1px solid #ffd700 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.18), inset 0 0 30px rgba(255, 215, 0, 0.05), 0 16px 60px rgba(0, 0, 0, 0.85) !important;
+    overflow: visible !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.8vmin;
+    transition: transform 420ms cubic-bezier(.15,.9,.25,1), opacity 280ms ease-out,
+                border-color 550ms ease-out, box-shadow 550ms ease-out;
+}
+
+.fulltimer-overlay .fulltimer-content .inner-panel::before {
+    display: none !important; /* disabled — header stripe handles top entrance */
+}
+
+/* === WINNER IDENTIFIED header stripe === */
+.inner-panel-header {
+    width: calc(100% + 9vmin);
+    margin: -3.6vmin -4.5vmin 0 -4.5vmin;
+    padding: 1vmin 1.5vmin;
+    text-align: center;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(8px, 1.1vmin, 14px);
+    letter-spacing: 0.22em;
+    color: #ffd700;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(255,215,0,0.10) 0%, rgba(255,215,0,0.05) 50%, rgba(255,215,0,0.10) 100%);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.28);
+    border-radius: 8px 8px 0 0;
+    box-sizing: border-box;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 350ms 180ms ease-out, transform 300ms 180ms cubic-bezier(.15,.9,.25,1),
+                color 550ms ease-out, background 550ms ease-out, border-color 550ms ease-out;
+}
+.fulltimer-overlay.visible .fulltimer-content .inner-panel .inner-panel-header {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Urgency shift: border and glow turn red when ≤5 s remain */
+.fulltimer-overlay.countdown-urgent .fulltimer-content .inner-panel {
+    border-color: #ff3a3a !important;
+    box-shadow: 0 0 26px rgba(255, 58, 58, 0.28), inset 0 0 30px rgba(255, 58, 58, 0.07), 0 16px 60px rgba(0, 0, 0, 0.85) !important;
+}
+.fulltimer-overlay.countdown-urgent .fulltimer-content .inner-panel .inner-panel-header {
+    color: #ff3a3a;
+    background: linear-gradient(135deg, rgba(255,58,58,0.10) 0%, rgba(255,58,58,0.05) 50%, rgba(255,58,58,0.10) 100%);
+    border-bottom-color: rgba(255, 58, 58, 0.28);
+}
+/* === END WINNER IDENTIFIED themed box === */
+
+/* Ensure the winner text sits above and remains readable */
+.fulltimer-overlay .fulltimer-winner {
+    text-shadow: 0 0 2.4vmin rgba(255,220,80,0.16), 0 0 0.6vmin rgba(0,0,0,0.8), 0 0 1.2vmin rgba(74,241,242,0.05);
+    z-index: 10100;
+    letter-spacing: 0.08em;
+}
+
+/* Cycling name lists inside the fulltimer overlay */
+.fulltimer-overlay .fulltimer-bg-list {
+    position: fixed;
+    top: var(--bg-list-top-offset);
+    bottom: var(--bg-list-bottom-offset);
+    width: var(--bg-list-width);
+    overflow: hidden;
+    z-index: 10070; /* above backdrop but below inner panel */
+    pointer-events: none;
+}
+
+.fulltimer-overlay .fulltimer-bg-list.left-list {
+    left: var(--bg-list-gap);
+}
+
+.fulltimer-overlay .fulltimer-bg-list.right-list {
+    right: var(--bg-list-gap);
+}
+
+.fulltimer-overlay .fulltimer-bg-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    animation: scroll-list 360s linear infinite;
+    transform: translateY(0%);
+}
+
+.fulltimer-overlay .fulltimer-bg-list li {
+    display: block;
+    height: var(--bg-list-item-height);
+    line-height: var(--bg-list-item-height);
+    font-size: var(--bg-list-font-size);
+    font-family: 'Shentox-SemiBold', Consolas, 'Courier New', monospace;
+    color: var(--bg-list-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.5vw;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.fulltimer-overlay .fulltimer-bg-list.right-list ul {
+    font-family: 'Triglavian - Complete Regular', Consolas, 'Courier New', monospace;
+    color: var(--bg-list-trig-color);
+}
+
+.fulltimer-overlay .fulltimer-bg-list.right-list li {
+    font-family: inherit;
+    color: inherit;
+    text-align: right;
+}
+
+.fulltimer-overlay .fulltimer-bg-list.left-list li {
+    text-align: left;
+}
+
+@keyframes scroll-list {
+    0% { transform: translateY(0%); }
+    100% { transform: translateY(-100%); }
+}
+
+/* Inner frosted panel so the content still reads as a centered box */
+.fulltimer-content .inner-panel {
+    background: rgba(10, 14, 16, 0.45);
+    border-radius: 8px;
+    padding: 3.6vmin 4.5vmin;
+    min-width: clamp(50vw, 600px, 90vw);
+    max-width: 1100px;
+    box-shadow: 0 14px 50px rgba(2,4,6,0.75), inset 0 1px 0 rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5.2vmin;
+    position: relative; /* for the sweep pseudo element */
+    overflow: hidden;
+    /* entrance animation start state */
+    transform: translateY(14px) scale(0.985);
+    opacity: 0;
+    transition: transform 420ms cubic-bezier(.15,.9,.25,1), opacity 280ms ease-out;
+    will-change: transform, opacity;
+    z-index: 10080; /* ensure inner panel renders above the centered countdown ring */
+}
+
+/* When the overlay becomes visible, animate the inner panel into place */
+.fulltimer-overlay.visible .fulltimer-content .inner-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Transaction-style sweep effect across the inner panel on entrance */
+.fulltimer-content .inner-panel::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 120%; /* slightly larger to sweep fully */
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.06) 45%, rgba(255,255,255,0.00) 100%);
+    pointer-events: none;
+    opacity: 0.0;
+}
+
+/* Trigger the sweep when the overlay becomes visible */
+.fulltimer-overlay.visible .fulltimer-content .inner-panel::before {
+    animation: inner-sweep 700ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes inner-sweep {
+    0% { transform: translateX(-100%); opacity: 0.0; }
+    20% { opacity: 0.6; }
+    100% { transform: translateX(100%); opacity: 0.0; }
+}
+
+/* reduce flicker by forcing GPU compositing for key layers */
+.fulltimer-overlay, .fulltimer-content .inner-panel, .countdown-container.centered {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+/* When using the centered animated ring, hide the fallback numeric timer for a cleaner look */
+.fulltimer-overlay.overlay-ring-active .fulltimer-content .fulltimer-timer { display: none !important; }
+
+/* Slightly enlarge the ring when centered so it matches the right-side visual feel */
+.countdown-container.centered {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    z-index: auto !important;
+    margin-top: 2.8vmin;
+    margin-bottom: 1.8vmin;
+    pointer-events: auto;
+}
+
+/* Hide the original right-side countdown when we have the fulltimer overlay active */
+body.fulltimer-active .countdown-container:not(.centered):not(.in-ft-panel) { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+
+/* Cancel reroll button */
+
+
+/* Ensure overlay content appears above the shared small circular countdown (which remains on the right) */
+.fulltimer-overlay { align-items: center; justify-content: center; }
+
+@media (max-width: 700px) {
+    .fulltimer-winner { font-size: clamp(26px, 10vmin, 56px); }
+    .fulltimer-timer { font-size: clamp(20px, 6vmin, 40px); }
+    .fulltimer-content { gap: 0.6vmin; padding: 1.2vmin; }
+}
+
+
+
+/* --- Hacking (Box) Reveal Styling (Mode 1) --- */
+.boxes-row { display: flex; justify-content: center; align-items: center; width: auto; max-width: var(--boxes-row-max-width); padding: 1vmin 1.5vmin; border-top: 0.3vmin solid var(--trig-cyan); border-bottom: 0.3vmin solid var(--trig-cyan); box-sizing: border-box; position: relative; z-index: 2; background-color: var(--trig-dark); border-radius: 2px; transition: opacity 0.4s ease-out; opacity: 0; margin: 1vmin 0; }
+.boxes-row.visible { opacity: 1; }
+#hacking-boxes-canvas { display: block; margin: 0 auto; pointer-events: none; }
+.box {
+    width: var(--box-width);
+    height: var(--box-height);
+    background-color: var(--trig-dark-blue);
+    border: var(--box-border-width) solid var(--trig-cyan);
+    margin: 0 var(--box-margin);
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    font-size: var(--box-font-size);
+    text-transform: uppercase;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    border-radius: 1px;
+    color: var(--trig-grey);
+    font-family: 'Triglavian - Complete Regular', sans-serif;
+    font-weight: normal;
+    padding: 0; /* Remove any existing padding that might affect alignment */
+}
+.box.revealed { color: var(--trig-white); font-family: 'Shentox-SemiBold', sans-serif; font-weight: 600; }
+@keyframes boxPulse { 0% { border-color: var(--trig-cyan); } 50% { border-color: var(--trig-cyan-bright); } 100% { border-color: var(--trig-cyan); } }
+.box.box-pulse { animation: boxPulse 0.8s ease-in-out 1; }
+.connection-indicators { display: none; }
+/* --- Vertical List Scroll Styling (Mode 2) --- */
+#list-reveal-mode { perspective: var(--list-perspective); display: flex; flex-direction: column; align-items: center; }
+
+.list-lights-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: var(--list-lights-indicator-margin-bottom);
+    height: calc(var(--list-light-size) + (2 * var(--list-light-border-width)) + 0.5vmin);
+    width: auto;
+    min-width: 50vw;
+    max-width: var(--list-max-width-px);
+    padding: 0.5vmin var(--list-padding);
+    box-sizing: border-box;
+    position: relative;
+    z-index: 4;
+}
+.list-light {
+    width: var(--list-light-size);
+    height: var(--list-light-size);
+    border-radius: 50%;
+    margin: 0 var(--list-light-margin);
+    background-color: var(--list-light-color-off);
+    border: var(--list-light-border-width) solid var(--trig-grey);
+    transition: background-color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+    opacity: 0.7;
+}
+.list-light.on {
+    background-color: var(--list-light-color-on);
+    border-color: var(--trig-yellow);
+    box-shadow: 0 0 calc(var(--list-light-size) * 0.6) calc(var(--list-light-size) * 0.2) var(--list-light-glow-on);
+    opacity: 1;
+}
+.list-light.dim {
+    background-color: var(--list-light-color-dim);
+    border-color: var(--trig-grey);
+    opacity: 0.85;
+}
+.list-light.off {
+    background-color: var(--list-light-color-off);
+    border-color: var(--trig-grey);
+    opacity: 0.7;
+    box-shadow: none;
+}
+
+.list-scroll-container { width: auto; min-width: 50vw; max-width: var(--list-max-width-px); height: var(--list-height); border-top: 0.3vmin solid var(--trig-cyan); border-bottom: 0.3vmin solid var(--trig-cyan); overflow: hidden; position: relative; background: radial-gradient(ellipse at center, var(--list-bg-gradient-start) 0%, var(--list-bg-gradient-end) 70%); box-shadow: 0 0 2vmin 0.5vmin var(--list-glow-color); padding: 0 var(--list-padding); box-sizing: border-box; border-radius: 2px; transform-style: preserve-3d; }
+.list-scroll-container::before, .list-scroll-container::after { content: ''; position: absolute; left: 0; right: 0; height: calc(var(--list-item-height) * var(--list-edge-fade-height-multiplier)); z-index: 2; pointer-events: none; }
+.list-scroll-container::before { top: 0; background: linear-gradient(to bottom, var(--trig-dark) 30%, transparent 100%); }
+.list-scroll-container::after { bottom: 0; background: linear-gradient(to top, var(--trig-dark) 30%, transparent 100%); }
+.list-pointer { width: calc(100% - (2 * var(--list-padding))); height: 0.3vmin; background-color: var(--list-pointer-color); position: absolute; top: 50%; left: var(--list-padding); transform: translateY(-50%); z-index: 3; box-shadow: 0 0 1.2vmin 0.2vmin var(--list-pointer-color); border-radius: 1px; }
+.entrant-list { list-style: none; padding: 0; margin: 0; position: absolute; left: var(--list-padding); right: var(--list-padding); top: 0; transform-style: preserve-3d; transform: rotateX(var(--list-rotateX)); }
+.entrant-list li { height: var(--list-item-height); display: flex; justify-content: center; align-items: center; font-size: var(--list-font-size); font-family: 'Shentox-SemiBold', sans-serif; font-weight: 600; color: var(--list-item-color); background-color: var(--trig-dark-blue); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 1.5vmin; transition: color 0.3s ease-out, opacity 0.3s ease-out; opacity: 0.8; margin-bottom: var(--list-item-margin); border-radius: 2px; border: 0.1vmin solid transparent; box-shadow: 0 0.1vmin 0.3vmin rgba(0,0,0,0.4); transform: rotateX(calc(-1 * var(--list-rotateX))); }
+@keyframes winnerListItemPulse { 0% { border-color: var(--trig-cyan); box-shadow: 0 0 1.5vmin 0.2vmin var(--box-pulse-glow), 0 0.1vmin 0.3vmin rgba(0,0,0,0.4); transform: rotateX(calc(-1 * var(--list-rotateX))) scale(1); } 50% { border-color: var(--trig-cyan-bright); box-shadow: 0 0 2.5vmin 0.6vmin var(--trig-cyan-bright), 0 0.1vmin 0.3vmin rgba(0,0,0,0.4); transform: rotateX(calc(-1 * var(--list-rotateX))) scale(1.03); } 100% { border-color: var(--trig-cyan); box-shadow: 0 0 1.5vmin 0.2vmin var(--box-pulse-glow), 0 0.1vmin 0.3vmin rgba(0,0,0,0.4); transform: rotateX(calc(-1 * var(--list-rotateX))) scale(1); } }
+.entrant-list li.active { color: var(--list-active-item-color); opacity: 1.0; animation: winnerListItemPulse 0.8s ease-in-out infinite; }
+.list-winner-display {
+    background-color: var(--list-winner-bg);
+    color: var(--list-winner-text-color);
+    padding: var(--list-winner-padding);
+    border: 0.2vmin solid var(--trig-cyan);
+    border-radius: 4px;
+    font-size: var(--list-winner-font-size);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 1.5vmin;
+    opacity: 0;
+    transform: translateY(1.5vmin);
+    transition: opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s;
+    visibility: hidden;
+    position: relative;
+    z-index: 2;
+    min-width: 25vmin;
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.list-winner-display.visible { opacity: 1; transform: translateY(0); visibility: visible; }
+
+/* --- Triglavian Hacking Frame --- */
+.trig-hacking-frame { position: relative; display: flex; flex-direction: column; align-items: center; padding: 4.5vmin 5vmin 3.5vmin; box-sizing: border-box; margin: 0.5vmin; overflow: hidden; }
+/* Corner L-bracket SVGs */
+.trig-corner { position: absolute; width: 6vmin; height: 6vmin; fill: rgba(74,241,242,0.1); stroke: var(--trig-cyan); stroke-width: 2.2; pointer-events: none; }
+.trig-corner polyline { fill: none; }
+.trig-corner-tl { top: 0; left: 0; }
+.trig-corner-tr { top: 0; right: 0; }
+.trig-corner-bl { bottom: 0; left: 0; }
+.trig-corner-br { bottom: 0; right: 0; }
+/* Spinning decode triangles */
+.trig-spin-tri { position: absolute; width: 3.2vmin; height: 3.2vmin; fill: none; stroke: var(--trig-cyan); stroke-width: 1.8; opacity: 0.45; pointer-events: none; }
+.trig-spin-tl { top: 1.4vmin; left: 1.4vmin; transform-origin: 50% 50%; animation: trigSpinCW 5s linear infinite; }
+.trig-spin-tr { top: 1.4vmin; right: 1.4vmin; transform-origin: 50% 50%; animation: trigSpinCCW 3.5s linear infinite; }
+.trig-spin-bl { bottom: 1.4vmin; left: 1.4vmin; transform-origin: 50% 50%; animation: trigSpinCCW 6s linear infinite; }
+.trig-spin-br { bottom: 1.4vmin; right: 1.4vmin; transform-origin: 50% 50%; animation: trigSpinCW 4.2s linear infinite; }
+@keyframes trigSpinCW  { to { transform: rotate(360deg);  } }
+@keyframes trigSpinCCW { to { transform: rotate(-360deg); } }
+/* Scan line */
+.trig-scan-line { position: absolute; left: 0; right: 0; height: 1.5px; background: linear-gradient(90deg, transparent 0%, var(--trig-cyan) 30%, var(--trig-cyan-bright) 50%, var(--trig-cyan) 70%, transparent 100%); box-shadow: 0 0 6px 2px rgba(74,241,242,0.45); opacity: 0; pointer-events: none; animation: trigScanDown 4s ease-in-out infinite; }
+@keyframes trigScanDown { 0% { top: 0; opacity: 0; } 5% { opacity: 0.7; } 92% { opacity: 0.5; } 100% { top: 100%; opacity: 0; } }
+/* Protocol label */
+.trig-frame-label { font-family: 'Shentox-SemiBold', sans-serif; font-size: 1.1vmin; color: var(--trig-cyan); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.55; margin-bottom: 1.5vmin; pointer-events: none; user-select: none; }
+/* --- Triglavian Translation Styling (Mode 4) --- */
+.triglavian-boxes-row { display: flex; justify-content: center; align-items: center; width: auto; padding: 1vmin 1.5vmin; box-sizing: border-box; position: relative; z-index: 2; background-color: transparent; border-radius: 2px; transition: opacity 0.4s ease-out; opacity: 0; margin: 1vmin 0 2vmin 0; }
+.triglavian-boxes-row.visible { opacity: 1; }
+.triglavian-box { width: var(--trig-box-width); height: var(--trig-box-height); background-color: var(--trig-dark-blue); border: var(--trig-box-border-width) solid var(--trig-cyan); margin: 0 var(--trig-box-margin); display: flex; justify-content: center; align-items: center; font-size: var(--trig-box-font-size); font-family: 'Triglavian - Complete Regular', sans-serif; color: var(--trig-cyan-bright); transition: color 0.1s ease, font-family 0.1s ease, font-weight 0.1s ease, border-color 0.4s ease-out, box-shadow 0.4s ease-out, font-size 0.1s ease; user-select: none; -webkit-user-select: none; -moz-user-select: none; border-radius: 1px; box-shadow: 0 0 0px 0px transparent; font-weight: normal; line-height: 1; text-transform: uppercase; }
+.triglavian-box.showing-reveal { font-family: 'Shentox-SemiBold', sans-serif; color: var(--trig-winner-text-color); font-weight: 600; font-size: var(--trig-temp-reveal-font-size); background-color: rgba(242, 212, 74, 0.07); border-color: var(--trig-yellow); box-shadow: 0 0 2vmin 0.5vmin rgba(242, 212, 74, 0.3), inset 0 0 1vmin rgba(242, 212, 74, 0.1); }
+.triglavian-box.box-pulse { animation: boxPulse 0.8s ease-in-out 1; }
+.triglavian-winner-display { background-color: var(--trig-winner-bg); color: var(--trig-winner-text-color); padding: var(--trig-winner-padding); border: 0.2vmin solid var(--trig-cyan); border-radius: 4px; font-size: var(--trig-winner-font-size); font-family: 'Shentox-SemiBold', sans-serif; font-weight: 600; text-align: center; margin-top: 1vmin; opacity: 0; transform: translateY(1.5vmin); transition: opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s; visibility: hidden; position: relative; z-index: 2; min-width: 50vmin; min-height: var(--trig-winner-min-height); display: flex; align-items: center; justify-content: center; word-break: normal; }
+.triglavian-winner-display.visible { opacity: 1; transform: translateY(0); visibility: visible; }
+
+/* Position winner display independently when parent container is hidden */
+#triglavian-reveal-mode:not(.visible) .triglavian-winner-display.visible {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+/* Position winner display centered when showing independently */
+.triglavian-winner-display.standalone {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1000 !important;
+    margin-top: 0 !important;
+}
+@keyframes trigWinnerRevealFlash {
+    0%   { border-color: var(--trig-cyan); box-shadow: none; }
+    20%  { border-color: var(--trig-yellow); box-shadow: 0 0 3vmin 1vmin rgba(242, 212, 74, 0.65), 0 0 6vmin 2vmin rgba(242, 212, 74, 0.25); }
+    60%  { border-color: var(--trig-yellow); box-shadow: 0 0 2vmin 0.5vmin rgba(242, 212, 74, 0.45), 0 0 4vmin 1vmin rgba(242, 212, 74, 0.18); }
+    100% { border-color: var(--trig-yellow); box-shadow: 0 0 1.5vmin 0.4vmin rgba(242, 212, 74, 0.3); }
+}
+.triglavian-winner-display.revealed {
+    border-color: var(--trig-yellow);
+    box-shadow: 0 0 1.5vmin 0.4vmin rgba(242, 212, 74, 0.3);
+    animation: trigWinnerRevealFlash 1.2s ease-out forwards;
+}
+#triglavian-winner-name {
+        font-family: 'Triglavian - Complete Regular', monospace;
+        font-weight: 400;
+        color: var(--trig-cyan-bright);
+        letter-spacing: var(--trig-winner-letter-spacing);
+        padding-left: var(--trig-winner-letter-spacing);
+        margin-left: calc(-1 * var(--trig-winner-letter-spacing));
+        display: inline-block;
+        line-height: 1.2;
+        transition:
+            font-family 1.5s cubic-bezier(.4,2,.6,1),
+            font-weight 1.5s cubic-bezier(.4,2,.6,1),
+            color 1.5s,
+            letter-spacing 1.5s;
+}
+#triglavian-winner-name.revealed {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-weight: 600;
+    color: var(--trig-winner-text-color);
+    letter-spacing: 0.04em;
+}
+
+/* --- Node Path Reveal Styling (Mode 6) --- */
+/* Node Path Frame */
+.node-frame { position: relative; display: flex; flex-direction: column; align-items: center; padding: 4.5vmin 5vmin 3.5vmin; box-sizing: border-box; margin: 0.5vmin; overflow: hidden; }
+/* Corner L-bracket SVGs */
+.node-corner { position: absolute; width: 6vmin; height: 6vmin; fill: none; stroke: var(--node-path-node-color-path); stroke-width: 2; pointer-events: none; }
+.node-corner polyline { fill: none; }
+.node-corner-tl { top: 0; left: 0; }
+.node-corner-tr { top: 0; right: 0; }
+.node-corner-bl { bottom: 0; left: 0; }
+.node-corner-br { bottom: 0; right: 0; }
+/* Orbiting node dots */
+.node-orbit { position: absolute; width: 4vmin; height: 4vmin; pointer-events: none; }
+.node-orbit-tl { top: 1.2vmin; left: 1.2vmin; animation: nodeOrbitCW 4s linear infinite; transform-origin: 50% 50%; }
+.node-orbit-tr { top: 1.2vmin; right: 1.2vmin; animation: nodeOrbitCCW 6s linear infinite; transform-origin: 50% 50%; }
+.node-orbit-bl { bottom: 1.2vmin; left: 1.2vmin; animation: nodeOrbitCCW 5s linear infinite; transform-origin: 50% 50%; }
+.node-orbit-br { bottom: 1.2vmin; right: 1.2vmin; animation: nodeOrbitCW 3.5s linear infinite; transform-origin: 50% 50%; }
+.node-orbit-dot { width: 1.1vmin; height: 1.1vmin; border-radius: 50%; background: rgba(140,220,255,0.85); box-shadow: 0 0 1vmin 0.3vmin rgba(135,206,250,0.6); position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+@keyframes nodeOrbitCW  { to { transform: rotate(360deg);  } }
+@keyframes nodeOrbitCCW { to { transform: rotate(-360deg); } }
+/* Dashed edge lines top/bottom */
+.node-edge { position: absolute; left: 6vmin; right: 6vmin; height: 1px; background: repeating-linear-gradient(90deg, rgba(135,206,250,0.5) 0px, rgba(135,206,250,0.5) 6px, transparent 6px, transparent 14px); pointer-events: none; }
+.node-edge-top { top: 0; }
+.node-edge-bottom { bottom: 0; }
+/* Scan line */
+.node-scan-line { position: absolute; left: 0; right: 0; height: 1.5px; background: linear-gradient(90deg, transparent 0%, rgba(135,206,250,0.5) 30%, rgba(200,240,255,0.9) 50%, rgba(135,206,250,0.5) 70%, transparent 100%); box-shadow: 0 0 6px 2px rgba(135,206,250,0.4); opacity: 0; pointer-events: none; animation: nodeScanDown 3.5s ease-in-out infinite; }
+@keyframes nodeScanDown { 0% { top: 0; opacity: 0; } 5% { opacity: 0.65; } 92% { opacity: 0.45; } 100% { top: 100%; opacity: 0; } }
+/* Protocol label */
+.node-frame-label { font-family: 'Shentox-SemiBold', sans-serif; font-size: 1.1vmin; color: rgba(135,206,250,0.7); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; margin-bottom: 1.5vmin; pointer-events: none; user-select: none; }
+#node-path-reveal-mode {
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    z-index: 50;
+}
+.node-path-grid-container {
+    position: relative;
+    width: 100%;
+    max-width: var(--node-path-grid-max-width);
+    aspect-ratio: var(--node-path-grid-aspect-ratio);
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    gap: var(--node-path-grid-gap);
+    /* Increase right padding to avoid nodes/lines touching the container edge */
+    padding: 1vmin 5vmin 1vmin 1vmin;
+    box-sizing: border-box;
+    transition: opacity 0.4s ease-out;
+    opacity: 0;
+    margin: 1vmin auto; /* center horizontally */
+    flex-shrink: 0;
+    background: rgba(16, 20, 28, 0.55);
+    border-radius: 1.2vmin;
+    box-shadow: 0 0 2.5vmin 0.5vmin rgba(0,0,0,0.25);
+    backdrop-filter: blur(16px) saturate(1.5) brightness(1.08);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5) brightness(1.08);
+    border: 1.5px solid rgba(180, 200, 255, 0.13);
+    outline: 1.5px solid rgba(255,255,255,0.07);
+    z-index: 100;
+    min-width: 320px;
+    min-height: 220px;
+    overflow: visible; /* allow node glow and edges to be visible */
+}
+.node-path-grid-container.visible { opacity: 1; }
+.node-path-node {
+    width: var(--node-path-node-size);
+    height: var(--node-path-node-size);
+    border-radius: 50%;
+    border: 2.5px solid rgba(135,206,250,0.45); /* lighter border */
+    background-color: rgba(16,24,36,0.35); /* slightly lighter fill so border stands out */
+    box-sizing: border-box;
+    justify-self: center;
+    align-self: center;
+    transition: background-color calc(var(--node-path-reveal-step-duration) * 0.8) ease-out, border-color calc(var(--node-path-reveal-step-duration) * 0.8) ease-out, transform calc(var(--node-path-reveal-step-duration) * 0.5) ease-out, box-shadow calc(var(--node-path-reveal-step-duration) * 0.8) ease-out;
+    transform: scale(0.8);
+    opacity: 1;
+    box-shadow: 0 0 0 transparent;
+    outline: 1px solid #fff2;
+    z-index: 110;
+}
+.node-path-node.visible { transform: scale(1); opacity: 1; }
+.node-path-node.path {
+    border-color: var(--node-path-node-color-path);
+    /* stronger, more visible path fill so the route is easy to read */
+    background-color: rgba(135, 206, 250, 0.65);
+    box-shadow: 0 0 1.8vmin 0.35vmin var(--node-path-node-pulse-glow), 0 0 1.0vmin 0.12vmin rgba(135, 206, 250, 0.55);
+    animation: nodePathPulse 1.2s cubic-bezier(0.6,0,0.4,1) 1;
+}
+
+@keyframes nodePathPulse {
+    0% {
+        box-shadow: 0 0 0.8vmin 0.1vmin rgba(135, 206, 250, 0.5);
+        border-color: var(--node-path-node-color-path);
+    }
+    40% {
+        box-shadow: 0 0 2.5vmin 0.7vmin var(--node-path-node-pulse-glow), 0 0 1.2vmin 0.2vmin rgba(135, 206, 250, 0.7);
+        border-color: var(--node-path-node-color-active);
+    }
+    100% {
+        box-shadow: 0 0 1.5vmin 0.3vmin var(--node-path-node-pulse-glow), 0 0 0.8vmin 0.1vmin rgba(135, 206, 250, 0.5);
+        border-color: var(--node-path-node-color-path);
+    }
+}
+.node-path-node.target { border-color: var(--node-path-node-color-target); background-color: rgba(242, 212, 74, 0.5); box-shadow: 0 0 1.2vmin 0.2vmin rgba(242, 212, 74, 0.6); }
+@keyframes nodePulseElectric { 0% { transform: scale(1); box-shadow: 0 0 0.8vmin 0.1vmin rgba(135, 206, 250, 0.5); border-color: var(--node-path-node-color-path);} 50% { transform: scale(1.25); box-shadow: 0 0 2vmin 0.5vmin var(--node-path-node-pulse-glow); border-color: var(--node-path-node-color-active); background-color: rgba(255, 255, 255, 0.7); } 100% { transform: scale(1); box-shadow: 0 0 0.8vmin 0.1vmin rgba(135, 206, 250, 0.5); border-color: var(--node-path-node-color-path);} }
+.node-path-node.active {
+    animation: nodePulseElectric calc(var(--node-path-reveal-step-duration) * 2.5) ease-in-out 1, nodePathPulse 1.2s cubic-bezier(0.6,0,0.4,1) 1;
+}
+.node-path-node.vowel-reveal-node { border-color: var(--trig-yellow); background-color: rgba(242, 212, 74, 0.5); animation: nodePulseVowel calc(var(--node-path-reveal-step-duration) * 3) ease-in-out 1; box-shadow: 0 0 1.5vmin 0.3vmin rgba(242, 212, 74, 0.7); }
+@keyframes nodePulseVowel { 0% { transform: scale(1); box-shadow: 0 0 0.8vmin 0.1vmin rgba(242, 212, 74, 0.5); } 50% { transform: scale(1.3); box-shadow: 0 0 2.5vmin 0.6vmin rgba(255, 255, 180, 0.9); } 100% { transform: scale(1); box-shadow: 0 0 0.8vmin 0.1vmin rgba(242, 212, 74, 0.5); } }
+.node-path-svg-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: visible; }
+.node-path-line {
+    stroke: var(--node-path-line-color);
+    stroke-width: var(--node-path-line-width);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    stroke-dasharray: var(--node-path-line-dash-length);
+    stroke-dashoffset: var(--node-path-line-dash-length);
+    transition: stroke-dashoffset 0.7s cubic-bezier(0.6,0,0.4,1), filter 0.3s;
+    filter: drop-shadow(0 0 0.5vmin var(--node-path-line-glow-color));
+    shape-rendering: geometricPrecision;
+}
+.node-path-line.visible {
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 1.2vmin var(--node-path-line-glow-color));
+}
+.node-path-winner-display {
+    background-color: var(--node-path-winner-bg);
+    color: var(--node-path-winner-text-color);
+    padding: var(--node-path-winner-padding);
+    border: 0.2vmin solid var(--trig-cyan);
+    border-radius: 4px;
+    font-size: var(--node-path-winner-font-size);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 2vmin;
+    opacity: 0;
+    transform: translateY(1.5vmin) scale(0.92);
+        box-shadow: 0 0 1.2vmin 0.3vmin var(--node-path-line-glow-color), 0 0 0.4vmin 0.05vmin var(--node-path-winner-text-color);
+        background-color: rgba(8, 12, 16, 0.97); /* More opaque to block playboard */
+    transition: opacity 0.4s ease-out var(--node-path-winner-reveal-delay), transform 0.4s cubic-bezier(0.6,0,0.4,1) var(--node-path-winner-reveal-delay), box-shadow 0.5s cubic-bezier(0.6,0,0.4,1), visibility 0s linear calc(var(--node-path-winner-reveal-delay) + 0.4s);
+    visibility: hidden;
+    position: relative;
+    z-index: 2;
+    min-width: 25vmin;
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-wrap: break-word;
+}
+.node-path-winner-display.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+        box-shadow: 0 0 2vmin 0.5vmin var(--node-path-line-glow-color), 0 0 0.6vmin 0.1vmin var(--node-path-winner-text-color);
+        background-color: rgba(8, 12, 16, 0.99); /* Even more opaque when visible */
+    visibility: visible;
+    transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.6,0,0.4,1), box-shadow 0.5s cubic-bezier(0.6,0,0.4,1), visibility 0s linear;
+}
+#node-path-winner-name { line-height: 1.2; display: block; text-align: center; width: 100%; overflow-wrap: break-word; letter-spacing: 0.1em; }
+
+/* --- Node Path Lock / Ripple End-State --- */
+.node-path-node.ripple-dark { background-color: rgba(5, 8, 14, 0.95) !important; border-color: rgba(135, 206, 250, 0.06) !important; box-shadow: none !important; transition: background-color 0.5s ease-out, border-color 0.5s ease-out, box-shadow 0.5s ease-out !important; }
+.node-path-node.locked { animation: nodeLockFlash 0.65s ease-out forwards; }
+@keyframes nodeLockFlash { 0% { background-color: rgba(135,206,250,0.65); border-color: var(--node-path-node-color-path); box-shadow: 0 0 1.8vmin 0.35vmin var(--node-path-node-pulse-glow); transform: scale(1); } 22% { background-color: rgba(255,255,255,0.97); border-color: #ffffff; box-shadow: 0 0 4vmin 1.2vmin rgba(255,255,255,0.95), 0 0 8vmin 3vmin rgba(135,206,250,0.5); transform: scale(1.2); } 65% { background-color: rgba(190,240,255,0.88); border-color: rgba(200,240,255,0.9); box-shadow: 0 0 2.5vmin 0.6vmin rgba(200,240,255,0.65); transform: scale(1.06); } 100% { background-color: rgba(135,206,250,0.82); border-color: var(--node-path-node-color-path); box-shadow: 0 0 2vmin 0.5vmin var(--node-path-node-pulse-glow); transform: scale(1); } }
+.node-path-line.locked { stroke: #e8faff; stroke-width: calc(var(--node-path-line-width) * 3.5); filter: drop-shadow(0 0 2vmin rgba(255,255,255,0.9)) drop-shadow(0 0 1vmin rgba(135,206,250,0.8)); transition: stroke 0.15s ease-out, stroke-width 0.15s ease-out, filter 0.15s ease-out; }
+#node-path-lock-label { font-family: 'Shentox-SemiBold', sans-serif; font-size: 2vmin; color: var(--trig-white); letter-spacing: 0.28em; text-transform: uppercase; text-align: center; opacity: 0; transform: scale(0.88); transition: opacity 0.3s ease-out, transform 0.3s ease-out; pointer-events: none; margin: 0.5vmin auto 1vmin; padding: 0.7vmin 2.5vmin; border: 0.18vmin solid rgba(200,240,255,0.5); background: rgba(5,10,20,0.82); border-radius: 3px; z-index: 10; width: fit-content; display: block; }
+#node-path-lock-label.visible { opacity: 1; transform: scale(1); animation: lockLabelPulse 1.3s ease-out forwards; }
+@keyframes lockLabelPulse { 0% { color: #ffffff; border-color: rgba(255,255,255,0.92); box-shadow: 0 0 1.5vmin 0.3vmin rgba(255,255,255,0.6); text-shadow: 0 0 2vmin rgba(255,255,255,0.9); } 30% { color: var(--trig-cyan-bright); border-color: var(--trig-cyan); box-shadow: 0 0 2vmin 0.5vmin rgba(74,241,242,0.5); text-shadow: 0 0 1vmin rgba(74,241,242,0.7); } 100% { color: var(--trig-cyan); border-color: rgba(74,241,242,0.4); box-shadow: 0 0 0.5vmin 0.1vmin rgba(74,241,242,0.2); text-shadow: none; } }
+
+/* --- Triglavian Conduit Reveal Styling (Mode 7) --- */
+/* --- Triglavian Conduit Reveal Styling (Mode 7) --- */
+#trig-conduit-reveal-mode {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Glyph ring — outer decorative orbit of Triglavian characters */
+.conduit-glyph-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* 1.22× the node container size — clears the outer nodes */
+    width: calc(var(--trig-conduit-nodes-container-size, 320px) * 1.22);
+    height: calc(var(--trig-conduit-nodes-container-size, 320px) * 1.22);
+    margin-top: calc(var(--trig-conduit-nodes-container-size, 320px) * 1.22 / -2);
+    margin-left: calc(var(--trig-conduit-nodes-container-size, 320px) * 1.22 / -2);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 1.6s ease 1.2s;
+    animation: conduitGlyphOrbit 32s linear infinite;
+}
+body.show-trig-conduit .conduit-glyph-ring { opacity: 1; }
+@keyframes conduitGlyphOrbit {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+}
+/* Each glyph spans one clock position (360/16 = 22.5°) */
+.conduit-glyph-ring > span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1em;
+    height: 1em;
+    margin: -0.5em 0 0 -0.5em;
+    font-family: 'Triglavian - Complete Regular', monospace;
+    font-size: clamp(9px, 1.35vmin, 16px);
+    color: rgba(74, 241, 242, 0.38);
+    text-shadow: 0 0 0.5vmin rgba(74, 241, 242, 0.3);
+    line-height: 1;
+    text-align: center;
+    /* Translate outward to the ring radius (50% of the ring div), then counter-rotate
+       so each glyph stays upright as the ring rotates */
+    transform:
+        rotate(calc(var(--gi) * 22.5deg))
+        translateY(calc(var(--trig-conduit-nodes-container-size, 320px) * 0.61 * -1))
+        rotate(calc(var(--gi) * -22.5deg));
+    /* Soft individual flicker at staggered intervals */
+    animation: conduitGlyphFlicker 3.8s ease-in-out calc(var(--gi) * 0.24s) infinite;
+}
+@keyframes conduitGlyphFlicker {
+    0%, 80%, 100% { opacity: 1; }
+    88%            { opacity: 0.12; }
+    93%            { opacity: 0.75; }
+}
+
+.trig-conduit-nodes-container {
+    position: relative;
+    width: var(--trig-conduit-nodes-container-size);
+    height: var(--trig-conduit-nodes-container-size);
+    margin-bottom: 3vmin;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.5s ease-out var(--trig-conduit-appear-delay), transform 0.5s ease-out var(--trig-conduit-appear-delay);
+}
+#trig-conduit-reveal-mode.visible .trig-conduit-nodes-container.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* NEW: SVG Overlay for lines */
+.trig-conduit-svg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1; /* Behind the nodes */
+    overflow: visible;
+}
+
+/* NEW: Conduit line styling */
+.trig-conduit-line {
+    stroke: var(--trig-cyan);
+    stroke-width: var(--node-path-line-width);
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0.15; /* Faintly visible by default */
+    filter: drop-shadow(0 0 0.5vmin var(--node-path-line-glow-color));
+    transition: opacity 0.4s ease-out;
+}
+
+/* NEW: Stable line state */
+.trig-conduit-line.stable {
+    opacity: 0.8;
+    animation: stableLinePulse 2s ease-in-out infinite;
+}
+
+@keyframes stableLinePulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.9; }
+}
+
+/* Spokes that connect nodes to the central core */
+.trig-conduit-spoke {
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 1.6;
+    opacity: 0.7;
+    transition: stroke 180ms ease, stroke-width 180ms ease, opacity 180ms ease, filter 180ms ease;
+}
+
+.trig-conduit-spoke.active {
+    stroke: var(--trig-beam-red);
+    stroke-width: 3.4;
+    opacity: 1;
+    filter: drop-shadow(0 0 18px var(--trig-beam-glow));
+}
+
+@keyframes trig-core-pulse {
+    0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 8px rgba(255,80,60,0.4), inset 0 0 20px rgba(255,120,100,0.6); }
+    40% { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 42px rgba(255,90,90,0.95), inset 0 0 60px rgba(255,120,100,0.95); }
+    100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 12px rgba(255,90,90,0.6), inset 0 0 28px rgba(255,120,100,0.8); }
+}
+
+.trig-conduit-core.pulse {
+    opacity: 1;
+    animation: trig-core-pulse 700ms ease-in-out 1;
+}
+
+.trig-conduit-core.stable {
+    opacity: 1;
+    animation: trig-core-pulse 1100ms ease-in-out 2;
+}
+
+
+.trig-conduit-node {
+    position: absolute;
+    width: var(--trig-conduit-node-size);
+    height: var(--trig-conduit-node-size);
+    background-color: var(--trig-conduit-node-bg);
+    border: var(--trig-conduit-node-border-width) solid var(--trig-conduit-node-border-color);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Simple triangle */
+    border-radius: 0;
+    transform-origin: center center;
+    transition: background-color 0.3s ease-out, border-color 0.3s ease-out, transform 0.4s ease-out, box-shadow 0.3s ease-out, opacity 0.3s ease-out;
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg); /* Initial state, JS will set final rotation */
+    box-shadow: 0 0 0px 0px transparent;
+}
+
+.trig-conduit-node.visible {
+    opacity: 1;
+    transform: scale(1) rotate(var(--node-rotation, 0deg));
+}
+
+/* Style for nodes that have been visited — border snaps to full cyan */
+.trig-conduit-node.path-complete {
+    border-color: var(--trig-cyan);
+}
+
+/* Charged state: persistent energy glow that accumulates across the ring */
+@keyframes chargedNodeGlow {
+    0%, 100% {
+        background-color: rgba(74, 241, 242, 0.28);
+        box-shadow: 0 0 2vmin 0.45vmin rgba(74, 241, 242, 0.45),
+                    0 0 0.5vmin 0.1vmin rgba(74, 241, 242, 0.75) inset;
+        border-color: rgba(74, 241, 242, 0.8);
+    }
+    50% {
+        background-color: rgba(74, 241, 242, 0.42);
+        box-shadow: 0 0 3.2vmin 0.9vmin rgba(74, 241, 242, 0.65),
+                    0 0 0.9vmin 0.25vmin rgba(74, 241, 242, 0.95) inset;
+        border-color: var(--trig-cyan);
+    }
+}
+
+.trig-conduit-node.charged {
+    animation: chargedNodeGlow var(--charged-glow-duration, 1.8s) ease-in-out infinite;
+}
+
+
+@keyframes trigConduitNodePulse {
+    0% {
+        transform: scale(1) rotate(var(--node-rotation, 0deg));
+        box-shadow: 0 0 1vmin 0.2vmin var(--trig-conduit-node-border-color);
+        background-color: var(--trig-conduit-node-bg);
+        border-color: var(--trig-conduit-node-border-color);
+    }
+    30% {
+        transform: scale(1.25) rotate(var(--node-rotation, 0deg));
+        box-shadow: 0 0 3vmin 0.8vmin var(--trig-conduit-node-pulse-glow);
+        background-color: var(--trig-conduit-node-active-bg);
+        border-color: var(--trig-conduit-node-active-border-color);
+    }
+    60% {
+        transform: scale(1.15) rotate(var(--node-rotation, 0deg));
+        box-shadow: 0 0 2.5vmin 0.6vmin var(--trig-conduit-node-pulse-glow);
+        background-color: var(--trig-conduit-node-active-bg);
+        border-color: var(--trig-conduit-node-active-border-color);
+    }
+    100% {
+        transform: scale(1.05) rotate(var(--node-rotation, 0deg));
+        box-shadow: 0 0 1.5vmin 0.3vmin var(--trig-conduit-node-pulse-glow);
+        background-color: var(--trig-conduit-node-active-bg);
+        border-color: var(--trig-conduit-node-active-border-color);
+    }
+}
+
+.trig-conduit-node.active {
+    animation: trigConduitNodePulse var(--trig-conduit-pulse-anim-duration-ms, 1000ms) ease-in-out infinite;
+}
+
+/* NEW: Final pulse effect for the whole container */
+@keyframes finalConduitPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.trig-conduit-nodes-container.final-pulse-effect .trig-conduit-node.visible {
+    animation: finalConduitPulse 1s ease-in-out 2;
+}
+
+/* --- Node explosion on winner confirm --- */
+@keyframes conduitNodeExplode {
+    0% {
+        transform: translate(0, 0) rotate(var(--node-rotation, 0deg)) scale(1.15);
+        opacity: 1;
+        background-color: rgba(220, 255, 255, 0.95);
+        box-shadow: 0 0 3vmin 1vmin rgba(74, 241, 242, 0.9),
+                    0 0 1vmin 0.3vmin white inset;
+        filter: brightness(2);
+    }
+    18% {
+        transform: translate(calc(var(--explode-x, 0px) * 0.08), calc(var(--explode-y, 0px) * 0.08))
+                   rotate(var(--node-rotation, 0deg)) scale(1.9);
+        opacity: 1;
+        background-color: white;
+        box-shadow: 0 0 6vmin 2.5vmin rgba(200, 255, 255, 1);
+        filter: brightness(4);
+    }
+    100% {
+        transform: translate(var(--explode-x, 0px), var(--explode-y, 0px))
+                   rotate(calc(var(--node-rotation, 0deg) + 220deg)) scale(0.05);
+        opacity: 0;
+        filter: brightness(0.3);
+    }
+}
+
+.trig-conduit-node.exploding {
+    animation: conduitNodeExplode 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
+    pointer-events: none;
+}
+
+/* --- Core expansion flash on winner confirm --- */
+@keyframes conduitCoreFlash {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        box-shadow: 0 0 2.5vmin 0.6vmin var(--trig-beam-glow);
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(4);
+        opacity: 0.85;
+        box-shadow: 0 0 10vmin 4vmin rgba(255, 200, 180, 0.55);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(8);
+        opacity: 0;
+    }
+}
+
+.trig-conduit-core.exploding {
+    animation: conduitCoreFlash 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
+    pointer-events: none;
+}
+
+/* ============================================================
+   CONDUIT SCENE — Starfield canvas, atmospheric haze, HUD
+   ============================================================ */
+
+.conduit-starfield-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.4s ease-in;
+    pointer-events: none;
+}
+body.show-trig-conduit .conduit-starfield-canvas {
+    opacity: 1;
+}
+
+.conduit-scene-haze {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(var(--trig-conduit-nodes-container-size, 320px) * 1.5);
+    height: calc(var(--trig-conduit-nodes-container-size, 320px) * 1.5);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(0, 220, 220, 0.055) 0%,
+        rgba(0, 120, 200, 0.035) 35%,
+        rgba(180, 60, 20, 0.018) 60%,
+        transparent 75%
+    );
+    z-index: 1;
+    pointer-events: none;
+    animation: hazeBreath 3.8s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 1.2s ease-in 0.3s;
+}
+body.show-trig-conduit .conduit-scene-haze {
+    opacity: 1;
+}
+
+@keyframes hazeBreath {
+    0%   { transform: translate(-50%, -50%) scale(1);    }
+    50%  { transform: translate(-50%, -50%) scale(1.11); }
+    100% { transform: translate(-50%, -50%) scale(1);    }
+}
+
+/* HUD corner brackets */
+.conduit-hud-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 18;
+    pointer-events: none;
+}
+/* Circuit-board SVG corner L-brackets */
+.conduit-corner {
+    position: absolute;
+    width: 6vmin; height: 6vmin;
+    fill: rgba(74,241,242,0.08);
+    stroke: var(--trig-cyan, #4af1f2);
+    stroke-width: 2.2;
+    pointer-events: none;
+    filter: drop-shadow(0 0 0.6vmin rgba(74,241,242,0.45));
+    opacity: 0;
+    transition: opacity 0.9s ease 0.5s;
+}
+.conduit-corner polyline { fill: none; }
+body.show-trig-conduit .conduit-corner { opacity: 1; }
+.conduit-corner-tl { top: 0; left: 0; }
+.conduit-corner-tr { top: 0; right: 0; }
+.conduit-corner-bl { bottom: 0; left: 0; }
+.conduit-corner-br { bottom: 0; right: 0; }
+/* Frame label */
+.conduit-frame-label {
+    position: absolute;
+    top: 1.8vmin;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: 1.1vmin;
+    color: rgba(74,241,242,0.6);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    text-shadow: 0 0 0.8vmin rgba(74,241,242,0.35);
+    transition: opacity 1s ease 0.8s;
+    white-space: nowrap;
+}
+body.show-trig-conduit .conduit-frame-label { opacity: 0.75; }
+
+/* Live data panel */
+.conduit-data-panel {
+    position: absolute;
+    bottom: 4.5vmin;
+    left: 3.5vmin;
+    z-index: 19;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(8px, 1.2vmin, 13px);
+    line-height: 1.65;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s ease 0.7s;
+    text-shadow: 0 0 4px rgba(0, 220, 255, 0.5);
+}
+body.show-trig-conduit .conduit-data-panel {
+    opacity: 1;
+}
+.cdp-line {
+    display: flex;
+    gap: 0.6em;
+    letter-spacing: 0.04em;
+}
+.cdp-title {
+    color: var(--trig-cyan, #00e0ff);
+    margin-bottom: 0.2em;
+    font-size: clamp(7px, 1.05vmin, 11px);
+    opacity: 0.75;
+    letter-spacing: 0.09em;
+}
+.cdp-key {
+    color: rgba(0, 220, 255, 0.55);
+    min-width: 9em;
+}
+.cdp-val {
+    color: var(--trig-orange, #ff8c42);
+}
+#cdp-status {
+    transition: color 0.4s ease;
+}
+.cdp-blink {
+    animation: blinkCursor 1.1s step-start infinite;
+    opacity: 0.7;
+}
+@keyframes blinkCursor {
+    0%, 100% { opacity: 0.7; }
+    50%       { opacity: 0; }
+}
+
+
+.trig-conduit-winner-display {
+    background-color: var(--trig-conduit-winner-bg);
+    color: var(--trig-conduit-winner-text-color);
+    padding: var(--trig-conduit-winner-display-padding);
+    border: 0.2vmin solid var(--trig-cyan);
+    border-radius: 4px;
+    font-size: var(--trig-conduit-winner-display-font-size);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(1.5vmin) scale(0.9);
+    transition: opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s, visibility 0s linear 0.6s;
+    visibility: hidden;
+    position: relative;
+    z-index: 4;
+    min-width: 40vmin;
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-wrap: break-word;
+}
+
+.trig-conduit-winner-display.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out, visibility 0s linear;
+}
+
+#trig-conduit-winner-name {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    color: var(--trig-conduit-winner-placeholder-color);
+    letter-spacing: var(--trig-conduit-winner-letter-spacing);
+    padding-left: var(--trig-conduit-winner-letter-spacing);
+    margin-left: calc(-1 * var(--trig-conduit-winner-letter-spacing));
+    display: inline-block;
+    line-height: 1.2;
+    transition: color 0.3s ease-out, font-family 0.2s linear;
+}
+
+/* MODIFIED: Target individual spans for reveal */
+#trig-conduit-winner-name .letter-placeholder {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    color: var(--trig-conduit-winner-placeholder-color);
+    opacity: 0.7;
+    display: inline-block;
+    transition: opacity 0.3s ease-out, color 0.3s ease-out, font-family 0.2s linear;
+}
+#trig-conduit-winner-name .letter-revealed {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    color: var(--trig-conduit-winner-text-color);
+    opacity: 1;
+    font-weight: 600;
+    display: inline-block;
+}
+#trig-conduit-winner-name .letter-placeholder {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    color: var(--trig-conduit-winner-placeholder-color);
+    opacity: 0.7;
+    display: inline-block;
+    transition: opacity 0.3s ease-out, color 0.3s ease-out, font-family 0.2s linear;
+}
+#trig-conduit-winner-name .letter-revealed {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    color: var(--trig-conduit-winner-text-color);
+    opacity: 1;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* === Triglavian Code Reveal Styling (Mode 8) === */
+#trig-code-reveal-mode {
+    width: 100%;
+    max-width: var(--trig-code-participants-width);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.trig-code-winner-code-display {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    font-size: var(--trig-code-winner-code-font-size);
+    color: var(--trig-cyan-bright);
+    background-color: var(--trig-code-winner-code-bg);
+    border: 0.2vmin solid var(--trig-code-winner-code-border-color);
+    padding: var(--trig-code-winner-code-padding);
+    border-radius: 4px;
+    margin-bottom: 2vmin;
+    letter-spacing: var(--trig-code-winner-code-letter-spacing);
+    text-align: center;
+    min-height: calc(var(--trig-code-winner-code-font-size) * 1.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    min-width: 60%;
+    max-width: 95%;
+    flex-wrap: wrap;
+}
+#trig-code-reveal-mode.visible .trig-code-winner-code-display.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+.trig-code-winner-code-display span {
+    display: inline-block;
+    transition: color 0.2s ease-out, opacity 0.2s ease-out;
+}
+.trig-code-winner-code-display .revealed-char {
+    color: var(--trig-yellow);
+    opacity: 1;
+}
+.trig-code-winner-code-display .placeholder-char {
+    color: var(--trig-code-placeholder-char-color);
+    opacity: 0.6;
+}
+.trig-code-winner-code-display .just-revealed { /* Temporary class for newly revealed char */
+    animation: newCharFlash 0.5s ease-out;
+}
+@keyframes newCharFlash {
+    0%, 100% { text-shadow: none; }
+    50% { text-shadow: 0 0 10px var(--trig-white), 0 0 20px var(--trig-white); }
+}
+
+
+.trig-code-participants-container {
+    width: 100%;
+    height: var(--trig-code-participants-height);
+    overflow-y: auto;
+    border: 0.15vmin solid var(--trig-dark-blue);
+    background-color: rgba(5, 8, 10, 0.7);
+    padding: 1vmin;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5vmin;
+    opacity: 0;
+    transition: opacity 0.5s ease-out 0.2s;
+}
+#trig-code-reveal-mode.visible .trig-code-participants-container.visible {
+    opacity: 1;
+}
+
+.trig-code-participant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8vmin 1.2vmin;
+    background-color: var(--trig-dark-blue);
+    border-radius: 2px;
+    height: var(--trig-code-participant-item-height);
+    transition: opacity var(--trig-code-elimination-duration) ease-out,
+                background-color var(--trig-code-elimination-duration) ease-out,
+                transform 0.3s ease-out,
+                border-color 0.3s ease-out,
+                max-height 0.4s ease-in-out, /* For smooth removal */
+                padding 0.4s ease-in-out, /* For smooth removal */
+                margin-bottom 0.4s ease-in-out; /* For smooth removal */
+    opacity: 1;
+    border: 1px solid transparent;
+    overflow: hidden; /* Needed for height transition */
+    max-height: var(--trig-code-participant-item-height); /* Start with normal height */
+}
+
+.trig-code-participant-item .name {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: var(--trig-code-participant-font-size);
+    color: var(--trig-code-participant-name-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    margin-right: 1.5vmin;
+    transition: color var(--trig-code-elimination-duration) ease-out;
+}
+
+.trig-code-participant-item .code {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    font-size: var(--trig-code-participant-font-size);
+    color: var(--trig-code-participant-code-color);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    transition: color var(--trig-code-elimination-duration) ease-out;
+}
+.trig-code-participant-item .code .matching-char {
+    color: var(--trig-code-matching-char-color);
+}
+
+/* Styles for visually eliminating (but keeping in flow if finalist) */
+.trig-code-participant-item.eliminated {
+    opacity: 0.35;
+    background-color: rgba(10, 40, 69, 0.15);
+}
+.trig-code-participant-item.eliminated .name {
+    color: var(--trig-code-participant-eliminated-color);
+    text-decoration: line-through;
+}
+.trig-code-participant-item.eliminated .code {
+    color: var(--trig-code-participant-eliminated-code-color);
+    text-decoration: line-through;
+}
+
+/* Styles for animated removal (fade and shrink) */
+.trig-code-participant-item.eliminating {
+    opacity: 0;
+    transform: scaleY(0.5) translateX(-20px);
+    max-height: 0; /* Collapse height */
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0; /* Collapse margin */
+    border-width: 0;
+}
+
+
+.trig-code-participant-item.highlight-match {
+   border-color: var(--trig-code-highlight-color);
+   background-color: rgba(74, 241, 242, 0.1);
+   box-shadow: 0 0 1vmin 0.1vmin var(--trig-code-highlight-color);
+   /* transform: scale(1.01); No longer needed with border */
+}
+.trig-code-participant-item.highlight-match .name {
+    color: var(--trig-white);
+}
+.trig-code-participant-item.highlight-match .code {
+    color: var(--trig-yellow);
+}
+
+
+.trig-code-winner-name-display {
+    background-color: var(--trig-code-winner-name-bg);
+    color: var(--trig-code-winner-name-text-color);
+    padding: var(--trig-code-winner-name-padding);
+    border: 0.2vmin solid var(--trig-cyan);
+    border-radius: 4px;
+    font-size: var(--trig-code-winner-name-font-size);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 2vmin;
+    opacity: 0;
+    transform: translateY(1.5vmin);
+    transition: opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s;
+    visibility: hidden;
+    min-width: 30vmin;
+    max-width: 90%;
+}
+.trig-code-winner-name-display.visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+
+/* --- Shared Countdown Timer Styles --- */
+.countdown-container.centered {
+    /* Force the countdown ring to float above everything and center it in the viewport */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed !important; /* ensure it breaks out of stacking contexts */
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) scale(1.06) !important; /* centered and slightly scaled up */
+    z-index: 14000 !important; /* ensure appears above the full-screen overlay and other elements */
+    width: calc(var(--countdown-size) * 1.55);
+    height: calc(var(--countdown-size) * 1.55);
+    margin: 0; /* ignore normal flow margins */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--countdown-reveal-duration) ease-out var(--countdown-reveal-delay), transform var(--countdown-reveal-duration) ease-out var(--countdown-reveal-delay), visibility 0s linear calc(var(--countdown-reveal-delay) + var(--countdown-reveal-duration));
+    pointer-events: none; /* don't block mouse events */
+}
+/* Fallback: when full-screen confirmation overlay is active, nudge the centered countdown lower.
+   This covers cases where the Neon class may not be present on the body during the overlay lifecycle. */
+/* When fulltimer overlay is active prefer true centering so name and ring sit vertically centered */
+/* When overlay is active, nudge the ring lower so it sits beneath the inner-panel content and doesn't overlap the winner text */
+body.fulltimer-active .countdown-container.centered {
+    top: 62% !important; /* push lower in the viewport to avoid overlap */
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1.05) !important;
+    z-index: 14000 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+.countdown-container.centered.visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) !important;
+    transition: opacity var(--countdown-reveal-duration) ease-out, transform var(--countdown-reveal-duration) ease-out, visibility 0s linear;
+    pointer-events: auto;
+}
+.countdown-svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.countdown-track, .countdown-progress {
+    fill: none;
+    stroke-width: calc(var(--countdown-border) * 1.25); /* slightly thicker */
+    filter: drop-shadow(0 0.6vmin 1vmin rgba(0,0,0,0.45));
+}
+.countdown-track { stroke: rgba(20, 30, 36, 0.85); }
+.countdown-progress { stroke: #f5dc6e; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear, stroke 0.5s ease-out; }
+.countdown-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--countdown-text-color);
+    font-size: calc(var(--countdown-font-size) * 1.15);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-weight: 700;
+    text-shadow: 0 0.6vmin 1.2vmin rgba(74,241,242,0.12), 0 0 1vmin rgba(0,0,0,0.6);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+/* Neon mode: nudge the centered countdown further down so it sits under the large neon winner text.
+   This targets the centered variant specifically to avoid affecting the normal right-hand timer. */
+.show-neon-encrypted .countdown-container.centered {
+    top: 62% !important; /* push lower on Neon too so it sits beneath the large winner name */
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1.05) !important;
+    z-index: 99999 !important; /* ensure it's above overlay elements */
+    /* preserve pointer-events and visibility rules from the centered block */
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+
+/* --- Layout Adjustment Visual Indicator --- */
+.adjustable-widget-active {
+    border: var(--adjustable-border-style) !important;
+}
+
+/* --- Custom Scrollbar for Triglavian Code Participants --- */
+.trig-code-participants-container::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.trig-code-participants-container::-webkit-scrollbar-track {
+    background: var(--trig-dark-blue); /* Slightly lighter than pure dark for visibility */
+    border-radius: 5px;
+    border: 1px solid var(--trig-dark); /* Match container inner darkness */
+}
+
+.trig-code-participants-container::-webkit-scrollbar-thumb {
+    background-color: var(--trig-cyan);
+    border-radius: 4px;
+    border: 1px solid var(--trig-cyan-bright);
+}
+
+.trig-code-participants-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--trig-cyan-bright);
+    border-color: var(--trig-white);
+}
+
+.trig-code-participants-container::-webkit-scrollbar-corner {
+    background: var(--trig-dark-blue); /* Consistent with track */
+}
+
+.winner-corp-class, .winner-alliance-class {
+    /* font-size, color, line-height, text-align, margin-top are in HTML */
+    max-width: clamp(900px, 100vmin, 1400px); /* Match portrait max width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.winner-name-class { /* This styles the SPAN that holds the winner's name */
+    font-weight: bold; /* Ensure it stands out */
+    line-height: 1;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+
+/* === ESI Loading Overlay === */
+body.esi-loading-active .animation-content,
+body.esi-loading-active #animation-content,
+body.esi-loading-active .container,
+body.esi-loading-active #trig-hacking-frame,
+body.esi-loading-active .triglavian-winner-display,
+body.esi-loading-active .neon-winner-display,
+body.esi-loading-active .trig-code-winner-name-display,
+body.esi-loading-active .ds-winner-display,
+body.esi-loading-active .node-path-winner-display,
+body.esi-loading-active .trig-conduit-winner-display,
+body.esi-loading-active .list-winner-display,
+body.esi-loading-active .nd-winner-display,
+body.esi-loading-active #hacking-winner-display,
+body.esi-loading-active #neon-winner-display,
+body.esi-loading-active #ds-winner-display {
+    opacity: 0 !important; visibility: hidden !important; pointer-events: none !important;
+}
+body.esi-loading-active .background-canvas { opacity: 0.15 !important; }
+body.esi-loading-active .esi-loading-overlay { background: #020408 !important; }
+.esi-loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 15000;
+    background: #05080a;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+    pointer-events: none;
+}
+.esi-loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear;
+    pointer-events: auto;
+}
+.esi-loading-panel {
+    width: clamp(320px, 55vw, 700px);
+    background: linear-gradient(160deg, #040d10 0%, #0a1820 60%, #050e12 100%);
+    border: 1.5px solid var(--trig-cyan, #4af1f2);
+    border-radius: 6px;
+    padding: 2.4vmin 3vmin 2vmin;
+    box-shadow: 0 0 3vmin 0.6vmin rgba(74,241,242,0.12), inset 0 0 2vmin rgba(74,241,242,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 1.4vmin;
+    transform: translateY(12px) scale(0.97);
+    transition: transform 0.35s cubic-bezier(.2,.9,.2,1), opacity 0.3s ease-in-out;
+    opacity: 0;
+}
+.esi-loading-overlay.visible .esi-loading-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+.esi-loading-header {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(11px, 1.5vmin, 16px);
+    letter-spacing: 0.18em;
+    color: var(--trig-cyan, #4af1f2);
+    text-transform: uppercase;
+    opacity: 0.7;
+    border-bottom: 1px solid rgba(74,241,242,0.15);
+    padding-bottom: 0.6vmin;
+    margin-bottom: 0.2vmin;
+}
+.esi-loading-terminal {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: clamp(11px, 1.35vmin, 15px);
+    color: rgba(140,255,170,0.9);
+    line-height: 1.6;
+    min-height: 5.5em;
+    text-shadow: 0 0 0.4vmin rgba(16,255,50,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+}
+.esi-terminal-line {
+    opacity: 0;
+    transition: opacity 0.15s ease-in;
+}
+.esi-terminal-line.shown {
+    opacity: 1;
+}
+.esi-terminal-prompt { color: rgba(74,241,242,0.6); margin-right: 0.5ch; }
+.esi-terminal-cursor {
+    display: inline-block;
+    width: 0.55ch;
+    background: rgba(140,255,170,0.85);
+    animation: esiCaretBlink 0.9s steps(1) infinite;
+    vertical-align: text-bottom;
+    height: 1em;
+    margin-left: 1px;
+}
+@keyframes esiCaretBlink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+.esi-loading-bar-track {
+    width: 100%;
+    height: clamp(4px, 0.7vmin, 8px);
+    background: rgba(74,241,242,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(74,241,242,0.12);
+}
+.esi-loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(74,241,242,0.9) 0%, rgba(157,255,120,0.9) 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 0.8vmin 0.15vmin rgba(74,241,242,0.25);
+    transition: width 0.4s ease-out;
+}
+.esi-loading-status {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(9px, 1.1vmin, 13px);
+    letter-spacing: 0.12em;
+    color: rgba(74,241,242,0.5);
+    text-align: right;
+    text-transform: uppercase;
+}
+/* === END ESI Loading Overlay === */
+
+/* === CONNECTION FAILED Overlay (timeout / no-response) === */
+.conn-failed-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 15500;
+    background: rgba(8, 3, 3, 0.85);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+    pointer-events: none;
+}
+.conn-failed-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear;
+    pointer-events: auto;
+}
+.conn-failed-panel {
+    width: clamp(320px, 55vw, 700px);
+    background: linear-gradient(160deg, #0f0202 0%, #1c0606 60%, #0a0202 100%);
+    border: 1.5px solid #ff3a3a;
+    border-radius: 6px;
+    padding: 2.4vmin 3vmin 2vmin;
+    box-shadow: 0 0 3vmin 0.6vmin rgba(255,58,58,0.18), inset 0 0 2vmin rgba(255,58,58,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 1.4vmin;
+    transform: translateY(12px) scale(0.97);
+    transition: transform 0.35s cubic-bezier(.2,.9,.2,1), opacity 0.3s ease-in-out;
+    opacity: 0;
+}
+.conn-failed-overlay.visible .conn-failed-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+.conn-failed-header {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(11px, 1.5vmin, 16px);
+    letter-spacing: 0.18em;
+    color: #ff3a3a;
+    text-transform: uppercase;
+    opacity: 0.85;
+    border-bottom: 1px solid rgba(255,58,58,0.2);
+    padding-bottom: 0.6vmin;
+    margin-bottom: 0.2vmin;
+}
+.conn-failed-terminal {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: clamp(11px, 1.35vmin, 15px);
+    color: rgba(255,160,140,0.9);
+    line-height: 1.6;
+    min-height: 5.5em;
+    text-shadow: 0 0 0.4vmin rgba(255,50,30,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+}
+.conn-failed-terminal .esi-terminal-line { opacity: 0; transition: opacity 0.15s ease-in; }
+.conn-failed-terminal .esi-terminal-line.shown { opacity: 1; }
+.conn-failed-terminal .esi-terminal-prompt { color: rgba(255,58,58,0.7); margin-right: 0.5ch; }
+.conn-failed-bar-track {
+    width: 100%;
+    height: clamp(4px, 0.7vmin, 8px);
+    background: rgba(255,58,58,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,58,58,0.15);
+}
+.conn-failed-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(255,58,58,0.9) 0%, rgba(255,140,80,0.9) 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 0.8vmin 0.15vmin rgba(255,58,58,0.3);
+    transition: width 0.4s ease-out;
+}
+.conn-failed-status {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(9px, 1.1vmin, 13px);
+    letter-spacing: 0.12em;
+    color: rgba(255,58,58,0.55);
+    text-align: right;
+    text-transform: uppercase;
+}
+/* === END CONNECTION FAILED Overlay === */
+
+/* ============================================================ */
+/* === Neural Interface Decode Mode ========================== */
+/* ============================================================ */
+#neural-decode-mode {
+    width: 100%;
+    height: 65vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.nd-frame {
+    position: relative;
+    width: 92%;
+    max-width: 1400px;
+    height: 92%;
+    border: 1px solid rgba(0, 200, 255, 0.2);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5vmin 3vmin 2.5vmin;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Corner L-brackets */
+.nd-corner {
+    position: absolute;
+    width: 5vmin; height: 5vmin;
+    stroke: rgba(0, 220, 255, 0.7);
+    stroke-width: 3;
+    fill: none;
+    pointer-events: none;
+}
+.nd-corner-tl { top: -1px; left: -1px; }
+.nd-corner-tr { top: -1px; right: -1px; transform: scaleX(-1); }
+.nd-corner-bl { bottom: -1px; left: -1px; transform: scaleY(-1); }
+.nd-corner-br { bottom: -1px; right: -1px; transform: scale(-1, -1); }
+
+/* Scan line */
+.nd-scan-line {
+    position: absolute;
+    left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 220, 255, 0.55), transparent);
+    animation: ndScanDown 4.5s linear infinite;
+    pointer-events: none;
+    z-index: 5;
+}
+@keyframes ndScanDown {
+    0%   { top: 0%;   opacity: 0.7; }
+    48%  { opacity: 0.35; }
+    50%  { top: 100%; opacity: 0; }
+    50.1% { top: 0%;  opacity: 0; }
+    51%  { opacity: 0.7; }
+    100% { top: 100%; opacity: 0.7; }
+}
+
+/* Protocol label */
+.nd-frame-label {
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(8px, 1.05vmin, 14px);
+    color: rgba(0, 220, 255, 0.6);
+    white-space: nowrap;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Columns container */
+.nd-columns-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1.4vmin;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    padding: 0.5vmin 0;
+    box-sizing: border-box;
+}
+
+/* Individual column */
+.nd-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 7vmin;
+    max-width: 28vmin;
+    padding: 1.5vmin 0.5vmin;
+    border: 1px solid rgba(0, 150, 200, 0.3);
+    border-radius: 4px;
+    background: rgba(0, 20, 36, 0.52);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.45s ease, background 0.5s ease,
+                opacity 0.5s ease, box-shadow 0.45s ease;
+}
+
+/* Top accent bar */
+.nd-column::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 200, 255, 0.45), transparent);
+    transition: background 0.5s ease;
+}
+
+/* Glyph rain rows */
+.nd-col-rain {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    font-size: clamp(8px, 1.05vmin, 13px);
+    color: rgba(0, 200, 255, 0.28);
+    text-align: center;
+    line-height: 1.8;
+    height: 4vmin;
+    overflow: hidden;
+    margin-bottom: 0.7vmin;
+    white-space: pre;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Name letters display */
+.nd-col-letters {
+    font-family: 'Triglavian - Complete Regular', monospace;
+    font-size: clamp(8px, 2.2vmin, 28px);
+    color: rgba(0, 215, 255, 0.9);
+    letter-spacing: 0;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 0;
+    min-height: 3vmin;
+    width: 100%;
+    overflow: hidden;
+}
+
+.nd-letter {
+    display: inline-block;
+    transition: color 0.18s ease, text-shadow 0.18s ease;
+}
+
+.nd-letter.nd-resolved {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    color: rgba(135, 230, 255, 1);
+}
+
+.nd-letter.nd-gold {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 2px rgba(255, 200, 0, 0.35);
+}
+
+/* Candidate sequence badge */
+.nd-col-badge {
+    position: absolute;
+    top: 4px; right: 6px;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(6px, 0.72vmin, 10px);
+    color: rgba(0, 180, 255, 0.38);
+    letter-spacing: 0.1em;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Status label under name */
+.nd-col-status {
+    margin-top: 0.75vmin;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(6px, 0.82vmin, 11px);
+    color: rgba(0, 180, 255, 0.4);
+    letter-spacing: 0.18em;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color 0.3s ease;
+}
+
+/* --- Resolved state --- */
+.nd-column.nd-resolved { border-color: rgba(0, 210, 255, 0.5); background: rgba(0, 28, 52, 0.6); }
+.nd-column.nd-resolved::before { background: linear-gradient(90deg, transparent, rgba(0, 215, 255, 0.65), transparent); }
+.nd-column.nd-resolved .nd-col-rain { opacity: 0; }
+.nd-column.nd-resolved .nd-col-status { color: rgba(0, 215, 255, 0.65); }
+
+/* --- Eliminating flash --- */
+@keyframes ndFlashElim {
+    0%   { border-color: rgba(255, 75, 15, 0.9);  background: rgba(48, 8, 0, 0.88);  box-shadow: 0 0 14px rgba(255, 55, 0, 0.4); }
+    42%  { border-color: rgba(255, 190, 0, 0.55); background: rgba(38, 10, 0, 0.75); box-shadow: 0 0 7px rgba(200, 110, 0, 0.25); }
+    100% { border-color: rgba(160, 22, 22, 0.18); background: rgba(16, 4, 4, 0.68);  box-shadow: none; }
+}
+.nd-column.nd-eliminating { animation: ndFlashElim 0.55s ease forwards; }
+
+/* --- Eliminated state --- */
+.nd-column.nd-eliminated {
+    border-color: rgba(150, 18, 18, 0.22) !important;
+    background: rgba(16, 4, 4, 0.68) !important;
+    box-shadow: none !important;
+    opacity: 0.3;
+}
+.nd-column.nd-eliminated::before { background: linear-gradient(90deg, transparent, rgba(150, 28, 28, 0.3), transparent) !important; }
+.nd-column.nd-eliminated .nd-col-letters { color: rgba(145, 40, 40, 0.48); text-decoration: line-through; }
+.nd-column.nd-eliminated .nd-col-status { color: rgba(140, 38, 38, 0.48) !important; }
+
+/* --- Winner column --- */
+.nd-column.nd-winner-col {
+    border-color: rgba(255, 215, 0, 0.62) !important;
+    background: rgba(22, 15, 0, 0.76) !important;
+    box-shadow: 0 0 18px rgba(255, 215, 0, 0.09), inset 0 0 12px rgba(255, 215, 0, 0.04) !important;
+}
+.nd-column.nd-winner-col::before { background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.7), transparent) !important; }
+.nd-column.nd-winner-col .nd-col-status { color: rgba(255, 215, 0, 0.82) !important; }
+
+/* SVG draw-in border for winner column */
+.nd-winner-box-svg {
+    position: absolute;
+    top: -3px; left: -3px;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 10;
+}
+.nd-winner-box-svg rect {
+    fill: none;
+    stroke: #ffd700;
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.6));
+}
+
+/* Status bar */
+.nd-status-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2vmin;
+    width: 100%;
+    padding: 0 2vmin;
+    box-sizing: border-box;
+    margin-top: 1.1vmin;
+    flex-shrink: 0;
+}
+
+.nd-status-phase {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(8px, 1.05vmin, 15px);
+    color: rgba(0, 220, 255, 0.68);
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+    min-width: 30%;
+    text-align: center;
+    transition: color 0.45s ease;
+}
+
+.nd-status-progress {
+    height: 4px; flex: 1; max-width: 26%;
+    background: rgba(0, 80, 120, 0.35);
+    border-radius: 2px; overflow: hidden;
+}
+.nd-status-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, rgba(0, 160, 255, 0.8), rgba(0, 255, 200, 0.85));
+    border-radius: 2px;
+    transition: width 0.45s ease, background 0.6s ease;
+}
+
+/* Winner display (ESI – hidden until used) */
+.nd-winner-display { display: none; margin-top: 2vmin; }
+/* === END Neural Interface Decode Mode === */
+
+/* ============================================================ */
+/* === Deep Seek Mode ======================================== */
+/* ============================================================ */
+#deepseek-reveal-mode {
+    width: 100%;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.5s ease-out, opacity 0.4s ease-out;
+}
+
+/* Canvas fills the entire mode area */
+.ds-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* === Diamond Probe Launcher Icons === */
+.ds-launcher {
+    position: absolute;
+    width: 4vmin;
+    height: 4vmin;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    animation: dsLauncherAppear 0.6s ease-out forwards;
+}
+.ds-launcher-tl { top: 3vmin; left: 3vmin; animation-delay: 0.1s; }
+.ds-launcher-tr { top: 3vmin; right: 3vmin; animation-delay: 0.2s; }
+.ds-launcher-bl { bottom: 3vmin; left: 3vmin; animation-delay: 0.3s; }
+.ds-launcher-br { bottom: 3vmin; right: 3vmin; animation-delay: 0.4s; }
+
+.ds-launcher::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: color-mix(in srgb, var(--ds-scan) 15%, transparent);
+    border: 0.25vmin solid color-mix(in srgb, var(--ds-scan) 70%, transparent);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    box-shadow: 0 0 1vmin 0.2vmin color-mix(in srgb, var(--ds-scan) 30%, transparent), inset 0 0 0.8vmin color-mix(in srgb, var(--ds-scan) 10%, transparent);
+    animation: dsLauncherPulse 2s ease-in-out infinite;
+}
+.ds-launcher::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.2vmin;
+    height: 1.2vmin;
+    background: color-mix(in srgb, var(--ds-scan-bright) 60%, transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0.6vmin 0.15vmin color-mix(in srgb, var(--ds-scan-bright) 50%, transparent);
+}
+/* Antenna line pointing inward */
+.ds-launcher-tl::after { transform: translate(50%, 50%); }
+.ds-launcher-tr::after { transform: translate(-50%, 50%); }
+.ds-launcher-bl::after { transform: translate(50%, -50%); }
+.ds-launcher-br::after { transform: translate(-50%, -50%); }
+
+@keyframes dsLauncherAppear {
+    0%   { opacity: 0; transform: scale(0.3); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes dsLauncherPulse {
+    0%, 100% { box-shadow: 0 0 1vmin 0.2vmin color-mix(in srgb, var(--ds-scan) 30%, transparent), inset 0 0 0.8vmin color-mix(in srgb, var(--ds-scan) 10%, transparent); }
+    50%      { box-shadow: 0 0 2vmin 0.5vmin color-mix(in srgb, var(--ds-scan) 50%, transparent), inset 0 0 1.2vmin color-mix(in srgb, var(--ds-scan) 20%, transparent); }
+}
+
+/* === Phase Text (top-center) === */
+.ds-phase-text {
+    position: absolute;
+    top: 4vmin;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(10px, 1.3vmin, 16px);
+    color: color-mix(in srgb, var(--ds-scan-bright) 80%, transparent);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    text-shadow: 0 0 1vmin color-mix(in srgb, var(--ds-scan) 40%, transparent);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+}
+.ds-phase-text.visible { opacity: 1; }
+
+/* === Scan Percentage (phase 2, bottom-center) === */
+.ds-scan-pct {
+    position: absolute;
+    bottom: 5vmin;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 1.2vmin;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(10px, 1.4vmin, 18px);
+    color: color-mix(in srgb, var(--ds-scan-bright) 70%, transparent);
+    letter-spacing: 0.15em;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+}
+.ds-scan-pct.visible { opacity: 1; }
+.ds-scan-label { opacity: 0.8; }
+.ds-scan-value {
+    font-family: 'Courier New', Consolas, monospace;
+    color: color-mix(in srgb, var(--ds-scan-bright) 90%, transparent);
+    text-shadow: 0 0 0.6vmin color-mix(in srgb, var(--ds-scan) 30%, transparent);
+    min-width: 4ch;
+    text-align: right;
+}
+
+/* === Potential targets list (phase 2) === */
+.ds-candidates {
+    position: absolute;
+    top: 50%;
+    right: 3vmin;
+    transform: translateY(-50%);
+    z-index: 16;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8vmin;
+    min-width: 22vmin;
+    max-width: 34vmin;
+    padding: 1.5vmin 2vmin;
+    background: rgba(5, 12, 18, 0.72);
+    border: 0.15vmin solid color-mix(in srgb, var(--ds-scan) 45%, transparent);
+    border-radius: 6px;
+    box-shadow: 0 0 2vmin rgba(0, 0, 0, 0.5), inset 0 0 1.5vmin color-mix(in srgb, var(--ds-scan) 8%, transparent);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+}
+.ds-candidates.visible { opacity: 1; }
+.ds-candidates-title {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(9px, 1.1vmin, 14px);
+    color: color-mix(in srgb, var(--ds-scan-bright) 85%, transparent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5vmin;
+    text-shadow: 0 0 0.8vmin color-mix(in srgb, var(--ds-scan) 40%, transparent);
+}
+.ds-candidates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4vmin;
+    width: 100%;
+    max-height: 34vh;
+    overflow: hidden;
+}
+.ds-candidate-row {
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(9px, 1.2vmin, 15px);
+    color: color-mix(in srgb, var(--ds-scan-bright) 55%, transparent);
+    letter-spacing: 0.08em;
+    padding: 0.2vmin 0.6vmin;
+    border-left: 0.25vmin solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s ease-out, border-color 0.3s ease-out, background 0.3s ease-out, text-shadow 0.3s ease-out;
+}
+.ds-candidate-row.active {
+    color: color-mix(in srgb, var(--ds-scan-bright) 95%, transparent);
+    border-left-color: var(--ds-scan);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--ds-scan) 22%, transparent), transparent);
+    text-shadow: 0 0 1vmin color-mix(in srgb, var(--ds-scan) 60%, transparent);
+}
+.ds-candidate-row.ds-candidate-picked {
+    color: var(--trig-yellow);
+    border-left-color: var(--trig-yellow);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--trig-yellow) 26%, transparent), transparent);
+    text-shadow: 0 0 1.4vmin color-mix(in srgb, var(--trig-yellow) 80%, transparent);
+}
+
+/* === WARP DRIVE ACTIVATED overlay (pre-timer) === */
+.ds-warp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 60;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(30px, 5.5vmin, 72px);
+    color: var(--ds-scan-bright);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-align: center;
+    white-space: nowrap;
+    text-shadow: 0 0 2.5vmin color-mix(in srgb, var(--ds-scan) 80%, transparent), 0 0 6vmin color-mix(in srgb, var(--ds-scan-bright) 50%, transparent);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+}
+.ds-warp-text.visible {
+    opacity: 1;
+    animation: dsWarpSequence 1.6s ease-in-out forwards;
+}
+@keyframes dsWarpSequence {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7); letter-spacing: 0.5em; }
+    20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+    45%  { opacity: 1; transform: translate(-50%, -50%) scale(1); letter-spacing: 0.3em; }
+    80%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); text-shadow: 0 0 3vmin color-mix(in srgb, var(--ds-scan) 95%, transparent), 0 0 8vmin color-mix(in srgb, var(--ds-scan-bright) 70%, transparent); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+}
+
+/* === Lock Text (phase 3, center) === */
+.ds-lock-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(28px, 5vmin, 64px);
+    color: var(--ds-lock);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-shadow: 0 0 2vmin color-mix(in srgb, var(--ds-lock) 80%, transparent), 0 0 5vmin color-mix(in srgb, var(--ds-lock) 40%, transparent);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    animation: dsLockFlash 1.2s ease-in-out 3;
+}
+.ds-lock-text.visible { opacity: 1; }
+@keyframes dsLockFlash {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    30%  { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    45%  { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+    60%  { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    75%  { opacity: 1; transform: translate(-50%, -50%) scale(1.01); }
+    85%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* === SVG Target Bracket Container (EVE target HUD) === */
+.ds-bracket-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 12;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+.ds-bracket-container.visible { opacity: 1; }
+
+/* Bracket SVG circle */
+.ds-bracket-circle {
+    fill: none;
+    stroke: #485c6e;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ds-lock) 40%, transparent));
+    transition: stroke 0.6s ease-out, filter 0.6s ease-out;
+}
+.ds-bracket-circle.locked {
+    stroke: var(--ds-resolved);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ds-resolved) 60%, transparent));
+}
+
+/* Crosshair alignment ticks */
+.ds-bracket-tick {
+    stroke: #8fa8bc;
+    fill: none;
+    transition: stroke 0.6s ease-out;
+}
+.ds-bracket-tick.locked {
+    stroke: var(--ds-resolved);
+}
+
+/* Bracket chevron paths (N/S/E/W) */
+.ds-bracket-chevron {
+    fill: none;
+    stroke: rgba(160, 185, 205, 0.6);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ds-lock) 40%, transparent));
+    transition: stroke 0.6s ease-out, filter 0.6s ease-out;
+}
+.ds-bracket-chevron.locked {
+    stroke: var(--ds-resolved);
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ds-resolved) 50%, transparent));
+}
+
+/* Shield / Armor / Hull segment blocks */
+.ds-hp-seg {
+    transition: fill 0.6s ease-out;
+}
+.ds-hp-shield { fill: #c8dadf; }
+.ds-hp-armor  { fill: #b5c8d4; }
+.ds-hp-hull   { fill: #9eb2c2; }
+.ds-hp-seg.locked {
+    fill: color-mix(in srgb, var(--ds-resolved) 75%, #9eb2c2);
+}
+.ds-hp-seg.ds-hp-shield.locked { fill: color-mix(in srgb, var(--ds-resolved) 75%, #c8dadf); }
+.ds-hp-seg.ds-hp-armor.locked  { fill: color-mix(in srgb, var(--ds-resolved) 75%, #b5c8d4); }
+
+/* Central blank region */
+.ds-bracket-center {
+    transition: fill 0.6s ease-out;
+}
+.ds-bracket-center.locked {
+    fill: rgba(8, 12, 16, 0.98);
+}
+
+/* EVE ship image in the center of the target */
+.ds-ship-img {
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ds-scan) 70%, transparent));
+    animation: dsShuttleBob 2s ease-in-out infinite;
+}
+@keyframes dsShuttleBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+}
+
+/* === Zoom effect on resolve === */
+#deepseek-reveal-mode.ds-zoom {
+    transform: scale(1.08);
+}
+
+/* === Winner display === */
+.ds-winner-display {
+    display: none;
+    background-color: rgba(8, 12, 16, 0.85);
+    color: var(--trig-yellow);
+    padding: 1.2vmin 3vmin;
+    border: 0.15vmin solid var(--trig-cyan);
+    border-radius: 4px;
+    font-size: clamp(16px, 2.4vmin, 32px);
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 21vmin));
+    transition: opacity 0.4s ease-out 0.2s, transform 0.4s ease-out 0.2s;
+    visibility: hidden;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 30;
+    min-width: 22vmin;
+    max-width: 75%;
+}
+.ds-winner-display.visible {
+    display: grid;
+    place-items: center;
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 21vmin));
+    visibility: visible;
+}
+
+/* When WARP DRIVE ACTIVATED shows, fade everything else out — keep only warp text */
+#deepseek-reveal-mode.ds-warp-active .ds-canvas,
+#deepseek-reveal-mode.ds-warp-active .ds-launcher,
+#deepseek-reveal-mode.ds-warp-active .ds-phase-text,
+#deepseek-reveal-mode.ds-warp-active .ds-scan-pct,
+#deepseek-reveal-mode.ds-warp-active .ds-lock-text,
+#deepseek-reveal-mode.ds-warp-active .ds-candidates,
+#deepseek-reveal-mode.ds-warp-active .ds-bracket-container,
+#deepseek-reveal-mode.ds-warp-active .ds-winner-display {
+    opacity: 0 !important;
+    transition: opacity 0.5s ease-out;
+}
+
+/* === END Deep Seek Mode === */
+
+/* ================================================================== */
+/* === JACKPOT MODE — Gold theme override                           === */
+/* ================================================================== */
+body.jackpot-mode {
+    --trig-cyan: #ffd700;
+    --trig-cyan-bright: #fff0a0;
+    --box-pulse-glow: rgba(255, 215, 0, 0.7);
+    --trig-conduit-node-border-color: #ffd700;
+    --trig-conduit-node-active-border-color: #fff0a0;
+    --trig-conduit-node-active-bg: #ffd700;
+    --trig-conduit-node-pulse-glow: #fff0a0;
+    --list-pointer-color: #ffd700;
+    --trig-code-winner-code-border-color: #ffd700;
+    --trig-code-participant-code-color: #ffd700;
+    --ds-scan: #ffd700;
+    --ds-scan-bright: #fff0a0;
+    --ds-lock: #ffd700;
+    --ds-resolved: #fff0a0;
+}
+
+/* Gold Deep Seek target bracket / lock text on jackpot */
+body.jackpot-mode .ds-lock-text {
+    color: var(--ds-lock);
+    text-shadow: 0 0 2vmin color-mix(in srgb, var(--ds-lock) 80%, transparent), 0 0 5vmin color-mix(in srgb, var(--ds-lock) 40%, transparent);
+}
+body.jackpot-mode .ds-bracket-circle,
+body.jackpot-mode .ds-bracket-chevron {
+    stroke: var(--ds-lock);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ds-lock) 60%, transparent));
+}
+body.jackpot-mode .ds-bracket-circle.locked,
+body.jackpot-mode .ds-bracket-chevron.locked {
+    stroke: var(--ds-resolved);
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ds-resolved) 60%, transparent));
+}
+body.jackpot-mode .ds-bracket-tick {
+    stroke: var(--ds-lock);
+}
+body.jackpot-mode .ds-bracket-tick.locked {
+    stroke: var(--ds-resolved);
+}
+body.jackpot-mode .ds-hp-seg.ds-hp-shield { fill: color-mix(in srgb, var(--ds-lock) 75%, #c8dadf); }
+body.jackpot-mode .ds-hp-seg.ds-hp-armor  { fill: color-mix(in srgb, var(--ds-lock) 75%, #b5c8d4); }
+body.jackpot-mode .ds-hp-seg.ds-hp-hull   { fill: color-mix(in srgb, var(--ds-lock) 75%, #9eb2c2); }
+
+/* Pulsing gold border on the main animation wrapper */
+@keyframes jackpotBorderPulse {
+    0%   { box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.4), inset 0 0 6px rgba(255, 215, 0, 0.1); }
+    50%  { box-shadow: 0 0 30px 6px rgba(255, 215, 0, 0.9), inset 0 0 14px rgba(255, 215, 0, 0.25); }
+    100% { box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.4), inset 0 0 6px rgba(255, 215, 0, 0.1); }
+}
+
+body.jackpot-mode #animation-container,
+body.jackpot-mode .animation-content {
+    animation: jackpotBorderPulse 1.8s ease-in-out infinite;
+}
+
+/* Gold text for all primary labels */
+body.jackpot-mode .nd-header-title,
+body.jackpot-mode .nd-status-phase,
+body.jackpot-mode .nd-col-letters,
+body.jackpot-mode .nd-col-status,
+body.jackpot-mode .winner-name-text,
+body.jackpot-mode .trig-box-char,
+body.jackpot-mode #list-winner-name,
+body.jackpot-mode #node-winner-name,
+body.jackpot-mode #trig-conduit-winner-name,
+body.jackpot-mode #neon-encrypted-letters,
+body.jackpot-mode .trig-code-box {
+    color: #ffd700 !important;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.9), 0 0 18px rgba(255, 180, 0, 0.6) !important;
+}
+
+/* Gold Neural Decode column borders */
+body.jackpot-mode .nd-column {
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5) !important;
+}
+
+/* Gold progress bar fill */
+body.jackpot-mode .nd-status-fill {
+    background: linear-gradient(90deg, rgba(200,140,0,.9), rgba(255,215,0,1)) !important;
+}
+
+/* Gold countdown ring stroke */
+body.jackpot-mode #countdown-progress {
+    stroke: #ffd700 !important;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+
+/* Gold countdown text */
+body.jackpot-mode #countdown-text {
+    color: #ffd700 !important;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.9) !important;
+}
+
+/* Jackpot banner shown above the animation */
+body.jackpot-mode #animation-container::before {
+    content: "🎰  JACKPOT DRAW  🎰";
+    display: block;
+    text-align: center;
+    font-family: 'Shentox-SemiBold', sans-serif;
+    font-size: clamp(14px, 2.8vmin, 36px);
+    letter-spacing: 0.25em;
+    color: #ffd700;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 1), 0 0 28px rgba(255, 180, 0, 0.7);
+    padding: 0.6em 0 0.3em;
+    animation: jackpotBorderPulse 1.2s ease-in-out infinite;
+}
+/* === END Jackpot Mode === */
+
+/* END style.css */

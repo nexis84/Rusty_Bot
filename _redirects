@@ -4,3 +4,6 @@
 /website-giveaway /website-giveaway.html 200
 /patchnotes.html /patchnotes 301
 /patchnotes /patchnotes/ 200
+/giveaway.html /giveaway 301
+/giveaway /giveaway.html 200
+/giveaway/ /giveaway.html 200

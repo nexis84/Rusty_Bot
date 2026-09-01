@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.ico">
+<title>Rustybot - now with extra carbon</title>
+<style>
+@font-face { font-family: 'Shentox-SemiBold'; src: url('assets/Shentox-SemiBold.ttf') format('truetype'); font-weight: 600; font-style: normal; }
+:root {
+  --bg-main: #0a0e14; --bg-panel: #121a24; --bg-input: #0d121a; --bg-log: #05070a;
+  --text-main: #cbd6e0; --text-accent: #5aa9e6; --text-dim: #5a6d82;
+  --border: #1e2e42; --btn-bg: #162131; --btn-hover: #1e344d; --btn-pressed: #0f1824;
+  --sel: #e8d900; --sel-text: #0a0e14; --red-bg: #c41e1e; --red-border: #e53935; --red-hover: #d32f2f;
+}
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--text-accent) var(--bg-input); }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--bg-main); color: var(--text-main);
+  font-family: "Consolas","Courier New",monospace; font-size: 14px;
+  display: flex; flex-direction: column; padding: 4px; gap: 4px; overflow: hidden;
+}
+.qt-label {
+  font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 13px;
+  color: var(--text-accent); text-transform: uppercase; padding-top: 2px; white-space: nowrap;
+}
+button {
+  font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 13px;
+  background: var(--btn-bg); color: var(--text-accent); border: 1px solid var(--border);
+  padding: 5px 9px; min-height: 24px; text-transform: uppercase; cursor: pointer;
+}
+button:hover:enabled { background: var(--btn-hover); border-color: var(--text-dim); }
+button:active:enabled { background: var(--btn-pressed); }
+button:disabled { background: var(--bg-main); color: var(--text-dim); border-color: var(--border); cursor: not-allowed; }
+#start-draw:disabled { background: #1a2332; color: #4a5a6e; border: 1px solid #24344a; }
+#start-draw.state-ready { background: #0a7a0a; color: #fff; border: 2px solid #1db31d; padding: 3px 7px; font-weight: bold; }
+#start-draw.state-ready:hover { background: #0e9e0e; }
+#start-draw.state-ready:active { background: #065a06; }
+#start-draw.state-idle { background: #1a2332; color: #4a5a6e; border: 1px solid #24344a; padding: 3px 7px; font-weight: bold; }
+#start-draw.state-idle:hover { background: #1e2e42; }
+#start-draw.state-idle:active { background: #132030; }
+#open-draw.state-open { background: var(--red-bg); color: #fff; border: 2px solid var(--red-border); padding: 3px 7px; font-weight: bold; }
+#open-draw.state-open:hover { background: var(--red-hover); }
+#open-draw.state-open:active { background: #8b1010; }
+#open-draw.state-closed { background: var(--red-bg); color: #fff; border: 2px solid var(--red-border); padding: 3px 7px; font-weight: bold; }
+#open-draw.state-closed:hover { background: var(--red-hover); }
+#open-draw.state-closed:active { background: #8b1010; }
+#open-draw:disabled { background: #1a2332; color: #4a5a6e; border: 1px solid #24344a; }
+button.state-red { background: var(--red-bg); color: #fff; border: 2px solid var(--red-border); font-weight: bold; }
+button.state-red:hover:enabled { background: var(--red-hover); }
+
+input[type=text] {
+  background: var(--bg-input); border: 1px solid var(--border); padding: 5px;
+  color: var(--text-accent); font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 13px;
+  outline: none; min-width: 0;
+}
+input[type=text]::placeholder { color: var(--text-dim); font-weight: 400; }
+input[type=text]:disabled { color: var(--text-dim); }
+.combo { position: relative; display: inline-flex; min-width: 0; }
+.combo::after {
+  content: '\25BE'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  color: var(--text-accent); font-size: 10px; pointer-events: none;
+}
+select {
+  appearance: none; -webkit-appearance: none; background: var(--bg-input); color: var(--text-accent);
+  border: 1px solid var(--border); padding: 4px 22px 4px 6px;
+  font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 13px;
+  outline: none; min-width: 6em; width: 100%;
+}
+select:disabled { color: var(--text-dim); }
+select option { background: var(--bg-input); color: var(--text-accent); }
+
+#top-row { flex: 0 0 auto; display: flex; gap: 6px; align-items: stretch; min-height: 48px; background: var(--bg-panel); border: 1px solid var(--border); padding: 2px; }
+#actions-panel { flex: 0 0 36%; display: flex; gap: 2px; padding: 0; align-items: stretch; }
+#actions-panel button { flex: 1 1 0; min-height: 26px; font-size: 10px; padding: 3px 4px; border-radius: 0; }
+#prize-panel { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; padding: 0; justify-content: center; min-width: 0; }
+.prize-row { display: flex; gap: 2px; align-items: stretch; min-width: 0; }
+.prize-row input { flex: 1 1 auto; min-height: 26px; }
+.prize-row .combo.prize-opt { flex: 2 1 0; min-width: 110px; }
+.prize-row .combo.prize-list-sel { flex: 0 0 120px; min-width: 80px; }
+.prize-row .combo.anim { flex: 0 0 140px; min-width: 100px; }
+.prize-row .combo.pmode { flex: 0 0 150px; min-width: 110px; }
+.prize-row .combo.plat { flex: 0 0 80px; min-width: 50px; }
+.prize-row button { flex: 1 1 0; font-size: 10px; padding: 3px 6px; min-height: 26px; border-radius: 0; }
+.prize-row button.state-red { flex: 1 1 0; }
+
+#main-row { flex: 1 1 auto; display: flex; gap: 0; min-height: 0; }
+#entrants-panel { flex: 0 0 340px; width: 340px; display: flex; flex-direction: column; gap: 3px; padding: 3px; min-height: 0; background: var(--bg-panel); border: 1px solid var(--border); }
+#conf-frame { min-height: 160px; flex: 1 1 auto; }
+#participant-list { flex: 1 1 auto; list-style: none; margin: 0; padding: 0; overflow-y: auto; background: var(--bg-input); border: 1px solid var(--border); min-height: 60px; }
+#participant-list li { display: flex; align-items: center; gap: 6px; padding: 5px 3px; font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-size: 15px; color: var(--text-main); }
+#participant-list li:hover { background: var(--btn-bg); }
+#participant-list li.filtered-out { display: none; }
+#participant-list li.chk { appearance: none; width: 13px; height: 13px; border: 1px solid var(--border); background: var(--bg-input); flex: 0 0 13px; cursor: pointer; position: relative; }
+#participant-list li input[type=checkbox] { width: 13px; height: 13px; border: 1px solid var(--border); background: var(--bg-input); flex: 0 0 13px; accent-color: var(--text-accent); cursor: pointer; }
+#participant-list li span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#remove-selected { flex: 0 0 auto; width: 100%; }
+
+#main-stack { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; overflow: hidden; }
+#info-panel { flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: hidden; transition: opacity 0.3s ease; }
+#anim-wrap { position: absolute; inset: 0; display: none; background: #05080a; }
+#anim-wrap.visible { display: block; }
+#anim-wrap iframe { width: 100%; height: 100%; border: 0; display: block; background: #05080a; }
+#anim-overlay { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.42s ease; }
+
+.prize-box-row { display: flex; gap: 4px; flex: 0 0 auto; align-items: stretch; }
+.prize-box-row .info-box:first-child { flex: 2.6 1 0; }
+.prize-box-row .info-box:last-child { flex: 1 1 0; }
+.info-box { border: 1px solid var(--border); background: var(--bg-panel); padding: 3px 6px 6px 6px; display: flex; flex-direction: column; gap: 2px; flex: 1; min-height: 56px; }
+#info-panel { gap: 4px; }
+#entry-box, #winner-box { padding: 4px 6px; }
+.info-box .info-label { font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 12px; color: var(--text-dim); text-transform: uppercase; padding-left: 5px; padding-top: 3px; }
+.info-box .info-value { font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 15px; color: var(--text-accent); text-transform: uppercase; padding-left: 5px; word-break: break-word; }
+.info-box .info-value.plain { text-transform: none; color: var(--text-main); font-weight: 400; }
+#entry-requirement { text-transform: none; }
+
+#conf-frame { border: 1px solid var(--border); background: var(--bg-panel); display: flex; flex-direction: column; gap: 6px; padding: 8px 5px 8px 8px; flex: 1 1 auto; min-height: 120px; overflow: hidden; }
+.conf-label { font-family: 'Shentox-SemiBold','Segoe UI',sans-serif; font-weight: 600; font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
+.tabs { display: flex; gap: 2px; }
+.tab-btn { border: 1px solid var(--border); border-bottom: none; padding: 5px 10px; font-weight: 600; text-transform: uppercase; background: var(--btn-bg); color: var(--text-accent); }
+.tab-btn.active { background: var(--bg-panel); }
+.tab-btn:hover:enabled { background: var(--btn-hover); }
+.tab-pane { flex: 1 1 auto; min-height: 0; overflow: hidden; display: none; flex-direction: column; }
+.tab-pane.active { display: flex; }
+#confirmation-log { flex: 1 1 auto; min-height: 60px; overflow-y: auto; background: var(--bg-log); border: 2px solid var(--btn-bg); padding: 10px; text-align: center; font-size: 13px; line-height: 1.6; }
+#confirmation-log p { margin: 4px 0; }
+#history-table-wrap, #leader-table-wrap { border: 1px solid var(--border); overflow: auto; flex: 1 1 auto; min-height: 60px; }
+table.hist { width: 100%; border-collapse: collapse; font-size: 11px; }
+table.hist th { background: var(--btn-bg); color: var(--text-accent); text-transform: uppercase; font-weight: 600; padding: 5px 7px; text-align: center; border: 1px solid var(--border); white-space: nowrap; font-size: 12px; }
+table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a; color: var(--text-main); font-size: 13px; }
+.leader-label-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex: 0 0 auto; }
+#leaderboard-tab { gap: 6px; }
+#status-bar { flex: 0 0 20px; height: 20px; background: var(--bg-input); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+#status-text { flex: 1 1 auto; font-weight: bold; font-size: 11px; color: var(--text-accent); text-transform: uppercase; padding-left: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.token-light { width: 12px; height: 12px; border-radius: 6px; background: #cc0000; border: 1px solid #222; flex: 0 0 auto; }
+.token-light.on { background: #00cc00; }
+.conn-light { color: #555555; font-size: 18px; font-weight: bold; line-height: 1; flex: 0 0 auto; }
+.conn-light.on-twitch { color: #9966ff; }
+#ign-button, #options-button { flex: 0 0 auto; }
+#ign-button { width: 120px; height: 26px; font-size: 13px; }
+#options-button { min-width: 90px; height: 26px; color: #c0c0ff; font-size: 12px; }
+#options-button:disabled { color: var(--text-dim); }
+::-webkit-scrollbar { width: 10px; height: 10px; background: var(--bg-input); border: 1px solid var(--border); }
+::-webkit-scrollbar-thumb { background: var(--text-accent); border-radius: 3px; min-height: 20px; }
+/* layout locked — handles disabled */
+@media (max-width: 900px) {
+  body { overflow: auto; height: auto; min-height: 100vh; }
+  #top-row { flex-direction: column; }
+  #actions-panel { flex: auto; flex-wrap: wrap; }
+  #actions-panel button { flex: 1 1 40%; }
+  #main-row { flex: none; flex-direction: column; }
+  #entrants-panel { width: 100%; max-height: 240px; }
+  #info-panel { min-height: 400px; }
+  #main-stack { min-height: 420px; }
+  #status-bar { flex-wrap: wrap; height: auto; min-height: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div id="top-row">
+  <div id="actions-panel">
+    <button id="open-draw" class="state-closed" title="Open the draw to collect entries">OPEN DRAW</button>
+    <button id="start-draw" class="state-idle" disabled title="Draw a winner from the current entrants">START DRAW</button>
+    <button id="abandon-draw" disabled title="Abandon the current draw">ABANDON DRAW</button>
+    <button id="purge-list" disabled title="Disabled in preview — ne_x_is must remain for IGN demo">PURGE LIST</button>
+  </div>
+  <div id="prize-panel">
+    <div class="prize-row">
+      <span class="qt-label">SET PRIZE:</span>
+      <input type="text" id="prize-input" value="1 Billion ISK" placeholder="Prize Name (Donator)" style="flex:1 1 200px;" disabled>
+      <input type="text" value="1" disabled style="flex:0 0 45px; text-align:center; background: var(--bg-input); border:1px solid var(--border); color:var(--text-accent); font-family:'Shentox-SemiBold';">
+      <span class="combo prize-list-sel" style="flex:0 0 140px;"><select id="prize-list-sel" disabled><option selected>Main</option></select></span>
+      <span class="combo prize-opt" style="display:none;"><select id="prize-options" disabled><option selected>1 Billion ISK</option></select></span>
+    </div>
+    <div class="prize-row">
+      <button disabled title="Only available in the desktop app">START POLL</button>
+      <button disabled title="Only available in the desktop app">SET</button>
+      <button id="set-open-btn" class="state-red" disabled title="Only available in the desktop app">SET / OPEN</button>
+      <button disabled title="Only available in the desktop app">NOTEPAD</button>
+      <button disabled title="Demo version — prize is preset">CLEAR PRIZE</button>
+      <span class="combo anim" style="flex:0 0 130px;"><select id="anim-type" disabled>
+        <option value="Random" selected>Random</option>
+        <option value="Triglavian Translation">Triglavian Translation</option>
+        <option value="Triglavian Code Reveal">Triglavian Code Reveal</option>
+        <option value="Neon Encrypted">Neon Encrypted</option>
+      </select></span>
+      <span class="combo pmode" style="flex:0 0 135px;"><select disabled><option selected>Streamer Choice</option></select></span>
+      <span class="combo plat" style="flex:0 0 70px;"><select disabled><option selected>All</option></select></span>
+    </div>
+  </div>
+</div>
+
+<div id="main-row">
+  <div id="entrants-panel">
+    <span class="qt-label" id="entries-count">ENTRIES: 0</span>
+    <input type="text" id="entry-search" placeholder="Search entries..." autocomplete="off">
+    <ul id="participant-list"></ul>
+    <button id="remove-selected" disabled title="Locked in preview — entries cannot be removed">REMOVE SELECTED</button>
+  </div>
+
+  <div id="main-stack">
+    <div id="info-panel">
+      <div class="prize-box-row">
+        <div class="info-box" id="current-box" style="min-height:88px;"><span class="info-label">CURRENT PRIZE &amp; DONATOR</span><span class="info-value" id="current-prize-display"></span></div>
+        <div class="info-box" id="previous-box" style="min-height:88px;"><span class="info-label">PREVIOUS PRIZE</span><span class="info-value" id="previous-prize-display"></span></div>
+      </div>
+      <div class="info-box" id="entry-box" style="min-height:36px;"><span class="info-label">ENTRY REQUIREMENT</span><span class="info-value plain" id="entry-requirement" style="color:#5aa9e6;">TYPE &nbsp;ANYTHING &nbsp;IN &nbsp;CHAT.</span></div>
+      <div class="info-box" id="winner-box" style="min-height:42px;"><span class="info-label">SELECTED WINNER</span><span class="info-value" id="selected-winner">---</span></div>
+
+      <div id="conf-frame">
+        <span class="conf-label">CONFIRMATION &amp; RESPONSE</span>
+        <div class="tabs"><button class="tab-btn active" data-tab="monitor">Monitor</button><button class="tab-btn" data-tab="leaderboard">Leaderboard</button></div>
+
+        <div class="tab-pane active" id="monitor-pane">
+          <div id="confirmation-log" style="background:#020408; border:1px solid #1e2e42;"></div>
+          <div style="display:flex; gap:4px; justify-content:flex-end; margin-top:6px;"><button id="clear-log">CLEAR</button><button id="copy-log">COPY</button></div>
+        </div>
+
+        <div class="tab-pane" id="leaderboard-pane">
+          <span class="qt-label" style="font-size:11px;">SESSION HISTORY</span>
+          <div id="history-table-wrap"><table class="hist" id="history-table"><thead><tr><th>Time</th><th>Winner</th><th>Prize</th></tr></thead><tbody id="history-body"></tbody></table></div>
+          <div class="leader-label-row">
+            <span class="qt-label" style="font-size:11px;">LEADERBOARD</span><span class="qt-label" style="font-size:10px;">Sort:</span>
+            <span class="combo"><select id="leaderboard-sort"><option value="wins">Most wins</option><option value="recent">Last win (newest)</option><option value="oldest">Last win (oldest)</option><option value="name">User A-Z</option></select></span>
+            <span style="flex:1"></span>
+          </div>
+          <div id="leader-table-wrap"><table class="hist" id="leaderboard-table"><thead><tr><th>User</th><th>Wins</th><th>Last Win</th></tr></thead><tbody id="leaderboard-body"></tbody></table></div>
+          <button id="clear-history" style="margin-top:4px;">CLEAR HISTORY</button>
+        </div>
+      </div>
+    </div>
+    <div id="anim-wrap"><iframe id="animation-frame" src="animation.html" title="Giveaway animation"></iframe></div>
+    <div id="anim-overlay"></div>
+  </div>
+</div>
+
+<div id="status-bar" style="background:#0a0e14; border-top:1px solid #1e2e42; padding:2px 8px;">
+  <span class="token-light on" title="Twitch token: valid" style="background:#1ee034; box-shadow:0 0 4px #1ee034;"></span>
+  <span class="token-light on" title="Kick token: valid" style="background:#1ee034; box-shadow:0 0 4px #1ee034;"></span>
+  <span class="token-light on" title="Velora token: valid" style="background:#1ee034; box-shadow:0 0 4px #1ee034;"></span>
+  <span id="status-text" style="color:#5aa9e6; font-size:10px;">CHANNEL: NE_X_IS</span>
+  <span style="flex:1"></span>
+  <span class="conn-light" title="Twitch: Connected" style="color:#7c3aed;">&#9679;</span>
+  <span class="conn-light" title="Kick: Connected" style="color:#1ee034;">&#9679;</span>
+  <span class="conn-light" title="Velora: Connected" style="color:#ffb700;">&#9679;</span>
+  <button id="ign-button" style="background:#ffb700; color:#000; border:none; font-weight:800; padding:3px 12px;" disabled title="Not available in preview">IGN GRABBER</button>
+  <button id="options-button" style="background:#2a3441; color:#cbd6e0; border:1px solid #3a4a5e;" disabled title="Not available in preview">OPTIONS</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const DEMO_POOL = [
+    'ne_x_is','Kaelen Vorr','Xyla Morvan','Draxis Veldane','Iliara Thessia','Raven Kestrel',
+    'Torvald Erikk','Sable Nyxen','Cassian Dral','Veyra Ostrin','Jorund Halvor',
+    'Mira Solthris','Dax Ferrowind','Elara Voss','Krylan Astor','Fiora Dellinth',
+    'Zeth Ardanis','Nyla Corvane','Bramwell Toth','Seren Vale','Oskar Reinholt',
+    'Livia Stranth','Corven Ashfall','Ysolde Ferren','Marek Talvane','Priya Zandros',
+    'Halcyon Drift','Vesper Kray','Ander Mortis','Tessa Corvyn','Lucan Delmare',
+    'Freya Aldrass','Nikolai Vrant','Yara Solenne','Emric Falst','Odessa Kyrr',
+    'Rhys Volkanter','Isolde Perrin','Garrick Thule','Anya Mirev','Dmitri Volkov'
+  ];
+  const DEMO_SAMPLE = 25;
+  const FIXED_WINNER = 'ne_x_is';
+  const State = { IDLE: 'IDLE', COLLECTING: 'COLLECTING', ANIMATING_WINNER: 'ANIMATING_WINNER', AWAITING_CONFIRMATION: 'AWAITING_CONFIRMATION' };
+
+  const SOUND_MAP = {
+    'animation_start': 'sounds/Hacking in progress.mp3',
+    'winner': 'sounds/Winner_Selected.wav',
+    'countdown': 'sounds/Countdown.wav',
+    'timer_high': 'sounds/Timer_Shield.mp3',
+    'timer_mid': 'sounds/Timer_Armor.mp3',
+    'timer_low': 'sounds/Timer_Hull.mp3',
+    'pod': 'sounds/Pod.mp3',
+    'notification': 'sounds/Notification.mp3',
+    'wheel_tick': 'sounds/wheel_tick.wav',
+    'verified': 'sounds/verified.wav',
+    'fail': 'sounds/Fail.wav'
+  };
+  const SOUND_VOL = {
+    'animation_start': 0.7, 'winner': 0.8, 'countdown': 1.0, 'timer_high': 1.0, 'timer_mid': 1.0, 'timer_low': 1.0,
+    'pod': 1.0, 'notification': 0.7, 'wheel_tick': 0.6, 'verified': 0.9, 'fail': 0.8
+  };
+
+  const $ = id => document.getElementById(id);
+  const infoPanel = $('info-panel');
+  const animWrap = $('anim-wrap');
+  const animOverlay = $('anim-overlay');
+  const iframe = $('animation-frame');
+  const entryList = $('participant-list');
+  const entriesCount = $('entries-count');
+  const searchInput = $('entry-search');
+  const animTypeSel = $('anim-type');
+  const openBtn = $('open-draw');
+  const drawBtn = $('start-draw');
+  const abandonBtn = $('abandon-draw');
+  const purgeBtn = $('purge-list');
+  const removeBtn = $('remove-selected');
+  const prizeDisplay = $('current-prize-display');
+  const prevDisplay = $('previous-prize-display');
+  const winnerDisplay = $('selected-winner');
+  const statusText = $('status-text');
+  const logEl = $('confirmation-log');
+  const historyBody = $('history-body');
+  const leaderBody = $('leaderboard-body');
+  const leaderSort = $('leaderboard-sort');
+
+  let participants = [];
+  let participantLower = new Set();
+  let iframeReady = false;
+  let pendingDraw = null;
+  let currentState = State.IDLE;
+  let lastWinner = null;
+  let currentPrize = '1 Billion ISK';
+  let currentDonator = '<NO DONATOR SET>';
+  let previousPrize = '1 Billion ISK';
+  let previousDonator = '<NO DONATOR SET>';
+  let sessionHistory = [];
+  let winCounts = new Map();
+  let lastWinTimes = new Map();
+  let audioUnlocked = false;
+  let countdownAudio = null;
+  let soundCache = new Map();
+  let confirmTimer = null;
+  const channel = 'NE_X_IS';
+  let debugExtra = () => {
+    try { return ' | Geometry: drawn'; } catch(e) { return ''; }
+  };
+
+  function fmtPrize(p, d) {
+    let html = "<div style='text-align:left'><span style='font-size:0.9em;color:#a0a0a0'>Prize:</span><br>" + esc(p);
+    if (d && d !== '<NO DONATOR SET>') html += "<br><br><span style='font-size:0.9em;color:#a0a0a0'>Donated by:</span><br>" + esc(d);
+    html += '</div>';
+    return html;
+  }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function nowHM() { const d = new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0'); }
+
+  // Minimal monitor sheet exactly like desktop screenshot (Image 2 ending): centred portrait + labels on black
+  function formatCharacterSheet(data) {
+    const charName = esc(data.name || 'N/A');
+    const corpName = esc(data.corporation_name || 'N/A');
+    const allianceName = data.alliance_name ? esc(data.alliance_name) : '';
+    const b64 = data.portrait_base64 || null;
+    const ctype = data.portrait_content_type || 'image/png';
+    const imgSize = 140;
+    let html = "<div style='text-align:center; padding:18px 0 6px 0;'>";
+    if (b64) {
+      html += "<img src='data:" + ctype + ";base64," + b64 + "' width='" + imgSize + "' height='" + imgSize + "' style='display:block;margin:0 auto 14px auto; border:1px solid #1e2e42; box-shadow:0 0 12px rgba(90,169,230,0.25);'>";
+    } else if (data.portrait_url) {
+      html += "<img src='" + esc(data.portrait_url) + "' width='" + imgSize + "' height='" + imgSize + "' style='display:block;margin:0 auto 14px auto; border:1px solid #1e2e42;'>";
+    } else {
+      html += "<div style='width:" + imgSize + "px;height:" + imgSize + "px;margin:0 auto 14px auto;background:#0a0e14;border:1px solid #1e2e42;display:flex;align-items:center;justify-content:center;color:#5aa9e6;'>No Portrait</div>";
+    }
+    // Labels match screenshot: cyan label, white/beige value, small caps
+    html += "<div style='font-size:11px;color:#5aa9e6;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;'><span style='color:#e67e22;margin-right:4px;'>\uD83D\uDE80</span> CHARACTER</div>";
+    html += "<div style='font-size:13px;color:#e8e0c8;margin-bottom:10px;font-weight:600;'>" + charName.toLowerCase() + "</div>";
+    html += "<div style='font-size:11px;color:#5aa9e6;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;'>\uD83C\uDFE2 CORPORATION</div>";
+    html += "<div style='font-size:13px;color:#e8e0c8;margin-bottom:10px;'>" + corpName + "</div>";
+    if (allianceName) {
+      html += "<div style='font-size:11px;color:#5aa9e6;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;'>\u2B50 ALLIANCE</div>";
+      html += "<div style='font-size:13px;color:#e8e0c8;margin-bottom:12px;'>" + allianceName + "</div>";
+    }
+    html += "<div style='font-size:11px;color:#5bd9a0;letter-spacing:1.5px;text-transform:uppercase;margin-top:10px;'><span style='margin-right:4px;'>\u2705</span> VERIFIED PILOT</div>";
+    html += "<div style='color:#2a3a4a; letter-spacing:3px; margin-top:10px; font-size:11px;'>-----------------</div>";
+    html += "</div>";
+    return html;
+  }
+
+  function setStatusRaw(msg) { statusText.textContent = 'CHANNEL: ' + channel + (msg ? '  •  ' + msg : ''); }
+  function logStatus(msg) {
+    const vital = true;
+    if (vital && logEl) appendLogRaw(esc(msg), false);
+    setStatusRaw(msg);
+  }
+  function appendLogRaw(htmlOrText, isHtml) {
+    if (!logEl) return;
+    const p = document.createElement('div');
+    p.style.margin = '4px 0';
+    if (isHtml) p.innerHTML = htmlOrText; else p.textContent = htmlOrText;
+    logEl.appendChild(p);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function appendLog(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function clearLog() { if (logEl) logEl.innerHTML = ''; }
+
+  function ensureAudioUnlocked() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try { iframe.contentWindow.postMessage('rusty:resume-audio','*'); } catch(e) {}
+  }
+  function getAudio(key) {
+    if (soundCache.has(key)) return soundCache.get(key);
+    const src = SOUND_MAP[key]; if (!src) return null;
+    const a = new Audio(); a.preload = 'auto'; a.src = src; a.volume = (SOUND_VOL[key] ?? 0.75) * 0.75;
+    soundCache.set(key, a); return a;
+  }
+  function playSound(key, opts) {
+    opts = opts || {};
+    const src = SOUND_MAP[key]; if (!src) return;
+    const a = getAudio(key); if (!a) return;
+    if (opts.stop) { try { a.pause(); a.currentTime = 0; if (countdownAudio === a) countdownAudio = null; } catch(e){} return; }
+    if (key === 'countdown') {
+      a.loop = true;
+      countdownAudio = a;
+    } else { a.loop = false; }
+    const vol = opts.vol != null ? opts.vol : ((SOUND_VOL[key] ?? 0.75) * 0.75);
+    a.volume = vol; a.currentTime = 0;
+    a.play().catch(()=>{ if (!audioUnlocked && src === SOUND_MAP['countdown']) { /* will retry on next gesture */ } });
+  }
+  function stopSound(key) { playSound(key, {stop:true}); }
+  function stopAllCountdown() {
+    stopSound('countdown'); stopSound('timer_high'); stopSound('timer_mid'); stopSound('timer_low');
+  }
+
+  window.rustyHost = {
+    onReady: function () {
+      iframeReady = true;
+      try { iframe.contentWindow.updateParticipantsJS(participants.slice()); } catch(e) {}
+      if (currentState === State.IDLE) setStatusRaw('Ready. | Channel: ' + channel);
+      if (pendingDraw) {
+        const d = pendingDraw; pendingDraw = null;
+        runDraw(d.winner, d.type);
+      }
+    },
+    onVisualsComplete: function (winner) {
+      const incoming = String(winner || '').trim();
+      const expected = String(lastWinner || '').trim();
+      if (currentState !== State.ANIMATING_WINNER || incoming.toLowerCase() !== expected.toLowerCase()) {
+        if (incoming.toLowerCase() !== expected.toLowerCase()) logStatus("Visual complete ignored: incoming='" + incoming + "' expected='" + expected + "'");
+        setState(State.IDLE);
+        return;
+      }
+      playSound('winner');
+      winnerDisplay.textContent = lastWinner;
+      appendLog('<div style="margin:8px 0">--- WINNER: ' + esc(lastWinner) + ' | Platform: Twitch | Prize: ' + esc(currentPrize) + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + esc(currentDonator) + ')' : '') + ' ---</div>');
+      logStatus('\u23f3 Waiting for ' + lastWinner + ' to confirm in chat...');
+      playSound('countdown');
+      setState(State.AWAITING_CONFIRMATION);
+      const delay = 2000 + Math.random()*2500;
+      confirmTimer = setTimeout(function () { autoConfirm(); }, delay);
+    },
+    onConfirmationExpired: function (winner) {
+      if (currentState !== State.AWAITING_CONFIRMATION) return;
+      if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+      stopAllCountdown();
+      try { playSound('pod', {vol:1.0}); } catch(e){}
+      appendLog('<div style="text-align:center;padding:20px 0"><div style="display:inline-block;background:linear-gradient(135deg,#2a0a0a,#3a1a1a);border:2px solid #ff6b6b;border-radius:12px;padding:16px 24px"><div style="font-size:18px;color:#ff6b6b;font-weight:bold">TIMEOUT CONFIRMED</div><div style="font-size:20px;color:#fff;font-weight:bold;margin-top:8px">' + esc(String(winner||lastWinner||'')) + '</div><div style="color:#ffc2c2;margin-top:6px">\u26a0\uFE0F Failed to confirm within time limit</div></div></div>');
+      logStatus(String(winner||lastWinner) + ' did not confirm — kept in list (preview).');
+      // removeWinner(winner||lastWinner); // preview: never auto-remove
+      addHistory(String(winner||lastWinner), currentPrize + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + currentDonator + ')' : ''));
+      if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) { try { iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){} }
+      setState(State.IDLE);
+    },
+    onPrizeRevealComplete: function () {},
+    onSound: function (key) {
+      if (!key) return;
+      if (String(key).indexOf('stop:') === 0) { stopSound(String(key).slice(5)); return; }
+      if (String(key).indexOf('play:') === 0) {
+        const rest = String(key).slice(5); const colon = rest.indexOf(':');
+        const k = colon >= 0 ? rest.slice(0, colon) : rest;
+        playSound(k); return;
+      }
+      if (key === 'countdown' || key === 'timer_high' || key === 'timer_mid' || key === 'timer_low' || key === 'notification' || key === 'wheel_tick' || key === 'verified' || key === 'deploy' || key === 'scan' || key === 'warp' || key === 'pod' || key === 'fail' || key === 'conduit_stable') {
+        playSound(key); return;
+      }
+      if (SOUND_MAP[key]) playSound(key);
+    }
+  };
+
+  function switchToAnimation() {
+    animWrap.classList.add('visible');
+    animOverlay.style.opacity = '0';
+    infoPanel.style.opacity = '0';
+    setTimeout(function () {
+      infoPanel.style.display = 'none';
+      animOverlay.style.display = 'none';
+    }, 320);
+  }
+  function switchToInfo() {
+    animOverlay.style.display = 'block';
+    animOverlay.style.opacity = '1';
+    infoPanel.style.display = '';
+    requestAnimationFrame(function () {
+      infoPanel.style.opacity = '1';
+      animOverlay.style.opacity = '0';
+      setTimeout(function () { animWrap.classList.remove('visible'); animOverlay.style.display = 'none'; }, 430);
+    });
+  }
+  infoPanel.style.transition = 'opacity 0.3s ease';
+  animOverlay.style.display = 'none';
+
+  function samplePool() {
+    const pool = DEMO_POOL.slice();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); const t = pool[i]; pool[i]=pool[j]; pool[j]=t; }
+    let sample = pool.slice(0, Math.min(DEMO_SAMPLE, pool.length));
+    if (!sample.some(function(n){ return String(n).toLowerCase() === FIXED_WINNER.toLowerCase(); })) {
+      sample[0] = FIXED_WINNER;
+    }
+    for (let i = sample.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); const t = sample[i]; sample[i]=sample[j]; sample[j]=t; }
+    return sample;
+  }
+
+  async function resolveNeXisESI() {
+    const name = FIXED_WINNER;
+    const overlayStart = Date.now();
+    // Mirror desktop: switch to animation panel and show CAPSULEER REGISTRY ACCESS overlay
+    try { if (typeof switchToAnimation === 'function') switchToAnimation(); } catch(e) {}
+    try { if (iframe.contentWindow && typeof iframe.contentWindow.showESILoadingOverlay === 'function') iframe.contentWindow.showESILoadingOverlay(name); } catch(e) {}
+    try {
+      const idRes = await fetch('https://esi.evetech.net/latest/universe/ids/?datasource=tranquility', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([name])
+      });
+      if (!idRes.ok) throw new Error('ids ' + idRes.status);
+      const idData = await idRes.json();
+      const charId = (idData.characters && idData.characters[0] && idData.characters[0].id) || 108115856;
+      const charRes = await fetch('https://esi.evetech.net/latest/characters/' + charId + '/?datasource=tranquility');
+      if (!charRes.ok) throw new Error('char ' + charRes.status);
+      const charData = await charRes.json();
+      const corpRes = await fetch('https://esi.evetech.net/latest/corporations/' + charData.corporation_id + '/?datasource=tranquility');
+      const corpData = corpRes.ok ? await corpRes.json() : { name: 'Nexis.', ticker: 'NXS.' };
+      let allianceName = null;
+      if (charData.alliance_id) {
+        try { const aRes = await fetch('https://esi.evetech.net/latest/alliances/' + charData.alliance_id + '/?datasource=tranquility'); if (aRes.ok) allianceName = (await aRes.json()).name; } catch(e) {}
+      }
+      if (!allianceName) allianceName = 'Dracarys.';
+      const portraitUrl = 'https://images.evetech.net/characters/' + charId + '/portrait?tenant=tranquility&size=512';
+      let b64 = null, ctype = 'image/jpeg';
+      try {
+        const pRes = await fetch(portraitUrl);
+        if (pRes.ok) {
+          const blob = await pRes.blob();
+          ctype = blob.type || 'image/jpeg';
+          b64 = await new Promise(function(resolve, reject){
+            const fr = new FileReader(); fr.onload = function(){ const s = String(fr.result); const comma = s.indexOf(','); resolve(comma>=0?s.slice(comma+1):s); }; fr.onerror = reject; fr.readAsDataURL(blob);
+          });
+        }
+      } catch(e) { console.warn('portrait fetch failed', e); }
+      const esiData = {
+        name: charData.name || name,
+        corporation_name: corpData.name || 'Nexis.',
+        corporation_ticker: corpData.ticker || 'NXS.',
+        alliance_name: allianceName,
+        portrait_base64: b64,
+        portrait_content_type: ctype,
+        id: charId
+      };
+      try {
+        const fw = iframe.contentWindow;
+        if (fw && typeof fw.handleESIDataUpdate === 'function') {
+          fw.handleESIDataUpdate(esiData);
+        } else {
+          const doc = fw && fw.document;
+          if (doc) {
+            const img = doc.getElementById('triglavian-winner-portrait') || doc.getElementById('trig-code-winner-portrait') || doc.getElementById('neon-winner-portrait');
+            const corp = doc.getElementById('triglavian-winner-corp') || doc.getElementById('trig-code-winner-corp') || doc.getElementById('neon-winner-corp');
+            const alli = doc.getElementById('triglavian-winner-alliance') || doc.getElementById('trig-code-winner-alliance') || doc.getElementById('neon-winner-alliance');
+            if (img && b64) { img.src = 'data:' + ctype + ';base64,' + b64; img.style.display = 'block'; }
+            else if (img) { img.src = portraitUrl; img.style.display = 'block'; }
+            if (corp) { corp.textContent = 'Corp: ' + (corpData.name || 'Nexis.'); corp.style.display = 'block'; }
+            if (alli) { alli.textContent = allianceName ? 'Alliance: ' + allianceName : ''; alli.style.display = allianceName ? 'block' : 'none'; }
+          }
+        }
+      } catch(e) { console.warn('handleESIDataUpdate failed', e); }
+      // Enforce min 3500ms overlay display like desktop _handle_esi_data_ready, then dismiss and switch back to info panel
+      const elapsedOverlay = Date.now() - overlayStart;
+      const minOverlay = 3500;
+      if (elapsedOverlay < minOverlay) await new Promise(r => setTimeout(r, minOverlay - elapsedOverlay));
+      try { if (iframe.contentWindow && typeof iframe.contentWindow.hideESILoadingOverlay === 'function') iframe.contentWindow.hideESILoadingOverlay(); } catch(e) {}
+      try { if (typeof switchToInfo === 'function') { setTimeout(function(){ switchToInfo(); }, 500); } } catch(e) {}
+
+      // Push portrait to animation panel (already done above), then mirror desktop: full character sheet in Monitor (minimal style like screenshot) - preview: no clipboard copy
+      try {
+        appendLog(formatCharacterSheet(esiData));
+      } catch(e) { console.warn('sheet append failed', e); }
+      return esiData;
+    } catch(e) {
+      console.warn('resolveNeXisESI failed', e);
+      try { if (iframe.contentWindow && typeof iframe.contentWindow.hideESILoadingOverlay === 'function') iframe.contentWindow.hideESILoadingOverlay(); } catch(_e) {}
+      try { if (typeof switchToInfo === 'function') setTimeout(function(){ switchToInfo(); }, 500); } catch(_e) {}
+      try { appendLog("<div style='color:#ff6b6b'>ESI lookup failed for " + esc(name) + ": " + esc(String(e.message||e)) + "</div>"); } catch(_e){}
+      return null;
+    }
+  }
+
+  function setState(newState) {
+    if (currentState === newState) return;
+    const old = currentState;
+    currentState = newState;
+    if (newState === State.IDLE) {
+      if (old === State.AWAITING_CONFIRMATION || old === State.ANIMATING_WINNER) {
+        if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+        stopAllCountdown();
+        try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
+      }
+      if (old !== State.IDLE) switchToInfo();
+    } else if (newState === State.COLLECTING) {
+      switchToInfo();
+    } else if (newState === State.ANIMATING_WINNER) {
+      switchToAnimation();
+    } else if (newState === State.AWAITING_CONFIRMATION) {
+    }
+    updateButtonStates();
+  }
+
+  function autoConfirm() {
+    if (currentState !== State.AWAITING_CONFIRMATION) return;
+    confirmTimer = null;
+    stopAllCountdown();
+    try {
+      const fw = iframe.contentWindow;
+      if (fw && typeof fw.stopCountdownPhase === 'function') fw.stopCountdownPhase(false);
+      else if (fw && fw.NetworkAnimation && typeof fw.NetworkAnimation.stopCountdownEffects === 'function') fw.NetworkAnimation.stopCountdownEffects(false);
+    } catch(e){}
+    if (String(lastWinner).toLowerCase() === FIXED_WINNER.toLowerCase()) {
+      // Desktop shows overlay, not monitor Resolving line — trigger ESI flow which will handle sheet after 3.5s
+      try { resolveNeXisESI(); } catch(e){}
+    }
+    logStatus(lastWinner + ' confirmed. Prize: ' + currentPrize);
+    setTimeout(function(){
+      const prizeForHistory = currentPrize;
+      if (!previousPrize) { previousPrize = prizeForHistory; previousDonator = currentDonator; prevDisplay.innerHTML = fmtPrize(currentPrize, currentDonator); }
+      // Preview: keep winner in entries so list never shrinks (requested)
+      // removeWinner(lastWinner);
+      addHistory(lastWinner, prizeForHistory + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + currentDonator + ')' : ''));
+      try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
+      setState(State.IDLE);
+    }, 2200);
+  }
+
+  function removeWinner(name) {
+    if (!name) return;
+    const low = String(name).toLowerCase();
+    const idx = participants.findIndex(function(n){ return String(n).toLowerCase() === low; });
+    if (idx >= 0) { participants.splice(idx, 1); participantLower.delete(low); }
+    try { iframe.contentWindow.updateParticipantsJS(participants.slice()); } catch(e){}
+    renderList();
+  }
+
+  function addHistory(winner, prize) {
+    const t = nowHM();
+    sessionHistory.unshift({time: t, winner: winner, prize: prize});
+    winCounts.set(winner, (winCounts.get(winner)||0)+1);
+    lastWinTimes.set(winner, new Date().toISOString());
+    updateHistoryUI();
+  }
+  function updateHistoryUI() {
+    historyBody.innerHTML = '';
+    for (const r of sessionHistory) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + esc(r.time) + '</td><td>' + esc(r.winner) + '</td><td>' + esc(r.prize) + '</td>';
+      historyBody.appendChild(tr);
+    }
+    const mode = leaderSort.value;
+    let entries = Array.from(winCounts.entries());
+    function getDt(u) { const s = lastWinTimes.get(u); if (!s) return null; try { return new Date(s); } catch(e){return null;} }
+    if (mode === 'recent') entries.sort(function(a,b){ const da=getDt(a[0]), db=getDt(b[0]); if(!da&&!db) return a[0].toLowerCase().localeCompare(b[0].toLowerCase()); if(!da) return 1; if(!db) return -1; return db - da; });
+    else if (mode === 'oldest') entries.sort(function(a,b){ const da=getDt(a[0]), db=getDt(b[0]); if(!da&&!db) return a[0].toLowerCase().localeCompare(b[0].toLowerCase()); if(!da) return 1; if(!db) return -1; return da - db; });
+    else if (mode === 'name') entries.sort(function(a,b){ return a[0].toLowerCase().localeCompare(b[0].toLowerCase()); });
+    else entries.sort(function(a,b){ if (b[1]!==a[1]) return b[1]-a[1]; return a[0].toLowerCase().localeCompare(b[0].toLowerCase()); });
+    leaderBody.innerHTML = '';
+    for (const uW of entries) {
+      const u = uW[0], w = uW[1];
+      const dt = getDt(u);
+      let lastStr = '---';
+      if (dt) { try { lastStr = dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}); } catch(e){ lastStr = t; } }
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + esc(u) + '</td><td>' + w + '</td><td>' + esc(lastStr) + '</td>';
+      leaderBody.appendChild(tr);
+    }
+  }
+
+  function renderList() {
+    const q = (searchInput.value || '').trim().toLowerCase();
+    const visibleCount = q ? participants.filter(function(n){ return String(n).toLowerCase().indexOf(q) !== -1; }).length : participants.length;
+    if (q) entriesCount.textContent = 'ENTRIES: ' + visibleCount + '/' + participants.length;
+    else entriesCount.textContent = 'ENTRIES: ' + participants.length;
+    entryList.innerHTML = '';
+    for (const name of participants) {
+      const low = String(name).toLowerCase();
+      if (q && low.indexOf(q) === -1) continue;
+      // also keep hidden ones in DOM as filtered-out for accurate count? simpler: only visible
+    }
+    for (const name of participants) {
+      const li = document.createElement('li');
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'chk';
+      cb.addEventListener('change', updateButtonStates);
+      const span = document.createElement('span'); span.textContent = name;
+      li.appendChild(cb); li.appendChild(span);
+      const low = String(name).toLowerCase();
+      if (q && low.indexOf(q) === -1) li.classList.add('filtered-out');
+      entryList.appendChild(li);
+    }
+    updateButtonStates();
+  }
+  searchInput.addEventListener('input', renderList);
+
+  function isBusy() { return currentState === State.ANIMATING_WINNER || currentState === State.AWAITING_CONFIRMATION; }
+  function isFinished() { return currentState === State.IDLE; }
+
+  function updateButtonStates() {
+    const hasParticipants = participants.length > 0;
+    const busy = isBusy();
+    const canPurge = false; // Preview: purge disabled to keep ne_x_is for IGN demo
+    const canOpenClose = !busy;
+    const finished = isFinished();
+    const canCloseSelect = hasParticipants && (currentState === State.COLLECTING || finished);
+    const canAbandon = busy;
+    const checked = Array.from(entryList.querySelectorAll('input[type=checkbox]')).some(function(c){ return c.checked; });
+    const canRemove = checked && (finished || currentState === State.COLLECTING);
+
+    openBtn.disabled = !canOpenClose;
+    if (currentState === State.COLLECTING) { openBtn.textContent = 'CLOSE DRAW'; openBtn.className = 'state-open'; }
+    else { openBtn.textContent = 'OPEN DRAW'; openBtn.className = 'state-closed'; }
+    if (openBtn.disabled) openBtn.className = '';
+
+    const startEnabled = canCloseSelect;
+    drawBtn.disabled = !startEnabled;
+    if (!startEnabled) drawBtn.className = '';
+    else if (currentState === State.COLLECTING && hasParticipants) drawBtn.className = 'state-ready';
+    else drawBtn.className = 'state-idle';
+
+    abandonBtn.disabled = !canAbandon;
+    purgeBtn.disabled = true; // hard-disabled in preview
+    removeBtn.disabled = true; // locked in preview — entries never removable
+    // animType locked to Random in preview
+    animTypeSel.disabled = true;
+    animTypeSel.style.color = 'var(--text-dim)';
+  }
+
+  function initPrizeDisplays() {
+    prizeDisplay.innerHTML = fmtPrize(currentPrize, currentDonator);
+    const prevText = previousPrize ? fmtPrize(previousPrize, previousDonator) : "<div style='text-align:left'><span style='font-size:0.9em;color:#a0a0a0'>Prize:</span><br>&lt;NO PRIZE SET&gt;</div>";
+    prevDisplay.innerHTML = prevText;
+    winnerDisplay.textContent = '---';
+  }
+  initPrizeDisplays();
+  setStatusRaw('');
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      const id = btn.getAttribute('data-tab');
+      const pane = document.getElementById(id === 'monitor' ? 'monitor-pane' : 'leaderboard-pane');
+      if (pane) pane.classList.add('active');
+    });
+  });
+  leaderSort.addEventListener('change', updateHistoryUI);
+  $('clear-history').addEventListener('click', function(){
+    sessionHistory = []; winCounts.clear(); lastWinTimes.clear(); updateHistoryUI();
+    logStatus('History and Leaderboard cleared.');
+  });
+  $('clear-log').addEventListener('click', clearLog);
+  $('copy-log').addEventListener('click', function(){
+    const text = logEl ? logEl.innerText : '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+  });
+
+  openBtn.addEventListener('click', function(){
+    ensureAudioUnlocked();
+    if (currentState === State.COLLECTING) {
+      setState(State.IDLE);
+      return;
+    }
+    if (participants.length === 0) {
+      const sample = samplePool();
+      participants = sample.slice();
+      participantLower = new Set(participants.map(function(n){ return String(n).toLowerCase(); }));
+      try { iframe.contentWindow.updateParticipantsJS(participants.slice()); } catch(e){}
+      renderList();
+    }
+    setState(State.COLLECTING);
+  });
+
+  drawBtn.addEventListener('click', function(){
+    if (drawBtn.disabled) return;
+    ensureAudioUnlocked();
+    // Preview start matches screenshot (<NO PRIZE SET>); auto-set to 1 Billion ISK on first draw so demo still showcases prize
+    if (currentPrize === '<NO PRIZE SET>') {
+      currentPrize = '1 Billion ISK';
+      currentDonator = '<NO DONATOR SET>';
+      prizeDisplay.innerHTML = fmtPrize(currentPrize, currentDonator);
+      document.getElementById('prize-input').value = currentPrize;
+    }
+    const wasCollecting = currentState === State.COLLECTING;
+    if (wasCollecting) {
+      clearLog();
+    } else {
+      clearLog();
+    }
+    if (participants.length === 0) return;
+    const virx = participants.find(function(n){ return String(n).toLowerCase() === FIXED_WINNER.toLowerCase(); });
+    lastWinner = virx ? virx : participants[Math.floor(Math.random()*participants.length)];
+    winnerDisplay.textContent = '--- PENDING ANIMATION ---';
+    setState(State.ANIMATING_WINNER);
+    playSound('animation_start');
+    const opts = { countdownDurationS: 5, isContinuation: false, trigRevealSpeed: 'Normal', trigCodeRevealSpeed: 'Normal' };
+    if (wasCollecting) {
+      setTimeout(function(){ doStartAnimation(lastWinner); }, 180);
+    } else {
+      doStartAnimation(lastWinner);
+    }
+    function doStartAnimation(winner) {
+      let animType = animTypeSel.value;
+      if (animType === 'Random') {
+        const pool = ['Triglavian Translation','Triglavian Code Reveal','Neon Encrypted'];
+        animType = pool[Math.floor(Math.random()*pool.length)];
+      }
+      if (!iframeReady) { pendingDraw = { winner: winner, type: animType }; return; }
+      try { iframe.contentWindow.updateParticipantsJS(participants.slice()); } catch(e){}
+      try {
+        iframe.contentWindow.postMessage('rusty:resume-audio','*');
+        iframe.contentWindow.startAnimation(winner, animType, opts);
+      } catch(e) {
+        console.error('startAnimation failed', e);
+        setState(State.IDLE);
+      }
+    }
+  });
+
+  abandonBtn.addEventListener('click', function(){
+    if (confirmTimer) { clearTimeout(confirmTimer); confirmTimer = null; }
+    stopAllCountdown();
+    try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
+    appendLog('<div>--- Draw Abandoned ---</div>');
+    logStatus('Draw abandoned for ' + (lastWinner || 'Unknown') + '. Ready for next action.');
+    winnerDisplay.textContent = '---';
+    setState(State.IDLE);
+  });
+
+  purgeBtn.addEventListener('click', function(){
+    // Preview: purge is disabled to preserve ne_x_is for IGN demo
+    return;
+  });
+
+  removeBtn.addEventListener('click', function(){
+    const checked = Array.from(entryList.querySelectorAll('input[type=checkbox]:checked'));
+    if (!checked.length) return;
+    const names = checked.map(function(c){ return c.parentElement.querySelector('span').textContent; });
+    let removed = 0;
+    for (const n of names) {
+      const low = String(n).toLowerCase();
+      const idx = participants.findIndex(function(p){ return String(p).toLowerCase() === low; });
+      if (idx >= 0) { participants.splice(idx,1); participantLower.delete(low); removed++; }
+    }
+    try { iframe.contentWindow.updateParticipantsJS(participants.slice()); } catch(e){}
+    if (removed) logStatus('Removed ' + removed + ' entr' + (removed===1?'y':'ies') + '.');
+    renderList();
+  });
+
+  animTypeSel.addEventListener('change', function(){
+    setStatusRaw('Animation: ' + animTypeSel.value);
+  });
+
+  document.addEventListener('pointerdown', function(){ ensureAudioUnlocked(); });
+
+  // Layout locked — baked geometry, no drag handles, localStorage is read-only
+  (function(){
+    try{
+      const raw=localStorage.getItem('rusty_preview_layout_v2')||localStorage.getItem('rusty_preview_layout_v1');
+      if(!raw) return;
+      const d=JSON.parse(raw);
+      const ep=document.getElementById('entrants-panel'), cf=document.getElementById('conf-frame'), ap=document.getElementById('actions-panel'), tr=document.getElementById('top-row'), cb=document.getElementById('current-box'), pb=document.getElementById('previous-box');
+      if(d.entrantsW && ep){ ep.style.flex='0 0 '+d.entrantsW+'px'; ep.style.width=d.entrantsW+'px'; }
+      if(d.monitorH && cf){ cf.style.flex='0 0 '+d.monitorH+'px'; cf.style.height=d.monitorH+'px'; cf.style.minHeight=d.monitorH+'px'; }
+      if(d.actionsPct && ap){ ap.style.flex='0 0 '+d.actionsPct+'%'; }
+      if(d.topH && tr){ tr.style.height=d.topH+'px'; tr.style.minHeight=d.topH+'px'; }
+      if(d.prizeSplit && cb && pb){ cb.style.flex=d.prizeSplit+' 1 0'; }
+      console.log('LAYOUT_LOCKED restored', d);
+    }catch(e){}
+    // Strip any legacy handles if present from older image
+    document.querySelectorAll('.resize-handle-v,.resize-handle-h').forEach(el=>el.remove());
+  })();
+
+  renderList();
+  updateButtonStates();
+
+  window.rustyHostDemo = { setState: setState, State: State };
+})();
+</script>
+</body>
+</html>
