@@ -613,7 +613,7 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
     updateButtonStates();
   }
 
-  function autoConfirm() {
+  async function autoConfirm() {
     if (currentState !== State.AWAITING_CONFIRMATION) return;
     confirmTimer = null;
     stopAllCountdown();
@@ -622,20 +622,20 @@ table.hist td { padding: 5px 7px; text-align: center; border: 1px solid #2a2a2a;
       if (fw && typeof fw.stopCountdownPhase === 'function') fw.stopCountdownPhase(false);
       else if (fw && fw.NetworkAnimation && typeof fw.NetworkAnimation.stopCountdownEffects === 'function') fw.NetworkAnimation.stopCountdownEffects(false);
     } catch(e){}
-    if (String(lastWinner).toLowerCase() === FIXED_WINNER.toLowerCase()) {
-      // Desktop shows overlay, not monitor Resolving line — trigger ESI flow which will handle sheet after 3.5s
-      try { resolveNeXisESI(); } catch(e){}
-    }
     logStatus(lastWinner + ' confirmed. Prize: ' + currentPrize);
-    setTimeout(function(){
-      const prizeForHistory = currentPrize;
-      if (!previousPrize) { previousPrize = prizeForHistory; previousDonator = currentDonator; prevDisplay.innerHTML = fmtPrize(currentPrize, currentDonator); }
-      // Preview: keep winner in entries so list never shrinks (requested)
-      // removeWinner(lastWinner);
-      addHistory(lastWinner, prizeForHistory + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + currentDonator + ')' : ''));
-      try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
-      setState(State.IDLE);
-    }, 2200);
+    // Reset only after IGN/ESI sheet is visible — keeps winner on screen, avoids zero-size grid race on next draw
+    if (String(lastWinner).toLowerCase() === FIXED_WINNER.toLowerCase()) {
+      try { await resolveNeXisESI(); } catch(e){}
+    } else {
+      await new Promise(function(r){ setTimeout(r, 800); });
+    }
+    const prizeForHistory = currentPrize;
+    if (!previousPrize) { previousPrize = prizeForHistory; previousDonator = currentDonator; prevDisplay.innerHTML = fmtPrize(currentPrize, currentDonator); }
+    // Preview: keep winner in entries so list never shrinks (requested)
+    // removeWinner(lastWinner);
+    addHistory(lastWinner, prizeForHistory + (currentDonator !== '<NO DONATOR SET>' ? ' (Donated by: ' + currentDonator + ')' : ''));
+    try { if (iframe.contentWindow && iframe.contentWindow.cancelAnimationAndCountdown) iframe.contentWindow.cancelAnimationAndCountdown(); } catch(e){}
+    setState(State.IDLE);
   }
 
   function removeWinner(name) {
