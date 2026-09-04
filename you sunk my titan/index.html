@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You Sunk My Titan — RustyBot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="style.css?v=1">
+<link rel="canonical" href="https://www.rustybot.co.uk/you%20sunk%20my%20titan/">
+<meta name="robots" content="index, follow">
+<link rel="icon" type="image/png" href="../rusty_bot.png">
+</head>
+<body>
+<div class="container">
+  <div class="breadcrumb">
+    <span class="breadcrumb-item"><a href="../">Home</a></span>
+    <span class="breadcrumb-item"><a href="./">You Sunk My Titan</a></span>
+  </div>
+
+  <header class="tool-header">
+    <img src="../rusty_bot.png" alt="RustyBot" class="logo">
+    <h1>You Sunk My <span>Titan</span></h1>
+    <p class="subtitle">EVE Online battleship — 10×10, mono-faction fleets, vs AI only. Scan with your frigate, doomsday with your titan.</p>
+  </header>
+
+  <p class="howto">
+    Pick a <strong>faction</strong> and <strong>difficulty</strong>, then <strong>place your fleet</strong> on the left board — click to place each ship (R = rotate, Randomise for auto). Then fire at Space on the right.
+    <strong>Frigate (2)</strong> has a 1× 3×3 <strong>Tactical Scan</strong> (reveal, no damage).
+    <strong>Titan (6)</strong> unlocks a 1× <strong>Doomsday</strong> full row/column strike after taking first damage.
+  </p>
+
+  <div class="pilot-bar">
+    <span id="pilotStatus" class="pilot-status">Playing as guest — scores won't save to leaderboard</span>
+    <button id="loginBtn" class="login-btn" type="button">Sign in with EVE</button>
+    <button id="logoutBtn" class="logout-btn hidden" type="button">Sign out</button>
+  </div>
+
+  <div class="faction-grid" id="factionGrid"></div>
+
+  <div class="diff-row" id="diffRow">
+    <button class="diff-btn active" data-diff="easy">Easy — Rookie</button>
+    <button class="diff-btn" data-diff="medium">Medium — Fleet Commander</button>
+    <button class="diff-btn" data-diff="hard">Hard — Drifter</button>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <span class="status-pill">Turn: <strong id="turnInfo">Setup</strong></span>
+    <span class="status-pill">Shots: <strong id="shotInfo">0</strong></span>
+    <span class="status-pill">Score: <strong id="scoreInfo">0</strong></span>
+  </div>
+
+  <div class="controls">
+    <button id="randomBtn" class="ctrl-btn" type="button">Randomise Fleet</button>
+    <button id="clearBtn" class="ctrl-btn" type="button">Clear Fleet</button>
+    <button id="rotateBtn" class="ctrl-btn" type="button" title="Toggle horizontal/vertical for next ship (R)">Rotate: <span id="rotateLabel">Horizontal</span></button>
+    <button id="scanBtn" class="ctrl-btn scan" type="button" title="Frigate Tactical Scan — 3×3 reveal, 1× per game">Scan (1×)</button>
+    <button id="doomBtn" class="ctrl-btn doom" type="button" title="Titan Doomsday — full row/col, unlocks after titan takes damage" disabled>Doomsday — Locked</button>
+    <button id="startBtn" class="ctrl-btn primary" type="button">Start Battle</button>
+    <button id="resetBtn" class="ctrl-btn" type="button">Reset</button>
+  </div>
+
+  <div class="boards">
+    <div class="board-wrap">
+      <div class="board-title">Your Fleet — Click to place (Setup) · AI fires here</div>
+      <div id="playerBoard" class="board"></div>
+      <div class="legend" id="playerLegend">Placement: placing <strong id="placingName">Titan</strong> (<span id="placingSize">6</span>) — click your board to place · R to rotate</div>
+      <div id="playerFleet" class="fleet"></div>
+    </div>
+    <div class="board-wrap">
+      <div class="board-title">Enemy Fleet in Space — Click to fire</div>
+      <div id="enemyBoard" class="board enemy"></div>
+      <div class="legend">Red = Hit · Dark = Miss · Gold outline = Scan hit</div>
+      <div id="enemyFleet" class="fleet"></div>
+    </div>
+  </div>
+
+  <div class="lb-section">
+    <button id="lbPanelBtn" class="lb-panel-btn" type="button">Leaderboards</button>
+    <div id="lbPanel" class="lb-panel hidden">
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-sort="efficiency">Top Efficiency</button>
+        <button class="lb-tab" data-sort="fastest">Fastest Victory</button>
+        <button class="lb-tab" data-sort="titans">Total Titans Sunk</button>
+      </div>
+      <div id="lbGuestNotice" class="howto" style="margin:8px 0 10px">Sign in with EVE to save scores — guest games are local only.</div>
+      <div id="lbList"><p class="lb-empty">Loading…</p></div>
+    </div>
+  </div>
+
+  <footer>
+    <p class="fineprint" style="margin-top:1rem;font-size:.85rem;color:#999">EVE Online and the EVE logo are registered trademarks of <a href="https://www.ccpgames.com" target="_blank" style="color:#fff">Fenris Creations</a>.</p>
+    <img class="partner-badge" src="../PartnerBadge2.png" alt="EVE Online Partner badge" style="width:110px;margin:12px auto;display:block;opacity:.95">
+  </footer>
+</div>
+
+<div id="resultOverlay" class="hidden"><div id="resultMsg"></div><div id="resultSub" style="color:var(--dim)"></div></div>
+
+<div id="gameOverOverlay" class="hidden">
+  <div class="go-box">
+    <h2 id="goTitle" class="go-title">BATTLE OVER</h2>
+    <div id="goSub" style="color:var(--dim);margin-bottom:12px"></div>
+    <div class="go-row"><span>Result</span><strong id="goResult">—</strong></div>
+    <div class="go-row"><span>Shots</span><strong id="goShots">0</strong></div>
+    <div class="go-row"><span>Turns</span><strong id="goTurns">0</strong></div>
+    <div class="go-row"><span>Difficulty</span><strong id="goDiff">—</strong></div>
+    <div class="go-row"><span>Score</span><strong id="goScore">0</strong></div>
+    <div id="goScoreStatus" style="margin-top:10px;font-size:.85rem;color:var(--dim)"></div>
+    <div class="go-actions">
+      <button id="goAgainBtn" class="ctrl-btn primary" type="button">Play Again</button>
+      <button id="goMenuBtn" class="ctrl-btn" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js?v=6"></script>
+</body>
+</html>
+
+
+
+
+
+
