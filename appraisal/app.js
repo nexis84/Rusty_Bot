@@ -415,14 +415,15 @@ function renderTable() {
         tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No items to display.</td></tr>`;
     }
 
-    const totals = window.__appraisalTotals || { buyTotal: 0, sellTotal: 0 };
     const mode = getActiveValueMode();
     const modeLabels = { buy: 'Buy', split: 'Split', sell: 'Sell' };
-    const activeTotal = mode === 'split' ? totals.splitTotal : (mode === 'sell' ? totals.sellTotal : totals.buyTotal);
+    const activeTotal = modeAdjustedTotal(); // rate-adjusted
+    const rate = getRate();
+    const rateLabel = rate !== 100 ? ` @ ${rate}%` : '';
     const foot = el('resultsFoot');
     foot.innerHTML = `
         <tr>
-            <td class="total-label" colspan="6">Grand Total (${modeLabels[mode] || 'Buy'})</td>
+            <td class="total-label" colspan="6">Grand Total (${modeLabels[mode] || 'Buy'}${rateLabel})</td>
             <td class="num active">${fmt(activeTotal)}</td>
         </tr>`;
 
@@ -432,6 +433,53 @@ function renderTable() {
 function getActiveValueMode() {
     const active = document.querySelector('.value-btn.active');
     return active ? active.dataset.value : 'buy';
+}
+
+// ---- Percentage rate (e.g. 90% buyback) ----
+function getRate() {
+    const input = document.getElementById('rateInput');
+    if (!input) return 100;
+    const n = parseFloat(input.value);
+    if (!isFinite(n)) return 100;
+    return Math.max(0, Math.min(200, n));
+}
+
+function setRate(rate) {
+    const input = document.getElementById('rateInput');
+    if (!input) return;
+    const n = parseFloat(rate);
+    input.value = isFinite(n) ? Math.max(0, Math.min(200, n)) : 100;
+}
+
+function adjustedTotals() {
+    const totals = window.__appraisalTotals || { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
+    const rate = getRate();
+    const mult = rate / 100;
+    return {
+        rate,
+        buy: (totals.buyTotal || 0) * mult,
+        sell: (totals.sellTotal || 0) * mult,
+        split: (totals.splitTotal || 0) * mult
+    };
+}
+
+function modeAdjustedTotal() {
+    const adj = adjustedTotals();
+    const mode = getActiveValueMode();
+    if (mode === 'sell') return adj.sell;
+    if (mode === 'split') return adj.split;
+    return adj.buy;
+}
+
+function updateRateDisplay() {
+    const adj = adjustedTotals();
+    const buyEl = document.getElementById('buyTotal');
+    const sellEl = document.getElementById('sellTotal');
+    const splitEl = document.getElementById('splitTotal');
+    if (buyEl) buyEl.textContent = fmt(adj.buy);
+    if (sellEl) sellEl.textContent = fmt(adj.sell);
+    if (splitEl) splitEl.textContent = fmt(adj.split);
+    renderTable();
 }
 
 function renderResults(items, prices, unmatched, region, hubName) {
@@ -488,10 +536,7 @@ function renderResults(items, prices, unmatched, region, hubName) {
     const defaultCol = mode === 'buy' ? 'buyTotal' : (mode === 'sell' ? 'sellTotal' : 'splitTotal');
     sortState = { col: defaultCol, dir: 'desc' };
 
-    // Summary cards
-    el('buyTotal').textContent = fmt(buyTotal);
-    el('sellTotal').textContent = fmt(sellTotal);
-    el('splitTotal').textContent = fmt(splitTotal);
+    // Summary cards (values adjusted for rate inside updateRateDisplay)
     el('lineCount').textContent = fmtInt(items.length);
     el('itemCountNote').textContent = `${pricedRows} of ${items.length} items priced`;
     el('splitNote').textContent = (buyTotal > 0 && sellTotal > 0) ? 'Midpoint between buy and sell' : 'Midpoint of available prices';
@@ -557,9 +602,7 @@ async function copyResults() {
         showMessage('Nothing to copy yet.', 'error');
         return;
     }
-    const totals = window.__appraisalTotals || { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
-    const mode = getActiveValueMode();
-    const text = `${fmt(modeTotal(totals, mode))} ISK`;
+    const text = `${fmt(modeAdjustedTotal())} ISK`; // rate-adjusted
 
     try {
         await navigator.clipboard.writeText(text);
@@ -599,8 +642,10 @@ async function buildShareLink() {
 
     const mode = getActiveValueMode();
     const region = window.__appraisalRegion;
+    const rate = getRate();
     const body = { items: lines.join('\n'), mode };
     if (region && region !== 'all') body.hub = region;
+    if (rate !== 100) body.rate = rate;
 
     try {
         const res = await fetch(API_BASE + '/appraisal/share', {
@@ -622,6 +667,7 @@ async function buildShareLink() {
     params.set('items', lines.join('\n'));
     params.set('mode', mode);
     if (region && region !== 'all') params.set('hub', region);
+    if (getRate() !== 100) params.set('rate', String(getRate()));
     const path = location.pathname.replace(/\/index\.html$/, '/');
     return `${location.origin}${path}#${params.toString()}`;
 }
@@ -846,6 +892,8 @@ function handleShareHash() {
         });
         updateToggle();
     }
+    const rate = params.get('rate');
+    if (rate !== null) setRate(rate);
     return true;
 }
 
@@ -873,6 +921,7 @@ async function resolveShortCode(code) {
                 });
                 updateToggle();
             }
+            if (data.rate !== undefined && data.rate !== null) setRate(data.rate);
             setTimeout(runAppraisal, 50);
         }
     } catch (e) {
@@ -919,6 +968,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.summary-card[data-value]').forEach(card => {
         card.addEventListener('click', () => setValueMode(card.dataset.value));
+    });
+
+    const rateInput = el('rateInput');
+    if (rateInput) {
+        rateInput.addEventListener('input', updateRateDisplay);
+        rateInput.addEventListener('change', updateRateDisplay);
+    }
+    document.querySelectorAll('.rate-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            setRate(btn.dataset.rate);
+            updateRateDisplay();
+        });
     });
 
     // Sortable headers
