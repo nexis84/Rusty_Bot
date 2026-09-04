@@ -550,6 +550,7 @@ function renderResults(items, prices, unmatched, region, hubName) {
     }
 
     updateToggle();
+    updateRateDisplay(); // populate Buy/Sell/Split cards (rate-adjusted)
 
     // Unmatched
     const umSection = el('unmatchedSection');
