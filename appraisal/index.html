@@ -6,11 +6,23 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>RustyAppraisal | EVE Online Item Appraisal | RustyBot</title>
-    <meta name="description" content="Paste a list of EVE Online items and instantly appraise their value at the major trade hubs. Check buy and sell prices across Jita, Amarr, Dodixie, Hek and Rens.">
-    <meta name="keywords" content="EVE Online, item appraisal, price check, Jita, Amarr, Dodixie, Hek, Rens, trade hubs, ISK, RustyBot">
+    <title>EVE Online Item Appraisal — Price Check Jita, Amarr, Dodixie, Hek, Rens | RustyAppraisal</title>
+    <meta name="description" content="Free EVE Online item appraisal tool. Paste your inventory and get instant ISK buy, sell and split prices from Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback-ready % rates, shareable links, no login needed.">
+    <meta name="keywords" content="EVE Online, eve appraisal, eve online item appraisal, janice alternative, eve price check, eve buyback appraisal, Jita, Amarr, Dodixie, Hek, Rens, trade hubs, ISK, RustyBot">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0f1420">
     <link rel="canonical" href="https://www.rustybot.co.uk/appraisal/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="RustyBot">
+    <meta property="og:url" content="https://www.rustybot.co.uk/appraisal/">
+    <meta property="og:title" content="RustyAppraisal — Free EVE Online Item Appraisal & Price Check">
+    <meta property="og:description" content="Paste items, get instant buy/sell/split ISK values from every major trade hub. Includes buyback % rates and shareable appraisal links.">
+    <meta property="og:image" content="https://www.rustybot.co.uk/rusty_bot.png">
+    <meta property="og:image:alt" content="RustyBot logo">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="RustyAppraisal — Free EVE Online Item Appraisal & Price Check">
+    <meta name="twitter:description" content="Instant ISK appraisal across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback % rates, shareable links, no login.">
+    <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
     <base href="/appraisal/">
     <link rel="stylesheet" href="style.css?v=4">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
@@ -42,6 +54,54 @@
         "@type": "Organization",
         "name": "RustyBot"
       }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do I appraise my EVE Online items?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Copy items from your EVE Online inventory or hangar (Ctrl+C), paste them into RustyAppraisal one per line, pick a trade hub and click Appraise. Accepted formats include '25 x Tritanium', 'Tritanium x 1,000' or just the item name."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which trade hubs are supported?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Jita (The Forge), Amarr (Domain), Dodixie (Sinq Laison), Hek (Metropolis), Rens (Heimatar) and C-J6MT (Catch) — individually or aggregated across all hubs at once."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the difference between Buy, Sell and Split value?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Buy value uses the highest buy orders (instant-sale value), Sell value uses the lowest sell orders (replacement cost), and Split value is the midpoint between the two — the standard basis for buyback programs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I apply a buyback percentage rate?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Set any percentage rate (for example 90%) and all totals update instantly, with quick presets for 90, 95 and 100 percent. The rate is included when you copy results or share the appraisal link."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is RustyAppraisal free? Do I need to log in?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, it is completely free with no login required. Prices are pulled live from CCP's official ESI API."
+          }
+        }
+      ]
     }
     </script>
     <script type="application/ld+json">
@@ -223,9 +283,11 @@
             <p>This free tool lets capsuleers paste a list of items from the EVE Online clipboard and instantly appraise their market value. Choose between the major trade hubs — <strong>Jita (The Forge)</strong>, <strong>Amarr (Domain)</strong>, <strong>Dodixie (Sinq Laison)</strong>, <strong>Hek (Metropolis)</strong> and <strong>Rens (Heimatar)</strong> — or get a combined appraisal across all five hubs.</p>
             <p>For every item you'll see the best buy order price (the highest price buyers are currently willing to pay) and the best sell order price (the lowest price sellers are asking). Totals are shown for both, so you can quickly value a hangar, a loot drop or a shopping list in ISK.</p>
             <p>Prices are pulled live from CCP's ESI API and cached briefly, so repeated appraisals are fast while staying up to date.</p>
+            <p>Looking for a single item instead? Browse live orders in the <a href="../market/">EVE Online Market Browser</a>, learn the game with our <a href="../guides/">EVE Online Guides</a>, or return to the <a href="../">RustyBot homepage</a> for more free tools.</p>
         </section>
 
         <footer class="main-footer">
+            <p class="footer-nav"><a href="../">Home</a> · <a href="../market/">Market Browser</a> · <a href="../guides/">Guides</a> · <a href="./">Item Appraisal</a></p>
             <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
             <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
             <p class="eve-time-display"><i class="far fa-clock"></i> EVE Time: <span id="eveClock">--:--:--</span></p>
