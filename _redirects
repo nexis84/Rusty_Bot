@@ -1,3 +1,9 @@
+# LEGACY — Render's static host ignores this file (it only honors render.yaml
+# `routes`, and file-exists-always-wins there). Canonical consolidation is
+# handled via <link rel=canonical> + sitemap instead. Kept as documentation
+# of URL intent only. Do NOT "fix" SEO here.
+# Intended convention: extensionless (/giveaway) + trailing slash for dirs.
+
 /index.html / 301
 /:path/index.html /:path/ 301
 /website-giveaway.html /website-giveaway 301
