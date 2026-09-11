@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-09-07",
+    "title": "Site Maintenance",
+    "raw": "all systems nominal"
+  },
+  {
     "date": "2026-09-04",
     "title": "Discord Shoutouts — Live Streamer Alerts",
     "raw": "**WHAT'S NEW**\n\n**Twitch Live Alerts in Discord**\n- The bot now watches your tracked EVE streamers and posts automatically when they go live: **{streamer} is now live playing {game}** + Twitch link.\n- Checks every 60 seconds using just 2 batched Twitch API calls for all 163 streamers.\n\n**New /shoutout Command** (Manage Server only, test server for now)\n- **/shoutout setup** — pick the announcement channel + seed the 163-streamer list. Optional role ping + per-streamer cooldown.\n- **/shoutout test** — post a test shoutout right now (real alert if live, labelled preview if offline).\n- **/shoutout add / remove / list** — manage who is tracked.\n- **/shoutout status** — channel, mention role, cooldown, tracked count.\n- **/shoutout disable** — pause alerts, keeps the list.\n\n**Spam Protection**\n- First check after a restart only seeds state — never spams old live streams.\n- 10-minute default cooldown per streamer stops flapping alerts.\n\n**COMING SOON**\n- Kick links alongside Twitch where available."
