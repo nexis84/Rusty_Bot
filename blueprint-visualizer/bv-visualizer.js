@@ -483,11 +483,20 @@ async function loadMySkills() {
 // ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
 const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
 // Loaded list state — the search box filters these rows locally, no refetch.
-let myBps = [], myBpNames = {};
+let myBps = [], myBpNames = {}, myLocNames = {};
+// Player structure IDs are 13+ digits; naming them needs esi-universe.read_structures.v1 (not in our scopes).
+const bpIsStructureId = id => +id >= 1000000000000;
+function bpLocName(b) {
+  if (myLocNames[b.location_id]) return myLocNames[b.location_id];
+  if (bpIsStructureId(b.location_id)) return 'Structure';
+  return null;
+}
 function bpRowHtml(b) {
   const tag = bpIsBPO(b) ? 'BPO' : ('BPC' + (b.runs > 0 ? ' ×' + b.runs : ''));
   const nm = myBpNames[b.type_id] || ('Type ' + b.type_id);
-  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button></div>';
+  const loc = bpLocName(b);
+  const locHtml = loc ? ' · <span class="nums">@ ' + loc + (b.location_flag ? ' (' + b.location_flag + ')' : '') + '</span>' : '';
+  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button></div>';
 }
 function bindBpLoadButtons(box) {
   box.querySelectorAll('[data-bp]').forEach(btn => btn.onclick = async () => {
@@ -503,7 +512,8 @@ function renderBpRows() {
   const rows = myBps.filter(b => {
     if (!q) return true;
     const nm = (myBpNames[b.type_id] || '').toLowerCase();
-    return nm.includes(q) || String(b.type_id).includes(q);
+    const loc = (bpLocName(b) || '').toLowerCase();
+    return nm.includes(q) || loc.includes(q) || String(b.type_id).includes(q);
   });
   const count = myBps.length && (q || rows.length !== myBps.length)
     ? '<p class="hint">Showing ' + rows.length + ' of ' + myBps.length + '</p>' : '';
@@ -541,12 +551,16 @@ async function loadBlueprints() {
     bps = bps.slice(0, 100);
     myBps = bps;
     renderBpRows();
-    // Batch-resolve type names in one ESI call, then re-render (keeps any search filter applied).
+    // Batch-resolve type + location names in one ESI call, then re-render (keeps any search filter applied).
     try {
-      const ids = [...new Set(bps.map(b => b.type_id))];
+      const ids = [...new Set(bps.map(b => b.type_id).concat(bps.map(b => b.location_id).filter(id => id && !bpIsStructureId(id))))];
       if (ids.length) {
         const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
-        (Array.isArray(nm) ? nm : []).forEach(n => { if (n && n.id && n.name) myBpNames[n.id] = n.name; });
+        (Array.isArray(nm) ? nm : []).forEach(n => {
+          if (!n || !n.id || !n.name) return;
+          if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
+          else myLocNames[n.id] = n.name;
+        });
         renderBpRows();
       }
     } catch {}
