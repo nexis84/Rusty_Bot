@@ -497,8 +497,11 @@ async function loadMySkills() {
     status('Skills loaded: Industry ' + (ind === null ? '—' : ind) + ', Adv Industry ' + (adv === null ? '—' : adv) + ' — hit Calculate.');
   } catch (e) { status('Skill load failed: ' + e.message); }
 }
-// ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
-const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
+// ESI (character + corp endpoints agree): runs === -1 marks an original;
+// a copy carries runs remaining (>= 0). quantity is -1 for an original and
+// -2 for a copy, so it must NOT be used the other way round — doing so hid
+// every BPC behind the BPO tag and emptied the "BPC only" filter.
+const bpIsBPO = b => b.runs === -1;
 // Loaded list state — the search box filters these rows locally, no refetch.
 // Location display is OFF for now (structure ACLs make it unreliable) — flip to true to re-enable.
 const BV_SHOW_LOCATIONS = false;
