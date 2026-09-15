@@ -609,15 +609,22 @@ async function loadBlueprints() {
         ? bps.map(b => b.type_id).concat(bps.map(b => b.location_id).filter(id => id && !bpIsStructureId(id)))
         : bps.map(b => b.type_id))];
       if (ids.length) {
-        const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
-        (Array.isArray(nm) ? nm : []).forEach(n => {
-          if (!n || !n.id || !n.name) return;
-          if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
-          else myLocNames[n.id] = n.name;
-        });
+        try {
+          const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
+          (Array.isArray(nm) ? nm : []).forEach(n => {
+            if (!n || !n.id || !n.name) return;
+            if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
+            else myLocNames[n.id] = n.name;
+          });
+        } catch (e) { console.warn('[BV] names batch failed, falling back to per-type lookup:', e && e.message); }
+        // Fill any gaps individually (ESI type endpoint + Everef fallback, cached) — never leave "Type X".
+        const missing = [...new Set(bps.map(b => b.type_id).filter(id => !myBpNames[id]))];
+        if (missing.length) {
+          await Promise.all(missing.map(async id => { try { myBpNames[id] = await typeName(id); } catch {} }));
+        }
         renderBpRows();
       }
-    } catch {}
+    } catch (e) { console.warn('[BV] name resolution failed:', e && e.message); }
     // Player structures need individual authed lookups (the names endpoint can't resolve them).
     // Denials are stamped for 1h — ESI caches its own 403s that long, so refetching sooner is useless.
     // Skipped entirely while BV_SHOW_LOCATIONS is off.
