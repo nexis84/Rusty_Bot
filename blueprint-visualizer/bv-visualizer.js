@@ -496,6 +496,20 @@ function bvTokenScopes() {
     return Array.isArray(s) ? s : String(s).split(' ');
   } catch { return []; }
 }
+// Structure name cache (7d) + denial stamps (1h, mirrors ESI's own error caching).
+function bvStructCacheRead() { try { return JSON.parse(localStorage.getItem('bvStructNames') || '{}'); } catch { return {}; } }
+function bvStructCacheWrite(c) { try { localStorage.setItem('bvStructNames', JSON.stringify(c)); } catch {} }
+function bvDeniedRead() { try { return JSON.parse(localStorage.getItem('bvStructDenied') || '{}'); } catch { return {}; } }
+function bvDeniedWrite(d) { try { localStorage.setItem('bvStructDenied', JSON.stringify(d)); } catch {} }
+function bvPrefillStructNames() {
+  try {
+    const sc = bvStructCacheRead(), now = Date.now(), kept = {};
+    for (const [id, e] of Object.entries(sc)) {
+      if (e && e.name && now - e.ts < 7 * 864e5) { myLocNames[id] = e.name; kept[id] = e; }
+    }
+    bvStructCacheWrite(kept);
+  } catch {}
+}
 function bpLocName(b) {
   if (myLocNames[b.location_id]) return myLocNames[b.location_id];
   // Unresolvable structure: show last digits so different structures stay distinguishable.
@@ -566,6 +580,7 @@ async function loadBlueprints() {
     bps = bps.slice(0, 100);
     myBps = bps;
     myStructScopeMissing = false; myStructNoAccess = false;
+    bvPrefillStructNames();
     renderBpRows();
     // Batch-resolve type + location names in one ESI call, then re-render (keeps any search filter applied).
     try {
@@ -581,22 +596,33 @@ async function loadBlueprints() {
       }
     } catch {}
     // Player structures need individual authed lookups (the names endpoint can't resolve them).
+    // Denials are stamped for 1h — ESI caches its own 403s that long, so refetching sooner is useless.
     try {
-      const structIds = [...new Set(bps.map(b => b.location_id).filter(id => id && bpIsStructureId(id) && !myLocNames[id]))];
+      const denied = bvDeniedRead(), now = Date.now();
+      const hasScope = bvTokenScopes().includes('esi-universe.read_structures.v1');
+      const structIds = [...new Set(bps.map(b => b.location_id).filter(id => {
+        if (!id || !bpIsStructureId(id) || myLocNames[id]) return false;
+        const d = denied[id];
+        if (d && now - d < 3600e3) { if (hasScope) myStructNoAccess = true; else myStructScopeMissing = true; return false; }
+        return true;
+      }))];
       if (structIds.length) {
         const got = await Promise.all(structIds.map(id =>
           BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility')
             .then(s => ({ id, name: s && s.name }))
             .catch(e => {
+              // 403 with the scope granted = no docking access (CCP hides these); without it = relog needed.
               if (/403/.test((e && e.message) || '')) {
-                // 403 with the scope granted = no docking access (CCP hides these); without it = relog needed.
-                if (bvTokenScopes().includes('esi-universe.read_structures.v1')) myStructNoAccess = true;
+                denied[id] = Date.now();
+                if (hasScope) myStructNoAccess = true;
                 else myStructScopeMissing = true;
               }
               return null;
             })
         ));
-        got.forEach(r => { if (r && r.name) myLocNames[r.id] = r.name; });
+        const sc = bvStructCacheRead();
+        got.forEach(r => { if (r && r.name) { myLocNames[r.id] = r.name; sc[r.id] = { name: r.name, ts: Date.now() }; delete denied[r.id]; } });
+        bvStructCacheWrite(sc); bvDeniedWrite(denied);
         renderBpRows();
       }
     } catch {}
