@@ -107,6 +107,11 @@ app.get('/api/pi/config', (req, res) => {
     res.json({ eve_client_id: process.env.EVE_PI_CLIENT_ID || null });
 });
 
+// Blueprint Visualizer config endpoint — returns the BV app's EVE SSO client ID
+app.get('/api/bv/config', (req, res) => {
+    res.json({ eve_client_id: process.env.EVE_BV_CLIENT_ID || null });
+});
+
 // EVE SSO login endpoint — generates a state nonce for CSRF protection
 app.get('/api/auth/eve/login', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
@@ -340,6 +345,92 @@ app.post('/api/pi/token-exchange', tokenExchangeLimiter, async (req, res) => {
         console.error('Server error during PI token exchange:', error);
         return res.status(500).json({
             error: 'Internal server error during PI token exchange'
+        });
+    }
+});
+
+// Blueprint Visualizer token exchange — uses the BV EVE SSO app credentials
+app.post('/api/bv/token-exchange', tokenExchangeLimiter, async (req, res) => {
+    const { code, refresh_token, grant_type } = req.body;
+
+    if (grant_type === 'refresh_token') {
+        if (!refresh_token) {
+            return res.status(400).json({ error: 'Missing required parameter: refresh_token' });
+        }
+    } else if (!code) {
+        return res.status(400).json({
+            error: 'Missing required parameter: code'
+        });
+    }
+
+    try {
+        const clientId = process.env.EVE_BV_CLIENT_ID;
+        const clientSecret = process.env.EVE_BV_CLIENT_SECRET;
+        if (!clientId || !clientSecret) {
+            console.error('BV token exchange blocked: EVE_BV_CLIENT_ID and EVE_BV_CLIENT_SECRET must be set in environment');
+            return res.status(500).json({ error: 'BV SSO not configured on server' });
+        }
+
+        const bodyParams = grant_type === 'refresh_token'
+            ? { 'grant_type': 'refresh_token', 'refresh_token': refresh_token }
+            : { 'grant_type': 'authorization_code', 'code': code };
+
+        const tokenResponse = await fetchWithTimeout('https://login.eveonline.com/v2/oauth/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + Buffer.from(
+                    clientId + ':' + clientSecret
+                ).toString('base64')
+            },
+            body: new URLSearchParams(bodyParams)
+        });
+
+        if (!tokenResponse.ok) {
+            const errorData = await tokenResponse.json().catch(() => ({}));
+            console.error('BV token exchange error:', errorData);
+            return res.status(400).json({
+                error: errorData.error_description || 'Token exchange failed'
+            });
+        }
+
+        const tokenData = await tokenResponse.json();
+
+        const decodedJWT = await verifyJWT(tokenData.access_token);
+
+        if (!decodedJWT || !decodedJWT.sub) {
+            return res.status(500).json({ error: 'Invalid access token' });
+        }
+
+        const characterId = decodedJWT.sub.split(':').pop();
+
+        let characterName = 'Unknown';
+        try {
+            const characterResponse = await fetchWithTimeout(
+                `https://esi.evetech.net/latest/characters/${characterId}/?datasource=tranquility`
+            );
+            if (characterResponse.ok) {
+                const characterData = await characterResponse.json();
+                characterName = characterData.name;
+            } else {
+                console.error('Failed to fetch character name from ESI:', characterResponse.status);
+            }
+        } catch (e) {
+            console.error('ESI character fetch failed:', e.message);
+        }
+
+        return res.status(200).json({
+            access_token: tokenData.access_token,
+            refresh_token: tokenData.refresh_token,
+            expires_in: tokenData.expires_in,
+            character_id: characterId,
+            character_name: characterName
+        });
+
+    } catch (error) {
+        console.error('Server error during BV token exchange:', error);
+        return res.status(500).json({
+            error: 'Internal server error during BV token exchange'
         });
     }
 });

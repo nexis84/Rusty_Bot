@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blueprint Visualizer — EVE Industry Calculator | RustyBot</title>
+<meta name="description" content="RustyBot Blueprint Visualizer — full Build/Buy manufacturing tree, structures, rigs, fees, live market pricing, My Blueprints SSO, invention and ledger.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.rustybot.co.uk/blueprint-visualizer/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="icon" type="image/png" href="../rusty_bot.png">
+<link rel="stylesheet" href="bv-style.css?v=1">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-1EELB9VSCK');</script>
+</head>
+<body>
+<div class="app">
+<header class="top-bar">
+  <div class="breadcrumb"><span><a href="../">Home</a></span><span>›</span><span><a href="./">Blueprint Visualizer</a></span></div>
+  <div class="logo-section"><img src="../rusty_bot.png" class="logo" alt="RustyBot"><h1>Blueprint <span class="accent">Visualizer</span></h1></div>
+  <button id="ssoBtn" class="toolbar-btn"><i class="fas fa-sign-in-alt"></i> Sign in with SSO</button>
+  <div class="region-selector"><label><i class="fas fa-map-marker-alt"></i> Market:</label><select id="hubSelect"></select></div>
+</header>
+<div class="main-container">
+<aside class="sidebar">
+  <div class="panel"><div class="tabs">
+    <button class="tab-btn active" data-tab="calc"><i class="fas fa-industry"></i> Calc</button>
+    <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
+    <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
+    <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
+    <button class="tab-btn" data-tab="mine"><i class="fas fa-gem"></i> Mine</button>
+  </div></div>
+
+  <div class="panel tab-content active" id="tab-calc">
+    <h3><i class="fas fa-industry"></i> Calculator</h3>
+    <div class="field suggest-wrap"><label>Blueprint name (e.g. Rifter Blueprint)</label><input id="bpName" class="form-input" placeholder="Type to search — e.g. dra…" autocomplete="off"><div id="bpSuggest" class="suggest hidden"></div></div>
+    <div class="grid2">
+      <div class="field"><label>Runs</label><input id="runs" type="number" min="1" value="1" class="form-input"></div>
+      <div class="field suggest-wrap"><label>System (index)</label><input id="systemName" class="form-input" value="Jita" placeholder="Type to search — e.g. Jit…" autocomplete="off"><div id="sysSuggest" class="suggest hidden"></div></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>ME % (max 10)</label><select id="me"></select></div>
+      <div class="field"><label>TE % (max 20)</label><select id="te"></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Industry 0-5</label><select id="indSkill"></select></div>
+      <div class="field"><label>Adv Industry 0-5</label><select id="advSkill"></select></div>
+    </div>
+    <div class="field"><label>Implant</label><select id="implant"></select></div>
+    <h4>Structure</h4>
+    <div class="field"><label>Structure</label><select id="structure"></select></div>
+    <div class="grid2">
+      <div class="field"><label>Rigs</label><select id="rigs"></select></div>
+      <div class="field"><label>Job tax %</label><input id="jobTax" type="number" step="0.1" value="3" class="form-input"></div>
+    </div>
+    <h4>Pricing</h4>
+    <div class="grid2">
+      <div class="field"><label>Basis</label><select id="basis"><option value="sell">Sell (Instant)</option><option value="buy">Buy Order</option></select></div>
+      <div class="field"><label>Reactions</label><select id="reactions"><option value="on">ON</option><option value="off">OFF</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>SCC %</label><input id="scc" type="number" step="0.1" value="4" class="form-input"></div>
+      <div class="field"><label>Sales tax %</label><input id="salesTax" type="number" step="0.1" value="8" class="form-input"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Broker %</label><input id="broker" type="number" step="0.1" value="3" class="form-input"></div>
+      <div class="field"><label>Mfg index %</label><input id="mfgIndex" type="number" step="0.1" value="4" class="form-input"></div>
+    </div>
+    <div class="field"><label>Tracked market (compare)</label><select id="tracked"></select></div>
+    <div class="field"><label>Production preset</label><select id="preset"><option value="">— Load saved preset —</option></select></div>
+    <div class="btn-row"><button id="calcBtn" class="calc-btn"><i class="fas fa-calculator"></i> Calculate</button><button id="resetBtn" class="calc-btn secondary">Reset</button></div>
+    <button id="savePreset" class="calc-btn secondary"><i class="fas fa-save"></i> Save current as preset</button>
+    <div class="field" style="margin-top:.6rem"><label>Screenshot OCR (auto-fill name/ME/TE/runs)</label><input id="shot" type="file" accept="image/*" class="form-input"><button id="pasteShot" class="calc-btn secondary">Paste from clipboard</button></div>
+    <div id="calcStatus" class="progress"></div>
+  </div>
+
+  <div class="panel tab-content" id="tab-bps">
+    <h3><i class="fas fa-scroll"></i> My Blueprints</h3>
+    <p class="hint">EVE SSO lists Personal / Corp BPOs + BPCs. Scan profit ranks them at current hub.</p>
+    <div class="field"><label>Source</label><select id="bpSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
+    <div class="field"><label>Type</label><select id="bpType"><option value="all">All (BPO + BPC)</option><option value="bpo">BPO only</option><option value="bpc">BPC only</option></select></div>
+    <button id="bpRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button>
+    <button id="bpScan" class="calc-btn secondary"><i class="fas fa-chart-line"></i> Scan profit</button>
+    <div id="bpList" style="margin-top:.6rem;font-size:.82rem"></div>
+  </div>
+
+  <div class="panel tab-content" id="tab-inv">
+    <h3><i class="fas fa-flask"></i> Invention</h3>
+    <p class="hint">Search the T2 item (e.g. Wolf). T1 source + base chance auto-resolve.</p>
+    <div class="field suggest-wrap"><label>T2 item to produce</label><input id="invSearch" class="form-input" placeholder="Type to search — e.g. Wol…" autocomplete="off"><div id="invSuggest" class="suggest hidden"></div></div>
+    <div class="field"><label>Target successful T2 BPCs</label><input id="invTarget" type="number" min="1" value="5" class="form-input"></div>
+    <button id="invGo" class="calc-btn"><i class="fas fa-flask"></i> Compare decryptors</button>
+    <div id="invOut" style="margin-top:.6rem;font-size:.82rem"></div>
+    <h4>Job queue</h4>
+    <div id="invQueue" style="font-size:.82rem;color:var(--text2)">Nothing queued yet.</div>
+    <button id="invQueueBom" class="calc-btn secondary">BOM for queued runs</button>
+  </div>
+
+  <div class="panel tab-content" id="tab-mine">
+    <h3><i class="fas fa-gem"></i> Mining plan</h3>
+    <p class="hint">Mark raw minerals with <b>Mine it</b> on the tree, then plan here. Yields are live SDE via Everef.</p>
+    <div class="field"><label>Mining ship (rate is approx — edit it)</label><select id="mineShip"></select></div>
+    <div class="grid2">
+      <div class="field"><label>Yield m³/min</label><input id="mineRate" type="number" min="1" value="450" class="form-input"></div>
+      <div class="field"><label>Reprocess %</label><input id="mineEff" type="number" min="1" max="100" value="75" class="form-input"></div>
+    </div>
+    <button id="mineGo" class="calc-btn"><i class="fas fa-gem"></i> Plan mining</button>
+    <div id="mineStatus" class="progress"></div>
+  </div>
+
+  <div class="panel tab-content" id="tab-ledger">
+    <h3><i class="fas fa-book"></i> Ledger</h3>
+    <p class="hint">Local log of calculations. Export CSV or copy a shareable link.</p>
+    <button id="ledgerExport" class="calc-btn"><i class="fas fa-download"></i> Export CSV</button>
+    <button id="ledgerClear" class="calc-btn secondary">Clear ledger</button>
+    <div id="ledgerList" style="margin-top:.6rem;font-size:.8rem"></div>
+  </div>
+</aside>
+
+<main class="main-content">
+  <div class="canvas-toolbar">
+    <span><i class="fas fa-eye"></i> View: Calculator tree + BOM</span>
+    <div class="legend"><span><span class="dot build"></span>Build</span><span><span class="dot buy"></span>Buy</span></div>
+  </div>
+  <div class="content-scroll">
+    <div class="hero-card" id="welcomeHero">
+      <img src="../rusty_bot.png" alt="RustyBot">
+      <h2>Blueprint <span class="accent">Visualizer</span></h2>
+      <p class="hint">Enter a blueprint on the left and hit Calculate. Every sub-component can be toggled Build vs Buy. Click <i class="fas fa-chart-line"></i> to price-check a single item on the Market page, or Appraise BOM for bulk.</p>
+      <div class="summary-grid" id="summaryGrid" style="display:none"></div>
+    </div>
+    <div id="crumbBar" class="crumb-bar hidden"></div>
+    <div id="treeWrap"></div>
+    <div class="panel" style="margin-top:.8rem">
+      <h3><i class="fas fa-list"></i> Bill of Materials <span id="bomMeta" class="pill" style="margin-left:.5rem"></span></h3>
+      <div class="btn-row" style="margin-bottom:.5rem">
+        <button id="copyMultibuy" class="calc-btn secondary">Copy multibuy</button>
+        <button id="appraiseBom" class="calc-btn secondary"><i class="fas fa-coins"></i> Appraise BOM</button>
+        <button id="appraiseOut" class="calc-btn secondary">Appraise output</button>
+        <button id="mineFromBom" class="calc-btn secondary"><i class="fas fa-gem"></i> Mine it</button>
+      </div>
+      <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th><th>Mode</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="6" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
+      <p class="hint" id="bomTotals" style="margin-top:.5rem"></p>
+    </div>
+    <div id="mineWrap"></div>
+    <footer class="legal">EVE Online and the EVE logo are registered trademarks of <a href="https://www.ccpgames.com" target="_blank" rel="noopener">Fenris Creations</a>. Unofficial fan tool, not affiliated. Data: EVE ESI.</footer>
+  </div>
+</main>
+</div>
+</div>
+<script src="../market/items_database.js?v=1"></script>
+<script src="../market/systems.js?v=1"></script>
+<script src="../PI/pi-data.js?v=1"></script>
+<script src="bv-data.js?v=2"></script>
+<script src="bv-esi-auth.js?v=2"></script>
+<script src="bv-visualizer.js?v=12"></script>
+</body>
+</html>

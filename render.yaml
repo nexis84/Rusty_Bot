@@ -18,6 +18,10 @@ services:
         sync: false
       - key: EVE_PI_CLIENT_SECRET
         sync: false
+      - key: EVE_BV_CLIENT_ID
+        sync: false
+      - key: EVE_BV_CLIENT_SECRET
+        sync: false
       - key: FRONTEND_URL
         sync: false
 
