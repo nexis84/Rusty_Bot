@@ -50,6 +50,13 @@ window.BV_DATA = {
     { id: 19, name: 'Spodumain' }, { id: 1223, name: 'Bistot' },
     { id: 22, name: 'Arkonor' }, { id: 11396, name: 'Mercoxit' }
   ],
+  // Ice ores by exact in-game name — IDs + yields resolve at runtime (ESI ids, Everef SDE),
+  // so isotopes / ozone / heavy water / strontium never need hardcoded type IDs.
+  iceOres: [
+    'Blue Ice', 'Clear Icicle', 'White Glaze', 'Glacial Mass',
+    'Thick Blue Ice', 'Enriched Clear Icicle', 'Pristine White Glaze', 'Smooth Glacial Mass',
+    'Dark Glitter', 'Gelidus', 'Glare Crust', 'Krystallos'
+  ],
   ships: [
     { id: 'venture', name: 'Venture (approx)', rate: 130 },
     { id: 'retriever', name: 'Retriever (approx)', rate: 450 },

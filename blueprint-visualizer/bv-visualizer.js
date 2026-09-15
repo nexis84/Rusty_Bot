@@ -35,9 +35,26 @@ function piIcon(typeId) {
   return '<a class="pi-link" target="_blank" rel="noopener" href="' + piURL(typeId) + '" title="View ' + piTier(typeId) + ' chain in PI Visualizer"><i class="fas fa-globe"></i></a>';
 }
 function isMineral(typeId) { try { return !!(D.minerals && D.minerals[typeId]); } catch { return false; } }
+// Ice products (isotopes, ozone, heavy water, strontium) resolve at runtime — see ensureIceProducts.
+const iceProductIds = new Set();
+let iceOreList = [], iceResolved = false;
+async function ensureIceProducts() {
+  if (iceResolved) return iceOreList;
+  iceResolved = true;
+  try {
+    const names = (D.iceOres && D.iceOres.length ? D.iceOres : []);
+    if (!names.length) return iceOreList;
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(names) });
+    const inv = Array.isArray(r) ? r : (r.inventory_types || []);
+    iceOreList = (await Promise.all(inv.map(e => fetchOre(e.id, e.name).catch(() => null)))).filter(Boolean);
+    for (const o of iceOreList) for (const mid of Object.keys(o.yields || {})) iceProductIds.add(+mid);
+  } catch {}
+  return iceOreList;
+}
+function isMineable(typeId) { try { if (isMineral(typeId)) return true; return iceProductIds.has(+typeId); } catch { return false; } }
 function mineIcon(typeId) {
-  if (!isMineral(typeId)) return '';
-  return '<a class="mine-link" data-mine="' + typeId + '" title="Show mining plan for ' + (D.minerals[typeId] || '') + '"><i class="fas fa-gem"></i></a>';
+  if (!isMineable(typeId)) return '';
+  return '<a class="mine-link" data-mine="' + typeId + '" title="Show mining plan for ' + (D.minerals[typeId] || 'ice product') + '"><i class="fas fa-gem"></i></a>';
 }
 function appraisalURL(lines, mode) {
   const p = new URLSearchParams(); p.set('items', lines.join('\n')); p.set('mode', mode || 'sell');
@@ -253,8 +270,8 @@ async function enrichChildren(runs) {
   const rxOn = S.reactionsOn;
   for (const c of S.root.children) {
     if (!c.child && !c._tried) {
-      // raw minerals and PI goods are never manufactured — don't waste lookups on them
-      if (isMineral(c.type_id) || isPI(c.type_id)) { c._tried = true; continue; }
+      // raw minerals, ice products and PI goods are never manufactured — don't waste lookups on them
+      if (isMineable(c.type_id) || isPI(c.type_id)) { c._tried = true; continue; }
       c._tried = true;
       const kid = await childBlueprint(c.type_id, c.name);
       if (kid) {
@@ -395,7 +412,7 @@ function renderTree(runs) {
     const nmHtml = c.child
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
-    h += '<div class="tree-node ' + c.mode + '"><div class="row1"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + (isMineral(c.type_id)
+    h += '<div class="tree-node ' + c.mode + '"><div class="row1"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + (isMineable(c.type_id)
       ? '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
       : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</div>' + rxKids + '</div>';
   });
@@ -800,28 +817,28 @@ function saveOreCache() {
     localStorage.setItem('bvOres', JSON.stringify({ ts: Date.now(), ores }));
   } catch {}
 }
-async function fetchOre(id) {
+async function fetchOre(id, nameHint) {
   if (oreCache.has(id)) return oreCache.get(id);
   const d = await fetchJSON('https://ref-data.everef.net/types/' + id);
   const yields = {};
   for (const [mid, m] of Object.entries(d.type_materials || {})) yields[mid] = m.quantity;
-  const o = { id, name: (D.ores.find(x => x.id === id) || {}).name || id, volume: d.volume || 0, portion: d.portion_size || 100, yields };
+  const o = { id, name: nameHint || (D.ores.find(x => x.id === id) || {}).name || id, volume: d.volume || 0, portion: d.portion_size || 100, yields };
   oreCache.set(id, o); saveOreCache(); return o;
 }
 function mineralNeeds() {
   const needs = {};
-  // 1) raw minerals explicitly marked "Mine it" (BOM lines carry the mode)
+  // 1) raw minerals / ice products explicitly marked "Mine it" (BOM lines carry the mode)
   for (const l of (S.bom || [])) {
-    if (!D.minerals[l.type_id]) continue;
+    if (!isMineable(l.type_id)) continue;
     if (l.mode !== 'mine') continue;
     needs[l.type_id] = (needs[l.type_id] || 0) + l.qty;
   }
-  // 2) minerals inside sub-components set to Build (BOM only shows one "(built)" line for these)
+  // 2) minerals / ice products inside sub-components set to Build (BOM only shows one "(built)" line for these)
   const runs = S.runs || 1;
   for (const c of ((S.root && S.root.children) || [])) {
     if (c.mode === 'build' && c.child && c.child.materials) {
       for (const m of c.child.materials) {
-        if (!D.minerals[m.type_id]) continue;
+        if (!isMineable(m.type_id)) continue;
         needs[m.type_id] = (needs[m.type_id] || 0) + (m.quantity || 0) * runs;
       }
     }
@@ -838,6 +855,7 @@ function fmtTime(mins) {
 async function planMining() {
   const box = $('mineWrap'), st = $('mineStatus');
   try {
+  await ensureIceProducts().catch(() => {});
   const needs = mineralNeeds();
   if (!S.root) {
     st.textContent = 'Run a calculation first.';
@@ -846,9 +864,9 @@ async function planMining() {
   }
   if (!Object.keys(needs).length) {
     const built = (S.root.children || []).filter(c => c.mode === 'build' && !c.child).map(c => c.name);
-    st.textContent = 'No mineable minerals in this build.';
+    st.textContent = 'No mineable materials in this build.';
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3>' +
-      '<p class="hint">Nothing marked for mining. Press <b>Mine it</b> on any raw mineral row above (or set a sub-component to Build to include its minerals), then press Plan mining again. ' +
+      '<p class="hint">Nothing marked for mining. Press <b>Mine it</b> on any raw mineral/ice row above (or set a sub-component to Build to include its minerals), then press Plan mining again. ' +
       (built.length ? 'These sub-components are set to Build but their contents are still resolving: ' + built.slice(0, 4).join(', ') + ' — wait a few seconds and retry.' : '') + '</p></div>';
     return;
   }
@@ -859,26 +877,29 @@ async function planMining() {
     st.textContent = phase;
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-spinner fa-spin"></i> Mining plan</h3><p class="hint">' + phase + '</p></div>';
   };
-  say('Loading ore yields (live SDE, cached for a week)…');
+  say('Loading ore + ice yields (live SDE, cached for a week)…');
   await new Promise(r => setTimeout(r, 30)); // let the spinner paint before the network storm
   const ores = (await Promise.all(D.ores.map(o => fetchOre(o.id).catch(() => null)))).filter(Boolean);
-  if (!ores.length) throw new Error('ore yield lookup failed (Everef unreachable)');
-  say('Pricing ' + Object.keys(needs).length + ' minerals @ ' + region + '…');
+  const sources = ores.concat(iceOreList || []);
+  if (!sources.length) throw new Error('ore yield lookup failed (Everef unreachable)');
+  say('Pricing ' + Object.keys(needs).length + ' materials @ ' + region + '…');
   await new Promise(r => setTimeout(r, 30));
   const minPrice = {};
   const priced = await Promise.all(Object.keys(needs).map(mid => marketPrice(+mid, region, 'sell').catch(() => null)));
   Object.keys(needs).forEach((mid, i) => { minPrice[mid] = priced[i] || 0; });
-  // per-mineral fastest ore (least m3 per mineral unit)
+  const needName = {};
+  await Promise.all(Object.keys(needs).map(async mid => { needName[mid] = D.minerals[mid] || await typeName(+mid); }));
+  // per-material fastest source (least m3 per unit needed)
   const perMin = [];
   for (const [mid, need] of Object.entries(needs)) {
     let best = null;
-    for (const o of ores) {
+    for (const o of sources) {
       const y = o.yields[mid]; if (!y) continue;
       const units = Math.ceil(need / (y * eff) / o.portion) * o.portion;
       const m3 = units * o.volume;
       if (!best || m3 < best.m3) best = { ore: o, units, m3, mins: m3 / rate };
     }
-    if (best) perMin.push({ mid, name: D.minerals[mid], need, ...best });
+    if (best) perMin.push({ mid, name: needName[mid], need, ...best });
   }
   // combined plan: merge the per-mineral fastest picks by ore so every mineral is covered
   const byOre = {};
@@ -890,15 +911,15 @@ async function planMining() {
   const totalM3 = merged.reduce((s, g) => s + g.m3, 0);
   const totalMins = merged.reduce((s, g) => s + g.mins, 0);
   const totalValue = Object.entries(needs).reduce((s, [mid, n]) => s + n * (minPrice[mid] || 0), 0);
-  let h = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan <span class="pill" style="margin-left:.5rem">' + fmtISK(totalValue) + ' of minerals</span></h3>';
+  let h = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan <span class="pill" style="margin-left:.5rem">' + fmtISK(totalValue) + ' of materials</span></h3>';
   h += '<p class="hint">Needs from current BOM · ' + rate + ' m³/min · reprocess ' + Math.round(eff * 100) + '% · prices ' + ((D.hubs.find(x => x.region === region) || {}).name || region) + '</p>';
-  h += '<h4>Mine this (covers ' + perMin.length + '/' + Object.keys(needs).length + ' minerals)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Ore</th><th>For</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
+  h += '<h4>Mine this (covers ' + perMin.length + '/' + Object.keys(needs).length + ' materials)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Source</th><th>For</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     merged.map(g => '<tr><td><b>' + g.ore.name + '</b></td><td>' + g.for.join(', ') + '</td><td>' + fmtN(g.units) + '</td><td>' + fmtN(Math.round(g.m3)) + ' m³</td><td>' + fmtTime(g.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(g.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>').join('') +
     '</tbody></table></div>';
   h += '<div class="summary-grid" style="margin-top:.6rem"><div class="summary-card"><div class="k">Total volume</div><div class="v">' + fmtN(Math.round(totalM3)) + ' m³</div></div>' +
     '<div class="summary-card"><div class="k">Total mining time</div><div class="v">' + fmtTime(totalMins) + '</div></div>' +
-    '<div class="summary-card"><div class="k">Mineral value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
-  h += '<h4 style="margin-top:.6rem">Fastest ore per mineral (detail)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Mineral</th><th>Need</th><th>Ore</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
+    '<div class="summary-card"><div class="k">Material value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
+  h += '<h4 style="margin-top:.6rem">Fastest source per material (detail)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     perMin.map(p => '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td>' + p.ore.name + '</td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>').join('') +
     '</tbody></table></div>';
   box.innerHTML = h + '</div>';
@@ -913,6 +934,8 @@ async function planMining() {
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
   init(); bindHandoffs(); initAutocomplete();
+  // Resolve ice products in the background so Mine-it tags show on isotopes/ozone/water/strontium.
+  ensureIceProducts().then(() => { if (S.root) { try { renderTree(S.runs || 1); renderBom(S.runs || 1); } catch {} } }).catch(() => {});
   $('calcBtn').onclick = calculate;
   $('bpName').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
   $('resetBtn').onclick = () => { ['bpName', 'runs', 'systemName'].forEach(k => $(k).value = k === 'runs' ? 1 : k === 'systemName' ? 'Jita' : ''); status(''); };
