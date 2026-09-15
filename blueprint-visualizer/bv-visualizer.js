@@ -483,7 +483,7 @@ async function loadMySkills() {
 // ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
 const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
 // Loaded list state — the search box filters these rows locally, no refetch.
-let myBps = [], myBpNames = {}, myLocNames = {};
+let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false;
 // Player structure IDs are 13+ digits; naming them needs esi-universe.read_structures.v1 (not in our scopes).
 const bpIsStructureId = id => +id >= 1000000000000;
 function bpLocName(b) {
@@ -517,7 +517,9 @@ function renderBpRows() {
   });
   const count = myBps.length && (q || rows.length !== myBps.length)
     ? '<p class="hint">Showing ' + rows.length + ' of ' + myBps.length + '</p>' : '';
-  box.innerHTML = count + (rows.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
+  const scopeHint = myStructScopeMissing
+    ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>' : '';
+  box.innerHTML = scopeHint + count + (rows.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
   bindBpLoadButtons(box);
 }
 async function loadBlueprints() {
@@ -550,6 +552,7 @@ async function loadBlueprints() {
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? isBPO(b) : !isBPO(b));
     bps = bps.slice(0, 100);
     myBps = bps;
+    myStructScopeMissing = false;
     renderBpRows();
     // Batch-resolve type + location names in one ESI call, then re-render (keeps any search filter applied).
     try {
@@ -561,6 +564,19 @@ async function loadBlueprints() {
           if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
           else myLocNames[n.id] = n.name;
         });
+        renderBpRows();
+      }
+    } catch {}
+    // Player structures need individual authed lookups (the names endpoint can't resolve them).
+    try {
+      const structIds = [...new Set(bps.map(b => b.location_id).filter(id => id && bpIsStructureId(id) && !myLocNames[id]))];
+      if (structIds.length) {
+        const got = await Promise.all(structIds.map(id =>
+          BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility')
+            .then(s => ({ id, name: s && s.name }))
+            .catch(e => { if (/403/.test((e && e.message) || '')) myStructScopeMissing = true; return null; })
+        ));
+        got.forEach(r => { if (r && r.name) myLocNames[r.id] = r.name; });
         renderBpRows();
       }
     } catch {}

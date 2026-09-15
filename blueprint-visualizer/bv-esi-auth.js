@@ -3,7 +3,7 @@
   const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
   const BASE = isLocal ? 'http://localhost:8080' : 'https://api.rustybot.co.uk';
   const REDIRECT = isLocal ? 'http://localhost:8080/blueprint-visualizer/sso-callback.html' : 'https://www.rustybot.co.uk/blueprint-visualizer/sso-callback.html';
-  const SCOPES = ['esi-characters.read_blueprints.v1', 'esi-corporations.read_blueprints.v1', 'esi-assets.read_assets.v1', 'esi-skills.read_skills.v1'];
+  const SCOPES = ['esi-characters.read_blueprints.v1', 'esi-corporations.read_blueprints.v1', 'esi-assets.read_assets.v1', 'esi-skills.read_skills.v1', 'esi-universe.read_structures.v1'];
   let clientId = null;
   async function getClientId() {
     if (clientId) return clientId;
