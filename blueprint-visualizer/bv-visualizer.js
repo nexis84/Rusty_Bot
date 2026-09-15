@@ -483,12 +483,23 @@ async function loadMySkills() {
 // ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
 const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
 // Loaded list state — the search box filters these rows locally, no refetch.
-let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false;
-// Player structure IDs are 13+ digits; naming them needs esi-universe.read_structures.v1 (not in our scopes).
+let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false, myStructNoAccess = false;
+// Player structure IDs are 13+ digits. Naming them needs esi-universe.read_structures.v1 AND
+// docking access — ESI 403s by design when the character isn't on the structure ACL.
 const bpIsStructureId = id => +id >= 1000000000000;
+function bvTokenScopes() {
+  try {
+    const t = window.BVAuth && BVAuth.tokens();
+    if (!t || !t.access_token) return [];
+    const p = JSON.parse(atob(t.access_token.split('.')[1]));
+    const s = p.scp || p.scope || [];
+    return Array.isArray(s) ? s : String(s).split(' ');
+  } catch { return []; }
+}
 function bpLocName(b) {
   if (myLocNames[b.location_id]) return myLocNames[b.location_id];
-  if (bpIsStructureId(b.location_id)) return 'Structure';
+  // Unresolvable structure: show last digits so different structures stay distinguishable.
+  if (bpIsStructureId(b.location_id)) return 'Structure …' + String(b.location_id).slice(-4);
   return null;
 }
 function bpRowHtml(b) {
@@ -518,7 +529,9 @@ function renderBpRows() {
   const count = myBps.length && (q || rows.length !== myBps.length)
     ? '<p class="hint">Showing ' + rows.length + ' of ' + myBps.length + '</p>' : '';
   const scopeHint = myStructScopeMissing
-    ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>' : '';
+    ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>'
+    : (myStructNoAccess
+      ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : '');
   box.innerHTML = scopeHint + count + (rows.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
   bindBpLoadButtons(box);
 }
@@ -552,7 +565,7 @@ async function loadBlueprints() {
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? isBPO(b) : !isBPO(b));
     bps = bps.slice(0, 100);
     myBps = bps;
-    myStructScopeMissing = false;
+    myStructScopeMissing = false; myStructNoAccess = false;
     renderBpRows();
     // Batch-resolve type + location names in one ESI call, then re-render (keeps any search filter applied).
     try {
@@ -574,7 +587,14 @@ async function loadBlueprints() {
         const got = await Promise.all(structIds.map(id =>
           BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility')
             .then(s => ({ id, name: s && s.name }))
-            .catch(e => { if (/403/.test((e && e.message) || '')) myStructScopeMissing = true; return null; })
+            .catch(e => {
+              if (/403/.test((e && e.message) || '')) {
+                // 403 with the scope granted = no docking access (CCP hides these); without it = relog needed.
+                if (bvTokenScopes().includes('esi-universe.read_structures.v1')) myStructNoAccess = true;
+                else myStructScopeMissing = true;
+              }
+              return null;
+            })
         ));
         got.forEach(r => { if (r && r.name) myLocNames[r.id] = r.name; });
         renderBpRows();
