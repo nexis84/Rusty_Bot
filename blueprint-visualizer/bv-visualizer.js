@@ -604,7 +604,20 @@ async function loadBlueprints() {
     if (src === 'corp') {
       const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
       if (!sheet || !sheet.corporation_id) throw new Error('No corporation found for this character.');
-      bps = await BVAuth.api('/corporations/' + sheet.corporation_id + '/blueprints/?datasource=tranquility');
+      // Page through like personal (ESI pages corp blueprints at 1000/page) —
+      // a single call silently drops everything past the first 1000.
+      try {
+        for (let pg = 1; pg <= 5; pg++) {
+          const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/blueprints/?datasource=tranquility&page=' + pg);
+          if (!Array.isArray(chunk) || !chunk.length) break;
+          bps = bps.concat(chunk);
+          if (chunk.length < 1000) break;
+        }
+      } catch (e) {
+        // Corp blueprints need the Director role — say so instead of a raw 403.
+        if (/403/.test((e && e.message) || '')) throw new Error('Corporation blueprints need the Director role on this character.');
+        throw e;
+      }
     } else {
       // Page through (ESI pages at 1000 entries) so big hangars aren't silently cut.
       for (let pg = 1; pg <= 5; pg++) {
