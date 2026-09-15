@@ -445,22 +445,50 @@ async function ocrFile(f) {
 
 // ---- My Blueprints ----
 function updateSsoBtn() { const b = $('ssoBtn'); const c = window.BVAuth && BVAuth.character(); const nm = c && (c.name || c.character_name || c.CharacterName); if (nm) b.innerHTML = '<i class="fas fa-user"></i> ' + nm; }
+// Shared null-safe character resolve (self-heals sessions stored before the char fix).
+async function resolveBvCharacter() {
+  if (!window.BVAuth || !BVAuth.signedIn()) return null;
+  let ch = null;
+  try { ch = BVAuth.character(); } catch { ch = null; }
+  if (!ch) {
+    try {
+      const t = BVAuth.tokens();
+      if (!t) return null;
+      const v = await (await fetch('https://login.eveonline.com/oauth/verify', { headers: { Authorization: 'Bearer ' + t.access_token } })).json();
+      if (v && v.CharacterID) { ch = { id: String(v.CharacterID), name: v.CharacterName || 'Unknown' }; try { localStorage.setItem('bv_esi_char', JSON.stringify(ch)); } catch {} }
+    } catch {}
+  }
+  return ch || null;
+}
+// ESI skill type IDs for the calculator's Industry / Advanced Industry selects.
+const SKILL_INDUSTRY = 3380, SKILL_ADV_INDUSTRY = 3388;
+async function loadMySkills() {
+  if (!window.BVAuth || !BVAuth.signedIn()) { status('Sign in with SSO first, then load skills.'); return; }
+  status('Loading industry skills from SSO…');
+  try {
+    const ch = await resolveBvCharacter();
+    if (!ch) { status('Signed in, but no character stored — Sign out and sign in again.'); return; }
+    const cid = ch.id || ch.character_id || ch.CharacterID;
+    if (!cid) { status('Signed in, but no character ID — Sign out and sign in again.'); return; }
+    const s = await BVAuth.api('/characters/' + cid + '/skills/?datasource=tranquility');
+    const list = (s && s.skills) || [];
+    const lvl = id => { const r = list.find(x => x.skill_id === id); return r ? Math.min(5, Math.max(0, r.active_skill_level || 0)) : null; };
+    const ind = lvl(SKILL_INDUSTRY), adv = lvl(SKILL_ADV_INDUSTRY);
+    if (ind === null && adv === null) { status('No Industry skills found on this character (both left at current values).'); return; }
+    if (ind !== null) $('indSkill').value = ind;
+    if (adv !== null) $('advSkill').value = adv;
+    status('Skills loaded: Industry ' + (ind === null ? '—' : ind) + ', Adv Industry ' + (adv === null ? '—' : adv) + ' — hit Calculate.');
+  } catch (e) { status('Skill load failed: ' + e.message); }
+}
 async function loadBlueprints() {
   const box = $('bpList');
   if (!window.BVAuth || !BVAuth.signedIn()) { box.innerHTML = '<p class="hint">Sign in with SSO first (needs backend /api/bv/*). Or type a blueprint name in Calc.</p>'; return; }
   box.textContent = 'Loading blueprints…';
   try {
-    let ch = BVAuth.character();
-    if (!ch) {
-      // Self-heal sessions stored before the character fix: resolve via EVE verify.
-      try {
-        const t = BVAuth.tokens();
-        const v = await (await fetch('https://login.eveonline.com/oauth/verify', { headers: { Authorization: 'Bearer ' + t.access_token } })).json();
-        if (v && v.CharacterID) { ch = { id: String(v.CharacterID), name: v.CharacterName || 'Unknown' }; try { localStorage.setItem('bv_esi_char', JSON.stringify(ch)); } catch {} }
-      } catch {}
-    }
+    const ch = await resolveBvCharacter();
     if (!ch) { box.innerHTML = '<p class="hint">Signed in, but no character stored — please Sign out (SSO button) and sign in again.</p>'; return; }
     const cid = ch.id || ch.character_id || ch.CharacterID;
+    if (!cid) { box.innerHTML = '<p class="hint">Signed in, but no character ID — please Sign out (SSO button) and sign in again.</p>'; return; }
     let bps = await BVAuth.api('/characters/' + cid + '/blueprints/?datasource=tranquility');
     const type = $('bpType').value;
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? b.quantity === -2 : b.quantity > 0);
@@ -767,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
+  if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
   $('mineShip').onchange = () => { const s = D.ships.find(x => x.id === $('mineShip').value); if (s && s.rate) $('mineRate').value = s.rate; };
   $('mineGo').onclick = planMining;
   $('mineFromBom').onclick = () => { planMining(); };
