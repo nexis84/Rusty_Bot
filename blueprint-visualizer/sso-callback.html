@@ -12,7 +12,10 @@
     if (!r.ok) throw new Error('exchange HTTP ' + r.status);
     const j = await r.json();
     localStorage.setItem('bv_esi_tokens', JSON.stringify({ access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in || 1200) * 1000 }));
-    if (j.character) localStorage.setItem('bv_esi_char', JSON.stringify(j.character));
+    // Backend returns character_id/character_name (flat); accept a nested j.character too.
+    const cid = j.character_id || (j.character && (j.character.id || j.character.character_id || j.character.CharacterID));
+    const cname = j.character_name || (j.character && (j.character.name || j.character.character_name || j.character.CharacterName)) || 'Unknown';
+    if (cid) localStorage.setItem('bv_esi_char', JSON.stringify({ id: String(cid), name: cname }));
   } catch (e) { document.body.textContent = 'SSO exchange failed: ' + e.message + ' (backend /api/bv/token-exchange required)'; return; }
   location.href = '../blueprint-visualizer/';
 })();

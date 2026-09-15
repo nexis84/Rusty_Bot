@@ -444,13 +444,23 @@ async function ocrFile(f) {
 }
 
 // ---- My Blueprints ----
-function updateSsoBtn() { const b = $('ssoBtn'); const c = window.BVAuth && BVAuth.character(); if (c && (c.name || c.CharacterName)) b.innerHTML = '<i class="fas fa-user"></i> ' + (c.name || c.CharacterName); }
+function updateSsoBtn() { const b = $('ssoBtn'); const c = window.BVAuth && BVAuth.character(); const nm = c && (c.name || c.character_name || c.CharacterName); if (nm) b.innerHTML = '<i class="fas fa-user"></i> ' + nm; }
 async function loadBlueprints() {
   const box = $('bpList');
   if (!window.BVAuth || !BVAuth.signedIn()) { box.innerHTML = '<p class="hint">Sign in with SSO first (needs backend /api/bv/*). Or type a blueprint name in Calc.</p>'; return; }
   box.textContent = 'Loading blueprints…';
   try {
-    const ch = BVAuth.character(); const cid = ch.id || ch.CharacterID;
+    let ch = BVAuth.character();
+    if (!ch) {
+      // Self-heal sessions stored before the character fix: resolve via EVE verify.
+      try {
+        const t = BVAuth.tokens();
+        const v = await (await fetch('https://login.eveonline.com/oauth/verify', { headers: { Authorization: 'Bearer ' + t.access_token } })).json();
+        if (v && v.CharacterID) { ch = { id: String(v.CharacterID), name: v.CharacterName || 'Unknown' }; try { localStorage.setItem('bv_esi_char', JSON.stringify(ch)); } catch {} }
+      } catch {}
+    }
+    if (!ch) { box.innerHTML = '<p class="hint">Signed in, but no character stored — please Sign out (SSO button) and sign in again.</p>'; return; }
+    const cid = ch.id || ch.character_id || ch.CharacterID;
     let bps = await BVAuth.api('/characters/' + cid + '/blueprints/?datasource=tranquility');
     const type = $('bpType').value;
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? b.quantity === -2 : b.quantity > 0);
