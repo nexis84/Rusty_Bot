@@ -483,6 +483,8 @@ async function loadMySkills() {
 // ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
 const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
 // Loaded list state — the search box filters these rows locally, no refetch.
+// Location display is OFF for now (structure ACLs make it unreliable) — flip to true to re-enable.
+const BV_SHOW_LOCATIONS = false;
 let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false, myStructNoAccess = false;
 // Player structure IDs are 13+ digits. Naming them needs esi-universe.read_structures.v1 AND
 // docking access — ESI 403s by design when the character isn't on the structure ACL.
@@ -519,7 +521,7 @@ function bpLocName(b) {
 function bpRowHtml(b) {
   const tag = bpIsBPO(b) ? 'BPO' : ('BPC' + (b.runs > 0 ? ' ×' + b.runs : ''));
   const nm = myBpNames[b.type_id] || ('Type ' + b.type_id);
-  const loc = bpLocName(b);
+  const loc = BV_SHOW_LOCATIONS ? bpLocName(b) : null;
   const locHtml = loc ? ' · <span class="nums">@ ' + loc + (b.location_flag ? ' (' + b.location_flag + ')' : '') + '</span>' : '';
   return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button></div>';
 }
@@ -537,15 +539,16 @@ function renderBpRows() {
   const rows = myBps.filter(b => {
     if (!q) return true;
     const nm = (myBpNames[b.type_id] || '').toLowerCase();
-    const loc = (bpLocName(b) || '').toLowerCase();
-    return nm.includes(q) || loc.includes(q) || String(b.type_id).includes(q);
+    const loc = (BV_SHOW_LOCATIONS && bpLocName(b)) || '';
+    return nm.includes(q) || loc.toLowerCase().includes(q) || String(b.type_id).includes(q);
   });
   const count = myBps.length && (q || rows.length !== myBps.length)
     ? '<p class="hint">Showing ' + rows.length + ' of ' + myBps.length + '</p>' : '';
-  const scopeHint = myStructScopeMissing
-    ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>'
-    : (myStructNoAccess
-      ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : '');
+  const scopeHint = !BV_SHOW_LOCATIONS ? ''
+    : (myStructScopeMissing
+      ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>'
+      : (myStructNoAccess
+        ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : ''));
   box.innerHTML = scopeHint + count + (rows.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
   bindBpLoadButtons(box);
 }
@@ -582,9 +585,12 @@ async function loadBlueprints() {
     myStructScopeMissing = false; myStructNoAccess = false;
     bvPrefillStructNames();
     renderBpRows();
-    // Batch-resolve type + location names in one ESI call, then re-render (keeps any search filter applied).
+    // Batch-resolve type names in one ESI call, then re-render (keeps any search filter applied).
+    // (Location IDs rejoin the batch when BV_SHOW_LOCATIONS is re-enabled.)
     try {
-      const ids = [...new Set(bps.map(b => b.type_id).concat(bps.map(b => b.location_id).filter(id => id && !bpIsStructureId(id))))];
+      const ids = [...new Set(BV_SHOW_LOCATIONS
+        ? bps.map(b => b.type_id).concat(bps.map(b => b.location_id).filter(id => id && !bpIsStructureId(id)))
+        : bps.map(b => b.type_id))];
       if (ids.length) {
         const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
         (Array.isArray(nm) ? nm : []).forEach(n => {
@@ -597,7 +603,9 @@ async function loadBlueprints() {
     } catch {}
     // Player structures need individual authed lookups (the names endpoint can't resolve them).
     // Denials are stamped for 1h — ESI caches its own 403s that long, so refetching sooner is useless.
+    // Skipped entirely while BV_SHOW_LOCATIONS is off.
     try {
+      if (!BV_SHOW_LOCATIONS) throw 'off';
       const denied = bvDeniedRead(), now = Date.now();
       const hasScope = bvTokenScopes().includes('esi-universe.read_structures.v1');
       const structIds = [...new Set(bps.map(b => b.location_id).filter(id => {
