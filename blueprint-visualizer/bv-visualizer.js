@@ -509,8 +509,12 @@ let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false, m
 // My Blueprints pager — the list used to be hard-capped at 100 rows, which
 // silently cut every BPC past the originals. Now the full hangar loads and
 // the UI pages through it.
-const MY_BP_PAGE_SIZE = 25;
-let myBpPage = 1;
+const MY_BP_PAGE_OPTIONS = [25, 75, 100];
+let myBpPageSize = 25, myBpPage = 1;
+try {
+  const saved = parseInt(localStorage.getItem('bvBpPageSize') || '', 10);
+  if (MY_BP_PAGE_OPTIONS.includes(saved)) myBpPageSize = saved;
+} catch {}
 function filteredBpRows() {
   const q = (($('bpSearch') && $('bpSearch').value) || '').trim().toLowerCase();
   return myBps.filter(b => {
@@ -574,11 +578,13 @@ function bindBpLoadButtons(box) {
 function renderBpRows() {
   const box = $('bpList'); if (!box) return;
   const rows = filteredBpRows();
-  const pages = Math.max(1, Math.ceil(rows.length / MY_BP_PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(rows.length / myBpPageSize));
   if (myBpPage > pages) myBpPage = pages;
-  const start = (myBpPage - 1) * MY_BP_PAGE_SIZE;
-  const page = rows.slice(start, start + MY_BP_PAGE_SIZE);
-  const range = rows.length ? ('Showing ' + (start + 1) + '–' + (start + page.length) + ' of ' + rows.length + (rows.length !== myBps.length ? ' (filtered from ' + myBps.length + ')' : '')) : '';
+  const start = (myBpPage - 1) * myBpPageSize;
+  const page = rows.slice(start, start + myBpPageSize);
+  const sizeOpts = MY_BP_PAGE_OPTIONS.map(n => '<option value="' + n + '"' + (n === myBpPageSize ? ' selected' : '') + '>' + n + '</option>').join('');
+  const sizeSel = rows.length ? ' · per page <select data-pgsize style="width:auto;display:inline-block;padding:2px 6px">' + sizeOpts + '</select>' : '';
+  const range = rows.length ? ('Showing ' + (start + 1) + '–' + (start + page.length) + ' of ' + rows.length + (rows.length !== myBps.length ? ' (filtered from ' + myBps.length + ')' : '') + sizeSel) : '';
   const count = myBps.length ? '<p class="hint">' + (range || 'No blueprints.') + '</p>' : '';
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-pg="prev"' + (myBpPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + myBpPage + ' of ' + pages + '</span><button class="mode-btn" data-pg="next"' + (myBpPage >= pages ? ' disabled' : '') + '>Next ›</button></div>'
@@ -590,6 +596,16 @@ function renderBpRows() {
         ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : ''));
   box.innerHTML = scopeHint + count + pager + (page.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
   box.querySelectorAll('[data-pg]').forEach(btn => btn.onclick = () => setBpPage(myBpPage + (btn.dataset.pg === 'next' ? 1 : -1), pages));
+  const sel = box.querySelector('[data-pgsize]');
+  if (sel) sel.onchange = () => {
+    const n = parseInt(sel.value, 10);
+    if (MY_BP_PAGE_OPTIONS.includes(n)) {
+      myBpPageSize = n;
+      try { localStorage.setItem('bvBpPageSize', String(n)); } catch {}
+    }
+    myBpPage = 1;
+    renderBpRows();
+  };
   bindBpLoadButtons(box);
 }
 async function loadBlueprints() {
