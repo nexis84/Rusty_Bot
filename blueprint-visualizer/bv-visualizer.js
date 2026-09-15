@@ -503,6 +503,24 @@ const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
 // Location display is OFF for now (structure ACLs make it unreliable) — flip to true to re-enable.
 const BV_SHOW_LOCATIONS = false;
 let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false, myStructNoAccess = false;
+// My Blueprints pager — the list used to be hard-capped at 100 rows, which
+// silently cut every BPC past the originals. Now the full hangar loads and
+// the UI pages through it.
+const MY_BP_PAGE_SIZE = 25;
+let myBpPage = 1;
+function filteredBpRows() {
+  const q = (($('bpSearch') && $('bpSearch').value) || '').trim().toLowerCase();
+  return myBps.filter(b => {
+    if (!q) return true;
+    const nm = (myBpNames[b.type_id] || '').toLowerCase();
+    const loc = (BV_SHOW_LOCATIONS && bpLocName(b)) || '';
+    return nm.includes(q) || loc.toLowerCase().includes(q) || String(b.type_id).includes(q);
+  });
+}
+function setBpPage(pg, pages) {
+  myBpPage = Math.min(Math.max(1, pg), Math.max(1, pages));
+  renderBpRows();
+}
 // Player structure IDs are 13+ digits. Naming them needs esi-universe.read_structures.v1 AND
 // docking access — ESI 403s by design when the character isn't on the structure ACL.
 const bpIsStructureId = id => +id >= 1000000000000;
@@ -552,21 +570,23 @@ function bindBpLoadButtons(box) {
 }
 function renderBpRows() {
   const box = $('bpList'); if (!box) return;
-  const q = (($('bpSearch') && $('bpSearch').value) || '').trim().toLowerCase();
-  const rows = myBps.filter(b => {
-    if (!q) return true;
-    const nm = (myBpNames[b.type_id] || '').toLowerCase();
-    const loc = (BV_SHOW_LOCATIONS && bpLocName(b)) || '';
-    return nm.includes(q) || loc.toLowerCase().includes(q) || String(b.type_id).includes(q);
-  });
-  const count = myBps.length && (q || rows.length !== myBps.length)
-    ? '<p class="hint">Showing ' + rows.length + ' of ' + myBps.length + '</p>' : '';
+  const rows = filteredBpRows();
+  const pages = Math.max(1, Math.ceil(rows.length / MY_BP_PAGE_SIZE));
+  if (myBpPage > pages) myBpPage = pages;
+  const start = (myBpPage - 1) * MY_BP_PAGE_SIZE;
+  const page = rows.slice(start, start + MY_BP_PAGE_SIZE);
+  const range = rows.length ? ('Showing ' + (start + 1) + '–' + (start + page.length) + ' of ' + rows.length + (rows.length !== myBps.length ? ' (filtered from ' + myBps.length + ')' : '')) : '';
+  const count = myBps.length ? '<p class="hint">' + (range || 'No blueprints.') + '</p>' : '';
+  const pager = pages > 1
+    ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-pg="prev"' + (myBpPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + myBpPage + ' of ' + pages + '</span><button class="mode-btn" data-pg="next"' + (myBpPage >= pages ? ' disabled' : '') + '>Next ›</button></div>'
+    : '';
   const scopeHint = !BV_SHOW_LOCATIONS ? ''
     : (myStructScopeMissing
       ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>'
       : (myStructNoAccess
         ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : ''));
-  box.innerHTML = scopeHint + count + (rows.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
+  box.innerHTML = scopeHint + count + pager + (page.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
+  box.querySelectorAll('[data-pg]').forEach(btn => btn.onclick = () => setBpPage(myBpPage + (btn.dataset.pg === 'next' ? 1 : -1), pages));
   bindBpLoadButtons(box);
 }
 async function loadBlueprints() {
@@ -597,8 +617,10 @@ async function loadBlueprints() {
     if (!Array.isArray(bps)) bps = [];
     const type = $('bpType').value;
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? isBPO(b) : !isBPO(b));
-    bps = bps.slice(0, 100);
+    // No row cap here — ESI lists originals before copies, so any cap hides
+    // BPCs first. renderBpRows() pages the full list instead.
     myBps = bps;
+    myBpPage = 1;
     myStructScopeMissing = false; myStructNoAccess = false;
     bvPrefillStructNames();
     renderBpRows();
@@ -610,12 +632,15 @@ async function loadBlueprints() {
         : bps.map(b => b.type_id))];
       if (ids.length) {
         try {
-          const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
-          (Array.isArray(nm) ? nm : []).forEach(n => {
-            if (!n || !n.id || !n.name) return;
-            if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
-            else myLocNames[n.id] = n.name;
-          });
+          // Chunked: full hangars can exceed what one names call handles.
+          for (let i = 0; i < ids.length; i += 500) {
+            const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids.slice(i, i + 500)) });
+            (Array.isArray(nm) ? nm : []).forEach(n => {
+              if (!n || !n.id || !n.name) return;
+              if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
+              else myLocNames[n.id] = n.name;
+            });
+          }
         } catch (e) { console.warn('[BV] names batch failed, falling back to per-type lookup:', e && e.message); }
         // Fill any gaps individually (ESI type endpoint + Everef fallback, cached) — never leave "Type X".
         const missing = [...new Set(bps.map(b => b.type_id).filter(id => !myBpNames[id]))];
@@ -661,12 +686,18 @@ async function loadBlueprints() {
   } catch (e) { box.textContent = 'Failed: ' + e.message; }
 }
 async function scanProfit() {
-  const box = $('bpList'); const rows = [...box.querySelectorAll('[data-bp]')].slice(0, 15);
-  if (!rows.length) { box.textContent = 'Refresh first.'; return; }
-  for (const r of rows) {
-    try { const p = await marketPrice(+r.dataset.bp, hub(), 'sell'); r.parentElement.querySelector('span').textContent += ' · ' + fmtISK(p); } catch {}
+  // Scan the first 15 of the filtered list (not just the visible page).
+  const rows = filteredBpRows().slice(0, 15);
+  if (!rows.length) { status('Refresh first.'); return; }
+  const box = $('bpList');
+  for (const b of rows) {
+    try {
+      const p = await marketPrice(+b.type_id, hub(), 'sell');
+      const btn = box.querySelector('[data-bp="' + b.type_id + '"]');
+      if (btn) btn.parentElement.querySelector('span').textContent += ' · ' + fmtISK(p);
+    } catch {}
   }
-  status('Scan done (first ' + rows.length + ').');
+  status('Scan done (first ' + rows.length + ' of filter).');
 }
 
 // ---- Invention (V1: decryptor compare + queue) ----
@@ -960,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
-  if ($('bpSearch')) $('bpSearch').addEventListener('input', renderBpRows);
+  if ($('bpSearch')) $('bpSearch').addEventListener('input', () => { myBpPage = 1; renderBpRows(); });
   if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
   $('mineShip').onchange = () => { const s = D.ships.find(x => x.id === $('mineShip').value); if (s && s.rate) $('mineRate').value = s.rate; };
   $('mineGo').onclick = planMining;
