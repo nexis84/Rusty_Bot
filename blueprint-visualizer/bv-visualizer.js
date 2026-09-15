@@ -480,6 +480,36 @@ async function loadMySkills() {
     status('Skills loaded: Industry ' + (ind === null ? '—' : ind) + ', Adv Industry ' + (adv === null ? '—' : adv) + ' — hit Calculate.');
   } catch (e) { status('Skill load failed: ' + e.message); }
 }
+// ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
+const bpIsBPO = b => b.quantity === -2 || b.runs === -1;
+// Loaded list state — the search box filters these rows locally, no refetch.
+let myBps = [], myBpNames = {};
+function bpRowHtml(b) {
+  const tag = bpIsBPO(b) ? 'BPO' : ('BPC' + (b.runs > 0 ? ' ×' + b.runs : ''));
+  const nm = myBpNames[b.type_id] || ('Type ' + b.type_id);
+  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button></div>';
+}
+function bindBpLoadButtons(box) {
+  box.querySelectorAll('[data-bp]').forEach(btn => btn.onclick = async () => {
+    $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
+    if (!btn.dataset.bpo && +btn.dataset.runs > 0) $('runs').value = +btn.dataset.runs;
+    $('bpName').value = await typeName(+btn.dataset.bp);
+    document.querySelector('[data-tab="calc"]').click(); status('Loaded — hit Calculate.');
+  });
+}
+function renderBpRows() {
+  const box = $('bpList'); if (!box) return;
+  const q = (($('bpSearch') && $('bpSearch').value) || '').trim().toLowerCase();
+  const rows = myBps.filter(b => {
+    if (!q) return true;
+    const nm = (myBpNames[b.type_id] || '').toLowerCase();
+    return nm.includes(q) || String(b.type_id).includes(q);
+  });
+  const count = myBps.length && (q || rows.length !== myBps.length)
+    ? '<p class="hint">Showing ' + rows.length + ' of ' + myBps.length + '</p>' : '';
+  box.innerHTML = count + (rows.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
+  bindBpLoadButtons(box);
+}
 async function loadBlueprints() {
   const box = $('bpList');
   if (!window.BVAuth || !BVAuth.signedIn()) { box.innerHTML = '<p class="hint">Sign in with SSO first (needs backend /api/bv/*). Or type a blueprint name in Calc.</p>'; return; }
@@ -489,8 +519,7 @@ async function loadBlueprints() {
     if (!ch) { box.innerHTML = '<p class="hint">Signed in, but no character stored — please Sign out (SSO button) and sign in again.</p>'; return; }
     const cid = ch.id || ch.character_id || ch.CharacterID;
     if (!cid) { box.innerHTML = '<p class="hint">Signed in, but no character ID — please Sign out (SSO button) and sign in again.</p>'; return; }
-    // ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
-    const isBPO = b => b.quantity === -2 || b.runs === -1;
+    const isBPO = bpIsBPO;
     const src = ($('bpSource') && $('bpSource').value) || 'personal';
     let bps = [];
     if (src === 'corp') {
@@ -510,26 +539,17 @@ async function loadBlueprints() {
     const type = $('bpType').value;
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? isBPO(b) : !isBPO(b));
     bps = bps.slice(0, 100);
-    box.innerHTML = bps.map(b => {
-      const tag = isBPO(b) ? 'BPO' : ('BPC' + (b.runs > 0 ? ' ×' + b.runs : ''));
-      return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">Type ' + b.type_id + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (isBPO(b) ? '1' : '') + '">Load</button></div>';
-    }).join('') || 'No blueprints.';
-    // Batch-resolve type names in one ESI call, then patch the rows in place.
+    myBps = bps;
+    renderBpRows();
+    // Batch-resolve type names in one ESI call, then re-render (keeps any search filter applied).
     try {
       const ids = [...new Set(bps.map(b => b.type_id))];
       if (ids.length) {
         const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
-        const map = {};
-        (Array.isArray(nm) ? nm : []).forEach(n => { if (n && n.id) map[n.id] = n.name; });
-        box.querySelectorAll('[data-bpname]').forEach(el => { const n = map[+el.dataset.bpname]; if (n) el.textContent = n; });
+        (Array.isArray(nm) ? nm : []).forEach(n => { if (n && n.id && n.name) myBpNames[n.id] = n.name; });
+        renderBpRows();
       }
     } catch {}
-    box.querySelectorAll('[data-bp]').forEach(btn => btn.onclick = async () => {
-      $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
-      if (!btn.dataset.bpo && +btn.dataset.runs > 0) $('runs').value = +btn.dataset.runs;
-      $('bpName').value = await typeName(+btn.dataset.bp);
-      document.querySelector('[data-tab="calc"]').click(); status('Loaded — hit Calculate.');
-    });
   } catch (e) { box.textContent = 'Failed: ' + e.message; }
 }
 async function scanProfit() {
@@ -826,6 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
+  if ($('bpSearch')) $('bpSearch').addEventListener('input', renderBpRows);
   if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
   $('mineShip').onchange = () => { const s = D.ships.find(x => x.id === $('mineShip').value); if (s && s.rate) $('mineRate').value = s.rate; };
   $('mineGo').onclick = planMining;

@@ -83,6 +83,7 @@
     <p class="hint">EVE SSO lists Personal / Corp BPOs + BPCs. Scan profit ranks them at current hub.</p>
     <div class="field"><label>Source</label><select id="bpSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
     <div class="field"><label>Type</label><select id="bpType"><option value="all">All (BPO + BPC)</option><option value="bpo">BPO only</option><option value="bpc">BPC only</option></select></div>
+    <div class="field"><label>Search</label><input id="bpSearch" class="form-input" placeholder="Filter loaded list — e.g. rifter…" autocomplete="off"></div>
     <button id="bpRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button>
     <button id="bpScan" class="calc-btn secondary"><i class="fas fa-chart-line"></i> Scan profit</button>
     <div id="bpList" style="margin-top:.6rem;font-size:.82rem"></div>
@@ -157,6 +158,6 @@
 <script src="../PI/pi-data.js?v=1"></script>
 <script src="bv-data.js?v=2"></script>
 <script src="bv-esi-auth.js?v=3"></script>
-    <script src="bv-visualizer.js?v=14"></script>
+    <script src="bv-visualizer.js?v=15"></script>
 </body>
 </html>
