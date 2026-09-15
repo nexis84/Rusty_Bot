@@ -24,9 +24,10 @@
       location.href = 'https://login.eveonline.com/v2/oauth/authorize?' + p.toString();
     },
     logout() { localStorage.removeItem('bv_esi_tokens'); localStorage.removeItem('bv_esi_char'); location.reload(); },
-    async api(path) {
+    async api(path, opts) {
       const t = tokens(); if (!t) throw new Error('Not signed in');
-      const r = await fetch('https://esi.evetech.net/latest' + path, { headers: { Authorization: 'Bearer ' + t.access_token } });
+      const o = opts || {};
+      const r = await fetch('https://esi.evetech.net/latest' + path, { ...o, headers: { ...(o.headers || {}), Authorization: 'Bearer ' + t.access_token } });
       if (!r.ok) throw new Error('ESI ' + r.status + ' ' + path);
       return r.json();
     }

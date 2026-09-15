@@ -489,13 +489,44 @@ async function loadBlueprints() {
     if (!ch) { box.innerHTML = '<p class="hint">Signed in, but no character stored — please Sign out (SSO button) and sign in again.</p>'; return; }
     const cid = ch.id || ch.character_id || ch.CharacterID;
     if (!cid) { box.innerHTML = '<p class="hint">Signed in, but no character ID — please Sign out (SSO button) and sign in again.</p>'; return; }
-    let bps = await BVAuth.api('/characters/' + cid + '/blueprints/?datasource=tranquility');
+    // ESI: BPO has quantity -2 / runs -1; a BPC has quantity -1 and runs = runs remaining.
+    const isBPO = b => b.quantity === -2 || b.runs === -1;
+    const src = ($('bpSource') && $('bpSource').value) || 'personal';
+    let bps = [];
+    if (src === 'corp') {
+      const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
+      if (!sheet || !sheet.corporation_id) throw new Error('No corporation found for this character.');
+      bps = await BVAuth.api('/corporations/' + sheet.corporation_id + '/blueprints/?datasource=tranquility');
+    } else {
+      // Page through (ESI pages at 1000 entries) so big hangars aren't silently cut.
+      for (let pg = 1; pg <= 5; pg++) {
+        const chunk = await BVAuth.api('/characters/' + cid + '/blueprints/?datasource=tranquility&page=' + pg);
+        if (!Array.isArray(chunk) || !chunk.length) break;
+        bps = bps.concat(chunk);
+        if (chunk.length < 1000) break;
+      }
+    }
+    if (!Array.isArray(bps)) bps = [];
     const type = $('bpType').value;
-    if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? b.quantity === -2 : b.quantity > 0);
+    if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? isBPO(b) : !isBPO(b));
     bps = bps.slice(0, 100);
-    box.innerHTML = bps.map((b, i) => '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + b.type_id + ' · q' + b.quantity + ' ME' + b.material_efficiency + '/TE' + b.time_efficiency + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '">Load</button></div>').join('') || 'No blueprints.';
+    box.innerHTML = bps.map(b => {
+      const tag = isBPO(b) ? 'BPO' : ('BPC' + (b.runs > 0 ? ' ×' + b.runs : ''));
+      return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">Type ' + b.type_id + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (isBPO(b) ? '1' : '') + '">Load</button></div>';
+    }).join('') || 'No blueprints.';
+    // Batch-resolve type names in one ESI call, then patch the rows in place.
+    try {
+      const ids = [...new Set(bps.map(b => b.type_id))];
+      if (ids.length) {
+        const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
+        const map = {};
+        (Array.isArray(nm) ? nm : []).forEach(n => { if (n && n.id) map[n.id] = n.name; });
+        box.querySelectorAll('[data-bpname]').forEach(el => { const n = map[+el.dataset.bpname]; if (n) el.textContent = n; });
+      }
+    } catch {}
     box.querySelectorAll('[data-bp]').forEach(btn => btn.onclick = async () => {
       $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
+      if (!btn.dataset.bpo && +btn.dataset.runs > 0) $('runs').value = +btn.dataset.runs;
       $('bpName').value = await typeName(+btn.dataset.bp);
       document.querySelector('[data-tab="calc"]').click(); status('Loaded — hit Calculate.');
     });
