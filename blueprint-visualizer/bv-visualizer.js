@@ -1793,20 +1793,29 @@ async function loadInventory() {
         continue;
       }
     }
-    // Residue: structures NOT covered by the corp call (e.g. a personal citadel
-    // the character docks at but the corp doesn't own) or not yet cached.
-    // Resolve individually, throttled + denial-stamped: accessible ones resolve,
-    // genuinely inaccessible ones stop repeating for an hour.
+    // Residue: structures NOT covered by the corp call (e.g. a personal citadel the
+    // character docks at but the corp doesn't own) or not yet cached. Resolve a
+    // SMALL, prioritized subset individually — ranked by how many stacks they hold
+    // (your main storage first), capped at 20/scan, concurrency 2 — and denial-stamp
+    // 403s for an hour. This never floods: big corps touch hundreds of citadels we
+    // can't access, and burning the rate limit breaks the names/types lookups.
     const unresolved = topLocIds.filter(id => {
       const n = +id;
       return n >= 1e12 && !locSys[id];
     });
-    if (unresolved.length) {
+    if (unresolved.length && !structWarn) {
       const denied = bvDeniedRead();
+      const stacksPer = {};
+      for (const a of assets) {
+        if (!a || !a.type_id) continue;
+        const id = String(stationFor(a));
+        if (+id >= 1e12 && !locSys[id]) stacksPer[id] = (stacksPer[id] || 0) + 1;
+      }
+      unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
+      const targets = unresolved.slice(0, 20).filter(id => !(denied[id] && now - denied[id] < 3600e3));
       let deniedChanged = false, cacheDirty = false;
-      for (let i = 0; i < unresolved.length; i += 4) {
-        await Promise.all(unresolved.slice(i, i + 4).map(async id => {
-          if (denied[id] && now - denied[id] < 3600e3) return;
+      for (let i = 0; i < targets.length; i += 2) {
+        await Promise.all(targets.slice(i, i + 2).map(async id => {
           try {
             const st = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
             if (st && st.solar_system_id) {
@@ -1818,7 +1827,7 @@ async function loadInventory() {
             if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
           }
         }));
-        if (i + 4 < unresolved.length) await new Promise(r => setTimeout(r, 50));
+        if (i + 2 < targets.length) await new Promise(r => setTimeout(r, 80));
       }
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
