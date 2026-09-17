@@ -9,6 +9,7 @@ const fmtN = n => (n === null || n === undefined || isNaN(n)) ? '—' : Number(n
 const nameCache = new Map(), priceCache = new Map(), bpCache = new Map();
 // SDE-derived set of every type ID used as a manufacturing/reaction material (bv-materials.js)
 const BV_MATERIALS = (() => { try { return new Set((window.BV_MATERIAL_IDS || []).map(Number)); } catch { return new Set(); } })();
+const BV_MAT_NAMES = (() => { try { return new Map((window.BV_MATERIAL_NAMES || []).map(([id, n]) => [+id, n])); } catch { return new Map(); } })();
 
 async function fetchJSON(url, opts, timeout = 12000) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), timeout);
@@ -1300,6 +1301,7 @@ async function planMining(forcedId, opts) {
 // ---- Inventory (industrial stock: character + corp) ----
 let stkRaw = [], stkAgg = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
 let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [];
+let stkBrowseMaterials = false;
 function stkCurrentAgg() {
   const loc = ($('stkLocation') && $('stkLocation').value) || '';
   const sys = ($('stkSystem') && $('stkSystem').value) || '';
@@ -1370,6 +1372,40 @@ function stkFilteredAgg() {
 }
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
+  // ---- Full industry materials list (browse mode) ----
+  if (stkBrowseMaterials) {
+    const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
+    const scopeAgg = stkCurrentAgg();
+    let mats = [];
+    for (const [id, name] of BV_MAT_NAMES) {
+      if (q && !String(name).toLowerCase().includes(q) && !String(id).includes(q)) continue;
+      mats.push({ id, name, own: scopeAgg[id] || 0 });
+    }
+    mats.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    const pages = Math.max(1, Math.ceil(mats.length / stkPageSize));
+    if (stkPage > pages) stkPage = pages;
+    const start = (stkPage - 1) * stkPageSize;
+    const page = mats.slice(start, start + stkPageSize);
+    const pager = pages > 1
+      ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage<=1?' disabled':'') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage>=pages?' disabled':'') + '>Next ›</button></div>'
+      : (mats.length ? '<p class="hint">Showing all ' + mats.length + ' materials.</p>' : '');
+    const ownCount = Object.values(mats).filter(m => m.own > 0).length;
+    box.innerHTML = '<p class="hint">Full industry list: <b>' + mats.length + ' materials</b> used in manufacturing/reactions' + (ownCount ? ' · <b>' + ownCount + '</b> in current scope' : '') + (q ? ' (filtered by "' + $('stkSearch').value + '")' : '') + ' · <a href="#" onclick="stkBrowseMaterials=false; document.getElementById(\'stkBrowse\').innerHTML=\'<i class=&quot;fas fa-list&quot;></i> Browse all materials\'; stkPage=1; renderStkRows(); return false;" style="color:var(--accent)">back to inventory</a></p>' + pager
+      + '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Type ID</th><th>Owned (scope)</th><th></th></tr></thead><tbody>'
+      + (page.length ? page.map(m => '<tr><td><img src="https://images.evetech.net/types/' + m.id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + m.name + '</td><td>' + m.id + '</td><td>' + (m.own>0 ? fmtN(m.own) : '<span class="nums">—</span>') + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(m.id) + '"><i class="fas fa-chart-line"></i></a> <button class="mode-btn" data-matfilter="' + m.id + '" data-matname="' + String(m.name).replace(/"/g,'&quot;') + '">Filter</button></td></tr>').join('')
+        : '<tr><td colspan="4" style="color:var(--text3)">No materials match "' + $('stkSearch').value + '".</td></tr>')
+      + '</tbody></table></div>';
+    box.querySelectorAll('[data-matfilter]').forEach(b => b.onclick = () => {
+      if ($('stkSearch')) $('stkSearch').value = b.dataset.matname;
+      stkBrowseMaterials = false;
+      const bb = $('stkBrowse'); if (bb) bb.innerHTML = '<i class="fas fa-list"></i> Browse all materials';
+      stkPage = 1;
+      renderStkRows();
+    });
+    box.querySelectorAll('[data-stkpg]').forEach(b => b.onclick = () => { stkPage += (b.dataset.stkpg==='next'?1:-1); renderStkRows(); });
+    if (totals) totals.textContent = mats.length + ' materials in full industry list · filter by name/ID above';
+    return;
+  }
   const rows = stkFilteredAgg();
   const srcAgg = stkCurrentAgg();
   const totalTypes = Object.keys(srcAgg).length;
@@ -1822,6 +1858,54 @@ function highlight(name, q) {
   if (i < 0) return name;
   return name.slice(0, i) + '<span class="hl">' + name.slice(i, i + q.length) + '</span>' + name.slice(i + q.length);
 }
+// Material autocomplete over the full industry list (BV_MATERIAL_NAMES). Pick -> filter inventory by that material.
+function attachMatAutocomplete() {
+  const input = $('matFilterInput'), box = $('matSuggest');
+  if (!input || !box) return;
+  let active = -1, current = [];
+  function close() { box.classList.add('hidden'); box.innerHTML = ''; active = -1; current = []; }
+  function render(q) {
+    if (q.length < 2) { close(); return; }
+    current = [...BV_MAT_NAMES.entries()]
+      .map(([id, name]) => ({ id, name: String(name), sc: bvScore(String(name), q) }))
+      .filter(x => x.sc > 0)
+      .sort((a,b) => b.sc - a.sc || a.name.localeCompare(b.name))
+      .slice(0, 8);
+    if (!current.length) { close(); return; }
+    active = -1;
+    box.innerHTML = current.map((c, i) =>
+      '<div class="suggest-item" data-i="' + i + '"><img src="https://images.evetech.net/types/' + c.id + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="t">' + highlight(c.name, q) + '</span><span class="s">#' + c.id + '</span></div>'
+    ).join('');
+    box.classList.remove('hidden');
+    box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); });
+  }
+  function pick(i) {
+    const c = current[i]; if (!c) return;
+    input.value = c.name;
+    close();
+    if ($('stkSearch')) $('stkSearch').value = c.name;
+    stkBrowseMaterials = false;
+    const bb = $('stkBrowse'); if (bb) bb.innerHTML = '<i class="fas fa-list"></i> Browse all materials';
+    stkPage = 1;
+    renderStkRows();
+    status('Filtered to material: ' + c.name);
+  }
+  let deb = null;
+  input.addEventListener('input', () => { clearTimeout(deb); deb = setTimeout(() => render(input.value.trim().toLowerCase()), 120); });
+  input.addEventListener('focus', () => { if (input.value.trim().length >= 2) render(input.value.trim().toLowerCase()); });
+  input.addEventListener('keydown', e => {
+    const items = box.querySelectorAll('.suggest-item');
+    if (box.classList.contains('hidden') || !items.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % items.length; }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + items.length) % items.length; }
+    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); pick(active); return; }
+    else if (e.key === 'Escape') { close(); return; }
+    else return;
+    items.forEach((el, i) => el.classList.toggle('active', i === active));
+    items[active].scrollIntoView({ block: 'nearest' });
+  });
+  document.addEventListener('click', e => { if (!box.classList.contains('hidden') && !box.contains(e.target) && e.target !== input) close(); });
+}
 
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
@@ -1864,6 +1948,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // inventory
   if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
   if ($('stkSystemInput')) attachStkSystemAutocomplete();
+  if ($('matFilterInput')) attachMatAutocomplete();
+  if ($('stkBrowse')) $('stkBrowse').onclick = () => {
+    stkBrowseMaterials = !stkBrowseMaterials;
+    $('stkBrowse').innerHTML = stkBrowseMaterials ? '<i class="fas fa-arrow-left"></i> Back to inventory' : '<i class="fas fa-list"></i> Browse all materials';
+    stkPage = 1;
+    renderStkRows();
+  };
   if ($('stkApply')) $('stkApply').onclick = applyInventoryToShopping;
   if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
   if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkNames={}; const s1=$('stkSystem'); if(s1) s1.value=''; const si=$('stkSystemInput'); if(si) si.value=''; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };

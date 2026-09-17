@@ -115,6 +115,10 @@
       <div class="field suggest-wrap"><label>System (space)</label><input id="stkSystemInput" class="form-input" placeholder="Type to search a system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
       <input type="hidden" id="stkSystem" value="">
       <div class="field"><label>Build location (pull from)</label><select id="stkLocation" class="form-input"><option value="">All locations in selected system</option></select></div>
+      <div class="grid2">
+        <div class="field suggest-wrap"><label>Material (full industry list)</label><input id="matFilterInput" class="form-input" placeholder="Search all 1703 materials — e.g. Tritanium, Heavy Water…" autocomplete="off"><div id="matSuggest" class="suggest hidden"></div></div>
+        <div class="field"><label>&nbsp;</label><button id="stkBrowse" class="calc-btn secondary" style="margin-top:.45rem"><i class="fas fa-list"></i> Browse all materials</button></div>
+      </div>
       <div class="field"><label>Search</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, morphite…" autocomplete="off"></div>
       <div class="btn-row"><button id="stkRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button><button id="stkApply" class="calc-btn secondary"><i class="fas fa-check"></i> Apply to shopping list</button></div>
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Deduct owned qty from Shopping List (show Have / Need)</label>
@@ -202,8 +206,8 @@
 <script src="../market/systems.js?v=1"></script>
 <script src="../PI/pi-data.js?v=1"></script>
 <script src="bv-data.js?v=4"></script>
-    <script src="bv-materials.js?v=1"></script>
+    <script src="bv-materials.js?v=2"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=52"></script>
+    <script src="bv-visualizer.js?v=53"></script>
 </body>
 </html>
