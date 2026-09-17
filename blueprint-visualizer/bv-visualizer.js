@@ -1818,10 +1818,17 @@ async function loadInventory() {
     if (unresolved.length && !structWarn) {
       const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
-      const targets = unresolved.slice(0, 100).filter(id => !(denied[id] && now - denied[id] < 3600e3));
-      let deniedChanged = false, cacheDirty = false;
+      // personal scans have few structures: resolve ALL industrial-bearing ones and
+      // re-try any stale 1h denial (in case access changed / it was a transient hit).
+      // corp/both keep a cap + denial skip so big corps never flood.
+      const isPersonal = src === 'personal';
+      const targets = unresolved
+        .slice(0, isPersonal ? unresolved.length : 100)
+        .filter(id => isPersonal || !(denied[id] && now - denied[id] < 3600e3));
+      let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0;
       for (let i = 0; i < targets.length; i += 2) {
         await Promise.all(targets.slice(i, i + 2).map(async id => {
+          attempts++;
           try {
             const st = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
             if (st && st.solar_system_id) {
@@ -1829,6 +1836,7 @@ async function loadInventory() {
               structCache[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: now };
               cacheDirty = true;
               unresolvedLeft--;
+              resolvedNow++;
             }
           } catch (e) {
             if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
@@ -1838,6 +1846,7 @@ async function loadInventory() {
       }
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
+      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' industrialStructs=' + unresolved.length);
     }
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
