@@ -44,7 +44,7 @@ async function ensureIceProducts() {
   try {
     const names = (D.iceOres && D.iceOres.length ? D.iceOres : []);
     if (!names.length) return iceOreList;
-    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(names) });
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(names) });
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
     iceOreList = (await Promise.all(inv.map(e => fetchOre(e.id, e.name).catch(() => null)))).filter(Boolean);
     for (const o of iceOreList) for (const mid of Object.keys(o.yields || {})) iceProductIds.add(+mid);
@@ -128,13 +128,13 @@ function refreshPresets(pr) { $('preset').innerHTML = '<option value="">— Load
 async function resolveBlueprint(name) {
   const base = name.replace(/\s+/g, ' ').trim();
   const cands = [...new Set([base, base + ' Blueprint', base.replace(/ blueprint$/i, '') + ' Blueprint', base.replace(/ blueprint$/i, '')])];
-  const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cands) });
+  const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(cands) });
   const inv = Array.isArray(r) ? r : (r.inventory_types || []);
   let bp = inv.filter(e => /blueprint/i.test(e.name));
   if (bp.length === 1) return bp[0];
   if (!bp.length && inv.length === 1) {
     const v = [inv[0].name + ' Blueprint'];
-    const r2 = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(v) });
+    const r2 = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(v) });
     const inv2 = Array.isArray(r2) ? r2 : (r2.inventory_types || []);
     if (inv2.length === 1) return inv2[0];
   }
@@ -148,7 +148,7 @@ async function blueprintData(typeId) {
 }
 async function childBlueprint(materialTypeId, materialName) {
   try {
-    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([materialName + ' Blueprint']) });
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([materialName + ' Blueprint']) });
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
     const m = inv.find(e => e.name.toLowerCase() === (materialName + ' blueprint').toLowerCase());
     if (!m) return null;
@@ -248,7 +248,7 @@ async function childReaction(materialTypeId, materialName) {
   if (reactCache.has(key)) return reactCache.get(key);
   let out = null;
   try {
-    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([materialName + ' Reaction Formula']) });
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([materialName + ' Reaction Formula']) });
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
     const f = inv.find(e => e.name.toLowerCase() === (materialName + ' reaction formula').toLowerCase());
     if (!f) { reactCache.set(key, null); return null; }
@@ -935,7 +935,7 @@ async function loadBlueprints() {
         try {
           // Chunked: full hangars can exceed what one names call handles.
           for (let i = 0; i < ids.length; i += 500) {
-            const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids.slice(i, i + 500)) });
+            const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(ids.slice(i, i + 500)) });
             (Array.isArray(nm) ? nm : []).forEach(n => {
               if (!n || !n.id || !n.name) return;
               if (n.category === 'inventory_type') myBpNames[n.id] = n.name;
@@ -1007,7 +1007,7 @@ async function invCompare() {
   const q = $('invSearch').value.trim(); if (!q) return;
   const out = $('invOut'); out.textContent = 'Resolving ' + q + '…';
   try {
-    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([q]) });
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([q]) });
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
     if (!inv.length) { out.textContent = 'Not found.'; return; }
     const t2 = inv[0]; const target = Math.max(1, parseInt($('invTarget').value) || 5);
@@ -1492,7 +1492,7 @@ async function loadInventory() {
             if (!chunk.length) continue;
             let tries=0; while(tries<2){
               try {
-                const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(chunk) });
+                const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
                 (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
                 break;
               } catch(e){
@@ -1519,7 +1519,7 @@ async function loadInventory() {
         const chunk = ids.slice(i,i+200);
         let tries=0; while(tries<2){
           try {
-            const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(chunk) });
+            const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
             (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name&&n.category==='inventory_type') stkNames[n.id]=n.name; });
             break;
           } catch(e){
