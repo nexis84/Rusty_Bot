@@ -478,6 +478,7 @@ async function renderBom(runs) {
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
   await renderShoppingList(runs);
   await renderBuildList(runs);
+  await renderRefinery();
 }
 
 async function renderBuildList(runs) {
@@ -1222,7 +1223,7 @@ function fmtTime(mins) {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
   return h + 'h ' + m + 'm';
 }
-// Refinery breakdown lives in its own separate panel (#refineryWrap), independent of the mining plan.
+// Refinery breakdown lives in its own separate panel (#refineryWrap), placed under the Build List.
 function renderRefineryPanel(rows, eff, compressed) {
   const wrap = $('refineryWrap');
   if (!wrap) return;
@@ -1233,6 +1234,59 @@ function renderRefineryPanel(rows, eff, compressed) {
     rows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td><span class="pill" style="' + (r.otype === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (r.otype === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.otype + '</span></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') +
     '</tbody></table></div></div>';
 }
+// Standalone refinery breakdown, derived straight from the current BOM's mineable materials
+// (minerals / ice products) — no need to run the mining plan. Auto-renders after each calc.
+async function renderRefinery() {
+  const wrap = $('refineryWrap');
+  if (!wrap) return;
+  if (!S.root) { wrap.innerHTML = ''; return; }
+  const needs = {};
+  for (const l of (S.bom || [])) {
+    if (!isMineable(l.type_id)) continue;
+    needs[l.type_id] = (needs[l.type_id] || 0) + l.qty;
+  }
+  const runs = S.runs || 1;
+  for (const c of ((S.root && S.root.children) || [])) {
+    if (c.mode === 'build' && c.child && c.child.materials) {
+      for (const m of c.child.materials) {
+        if (!isMineable(m.type_id)) continue;
+        needs[m.type_id] = (needs[m.type_id] || 0) + (m.quantity || 0) * runs;
+      }
+    }
+  }
+  if (!Object.keys(needs).length) { wrap.innerHTML = ''; return; }
+  await ensureIceProducts().catch(() => {});
+  const eff = (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
+  const ores = (await Promise.all(D.ores.map(o => fetchOre(o.id).catch(() => null)))).filter(Boolean);
+  const sources = ores.concat(iceOreList || []);
+  const byOre = {};
+  for (const [mid, need] of Object.entries(needs)) {
+    let best = null;
+    for (const o of sources) {
+      const y = o.yields[mid]; if (!y) continue;
+      const units = Math.ceil(need / (y * eff) / o.portion) * o.portion;
+      if (!best || units * o.volume < best.m3) best = { ore: o, units, m3: units * o.volume, y };
+    }
+    if (!best) continue;
+    const g = (byOre[best.ore.id] = byOre[best.ore.id] || { ore: best.ore, units: 0 });
+    g.units += best.units;
+  }
+  const rows = Object.values(byOre).map(g => {
+    const parts = [];
+    for (const [mid, y] of Object.entries((g.ore && g.ore.yields) || {})) {
+      const rq = Math.floor(g.units * (y || 0) / (g.ore.portion || 100) * eff);
+      if (rq > 0) parts.push({ mid: +mid, qty: rq });
+    }
+    return { ore: g.ore, units: g.units, parts, otype: /compressed/i.test(g.ore.name || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(o => +o.id === +g.ore.id) ? 'ICE' : 'ORE') };
+  }).filter(r => r.parts.length);
+  if (!rows.length) { wrap.innerHTML = ''; return; }
+  const ids = new Set();
+  for (const r of rows) for (const p of r.parts) ids.add(p.mid);
+  const refineName = {};
+  await Promise.all([...ids].map(async mid => { refineName[mid] = D.minerals[mid] || await typeName(mid).catch(() => ('Type ' + mid)); }));
+  const anyCompressed = rows.some(r => r.otype === 'COMPRESSED ORE');
+  renderRefineryPanel(rows.map(r => ({ ore: r.ore, units: r.units, otype: r.otype, parts: r.parts.map(p => refineName[p.mid] + ' ×' + fmtN(p.qty)) })), eff, anyCompressed);
+}
 async function planMining(forcedId, opts) {
   const box = $('mineWrap'), st = $('mineStatus');
   const isAuto = !!(opts && opts.auto);
@@ -1242,7 +1296,6 @@ async function planMining(forcedId, opts) {
   if (!S.root) {
     st.textContent = 'Run a calculation first.';
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3><p class="hint">Enter a blueprint on the left, hit Calculate, then come back and press Plan mining.</p></div>';
-    renderRefineryPanel(null);
     return;
   }
   if (!Object.keys(needs).length) {
@@ -1251,7 +1304,6 @@ async function planMining(forcedId, opts) {
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3>' +
       '<p class="hint">Nothing marked for mining. Press <b>Mine it</b> on any raw mineral/ice row above (or set a sub-component to Build to include its minerals), then press Plan mining again. ' +
       (built.length ? 'These sub-components are set to Build but their contents are still resolving: ' + built.slice(0, 4).join(', ') + ' — wait a few seconds and retry.' : '') + '</p></div>';
-    renderRefineryPanel(null);
     return;
   }
   const rate = Math.max(1, parseFloat($('mineRate').value) || 450);
@@ -1304,21 +1356,6 @@ async function planMining(forcedId, opts) {
   const totalM3 = merged.reduce((s, g) => s + g.m3, 0);
   const totalMins = merged.reduce((s, g) => s + g.mins, 0);
   const totalValue = Object.entries(needs).reduce((s, [mid, n]) => s + n * (minPrice[mid] || 0), 0);
-  // refinery breakdown: what each mined ore/compressed ore/ice yields after refining at eff
-  const refineTargetIds = new Set();
-  for (const g of merged) for (const mid of Object.keys((g.ore && g.ore.yields) || {})) refineTargetIds.add(+mid);
-  const refineName = {};
-  await Promise.all([...refineTargetIds].map(async mid => { refineName[mid] = D.minerals[mid] || await typeName(mid).catch(() => ('Type ' + mid)); }));
-  const refineRows = merged.map(g => {
-    const parts = [];
-    for (const [mid, y] of Object.entries((g.ore && g.ore.yields) || {})) {
-      const rq = Math.floor(g.units * (y || 0) / (g.ore.portion || 100) * eff);
-      if (rq > 0) parts.push(refineName[+mid] + ' ×' + fmtN(rq));
-    }
-    const otype = /compressed/i.test(g.ore.name || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(o => +o.id === +g.ore.id) ? 'ICE' : 'ORE');
-    return { ore: g.ore, units: g.units, parts, otype };
-  }).filter(r => r.parts.length);
-  const anyCompressed = refineRows.some(r => r.otype === 'COMPRESSED ORE');
   const curShip = ($('mineShip') && $('mineShip').value) || 'retriever';
   const shipOpts = D.ships.map(s => '<option value="' + s.id + '"' + (s.id===curShip?' selected':'') + '>' + s.name + ' — ' + s.rate + ' m³/min (' + (Math.round(s.rate/60*10)/10) + '/sec)</option>').join('');
   const curSec = (Math.round((rate/60)*10)/10);
@@ -1331,8 +1368,6 @@ async function planMining(forcedId, opts) {
     '<div class="summary-card"><div class="k">Total mining time</div><div class="v">' + fmtTime(totalMins) + '</div></div>' +
     '<div class="summary-card"><div class="k">Material value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
   h += '</div>'; // close the main mining-plan panel
-  // Refinery breakdown renders into its OWN separate panel (#refineryWrap), not inside the mining tab.
-  renderRefineryPanel(refineRows, eff, anyCompressed);
   // Fastest source detail — its own section
   h += '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-search"></i> Fastest source per material (detail)</h3><p class="hint" style="margin-top:.2rem">Pick the rock you can actually mine — e.g. Megacyte: Arkonor (333-366) → Bistot (170-187) → Spodumain (140-154). Changing the dropdown recalculates the volume/time above.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     perMin.map(p => {
@@ -1347,7 +1382,6 @@ async function planMining(forcedId, opts) {
   } catch (e) {
     st.textContent = 'Mining plan failed: ' + (e && e.message ? e.message : e);
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3><p class="hint">Failed: ' + (e && e.message ? e.message : e) + '. Check your connection and try again.</p></div>';
-    renderRefineryPanel(null);
   }
 }
 
