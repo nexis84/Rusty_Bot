@@ -1864,7 +1864,9 @@ async function loadInventory() {
       }
       const res = topLocIds.filter(id => +id >= 1e12 && locSys[id]).length;
       const unres = topLocIds.filter(id => +id >= 1e12 && !locSys[id]).length;
-      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' structWarn=' + (structWarn || 'none'));
+      let scopes = '';
+      try { scopes = (bvTokenScopes() || []).join(',') || 'none'; } catch { scopes = 'none'; }
+      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' structWarn=' + (structWarn || 'none') + ' scopes=' + scopes);
     } catch {}
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     const selSysNum = parseInt(stkSysId(), 10);
