@@ -1256,6 +1256,11 @@ async function renderRefinery() {
     const srcLabel = ded.src === 'both' ? 'Personal + Corp' : (ded.src === 'corp' ? 'Corp' : 'Personal');
     const locName = snap && snap.systemName ? snap.systemName : (stkCurrentSysName() || '');
     const oreDetail = oreDetailFor(ded);
+    // safety net: snapshots persisted before name resolution store bare type IDs — resolve them now
+    for (const o of oreDetail) {
+      if (!o.oreName || /^\d+$/.test(String(o.oreName))) o.oreName = stkNames[o.oreId] || await typeName(o.oreId).catch(() => ('Type ' + o.oreId));
+      for (const r of (o.refined || [])) if (!r.name || /^\d+$/.test(String(r.name))) r.name = D.minerals[r.mid] || stkNames[r.mid] || await typeName(r.mid).catch(() => ('Type ' + r.mid));
+    }
     // BOM items ticked "Use own" that need refining (minerals / ice products, not bought/built)
     const selected = (S.bom || []).filter(l => ownUse(l.type_id) && (l.mode === 'buy' || l.mode === 'react') && isMineable(l.type_id));
     if (!selected.length || !oreDetail.length) {
@@ -1268,7 +1273,7 @@ async function renderRefinery() {
       for (const o of oreDetail) {
         const r = o.refined.find(x => +x.mid === mid);
         if (!r) continue;
-        rows.push({ mineral: l.name, need: l.qty, oreId: o.oreId, ore: o.oreName, oreQty: o.oreQty, locs: o.locs || [], yield: r.qty });
+        rows.push({ mid, mineral: l.name, need: l.qty, oreId: o.oreId, ore: o.oreName, oreQty: o.oreQty, locs: o.locs || [], yield: r.qty });
       }
     }
     if (!rows.length) {
@@ -1276,11 +1281,24 @@ async function renderRefinery() {
       return;
     }
     const anyCompressed = rows.some(r => /compressed/i.test(r.ore || ''));
-    const tag = o => /compressed/i.test(o.ore || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(i => +i.id === +o.oreId) ? 'ICE' : 'ORE');
+    // combine by material so each mineral is ONE row, not a row per ore stack
+    const groups = new Map();
+    for (const r of rows) {
+      let g = groups.get(r.mid);
+      if (!g) { g = { mid: r.mid, mineral: r.mineral, need: r.need, sources: [], total: 0, locs: new Set() }; groups.set(r.mid, g); }
+      g.sources.push({ ore: r.ore, qty: r.oreQty });
+      g.total += r.yield;
+      for (const l of r.locs) g.locs.add(l);
+    }
     wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3>' +
-      '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore, refined at ' + Math.round(eff * 100) + '%.</p>' +
-      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>From your ore</th><th>Units owned</th><th>Location</th><th>Refines to</th></tr></thead><tbody>' +
-      rows.map(r => '<tr><td><b>' + r.mineral + '</b></td><td>' + fmtN(r.need) + '</td><td><span class="pill" style="' + (tag(r) === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (tag(r) === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.ore + ' · ' + tag(r) + '</span></td><td>' + fmtN(r.oreQty) + '</td><td>' + (r.locs.length ? r.locs.slice(0, 2).join(', ') + (r.locs.length > 2 ? ' +' + (r.locs.length - 2) : '') : '<span class="nums">—</span>') + '</td><td>' + r.mineral + ' ×' + fmtN(r.yield) + '</td></tr>').join('') +
+      '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore, refined at ' + Math.round(eff * 100) + '%. Each material combines every ore stack you own that refines into it.</p>' +
+      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>From your ore</th><th>Total refines to</th><th>Location</th></tr></thead><tbody>' +
+      [...groups.values()].map(g => {
+        const covered = g.total >= g.need;
+        const sources = g.sources.map(s => s.ore + ' ×' + fmtN(s.qty)).join(' · ');
+        const locsTxt = g.locs.size ? [...g.locs].slice(0, 2).join(', ') + (g.locs.size > 2 ? ' +' + (g.locs.size - 2) : '') : '<span class="nums">—</span>';
+        return '<tr><td><b>' + g.mineral + '</b></td><td>' + fmtN(g.need) + '</td><td>' + sources + '</td><td' + (covered ? ' style="color:var(--build)"' : '') + '>' + g.mineral + ' ×' + fmtN(g.total) + (covered ? ' <span style="color:var(--build)">✓ covers</span>' : ' <span style="color:var(--danger)">short ' + fmtN(g.need - g.total) + '</span>') + '</td><td>' + locsTxt + '</td></tr>';
+      }).join('') +
       '</tbody></table></div></div>';
   } catch (e) {
     wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint" style="color:var(--danger)">Refinery failed: ' + (e && e.message ? e.message : e) + '</p></div>';
@@ -1818,11 +1836,9 @@ async function loadInventory() {
         locSel.innerHTML = '<option value="">All locations in ' + selName + '</option>'
           + scope.map(id => '<option value="' + id + '"' + (id===keepLoc?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>').join('');
       }
-    } catch {}
-    // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
-    await buildInventorySnapshot();
+} catch {}
+    // ---- resolve type names FIRST so the ore snapshot stores real ore names ----
     stkNames = {}; stkPage = 1;
-stkNames = {}; stkPage = 1;
     if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
     const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n));
     if (ids.length) {
@@ -1850,6 +1866,8 @@ stkNames = {}; stkPage = 1;
         }
       }
     }
+    // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
+    await buildInventorySnapshot();
     if (st) st.textContent = stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
