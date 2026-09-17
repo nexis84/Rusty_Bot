@@ -1482,9 +1482,11 @@ async function loadInventory() {
         sel.innerHTML = opts.join('');
         if (keep && stkAggByStation[keep]) sel.value = keep;
       }
-      // resolve location names — throttled public ESI, no structure hammer (fallback to short id)
+      // resolve location names — throttled public ESI + system for structures
       if (locIds.length) {
         try { const sc = bvStructCacheRead(); for (const id of locIds) if (sc[id] && sc[id].name) stkLocationNames[id] = sc[id].name; } catch {}
+        // keep a separate map for system suffix
+        if (!window._stkSys) window._stkSys = {};
         const need = locIds.filter(id => !stkLocationNames[id]);
         if (need.length) {
           for (let i=0;i<need.length;i+=200) {
@@ -1503,11 +1505,90 @@ async function loadInventory() {
             }
             if (i+200 < need.length) await new Promise(r=>setTimeout(r,350));
           }
+          // structures whose name still missing or that need a system — fetch one-by-one throttled (structure → system)
+          const structIds = locIds.filter(id => String(id).length >= 12);
+          if (structIds.length) {
+            const sysIds = new Set();
+            for (let s=0; s<structIds.length; s++) {
+              const sid = structIds[s];
+              // already cached?
+              try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].system) window._stkSys[sid]=sc[sid].system; } catch {}
+              if (window._stkSys[sid]) continue;
+              let tries=0; while(tries<2){
+                try {
+                  // try authed first (private structures need token), fallback to public
+                  let st=null;
+                  try { st = await BVAuth.api('/universe/structures/' + sid + '/?datasource=tranquility'); } catch(_){ st = await fetchJSON(ESI + '/universe/structures/' + sid + '/?datasource=tranquility', { headers:{'X-Compatibility-Date':'2026-08-18'} }); }
+                  if (st && st.solar_system_id) {
+                    const sysId = st.solar_system_id;
+                    sysIds.add(sysId);
+                    const sname = st.name || stkLocationNames[sid] || ('Structure …'+String(sid).slice(-4));
+                    stkLocationNames[sid]=sname;
+                    window._stkSys[sid]=null; // placeholder until system names batch
+                    // cache it
+                    try { const sc=bvStructCacheRead(); sc[sid]={name:sname, system_id:sysId, ts:Date.now()}; bvStructCacheWrite(sc); } catch {}
+                  }
+                  break;
+                } catch(e){
+                  const msg=String(e&&e.message||'');
+                  if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,900)); tries++; continue; }
+                  break;
+                }
+              }
+              if (s < structIds.length -1) await new Promise(r=>setTimeout(r,320));
+            }
+            // batch system names
+            if (sysIds.size) {
+              const sysArr=[...sysIds];
+              const sysNames={};
+              for(let i=0;i<sysArr.length;i+=200){
+                const chunk=sysArr.slice(i,i+200);
+                try{
+                  const nm=await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
+                  (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) sysNames[n.id]=n.name; });
+                }catch{}
+                if(i+200 < sysArr.length) await new Promise(r=>setTimeout(r,300));
+              }
+              for(const sid of structIds){
+                try{ const sc=bvStructCacheRead(); const c=sc[sid]; if(c && c.system_id && sysNames[c.system_id]){ window._stkSys[sid]=sysNames[c.system_id]; stkLocationNames[sid]=c.name + ' [' + sysNames[c.system_id] + ']'; sc[sid].system=sysNames[c.system_id]; bvStructCacheWrite(sc); } else if(window._stkSys[sid]==null && sysNames[Object.values(sysNames)[0]]) {} }catch{}
+                // if we have a temp mapping from earlier fetch without cache, patch now
+                if(stkLocationNames[sid] && !stkLocationNames[sid].includes('[') && window._stkSys[sid]===null){
+                  // try to find system for this sid from the just-fetched sysNames via the sid's system_id stored in cache
+                  try{ const sc=bvStructCacheRead(); const cid=sc[sid]; if(cid && cid.system_id && sysNames[cid.system_id]){ stkLocationNames[sid]=cid.name + ' [' + sysNames[cid.system_id] + ']'; window._stkSys[sid]=sysNames[cid.system_id]; } }catch{}
+                }
+              }
+            }
+          }
           for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
+          // also enrich already-cached structure names with system if we now have it
+          try{
+            const sc=bvStructCacheRead();
+            for(const id of locIds){
+              if(sc[id] && sc[id].system && stkLocationNames[id] && !String(stkLocationNames[id]).includes('[')){
+                stkLocationNames[id]=sc[id].name + ' [' + sc[id].system + ']';
+              } else if(window._stkSys[id] && stkLocationNames[id] && !String(stkLocationNames[id]).includes('[')){
+                stkLocationNames[id]=stkLocationNames[id] + ' [' + window._stkSys[id] + ']';
+              }
+            }
+          }catch{}
           if (sel) {
             const cur = sel.value;
             sel.innerHTML = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => '<option value="' + id + '"' + (id===cur?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>')).join('');
           }
+        } else {
+          // even when no need, enrich cached names with system suffix if we have it
+          try{
+            const sc=bvStructCacheRead();
+            for(const id of locIds){
+              if(sc[id] && sc[id].system && stkLocationNames[id] && !String(stkLocationNames[id]).includes('[')){
+                stkLocationNames[id]=sc[id].name + ' [' + sc[id].system + ']';
+              }
+            }
+            if(sel){
+              const cur=sel.value;
+              sel.innerHTML=['<option value="">All locations (global)</option>'].concat(locIds.map(id=>'<option value="'+id+'"' +(id===cur?' selected':'')+'>'+(stkLocationNames[id]||id)+' — '+Object.keys(stkAggByStation[id]||{}).length+' types</option>')).join('');
+            }
+          }catch{}
         }
       }
     } catch {}
