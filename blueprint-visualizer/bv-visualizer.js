@@ -1489,24 +1489,30 @@ async function loadInventory() {
         if (!window._stkSys) window._stkSys = {};
         const need = locIds.filter(id => !stkLocationNames[id]);
         if (need.length) {
-          for (let i=0;i<need.length;i+=200) {
-            const chunk = need.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
-            if (!chunk.length) continue;
-            let tries=0; while(tries<2){
-              try {
-                const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
-                (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
-                break;
-              } catch(e){
-                const msg=String(e&&e.message||'');
-                if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
-                break;
+          const needStations = need.filter(id => String(id).length < 12);
+          const needStructures = need.filter(id => String(id).length >= 12);
+          if (needStations.length) {
+            for (let i=0;i<needStations.length;i+=200) {
+              const chunk = needStations.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
+              if (!chunk.length) continue;
+              let tries=0; while(tries<2){
+                try {
+                  const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
+                  (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
+                  break;
+                } catch(e){
+                  const msg=String(e&&e.message||'');
+                  if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
+                  break;
+                }
               }
+              if (i+200 < needStations.length) await new Promise(r=>setTimeout(r,350));
             }
-            if (i+200 < need.length) await new Promise(r=>setTimeout(r,350));
           }
-          // structures whose name still missing or that need a system — fetch one-by-one throttled (structure → system)
-          const structIds = locIds.filter(id => String(id).length >= 12);
+          // structures: direct fallback (skip ESI hammer — private citadels 403/401 by design)
+          for (const id of needStructures) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
+          for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
+          if (false) { const structIds = locIds.filter(id => String(id).length >= 12);
           if (structIds.length) {
             const sysIds = new Set();
             for (let s=0; s<structIds.length; s++) {
@@ -1558,6 +1564,7 @@ async function loadInventory() {
                 }
               }
             }
+           }
           }
           for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
           // also enrich already-cached structure names with system if we now have it
