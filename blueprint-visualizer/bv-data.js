@@ -58,17 +58,36 @@ window.BV_DATA = {
     'Dark Glitter', 'Gelidus', 'Glare Crust', 'Krystallos'
   ],
   ships: [
-    { id: 'venture', name: 'Venture (approx)', rate: 130 },
-    { id: 'retriever', name: 'Retriever (approx)', rate: 450 },
-    { id: 'covetor', name: 'Covetor (approx)', rate: 700 },
-    { id: 'hulk', name: 'Hulk (approx)', rate: 1600 },
+    { id: 'venture', name: 'Venture', rate: 800 },
+    { id: 'prospect', name: 'Prospect', rate: 850 },
+    { id: 'endurance', name: 'Endurance', rate: 960 },
+    { id: 'procurer', name: 'Procurer', rate: 930 },
+    { id: 'retriever', name: 'Retriever', rate: 1100 },
+    { id: 'covetor', name: 'Covetor', rate: 1400 },
+    { id: 'mackinaw', name: 'Mackinaw', rate: 1170 },
+    { id: 'skiff', name: 'Skiff', rate: 930 },
+    { id: 'hulk', name: 'Hulk', rate: 1580 },
+    { id: 'porpoise', name: 'Porpoise', rate: 900 },
+    { id: 'orca', name: 'Orca', rate: 1200 },
+    { id: 'rorqual', name: 'Rorqual (Excavators)', rate: 3500 },
+    { id: 'outrider', name: 'Outrider', rate: 2500 },
     { id: 'custom', name: 'Custom rate', rate: 0 }
   ],
+  refining: {
+    base: 50,
+    skills: { reprocessing: 3385, efficiency: 3386 },
+    // optional per-ore 2% hook (not used for global v1, keep map for future per-ore calc)
+    oreSkills: { 1230:33836, 1228:33837,1224:33839,18:33840,1227:33838,20:33841,1226:33842,21:33843,1231:33844,1229:33845,1232:33846,1225:33847,19:33848,1223:33849,22:33850,11396:33851 },
+    rigBonus: [0, 1, 2], // index = rig slot count from rigs selector (same slots)
+    structureBonus: { npc:0, raitary:0, azbel:0, sotiyo:0, athanor:2, tatara:2 },
+    implants: [ { id:'none', bonus:0 }, { id:'RX-802', bonus:2 }, { id:'RX-804', bonus:4 } ]
+  },
   defaults: {
     hub: '10000002', structure: 'npc', rigs: 1, me: 10, te: 20,
     runs: 1, industry: 5, advIndustry: 5, implant: 'none',
     pricingBasis: 'sell', reactions: true,
     scc: 4, salesTax: 8, broker: 3, jobTax: 3,
-    tracked: ['10000043']
+    tracked: ['10000043'],
+    refinePct: 75
   }
 };

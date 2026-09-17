@@ -27,12 +27,13 @@
 <div class="main-container">
 <aside class="sidebar">
   <div class="panel"><div class="tabs">
-    <button class="tab-btn active" data-tab="calc"><i class="fas fa-industry"></i> Calc</button>
-    <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
-    <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
-    <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
-    <button class="tab-btn" data-tab="mine"><i class="fas fa-gem"></i> Mine</button>
-  </div></div>
+     <button class="tab-btn active" data-tab="calc"><i class="fas fa-industry"></i> Calc</button>
+     <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
+     <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
+     <button class="tab-btn" data-tab="stk"><i class="fas fa-boxes"></i> Inventory</button>
+      <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
+      <button class="tab-btn" data-tab="mine"><i class="fas fa-gem"></i> Mining yield</button>
+   </div></div>
 
   <div class="panel tab-content active" id="tab-calc">
     <h3><i class="fas fa-industry"></i> Calculator</h3>
@@ -57,6 +58,9 @@
       <div class="field"><label>Rigs</label><select id="rigs"></select></div>
       <div class="field"><label>Job tax %</label><input id="jobTax" type="number" step="0.1" value="3" class="form-input"></div>
     </div>
+    <div class="field"><label>Refining yield %</label><input id="refinePct" type="number" min="50" max="100" step="0.1" value="75" class="form-input"></div>
+    <p class="hint">50% base +3% Reprocessing +2% Efficiency + rig/structure. Sync fills it from your skills.</p>
+    <button id="refineLoad" class="calc-btn secondary" style="margin-bottom:.6rem"><i class="fas fa-sync"></i> Sync refining from SSO</button>
     <h4>Pricing</h4>
     <div class="grid2">
       <div class="field"><label>Basis</label><select id="basis"><option value="sell">Sell (Instant)</option><option value="buy">Buy Order</option></select></div>
@@ -101,17 +105,33 @@
     <button id="invQueueBom" class="calc-btn secondary">BOM for queued runs</button>
   </div>
 
-  <div class="panel tab-content" id="tab-mine">
-    <h3><i class="fas fa-gem"></i> Mining plan</h3>
-    <p class="hint">Mark raw minerals and ice products with <b>Mine it</b> on the tree, then plan here. Yields are live SDE via Everef.</p>
-    <div class="field"><label>Mining ship (rate is approx — edit it)</label><select id="mineShip"></select></div>
-    <div class="grid2">
-      <div class="field"><label>Yield m³/min</label><input id="mineRate" type="number" min="1" value="450" class="form-input"></div>
-      <div class="field"><label>Reprocess %</label><input id="mineEff" type="number" min="1" max="100" value="75" class="form-input"></div>
+  <div class="panel tab-content" id="tab-stk">
+     <h3><i class="fas fa-boxes"></i> Inventory</h3>
+     <p class="hint">Pulls hangar stock for the signed-in character &amp; corp. Industrial materials (minerals, ice products, PI, ores, moon goo) are highlighted. Use <b>Apply to shopping list</b> to subtract what you already own.</p>
+     <div class="grid2">
+       <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
+       <div class="field"><label>Filter</label><select id="stkFilter"><option value="industrial">Industrial only</option><option value="all">All assets</option></select></div>
+     </div>
+     <div class="field"><label>Search</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, morphite…" autocomplete="off"></div>
+     <div class="btn-row"><button id="stkRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button><button id="stkApply" class="calc-btn secondary"><i class="fas fa-check"></i> Apply to shopping list</button></div>
+     <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Deduct owned qty from Shopping List (show Have / Need)</label>
+     <div id="stkStatus" class="progress"></div>
+     <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
+     <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
+   </div>
+
+    <div class="panel tab-content" id="tab-mine">
+      <h3><i class="fas fa-gem"></i> Mining plan</h3>
+      <p class="hint">Mark raw minerals and ice products with <b>Mine it</b> on the tree, then plan here. Yields are live SDE via Everef. Global refining % replaces the old Reprocess % for ores.</p>
+      <div class="field"><label>Mining ship (rate is approx — edit it)</label><select id="mineShip"></select></div>
+      <div class="grid2">
+        <div class="field"><label>Yield m³/min</label><input id="mineRate" type="number" min="1" value="450" class="form-input"></div>
+        <div class="field"><label>Yield m³/sec</label><input id="mineRateSec" type="number" min="0.1" step="0.1" value="7.5" class="form-input"></div>
+      </div>
+      <p class="hint">Pick a ship or type a custom rate — min and sec stay in sync. Refining yield % is now in the Calc tab under Rigs.</p>
+      <button id="mineGo" class="calc-btn"><i class="fas fa-gem"></i> Plan mining</button>
+      <div id="mineStatus" class="progress"></div>
     </div>
-    <button id="mineGo" class="calc-btn"><i class="fas fa-gem"></i> Plan mining</button>
-    <div id="mineStatus" class="progress"></div>
-  </div>
 
   <div class="panel tab-content" id="tab-ledger">
     <h3><i class="fas fa-book"></i> Ledger</h3>
@@ -144,10 +164,32 @@
         <button id="appraiseOut" class="calc-btn secondary">Appraise output</button>
         <button id="mineFromBom" class="calc-btn secondary"><i class="fas fa-gem"></i> Mine it</button>
       </div>
-      <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th><th>Mode</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="6" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
-      <p class="hint" id="bomTotals" style="margin-top:.5rem"></p>
-    </div>
-    <div id="mineWrap"></div>
+      <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Unit price</th><th>Total price</th><th>Mode</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="6" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
+       <p class="hint" id="bomTotals" style="margin-top:.5rem"></p>
+     </div>
+      <div class="panel" style="margin-top:.8rem" id="buildPanel">
+        <h3><i class="fas fa-hammer"></i> Build List <span id="buildMeta" class="pill" style="margin-left:.5rem"></span></h3>
+        <div class="btn-row" style="margin-bottom:.5rem">
+          <button id="copyBuildList" class="calc-btn secondary"><i class="fas fa-copy"></i> Copy raw list</button>
+          <button id="copyBuildMultibuy" class="calc-btn secondary">Copy multibuy</button>
+          <button id="appraiseBuildList" class="calc-btn secondary"><i class="fas fa-coins"></i> Appraise raw</button>
+          <button id="toggleBuildExpand" class="calc-btn secondary"><i class="fas fa-expand"></i> Expand/Collapse</button>
+        </div>
+        <div id="buildList"><p class="hint">No calculation yet — set materials to <b>Build</b> in the tree above.</p></div>
+        <p class="hint" id="buildTotals" style="margin-top:.5rem"></p>
+      </div>
+      <div id="mineWrap"></div>
+      <div class="panel" style="margin-top:.8rem" id="shoppingPanel">
+        <h3><i class="fas fa-shopping-cart"></i> Shopping List <span id="shopMeta" class="pill" style="margin-left:.5rem"></span></h3>
+        <div class="btn-row" style="margin-bottom:.5rem">
+          <button id="copyShopping" class="calc-btn secondary"><i class="fas fa-copy"></i> Copy list</button>
+          <button id="copyShopMultibuy" class="calc-btn secondary">Copy multibuy</button>
+          <button id="appraiseShopping" class="calc-btn secondary"><i class="fas fa-coins"></i> Appraise</button>
+        </div>
+         <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Need</th><th>Have</th><th>To buy</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody id="shoppingBody"><tr><td colspan="7" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
+        <div class="summary-grid" id="shoppingSummary" style="display:none;margin-top:.6rem"></div>
+        <p class="hint" id="shoppingTotals" style="margin-top:.5rem"></p>
+      </div>
     <footer class="legal">EVE Online and the EVE logo are registered trademarks of <a href="https://www.ccpgames.com" target="_blank" rel="noopener">Fenris Creations</a>. Unofficial fan tool, not affiliated. Data: EVE ESI.</footer>
   </div>
 </main>
@@ -156,8 +198,8 @@
 <script src="../market/items_database.js?v=1"></script>
 <script src="../market/systems.js?v=1"></script>
 <script src="../PI/pi-data.js?v=1"></script>
-<script src="bv-data.js?v=3"></script>
-    <script src="bv-esi-auth.js?v=5"></script>
-    <script src="bv-visualizer.js?v=23"></script>
+<script src="bv-data.js?v=4"></script>
+    <script src="bv-esi-auth.js?v=6"></script>
+    <script src="bv-visualizer.js?v=42"></script>
 </body>
 </html>

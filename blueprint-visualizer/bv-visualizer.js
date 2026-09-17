@@ -93,9 +93,21 @@ function init() {
   $('basis').value = DEF.pricingBasis; $('reactions').value = DEF.reactions ? 'on' : 'off';
   $('mineShip').innerHTML = D.ships.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
   $('mineShip').value = 'retriever'; $('mineRate').value = 450;
+  const _initSec = (parseFloat($('mineRate').value)||450)/60;
+  if ($('mineRateSec')) $('mineRateSec').value = (Math.round(_initSec*10)/10).toString();
   $('scc').value = DEF.scc; $('salesTax').value = DEF.salesTax; $('broker').value = DEF.broker; $('jobTax').value = DEF.jobTax;
-  try { const p = JSON.parse(localStorage.getItem('bvPrefs') || '{}'); for (const [k, v] of Object.entries(p)) { const el = $(k); if (el && v !== undefined) el.value = v; } } catch {}
+  // refining yield — migrate old mineEff Reprocess % if present
+  try {
+    const pEarly = JSON.parse(localStorage.getItem('bvPrefs') || '{}');
+    if (pEarly.mineEff !== undefined && pEarly.refinePct === undefined) {
+      $('refinePct').value = Math.min(100, Math.max(50, parseFloat(pEarly.mineEff) || 75));
+    }
+    if (DEF.refinePct !== undefined && !$('refinePct').value) $('refinePct').value = DEF.refinePct;
+  } catch {}
   try { const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); refreshPresets(pr); } catch {}
+  try { const p = JSON.parse(localStorage.getItem('bvPrefs') || '{}'); for (const [k, v] of Object.entries(p)) { const el = $(k); if (el && v !== undefined) el.value = v; } } catch {}
+  // ensure refinePct has a sane default if still empty
+  try { if (!$('refinePct').value) $('refinePct').value = (DEF.refinePct ?? 75); } catch {}
   // ledger from share link
   if (location.hash.startsWith('#bv=')) { try { const e = JSON.parse(atob(location.hash.slice(4))); if (e && e.bp) { $('bpName').value = e.bp; $('runs').value = e.runs || 1; } } catch {} }
   document.querySelectorAll('.tab-btn').forEach(b => b.onclick = () => {
@@ -106,7 +118,7 @@ function init() {
   updateSsoBtn(); renderLedger();
 }
 function savePrefs() {
-  const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName'];
+  const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip'];
   const p = {}; ids.forEach(k => { const el = $(k); if (el) p[k] = el.value; });
   try { localStorage.setItem('bvPrefs', JSON.stringify(p)); } catch {}
 }
@@ -276,10 +288,18 @@ async function enrichChildren(runs) {
       const kid = await childBlueprint(c.type_id, c.name);
       if (kid) {
         let sub = 0;
-        for (const m of kid.materials) { const q = Math.ceil((m.quantity || 0)); const p = await marketPrice(m.type_id, hub(), $('basis').value); sub += (p || 0) * q; }
+        for (const m of kid.materials) {
+          const q = Math.ceil((m.quantity || 0));
+          const p = await marketPrice(m.type_id, hub(), $('basis').value);
+          if (!m.name) { try { m.name = await typeName(m.type_id); } catch {} }
+          m.unit = p || 0;
+          sub += (p || 0) * q;
+        }
         const outP = await marketPrice(c.type_id, hub(), 'sell');
-        c.child = { bpName: kid.bpName, subCost: sub, outPrice: outP, margin: (outP || 0) - sub, materials: kid.materials };
+        const prodQty = (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
+        c.child = { bpName: kid.bpName, subCost: sub, outPrice: outP, margin: (outP || 0) - sub, materials: kid.materials, productQty: prodQty, products: kid.products };
         renderTree(runs);
+        renderBuildList(runs);
       }
     }
     if (rxOn && !c.reaction && !c._rxTried) {
@@ -417,7 +437,15 @@ function renderTree(runs) {
       : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</div>' + rxKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
-  w.querySelectorAll('.mode-btn').forEach(b => b.onclick = () => { S.root.children[+b.dataset.i].mode = b.dataset.m; renderTree(runs); renderBom(runs); if (S.lastCalc) renderSummary(S.lastCalc); });
+  w.querySelectorAll('.mode-btn').forEach(b => b.onclick = async () => {
+    const idx = +b.dataset.i, mode = b.dataset.m;
+    S.root.children[idx].mode = mode;
+    renderTree(runs); await renderBom(runs); await renderBuildList(runs); if (S.lastCalc) renderSummary(S.lastCalc);
+    // auto-update mining plan in the background when Mine it is toggled — do NOT switch tabs or steal focus
+    if (mode === 'mine' || mode === 'buy' || isMineable(S.root.children[idx].type_id)) {
+      try { planMining(undefined, { auto: true }); } catch {}
+    }
+  });
 }
 
 async function renderBom(runs) {
@@ -429,15 +457,211 @@ async function renderBom(runs) {
   $('bomMeta').textContent = S.bom.length + ' types';
   const split = bomCashSplit();
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
+  await renderShoppingList(runs);
+  await renderBuildList(runs);
+}
+
+async function renderBuildList(runs) {
+  const wrap = $('buildList'), meta = $('buildMeta'), totals = $('buildTotals');
+  if (!wrap) return;
+  if (!S.root || !S.root.children) { wrap.innerHTML = '<p class="hint">No calculation yet — set materials to <b>Build</b> in the tree above.</p>'; if (meta) meta.textContent=''; if (totals) totals.textContent=''; return; }
+  const builds = S.root.children.filter(c => c.mode === 'build');
+  if (!builds.length) { wrap.innerHTML = '<p class="hint">Nothing set to Build — toggle <b>Build</b> on materials in the tree above. The list below will break each Build item into its raw materials.</p>'; if (meta) meta.textContent='0 items'; if (totals) totals.textContent=''; return; }
+  let html = '';
+  let grandTotal = 0, grandVol = 0, totalRows = 0;
+  const aggregated = new Map();
+  for (let idx=0; idx<builds.length; idx++) {
+    const c = builds[idx];
+    const need = c.perRun * (S.runs || 1);
+    if (!c.child || !c.child.materials) {
+      const checking = !c._tried ? 'checking blueprint…' : (c.child===null ? 'no manufacture blueprint' : 'loading…');
+      html += '<details class="tree-node build" open style="margin-bottom:.6rem;padding:.6rem;background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--build);border-radius:8px"><summary style="cursor:pointer;display:flex;align-items:center;gap:.6rem;list-style:none"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:28px;height:28px;border-radius:4px;background:#111"><span class="nm" style="flex:1;font-weight:700">' + c.name + ' × ' + fmtN(need) + '</span><span class="pill build">BUILD</span><span class="nums">' + checking + '</span><span style="margin-left:auto;color:var(--text3)"><i class="fas fa-chevron-down"></i></span></summary><p class="hint" style="margin-top:.6rem">Raw materials are still resolving — they will appear here when the blueprint lookup finishes.</p></details>';
+      continue;
+    }
+    const child = c.child;
+    const mats = child.materials || [];
+    const prodQty = child.productQty || (child.products && child.products[0] && child.products[0].quantity) || 1;
+    const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
+    let subTotal = 0; let subVol = 0;
+    for (const m of mats) {
+      if (!m.name) { try { m.name = await typeName(m.type_id); } catch { m.name = 'Type ' + m.type_id; } }
+      if (m.unit == null) { try { let p = await marketPrice(m.type_id, hub(), $('basis').value); if (p==null) p = await marketPrice(m.type_id, hub(), 'sell'); m.unit = p || 0; } catch { m.unit = 0; } }
+      const qty = (m.quantity || 0) * batches;
+      const tot = (m.unit || 0) * qty;
+      subTotal += tot;
+      subVol += (await typeVolume(m.type_id)) * qty;
+      const key = m.type_id;
+      if (!aggregated.has(key)) aggregated.set(key, { qty: 0, unit: m.unit||0, name: m.name || ('Type '+m.type_id) });
+      aggregated.get(key).qty += qty;
+    }
+    grandTotal += subTotal;
+    grandVol += subVol;
+    totalRows += mats.length;
+    html += '<details class="tree-node build" open style="margin-bottom:.6rem;padding:.6rem;background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--build);border-radius:8px"><summary style="cursor:pointer;display:flex;align-items:center;gap:.6rem;list-style:none"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:28px;height:28px;border-radius:4px;background:#111"><span class="nm" style="flex:1;font-weight:700">' + c.name + ' × ' + fmtN(need) + '</span><span class="pill build">BUILD</span><span class="nums">' + fmtISK(subTotal) + ' for ' + mats.length + ' raws · ×' + batches + ' batch' + (batches>1?'es':'') + '</span><span style="margin-left:auto;color:var(--text3)"><i class="fas fa-chevron-down"></i></span></summary>';
+    html += '<div style="margin-top:.6rem;overflow-x:auto"><table class="bom"><thead><tr><th>Raw material</th><th>Qty</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody>';
+    for (const m of mats) {
+      const qty = (m.quantity || 0) * batches;
+      const tot = (m.unit || 0) * qty;
+      const clean = m.name || ('Type ' + m.type_id);
+      html += '<tr><td><img src="https://images.evetech.net/types/' + m.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + clean + (isPI(m.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(m.type_id) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(m.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(m.type_id) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(m.type_id) + mineIcon(m.type_id) + '</td></tr>';
+    }
+    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + mats.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a></p></details>';
+  }
+  if (aggregated.size > 1 && builds.filter(c=>c.child && c.child.materials).length > 1) {
+    html += '<div class="panel" style="margin-top:.6rem;background:var(--panel2)"><h4>Aggregated raw totals (' + aggregated.size + ' types across ' + builds.filter(c=>c.child).length + ' builds)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Total qty</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody>';
+    let aggTotal = 0; let aggVol = 0;
+    for (const [tid, v] of aggregated) {
+      const tot = v.unit * v.qty;
+      aggTotal += tot;
+      aggVol += (await typeVolume(tid)) * v.qty;
+      html += '<tr><td><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + v.name + '</td><td>' + fmtN(v.qty) + '</td><td>' + fmtISK(v.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</td></tr>';
+    }
+    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">Combined raw cost for all Build items: ' + fmtISK(aggTotal) + ' · Volume ~' + fmtN(Math.round(aggVol)) + ' m³</p></div>';
+    grandTotal = aggTotal;
+    grandVol = aggVol;
+  }
+  wrap.innerHTML = html;
+  if (meta) meta.textContent = builds.length + ' item' + (builds.length>1?'s':'') + ' to build' + (builds.filter(c=>!c.child).length ? ' · ' + builds.filter(c=>!c.child).length + ' loading…' : '') + ' · raw ' + fmtISK(grandTotal);
+  if (totals) totals.textContent = 'Raw total for Build List ' + fmtISK(grandTotal) + ' · Volume ~' + fmtN(Math.round(grandVol)) + ' m³ · ' + totalRows + ' material rows' + (aggregated.size ? ' · ' + aggregated.size + ' unique raws' : '');
+}
+
+function buildRawLines() {
+  const out = [];
+  if (!S.root || !S.root.children) return out;
+  for (const c of S.root.children.filter(x=>x.mode==='build' && x.child && x.child.materials)) {
+    const need = c.perRun * (S.runs||1);
+    const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
+    const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
+    for (const m of c.child.materials) {
+      const qty = (m.quantity||0) * batches;
+      const nm = m.name || ('Type ' + m.type_id);
+      out.push({ type_id: m.type_id, name: nm, qty, unit: m.unit||0, total: (m.unit||0)*qty });
+    }
+  }
+  return out;
+}
+function buildAggLines() {
+  const map = new Map();
+  for (const r of buildRawLines()) {
+    const k = r.type_id;
+    if (!map.has(k)) map.set(k, { type_id:k, name:r.name, qty:0, unit:r.unit });
+    map.get(k).qty += r.qty;
+  }
+  return [...map.values()].map(v => ({ ...v, total: v.unit * v.qty }));
+}
+
+async function renderShoppingList(runs) {
+  const sb = $('shoppingBody'), meta = $('shopMeta'), totals = $('shoppingTotals');
+  if (!sb) return;
+  const bom = S.bom || effLeafCost(runs);
+  const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
+  if (!shop.length) {
+    const msg = !bom.length ? 'No calculation yet.' : 'Nothing to buy — all items set to Build or Mine.';
+    sb.innerHTML = '<tr><td colspan="7" style="color:var(--text3)">' + msg + '</td></tr>';
+    const sg = $('shoppingSummary'); if (sg) { sg.style.display='none'; sg.innerHTML=''; }
+    if (meta) meta.textContent = '0 items';
+    if (totals) totals.textContent = bom.length ? 'Full total 0 ISK · Volume 0 m³' : '';
+    return;
+  }
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg || {}).length > 0;
+  // compute per-line have/to-buy and volumes/totals
+  let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
+  const rows = shop.map(l => {
+    const have = doDeduct ? (stkAgg[l.type_id] || 0) : 0;
+    const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
+    const unit = l.unit || 0;
+    return { l, have, toBuy, unit, totalNeed: unit * l.qty, totalBuy: unit * toBuy };
+  });
+  for (const r of rows) {
+    volNeed += (await typeVolume(r.l.type_id)) * r.l.qty;
+    volBuy += (await typeVolume(r.l.type_id)) * r.toBuy;
+    totalNeed += r.totalNeed;
+    totalBuy += r.totalBuy;
+  }
+  sb.innerHTML = rows.map(r => {
+    const clean = cleanName(r.l.name);
+    const haveTxt = doDeduct ? fmtN(r.have) : '—';
+    const toBuyTxt = fmtN(r.toBuy);
+    const needTxt = fmtN(r.l.qty);
+    const haveCls = doDeduct && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
+    const toBuyCls = r.toBuy === 0 ? ' style="color:var(--build)"' : '';
+    return '<tr><td><img src="https://images.evetech.net/types/' + r.l.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
+  }).join('');
+  // prominent summary grid with full total — de-dupe when nothing is saved
+  const sumGrid = $('shoppingSummary');
+  const hubName = (D.hubs.find(h => h.region === hub()) || {}).name || hub();
+  const basisLabel = ($('basis').value === 'buy' ? 'buy' : 'sell');
+  if (sumGrid) {
+    sumGrid.style.display = 'grid';
+    const saving = totalNeed - totalBuy;
+    if (doDeduct && saving > 0) {
+      sumGrid.innerHTML =
+        '<div class="summary-card"><div class="k">Full total (need)</div><div class="v">' + fmtISK(totalNeed) + '</div><div class="k">' + fmtN(Math.round(volNeed)) + ' m³ · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' · @ ' + hubName + ' (' + basisLabel + ')</div></div>' +
+        '<div class="summary-card"><div class="k">Inventory covers</div><div class="v" style="color:var(--build)">' + fmtISK(saving) + '</div><div class="k">saved · Have ' + fmtN(Object.values(stkAgg).reduce((a,b)=>a+b,0)) + ' units tracked</div></div>' +
+        '<div class="summary-card"><div class="k">To buy total</div><div class="v" style="color:var(--accent)">' + fmtISK(totalBuy) + '</div><div class="k">' + fmtN(Math.round(volBuy)) + ' m³ to buy · after deduct</div></div>';
+    } else {
+      // no saving — single total is enough, don't duplicate 32M/32M
+      sumGrid.innerHTML =
+        '<div class="summary-card"><div class="k">Total</div><div class="v">' + fmtISK(totalNeed) + '</div><div class="k">' + fmtN(Math.round(volNeed)) + ' m³ · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' · @ ' + hubName + ' (' + basisLabel + ')</div></div>';
+    }
+  }
+  if (meta) {
+    const saving = totalNeed - totalBuy;
+    if (doDeduct && saving > 0) meta.textContent = shop.length + ' items · full ' + fmtISK(totalNeed) + ' → buy ' + fmtISK(totalBuy) + ' (saved ' + fmtISK(saving) + ')';
+    else meta.textContent = shop.length + ' items · ' + fmtISK(totalNeed);
+  }
+  if (totals) {
+    if (doDeduct && (totalNeed - totalBuy) > 0) {
+      totals.textContent = 'Full total ' + fmtISK(totalNeed) + ' (' + fmtN(Math.round(volNeed)) + ' m³) · Have covers ' + fmtISK(totalNeed - totalBuy) + ' · To buy ' + fmtISK(totalBuy) + ' · Volume to buy ~' + fmtN(Math.round(volBuy)) + ' m³ · Prices @ ' + hubName + ' (' + basisLabel + ')';
+    } else {
+      totals.textContent = 'Total ' + fmtISK(totalNeed) + ' · Volume ~' + fmtN(Math.round(volNeed)) + ' m³ · Prices @ ' + hubName + ' (' + basisLabel + ') · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' to buy';
+    }
+  }
+}
+
+function shoppingLines() {
+  const bom = S.bom || [];
+  const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg || {}).length > 0;
+  return shop.map(l => {
+    const have = doDeduct ? (stkAgg[l.type_id] || 0) : 0;
+    const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
+    const needTxt = fmtN(l.qty);
+    const haveTxt = doDeduct ? fmtN(have) : '0';
+    const toBuyTxt = fmtN(toBuy);
+    if (doDeduct) return cleanName(l.name) + ' need ' + needTxt + ' have ' + haveTxt + ' to buy ' + toBuyTxt + ' — ' + fmtISK(l.unit) + ' ea = ' + fmtISK(l.unit * toBuy);
+    return cleanName(l.name) + ' x' + l.qty + ' — ' + fmtISK(l.unit) + ' ea = ' + fmtISK(l.total);
+  });
+}
+function shoppingBuyLines() {
+  const bom = S.bom || [];
+  const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg || {}).length > 0;
+  return shop.filter(l => {
+    if (!doDeduct) return true;
+    const toBuy = Math.max(0, l.qty - (stkAgg[l.type_id]||0));
+    return toBuy > 0;
+  }).map(l => {
+    const have = doDeduct ? (stkAgg[l.type_id]||0) : 0;
+    const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
+    return cleanName(l.name) + ' x' + toBuy;
+  });
 }
 
 // ---- multibuy + appraisal ----
 function cleanName(n) { return n.replace(/ \(built\)$/, '').replace(/ \(react: .*\)$/, ''); }
 function multibuyLines() { return S.bom.filter(l => l.mode === 'buy' || l.mode === 'react').map(l => cleanName(l.name) + ' x' + l.qty); }
 function bindHandoffs() {
-  $('copyMultibuy').onclick = async () => { const t = multibuyLines().join('\n'); if (!t) { status('Nothing to copy (all built).'); return; } await navigator.clipboard.writeText(t); status('Multibuy copied (' + S.bom.length + ' lines).'); };
+  $('copyMultibuy').onclick = async () => { const t = multibuyLines().join('\n'); if (!t) { status('Nothing to copy (all built).'); return; } await navigator.clipboard.writeText(t); status('Multibuy copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' lines).'); };
   $('appraiseBom').onclick = () => { const lines = S.bom.map(l => l.qty + ' x ' + cleanName(l.name)); if (!lines.length) return; window.open(appraisalURL(lines), '_blank', 'noopener'); };
   $('appraiseOut').onclick = () => { if (!S.product) return; window.open(appraisalURL([(S.product.qty * (parseInt($('runs').value) || 1)) + ' x ' + S.product.name]), '_blank', 'noopener'); };
+  const cs = $('copyShopping'); if (cs) cs.onclick = async () => { const t = shoppingLines().join('\n'); if (!t) { status('Nothing to buy — all built/mined.'); return; } await navigator.clipboard.writeText(t); status('Shopping list copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' items).'); };
+  const csm = $('copyShopMultibuy'); if (csm) csm.onclick = async () => { const t = shoppingBuyLines().join('\n'); if (!t) { status('Nothing to buy — all covered by inventory.'); return; } await navigator.clipboard.writeText(t); status('Multibuy (shopping) copied (' + t.split('\n').length + ' lines — after inventory deduct).'); };
+  const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg||{}).length>0; const lines = shop.map(l => { const toBuy = doDeduct ? Math.max(0, l.qty - (stkAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
+  const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = buildRawLines(); if (!lines.length) { status('Nothing to build — set items to Build.'); return; } const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await navigator.clipboard.writeText(t); status('Build list copied (' + lines.length + ' raws).'); };
+  const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
+  const ab = $('appraiseBuildList'); if (ab) ab.onclick = () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
+  const tb = $('toggleBuildExpand'); if (tb) tb.onclick = () => { const ds = document.querySelectorAll('#buildList details'); if (!ds.length) return; const anyClosed = [...ds].some(d=>!d.open); ds.forEach(d=>d.open = anyClosed); tb.innerHTML = anyClosed ? '<i class="fas fa-compress"></i> Collapse' : '<i class="fas fa-expand"></i> Expand'; };
 }
 
 // ---- OCR (kept from BPC, trimmed) ----
@@ -479,6 +703,7 @@ async function resolveBvCharacter() {
 }
 // ESI skill type IDs for the calculator's Industry / Advanced Industry selects.
 const SKILL_INDUSTRY = 3380, SKILL_ADV_INDUSTRY = 3388;
+const SKILL_REPROCESSING = 3385, SKILL_REPROCESSING_EFF = 3386;
 async function loadMySkills() {
   if (!window.BVAuth || !BVAuth.signedIn()) { status('Sign in with SSO first, then load skills.'); return; }
   status('Loading industry skills from SSO…');
@@ -496,6 +721,41 @@ async function loadMySkills() {
     if (adv !== null) $('advSkill').value = adv;
     status('Skills loaded: Industry ' + (ind === null ? '—' : ind) + ', Adv Industry ' + (adv === null ? '—' : adv) + ' — hit Calculate.');
   } catch (e) { status('Skill load failed: ' + e.message); }
+}
+async function loadRefiningYield() {
+  if (!window.BVAuth || !BVAuth.signedIn()) { status('Sign in with SSO first, then sync refining.'); return; }
+  status('Loading refining yield from SSO…');
+  try {
+    const ch = await resolveBvCharacter();
+    if (!ch) { status('Signed in, but no character — Sign out and sign in again.'); return; }
+    const cid = ch.id || ch.character_id || ch.CharacterID;
+    if (!cid) { status('No character ID — re-login.'); return; }
+    const s = await BVAuth.api('/characters/' + cid + '/skills/?datasource=tranquility');
+    const list = (s && s.skills) || [];
+    const lvl = id => { const r = list.find(x => x.skill_id === id); return r ? Math.min(5, Math.max(0, r.active_skill_level || 0)) : 0; };
+    const R = (window.BV_DATA && BV_DATA.refining) || { base:50, skills:{reprocessing:3385, efficiency:3386}, rigBonus:[0,1,2], structureBonus:{npc:0,athannor:2,tatara:2} };
+    const reproc = lvl(R.skills?.reprocessing ?? SKILL_REPROCESSING);
+    const effic  = lvl(R.skills?.efficiency  ?? SKILL_REPROCESSING_EFF);
+    let y = (R.base ?? 50) + 3*reproc + 2*effic;
+    // structure + rig bonus from current picker (keeps Structure picker as source of truth)
+    try {
+      const stId = ($('structure') && $('structure').value) || 'npc';
+      const sb = (R.structureBonus && R.structureBonus[stId] != null) ? R.structureBonus[stId] : 0;
+      y += sb;
+      const rigIdx = parseInt(($('rigs') && $('rigs').value) || 0, 10);
+      const rb = (R.rigBonus && R.rigBonus[rigIdx] != null) ? R.rigBonus[rigIdx] : 0;
+      y += rb;
+    } catch {}
+    y = Math.min(100, Math.max(50, y));
+    const rounded = Math.round(y*10)/10;
+    $('refinePct').value = rounded;
+    try { savePrefs(); } catch {}
+    status('Refining yield synced: ' + reproc + ' Reprocessing, ' + effic + ' Efficiency → ' + rounded + '% (structure/rig included, capped 100). Edit the box if you have RX implant or standing bonus.');
+    // live-update mining plan if it is already visible
+    if (S.root && S.root.children && S.root.children.some(c=>c.mode==='mine')) {
+      try { planMining(undefined, { auto:true }); } catch {}
+    }
+  } catch (e) { status('Refining sync failed: ' + (e && e.message ? e.message : e)); }
 }
 // ESI (character + corp endpoints agree): runs === -1 marks an original;
 // a copy carries runs remaining (>= 0). quantity is -1 for an original and
@@ -572,7 +832,10 @@ function bindBpLoadButtons(box) {
     $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
     if (!btn.dataset.bpo && +btn.dataset.runs > 0) $('runs').value = +btn.dataset.runs;
     $('bpName').value = await typeName(+btn.dataset.bp);
-    document.querySelector('[data-tab="calc"]').click(); status('Loaded — hit Calculate.');
+    document.querySelector('[data-tab="calc"]').click();
+    savePrefs();
+    status('Loading ' + $('bpName').value + ' (ME' + $('me').value + '/TE' + $('te').value + ( $('runs').value ? ' ×' + $('runs').value : '' ) + ')…');
+    await calculate();
   });
 }
 function renderBpRows() {
@@ -895,13 +1158,21 @@ async function fetchOre(id, nameHint) {
   const o = { id, name: nameHint || (D.ores.find(x => x.id === id) || {}).name || id, volume: d.volume || 0, portion: d.portion_size || 100, yields };
   oreCache.set(id, o); saveOreCache(); return o;
 }
-function mineralNeeds() {
+function mineralNeeds(forcedId) {
   const needs = {};
+  const fid = forcedId != null ? +forcedId : null;
   // 1) raw minerals / ice products explicitly marked "Mine it" (BOM lines carry the mode)
+  //    If a diamond was clicked, include that type even when its mode is still Buy.
   for (const l of (S.bom || [])) {
     if (!isMineable(l.type_id)) continue;
-    if (l.mode !== 'mine') continue;
+    if (l.mode !== 'mine' && +l.type_id !== fid) continue;
     needs[l.type_id] = (needs[l.type_id] || 0) + l.qty;
+  }
+  // forced click on a top-level material that hasn't been moved to Mine yet
+  // covers the Buy->diamond case where BOM entry is still Buy but we want a plan anyway
+  if (fid && isMineable(fid) && !needs[fid] && S.root && S.root.children) {
+    const c = S.root.children.find(x => +x.type_id === fid);
+    if (c) needs[fid] = (needs[fid] || 0) + c.perRun * (S.runs || 1);
   }
   // 2) minerals / ice products inside sub-components set to Build (BOM only shows one "(built)" line for these)
   const runs = S.runs || 1;
@@ -922,11 +1193,12 @@ function fmtTime(mins) {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
   return h + 'h ' + m + 'm';
 }
-async function planMining() {
+async function planMining(forcedId, opts) {
   const box = $('mineWrap'), st = $('mineStatus');
+  const isAuto = !!(opts && opts.auto);
   try {
   await ensureIceProducts().catch(() => {});
-  const needs = mineralNeeds();
+  const needs = mineralNeeds(forcedId);
   if (!S.root) {
     st.textContent = 'Run a calculation first.';
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3><p class="hint">Enter a blueprint on the left, hit Calculate, then come back and press Plan mining.</p></div>';
@@ -941,7 +1213,8 @@ async function planMining() {
     return;
   }
   const rate = Math.max(1, parseFloat($('mineRate').value) || 450);
-  const eff = Math.min(100, Math.max(1, parseFloat($('mineEff').value) || 75)) / 100;
+  const rawEff = parseFloat($('refinePct').value) || parseFloat(localStorage.getItem('bvPrefs') ? (JSON.parse(localStorage.getItem('bvPrefs')||'{}').mineEff) : null) || 75;
+  const eff = Math.min(100, Math.max(50, rawEff)) / 100;
   const region = hub();
   const say = phase => {
     st.textContent = phase;
@@ -959,17 +1232,25 @@ async function planMining() {
   Object.keys(needs).forEach((mid, i) => { minPrice[mid] = priced[i] || 0; });
   const needName = {};
   await Promise.all(Object.keys(needs).map(async mid => { needName[mid] = D.minerals[mid] || await typeName(+mid); }));
-  // per-material fastest source (least m3 per unit needed)
+  // per-material source with selectable alternative (for space-limited ores)
+  // miningSelection[mid] remembers the player's pick per mineral so the plan recalculates with that rock
+  if (typeof window.miningSelection === 'undefined') window.miningSelection = {};
   const perMin = [];
   for (const [mid, need] of Object.entries(needs)) {
-    let best = null;
+    const ranked = [];
     for (const o of sources) {
       const y = o.yields[mid]; if (!y) continue;
       const units = Math.ceil(need / (y * eff) / o.portion) * o.portion;
       const m3 = units * o.volume;
-      if (!best || m3 < best.m3) best = { ore: o, units, m3, mins: m3 / rate };
+      ranked.push({ ore: o, units, m3, mins: m3 / rate, y });
     }
-    if (best) perMin.push({ mid, name: needName[mid], need, ...best });
+    ranked.sort((a,b)=>a.m3 - b.m3);
+    if (ranked.length) {
+      const chosenId = window.miningSelection[mid];
+      let chosen = ranked.find(r => r.ore.id === chosenId);
+      if (!chosen) chosen = ranked[0];
+      perMin.push({ mid, name: needName[mid], need, ...chosen, y: chosen.y, ranked, chosenId: chosen.ore.id });
+    }
   }
   // combined plan: merge the per-mineral fastest picks by ore so every mineral is covered
   const byOre = {};
@@ -981,24 +1262,200 @@ async function planMining() {
   const totalM3 = merged.reduce((s, g) => s + g.m3, 0);
   const totalMins = merged.reduce((s, g) => s + g.mins, 0);
   const totalValue = Object.entries(needs).reduce((s, [mid, n]) => s + n * (minPrice[mid] || 0), 0);
-  let h = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan <span class="pill" style="margin-left:.5rem">' + fmtISK(totalValue) + ' of materials</span></h3>';
-  h += '<p class="hint">Needs from current BOM · ' + rate + ' m³/min · reprocess ' + Math.round(eff * 100) + '% · prices ' + ((D.hubs.find(x => x.region === region) || {}).name || region) + '</p>';
+  const curShip = ($('mineShip') && $('mineShip').value) || 'retriever';
+  const shipOpts = D.ships.map(s => '<option value="' + s.id + '"' + (s.id===curShip?' selected':'') + '>' + s.name + ' — ' + s.rate + ' m³/min (' + (Math.round(s.rate/60*10)/10) + '/sec)</option>').join('');
+  const curSec = (Math.round((rate/60)*10)/10);
+  let h = '<div class="panel" style="margin-top:.8rem"><div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:space-between"><h3 style="margin:0"><i class="fas fa-gem"></i> Mining plan <span class="pill" style="margin-left:.5rem">' + fmtISK(totalValue) + ' of materials</span></h3><div style="display:flex;align-items:center;gap:.4rem"><label style="font-size:.78rem;color:var(--text2)">Ship</label><select id="mineShipTop" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.35rem .5rem;font-family:inherit;font-size:.82rem;min-width:160px">' + shipOpts + '</select><span class="pill" style="font-size:.75rem">' + rate + ' m³/min · ' + curSec + ' /sec</span></div></div>';
+  h += '<p class="hint">Needs from current BOM · ' + rate + ' m³/min (' + curSec + ' /sec) · refining ' + Math.round(eff * 100) + '% · prices ' + ((D.hubs.find(x => x.region === region) || {}).name || region) + '</p>';
   h += '<h4>Mine this (covers ' + perMin.length + '/' + Object.keys(needs).length + ' materials)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Source</th><th>For</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     merged.map(g => '<tr><td><b>' + g.ore.name + '</b></td><td>' + g.for.join(', ') + '</td><td>' + fmtN(g.units) + '</td><td>' + fmtN(Math.round(g.m3)) + ' m³</td><td>' + fmtTime(g.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(g.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>').join('') +
     '</tbody></table></div>';
   h += '<div class="summary-grid" style="margin-top:.6rem"><div class="summary-card"><div class="k">Total volume</div><div class="v">' + fmtN(Math.round(totalM3)) + ' m³</div></div>' +
     '<div class="summary-card"><div class="k">Total mining time</div><div class="v">' + fmtTime(totalMins) + '</div></div>' +
     '<div class="summary-card"><div class="k">Material value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
-  h += '<h4 style="margin-top:.6rem">Fastest source per material (detail)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
-    perMin.map(p => '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td>' + p.ore.name + '</td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>').join('') +
+  h += '<h4 style="margin-top:.6rem">Fastest source per material (detail)</h4><p class="hint" style="margin-top:.2rem">Pick the rock you can actually mine — e.g. Megacyte: Arkonor (333-366) → Bistot (170-187) → Spodumain (140-154). Changing the dropdown recalculates the volume/time above.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
+    perMin.map(p => {
+      const opts = (p.ranked || []).map(r => '<option value="' + r.ore.id + '"' + (r.ore.id===p.chosenId?' selected':'') + '>' + r.ore.name + ' — ' + fmtN(r.units) + ' units · ' + fmtN(Math.round(r.m3)) + ' m³ · ' + fmtTime(r.mins) + ' (' + fmtN(r.y) + '/portion)</option>').join('');
+      const yieldHint = p.y ? ' ('+fmtN(p.y)+'/portion)' : '';
+      return '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td><select data-mine-choice="' + p.mid + '" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .4rem;font-family:inherit;font-size:.82rem;max-width:260px">' + opts + '</select><span class="nums">' + yieldHint + '</span></td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+    }).join('') +
     '</tbody></table></div>';
   box.innerHTML = h + '</div>';
-  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!isAuto) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   st.textContent = '';
   } catch (e) {
     st.textContent = 'Mining plan failed: ' + (e && e.message ? e.message : e);
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3><p class="hint">Failed: ' + (e && e.message ? e.message : e) + '. Check your connection and try again.</p></div>';
   }
+}
+
+// ---- Inventory (industrial stock: character + corp) ----
+let stkRaw = [], stkAgg = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
+const STK_PAGE_OPTIONS = [25, 50, 100];
+try {
+  const s = parseInt(localStorage.getItem('bvStkPageSize') || '', 10);
+  if (STK_PAGE_OPTIONS.includes(s)) stkPageSize = s;
+} catch {}
+function isIndustrialMaterial(id) {
+  const nid = +id;
+  if (D.minerals && D.minerals[nid]) return true;
+  if (iceProductIds && iceProductIds.has(nid)) return true;
+  try {
+    const P = (typeof PI_DATA !== 'undefined' ? PI_DATA : (typeof window !== 'undefined' && window.PI_DATA ? window.PI_DATA : null));
+    if (P && P.materials && P.materials[String(nid)]) return true;
+  } catch {}
+  try { if (D.ores && D.ores.some(o => o.id === nid)) return true; } catch {}
+  try { if (iceOreList && iceOreList.some(o => +o.id === nid)) return true; } catch {}
+  return false;
+}
+function stkFilteredAgg() {
+  const filter = ($('stkFilter') && $('stkFilter').value) || 'industrial';
+  const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
+  const entries = Object.entries(stkAgg).map(([typeId, qty]) => ({ typeId: +typeId, qty }));
+  let out = entries;
+  if (filter === 'industrial') {
+    out = out.filter(e => isIndustrialMaterial(e.typeId));
+  }
+  if (q) {
+    out = out.filter(e => {
+      const nm = (stkNames[e.typeId] || '').toLowerCase();
+      return nm.includes(q) || String(e.typeId).includes(q);
+    });
+  }
+  out.sort((a,b) => (stkNames[a.typeId]||'').localeCompare(stkNames[b.typeId]||''));
+  return out;
+}
+function renderStkRows() {
+  const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
+  const rows = stkFilteredAgg();
+  const totalTypes = Object.keys(stkAgg).length;
+  const filteredTypes = rows.length;
+  const pages = Math.max(1, Math.ceil(rows.length / stkPageSize));
+  if (stkPage > pages) stkPage = pages;
+  const start = (stkPage - 1) * stkPageSize;
+  const page = rows.slice(start, start + stkPageSize);
+  if (!totalTypes) {
+    box.innerHTML = '<p class="hint">No assets loaded. Hit Refresh.</p>';
+    if (totals) totals.textContent = '';
+    return;
+  }
+  const industrialCount = Object.keys(stkAgg).filter(id => isIndustrialMaterial(+id)).length;
+  const countLine = '<p class="hint">' + totalTypes + ' types in hangar · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + '</p>';
+  const pager = pages > 1
+    ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
+    : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
+  let h = countLine + pager;
+  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty owned</th><th>Type</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
+  if (!page.length) {
+    h += '<tr><td colspan="6" style="color:var(--text3)">No matches — clear search or switch to All assets.</td></tr>';
+  } else {
+    for (const r of page) {
+      const nm = stkNames[r.typeId] || ('Type ' + r.typeId);
+      const ind = isIndustrialMaterial(r.typeId) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">Industrial</span>' : '<span class="pill">Other</span>';
+      h += '<tr><td><img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + ind + '</td><td data-stkprice="' + r.typeId + '">—</td><td data-stktotal="' + r.typeId + '">—</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.typeId) + '"><i class="fas fa-chart-line"></i></a>' + (isPI(r.typeId) ? piIcon(r.typeId) : '') +'</td></tr>';
+    }
+  }
+  h += '</tbody></table></div>';
+  box.innerHTML = h;
+  box.querySelectorAll('[data-stkpg]').forEach(b => b.onclick = () => { stkPage += (b.dataset.stkpg === 'next' ? 1 : -1); renderStkRows(); });
+  const sel = box.querySelector('[data-stkpgsize]');
+  if (sel) sel.onchange = () => { const n = parseInt(sel.value,10); if (STK_PAGE_OPTIONS.includes(n)) { stkPageSize=n; try{localStorage.setItem('bvStkPageSize', String(n));}catch{} } stkPage=1; renderStkRows(); };
+  // lazy price fill for visible page
+  (async () => {
+    const region = hub();
+    for (const r of page) {
+      try {
+        const p = await marketPrice(r.typeId, region, 'sell');
+        const el = box.querySelector('[data-stkprice="'+r.typeId+'"]');
+        const el2 = box.querySelector('[data-stktotal="'+r.typeId+'"]');
+        if (el) el.textContent = p ? fmtISK(p) : '—';
+        if (el2) el2.textContent = p ? fmtISK(p * r.qty) : '—';
+      } catch {}
+    }
+    // totals line: total inventory value for filtered set
+    if (totals) {
+      let totalVal = 0;
+      for (const e of rows) {
+        try { const p = await marketPrice(e.typeId, hub(), 'sell'); if(p) totalVal += p * e.qty; } catch {}
+      }
+      totals.textContent = 'Filtered value @ ' + ((D.hubs.find(h=>h.region===hub())||{}).name||hub()) + ': ' + fmtISK(totalVal) + (rows.length !== totalTypes ? ' ('+rows.length+' types)' : '');
+    }
+  })();
+}
+async function loadInventory() {
+  const box = $('stkList'), st = $('stkStatus'), totals = $('stkTotals');
+  if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needsesi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
+  if (box) box.textContent = 'Loading inventory…';
+  if (st) st.textContent = 'Fetching assets…';
+  if (totals) totals.textContent = '';
+  try {
+    await ensureIceProducts().catch(()=>{});
+    const ch = await resolveBvCharacter();
+    if (!ch) { if(box) box.innerHTML='<p class="hint">Signed in but no character — Sign out and sign in again.</p>'; return; }
+    const cid = ch.id || ch.character_id || ch.CharacterID;
+    if (!cid) { if(box) box.innerHTML='<p class="hint">No character ID — re-login.</p>'; return; }
+    const src = ($('stkSource') && $('stkSource').value) || 'personal';
+    let assets = [];
+    if (src === 'corp') {
+      const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
+      if (!sheet || !sheet.corporation_id) throw new Error('No corporation found for this character.');
+      try {
+        for (let pg=1; pg<=10; pg++) {
+          const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/assets/?datasource=tranquility&page=' + pg);
+          if (!Array.isArray(chunk) || !chunk.length) break;
+          assets = assets.concat(chunk);
+          if (chunk.length < 1000) break;
+        }
+      } catch(e) {
+        if (/403/.test((e&&e.message)||'')) throw new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.');
+        throw e;
+      }
+    } else {
+      for (let pg=1; pg<=10; pg++) {
+        const chunk = await BVAuth.api('/characters/' + cid + '/assets/?datasource=tranquility&page=' + pg);
+        if (!Array.isArray(chunk) || !chunk.length) break;
+        assets = assets.concat(chunk);
+        if (chunk.length < 1000) break;
+      }
+    }
+    stkRaw = assets;
+    // aggregate by type_id across all hangars/containers (quantity summed)
+    stkAgg = {};
+    for (const a of assets) {
+      if (!a || !a.type_id) continue;
+      // include only items in hangars? Keep all — quantity field is top-level stack size
+      const qty = Number(a.quantity) || 0;
+      if (qty <= 0) continue;
+      stkAgg[a.type_id] = (stkAgg[a.type_id] || 0) + qty;
+    }
+    stkNames = {}; stkPage = 1;
+    if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types…';
+    // batch name resolve via universe/names (ESI handles type names)
+    const ids = Object.keys(stkAgg).map(n=>+n);
+    if (ids.length) {
+      try {
+        for (let i=0;i<ids.length;i+=500) {
+          const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ids.slice(i,i+500)) });
+          (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name&&n.category==='inventory_type') stkNames[n.id]=n.name; });
+        }
+      } catch(e){ console.warn('[BV] inventory names batch failed', e&&e.message); }
+      const missing = ids.filter(id=>!stkNames[id]);
+      if (missing.length) await Promise.all(missing.map(async id=>{ try{ stkNames[id]=await typeName(id);}catch{} }));
+    }
+    if (st) st.textContent = 'Loaded ' + assets.length + ' stacks → ' + Object.keys(stkAgg).length + ' types (' + (Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length) + ' industrial).';
+    renderStkRows();
+    // auto-apply to shopping list if checkbox was already checked and a calc exists
+    if ($('stkDeduct') && $('stkDeduct').checked && S.root) { await renderShoppingList(S.runs||1); }
+  } catch(e) {
+    if (box) box.textContent = 'Failed: ' + e.message;
+    if (st) st.textContent = e.message;
+  }
+}
+async function applyInventoryToShopping() {
+  if (!S.root) { status('Run a calculation first, then apply inventory.'); return; }
+  if (!Object.keys(stkAgg).length) { status('Load inventory first (Refresh).'); return; }
+  await renderShoppingList(S.runs||1);
+  status('Inventory applied to shopping list — deducted owned qty.');
 }
 
 // ---- wire ----
@@ -1009,7 +1466,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('calcBtn').onclick = calculate;
   $('bpName').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
   $('resetBtn').onclick = () => { ['bpName', 'runs', 'systemName'].forEach(k => $(k).value = k === 'runs' ? 1 : k === 'systemName' ? 'Jita' : ''); status(''); };
-  $('savePreset').onclick = () => { const n = prompt('Preset name:'); if (!n) return; const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const ids = ['hubSelect', 'me', 'te', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked']; pr[n] = Object.fromEntries(ids.map(k => [k, $(k).value])); localStorage.setItem('bvPresets', JSON.stringify(pr)); refreshPresets(pr); status('Preset saved.'); };
+  $('savePreset').onclick = () => { const n = prompt('Preset name:'); if (!n) return; const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const ids = ['hubSelect', 'me', 'te', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'refinePct', 'mineRate', 'mineShip']; pr[n] = Object.fromEntries(ids.map(k => [k, $(k) ? $(k).value : undefined])); localStorage.setItem('bvPresets', JSON.stringify(pr)); refreshPresets(pr); status('Preset saved.'); };
   $('preset').onchange = e => { const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const p = pr[e.target.value]; if (p) for (const [k, v] of Object.entries(p)) if ($(k)) $(k).value = v; };
   $('reactions').onchange = () => {
     if (!S.root) return;
@@ -1025,14 +1482,90 @@ document.addEventListener('DOMContentLoaded', () => {
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
   if ($('bpSearch')) $('bpSearch').addEventListener('input', () => { myBpPage = 1; renderBpRows(); });
   if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
-  $('mineShip').onchange = () => { const s = D.ships.find(x => x.id === $('mineShip').value); if (s && s.rate) $('mineRate').value = s.rate; };
-  $('mineGo').onclick = planMining;
-  $('mineFromBom').onclick = () => { planMining(); };
+  // refining sync (global % replaces Reprocess %)
+  if ($('refineLoad')) $('refineLoad').onclick = loadRefiningYield;
+  if ($('refinePct')) {
+    $('refinePct').addEventListener('input', () => { try { savePrefs(); } catch {} });
+    $('refinePct').addEventListener('change', async () => {
+      try { savePrefs(); } catch {}
+      if (S.root && S.root.children && S.root.children.some(c=>c.mode==='mine')) {
+        try { planMining(undefined, { auto:true }); } catch {}
+      }
+    });
+  }
+  // keep Structure picker as source of refining facility bonus — re-sync hint
+  if ($('structure')) $('structure').addEventListener('change', () => { try { savePrefs(); } catch {} });
+  if ($('rigs')) $('rigs').addEventListener('change', () => { try { savePrefs(); } catch {} });
+  // inventory
+  if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
+  if ($('stkApply')) $('stkApply').onclick = applyInventoryToShopping;
+  if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkNames={}; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; };
+  if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
+  if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
+  // ship picker + dual yield inputs (m³/min <-> m³/sec) — pick a ship for approx rate or type a custom rate, both stay in sync
+  const syncMineSec = () => { try { const v = parseFloat($('mineRate').value)||0; if ($('mineRateSec')) $('mineRateSec').value = (Math.round((v/60)*10)/10).toString(); } catch {} };
+  const syncMineMin = () => { try { const v = parseFloat($('mineRateSec').value)||0; if ($('mineRate')) $('mineRate').value = Math.max(1, Math.round(v*60)).toString(); } catch {} };
+  $('mineShip').onchange = () => {
+    const val = $('mineShip').value;
+    const s = D.ships.find(x => x.id === val);
+    if (s && s.rate) { $('mineRate').value = s.rate; if ($('mineRateSec')) $('mineRateSec').value = (Math.round((s.rate/60)*10)/10).toString(); }
+    if (val === 'custom') { try { document.querySelector('[data-tab="mine"]')?.click(); if ($('mineRate')) $('mineRate').focus(); } catch {} }
+    try { savePrefs(); } catch {}
+    // live-update mining plan if already computed, without stealing focus
+    if (S.root && S.root.children && S.root.children.some(c=>c.mode==='mine')) { try { planMining(undefined, { auto:true }); } catch {} }
+  };
+  if ($('mineRate')) {
+    $('mineRate').addEventListener('input', () => { syncMineSec(); try { savePrefs(); } catch {} });
+    $('mineRate').addEventListener('change', async () => { syncMineSec(); try { savePrefs(); } catch {}; if (S.root && S.root.children && S.root.children.some(c=>c.mode==='mine')) { try { planMining(undefined, { auto:true }); } catch {} } });
+  }
+  if ($('mineRateSec')) {
+    $('mineRateSec').addEventListener('input', () => { syncMineMin(); try { savePrefs(); } catch {} });
+    $('mineRateSec').addEventListener('change', async () => { syncMineMin(); try { savePrefs(); } catch {}; if (S.root && S.root.children && S.root.children.some(c=>c.mode==='mine')) { try { planMining(undefined, { auto:true }); } catch {} } });
+  }
+  // keep sec synced after prefs restore
+  try { syncMineSec(); } catch {}
+  $('mineGo').onclick = () => planMining();
+  $('mineFromBom').onclick = () => planMining();
+  // mining alternative ore picker — dropdown in the per-material detail table recalculates with that rock
+  // and top-right ship picker (mining plan header) — custom opens left Mine panel
+  document.addEventListener('change', e => {
+    const shipTop = e.target.closest('#mineShipTop');
+    if (shipTop) {
+      const val = shipTop.value;
+      if ($('mineShip')) $('mineShip').value = val;
+      const s = D.ships.find(x => x.id === val);
+      if (s && s.rate) {
+        $('mineRate').value = s.rate;
+        if ($('mineRateSec')) $('mineRateSec').value = (Math.round((s.rate/60)*10)/10).toString();
+      }
+      if (val === 'custom') { try { document.querySelector('[data-tab="mine"]')?.click(); if ($('mineRate')) setTimeout(()=>$('mineRate')?.focus(), 50); } catch {} }
+      try { savePrefs(); } catch {}
+      if (S.root && S.root.children && S.root.children.some(c=>c.mode==='mine')) { try { planMining(undefined, { auto:true }); } catch {} }
+      return;
+    }
+    const sel = e.target.closest('[data-mine-choice]');
+    if (!sel) return;
+    const mid = sel.dataset.mineChoice;
+    const oreId = +sel.value;
+    if (!mid || !oreId) return;
+    if (typeof window.miningSelection === 'undefined') window.miningSelection = {};
+    window.miningSelection[mid] = oreId;
+    // re-run plan in auto mode so it updates the totals above without stealing scroll/focus
+    try { planMining(undefined, { auto: true }); } catch {}
+  });
   // gem icons on tree + BOM mineral rows, drill-down links, breadcrumb nav (re-rendered often, so delegate globally)
   document.addEventListener('click', e => {
     if (!e.target || !e.target.closest) return;
     const mine = e.target.closest('[data-mine]');
-    if (mine) { e.preventDefault(); planMining(); return; }
+    if (mine) {
+      e.preventDefault();
+      const fid = mine.dataset.mine ? +mine.dataset.mine : null;
+      // Don't change the Buy/Mine toggle - just force the mining plan to include this type
+      // so the diamond always opens the mining section even when Buy is selected.
+      planMining(fid);
+      return;
+    }
     const drill = e.target.closest('[data-drill]');
     if (drill) { e.preventDefault(); drillDown(+drill.dataset.drill); return; }
     const nav = e.target.closest('[data-nav]');
