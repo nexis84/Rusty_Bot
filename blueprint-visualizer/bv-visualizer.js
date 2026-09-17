@@ -1685,6 +1685,10 @@ async function loadInventory() {
     // character sheet is needed for corp pulls AND for the corp-structures call
     const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility').catch(() => null);
     if (sheet && sheet.corporation_id) corpId = sheet.corporation_id;
+    // who are we scanning as? (helps spot wrong-character/corp for personal structures)
+    const scanWho = (ch && (ch.name || ch.character_name)) || ('Character ' + cid);
+    let scanCorp = '';
+    if (corpId) { try { const co = await fetchJSON(ESI + '/corporations/' + corpId + '/?datasource=tranquility'); if (co && co.name) scanCorp = co.name; } catch {} }
     if (src === 'corp' && !corpId) throw new Error('No corporation found for this character.');
     if (src === 'both' && !corpId) stkCorpWarn = 'No corporation found — corp assets skipped.';
     if ((src === 'corp' || src === 'both') && corpId) {
@@ -1965,7 +1969,7 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
