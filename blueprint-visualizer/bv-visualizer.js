@@ -1681,24 +1681,24 @@ async function loadInventory() {
     savePrefs();
     let assets = [];
     let stkCorpWarn = null;
-    if (src === 'corp' || src === 'both') {
-      const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
-      if (!sheet || !sheet.corporation_id) {
-        if (src === 'corp') throw new Error('No corporation found for this character.');
-        stkCorpWarn = 'No corporation found — corp assets skipped.';
-      } else {
-        try {
-          for (let pg=1; pg<=100; pg++) {
-            const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/assets/?datasource=tranquility&page=' + pg);
-            if (!Array.isArray(chunk) || !chunk.length) break;
-            assets = assets.concat(chunk);
-            if (chunk.length < 1000) break;
-          }
-        } catch(e) {
-          const msg = String((e && e.message) || '');
-          if (src === 'corp') throw (/403/.test(msg) ? new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.') : e);
-          stkCorpWarn = /403/.test(msg) ? 'Corp assets skipped (Director role required).' : ('Corp assets failed: ' + e.message);
+    let corpId = null;
+    // character sheet is needed for corp pulls AND for the corp-structures call
+    const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility').catch(() => null);
+    if (sheet && sheet.corporation_id) corpId = sheet.corporation_id;
+    if (src === 'corp' && !corpId) throw new Error('No corporation found for this character.');
+    if (src === 'both' && !corpId) stkCorpWarn = 'No corporation found — corp assets skipped.';
+    if ((src === 'corp' || src === 'both') && corpId) {
+      try {
+        for (let pg=1; pg<=100; pg++) {
+          const chunk = await BVAuth.api('/corporations/' + corpId + '/assets/?datasource=tranquility&page=' + pg);
+          if (!Array.isArray(chunk) || !chunk.length) break;
+          assets = assets.concat(chunk);
+          if (chunk.length < 1000) break;
         }
+      } catch(e) {
+        const msg = String((e && e.message) || '');
+        if (src === 'corp') throw (/403/.test(msg) ? new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.') : e);
+        stkCorpWarn = /403/.test(msg) ? 'Corp assets skipped (Director role required).' : ('Corp assets failed: ' + e.message);
       }
     }
     if (src === 'personal' || src === 'both') {
@@ -1757,26 +1757,35 @@ async function loadInventory() {
         continue;
       }
     }
-    // Citadel/upwell structures (>=1e12): resolve systems from ONE call to
-    // /characters/{cid}/structures/ (lists every structure the character can
-    // access WITH its system_id), plus the local cache. We deliberately do NOT
-    // call /universe/structures/{id} per structure — a big corp's assets span
-    // hundreds of citadels across EVE, and most 403 (no docking access),
+    // Citadel/upwell structures (>=1e12): resolve systems + names from ONE paginated
+    // call to /corporations/{corp_id}/structures/ (returns every structure the
+    // character can access WITH its system_id and name), plus the local cache.
+    // We deliberately do NOT call /universe/structures/{id} per structure — a big
+    // corp's assets span hundreds of citadels across EVE, and most would 403,
     // flooding ESI and tripping the 420 rate limit.
     let structSys = {};
-    try {
-      const cs = await BVAuth.api('/characters/' + cid + '/structures/?datasource=tranquility');
-      if (Array.isArray(cs)) {
-        for (const s of cs) {
-          if (s && s.structure_id && s.system_id) {
+    let structWarn = null;
+    if (corpId) {
+      try {
+        for (let pg = 1; pg <= 20; pg++) {
+          const cs = await BVAuth.api('/corporations/' + corpId + '/structures/?datasource=tranquility&page=' + pg, { headers: { 'X-Compatibility-Date': '2026-08-18' } });
+          if (!Array.isArray(cs) || !cs.length) break;
+          for (const s of cs) {
+            if (!s || !s.structure_id) continue;
             const key = String(s.structure_id);
-            structSys[key] = s.system_id;
-            if (!structCache[key] || !structCache[key].name) structCache[key] = { name: structCache[key] && structCache[key].name ? structCache[key].name : ('Structure …' + String(s.structure_id).slice(-4)), system_id: s.system_id, ts: now };
+            if (s.system_id) structSys[key] = s.system_id;
+            if (s.name || s.system_id) {
+              structCache[key] = { name: s.name || (structCache[key] && structCache[key].name) || ('Structure …' + String(s.structure_id).slice(-4)), system_id: s.system_id || (structCache[key] && structCache[key].system_id), ts: now };
+            }
           }
+          if (cs.length < 1000) break;
         }
         bvStructCacheWrite(structCache);
+      } catch (e) {
+        const msg = String((e && e.message) || '');
+        structWarn = /403/.test(msg) ? 'Structure scope missing — re-login to grant esi-corporations.read_structures.v1 (using cached structures only).' : ('Structures lookup failed: ' + e.message);
       }
-    } catch {}
+    }
     for (const id of topLocIds) {
       const num = +id;
       if (num >= 1e12) {
@@ -1890,7 +1899,7 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
