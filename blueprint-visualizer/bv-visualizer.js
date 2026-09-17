@@ -1727,8 +1727,6 @@ async function loadInventory() {
     // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
     try { if ($('matSource')) $('matSource').value = src; } catch {}
     savePrefs();
-    // fresh pull: reset denial stamps so citadel/system names retry on every Refresh
-    try { localStorage.removeItem('bvStructDenied'); } catch {}
     let assets = [];
     let stkCorpWarn = null;
     if (src === 'corp' || src === 'both') {
@@ -1793,33 +1791,48 @@ async function loadInventory() {
     const locSys = {};
     const staSysCache = (() => { try { return JSON.parse(localStorage.getItem('bvStaSys') || '{}'); } catch { return {}; } })();
     let staSysChanged = false;
+    const now = Date.now();
+    const denied = bvDeniedRead();
+    let deniedChanged = false;
     for (const id of topLocIds) {
       const num = +id;
       if (num >= 30000000 && num < 40000000 && num < 1e9) { locSys[id] = num; continue; }
-      if (num >= 1e12) {
-        // Citadel/upwell structure: resolve its system live (authed) so a fresh load
-        // isn't wiped just because the structure wasn't in the local cache.
-        try {
-          const sc = bvStructCacheRead();
-          if (sc[id] && sc[id].system_id) { locSys[id] = sc[id].system_id; continue; }
-          const st = await BVAuth.api('/universe/structures/' + num + '/?datasource=tranquility');
-          if (st && st.solar_system_id) {
-            locSys[id] = st.solar_system_id;
-            sc[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: Date.now() };
-            bvStructCacheWrite(sc);
-          }
-        } catch {}
-        continue;
-      }
       if (num >= 60000000 && num < 61000000) {
-        if (staSysCache[id] && Date.now() - staSysCache[id].ts < 7*864e5) { locSys[id] = staSysCache[id].sys; continue; }
+        if (staSysCache[id] && now - staSysCache[id].ts < 7*864e5) { locSys[id] = staSysCache[id].sys; continue; }
         try {
           const s = await fetchJSON(ESI + '/universe/stations/' + num + '/?datasource=tranquility');
-          if (s && s.solar_system_id) { locSys[id] = s.solar_system_id; staSysCache[id] = { sys: locSys[id], ts: Date.now() }; staSysChanged = true; }
+          if (s && s.solar_system_id) { locSys[id] = s.solar_system_id; staSysCache[id] = { sys: locSys[id], ts: now }; staSysChanged = true; }
         } catch {}
         continue;
       }
     }
+    // Citadel/upwell structures (>=1e12): resolve systems in parallel with a concurrency
+    // cap, only for uncached/non-denied ids, and stamp 403s for 1h so the flood of
+    // no-access structures only ever hits ESI once per hour instead of every Search.
+    const structIds = topLocIds.filter(id => {
+      const n = +id;
+      if (n < 1e12 || locSys[id]) return false;
+      if (denied[id] && now - denied[id] < 3600e3) return false;
+      return true;
+    });
+    for (let i = 0; i < structIds.length; i += 6) {
+      await Promise.all(structIds.slice(i, i + 6).map(async id => {
+        try {
+          const sc = bvStructCacheRead();
+          if (sc[id] && sc[id].system_id) { locSys[id] = sc[id].system_id; return; }
+          const st = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
+          if (st && st.solar_system_id) {
+            locSys[id] = st.solar_system_id;
+            sc[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: now };
+            bvStructCacheWrite(sc);
+          }
+        } catch (e) {
+          if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
+        }
+      }));
+      if (i + 6 < structIds.length) await new Promise(r => setTimeout(r, 50));
+    }
+    if (deniedChanged) bvDeniedWrite(denied);
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     const selSysNum = parseInt(stkSysId(), 10);
@@ -1861,7 +1874,10 @@ async function loadInventory() {
         }
         if (i+200 < stationIds.length) await new Promise(r=>setTimeout(r,250));
       }
-      // citadels (>=1e12) -> authed, throttled, cached
+// citadels (>=1e12) -> authed, throttled, cached
+      // (denials are reset here so structure NAMES retry each Refresh, but the
+      // structure SYSTEM lookups above keep their own 1h denial stamps)
+      try { localStorage.removeItem('bvStructDenied'); } catch {}
       const structIds = locIds.filter(id => String(id).length >= 12);
       if (structIds.length) {
         const denied = bvDeniedRead(), now = Date.now();
