@@ -1183,7 +1183,7 @@ function initAutocomplete() {
 const oreCache = new Map();
 (function loadOreCache() {
   try {
-    const saved = JSON.parse(localStorage.getItem('bvOres') || 'null');
+    const saved = JSON.parse(localStorage.getItem('bvOres2') || 'null');
     if (saved && Date.now() - saved.ts < 7 * 864e5 && saved.ores) {
       for (const [k, v] of Object.entries(saved.ores)) oreCache.set(+k, v);
     }
@@ -1193,7 +1193,7 @@ function saveOreCache() {
   try {
     const ores = {};
     for (const [k, v] of oreCache) ores[k] = v;
-    localStorage.setItem('bvOres', JSON.stringify({ ts: Date.now(), ores }));
+    localStorage.setItem('bvOres2', JSON.stringify({ ts: Date.now(), ores }));
   } catch {}
 }
 async function fetchOre(id, nameHint) {
@@ -1201,7 +1201,7 @@ async function fetchOre(id, nameHint) {
   const d = await fetchJSON('https://ref-data.everef.net/types/' + id);
   const yields = {};
   for (const [mid, m] of Object.entries(d.type_materials || {})) yields[mid] = m.quantity;
-  const o = { id, name: nameHint || (D.ores.find(x => x.id === id) || {}).name || id, volume: d.volume || 0, portion: d.portion_size || 100, yields };
+  const o = { id, name: nameHint || (D.ores.find(x => x.id === id) || {}).name || id, volume: d.volume || 0, portion: d.portion_size || 100, yields, category: d.category_id };
   oreCache.set(id, o); saveOreCache(); return o;
 }
 function mineralNeeds(forcedId) {
@@ -1517,11 +1517,13 @@ async function buildInventorySnapshot() {
     if (D.minerals && D.minerals[t]) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; }
     if (iceProductIds.has(t)) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; }
     try { if (isPI(t)) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; } } catch {}
-    // try ore refinement (base, variant, compressed — only types with type_materials yields)
+    // try ore refinement — ONLY Asteroid-category types (ore, compressed ore, ice,
+    // compressed ice, moon chunks). Ammo, salvage, modules etc. also carry
+    // type_materials but must NOT be refined into minerals here.
     let ore = null;
     try { ore = await fetchOre(t); } catch {}
     const yields = (ore && ore.yields) || {};
-    if (ore && Object.keys(yields).length) {
+    if (ore && ore.category === 25 && Object.keys(yields).length) {
       const oreName = stkNames[t] || ore.name || ('Type ' + t);
       const locs = (stkTypeLocs[t] ? [...stkTypeLocs[t]] : []).map(l => stkLocationNames[l] || ('Structure …' + String(l).slice(-4)));
       const minerals = [];
