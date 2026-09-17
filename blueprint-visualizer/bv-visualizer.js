@@ -1312,19 +1312,28 @@ async function planMining(forcedId, opts) {
   h += '<div class="summary-grid" style="margin-top:.6rem"><div class="summary-card"><div class="k">Total volume</div><div class="v">' + fmtN(Math.round(totalM3)) + ' m³</div></div>' +
     '<div class="summary-card"><div class="k">Total mining time</div><div class="v">' + fmtTime(totalMins) + '</div></div>' +
     '<div class="summary-card"><div class="k">Material value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
-  if (refineRows.length) {
-    h += '<h4 style="margin-top:.6rem">Refinery panel — refine these after mining</h4><p class="hint" style="margin-top:.2rem">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Ore, compressed ore and ice must be refined to minerals at ' + Math.round(eff * 100) + '%. All products incl. by-products.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units</th><th>Refines to</th></tr></thead><tbody>' +
-      refineRows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td><span class="pill" style="' + (r.otype === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (r.otype === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.otype + '</span></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') +
-      '</tbody></table></div>';
+  h += '</div>'; // close the main mining-plan panel
+  // Refinery — its own section, shown whenever the plan is mining ore/compressed ore/ice
+  if (merged.length) {
+    h += '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3>';
+    if (refineRows.length) {
+      h += '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Ore, compressed ore and ice must be refined to minerals at ' + Math.round(eff * 100) + '%. All products incl. by-products.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units</th><th>Refines to</th></tr></thead><tbody>' +
+        refineRows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td><span class="pill" style="' + (r.otype === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (r.otype === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.otype + '</span></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') +
+        '</tbody></table></div>';
+    } else {
+      h += '<p class="hint">Mined sources are ore/ice but no refine yields resolved — check your connection and retry.</p>';
+    }
+    h += '</div>';
   }
-  h += '<h4 style="margin-top:.6rem">Fastest source per material (detail)</h4><p class="hint" style="margin-top:.2rem">Pick the rock you can actually mine — e.g. Megacyte: Arkonor (333-366) → Bistot (170-187) → Spodumain (140-154). Changing the dropdown recalculates the volume/time above.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
+  // Fastest source detail — its own section
+  h += '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-search"></i> Fastest source per material (detail)</h3><p class="hint" style="margin-top:.2rem">Pick the rock you can actually mine — e.g. Megacyte: Arkonor (333-366) → Bistot (170-187) → Spodumain (140-154). Changing the dropdown recalculates the volume/time above.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     perMin.map(p => {
       const opts = (p.ranked || []).map(r => '<option value="' + r.ore.id + '"' + (r.ore.id===p.chosenId?' selected':'') + '>' + r.ore.name + ' — ' + fmtN(r.units) + ' units · ' + fmtN(Math.round(r.m3)) + ' m³ · ' + fmtTime(r.mins) + ' (' + fmtN(r.y) + '/portion)</option>').join('');
       const yieldHint = p.y ? ' ('+fmtN(p.y)+'/portion)' : '';
       return '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td><select data-mine-choice="' + p.mid + '" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .4rem;font-family:inherit;font-size:.82rem;max-width:260px">' + opts + '</select><span class="nums">' + yieldHint + '</span></td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
     }).join('') +
     '</tbody></table></div>';
-  box.innerHTML = h + '</div>';
+  box.innerHTML = h;
   if (!isAuto) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   st.textContent = '';
   } catch (e) {
