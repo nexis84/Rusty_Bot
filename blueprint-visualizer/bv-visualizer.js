@@ -1239,53 +1239,57 @@ function renderRefineryPanel(rows, eff, compressed) {
 async function renderRefinery() {
   const wrap = $('refineryWrap');
   if (!wrap) return;
-  if (!S.root) { wrap.innerHTML = ''; return; }
-  const needs = {};
-  for (const l of (S.bom || [])) {
-    if (!isMineable(l.type_id)) continue;
-    needs[l.type_id] = (needs[l.type_id] || 0) + l.qty;
-  }
-  const runs = S.runs || 1;
-  for (const c of ((S.root && S.root.children) || [])) {
-    if (c.mode === 'build' && c.child && c.child.materials) {
-      for (const m of c.child.materials) {
-        if (!isMineable(m.type_id)) continue;
-        needs[m.type_id] = (needs[m.type_id] || 0) + (m.quantity || 0) * runs;
+  try {
+    if (!S.root) { wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">Run a calculation to see which ore / ice needs refining for this build.</p></div>'; return; }
+    const needs = {};
+    for (const l of (S.bom || [])) {
+      if (!isMineable(l.type_id)) continue;
+      needs[l.type_id] = (needs[l.type_id] || 0) + l.qty;
+    }
+    const runs = S.runs || 1;
+    for (const c of ((S.root && S.root.children) || [])) {
+      if (c.mode === 'build' && c.child && c.child.materials) {
+        for (const m of c.child.materials) {
+          if (!isMineable(m.type_id)) continue;
+          needs[m.type_id] = (needs[m.type_id] || 0) + (m.quantity || 0) * runs;
+        }
       }
     }
-  }
-  if (!Object.keys(needs).length) { wrap.innerHTML = ''; return; }
-  await ensureIceProducts().catch(() => {});
-  const eff = (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
-  const ores = (await Promise.all(D.ores.map(o => fetchOre(o.id).catch(() => null)))).filter(Boolean);
-  const sources = ores.concat(iceOreList || []);
-  const byOre = {};
-  for (const [mid, need] of Object.entries(needs)) {
-    let best = null;
-    for (const o of sources) {
-      const y = o.yields[mid]; if (!y) continue;
-      const units = Math.ceil(need / (y * eff) / o.portion) * o.portion;
-      if (!best || units * o.volume < best.m3) best = { ore: o, units, m3: units * o.volume, y };
+    if (!Object.keys(needs).length) { wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">No ore or ice materials in this build — nothing to refine.</p></div>'; return; }
+    await ensureIceProducts().catch(() => {});
+    const eff = (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
+    const ores = (await Promise.all(D.ores.map(o => fetchOre(o.id).catch(() => null)))).filter(Boolean);
+    const sources = ores.concat(iceOreList || []);
+    const byOre = {};
+    for (const [mid, need] of Object.entries(needs)) {
+      let best = null;
+      for (const o of sources) {
+        const y = o.yields[mid]; if (!y) continue;
+        const units = Math.ceil(need / (y * eff) / o.portion) * o.portion;
+        if (!best || units * o.volume < best.m3) best = { ore: o, units, m3: units * o.volume, y };
+      }
+      if (!best) continue;
+      const g = (byOre[best.ore.id] = byOre[best.ore.id] || { ore: best.ore, units: 0 });
+      g.units += best.units;
     }
-    if (!best) continue;
-    const g = (byOre[best.ore.id] = byOre[best.ore.id] || { ore: best.ore, units: 0 });
-    g.units += best.units;
+    const rows = Object.values(byOre).map(g => {
+      const parts = [];
+      for (const [mid, y] of Object.entries((g.ore && g.ore.yields) || {})) {
+        const rq = Math.floor(g.units * (y || 0) / (g.ore.portion || 100) * eff);
+        if (rq > 0) parts.push({ mid: +mid, qty: rq });
+      }
+      return { ore: g.ore, units: g.units, parts, otype: /compressed/i.test(g.ore.name || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(o => +o.id === +g.ore.id) ? 'ICE' : 'ORE') };
+    }).filter(r => r.parts.length);
+    if (!rows.length) { wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">No refine yields resolved for these materials — check your connection and recalculate.</p></div>'; return; }
+    const ids = new Set();
+    for (const r of rows) for (const p of r.parts) ids.add(p.mid);
+    const refineName = {};
+    await Promise.all([...ids].map(async mid => { refineName[mid] = D.minerals[mid] || await typeName(mid).catch(() => ('Type ' + mid)); }));
+    const anyCompressed = rows.some(r => r.otype === 'COMPRESSED ORE');
+    renderRefineryPanel(rows.map(r => ({ ore: r.ore, units: r.units, otype: r.otype, parts: r.parts.map(p => refineName[p.mid] + ' ×' + fmtN(p.qty)) })), eff, anyCompressed);
+  } catch (e) {
+    wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint" style="color:var(--danger)">Refinery failed: ' + (e && e.message ? e.message : e) + '</p></div>';
   }
-  const rows = Object.values(byOre).map(g => {
-    const parts = [];
-    for (const [mid, y] of Object.entries((g.ore && g.ore.yields) || {})) {
-      const rq = Math.floor(g.units * (y || 0) / (g.ore.portion || 100) * eff);
-      if (rq > 0) parts.push({ mid: +mid, qty: rq });
-    }
-    return { ore: g.ore, units: g.units, parts, otype: /compressed/i.test(g.ore.name || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(o => +o.id === +g.ore.id) ? 'ICE' : 'ORE') };
-  }).filter(r => r.parts.length);
-  if (!rows.length) { wrap.innerHTML = ''; return; }
-  const ids = new Set();
-  for (const r of rows) for (const p of r.parts) ids.add(p.mid);
-  const refineName = {};
-  await Promise.all([...ids].map(async mid => { refineName[mid] = D.minerals[mid] || await typeName(mid).catch(() => ('Type ' + mid)); }));
-  const anyCompressed = rows.some(r => r.otype === 'COMPRESSED ORE');
-  renderRefineryPanel(rows.map(r => ({ ore: r.ore, units: r.units, otype: r.otype, parts: r.parts.map(p => refineName[p.mid] + ' ×' + fmtN(p.qty)) })), eff, anyCompressed);
 }
 async function planMining(forcedId, opts) {
   const box = $('mineWrap'), st = $('mineStatus');
@@ -2005,6 +2009,7 @@ function attachMatAutocomplete() {
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
   init(); bindHandoffs(); initAutocomplete();
+  renderRefinery();
   // Resolve ice products in the background so Mine-it tags show on isotopes/ozone/water/strontium.
   ensureIceProducts().then(() => { if (S.root) { try { renderTree(S.runs || 1); renderBom(S.runs || 1); } catch {} } }).catch(() => {});
   $('calcBtn').onclick = calculate;
