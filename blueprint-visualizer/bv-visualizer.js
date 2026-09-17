@@ -7,6 +7,8 @@ const $ = id => document.getElementById(id);
 const fmtISK = n => (n === null || n === undefined || isNaN(n)) ? '—' : Math.round(n).toLocaleString('en-US') + ' ISK';
 const fmtN = n => (n === null || n === undefined || isNaN(n)) ? '—' : Number(n).toLocaleString('en-US');
 const nameCache = new Map(), priceCache = new Map(), bpCache = new Map();
+// SDE-derived set of every type ID used as a manufacturing/reaction material (bv-materials.js)
+const BV_MATERIALS = (() => { try { return new Set((window.BV_MATERIAL_IDS || []).map(Number)); } catch { return new Set(); } })();
 
 async function fetchJSON(url, opts, timeout = 12000) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), timeout);
@@ -1310,6 +1312,8 @@ try {
 } catch {}
 function isIndustrialMaterial(id) {
   const nid = +id;
+  // Definitive: any type used as a material in a manufacturing/reaction/research blueprint (SDE-derived)
+  if (BV_MATERIALS.has(nid)) return true;
   if (D.minerals && D.minerals[nid]) return true;
   if (iceProductIds && iceProductIds.has(nid)) return true;
   try {
@@ -1318,11 +1322,11 @@ function isIndustrialMaterial(id) {
   } catch {}
   try { if (D.ores && D.ores.some(o => o.id === nid)) return true; } catch {}
   try { if (iceOreList && iceOreList.some(o => +o.id === nid)) return true; } catch {}
-  // Fallback for ore variants (Concentrated Veldspar etc) and moon/gas — check cached name
+  // Fallback for ore variants (Concentrated Veldspar etc), moon/gas and compressed forms — name check
   try {
     const nm = (stkNames[nid] || '').toLowerCase();
     if (nm) {
-      if (nm.includes('veldspar') || nm.includes('scordite') || nm.includes('pyroxeres') || nm.includes('plagioclase') || nm.includes('omber') || nm.includes('kernite') || nm.includes('jaspet') || nm.includes('hedbergite') || nm.includes('hemorphite') || nm.includes('gneiss') || nm.includes('ochre') || nm.includes('crokite') || nm.includes('spodumain') || nm.includes('bistot') || nm.includes('arkonor') || nm.includes('mercoxit') || nm.includes('ice') || nm.includes('glaze') || nm.includes('krystallos') || nm.includes('gelidus') || nm.includes('glitter') || nm.includes('tritanium') || nm.includes('pyerite') || nm.includes('mexallon') || nm.includes('isogen') || nm.includes('nocxium') || nm.includes('zydrine') || nm.includes('megacyte') || nm.includes('morphite') || nm.includes('compressed') || nm.includes('enriched') || nm.includes('concentrated') || nm.includes('dense') || nm.includes('ore')) return true;
+      if (nm.includes('veldspar') || nm.includes('scordite') || nm.includes('pyroxeres') || nm.includes('plagioclase') || nm.includes('omber') || nm.includes('kernite') || nm.includes('jaspet') || nm.includes('hedbergite') || nm.includes('hemorphite') || nm.includes('gneiss') || nm.includes('ochre') || nm.includes('crokite') || nm.includes('spodumain') || nm.includes('bistot') || nm.includes('arkonor') || nm.includes('mercoxit') || nm.includes('ice') || nm.includes('glaze') || nm.includes('krystallos') || nm.includes('gelidus') || nm.includes('glitter') || nm.includes('tritanium') || nm.includes('pyerite') || nm.includes('mexallon') || nm.includes('isogen') || nm.includes('nocxium') || nm.includes('zydrine') || nm.includes('megacyte') || nm.includes('morphite') || nm.includes('compressed') || nm.includes('enriched') || nm.includes('concentrated') || nm.includes('dense') || nm.includes('ore') || nm.includes('moon') || nm.includes('gas') || nm.includes('fuel block') || nm.includes('salvage') || nm.includes('melted') || nm.includes('armor plate') || nm.includes('construction block') || nm.includes('synthetic') || nm.includes('nanite')) return true;
     }
   } catch {}
   return false;
@@ -1453,17 +1457,21 @@ async function loadInventory() {
     function stationFor(a) {
       let cur = a, hops = 0;
       const seen = new Set();
-      while (cur && cur.location_type === 'item' && cur.location_id && hops < 10) {
+      // walk container chain (cans inside cans, ship cargo, corp divisions) until we reach station/structure/system
+      while (cur && cur.location_type === 'item' && cur.location_id && hops < 25) {
         const key = String(cur.item_id);
-        if (seen.has(key)) break;
+        if (seen.has(key)) break; // cycle guard
         seen.add(key);
         const parent = idToAsset.get(String(cur.location_id));
-        if (!parent) break; // container not in this batch (rare — still count under original location_id)
+        if (!parent) break; // parent container not in this character's asset list — stop here
         cur = parent;
         hops++;
       }
-      // for station/other the location_id itself is the station/structure id
-      return cur ? cur.location_id : a.location_id;
+      // cur is now the topmost resolvable asset. If it still points at an item we couldn't resolve,
+      // fall back to the original location only when that's a real station/structure/system id.
+      if (cur && cur.location_type !== 'item') return cur.location_id;
+      // unresolved parent chain — use the deepest non-item location we can trust, else the raw location_id
+      return (cur && cur.location_id) ? cur.location_id : a.location_id;
     }
     for (const a of assets) {
       if (!a || !a.type_id) continue;
@@ -1536,65 +1544,60 @@ async function loadInventory() {
               if (i+200 < stillNeedStations.length) await new Promise(r=>setTimeout(r,350));
             }
           }
-          // structures: direct fallback (skip ESI hammer — private citadels 403/401 by design, show last 4)
-          for (const id of needStructures) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
-          for (const id of locIds) if(!stkLocationNames[id]) {
-            // final fallback — try local system name if it's a system id
-            try{ const s=(typeof Systems!=='undefined'?Systems.find(x=>String(x.id)===String(id)):null); if(s) stkLocationNames[id]=s.name; else stkLocationNames[id]='Location ' + String(id).slice(-4); }catch{ stkLocationNames[id]='Location ' + String(id).slice(-4); }
-          }
-          if (false) { const structIds = locIds.filter(id => String(id).length >= 12);
+          // structures: resolve citadel names via authed ESI (throttled, cached 7d, 403-stamped 1h)
+          const structIds = needStructures;
           if (structIds.length) {
             const sysIds = new Set();
+            const denied = bvDeniedRead(), now = Date.now();
             for (let s=0; s<structIds.length; s++) {
               const sid = structIds[s];
-              // already cached?
-              try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].system) window._stkSys[sid]=sc[sid].system; } catch {}
-              if (window._stkSys[sid]) continue;
+              try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name && sc[sid].system){ stkLocationNames[sid]=sc[sid].name + ' [' + sc[sid].system + ']'; window._stkSys[sid]=sc[sid].system; } else if(sc[sid] && sc[sid].name){ stkLocationNames[sid]=sc[sid].name; } } catch {}
+              if (stkLocationNames[sid] && String(stkLocationNames[sid]).includes('[')) continue;
+              if (denied[sid] && now - denied[sid] < 3600e3) { if(!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4); continue; }
               let tries=0; while(tries<2){
                 try {
-                  // try authed first (private structures need token), fallback to public
-                  let st=null;
-                  try { st = await BVAuth.api('/universe/structures/' + sid + '/?datasource=tranquility'); } catch(_){ st = await fetchJSON(ESI + '/universe/structures/' + sid + '/?datasource=tranquility', { headers:{'X-Compatibility-Date':'2026-08-18'} }); }
+                  const st = await BVAuth.api('/universe/structures/' + sid + '/?datasource=tranquility');
                   if (st && st.solar_system_id) {
-                    const sysId = st.solar_system_id;
-                    sysIds.add(sysId);
+                    sysIds.add(st.solar_system_id);
                     const sname = st.name || stkLocationNames[sid] || ('Structure …'+String(sid).slice(-4));
                     stkLocationNames[sid]=sname;
-                    window._stkSys[sid]=null; // placeholder until system names batch
-                    // cache it
-                    try { const sc=bvStructCacheRead(); sc[sid]={name:sname, system_id:sysId, ts:Date.now()}; bvStructCacheWrite(sc); } catch {}
+                    try { const sc=bvStructCacheRead(); sc[sid]={name:sname, system_id:st.solar_system_id, ts:Date.now()}; bvStructCacheWrite(sc); } catch {}
                   }
                   break;
                 } catch(e){
                   const msg=String(e&&e.message||'');
-                  if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,900)); tries++; continue; }
-                  break;
+                  if (/403|404/.test(msg)) { denied[sid]=Date.now(); if(!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break; }
+                  if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
+                  if(!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break;
                 }
               }
-              if (s < structIds.length -1) await new Promise(r=>setTimeout(r,320));
+              if (s < structIds.length-1) await new Promise(r=>setTimeout(r,250));
             }
-            // batch system names
+            try{ bvDeniedWrite(denied); }catch{}
+            // batch system names for the resolved structures
             if (sysIds.size) {
-              const sysArr=[...sysIds];
-              const sysNames={};
+              const sysArr=[...sysIds]; const sysNames={};
               for(let i=0;i<sysArr.length;i+=200){
                 const chunk=sysArr.slice(i,i+200);
                 try{
                   const nm=await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
                   (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) sysNames[n.id]=n.name; });
                 }catch{}
-                if(i+200 < sysArr.length) await new Promise(r=>setTimeout(r,300));
+                if(i+200<sysArr.length) await new Promise(r=>setTimeout(r,250));
               }
-              for(const sid of structIds){
-                try{ const sc=bvStructCacheRead(); const c=sc[sid]; if(c && c.system_id && sysNames[c.system_id]){ window._stkSys[sid]=sysNames[c.system_id]; stkLocationNames[sid]=c.name + ' [' + sysNames[c.system_id] + ']'; sc[sid].system=sysNames[c.system_id]; bvStructCacheWrite(sc); } else if(window._stkSys[sid]==null && sysNames[Object.values(sysNames)[0]]) {} }catch{}
-                // if we have a temp mapping from earlier fetch without cache, patch now
-                if(stkLocationNames[sid] && !stkLocationNames[sid].includes('[') && window._stkSys[sid]===null){
-                  // try to find system for this sid from the just-fetched sysNames via the sid's system_id stored in cache
-                  try{ const sc=bvStructCacheRead(); const cid=sc[sid]; if(cid && cid.system_id && sysNames[cid.system_id]){ stkLocationNames[sid]=cid.name + ' [' + sysNames[cid.system_id] + ']'; window._stkSys[sid]=sysNames[cid.system_id]; } }catch{}
+              try{
+                const sc=bvStructCacheRead();
+                for(const sid of structIds){
+                  const c=sc[sid];
+                  if(c && c.system_id && sysNames[c.system_id]){
+                    stkLocationNames[sid]=c.name + ' [' + sysNames[c.system_id] + ']';
+                    c.system=sysNames[c.system_id];
+                    window._stkSys[sid]=sysNames[c.system_id];
+                  }
                 }
-              }
+                bvStructCacheWrite(sc);
+              }catch{}
             }
-           }
           }
           for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
           // also enrich already-cached structure names with system if we now have it
