@@ -1798,7 +1798,8 @@ async function loadInventory() {
     // structures holding INDUSTRIAL materials (ore/ice/components) matter for the
     // scan — junk-only structures never need resolving, so they're excluded and
     // never produce 403 noise. Rank the rest by stack count (main storage first),
-    // cap at 20/scan, concurrency 2, and denial-stamp 403s for an hour.
+    // resolve up to 100/scan (personal scans have few structures; the industrial
+    // filter already stops the corp flood), concurrency 2, denial-stamp 403s.
     const stacksPer = {};
     const unresolved = [];
     {
@@ -1813,10 +1814,11 @@ async function loadInventory() {
         }
       }
     }
+    let unresolvedLeft = unresolved.length;
     if (unresolved.length && !structWarn) {
       const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
-      const targets = unresolved.slice(0, 20).filter(id => !(denied[id] && now - denied[id] < 3600e3));
+      const targets = unresolved.slice(0, 100).filter(id => !(denied[id] && now - denied[id] < 3600e3));
       let deniedChanged = false, cacheDirty = false;
       for (let i = 0; i < targets.length; i += 2) {
         await Promise.all(targets.slice(i, i + 2).map(async id => {
@@ -1826,6 +1828,7 @@ async function loadInventory() {
               locSys[id] = st.solar_system_id;
               structCache[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: now };
               cacheDirty = true;
+              unresolvedLeft--;
             }
           } catch (e) {
             if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
@@ -1940,7 +1943,7 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
