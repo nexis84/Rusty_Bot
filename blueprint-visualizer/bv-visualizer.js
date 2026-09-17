@@ -1283,7 +1283,10 @@ async function renderRefinery() {
     // BOM items ticked "Use own" that need refining (minerals / ice products, not bought/built)
     const selected = (S.bom || []).filter(l => ownUse(l.type_id) && (l.mode === 'buy' || l.mode === 'react') && isMineable(l.type_id));
     if (!selected.length || !refineSources.length) {
-      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">Tick <b>Use own</b> on a mineral in the BOM, and load your ore / compressed ore in the <b>Inventory</b> tab. If that material needs refining, it shows here with which of your ore stacks refines into it — and where they sit.</p></div>';
+      const oresCount = refineSources.length;
+      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3><p class="hint">' +
+        (selected.length ? 'Scope has <b>' + oresCount + '</b> ore / ice stack' + (oresCount === 1 ? '' : 's') + ', but none refine into the materials you ticked <b>Use own</b> (or none are ticked).' : 'Tick <b>Use own</b> on a mineral in the BOM, and load your ore / compressed ore in the <b>Inventory</b> tab (pick your build system, choose the right source, hit <b>Search</b>).') +
+        '</p></div>';
       return;
     }
     const rows = [];
@@ -1602,7 +1605,12 @@ function renderStkRows() {
   // ---- Full industry materials list (browse mode) ----
   if (stkBrowseMaterials) {
     const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
-    const scopeAgg = stkCurrentAgg();
+    let scopeAgg = stkCurrentAgg();
+    // after a page reload the live aggregate is empty until a Search — fall back to the saved snapshot
+    if (!Object.keys(scopeAgg).length) {
+      const snap = stkSnapshotRead(matSource());
+      if (snap && snap.byType) scopeAgg = snap.byType;
+    }
     let mats = [];
     for (const [id, name] of BV_MAT_NAMES) {
       if (q && !String(name).toLowerCase().includes(q) && !String(id).includes(q)) continue;
