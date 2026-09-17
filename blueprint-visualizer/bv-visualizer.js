@@ -1273,21 +1273,23 @@ async function renderRefinery() {
     const srcLabel = ded.src === 'both' ? 'Personal + Corp' : (ded.src === 'corp' ? 'Corp' : 'Personal');
     const locName = snap && snap.systemName ? snap.systemName : (stkCurrentSysName() || '');
     const oreDetail = oreDetailFor(ded);
+    // only ore / compressed ore need refining here — ice is not part of this breakdown
+    const refineSources = oreDetail.filter(o => !((iceOreList || []).some(i => +i.id === +o.oreId)));
     // safety net: snapshots persisted before name resolution store bare type IDs — resolve them now
-    for (const o of oreDetail) {
+    for (const o of refineSources) {
       if (!o.oreName || /^\d+$/.test(String(o.oreName))) o.oreName = stkNames[o.oreId] || await typeName(o.oreId).catch(() => ('Type ' + o.oreId));
       for (const r of (o.refined || [])) if (!r.name || /^\d+$/.test(String(r.name))) r.name = D.minerals[r.mid] || stkNames[r.mid] || await typeName(r.mid).catch(() => ('Type ' + r.mid));
     }
     // BOM items ticked "Use own" that need refining (minerals / ice products, not bought/built)
     const selected = (S.bom || []).filter(l => ownUse(l.type_id) && (l.mode === 'buy' || l.mode === 'react') && isMineable(l.type_id));
-    if (!selected.length || !oreDetail.length) {
+    if (!selected.length || !refineSources.length) {
       wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">Tick <b>Use own</b> on a mineral in the BOM, and load your ore / compressed ore in the <b>Inventory</b> tab. If that material needs refining, it shows here with which of your ore stacks refines into it — and where they sit.</p></div>';
       return;
     }
     const rows = [];
     for (const l of selected) {
       const mid = +l.type_id;
-      for (const o of oreDetail) {
+      for (const o of refineSources) {
         const r = o.refined.find(x => +x.mid === mid);
         if (!r) continue;
         rows.push({ mid, mineral: l.name, need: l.qty, oreId: o.oreId, ore: o.oreName, oreQty: o.oreQty, locs: o.locs || [], yield: r.qty });
