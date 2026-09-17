@@ -1815,19 +1815,23 @@ function attachStkSystemAutocomplete() {
   function close() { box.classList.add('hidden'); box.innerHTML = ''; active = -1; current = []; }
   function render(q) {
     if (q.length < 2) { close(); return; }
-    // pool = systems we actually have assets in (focused), fall back to all Systems on first load
+    // ONLY systems we actually have assets in — strictly scoped, never the global Systems list
     const keys = Object.keys(stkSystems);
-    let pool = keys.length ? keys : ((typeof Systems !== 'undefined' ? Systems : []) || []).map(s => s.name);
-    current = pool
-      .map(name => ({ name, sc: bvScore(name, q) }))
-      .filter(x => x.sc > 0)
-      .sort((a,b) => b.sc - a.sc || a.name.localeCompare(b.name))
+    if (!keys.length) {
+      box.innerHTML = '<div class="suggest-item" data-i="-1"><span class="t">No systems loaded — hit Refresh first.</span></div>';
+      box.classList.remove('hidden');
+      box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => e.preventDefault());
+      return;
+    }
+    current = keys
+      .filter(name => bvScore(name, q) > 0)
+      .map(name => ({ name, sc: bvScore(name, q), n: (stkSystems[name] || []).length }))
+      .sort((a, b) => b.sc - a.sc || a.name.localeCompare(b.name))
       .slice(0, 8);
     if (!current.length) { close(); return; }
     active = -1;
     box.innerHTML = current.map((c, i) =>
-      '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span>' +
-      (keys.includes(c.name) ? '<span class="s">' + (stkSystems[c.name]||[]).length + ' locations</span>' : '<span class="s">no assets</span>') + '</div>'
+      '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + c.n + ' location' + (c.n === 1 ? '' : 's') + '</span></div>'
     ).join('');
     box.classList.remove('hidden');
     box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); });
@@ -1869,15 +1873,32 @@ function attachMatAutocomplete() {
   function close() { box.classList.add('hidden'); box.innerHTML = ''; active = -1; current = []; }
   function render(q) {
     if (q.length < 2) { close(); return; }
-    current = [...BV_MAT_NAMES.entries()]
-      .map(([id, name]) => ({ id, name: String(name), sc: bvScore(String(name), q) }))
-      .filter(x => x.sc > 0)
+    // strict scope: when a system/location is selected, only materials present in that scope
+    const sys = ($('stkSystem') && $('stkSystem').value) || '';
+    const loc = ($('stkLocation') && $('stkLocation').value) || '';
+    const scoped = !!(sys || loc);
+    const scopeAgg = stkCurrentAgg();
+    let pool;
+    if (scoped) {
+      pool = [...BV_MAT_NAMES.entries()].filter(([id]) => scopeAgg[id] > 0).map(([id, name]) => ({ id, name: String(name) }));
+      if (!pool.length) {
+        box.innerHTML = '<div class="suggest-item" data-i="-1"><span class="t">No materials in this system — browse the full catalog instead.</span></div>';
+        box.classList.remove('hidden');
+        box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => e.preventDefault());
+        return;
+      }
+    } else {
+      pool = [...BV_MAT_NAMES.entries()].map(([id, name]) => ({ id, name: String(name) }));
+    }
+    current = pool
+      .map(c => ({ ...c, sc: bvScore(c.name, q) }))
+      .filter(c => c.sc > 0)
       .sort((a,b) => b.sc - a.sc || a.name.localeCompare(b.name))
       .slice(0, 8);
     if (!current.length) { close(); return; }
     active = -1;
     box.innerHTML = current.map((c, i) =>
-      '<div class="suggest-item" data-i="' + i + '"><img src="https://images.evetech.net/types/' + c.id + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="t">' + highlight(c.name, q) + '</span><span class="s">#' + c.id + '</span></div>'
+      '<div class="suggest-item" data-i="' + i + '"><img src="https://images.evetech.net/types/' + c.id + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + (scoped ? 'in system' : '#' + c.id) + '</span></div>'
     ).join('');
     box.classList.remove('hidden');
     box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); });
