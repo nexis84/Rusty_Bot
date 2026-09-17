@@ -1335,7 +1335,7 @@ function stkFilteredAgg() {
       return nm.includes(q) || String(e.typeId).includes(q);
     });
   }
-  out.sort((a,b) => (stkNames[a.typeId]||'').localeCompare(stkNames[b.typeId]||''));
+  out.sort((a,b) => String(stkNames[a.typeId]||'').localeCompare(String(stkNames[b.typeId]||'')));
   return out;
 }
 function renderStkRows() {
@@ -1472,7 +1472,7 @@ async function loadInventory() {
     try {
       const sel = $('stkLocation');
       const keep = sel ? sel.value : '';
-      const locIds = Object.keys(stkAggByStation).sort((a,b)=> (stkLocationNames[a]||a).localeCompare(stkLocationNames[b]||b));
+      const locIds = Object.keys(stkAggByStation).sort((a,b)=> String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
       if (sel) {
         const opts = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => {
           const nm = stkLocationNames[id] || ('Location ' + id);
@@ -1482,30 +1482,28 @@ async function loadInventory() {
         sel.innerHTML = opts.join('');
         if (keep && stkAggByStation[keep]) sel.value = keep;
       }
-      // resolve location names (stations via universe/names, structures via ESI with fallback)
+      // resolve location names — throttled public ESI, no structure hammer (fallback to short id)
       if (locIds.length) {
-        // prime from any cached names
-        try {
-          const sc = bvStructCacheRead();
-          for (const id of locIds) if (sc[id] && sc[id].name) stkLocationNames[id] = sc[id].name;
-        } catch {}
+        try { const sc = bvStructCacheRead(); for (const id of locIds) if (sc[id] && sc[id].name) stkLocationNames[id] = sc[id].name; } catch {}
         const need = locIds.filter(id => !stkLocationNames[id]);
         if (need.length) {
-          try {
-            for (let i=0;i<need.length;i+=500) {
-              const chunk = need.slice(i,i+500).map(n=>+n);
-              const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(chunk) });
-              (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
+          for (let i=0;i<need.length;i+=200) {
+            const chunk = need.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
+            if (!chunk.length) continue;
+            let tries=0; while(tries<2){
+              try {
+                const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(chunk) });
+                (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
+                break;
+              } catch(e){
+                const msg=String(e&&e.message||'');
+                if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
+                break;
+              }
             }
-          } catch {}
-          const still = locIds.filter(id=>!stkLocationNames[id] && String(id).length>=12);
-          for (const id of still) {
-            try {
-              const s = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
-              if (s && s.name) { stkLocationNames[id]=s.name; try{ const sc=bvStructCacheRead(); sc[id]={name:s.name, ts:Date.now()}; bvStructCacheWrite(sc); }catch{} }
-            } catch {}
+            if (i+200 < need.length) await new Promise(r=>setTimeout(r,350));
           }
-          for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Location ' + String(id).slice(-4);
+          for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
           if (sel) {
             const cur = sel.value;
             sel.innerHTML = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => '<option value="' + id + '"' + (id===cur?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>')).join('');
@@ -1515,17 +1513,31 @@ async function loadInventory() {
     } catch {}
     stkNames = {}; stkPage = 1;
     if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
-    // batch name resolve via universe/names (ESI handles type names)
-    const ids = Object.keys(stkAgg).map(n=>+n);
+    const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n));
     if (ids.length) {
-      try {
-        for (let i=0;i<ids.length;i+=500) {
-          const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ids.slice(i,i+500)) });
-          (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name&&n.category==='inventory_type') stkNames[n.id]=n.name; });
+      for (let i=0;i<ids.length;i+=200) {
+        const chunk = ids.slice(i,i+200);
+        let tries=0; while(tries<2){
+          try {
+            const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(chunk) });
+            (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name&&n.category==='inventory_type') stkNames[n.id]=n.name; });
+            break;
+          } catch(e){
+            const msg=String(e&&e.message||'');
+            if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,900)); tries++; continue; }
+            console.warn('[BV] inventory names batch failed', e&&e.message); break;
+          }
         }
-      } catch(e){ console.warn('[BV] inventory names batch failed', e&&e.message); }
+        if (i+200 < ids.length) await new Promise(r=>setTimeout(r,300));
+      }
       const missing = ids.filter(id=>!stkNames[id]);
-      if (missing.length) await Promise.all(missing.map(async id=>{ try{ stkNames[id]=await typeName(id);}catch{} }));
+      if (missing.length) {
+        for (let i=0;i<missing.length;i+=5) {
+          const batch = missing.slice(i,i+5);
+          await Promise.all(batch.map(async id=>{ try{ stkNames[id]=await typeName(id);}catch{} }));
+          if (i+5 < missing.length) await new Promise(r=>setTimeout(r,250));
+        }
+      }
     }
     if (st) st.textContent = 'Loaded ' + assets.length + ' stacks → ' + Object.keys(stkAgg).length + ' types (' + (Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length) + ' industrial).';
     renderStkRows();
