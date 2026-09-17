@@ -1356,8 +1356,10 @@ function renderStkRows() {
   }
   const srcAggForCount = srcAgg;
   const industrialCount = Object.keys(srcAggForCount).filter(id => isIndustrialMaterial(+id)).length;
-  const locName = locVal ? (stkLocationNames[locVal] || ('Location ' + locVal)) : null;
-  const countLine = '<p class="hint">' + totalTypes + ' types' + (locVal ? ' @ ' + locName : ' in hangar') + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + (locVal ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>';
+  const locName = locVal ? (stkLocationNames[locVal] || ('Location ' + String(locVal).slice(-4))) : null;
+  const isLocIndustrialFiltered = locVal && ($('stkFilter') && $('stkFilter').value === 'industrial');
+  const countLine = '<p class="hint">' + totalTypes + ' types' + (locVal ? ' @ ' + locName : ' in hangar') + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + (locVal ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
+    + (isLocIndustrialFiltered && industrialCount===0 && totalTypes>0 ? '<p class="hint" style="color:var(--text2);border:1px dashed var(--border);border-radius:6px;padding:.45rem .6rem;margin:.4rem 0">This location has <b>' + totalTypes + ' types</b> but <b>none are industrial</b> (minerals/ice/PI/ores). Switch the Filter to <b>All assets</b> to see them, or pick a different Build location (e.g. All locations). Your 8 industrial types are in other hangar(s).</p>' : '');
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
     : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
@@ -1491,9 +1493,18 @@ async function loadInventory() {
         if (need.length) {
           const needStations = need.filter(id => String(id).length < 12);
           const needStructures = need.filter(id => String(id).length >= 12);
-          if (needStations.length) {
-            for (let i=0;i<needStations.length;i+=200) {
-              const chunk = needStations.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
+          // first try local Systems for system IDs (3000xxxx) to avoid ESI call and fix O4T-Z5 vs D4T-ZS font
+          try {
+            const sysMap = new Map();
+            try { const db = (typeof Systems !== 'undefined' ? Systems : []); for(const s of db) sysMap.set(String(s.id), s.name); } catch {}
+            for (const id of [...needStations]) {
+              if (sysMap.has(String(id)) ) { stkLocationNames[id]=sysMap.get(String(id)); }
+            }
+          } catch {}
+          const stillNeedStations = needStations.filter(id => !stkLocationNames[id]);
+          if (stillNeedStations.length) {
+            for (let i=0;i<stillNeedStations.length;i+=200) {
+              const chunk = stillNeedStations.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n) && n>1000);
               if (!chunk.length) continue;
               let tries=0; while(tries<2){
                 try {
@@ -1503,15 +1514,27 @@ async function loadInventory() {
                 } catch(e){
                   const msg=String(e&&e.message||'');
                   if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
+                  // on 400, split chunk in half and try smaller (one bad id can poison whole batch)
+                  if (/400/.test(msg) && chunk.length>1) {
+                    const mid=Math.floor(chunk.length/2);
+                    const a=chunk.slice(0,mid), b=chunk.slice(mid);
+                    for(const c of [a,b]){
+                      try{ const nm2=await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(c) }); (Array.isArray(nm2)?nm2:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; }); await new Promise(r=>setTimeout(r,200)); }catch{}
+                    }
+                    break;
+                  }
                   break;
                 }
               }
-              if (i+200 < needStations.length) await new Promise(r=>setTimeout(r,350));
+              if (i+200 < stillNeedStations.length) await new Promise(r=>setTimeout(r,350));
             }
           }
-          // structures: direct fallback (skip ESI hammer — private citadels 403/401 by design)
+          // structures: direct fallback (skip ESI hammer — private citadels 403/401 by design, show last 4)
           for (const id of needStructures) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
-          for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
+          for (const id of locIds) if(!stkLocationNames[id]) {
+            // final fallback — try local system name if it's a system id
+            try{ const s=(typeof Systems!=='undefined'?Systems.find(x=>String(x.id)===String(id)):null); if(s) stkLocationNames[id]=s.name; else stkLocationNames[id]='Location ' + String(id).slice(-4); }catch{ stkLocationNames[id]='Location ' + String(id).slice(-4); }
+          }
           if (false) { const structIds = locIds.filter(id => String(id).length >= 12);
           if (structIds.length) {
             const sysIds = new Set();
