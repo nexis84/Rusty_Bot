@@ -1794,23 +1794,27 @@ async function loadInventory() {
       }
     }
     // Residue: structures NOT covered by the corp call (e.g. a personal citadel the
-    // character docks at but the corp doesn't own) or not yet cached. Resolve a
-    // SMALL, prioritized subset individually — ranked by how many stacks they hold
-    // (your main storage first), capped at 20/scan, concurrency 2 — and denial-stamp
-    // 403s for an hour. This never floods: big corps touch hundreds of citadels we
-    // can't access, and burning the rate limit breaks the names/types lookups.
-    const unresolved = topLocIds.filter(id => {
-      const n = +id;
-      return n >= 1e12 && !locSys[id];
-    });
-    if (unresolved.length && !structWarn) {
-      const denied = bvDeniedRead();
-      const stacksPer = {};
+    // character docks at but the corp doesn't own) or not yet cached. Only
+    // structures holding INDUSTRIAL materials (ore/ice/components) matter for the
+    // scan — junk-only structures never need resolving, so they're excluded and
+    // never produce 403 noise. Rank the rest by stack count (main storage first),
+    // cap at 20/scan, concurrency 2, and denial-stamp 403s for an hour.
+    const stacksPer = {};
+    const unresolved = [];
+    {
+      const seen = new Set();
       for (const a of assets) {
         if (!a || !a.type_id) continue;
         const id = String(stationFor(a));
-        if (+id >= 1e12 && !locSys[id]) stacksPer[id] = (stacksPer[id] || 0) + 1;
+        const n = +id;
+        if (n >= 1e12 && !locSys[id]) {
+          stacksPer[id] = (stacksPer[id] || 0) + 1;
+          if (isIndustrialMaterial(a.type_id) && !seen.has(id)) { seen.add(id); unresolved.push(id); }
+        }
       }
+    }
+    if (unresolved.length && !structWarn) {
+      const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
       const targets = unresolved.slice(0, 20).filter(id => !(denied[id] && now - denied[id] < 3600e3));
       let deniedChanged = false, cacheDirty = false;
