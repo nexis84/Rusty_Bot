@@ -37,6 +37,11 @@ function piIcon(typeId) {
   if (!isPI(typeId)) return '';
   return '<a class="pi-link" target="_blank" rel="noopener" href="' + piURL(typeId) + '" title="View ' + piTier(typeId) + ' chain in PI Visualizer"><i class="fas fa-globe"></i></a>';
 }
+// EVE's image service has no renders for blueprint type IDs (returns 400), so skip their icons.
+function iconHTML(typeId, name, style) {
+  if (/blueprint|bpc/i.test(String(name || ''))) return '';
+  return '<img src="https://images.evetech.net/types/' + typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'"' + (style ? ' style="' + style + '"' : '') + '>';
+}
 function isMineral(typeId) { try { return !!(D.minerals && D.minerals[typeId]); } catch { return false; } }
 // Ice products (isotopes, ozone, heavy water, strontium) resolve at runtime — see ensureIceProducts.
 const iceProductIds = new Set();
@@ -421,7 +426,7 @@ function renderTree(runs) {
   const w = $('treeWrap'); if (!S.root) { w.innerHTML = ''; return; }
   const piKids = S.root.children.filter(c => isPI(c.type_id));
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
-    '<div class="tree-node build"><div class="row1"><img src="https://images.evetech.net/types/' + S.root.bpId + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="nm">' + S.root.bpName + ' × ' + runs + '</span><span class="pill build">BUILD</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) : '') + '</div><div class="kids">';
+    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span><span class="pill build">BUILD</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) : '') + '</div><div class="kids">';
   S.root.children.forEach((c, i) => {
     const m = c.child ? (c.child.margin >= 0 ? '<span class="margin-pos">build margin +' + fmtISK(c.child.margin) + '</span>' : '<span class="margin-neg">build margin ' + fmtISK(c.child.margin) + '</span>') : (c.child === null && c._tried ? '' : '<span class="nums">checking build…</span>');
     const rm = c.reaction ? (c.reaction.margin >= 0 ? '<span class="margin-pos">react margin +' + fmtISK(c.reaction.margin) + '/u</span>' : '<span class="margin-neg">react margin ' + fmtISK(c.reaction.margin) + '/u</span>') + (c.reaction.estimate ? '<span class="nums" title="Output quantity estimated">est</span>' : '') : '';
@@ -1930,7 +1935,7 @@ function attachMatAutocomplete() {
     if (!current.length) { close(); return; }
     active = -1;
     box.innerHTML = current.map((c, i) =>
-      '<div class="suggest-item" data-i="' + i + '"><img src="https://images.evetech.net/types/' + c.id + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + (scoped ? 'in system' : '#' + c.id) + '</span></div>'
+      '<div class="suggest-item" data-i="' + i + '">' + iconHTML(c.id, c.name) + '<span class="t">' + highlight(c.name, q) + '</span><span class="s">' + (scoped ? 'in system' : '#' + c.id) + '</span></div>'
     ).join('');
     box.classList.remove('hidden');
     box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); });
