@@ -1223,70 +1223,50 @@ function fmtTime(mins) {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
   return h + 'h ' + m + 'm';
 }
-// Refinery breakdown lives in its own separate panel (#refineryWrap), placed under the Build List.
-function renderRefineryPanel(rows, eff, compressed) {
-  const wrap = $('refineryWrap');
-  if (!wrap) return;
-  if (!rows || !rows.length) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + rows.length + ' source' + (rows.length > 1 ? 's' : '') + '</span></h3>' +
-    '<p class="hint">' + (compressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Ore, compressed ore and ice must be refined to minerals at ' + Math.round(eff * 100) + '%. All products incl. by-products.</p>' +
-    '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units</th><th>Refines to</th></tr></thead><tbody>' +
-    rows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td><span class="pill" style="' + (r.otype === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (r.otype === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.otype + '</span></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') +
-    '</tbody></table></div></div>';
+// Refinery breakdown from YOUR OWN stock of ore / compressed ore (inventory snapshots).
+// Each owned ore stack is expanded to the minerals it refines into at the loaded refine %.
+function oreDetailFor(ded) {
+  if (ded.src === 'both') {
+    const store = S.inventorySnapshots || stkSnapshotStoreRead();
+    const map = new Map();
+    for (const s of ['personal', 'corp']) {
+      const snap = store[s];
+      for (const o of (snap && snap.oreDetail) || []) {
+        const ex = map.get(o.oreId);
+        if (!ex) { map.set(o.oreId, { ...o }); continue; }
+        ex.oreQty += o.oreQty;
+        for (const r of o.refined) {
+          const er = ex.refined.find(x => x.mid === r.mid);
+          if (er) er.qty += r.qty; else ex.refined.push({ ...r });
+        }
+      }
+    }
+    return [...map.values()];
+  }
+  const snap = ded.snap;
+  return (snap && snap.oreDetail) || [];
 }
-// Standalone refinery breakdown, derived straight from the current BOM's mineable materials
-// (minerals / ice products) — no need to run the mining plan. Auto-renders after each calc.
 async function renderRefinery() {
   const wrap = $('refineryWrap');
   if (!wrap) return;
   try {
-    if (!S.root) { wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">Run a calculation to see which ore / ice needs refining for this build.</p></div>'; return; }
-    const needs = {};
-    for (const l of (S.bom || [])) {
-      if (!isMineable(l.type_id)) continue;
-      needs[l.type_id] = (needs[l.type_id] || 0) + l.qty;
+    const ded = stkDeductSnapshot();
+    const snap = ded.snap;
+    const eff = snap && snap.eff ? snap.eff : (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
+    const srcLabel = ded.src === 'both' ? 'Personal + Corp' : (ded.src === 'corp' ? 'Corp' : 'Personal');
+    const locName = snap && snap.systemName ? snap.systemName : (stkCurrentSysName() || '');
+    const oreDetail = oreDetailFor(ded);
+    if (!oreDetail.length) {
+      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">No ore / compressed ore in your loaded inventory. Load it in the <b>Inventory</b> tab (pick your build system + <b>Search</b>), or switch the <b>Materials owned</b> source in Calc. This panel breaks down what your own ore stock refines into.</p></div>';
+      return;
     }
-    const runs = S.runs || 1;
-    for (const c of ((S.root && S.root.children) || [])) {
-      if (c.mode === 'build' && c.child && c.child.materials) {
-        for (const m of c.child.materials) {
-          if (!isMineable(m.type_id)) continue;
-          needs[m.type_id] = (needs[m.type_id] || 0) + (m.quantity || 0) * runs;
-        }
-      }
-    }
-    if (!Object.keys(needs).length) { wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">No ore or ice materials in this build — nothing to refine.</p></div>'; return; }
-    await ensureIceProducts().catch(() => {});
-    const eff = (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
-    const ores = (await Promise.all(D.ores.map(o => fetchOre(o.id).catch(() => null)))).filter(Boolean);
-    const sources = ores.concat(iceOreList || []);
-    const byOre = {};
-    for (const [mid, need] of Object.entries(needs)) {
-      let best = null;
-      for (const o of sources) {
-        const y = o.yields[mid]; if (!y) continue;
-        const units = Math.ceil(need / (y * eff) / o.portion) * o.portion;
-        if (!best || units * o.volume < best.m3) best = { ore: o, units, m3: units * o.volume, y };
-      }
-      if (!best) continue;
-      const g = (byOre[best.ore.id] = byOre[best.ore.id] || { ore: best.ore, units: 0 });
-      g.units += best.units;
-    }
-    const rows = Object.values(byOre).map(g => {
-      const parts = [];
-      for (const [mid, y] of Object.entries((g.ore && g.ore.yields) || {})) {
-        const rq = Math.floor(g.units * (y || 0) / (g.ore.portion || 100) * eff);
-        if (rq > 0) parts.push({ mid: +mid, qty: rq });
-      }
-      return { ore: g.ore, units: g.units, parts, otype: /compressed/i.test(g.ore.name || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(o => +o.id === +g.ore.id) ? 'ICE' : 'ORE') };
-    }).filter(r => r.parts.length);
-    if (!rows.length) { wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">No refine yields resolved for these materials — check your connection and recalculate.</p></div>'; return; }
-    const ids = new Set();
-    for (const r of rows) for (const p of r.parts) ids.add(p.mid);
-    const refineName = {};
-    await Promise.all([...ids].map(async mid => { refineName[mid] = D.minerals[mid] || await typeName(mid).catch(() => ('Type ' + mid)); }));
-    const anyCompressed = rows.some(r => r.otype === 'COMPRESSED ORE');
-    renderRefineryPanel(rows.map(r => ({ ore: r.ore, units: r.units, otype: r.otype, parts: r.parts.map(p => refineName[p.mid] + ' ×' + fmtN(p.qty)) })), eff, anyCompressed);
+    const anyCompressed = oreDetail.some(o => /compressed/i.test(o.oreName || ''));
+    const tag = o => /compressed/i.test(o.oreName || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(i => +i.id === +o.oreId) ? 'ICE' : 'ORE');
+    wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + oreDetail.length + ' source' + (oreDetail.length > 1 ? 's' : '') + ' · ' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3>' +
+      '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Your ore / compressed ore refines into these minerals at ' + Math.round(eff * 100) + '%.</p>' +
+      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units owned</th><th>Refines to</th></tr></thead><tbody>' +
+      oreDetail.map(o => '<tr><td><b>' + o.oreName + '</b></td><td><span class="pill" style="' + (tag(o) === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (tag(o) === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + tag(o) + '</span></td><td>' + fmtN(o.oreQty) + '</td><td>' + o.refined.map(m => m.name + ' ×' + fmtN(m.qty)).join(' + ') + '</td></tr>').join('') +
+      '</tbody></table></div></div>';
   } catch (e) {
     wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint" style="color:var(--danger)">Refinery failed: ' + (e && e.message ? e.message : e) + '</p></div>';
   }
@@ -1857,6 +1837,7 @@ stkNames = {}; stkPage = 1;
     }
     if (st) st.textContent = stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
+    await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
     if ($('stkDeduct') && $('stkDeduct').checked && S.root) { await renderShoppingList(S.runs||1); }
   } catch(e) {
@@ -2063,15 +2044,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if ($('stkStatus')) $('stkStatus').textContent = '';
     if ($('stkTotals')) $('stkTotals').textContent = '';
     if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
+    renderRefinery();
     status('Inventory snapshot cleared.');
   };
   if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Search.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Search.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   if ($('stkLocation')) $('stkLocation').onchange = async () => { stkPage=1; renderStkRows(); if (S.root) await renderShoppingList(S.runs||1); };
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
-  if ($('matSource')) $('matSource').onchange = async () => { try { savePrefs(); } catch {}; if (S.root) await renderShoppingList(S.runs||1); };
+  if ($('matSource')) $('matSource').onchange = async () => { try { savePrefs(); } catch {}; if (S.root) await renderShoppingList(S.runs||1); renderRefinery(); };
   // ship picker + dual yield inputs (m³/min <-> m³/sec) — pick a ship for approx rate or type a custom rate, both stay in sync
   const syncMineSec = () => { try { const v = parseFloat($('mineRate').value)||0; if ($('mineRateSec')) $('mineRateSec').value = (Math.round((v/60)*10)/10).toString(); } catch {} };
   const syncMineMin = () => { try { const v = parseFloat($('mineRateSec').value)||0; if ($('mineRate')) $('mineRate').value = Math.max(1, Math.round(v*60)).toString(); } catch {} };
