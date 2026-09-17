@@ -1273,6 +1273,19 @@ async function planMining(forcedId, opts) {
   const totalM3 = merged.reduce((s, g) => s + g.m3, 0);
   const totalMins = merged.reduce((s, g) => s + g.mins, 0);
   const totalValue = Object.entries(needs).reduce((s, [mid, n]) => s + n * (minPrice[mid] || 0), 0);
+  // refinery breakdown: what each mined ore yields as minerals after refining at eff
+  const refineTargetIds = new Set();
+  for (const g of merged) for (const mid of Object.keys((g.ore && g.ore.yields) || {})) refineTargetIds.add(+mid);
+  const refineName = {};
+  await Promise.all([...refineTargetIds].map(async mid => { refineName[mid] = D.minerals[mid] || await typeName(mid).catch(() => ('Type ' + mid)); }));
+  const refineRows = merged.map(g => {
+    const parts = [];
+    for (const [mid, y] of Object.entries((g.ore && g.ore.yields) || {})) {
+      const rq = Math.floor(g.units * (y || 0) / (g.ore.portion || 100) * eff);
+      if (rq > 0) parts.push(refineName[+mid] + ' ×' + fmtN(rq));
+    }
+    return { ore: g.ore, units: g.units, parts };
+  }).filter(r => r.parts.length);
   const curShip = ($('mineShip') && $('mineShip').value) || 'retriever';
   const shipOpts = D.ships.map(s => '<option value="' + s.id + '"' + (s.id===curShip?' selected':'') + '>' + s.name + ' — ' + s.rate + ' m³/min (' + (Math.round(s.rate/60*10)/10) + '/sec)</option>').join('');
   const curSec = (Math.round((rate/60)*10)/10);
@@ -1284,6 +1297,9 @@ async function planMining(forcedId, opts) {
   h += '<div class="summary-grid" style="margin-top:.6rem"><div class="summary-card"><div class="k">Total volume</div><div class="v">' + fmtN(Math.round(totalM3)) + ' m³</div></div>' +
     '<div class="summary-card"><div class="k">Total mining time</div><div class="v">' + fmtTime(totalMins) + '</div></div>' +
     '<div class="summary-card"><div class="k">Material value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
+  h += '<h4 style="margin-top:.6rem">Refinery breakdown — refine these after mining</h4><p class="hint" style="margin-top:.2rem">Each mined ore above yields these minerals at ' + Math.round(eff * 100) + '% refining (all products incl. by-products).</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Units</th><th>Refines to</th></tr></thead><tbody>' +
+    (refineRows.length ? refineRows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') : '<tr><td colspan="3" style="color:var(--text3)">No ore yields resolved.</td></tr>') +
+    '</tbody></table></div>';
   h += '<h4 style="margin-top:.6rem">Fastest source per material (detail)</h4><p class="hint" style="margin-top:.2rem">Pick the rock you can actually mine — e.g. Megacyte: Arkonor (333-366) → Bistot (170-187) → Spodumain (140-154). Changing the dropdown recalculates the volume/time above.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     perMin.map(p => {
       const opts = (p.ranked || []).map(r => '<option value="' + r.ore.id + '"' + (r.ore.id===p.chosenId?' selected':'') + '>' + r.ore.name + ' — ' + fmtN(r.units) + ' units · ' + fmtN(Math.round(r.m3)) + ' m³ · ' + fmtTime(r.mins) + ' (' + fmtN(r.y) + '/portion)</option>').join('');
