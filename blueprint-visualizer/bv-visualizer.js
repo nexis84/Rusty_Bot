@@ -1793,6 +1793,36 @@ async function loadInventory() {
         continue;
       }
     }
+    // Residue: structures NOT covered by the corp call (e.g. a personal citadel
+    // the character docks at but the corp doesn't own) or not yet cached.
+    // Resolve individually, throttled + denial-stamped: accessible ones resolve,
+    // genuinely inaccessible ones stop repeating for an hour.
+    const unresolved = topLocIds.filter(id => {
+      const n = +id;
+      return n >= 1e12 && !locSys[id];
+    });
+    if (unresolved.length) {
+      const denied = bvDeniedRead();
+      let deniedChanged = false, cacheDirty = false;
+      for (let i = 0; i < unresolved.length; i += 4) {
+        await Promise.all(unresolved.slice(i, i + 4).map(async id => {
+          if (denied[id] && now - denied[id] < 3600e3) return;
+          try {
+            const st = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
+            if (st && st.solar_system_id) {
+              locSys[id] = st.solar_system_id;
+              structCache[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: now };
+              cacheDirty = true;
+            }
+          } catch (e) {
+            if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
+          }
+        }));
+        if (i + 4 < unresolved.length) await new Promise(r => setTimeout(r, 50));
+      }
+      if (cacheDirty) bvStructCacheWrite(structCache);
+      if (deniedChanged) bvDeniedWrite(denied);
+    }
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     const selSysNum = parseInt(stkSysId(), 10);
@@ -1836,9 +1866,7 @@ async function loadInventory() {
         if (i+200 < stationIds.length) await new Promise(r=>setTimeout(r,250));
       }
 // citadels (>=1e12) -> authed, throttled, cached
-      // (denials are reset here so structure NAMES retry each Refresh, but the
-      // structure SYSTEM lookups above keep their own 1h denial stamps)
-      try { localStorage.removeItem('bvStructDenied'); } catch {}
+      // denial stamps persist so inaccessible structures aren't retried each scan
       const structIds = locIds.filter(id => String(id).length >= 12);
       if (structIds.length) {
         const denied = bvDeniedRead(), now = Date.now();
