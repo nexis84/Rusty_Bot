@@ -563,11 +563,13 @@ async function renderShoppingList(runs) {
     if (totals) totals.textContent = bom.length ? 'Full total 0 ISK · Volume 0 m³' : '';
     return;
   }
-  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg || {}).length > 0;
+  const invAgg = stkCurrentAgg();
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
+  const locNameForDeduct = doDeduct ? (($('stkLocation') && $('stkLocation').value) ? (stkLocationNames[$('stkLocation').value] || $('stkLocation').value) : 'all locations') : '';
   // compute per-line have/to-buy and volumes/totals
   let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
   const rows = shop.map(l => {
-    const have = doDeduct ? (stkAgg[l.type_id] || 0) : 0;
+    const have = doDeduct ? (invAgg[l.type_id] || 0) : 0;
     const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
     const unit = l.unit || 0;
     return { l, have, toBuy, unit, totalNeed: unit * l.qty, totalBuy: unit * toBuy };
@@ -597,12 +599,13 @@ async function renderShoppingList(runs) {
     if (doDeduct && saving > 0) {
       sumGrid.innerHTML =
         '<div class="summary-card"><div class="k">Full total (need)</div><div class="v">' + fmtISK(totalNeed) + '</div><div class="k">' + fmtN(Math.round(volNeed)) + ' m³ · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' · @ ' + hubName + ' (' + basisLabel + ')</div></div>' +
-        '<div class="summary-card"><div class="k">Inventory covers</div><div class="v" style="color:var(--build)">' + fmtISK(saving) + '</div><div class="k">saved · Have ' + fmtN(Object.values(stkAgg).reduce((a,b)=>a+b,0)) + ' units tracked</div></div>' +
-        '<div class="summary-card"><div class="k">To buy total</div><div class="v" style="color:var(--accent)">' + fmtISK(totalBuy) + '</div><div class="k">' + fmtN(Math.round(volBuy)) + ' m³ to buy · after deduct</div></div>';
+        '<div class="summary-card"><div class="k">Inventory covers</div><div class="v" style="color:var(--build)">' + fmtISK(saving) + '</div><div class="k">saved · Have ' + fmtN(Object.values(invAgg).reduce((a,b)=>a+b,0)) + ' units tracked' + (locNameForDeduct ? ' @ ' + locNameForDeduct : '') + '</div></div>' +
+        '<div class="summary-card"><div class="k">To buy total</div><div class="v" style="color:var(--accent)">' + fmtISK(totalBuy) + '</div><div class="k">' + fmtN(Math.round(volBuy)) + ' m³ to buy · after deduct' + (locNameForDeduct ? ' @ ' + locNameForDeduct : '') + '</div></div>';
     } else {
       // no saving — single total is enough, don't duplicate 32M/32M
       sumGrid.innerHTML =
-        '<div class="summary-card"><div class="k">Total</div><div class="v">' + fmtISK(totalNeed) + '</div><div class="k">' + fmtN(Math.round(volNeed)) + ' m³ · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' · @ ' + hubName + ' (' + basisLabel + ')</div></div>';
+        '<div class="summary-card"><div class="k">Total</div><div class="v">' + fmtISK(totalNeed) + '</div><div class="k">' + fmtN(Math.round(volNeed)) + ' m³ · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' · @ ' + hubName + ' (' + basisLabel + ')'
+        + (doDeduct && locNameForDeduct ? ' · @ ' + locNameForDeduct : '') + '</div></div>';
     }
   }
   if (meta) {
@@ -611,10 +614,11 @@ async function renderShoppingList(runs) {
     else meta.textContent = shop.length + ' items · ' + fmtISK(totalNeed);
   }
   if (totals) {
+    const locHint = locNameForDeduct ? ' @ ' + locNameForDeduct : '';
     if (doDeduct && (totalNeed - totalBuy) > 0) {
-      totals.textContent = 'Full total ' + fmtISK(totalNeed) + ' (' + fmtN(Math.round(volNeed)) + ' m³) · Have covers ' + fmtISK(totalNeed - totalBuy) + ' · To buy ' + fmtISK(totalBuy) + ' · Volume to buy ~' + fmtN(Math.round(volBuy)) + ' m³ · Prices @ ' + hubName + ' (' + basisLabel + ')';
+      totals.textContent = 'Full total ' + fmtISK(totalNeed) + ' (' + fmtN(Math.round(volNeed)) + ' m³) · Have covers ' + fmtISK(totalNeed - totalBuy) + locHint + ' · To buy ' + fmtISK(totalBuy) + ' · Volume to buy ~' + fmtN(Math.round(volBuy)) + ' m³ · Prices @ ' + hubName + ' (' + basisLabel + ')';
     } else {
-      totals.textContent = 'Total ' + fmtISK(totalNeed) + ' · Volume ~' + fmtN(Math.round(volNeed)) + ' m³ · Prices @ ' + hubName + ' (' + basisLabel + ') · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' to buy';
+      totals.textContent = 'Total ' + fmtISK(totalNeed) + ' · Volume ~' + fmtN(Math.round(volNeed)) + ' m³ · Prices @ ' + hubName + ' (' + basisLabel + ') · ' + shop.length + ' type' + (shop.length>1?'s':'') + ' to buy' + (doDeduct && locHint ? locHint : '');
     }
   }
 }
@@ -622,9 +626,10 @@ async function renderShoppingList(runs) {
 function shoppingLines() {
   const bom = S.bom || [];
   const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
-  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg || {}).length > 0;
+  const invAgg = stkCurrentAgg();
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
   return shop.map(l => {
-    const have = doDeduct ? (stkAgg[l.type_id] || 0) : 0;
+    const have = doDeduct ? (invAgg[l.type_id] || 0) : 0;
     const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
     const needTxt = fmtN(l.qty);
     const haveTxt = doDeduct ? fmtN(have) : '0';
@@ -636,13 +641,14 @@ function shoppingLines() {
 function shoppingBuyLines() {
   const bom = S.bom || [];
   const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
-  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg || {}).length > 0;
+  const invAgg = stkCurrentAgg();
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
   return shop.filter(l => {
     if (!doDeduct) return true;
-    const toBuy = Math.max(0, l.qty - (stkAgg[l.type_id]||0));
+    const toBuy = Math.max(0, l.qty - (invAgg[l.type_id]||0));
     return toBuy > 0;
   }).map(l => {
-    const have = doDeduct ? (stkAgg[l.type_id]||0) : 0;
+    const have = doDeduct ? (invAgg[l.type_id]||0) : 0;
     const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
     return cleanName(l.name) + ' x' + toBuy;
   });
@@ -1290,7 +1296,13 @@ async function planMining(forcedId, opts) {
 }
 
 // ---- Inventory (industrial stock: character + corp) ----
-let stkRaw = [], stkAgg = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
+let stkRaw = [], stkAgg = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
+function stkCurrentAgg() {
+  const loc = ($('stkLocation') && $('stkLocation').value) || '';
+  if (loc && stkAggByStation[loc]) return stkAggByStation[loc];
+  return stkAgg;
+}
+function stkHasLocationData() { return Object.keys(stkAggByStation).length > 0; }
 const STK_PAGE_OPTIONS = [25, 50, 100];
 try {
   const s = parseInt(localStorage.getItem('bvStkPageSize') || '', 10);
@@ -1311,7 +1323,8 @@ function isIndustrialMaterial(id) {
 function stkFilteredAgg() {
   const filter = ($('stkFilter') && $('stkFilter').value) || 'industrial';
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
-  const entries = Object.entries(stkAgg).map(([typeId, qty]) => ({ typeId: +typeId, qty }));
+  const srcAgg = stkCurrentAgg();
+  const entries = Object.entries(srcAgg).map(([typeId, qty]) => ({ typeId: +typeId, qty }));
   let out = entries;
   if (filter === 'industrial') {
     out = out.filter(e => isIndustrialMaterial(e.typeId));
@@ -1328,7 +1341,9 @@ function stkFilteredAgg() {
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
   const rows = stkFilteredAgg();
-  const totalTypes = Object.keys(stkAgg).length;
+  const srcAgg = stkCurrentAgg();
+  const totalTypes = Object.keys(srcAgg).length;
+  const locVal = ($('stkLocation') && $('stkLocation').value) || '';
   const filteredTypes = rows.length;
   const pages = Math.max(1, Math.ceil(rows.length / stkPageSize));
   if (stkPage > pages) stkPage = pages;
@@ -1339,8 +1354,10 @@ function renderStkRows() {
     if (totals) totals.textContent = '';
     return;
   }
-  const industrialCount = Object.keys(stkAgg).filter(id => isIndustrialMaterial(+id)).length;
-  const countLine = '<p class="hint">' + totalTypes + ' types in hangar · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + '</p>';
+  const srcAggForCount = srcAgg;
+  const industrialCount = Object.keys(srcAggForCount).filter(id => isIndustrialMaterial(+id)).length;
+  const locName = locVal ? (stkLocationNames[locVal] || ('Location ' + locVal)) : null;
+  const countLine = '<p class="hint">' + totalTypes + ' types' + (locVal ? ' @ ' + locName : ' in hangar') + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + (locVal ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>';
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
     : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
@@ -1419,17 +1436,85 @@ async function loadInventory() {
       }
     }
     stkRaw = assets;
-    // aggregate by type_id across all hangars/containers (quantity summed)
-    stkAgg = {};
+    // aggregate by type_id across all hangars/containers (quantity summed) — global + per-station/citadel
+    stkAgg = {}; stkAggByStation = {}; stkLocationNames = {};
+    // build item_id -> asset map to resolve containers (location_type=item -> walk to station/structure)
+    const idToAsset = new Map();
+    for (const a of assets) if (a && a.item_id) idToAsset.set(String(a.item_id), a);
+    function stationFor(a) {
+      let cur = a, hops = 0;
+      const seen = new Set();
+      while (cur && cur.location_type === 'item' && cur.location_id && hops < 10) {
+        const key = String(cur.item_id);
+        if (seen.has(key)) break;
+        seen.add(key);
+        const parent = idToAsset.get(String(cur.location_id));
+        if (!parent) break; // container not in this batch (rare — still count under original location_id)
+        cur = parent;
+        hops++;
+      }
+      // for station/other the location_id itself is the station/structure id
+      return cur ? cur.location_id : a.location_id;
+    }
     for (const a of assets) {
       if (!a || !a.type_id) continue;
-      // include only items in hangars? Keep all — quantity field is top-level stack size
       const qty = Number(a.quantity) || 0;
       if (qty <= 0) continue;
       stkAgg[a.type_id] = (stkAgg[a.type_id] || 0) + qty;
+      const stn = stationFor(a);
+      if (stn) {
+        const key = String(stn);
+        if (!stkAggByStation[key]) stkAggByStation[key] = {};
+        stkAggByStation[key][a.type_id] = (stkAggByStation[key][a.type_id] || 0) + qty;
+      }
     }
+    // populate Build location dropdown (keep current selection if still valid)
+    try {
+      const sel = $('stkLocation');
+      const keep = sel ? sel.value : '';
+      const locIds = Object.keys(stkAggByStation).sort((a,b)=> (stkLocationNames[a]||a).localeCompare(stkLocationNames[b]||b));
+      if (sel) {
+        const opts = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => {
+          const nm = stkLocationNames[id] || ('Location ' + id);
+          const cnt = Object.keys(stkAggByStation[id]||{}).length;
+          return '<option value="' + id + '">' + nm + ' — ' + cnt + ' types</option>';
+        }));
+        sel.innerHTML = opts.join('');
+        if (keep && stkAggByStation[keep]) sel.value = keep;
+      }
+      // resolve location names (stations via universe/names, structures via ESI with fallback)
+      if (locIds.length) {
+        // prime from any cached names
+        try {
+          const sc = bvStructCacheRead();
+          for (const id of locIds) if (sc[id] && sc[id].name) stkLocationNames[id] = sc[id].name;
+        } catch {}
+        const need = locIds.filter(id => !stkLocationNames[id]);
+        if (need.length) {
+          try {
+            for (let i=0;i<need.length;i+=500) {
+              const chunk = need.slice(i,i+500).map(n=>+n);
+              const nm = await BVAuth.api('/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(chunk) });
+              (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
+            }
+          } catch {}
+          const still = locIds.filter(id=>!stkLocationNames[id] && String(id).length>=12);
+          for (const id of still) {
+            try {
+              const s = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
+              if (s && s.name) { stkLocationNames[id]=s.name; try{ const sc=bvStructCacheRead(); sc[id]={name:s.name, ts:Date.now()}; bvStructCacheWrite(sc); }catch{} }
+            } catch {}
+          }
+          for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Location ' + String(id).slice(-4);
+          if (sel) {
+            const cur = sel.value;
+            sel.innerHTML = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => '<option value="' + id + '"' + (id===cur?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>')).join('');
+          }
+        }
+      }
+    } catch {}
     stkNames = {}; stkPage = 1;
-    if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types…';
+    if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
     // batch name resolve via universe/names (ESI handles type names)
     const ids = Object.keys(stkAgg).map(n=>+n);
     if (ids.length) {
@@ -1500,7 +1585,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
   if ($('stkApply')) $('stkApply').onclick = applyInventoryToShopping;
   if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkNames={}; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkNames={}; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations (global)</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
+  if ($('stkLocation')) $('stkLocation').onchange = async () => { stkPage=1; renderStkRows(); if (S.root) await renderShoppingList(S.runs||1); };
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
   // ship picker + dual yield inputs (m³/min <-> m³/sec) — pick a ship for approx rate or type a custom rate, both stay in sync
