@@ -76,6 +76,7 @@
     </div>
     <div class="field"><label>Tracked market (compare)</label><select id="tracked"></select></div>
     <div class="field"><label>Production preset</label><select id="preset"><option value="">— Load saved preset —</option></select></div>
+    <div class="field"><label>Materials owned — deduct source</label><select id="matSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Personal + Corp</option></select></div>
     <div class="btn-row"><button id="calcBtn" class="calc-btn"><i class="fas fa-calculator"></i> Calculate</button><button id="resetBtn" class="calc-btn secondary">Reset</button></div>
     <button id="savePreset" class="calc-btn secondary"><i class="fas fa-save"></i> Save current as preset</button>
     <div class="field" style="margin-top:.6rem"><label>Screenshot OCR (auto-fill name/ME/TE/runs)</label><input id="shot" type="file" accept="image/*" class="form-input"><button id="pasteShot" class="calc-btn secondary">Paste from clipboard</button></div>
@@ -208,6 +209,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=56"></script>
+    <script src="bv-visualizer.js?v=57"></script>
 </body>
 </html>

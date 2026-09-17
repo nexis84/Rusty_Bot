@@ -121,7 +121,7 @@ function init() {
   updateSsoBtn(); renderLedger();
 }
 function savePrefs() {
-  const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip'];
+  const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource'];
   const p = {}; ids.forEach(k => { const el = $(k); if (el) p[k] = el.value; });
   try { localStorage.setItem('bvPrefs', JSON.stringify(p)); } catch {}
 }
@@ -566,9 +566,10 @@ async function renderShoppingList(runs) {
     if (totals) totals.textContent = bom.length ? 'Full total 0 ISK · Volume 0 m³' : '';
     return;
   }
-  const invAgg = stkDeductMap();
+  const ded = stkDeductSnapshot();
+  const invAgg = ded.map;
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
-  const snap = S.inventorySnapshot || stkSnapshotRead();
+  const snap = ded.snap;
   const locNameForDeduct = doDeduct ? ((snap && snap.systemName) ? (snap.systemName + (snap.eff ? ' @ ' + Math.round(snap.eff*100) + '% refine' : '')) : (stkCurrentSysName() || 'all locations')) : '';
   // compute per-line have/to-buy and volumes/totals
   let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
@@ -667,7 +668,7 @@ function bindHandoffs() {
   $('appraiseOut').onclick = () => { if (!S.product) return; window.open(appraisalURL([(S.product.qty * (parseInt($('runs').value) || 1)) + ' x ' + S.product.name]), '_blank', 'noopener'); };
   const cs = $('copyShopping'); if (cs) cs.onclick = async () => { const t = shoppingLines().join('\n'); if (!t) { status('Nothing to buy — all built/mined.'); return; } await navigator.clipboard.writeText(t); status('Shopping list copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' items).'); };
   const csm = $('copyShopMultibuy'); if (csm) csm.onclick = async () => { const t = shoppingBuyLines().join('\n'); if (!t) { status('Nothing to buy — all covered by inventory.'); return; } await navigator.clipboard.writeText(t); status('Multibuy (shopping) copied (' + t.split('\n').length + ' lines — after inventory deduct).'); };
-  const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(stkAgg||{}).length>0; const lines = shop.map(l => { const toBuy = doDeduct ? Math.max(0, l.qty - (stkAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
+  const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const invAgg = stkDeductMap(); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg||{}).length>0; const lines = shop.map(l => { const toBuy = doDeduct ? Math.max(0, l.qty - (invAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
   const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = buildRawLines(); if (!lines.length) { status('Nothing to build — set items to Build.'); return; } const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await navigator.clipboard.writeText(t); status('Build list copied (' + lines.length + ' raws).'); };
   const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
   const ab = $('appraiseBuildList'); if (ab) ab.onclick = () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
@@ -1335,16 +1336,52 @@ function stkCurrentSysName() {
   return '';
 }
 function stkHasLocationData() { return Object.keys(stkAggByStation).length > 0; }
-// Persistent inventory snapshot kept in memory (S) + localStorage so Shopping/Build/Mining deduct it.
-function stkSnapshotRead() { try { return JSON.parse(localStorage.getItem('bvInventorySnapshot') || 'null'); } catch { return null; } }
-function stkSnapshotWrite(s) { try { localStorage.setItem('bvInventorySnapshot', JSON.stringify(s)); } catch {} }
-function stkSnapshotClear() { S.inventorySnapshot = null; try { localStorage.removeItem('bvInventorySnapshot'); } catch {} }
-// Refined deduction map from snapshot (ore already converted to minerals at refine %), else live scope
-function stkDeductMap() {
-  const snap = S.inventorySnapshot || stkSnapshotRead();
-  if (snap && snap.refinedMap) return snap.refinedMap;
-  return stkCurrentAgg();
+// Persistent per-source inventory snapshots (personal + corp kept separately) in memory (S) +
+// localStorage so Shopping/Build/Mining deduct them. The Calc tab's Materials-owned selector
+// (matSource) picks which source(s) the calculator deducts from.
+let stkRawSource = 'personal', stkLastSnapshotSource = 'personal';
+function stkSnapshotStoreRead() {
+  try {
+    const v = JSON.parse(localStorage.getItem('bvInventorySnapshot') || 'null');
+    if (v && v._multi) return v;
+    if (v && v.refinedMap) return { _multi: true, [v.source || 'personal']: v }; // legacy single snapshot
+    return { _multi: true };
+  } catch { return { _multi: true }; }
 }
+function stkSnapshotRead(source) {
+  const store = S.inventorySnapshots || stkSnapshotStoreRead();
+  return store[source || matSource()] || null;
+}
+function stkSnapshotWrite(s) {
+  const src = (s && s.source) || 'personal';
+  S.inventorySnapshots = S.inventorySnapshots || stkSnapshotStoreRead();
+  S.inventorySnapshots[src] = s;
+  stkLastSnapshotSource = src;
+  try { localStorage.setItem('bvInventorySnapshot', JSON.stringify(S.inventorySnapshots)); } catch {}
+}
+function stkSnapshotClear() { S.inventorySnapshots = {}; try { localStorage.removeItem('bvInventorySnapshot'); } catch {} }
+function matSource() { return ($('matSource') && $('matSource').value) || 'personal'; }
+// Refined deduction map for the calculator's Materials-owned source (ore already refined to
+// minerals at refine %), else the live scope. 'both' merges personal + corp snapshots.
+function stkDeductSnapshot() {
+  const src = matSource();
+  const store = S.inventorySnapshots || stkSnapshotStoreRead();
+  if (src === 'both') {
+    const list = ['personal', 'corp'].map(s => store[s]).filter(s => s && s.refinedMap);
+    if (list.length) {
+      const out = {};
+      for (const s of list) for (const [t, q] of Object.entries(s.refinedMap)) out[t] = (out[t] || 0) + q;
+      return { snap: list[0], map: out, src };
+    }
+    return { snap: null, map: stkCurrentAgg(), src };
+  }
+  if (store[src] && store[src].refinedMap) return { snap: store[src], map: store[src].refinedMap, src };
+  // No snapshot for the chosen source — fall back to the most recent one, else the live scope.
+  if (stkLastSnapshotSource && store[stkLastSnapshotSource] && store[stkLastSnapshotSource].refinedMap) return { snap: store[stkLastSnapshotSource], map: store[stkLastSnapshotSource].refinedMap, src };
+  if ((stkRawSource || 'personal') === src) return { snap: null, map: stkCurrentAgg(), src };
+  return { snap: null, map: {}, src };
+}
+function stkDeductMap() { return stkDeductSnapshot().map; }
 // Expand ore / compressed-ore stacks into refined minerals at the selected Refining yield %,
 // keep every row's provenance (which citadel/station/can), and store the whole system snapshot.
 async function buildInventorySnapshot() {
@@ -1375,14 +1412,13 @@ async function buildInventorySnapshot() {
     refinedMap[t] = (refinedMap[t] || 0) + qty;
   }
   stkOreDetail = oreDetail;
-  S.inventorySnapshot = {
+  stkSnapshotWrite({
     system: stkSysId(), systemName: stkSysIdName(stkSysId()),
     source: ($('stkSource') && $('stkSource').value) || 'personal',
     eff, at: Date.now(),
     byType: agg, byLoc: stkAggByStation, locNames: stkLocationNames,
     refinedMap, oreDetail
-  };
-  stkSnapshotWrite(S.inventorySnapshot);
+  });
   return oreDetail;
 }
 const STK_PAGE_OPTIONS = [25, 50, 100];
@@ -1547,6 +1583,10 @@ async function loadInventory() {
     const cid = ch.id || ch.character_id || ch.CharacterID;
     if (!cid) { if(box) box.innerHTML='<p class="hint">No character ID — re-login.</p>'; return; }
     const src = ($('stkSource') && $('stkSource').value) || 'personal';
+    stkRawSource = src;
+    // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
+    try { if ($('matSource')) $('matSource').value = src; } catch {}
+    savePrefs();
     // fresh pull: reset denial stamps so citadel/system names retry on every Refresh
     try { localStorage.removeItem('bvStructDenied'); } catch {}
     let assets = [];
@@ -1941,6 +1981,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkLocation')) $('stkLocation').onchange = async () => { stkPage=1; renderStkRows(); if (S.root) await renderShoppingList(S.runs||1); };
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
+  if ($('matSource')) $('matSource').onchange = async () => { try { savePrefs(); } catch {}; if (S.root) await renderShoppingList(S.runs||1); };
   // ship picker + dual yield inputs (m³/min <-> m³/sec) — pick a ship for approx rate or type a custom rate, both stay in sync
   const syncMineSec = () => { try { const v = parseFloat($('mineRate').value)||0; if ($('mineRateSec')) $('mineRateSec').value = (Math.round((v/60)*10)/10).toString(); } catch {} };
   const syncMineMin = () => { try { const v = parseFloat($('mineRateSec').value)||0; if ($('mineRate')) $('mineRate').value = Math.max(1, Math.round(v*60)).toString(); } catch {} };
