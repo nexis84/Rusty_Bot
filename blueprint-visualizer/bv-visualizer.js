@@ -113,7 +113,7 @@ function init() {
     if (DEF.refinePct !== undefined && !$('refinePct').value) $('refinePct').value = DEF.refinePct;
   } catch {}
   try { const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); refreshPresets(pr); } catch {}
-  try { const p = JSON.parse(localStorage.getItem('bvPrefs') || '{}'); for (const [k, v] of Object.entries(p)) { const el = $(k); if (el && v !== undefined) el.value = v; } } catch {}
+  try { const p = JSON.parse(localStorage.getItem('bvPrefs') || '{}'); for (const [k, v] of Object.entries(p)) { const el = $(k); if (!el || v === undefined) continue; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; } } catch {}
   try { S.own = ownRead(); } catch {}
   // ensure refinePct has a sane default if still empty
   try { if (!$('refinePct').value) $('refinePct').value = (DEF.refinePct ?? 75); } catch {}
@@ -129,6 +129,7 @@ function init() {
 function savePrefs() {
   const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource'];
   const p = {}; ids.forEach(k => { const el = $(k); if (el) p[k] = el.value; });
+  const trust = $('stkTrustSystem'); if (trust) p.stkTrustSystem = trust.checked;
   try { localStorage.setItem('bvPrefs', JSON.stringify(p)); } catch {}
 }
 function refreshPresets(pr) { $('preset').innerHTML = '<option value="">— Load saved preset —</option>' + Object.keys(pr).map(k => '<option>' + k + '</option>').join(''); }
@@ -1714,6 +1715,7 @@ async function loadInventory() {
       }
     }
     stkRaw = assets;
+    const selSysNum = parseInt(stkSysId(), 10);
     // aggregate by type_id across all hangars/containers (quantity summed) — global + per-station/citadel
     stkAgg = {}; stkAggByStation = {}; stkLocationNames = {};
     // build item_id -> asset map to resolve containers (location_type=item -> walk to station/structure)
@@ -1851,6 +1853,20 @@ async function loadInventory() {
       if (deniedChanged) bvDeniedWrite(denied);
       console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' industrialStructs=' + unresolved.length);
     }
+    // Fallback: personal scans often hit 403 on shared citadels because the character
+    // lacks docking ACL. When the user has explicitly picked a build system, trust
+    // that selection for any structures whose system ESI refused to reveal.
+    const trustSelectedSystem = $('stkTrustSystem') && $('stkTrustSystem').checked;
+    const trustFallbackStructs = new Set();
+    let trustFallbackAssetCount = 0;
+    if (trustSelectedSystem && selSysNum) {
+      for (const id of topLocIds) {
+        if (+id >= 1e12 && !locSys[id]) {
+          locSys[id] = selSysNum;
+          trustFallbackStructs.add(id);
+        }
+      }
+    }
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
     try {
@@ -1862,14 +1878,13 @@ async function loadInventory() {
         else if (n >= 60000000 && n < 61000000) locTypes.station++;
         else locTypes.other++;
       }
-      const res = topLocIds.filter(id => +id >= 1e12 && locSys[id]).length;
+      const res = topLocIds.filter(id => +id >= 1e12 && locSys[id] && !trustFallbackStructs.has(id)).length;
       const unres = topLocIds.filter(id => +id >= 1e12 && !locSys[id]).length;
       let scopes = '';
       try { scopes = (bvTokenScopes() || []).join(',') || 'none'; } catch { scopes = 'none'; }
-      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' structWarn=' + (structWarn || 'none') + ' scopes=' + scopes);
+      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' trustFallbackStructs=' + trustFallbackStructs.size + ' structWarn=' + (structWarn || 'none') + ' scopes=' + scopes);
     } catch {}
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
-    const selSysNum = parseInt(stkSysId(), 10);
     stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
     let keptCount = 0, skippedInaccessible = 0;
     for (const a of assets) {
@@ -1880,6 +1895,7 @@ async function loadInventory() {
       const stnSys = locSys[stnId] != null ? locSys[stnId] : null;
       if (stnSys == null) { skippedInaccessible++; continue; } // structure we can't access -> can't confirm system
       if (stnSys !== selSysNum) continue; // different system
+      if (trustFallbackStructs.has(stnId)) trustFallbackAssetCount += qty;
       keptCount++;
       stkAgg[a.type_id] = (stkAgg[a.type_id] || 0) + qty;
       if (stnId) {
@@ -1971,7 +1987,8 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    const fallbackMsg = trustFallbackAssetCount > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units included from ' + trustFallbackStructs.size + ' unresolved structure' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft && !trustFallbackStructs.size ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
@@ -2104,6 +2121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     status('Inventory snapshot cleared.');
   };
   if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('stkTrustSystem')) $('stkTrustSystem').onchange = () => { savePrefs(); stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Trust setting changed — hit Scan system to apply.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
