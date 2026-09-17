@@ -1217,6 +1217,17 @@ function fmtTime(mins) {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
   return h + 'h ' + m + 'm';
 }
+// Refinery breakdown lives in its own separate panel (#refineryWrap), independent of the mining plan.
+function renderRefineryPanel(rows, eff, compressed) {
+  const wrap = $('refineryWrap');
+  if (!wrap) return;
+  if (!rows || !rows.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + rows.length + ' source' + (rows.length > 1 ? 's' : '') + '</span></h3>' +
+    '<p class="hint">' + (compressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Ore, compressed ore and ice must be refined to minerals at ' + Math.round(eff * 100) + '%. All products incl. by-products.</p>' +
+    '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units</th><th>Refines to</th></tr></thead><tbody>' +
+    rows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td><span class="pill" style="' + (r.otype === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (r.otype === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.otype + '</span></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') +
+    '</tbody></table></div></div>';
+}
 async function planMining(forcedId, opts) {
   const box = $('mineWrap'), st = $('mineStatus');
   const isAuto = !!(opts && opts.auto);
@@ -1226,6 +1237,7 @@ async function planMining(forcedId, opts) {
   if (!S.root) {
     st.textContent = 'Run a calculation first.';
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3><p class="hint">Enter a blueprint on the left, hit Calculate, then come back and press Plan mining.</p></div>';
+    renderRefineryPanel(null);
     return;
   }
   if (!Object.keys(needs).length) {
@@ -1234,6 +1246,7 @@ async function planMining(forcedId, opts) {
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3>' +
       '<p class="hint">Nothing marked for mining. Press <b>Mine it</b> on any raw mineral/ice row above (or set a sub-component to Build to include its minerals), then press Plan mining again. ' +
       (built.length ? 'These sub-components are set to Build but their contents are still resolving: ' + built.slice(0, 4).join(', ') + ' — wait a few seconds and retry.' : '') + '</p></div>';
+    renderRefineryPanel(null);
     return;
   }
   const rate = Math.max(1, parseFloat($('mineRate').value) || 450);
@@ -1313,18 +1326,8 @@ async function planMining(forcedId, opts) {
     '<div class="summary-card"><div class="k">Total mining time</div><div class="v">' + fmtTime(totalMins) + '</div></div>' +
     '<div class="summary-card"><div class="k">Material value</div><div class="v">' + fmtISK(totalValue) + '</div><div class="k">' + fmtISK(totalMins > 0 ? totalValue / (totalMins / 60) : 0) + '/hr implied</div></div></div>';
   h += '</div>'; // close the main mining-plan panel
-  // Refinery — its own section, shown whenever the plan is mining ore/compressed ore/ice
-  if (merged.length) {
-    h += '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3>';
-    if (refineRows.length) {
-      h += '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Ore, compressed ore and ice must be refined to minerals at ' + Math.round(eff * 100) + '%. All products incl. by-products.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units</th><th>Refines to</th></tr></thead><tbody>' +
-        refineRows.map(r => '<tr><td><b>' + r.ore.name + '</b></td><td><span class="pill" style="' + (r.otype === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (r.otype === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.otype + '</span></td><td>' + fmtN(r.units) + '</td><td>' + r.parts.join(' + ') + '</td></tr>').join('') +
-        '</tbody></table></div>';
-    } else {
-      h += '<p class="hint">Mined sources are ore/ice but no refine yields resolved — check your connection and retry.</p>';
-    }
-    h += '</div>';
-  }
+  // Refinery breakdown renders into its OWN separate panel (#refineryWrap), not inside the mining tab.
+  renderRefineryPanel(refineRows, eff, anyCompressed);
   // Fastest source detail — its own section
   h += '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-search"></i> Fastest source per material (detail)</h3><p class="hint" style="margin-top:.2rem">Pick the rock you can actually mine — e.g. Megacyte: Arkonor (333-366) → Bistot (170-187) → Spodumain (140-154). Changing the dropdown recalculates the volume/time above.</p><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Source</th><th>Units</th><th>Volume</th><th>Time</th><th></th></tr></thead><tbody>' +
     perMin.map(p => {
@@ -1339,6 +1342,7 @@ async function planMining(forcedId, opts) {
   } catch (e) {
     st.textContent = 'Mining plan failed: ' + (e && e.message ? e.message : e);
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-gem"></i> Mining plan</h3><p class="hint">Failed: ' + (e && e.message ? e.message : e) + '. Check your connection and try again.</p></div>';
+    renderRefineryPanel(null);
   }
 }
 
