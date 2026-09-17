@@ -567,7 +567,7 @@ async function renderShoppingList(runs) {
   }
   const invAgg = stkCurrentAgg();
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
-  const locNameForDeduct = doDeduct ? (($('stkLocation') && $('stkLocation').value) ? (stkLocationNames[$('stkLocation').value] || $('stkLocation').value) : 'all locations') : '';
+  const locNameForDeduct = doDeduct ? (stkCurrentSysName() || 'all locations') : '';
   // compute per-line have/to-buy and volumes/totals
   let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
   const rows = shop.map(l => {
@@ -1299,10 +1299,29 @@ async function planMining(forcedId, opts) {
 
 // ---- Inventory (industrial stock: character + corp) ----
 let stkRaw = [], stkAgg = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
+let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [];
 function stkCurrentAgg() {
   const loc = ($('stkLocation') && $('stkLocation').value) || '';
+  const sys = ($('stkSystem') && $('stkSystem').value) || '';
   if (loc && stkAggByStation[loc]) return stkAggByStation[loc];
+  if (sys) {
+    // merge all locations that belong to the selected system
+    const out = {};
+    const ids = (stkSystems[sys] || []);
+    for (const id of ids) {
+      const m = stkAggByStation[id]; if (!m) continue;
+      for (const [t, q] of Object.entries(m)) out[t] = (out[t] || 0) + q;
+    }
+    return out;
+  }
   return stkAgg;
+}
+function stkCurrentSysName() {
+  const sys = ($('stkSystem') && $('stkSystem').value) || '';
+  const loc = ($('stkLocation') && $('stkLocation').value) || '';
+  if (loc) return stkLocationNames[loc] || ('Location ' + String(loc).slice(-4));
+  if (sys) return sys;
+  return '';
 }
 function stkHasLocationData() { return Object.keys(stkAggByStation).length > 0; }
 const STK_PAGE_OPTIONS = [25, 50, 100];
@@ -1367,10 +1386,12 @@ function renderStkRows() {
   }
   const srcAggForCount = srcAgg;
   const industrialCount = Object.keys(srcAggForCount).filter(id => isIndustrialMaterial(+id)).length;
-  const locName = locVal ? (stkLocationNames[locVal] || ('Location ' + String(locVal).slice(-4))) : null;
-  const isLocIndustrialFiltered = locVal && ($('stkFilter') && $('stkFilter').value === 'industrial');
-  const countLine = '<p class="hint">' + totalTypes + ' types' + (locVal ? ' @ ' + locName : ' in hangar') + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + (locVal ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
-    + (isLocIndustrialFiltered && industrialCount===0 && totalTypes>0 ? '<p class="hint" style="color:var(--text2);border:1px dashed var(--border);border-radius:6px;padding:.45rem .6rem;margin:.4rem 0">This location has <b>' + totalTypes + ' types</b> but <b>none are industrial</b> (minerals/ice/PI/ores). Switch the Filter to <b>All assets</b> to see them, or pick a different Build location (e.g. All locations). Your 8 industrial types are in other hangar(s).</p>' : '');
+  const sysVal = ($('stkSystem') && $('stkSystem').value) || '';
+  const locName = stkCurrentSysName();
+  const scopeLabel = locName || (sysVal ? ' @ ' + sysVal : ' in hangar');
+  const isScopeIndustrialFiltered = (locVal || sysVal) && ($('stkFilter') && $('stkFilter').value === 'industrial');
+  const countLine = '<p class="hint">' + totalTypes + ' types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + sysVal : ' in hangar')) + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ((locVal || sysVal) ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; document.getElementById(\'stkSystem\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
+    + (isScopeIndustrialFiltered && industrialCount===0 && totalTypes>0 ? '<p class="hint" style="color:var(--text2);border:1px dashed var(--border);border-radius:6px;padding:.45rem .6rem;margin:.4rem 0">This scope has <b>' + totalTypes + ' types</b> but <b>none are industrial</b>. Switch the Filter to <b>All assets</b> to see them, or pick a different System / Build location.</p>' : '');
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
     : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
@@ -1632,6 +1653,66 @@ async function loadInventory() {
         }
       }
     } catch {}
+    // ---- build system->locations map so user can pick a system first ----
+    try {
+      const sysNameOfId = sid => { try { const s=(typeof Systems!=='undefined'?Systems.find(x=>String(x.id)===String(sid)):null); return s?s.name:null; } catch { return null; } };
+      const staSysCache = (() => { try { return JSON.parse(localStorage.getItem('bvStaSys') || '{}'); } catch { return {}; } })();
+      let staSysChanged = false;
+      stkSystems = {}; stkLocSystem = {};
+      const locIds = Object.keys(stkAggByStation);
+      for (const id of locIds) {
+        let sysId = null;
+        const num = +id;
+        if (num >= 30000000 && num < 40000000 && num < 1e9) {
+          // solar system location — itself the system
+          sysId = num;
+        } else if (num >= 1e12) {
+          // structure — from cache
+          try { const sc = bvStructCacheRead(); if (sc[id] && sc[id].system_id) sysId = sc[id].system_id; } catch {}
+        } else if (num >= 60000000 && num < 61000000) {
+          // NPC station — resolve its system
+          if (staSysCache[id] && Date.now() - staSysCache[id].ts < 7*864e5) sysId = staSysCache[id].sys;
+          else {
+            try {
+              const s = await fetchJSON(ESI + '/universe/stations/' + num + '/?datasource=tranquility');
+              if (s && s.solar_system_id) { sysId = s.solar_system_id; staSysCache[id] = { sys: sysId, ts: Date.now() }; staSysChanged = true; }
+            } catch {}
+          }
+        }
+        let sysName = sysId ? sysNameOfId(sysId) : null;
+        if (!sysName) {
+          // fallback: parse from resolved station/citadel name or mark unknown
+          const nm = stkLocationNames[id] || '';
+          const m = nm.match(/\[([^\]]+)\]/); sysName = m ? m[1] : null;
+        }
+        if (!sysName) sysName = 'Other / Unknown';
+        stkLocSystem[id] = sysName;
+        (stkSystems[sysName] = stkSystems[sysName] || []).push(id);
+      }
+      if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
+      // populate System dropdown (keep selection)
+      const sysSel = $('stkSystem');
+      if (sysSel) {
+        const keepSys = sysSel.value;
+        const sysNames = Object.keys(stkSystems).sort((a,b)=>a.localeCompare(b));
+        sysSel.innerHTML = '<option value="">All systems (global)</option>' + sysNames.map(s => {
+          const n = stkSystems[s].length;
+          return '<option value="' + s + '"' + (s===keepSys?' selected':'') + '>' + s + ' — ' + n + ' location' + (n===1?'':'s') + '</option>';
+        }).join('');
+        stkSysLocIds = sysNames;
+      }
+      // Build location dropdown now scoped to selected system
+      const locSel = $('stkLocation');
+      const keepLoc = locSel ? locSel.value : '';
+      const curSys = sysSel ? sysSel.value : '';
+      const scopeIds = curSys ? (stkSystems[curSys] || []) : locIds;
+      if (locSel) {
+        locSel.innerHTML = '<option value="">' + (curSys ? 'All locations in ' + curSys : 'All locations (global)') + '</option>'
+          + scopeIds.sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b))).map(id => {
+            return '<option value="' + id + '"' + (id===keepLoc?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>';
+          }).join('');
+      }
+    } catch {}
     stkNames = {}; stkPage = 1;
     if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
     const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n));
@@ -1718,7 +1799,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
   if ($('stkApply')) $('stkApply').onclick = applyInventoryToShopping;
   if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkNames={}; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations (global)</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkNames={}; const s1=$('stkSystem'); if(s1) s1.innerHTML='<option value="">All systems (global)</option>'; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
+  if ($('stkSystem')) $('stkSystem').onchange = () => {
+    const sys = $('stkSystem').value || '';
+    const sel = $('stkLocation');
+    if (sel) {
+      const keepLoc = sel.value;
+      const scopeIds = (sys ? (stkSystems[sys] || []) : Object.keys(stkAggByStation)).slice();
+      scopeIds.sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
+      sel.innerHTML = '<option value="">' + (sys ? 'All locations in ' + sys : 'All locations (global)') + '</option>'
+        + scopeIds.map(id => '<option value="' + id + '"' + (id===keepLoc ? ' selected' : '') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>').join('');
+    }
+    stkPage=1; renderStkRows();
+    if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
+  };
   if ($('stkLocation')) $('stkLocation').onchange = async () => { stkPage=1; renderStkRows(); if (S.root) await renderShoppingList(S.runs||1); };
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };

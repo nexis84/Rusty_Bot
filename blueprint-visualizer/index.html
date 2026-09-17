@@ -112,7 +112,8 @@
         <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
         <div class="field"><label>Filter</label><select id="stkFilter"><option value="industrial">Industrial only</option><option value="all">All assets</option></select></div>
       </div>
-      <div class="field"><label>Build location (pull from)</label><select id="stkLocation" class="form-input"><option value="">All locations (global)</option></select></div>
+      <div class="field"><label>System (space)</label><select id="stkSystem" class="form-input"><option value="">All systems (global)</option></select></div>
+      <div class="field"><label>Build location (pull from)</label><select id="stkLocation" class="form-input"><option value="">All locations in selected system</option></select></div>
       <div class="field"><label>Search</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, morphite…" autocomplete="off"></div>
       <div class="btn-row"><button id="stkRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button><button id="stkApply" class="calc-btn secondary"><i class="fas fa-check"></i> Apply to shopping list</button></div>
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Deduct owned qty from Shopping List (show Have / Need)</label>
@@ -202,6 +203,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=1"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=50"></script>
+    <script src="bv-visualizer.js?v=51"></script>
 </body>
 </html>
