@@ -566,9 +566,10 @@ async function renderShoppingList(runs) {
     if (totals) totals.textContent = bom.length ? 'Full total 0 ISK · Volume 0 m³' : '';
     return;
   }
-  const invAgg = stkCurrentAgg();
+  const invAgg = stkDeductMap();
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
-  const locNameForDeduct = doDeduct ? (stkCurrentSysName() || 'all locations') : '';
+  const snap = S.inventorySnapshot || stkSnapshotRead();
+  const locNameForDeduct = doDeduct ? ((snap && snap.systemName) ? (snap.systemName + (snap.eff ? ' @ ' + Math.round(snap.eff*100) + '% refine' : '')) : (stkCurrentSysName() || 'all locations')) : '';
   // compute per-line have/to-buy and volumes/totals
   let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
   const rows = shop.map(l => {
@@ -629,7 +630,7 @@ async function renderShoppingList(runs) {
 function shoppingLines() {
   const bom = S.bom || [];
   const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
-  const invAgg = stkCurrentAgg();
+  const invAgg = stkDeductMap();
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
   return shop.map(l => {
     const have = doDeduct ? (invAgg[l.type_id] || 0) : 0;
@@ -644,7 +645,7 @@ function shoppingLines() {
 function shoppingBuyLines() {
   const bom = S.bom || [];
   const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
-  const invAgg = stkCurrentAgg();
+  const invAgg = stkDeductMap();
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
   return shop.filter(l => {
     if (!doDeduct) return true;
@@ -1300,11 +1301,19 @@ async function planMining(forcedId, opts) {
 
 // ---- Inventory (industrial stock: character + corp) ----
 let stkRaw = [], stkAgg = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
-let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [];
+let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [], stkSysNames = {}, stkTypeLocs = {};
 let stkBrowseMaterials = false;
+let stkOreDetail = [], stkRefineEff = 0.75;
+// system-first: #stkSystem holds the selected solar_system_id (e.g. '30004691' for O4T-Z5)
+function stkSysId() { try { return ($('stkSystem') && $('stkSystem').value) || ''; } catch { return ''; } }
+function stkSysIdName(id) {
+  if (stkSysNames[id]) return stkSysNames[id];
+  try { const s = (typeof Systems !== 'undefined' ? Systems.find(x => String(x.id) === String(id)) : null); if (s) { stkSysNames[id] = s.name; return s.name; } } catch {}
+  return id;
+}
 function stkCurrentAgg() {
   const loc = ($('stkLocation') && $('stkLocation').value) || '';
-  const sys = ($('stkSystem') && $('stkSystem').value) || '';
+  const sys = stkSysId();
   if (loc && stkAggByStation[loc]) return stkAggByStation[loc];
   if (sys) {
     // merge all locations that belong to the selected system
@@ -1319,13 +1328,63 @@ function stkCurrentAgg() {
   return stkAgg;
 }
 function stkCurrentSysName() {
-  const sys = ($('stkSystem') && $('stkSystem').value) || '';
+  const sys = stkSysId();
   const loc = ($('stkLocation') && $('stkLocation').value) || '';
   if (loc) return stkLocationNames[loc] || ('Location ' + String(loc).slice(-4));
-  if (sys) return sys;
+  if (sys) return stkSysIdName(sys);
   return '';
 }
 function stkHasLocationData() { return Object.keys(stkAggByStation).length > 0; }
+// Persistent inventory snapshot kept in memory (S) + localStorage so Shopping/Build/Mining deduct it.
+function stkSnapshotRead() { try { return JSON.parse(localStorage.getItem('bvInventorySnapshot') || 'null'); } catch { return null; } }
+function stkSnapshotWrite(s) { try { localStorage.setItem('bvInventorySnapshot', JSON.stringify(s)); } catch {} }
+function stkSnapshotClear() { S.inventorySnapshot = null; try { localStorage.removeItem('bvInventorySnapshot'); } catch {} }
+// Refined deduction map from snapshot (ore already converted to minerals at refine %), else live scope
+function stkDeductMap() {
+  const snap = S.inventorySnapshot || stkSnapshotRead();
+  if (snap && snap.refinedMap) return snap.refinedMap;
+  return stkCurrentAgg();
+}
+// Expand ore / compressed-ore stacks into refined minerals at the selected Refining yield %,
+// keep every row's provenance (which citadel/station/can), and store the whole system snapshot.
+async function buildInventorySnapshot() {
+  const agg = stkCurrentAgg();
+  const eff = (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
+  stkRefineEff = eff;
+  const refinedMap = {}; const oreDetail = [];
+  for (const [tid, qty] of Object.entries(agg)) {
+    const t = +tid;
+    if (D.minerals && D.minerals[t]) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; }
+    if (iceProductIds.has(t)) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; }
+    try { if (isPI(t)) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; } } catch {}
+    // try ore refinement (base, variant, compressed — only types with type_materials yields)
+    let ore = null;
+    try { ore = await fetchOre(t); } catch {}
+    const yields = (ore && ore.yields) || {};
+    if (ore && Object.keys(yields).length) {
+      const oreName = stkNames[t] || ore.name || ('Type ' + t);
+      const locs = (stkTypeLocs[t] ? [...stkTypeLocs[t]] : []).map(l => stkLocationNames[l] || ('Structure …' + String(l).slice(-4)));
+      const minerals = [];
+      for (const [mid, y] of Object.entries(yields)) {
+        const rq = Math.floor(qty * (y || 0) / (ore.portion || 100) * eff);
+        if (rq > 0) { refinedMap[mid] = (refinedMap[mid] || 0) + rq; minerals.push({ mid: +mid, name: (D.minerals[+mid] || stkNames[mid] || ('Type ' + mid)), qty: rq }); }
+      }
+      if (minerals.length) oreDetail.push({ oreId: t, oreName, oreQty: qty, locs, refined: minerals });
+      continue;
+    }
+    refinedMap[t] = (refinedMap[t] || 0) + qty;
+  }
+  stkOreDetail = oreDetail;
+  S.inventorySnapshot = {
+    system: stkSysId(), systemName: stkSysIdName(stkSysId()),
+    source: ($('stkSource') && $('stkSource').value) || 'personal',
+    eff, at: Date.now(),
+    byType: agg, byLoc: stkAggByStation, locNames: stkLocationNames,
+    refinedMap, oreDetail
+  };
+  stkSnapshotWrite(S.inventorySnapshot);
+  return oreDetail;
+}
 const STK_PAGE_OPTIONS = [25, 50, 100];
 try {
   const s = parseInt(localStorage.getItem('bvStkPageSize') || '', 10);
@@ -1426,20 +1485,25 @@ function renderStkRows() {
   const locName = stkCurrentSysName();
   const scopeLabel = locName || (sysVal ? ' @ ' + sysVal : ' in hangar');
   const isScopeIndustrialFiltered = (locVal || sysVal) && ($('stkFilter') && $('stkFilter').value === 'industrial');
-  const countLine = '<p class="hint">' + totalTypes + ' types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + sysVal : ' in hangar')) + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ((locVal || sysVal) ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; document.getElementById(\'stkSystem\').value=\'\'; document.getElementById(\'stkSystemInput\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
+  const countLine = '<p class="hint">' + totalTypes + ' types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + stkSysIdName(sysVal) : ' in hangar')) + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ((locVal || sysVal) ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; document.getElementById(\'stkSystem\').value=\'\'; document.getElementById(\'stkSystemInput\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
     + (isScopeIndustrialFiltered && industrialCount===0 && totalTypes>0 ? '<p class="hint" style="color:var(--text2);border:1px dashed var(--border);border-radius:6px;padding:.45rem .6rem;margin:.4rem 0">This scope has <b>' + totalTypes + ' types</b> but <b>none are industrial</b>. Switch the Filter to <b>All assets</b> to see them, or pick a different System / Build location.</p>' : '');
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
     : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
   let h = countLine + pager;
-  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty owned</th><th>Type</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty owned</th><th>Refines / Location</th><th>Type</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
   if (!page.length) {
-    h += '<tr><td colspan="6" style="color:var(--text3)">No matches — clear search or switch to All assets.</td></tr>';
+    h += '<tr><td colspan="7" style="color:var(--text3)">No matches — clear search or switch to All assets.</td></tr>';
   } else {
     for (const r of page) {
       const nm = stkNames[r.typeId] || ('Type ' + r.typeId);
+      const locs = (stkTypeLocs[r.typeId] ? [...stkTypeLocs[r.typeId]] : []).map(l => stkLocationNames[l] || ('Structure …' + String(l).slice(-4)));
+      const ore = stkOreDetail.find(o => o.oreId === r.typeId);
+      let prov = '';
+      if (ore && ore.refined.length) prov = '<div style="font-size:.75rem;color:var(--accent)">' + ore.refined.map(m => '→ ' + m.name + ' ×' + fmtN(m.qty)).join('<br>') + ' <span class="nums">@' + Math.round(stkRefineEff*100) + '% refine</span></div>';
+      if (locs.length) prov += '<div class="nums" style="font-size:.72rem">' + locs.slice(0,2).join(', ') + (locs.length>2 ? ' +' + (locs.length-2) : '') + '</div>';
       const ind = isIndustrialMaterial(r.typeId) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">Industrial</span>' : '<span class="pill">Other</span>';
-      h += '<tr><td><img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + ind + '</td><td data-stkprice="' + r.typeId + '">—</td><td data-stktotal="' + r.typeId + '">—</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.typeId) + '"><i class="fas fa-chart-line"></i></a>' + (isPI(r.typeId) ? piIcon(r.typeId) : '') +'</td></tr>';
+      h += '<tr><td><img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + (prov || '<span class="nums">—</span>') + '</td><td>' + ind + '</td><td data-stkprice="' + r.typeId + '">—</td><td data-stktotal="' + r.typeId + '">—</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.typeId) + '"><i class="fas fa-chart-line"></i></a>' + (isPI(r.typeId) ? piIcon(r.typeId) : '') +'</td></tr>';
     }
   }
   h += '</tbody></table></div>';
@@ -1471,8 +1535,9 @@ function renderStkRows() {
 }
 async function loadInventory() {
   const box = $('stkList'), st = $('stkStatus'), totals = $('stkTotals');
-  if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needsesi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
-  if (box) box.textContent = 'Loading inventory…';
+  if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needs esi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
+  if (!stkSysId()) { if (st) st.textContent = 'Pick a build system first.'; if (box) box.innerHTML = '<p class="hint">Type your build system above, pick it from the list, then hit <b>Search system</b>.</p>'; return; }
+  if (box) box.textContent = 'Searching ' + stkSysIdName(stkSysId()) + '…';
   if (st) st.textContent = 'Fetching assets…';
   if (totals) totals.textContent = '';
   try {
@@ -1533,224 +1598,107 @@ async function loadInventory() {
       if (cur && cur.location_id) return cur.location_id;
       return (anchor !== null) ? anchor : a.location_id;
     }
+    // resolve system for every distinct top-level location (station/citadel/system) so we can filter to the build system
+    const topLocIds = [...new Set(assets.filter(a=>a && a.item_id).map(a => String(stationFor(a))).filter(Boolean))];
+    const locSys = {};
+    const staSysCache = (() => { try { return JSON.parse(localStorage.getItem('bvStaSys') || '{}'); } catch { return {}; } })();
+    let staSysChanged = false;
+    for (const id of topLocIds) {
+      const num = +id;
+      if (num >= 30000000 && num < 40000000 && num < 1e9) { locSys[id] = num; continue; }
+      if (num >= 1e12) { try { const sc = bvStructCacheRead(); if (sc[id] && sc[id].system_id) locSys[id] = sc[id].system_id; } catch {} continue; }
+      if (num >= 60000000 && num < 61000000) {
+        if (staSysCache[id] && Date.now() - staSysCache[id].ts < 7*864e5) { locSys[id] = staSysCache[id].sys; continue; }
+        try {
+          const s = await fetchJSON(ESI + '/universe/stations/' + num + '/?datasource=tranquility');
+          if (s && s.solar_system_id) { locSys[id] = s.solar_system_id; staSysCache[id] = { sys: locSys[id], ts: Date.now() }; staSysChanged = true; }
+        } catch {}
+        continue;
+      }
+    }
+    if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
+    // STRICT SCOPE: only keep assets whose location resolves to the selected build system
+    const selSysNum = parseInt(stkSysId(), 10);
+    stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
+    let keptCount = 0;
     for (const a of assets) {
       if (!a || !a.type_id) continue;
       const qty = Number(a.quantity) || 0;
       if (qty <= 0) continue;
+      const stnId = String(stationFor(a));
+      const stnSys = locSys[stnId] != null ? locSys[stnId] : null;
+      if (stnSys == null || stnSys !== selSysNum) continue; // drop anything not in the selected system
+      keptCount++;
       stkAgg[a.type_id] = (stkAgg[a.type_id] || 0) + qty;
-      const stn = stationFor(a);
-      if (stn) {
-        const key = String(stn);
-        if (!stkAggByStation[key]) stkAggByStation[key] = {};
-        stkAggByStation[key][a.type_id] = (stkAggByStation[key][a.type_id] || 0) + qty;
+      if (stnId) {
+        if (!stkAggByStation[stnId]) stkAggByStation[stnId] = {};
+        stkAggByStation[stnId][a.type_id] = (stkAggByStation[stnId][a.type_id] || 0) + qty;
+        (stkTypeLocs[a.type_id] = stkTypeLocs[a.type_id] || new Set()).add(stnId);
       }
     }
-    // populate Build location dropdown (keep current selection if still valid)
+    // resolve names for this system's locations (local systems + station names + authed citadels), then dropdown + snapshot
     try {
-      const sel = $('stkLocation');
-      const keep = sel ? sel.value : '';
-      const locIds = Object.keys(stkAggByStation).sort((a,b)=> String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
-      if (sel) {
-        const opts = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => {
-          const nm = stkLocationNames[id] || ('Location ' + id);
-          const cnt = Object.keys(stkAggByStation[id]||{}).length;
-          return '<option value="' + id + '">' + nm + ' — ' + cnt + ' types</option>';
-        }));
-        sel.innerHTML = opts.join('');
-        if (keep && stkAggByStation[keep]) sel.value = keep;
-      }
-      // resolve location names — throttled public ESI + system for structures
-      if (locIds.length) {
-        try { const sc = bvStructCacheRead(); for (const id of locIds) if (sc[id] && sc[id].name) stkLocationNames[id] = sc[id].name; } catch {}
-        // keep a separate map for system suffix
-        if (!window._stkSys) window._stkSys = {};
-        const need = locIds.filter(id => !stkLocationNames[id]);
-        if (need.length) {
-          const needStations = need.filter(id => String(id).length < 12);
-          const needStructures = need.filter(id => String(id).length >= 12);
-          // first try local Systems for system IDs (3000xxxx) to avoid ESI call and fix O4T-Z5 vs D4T-ZS font
-          try {
-            const sysMap = new Map();
-            try { const db = (typeof Systems !== 'undefined' ? Systems : []); for(const s of db) sysMap.set(String(s.id), s.name); } catch {}
-            for (const id of [...needStations]) {
-              if (sysMap.has(String(id)) ) { stkLocationNames[id]=sysMap.get(String(id)); }
-            }
-          } catch {}
-          const stillNeedStations = needStations.filter(id => !stkLocationNames[id]);
-          if (stillNeedStations.length) {
-            for (let i=0;i<stillNeedStations.length;i+=200) {
-              const chunk = stillNeedStations.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n) && n>1000);
-              if (!chunk.length) continue;
-              let tries=0; while(tries<2){
-                try {
-                  const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
-                  (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
-                  break;
-                } catch(e){
-                  const msg=String(e&&e.message||'');
-                  if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
-                  // on 400, split chunk in half and try smaller (one bad id can poison whole batch)
-                  if (/400/.test(msg) && chunk.length>1) {
-                    const mid=Math.floor(chunk.length/2);
-                    const a=chunk.slice(0,mid), b=chunk.slice(mid);
-                    for(const c of [a,b]){
-                      try{ const nm2=await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(c) }); (Array.isArray(nm2)?nm2:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; }); await new Promise(r=>setTimeout(r,200)); }catch{}
-                    }
-                    break;
-                  }
-                  break;
-                }
-              }
-              if (i+200 < stillNeedStations.length) await new Promise(r=>setTimeout(r,350));
-            }
-          }
-          // structures: resolve citadel names via authed ESI (throttled, cached 7d, 403-stamped 1h)
-          const structIds = needStructures;
-          if (structIds.length) {
-            const sysIds = new Set();
-            const denied = bvDeniedRead(), now = Date.now();
-            for (let s=0; s<structIds.length; s++) {
-              const sid = structIds[s];
-              try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name && sc[sid].system){ stkLocationNames[sid]=sc[sid].name + ' [' + sc[sid].system + ']'; window._stkSys[sid]=sc[sid].system; } else if(sc[sid] && sc[sid].name){ stkLocationNames[sid]=sc[sid].name; } } catch {}
-              if (stkLocationNames[sid] && String(stkLocationNames[sid]).includes('[')) continue;
-              if (denied[sid] && now - denied[sid] < 3600e3) { if(!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4); continue; }
-              let tries=0; while(tries<2){
-                try {
-                  const st = await BVAuth.api('/universe/structures/' + sid + '/?datasource=tranquility');
-                  if (st && st.solar_system_id) {
-                    sysIds.add(st.solar_system_id);
-                    const sname = st.name || stkLocationNames[sid] || ('Structure …'+String(sid).slice(-4));
-                    stkLocationNames[sid]=sname;
-                    try { const sc=bvStructCacheRead(); sc[sid]={name:sname, system_id:st.solar_system_id, ts:Date.now()}; bvStructCacheWrite(sc); } catch {}
-                  }
-                  break;
-                } catch(e){
-                  const msg=String(e&&e.message||'');
-                  if (/403|404/.test(msg)) { denied[sid]=Date.now(); if(!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break; }
-                  if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; }
-                  if(!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break;
-                }
-              }
-              if (s < structIds.length-1) await new Promise(r=>setTimeout(r,250));
-            }
-            try{ bvDeniedWrite(denied); }catch{}
-            // batch system names for the resolved structures
-            if (sysIds.size) {
-              const sysArr=[...sysIds]; const sysNames={};
-              for(let i=0;i<sysArr.length;i+=200){
-                const chunk=sysArr.slice(i,i+200);
-                try{
-                  const nm=await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
-                  (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) sysNames[n.id]=n.name; });
-                }catch{}
-                if(i+200<sysArr.length) await new Promise(r=>setTimeout(r,250));
-              }
-              try{
-                const sc=bvStructCacheRead();
-                for(const sid of structIds){
-                  const c=sc[sid];
-                  if(c && c.system_id && sysNames[c.system_id]){
-                    stkLocationNames[sid]=c.name + ' [' + sysNames[c.system_id] + ']';
-                    c.system=sysNames[c.system_id];
-                    window._stkSys[sid]=sysNames[c.system_id];
-                  }
-                }
-                bvStructCacheWrite(sc);
-              }catch{}
-            }
-          }
-          for (const id of locIds) if(!stkLocationNames[id]) stkLocationNames[id]='Structure …' + String(id).slice(-4);
-          // also enrich already-cached structure names with system if we now have it
-          try{
-            const sc=bvStructCacheRead();
-            for(const id of locIds){
-              if(sc[id] && sc[id].system && stkLocationNames[id] && !String(stkLocationNames[id]).includes('[')){
-                stkLocationNames[id]=sc[id].name + ' [' + sc[id].system + ']';
-              } else if(window._stkSys[id] && stkLocationNames[id] && !String(stkLocationNames[id]).includes('[')){
-                stkLocationNames[id]=stkLocationNames[id] + ' [' + window._stkSys[id] + ']';
-              }
-            }
-          }catch{}
-          if (sel) {
-            const cur = sel.value;
-            sel.innerHTML = ['<option value="">All locations (global)</option>'].concat(locIds.map(id => '<option value="' + id + '"' + (id===cur?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>')).join('');
-          }
-        } else {
-          // even when no need, enrich cached names with system suffix if we have it
-          try{
-            const sc=bvStructCacheRead();
-            for(const id of locIds){
-              if(sc[id] && sc[id].system && stkLocationNames[id] && !String(stkLocationNames[id]).includes('[')){
-                stkLocationNames[id]=sc[id].name + ' [' + sc[id].system + ']';
-              }
-            }
-            if(sel){
-              const cur=sel.value;
-              sel.innerHTML=['<option value="">All locations (global)</option>'].concat(locIds.map(id=>'<option value="'+id+'"' +(id===cur?' selected':'')+'>'+(stkLocationNames[id]||id)+' — '+Object.keys(stkAggByStation[id]||{}).length+' types</option>')).join('');
-            }
-          }catch{}
-        }
-      }
-    } catch {}
-    // ---- build system->locations map so user can pick a system first ----
-    try {
-      const sysNameOfId = sid => { try { const s=(typeof Systems!=='undefined'?Systems.find(x=>String(x.id)===String(sid)):null); return s?s.name:null; } catch { return null; } };
-      const staSysCache = (() => { try { return JSON.parse(localStorage.getItem('bvStaSys') || '{}'); } catch { return {}; } })();
-      let staSysChanged = false;
-      stkSystems = {}; stkLocSystem = {};
       const locIds = Object.keys(stkAggByStation);
-      for (const id of locIds) {
-        let sysId = null;
-        const num = +id;
-        if (num >= 30000000 && num < 40000000 && num < 1e9) {
-          // solar system location — itself the system
-          sysId = num;
-        } else if (num >= 1e12) {
-          // structure — from cache
-          try { const sc = bvStructCacheRead(); if (sc[id] && sc[id].system_id) sysId = sc[id].system_id; } catch {}
-        } else if (num >= 60000000 && num < 61000000) {
-          // NPC station — resolve its system
-          if (staSysCache[id] && Date.now() - staSysCache[id].ts < 7*864e5) sysId = staSysCache[id].sys;
-          else {
+      const selSys = stkSysId();
+      const selName = stkSysIdName(selSys);
+      // system-location ids -> local Systems names
+      for (const id of locIds) { const num = +id; if (num >= 30000000 && num < 40000000) { stkLocationNames[id] = stkSysIdName(String(num)); } }
+      // NPC stations (<1e12, not system ids) -> universe/names
+      const stationIds = locIds.filter(id => { const n = +id; return n >= 1000000 && n < 1e12 && !(n >= 30000000 && n < 40000000); });
+      for (let i=0;i<stationIds.length;i+=200) {
+        const chunk = stationIds.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
+        if (!chunk.length) continue;
+        let tries=0; while(tries<2){
+          try {
+            const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
+            (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
+            break;
+          } catch(e){ const msg=String(e&&e.message||''); if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; } break; }
+        }
+        if (i+200 < stationIds.length) await new Promise(r=>setTimeout(r,250));
+      }
+      // citadels (>=1e12) -> authed, throttled, cached
+      const structIds = locIds.filter(id => String(id).length >= 12);
+      if (structIds.length) {
+        const denied = bvDeniedRead(), now = Date.now();
+        for (let s=0; s<structIds.length; s++) {
+          const sid = structIds[s];
+          try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name) stkLocationNames[sid]=sc[sid].name; } catch {}
+          if (stkLocationNames[sid]) continue;
+          if (denied[sid] && now - denied[sid] < 3600e3) { stkLocationNames[sid]='Structure …' + String(sid).slice(-4); continue; }
+          let tries=0; while(tries<2){
             try {
-              const s = await fetchJSON(ESI + '/universe/stations/' + num + '/?datasource=tranquility');
-              if (s && s.solar_system_id) { sysId = s.solar_system_id; staSysCache[id] = { sys: sysId, ts: Date.now() }; staSysChanged = true; }
-            } catch {}
+              const st = await BVAuth.api('/universe/structures/' + sid + '/?datasource=tranquility');
+              if (st && st.name) { stkLocationNames[sid]=st.name; try { const sc=bvStructCacheRead(); sc[sid]={name:st.name, system_id:st.solar_system_id||locSys[sid], ts:Date.now()}; bvStructCacheWrite(sc); } catch {} }
+              break;
+            } catch(e){ const msg=String(e&&e.message||''); if (/403|404/.test(msg)) { denied[sid]=Date.now(); stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break; } if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; } stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break; }
           }
+          if (s < structIds.length-1) await new Promise(r=>setTimeout(r,200));
         }
-        let sysName = sysId ? sysNameOfId(sysId) : null;
-        if (!sysName) {
-          // fallback: parse from resolved station/citadel name or mark unknown
-          const nm = stkLocationNames[id] || '';
-          const m = nm.match(/\[([^\]]+)\]/); sysName = m ? m[1] : null;
-        }
-        if (!sysName) sysName = 'Other / Unknown';
-        stkLocSystem[id] = sysName;
-        (stkSystems[sysName] = stkSystems[sysName] || []).push(id);
+        try{ bvDeniedWrite(denied); }catch{}
       }
-      if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
-      // stkSystem is a hidden value; keep it if still valid, and mirror into the autocomplete input
-      const sysSel = $('stkSystem');
-      if (sysSel) {
-        const keepSys = sysSel.value;
-        if (keepSys && !stkSystems[keepSys]) sysSel.value = '';
-        const sysInput = $('stkSystemInput');
-        if (sysInput) sysInput.value = sysSel.value || '';
-        stkSysLocIds = Object.keys(stkSystems);
+      // stkSystems keyed by systemId + per-location system name
+      stkSystems[selSys] = locIds;
+      stkSysNames[selSys] = selName;
+      for (const id of locIds) {
+        let sId = locSys[id];
+        if (!sId) { try { const sc=bvStructCacheRead(); if (sc[id] && sc[id].system_id) sId = sc[id].system_id; } catch {} }
+        stkLocSystem[id] = sId ? stkSysIdName(String(sId)) : 'Unknown';
+        if (!stkLocationNames[id]) stkLocationNames[id] = 'Structure …' + String(id).slice(-4);
       }
-      // Build location dropdown now scoped to selected system
+      // Build location dropdown scoped to the selected system
       const locSel = $('stkLocation');
-      const keepLoc = locSel ? locSel.value : '';
-      const curSys = sysSel ? sysSel.value : '';
-      const scopeIds = curSys ? (stkSystems[curSys] || []) : locIds;
       if (locSel) {
-        locSel.innerHTML = '<option value="">' + (curSys ? 'All locations in ' + curSys : 'All locations (global)') + '</option>'
-          + scopeIds.slice().sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b))).map(id => {
-            return '<option value="' + id + '"' + (id===keepLoc?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>';
-          }).join('');
+        const keepLoc = locSel.value;
+        const scope = locIds.slice().sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
+        locSel.innerHTML = '<option value="">All locations in ' + selName + '</option>'
+          + scope.map(id => '<option value="' + id + '"' + (id===keepLoc?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>').join('');
       }
     } catch {}
+    // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
+    await buildInventorySnapshot();
     stkNames = {}; stkPage = 1;
+stkNames = {}; stkPage = 1;
     if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
     const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n));
     if (ids.length) {
@@ -1778,7 +1726,7 @@ async function loadInventory() {
         }
       }
     }
-    if (st) st.textContent = 'Loaded ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial · ' + Object.keys(stkAggByStation).length + ' locations';
+    if (st) st.textContent = stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
     if ($('stkDeduct') && $('stkDeduct').checked && S.root) { await renderShoppingList(S.runs||1); }
@@ -1793,17 +1741,20 @@ async function applyInventoryToShopping() {
   await renderShoppingList(S.runs||1);
   status('Inventory applied to shopping list — deducted owned qty.');
 }
-// System autocomplete for the Inventory tab — focused search over systems with assets (falls back to all Systems).
+// System autocomplete for the Inventory tab — search ALL systems (build system picked first).
 function stkRescopeSystem() {
-  const sys = ($('stkSystem') && $('stkSystem').value) || '';
+  const sysId = stkSysId();
+  const sysName = sysId ? stkSysIdName(sysId) : '';
   const sel = $('stkLocation');
   if (sel) {
     const keepLoc = sel.value;
-    const scopeIds = (sys ? (stkSystems[sys] || []) : Object.keys(stkAggByStation)).slice();
+    const scopeIds = (sysId ? (stkSystems[sysId] || []) : Object.keys(stkAggByStation)).slice();
     scopeIds.sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
-    sel.innerHTML = '<option value="">' + (sys ? 'All locations in ' + sys : 'All locations (global)') + '</option>'
+    sel.innerHTML = '<option value="">' + (sysId ? 'All locations in ' + sysName : 'All locations (global)') + '</option>'
       + scopeIds.map(id => '<option value="' + id + '"' + (id===keepLoc ? ' selected' : '') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>').join('');
   }
+  // enable Search button once a system is picked
+  try { const b = $('stkRefresh'); if (b) b.disabled = !sysId; } catch {}
   stkPage = 1;
   renderStkRows();
   if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
@@ -1815,32 +1766,27 @@ function attachStkSystemAutocomplete() {
   function close() { box.classList.add('hidden'); box.innerHTML = ''; active = -1; current = []; }
   function render(q) {
     if (q.length < 2) { close(); return; }
-    // ONLY systems we actually have assets in — strictly scoped, never the global Systems list
-    const keys = Object.keys(stkSystems);
-    if (!keys.length) {
-      box.innerHTML = '<div class="suggest-item" data-i="-1"><span class="t">No systems loaded — hit Refresh first.</span></div>';
-      box.classList.remove('hidden');
-      box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => e.preventDefault());
-      return;
-    }
-    current = keys
-      .filter(name => bvScore(name, q) > 0)
-      .map(name => ({ name, sc: bvScore(name, q), n: (stkSystems[name] || []).length }))
+    // pool = ALL systems (build system is chosen first, even if you own nothing there)
+    const sysList = ((typeof Systems !== 'undefined' ? Systems : []) || []).slice();
+    current = sysList
+      .map(s => ({ id: s.id, name: s.name, sc: bvScore(s.name, q) }))
+      .filter(c => c.sc > 0)
       .sort((a, b) => b.sc - a.sc || a.name.localeCompare(b.name))
       .slice(0, 8);
     if (!current.length) { close(); return; }
     active = -1;
     box.innerHTML = current.map((c, i) =>
-      '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + c.n + ' location' + (c.n === 1 ? '' : 's') + '</span></div>'
+      '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + (c.id) + '</span></div>'
     ).join('');
     box.classList.remove('hidden');
     box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); });
   }
   function pick(i) {
     const c = current[i]; if (!c) return;
-    $('stkSystem').value = c.name;
+    stkSysNames[String(c.id)] = c.name;
+    $('stkSystem').value = String(c.id);
     input.value = c.name;
-    input.dataset.pickedId = c.name;
+    input.dataset.pickedId = String(c.id);
     close();
     stkRescopeSystem();
   }
@@ -1979,9 +1925,18 @@ document.addEventListener('DOMContentLoaded', () => {
     stkPage = 1;
     renderStkRows();
   };
-  if ($('stkApply')) $('stkApply').onclick = applyInventoryToShopping;
+  if ($('stkClear')) $('stkClear').onclick = () => {
+    stkSnapshotClear();
+    stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkOreDetail = [];
+    const sel = $('stkLocation'); if (sel) sel.innerHTML = '<option value="">All locations in selected system</option>';
+    if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Search.</p>';
+    if ($('stkStatus')) $('stkStatus').textContent = '';
+    if ($('stkTotals')) $('stkTotals').textContent = '';
+    if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
+    status('Inventory snapshot cleared.');
+  };
   if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkNames={}; const s1=$('stkSystem'); if(s1) s1.value=''; const si=$('stkSystemInput'); if(si) si.value=''; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Search.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   if ($('stkLocation')) $('stkLocation').onchange = async () => { stkPage=1; renderStkRows(); if (S.root) await renderShoppingList(S.runs||1); };
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });

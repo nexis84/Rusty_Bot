@@ -107,21 +107,21 @@
 
   <div class="panel tab-content" id="tab-stk">
      <h3><i class="fas fa-boxes"></i> Inventory</h3>
-     <p class="hint">Pulls hangar stock for the signed-in character &amp; corp. Industrial materials (minerals, ice products, PI, ores, moon goo) are highlighted. Use <b>Apply to shopping list</b> to subtract what you already own.</p>
+     <p class="hint">Pick your <b>build system</b> first, choose Personal or Corp, then <b>Search</b>. We scan every station &amp; citadel in that system — all hangars and all cans — and list the industrial materials. Ore/compressed ore is worked out at your refining % (Calc &gt; Rigs). Tick <b>Use these</b> to keep them in memory and deduct from the Shopping/Build/Mining lists.</p>
+      <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
+      <input type="hidden" id="stkSystem" value="">
       <div class="grid2">
         <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
         <div class="field"><label>Filter</label><select id="stkFilter"><option value="industrial">Industrial only</option><option value="all">All assets</option></select></div>
       </div>
-      <div class="field suggest-wrap"><label>System (space)</label><input id="stkSystemInput" class="form-input" placeholder="Type to search a system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
-      <input type="hidden" id="stkSystem" value="">
-      <div class="field"><label>Build location (pull from)</label><select id="stkLocation" class="form-input"><option value="">All locations in selected system</option></select></div>
+      <div class="field"><label>Build location (optional — narrow to one citadel/station)</label><select id="stkLocation" class="form-input"><option value="">All locations in selected system</option></select></div>
       <div class="grid2">
-        <div class="field suggest-wrap"><label>Material (full industry list)</label><input id="matFilterInput" class="form-input" placeholder="Search all 1703 materials — e.g. Tritanium, Heavy Water…" autocomplete="off"><div id="matSuggest" class="suggest hidden"></div></div>
+        <div class="field suggest-wrap"><label>Material (full industry list)</label><input id="matFilterInput" class="form-input" placeholder="Search all materials — e.g. Tritanium, Heavy Water…" autocomplete="off"><div id="matSuggest" class="suggest hidden"></div></div>
         <div class="field"><label>&nbsp;</label><button id="stkBrowse" class="calc-btn secondary" style="margin-top:.45rem"><i class="fas fa-list"></i> Browse all materials</button></div>
       </div>
-      <div class="field"><label>Search</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, morphite…" autocomplete="off"></div>
-      <div class="btn-row"><button id="stkRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button><button id="stkApply" class="calc-btn secondary"><i class="fas fa-check"></i> Apply to shopping list</button></div>
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Deduct owned qty from Shopping List (show Have / Need)</label>
+      <div class="field"><label>Filter list</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, morphite…" autocomplete="off"></div>
+      <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Search system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button></div>
+      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
      <div id="stkStatus" class="progress"></div>
      <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
      <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
@@ -208,6 +208,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=55"></script>
+    <script src="bv-visualizer.js?v=56"></script>
 </body>
 </html>
