@@ -1818,13 +1818,12 @@ async function loadInventory() {
     if (unresolved.length && !structWarn) {
       const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
-      // personal scans have few structures: resolve ALL industrial-bearing ones and
-      // re-try any stale 1h denial (in case access changed / it was a transient hit).
-      // corp/both keep a cap + denial skip so big corps never flood.
-      const isPersonal = src === 'personal';
+      // Resolve industrial-bearing structures, skipping ones denied in the last
+      // hour (403s are deterministic — re-trying just floods the console). A
+      // manual rescan after access changes re-resolves them once the stamp lapses.
       const targets = unresolved
-        .slice(0, isPersonal ? unresolved.length : 100)
-        .filter(id => isPersonal || !(denied[id] && now - denied[id] < 3600e3));
+        .slice(0, 100)
+        .filter(id => !(denied[id] && now - denied[id] < 3600e3));
       let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0;
       for (let i = 0; i < targets.length; i += 2) {
         await Promise.all(targets.slice(i, i + 2).map(async id => {
