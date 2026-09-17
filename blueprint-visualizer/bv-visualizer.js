@@ -1318,6 +1318,13 @@ function isIndustrialMaterial(id) {
   } catch {}
   try { if (D.ores && D.ores.some(o => o.id === nid)) return true; } catch {}
   try { if (iceOreList && iceOreList.some(o => +o.id === nid)) return true; } catch {}
+  // Fallback for ore variants (Concentrated Veldspar etc) and moon/gas — check cached name
+  try {
+    const nm = (stkNames[nid] || '').toLowerCase();
+    if (nm) {
+      if (nm.includes('veldspar') || nm.includes('scordite') || nm.includes('pyroxeres') || nm.includes('plagioclase') || nm.includes('omber') || nm.includes('kernite') || nm.includes('jaspet') || nm.includes('hedbergite') || nm.includes('hemorphite') || nm.includes('gneiss') || nm.includes('ochre') || nm.includes('crokite') || nm.includes('spodumain') || nm.includes('bistot') || nm.includes('arkonor') || nm.includes('mercoxit') || nm.includes('ice') || nm.includes('glaze') || nm.includes('krystallos') || nm.includes('gelidus') || nm.includes('glitter') || nm.includes('tritanium') || nm.includes('pyerite') || nm.includes('mexallon') || nm.includes('isogen') || nm.includes('nocxium') || nm.includes('zydrine') || nm.includes('megacyte') || nm.includes('morphite') || nm.includes('compressed') || nm.includes('enriched') || nm.includes('concentrated') || nm.includes('dense') || nm.includes('ore')) return true;
+    }
+  } catch {}
   return false;
 }
 function stkFilteredAgg() {
