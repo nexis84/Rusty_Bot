@@ -1744,8 +1744,7 @@ async function loadInventory() {
     const staSysCache = (() => { try { return JSON.parse(localStorage.getItem('bvStaSys') || '{}'); } catch { return {}; } })();
     let staSysChanged = false;
     const now = Date.now();
-    const denied = bvDeniedRead();
-    let deniedChanged = false;
+    const structCache = bvStructCacheRead();
     for (const id of topLocIds) {
       const num = +id;
       if (num >= 30000000 && num < 40000000 && num < 1e9) { locSys[id] = num; continue; }
@@ -1758,33 +1757,33 @@ async function loadInventory() {
         continue;
       }
     }
-    // Citadel/upwell structures (>=1e12): resolve systems in parallel with a concurrency
-    // cap, only for uncached/non-denied ids, and stamp 403s for 1h so the flood of
-    // no-access structures only ever hits ESI once per hour instead of every Search.
-    const structIds = topLocIds.filter(id => {
-      const n = +id;
-      if (n < 1e12 || locSys[id]) return false;
-      if (denied[id] && now - denied[id] < 3600e3) return false;
-      return true;
-    });
-    for (let i = 0; i < structIds.length; i += 6) {
-      await Promise.all(structIds.slice(i, i + 6).map(async id => {
-        try {
-          const sc = bvStructCacheRead();
-          if (sc[id] && sc[id].system_id) { locSys[id] = sc[id].system_id; return; }
-          const st = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
-          if (st && st.solar_system_id) {
-            locSys[id] = st.solar_system_id;
-            sc[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: now };
-            bvStructCacheWrite(sc);
+    // Citadel/upwell structures (>=1e12): resolve systems from ONE call to
+    // /characters/{cid}/structures/ (lists every structure the character can
+    // access WITH its system_id), plus the local cache. We deliberately do NOT
+    // call /universe/structures/{id} per structure — a big corp's assets span
+    // hundreds of citadels across EVE, and most 403 (no docking access),
+    // flooding ESI and tripping the 420 rate limit.
+    let structSys = {};
+    try {
+      const cs = await BVAuth.api('/characters/' + cid + '/structures/?datasource=tranquility');
+      if (Array.isArray(cs)) {
+        for (const s of cs) {
+          if (s && s.structure_id && s.system_id) {
+            const key = String(s.structure_id);
+            structSys[key] = s.system_id;
+            if (!structCache[key] || !structCache[key].name) structCache[key] = { name: structCache[key] && structCache[key].name ? structCache[key].name : ('Structure …' + String(s.structure_id).slice(-4)), system_id: s.system_id, ts: now };
           }
-        } catch (e) {
-          if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
         }
-      }));
-      if (i + 6 < structIds.length) await new Promise(r => setTimeout(r, 50));
+        bvStructCacheWrite(structCache);
+      }
+    } catch {}
+    for (const id of topLocIds) {
+      const num = +id;
+      if (num >= 1e12) {
+        locSys[id] = structSys[id] || (structCache[id] && structCache[id].system_id) || undefined;
+        continue;
+      }
     }
-    if (deniedChanged) bvDeniedWrite(denied);
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     const selSysNum = parseInt(stkSysId(), 10);
