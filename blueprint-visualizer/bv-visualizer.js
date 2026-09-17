@@ -1461,11 +1461,18 @@ function stkHasLocationData() { return Object.keys(stkAggByStation).length > 0; 
 // localStorage so Shopping/Build/Mining deduct them. The Calc tab's Materials-owned selector
 // (matSource) picks which source(s) the calculator deducts from.
 let stkRawSource = 'personal', stkLastSnapshotSource = 'personal';
+// Bump when the snapshot layout changes (e.g. refining rules) so stale saved
+// snapshots are ignored and rebuilt on the next inventory search.
+const SNAPSHOT_VER = 2;
 function stkSnapshotStoreRead() {
   try {
     const v = JSON.parse(localStorage.getItem('bvInventorySnapshot') || 'null');
-    if (v && v._multi) return v;
-    if (v && v.refinedMap) return { _multi: true, [v.source || 'personal']: v }; // legacy single snapshot
+    if (v && v._multi) {
+      const out = { _multi: true };
+      for (const [k, s] of Object.entries(v)) if (k !== '_multi' && s && s.ver === SNAPSHOT_VER) out[k] = s;
+      return out;
+    }
+    if (v && v.refinedMap && v.ver === SNAPSHOT_VER) return { _multi: true, [v.source || 'personal']: v };
     return { _multi: true };
   } catch { return { _multi: true }; }
 }
@@ -1540,7 +1547,7 @@ async function buildInventorySnapshot() {
   stkSnapshotWrite({
     system: stkSysId(), systemName: stkSysIdName(stkSysId()),
     source: ($('stkSource') && $('stkSource').value) || 'personal',
-    eff, at: Date.now(),
+    ver: SNAPSHOT_VER, eff, at: Date.now(),
     byType: agg, byLoc: stkAggByStation, locNames: stkLocationNames,
     refinedMap, oreDetail
   });
