@@ -1273,8 +1273,8 @@ async function renderRefinery() {
     const srcLabel = ded.src === 'both' ? 'Personal + Corp' : (ded.src === 'corp' ? 'Corp' : 'Personal');
     const locName = snap && snap.systemName ? snap.systemName : (stkCurrentSysName() || '');
     const oreDetail = oreDetailFor(ded);
-    // only ore / compressed ore need refining here — ice is not part of this breakdown
-    const refineSources = oreDetail.filter(o => !((iceOreList || []).some(i => +i.id === +o.oreId)));
+    // the refine breakdown covers ore, compressed ore, ice and compressed ice
+    const refineSources = oreDetail;
     // safety net: snapshots persisted before name resolution store bare type IDs — resolve them now
     for (const o of refineSources) {
       if (!o.oreName || /^\d+$/.test(String(o.oreName))) o.oreName = stkNames[o.oreId] || await typeName(o.oreId).catch(() => ('Type ' + o.oreId));
@@ -1296,7 +1296,7 @@ async function renderRefinery() {
       }
     }
     if (!rows.length) {
-      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">None of your loaded ore / compressed ore refines into the materials you ticked <b>Use own</b>. ' + (locName ? 'Loaded scope: ' + srcLabel + ' @ ' + locName + '.' : '') + '</p></div>';
+      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">None of your loaded ore / compressed ore / ice refines into the materials you ticked <b>Use own</b>. ' + (locName ? 'Loaded scope: ' + srcLabel + ' @ ' + locName + '.' : '') + '</p></div>';
       return;
     }
     const anyCompressed = rows.some(r => /compressed/i.test(r.ore || ''));
@@ -1310,7 +1310,7 @@ async function renderRefinery() {
       for (const l of r.locs) g.locs.add(l);
     }
     wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3>' +
-      '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore, refined at ' + Math.round(eff * 100) + '%. Each material combines every ore stack you own that refines into it.</p>' +
+      '<p class="hint">' + (anyCompressed ? 'Compressed ore / ice included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore / ice, refined at ' + Math.round(eff * 100) + '%. Each material combines every ore / ice stack you own that refines into it.</p>' +
       '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>From your ore</th><th>Total refines to</th><th>Location</th></tr></thead><tbody>' +
       [...groups.values()].map(g => {
         const covered = g.total >= g.need;
