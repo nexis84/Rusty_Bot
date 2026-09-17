@@ -795,7 +795,7 @@ const bpIsBPO = b => b.runs === -1;
 // Loaded list state — the search box filters these rows locally, no refetch.
 // Location display is OFF for now (structure ACLs make it unreliable) — flip to true to re-enable.
 const BV_SHOW_LOCATIONS = false;
-let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false, myStructNoAccess = false;
+let myBps = [], myBpNames = {}, myLocNames = {}, myStructScopeMissing = false, myStructNoAccess = false, myBpWarn = '';
 // My Blueprints pager — the list used to be hard-capped at 100 rows, which
 // silently cut every BPC past the originals. Now the full hangar loads and
 // the UI pages through it.
@@ -882,11 +882,12 @@ function renderBpRows() {
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-pg="prev"' + (myBpPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + myBpPage + ' of ' + pages + '</span><button class="mode-btn" data-pg="next"' + (myBpPage >= pages ? ' disabled' : '') + '>Next ›</button></div>'
     : '';
-  const scopeHint = !BV_SHOW_LOCATIONS ? ''
-    : (myStructScopeMissing
-      ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>'
-      : (myStructNoAccess
-        ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : ''));
+  const scopeHint = (myBpWarn ? '<p class="hint" style="color:var(--danger)">' + myBpWarn + '</p>' : '')
+    + (!BV_SHOW_LOCATIONS ? ''
+      : (myStructScopeMissing
+        ? '<p class="hint">Some structures unnamed — Sign out and sign in again to grant the structure scope.</p>'
+        : (myStructNoAccess
+          ? '<p class="hint">Some structures withhold their name — no docking access there (hidden by CCP by design).</p>' : '')));
   box.innerHTML = scopeHint + count + pager + (page.map(bpRowHtml).join('') || (myBps.length ? '<p class="hint">No matches — clear the search.</p>' : 'No blueprints.'));
   box.querySelectorAll('[data-pg]').forEach(btn => btn.onclick = () => setBpPage(myBpPage + (btn.dataset.pg === 'next' ? 1 : -1), pages));
   const sel = box.querySelector('[data-pgsize]');
@@ -913,26 +914,32 @@ async function loadBlueprints() {
     const isBPO = bpIsBPO;
     const src = ($('bpSource') && $('bpSource').value) || 'personal';
     let bps = [];
-    if (src === 'corp') {
+    let corpWarn = null;
+    if (src === 'corp' || src === 'both') {
       const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
-      if (!sheet || !sheet.corporation_id) throw new Error('No corporation found for this character.');
-      // Page through like personal (ESI pages corp blueprints at 1000/page) —
-      // a single call silently drops everything past the first 1000.
-      try {
-        for (let pg = 1; pg <= 5; pg++) {
-          const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/blueprints/?datasource=tranquility&page=' + pg);
-          if (!Array.isArray(chunk) || !chunk.length) break;
-          bps = bps.concat(chunk);
-          if (chunk.length < 1000) break;
+      if (!sheet || !sheet.corporation_id) {
+        if (src === 'corp') throw new Error('No corporation found for this character.');
+        corpWarn = 'No corporation found — corp blueprints skipped.';
+      } else {
+        // Page through (ESI pages corp blueprints at 1000/page) — a single call
+        // silently drops everything past the first 1000.
+        try {
+          for (let pg = 1; pg <= 100; pg++) {
+            const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/blueprints/?datasource=tranquility&page=' + pg);
+            if (!Array.isArray(chunk) || !chunk.length) break;
+            bps = bps.concat(chunk);
+            if (chunk.length < 1000) break;
+          }
+        } catch (e) {
+          const msg = String((e && e.message) || '');
+          if (src === 'corp') throw (/403/.test(msg) ? new Error('Corporation blueprints need the Director role on this character.') : e);
+          corpWarn = /403/.test(msg) ? 'Corp blueprints skipped (Director role required).' : ('Corp blueprints failed: ' + e.message);
         }
-      } catch (e) {
-        // Corp blueprints need the Director role — say so instead of a raw 403.
-        if (/403/.test((e && e.message) || '')) throw new Error('Corporation blueprints need the Director role on this character.');
-        throw e;
       }
-    } else {
+    }
+    if (src === 'personal' || src === 'both') {
       // Page through (ESI pages at 1000 entries) so big hangars aren't silently cut.
-      for (let pg = 1; pg <= 5; pg++) {
+      for (let pg = 1; pg <= 100; pg++) {
         const chunk = await BVAuth.api('/characters/' + cid + '/blueprints/?datasource=tranquility&page=' + pg);
         if (!Array.isArray(chunk) || !chunk.length) break;
         bps = bps.concat(chunk);
@@ -940,6 +947,15 @@ async function loadBlueprints() {
       }
     }
     if (!Array.isArray(bps)) bps = [];
+    if (src === 'both') {
+      const seen = new Set();
+      bps = bps.filter(b => {
+        const k = b.item_id != null ? String(b.item_id) : (b.type_id + '|' + b.runs + '|' + b.location_id);
+        if (seen.has(k)) return false;
+        seen.add(k); return true;
+      });
+    }
+    myBpWarn = corpWarn || '';
     const type = $('bpType').value;
     if (type !== 'all') bps = bps.filter(b => type === 'bpo' ? isBPO(b) : !isBPO(b));
     // No row cap here — ESI lists originals before copies, so any cap hides
@@ -1228,6 +1244,7 @@ function fmtTime(mins) {
 function oreDetailFor(ded) {
   if (ded.src === 'both') {
     const store = S.inventorySnapshots || stkSnapshotStoreRead();
+    if (store['both'] && store['both'].oreDetail) return store['both'].oreDetail;
     const map = new Map();
     for (const s of ['personal', 'corp']) {
       const snap = store[s];
@@ -1469,6 +1486,8 @@ function stkDeductSnapshot() {
   const src = matSource();
   const store = S.inventorySnapshots || stkSnapshotStoreRead();
   if (src === 'both') {
+    const mergedSnap = store['both'];
+    if (mergedSnap && mergedSnap.refinedMap) return { snap: mergedSnap, map: mergedSnap.refinedMap, src };
     const list = ['personal', 'corp'].map(s => store[s]).filter(s => s && s.refinedMap);
     if (list.length) {
       const out = {};
@@ -1692,21 +1711,28 @@ async function loadInventory() {
     // fresh pull: reset denial stamps so citadel/system names retry on every Refresh
     try { localStorage.removeItem('bvStructDenied'); } catch {}
     let assets = [];
-    if (src === 'corp') {
+    let stkCorpWarn = null;
+    if (src === 'corp' || src === 'both') {
       const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
-      if (!sheet || !sheet.corporation_id) throw new Error('No corporation found for this character.');
-      try {
-        for (let pg=1; pg<=100; pg++) {
-          const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/assets/?datasource=tranquility&page=' + pg);
-          if (!Array.isArray(chunk) || !chunk.length) break;
-          assets = assets.concat(chunk);
-          if (chunk.length < 1000) break;
+      if (!sheet || !sheet.corporation_id) {
+        if (src === 'corp') throw new Error('No corporation found for this character.');
+        stkCorpWarn = 'No corporation found — corp assets skipped.';
+      } else {
+        try {
+          for (let pg=1; pg<=100; pg++) {
+            const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/assets/?datasource=tranquility&page=' + pg);
+            if (!Array.isArray(chunk) || !chunk.length) break;
+            assets = assets.concat(chunk);
+            if (chunk.length < 1000) break;
+          }
+        } catch(e) {
+          const msg = String((e && e.message) || '');
+          if (src === 'corp') throw (/403/.test(msg) ? new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.') : e);
+          stkCorpWarn = /403/.test(msg) ? 'Corp assets skipped (Director role required).' : ('Corp assets failed: ' + e.message);
         }
-      } catch(e) {
-        if (/403/.test((e&&e.message)||'')) throw new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.');
-        throw e;
       }
-    } else {
+    }
+    if (src === 'personal' || src === 'both') {
       for (let pg=1; pg<=100; pg++) {
         const chunk = await BVAuth.api('/characters/' + cid + '/assets/?datasource=tranquility&page=' + pg);
         if (!Array.isArray(chunk) || !chunk.length) break;
@@ -1868,7 +1894,7 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    if (st) st.textContent = stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists

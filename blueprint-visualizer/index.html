@@ -86,7 +86,7 @@
   <div class="panel tab-content" id="tab-bps">
     <h3><i class="fas fa-scroll"></i> My Blueprints</h3>
     <p class="hint">EVE SSO lists Personal / Corp BPOs + BPCs. Scan profit ranks them at current hub.</p>
-    <div class="field"><label>Source</label><select id="bpSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
+    <div class="field"><label>Source</label><select id="bpSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
     <div class="field"><label>Type</label><select id="bpType"><option value="all">All (BPO + BPC)</option><option value="bpo">BPO only</option><option value="bpc">BPC only</option></select></div>
     <div class="field"><label>Search</label><input id="bpSearch" class="form-input" placeholder="Filter loaded list — e.g. rifter…" autocomplete="off"></div>
     <button id="bpRefresh" class="calc-btn"><i class="fas fa-sync"></i> Refresh</button>
@@ -112,7 +112,7 @@
       <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
       <input type="hidden" id="stkSystem" value="">
       <div class="grid2">
-        <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option></select></div>
+        <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
         <div class="field"><label>Filter</label><select id="stkFilter"><option value="industrial">Industrial only</option><option value="all">All assets</option></select></div>
       </div>
       <div class="field"><label>Build location (optional — narrow to one citadel/station)</label><select id="stkLocation" class="form-input"><option value="">All locations in selected system</option></select></div>
@@ -210,6 +210,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=67"></script>
+    <script src="bv-visualizer.js?v=68"></script>
 </body>
 </html>
