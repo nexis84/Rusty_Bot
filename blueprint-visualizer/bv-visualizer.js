@@ -1482,12 +1482,14 @@ async function loadInventory() {
     const cid = ch.id || ch.character_id || ch.CharacterID;
     if (!cid) { if(box) box.innerHTML='<p class="hint">No character ID — re-login.</p>'; return; }
     const src = ($('stkSource') && $('stkSource').value) || 'personal';
+    // fresh pull: reset denial stamps so citadel/system names retry on every Refresh
+    try { localStorage.removeItem('bvStructDenied'); } catch {}
     let assets = [];
     if (src === 'corp') {
       const sheet = await BVAuth.api('/characters/' + cid + '/?datasource=tranquility');
       if (!sheet || !sheet.corporation_id) throw new Error('No corporation found for this character.');
       try {
-        for (let pg=1; pg<=10; pg++) {
+        for (let pg=1; pg<=100; pg++) {
           const chunk = await BVAuth.api('/corporations/' + sheet.corporation_id + '/assets/?datasource=tranquility&page=' + pg);
           if (!Array.isArray(chunk) || !chunk.length) break;
           assets = assets.concat(chunk);
@@ -1498,7 +1500,7 @@ async function loadInventory() {
         throw e;
       }
     } else {
-      for (let pg=1; pg<=10; pg++) {
+      for (let pg=1; pg<=100; pg++) {
         const chunk = await BVAuth.api('/characters/' + cid + '/assets/?datasource=tranquility&page=' + pg);
         if (!Array.isArray(chunk) || !chunk.length) break;
         assets = assets.concat(chunk);
@@ -1512,7 +1514,7 @@ async function loadInventory() {
     const idToAsset = new Map();
     for (const a of assets) if (a && a.item_id) idToAsset.set(String(a.item_id), a);
     function stationFor(a) {
-      let cur = a, hops = 0;
+      let cur = a, hops = 0, anchor = null;
       const seen = new Set();
       // walk container chain (cans inside cans, ship cargo, corp divisions) until we reach station/structure/system
       while (cur && cur.location_type === 'item' && cur.location_id && hops < 25) {
@@ -1524,11 +1526,12 @@ async function loadInventory() {
         cur = parent;
         hops++;
       }
-      // cur is now the topmost resolvable asset. If it still points at an item we couldn't resolve,
-      // fall back to the original location only when that's a real station/structure/system id.
-      if (cur && cur.location_type !== 'item') return cur.location_id;
-      // unresolved parent chain — use the deepest non-item location we can trust, else the raw location_id
-      return (cur && cur.location_id) ? cur.location_id : a.location_id;
+      // deepest known non-item location is the authoritative station/structure/system
+      if (cur && cur.location_type !== 'item' && cur.location_id) return cur.location_id;
+      // if the top of the chain is still an item (container's parent missing), use the raw location only
+      // when it's a real station/structure/system id, else fall back to the anchor we walked past
+      if (cur && cur.location_id) return cur.location_id;
+      return (anchor !== null) ? anchor : a.location_id;
     }
     for (const a of assets) {
       if (!a || !a.type_id) continue;
@@ -1775,7 +1778,7 @@ async function loadInventory() {
         }
       }
     }
-    if (st) st.textContent = 'Loaded ' + assets.length + ' stacks → ' + Object.keys(stkAgg).length + ' types (' + (Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length) + ' industrial).';
+    if (st) st.textContent = 'Loaded ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial · ' + Object.keys(stkAggByStation).length + ' locations';
     renderStkRows();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
     if ($('stkDeduct') && $('stkDeduct').checked && S.root) { await renderShoppingList(S.runs||1); }
