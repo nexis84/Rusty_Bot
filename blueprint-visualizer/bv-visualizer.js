@@ -1256,16 +1256,31 @@ async function renderRefinery() {
     const srcLabel = ded.src === 'both' ? 'Personal + Corp' : (ded.src === 'corp' ? 'Corp' : 'Personal');
     const locName = snap && snap.systemName ? snap.systemName : (stkCurrentSysName() || '');
     const oreDetail = oreDetailFor(ded);
-    if (!oreDetail.length) {
-      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">No ore / compressed ore in your loaded inventory. Load it in the <b>Inventory</b> tab (pick your build system + <b>Search</b>), or switch the <b>Materials owned</b> source in Calc. This panel breaks down what your own ore stock refines into.</p></div>';
+    // BOM items ticked "Use own" that need refining (minerals / ice products, not bought/built)
+    const selected = (S.bom || []).filter(l => ownUse(l.type_id) && (l.mode === 'buy' || l.mode === 'react') && isMineable(l.type_id));
+    if (!selected.length || !oreDetail.length) {
+      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">Tick <b>Use own</b> on a mineral in the BOM, and load your ore / compressed ore in the <b>Inventory</b> tab. If that material needs refining, it shows here with which of your ore stacks refines into it — and where they sit.</p></div>';
       return;
     }
-    const anyCompressed = oreDetail.some(o => /compressed/i.test(o.oreName || ''));
-    const tag = o => /compressed/i.test(o.oreName || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(i => +i.id === +o.oreId) ? 'ICE' : 'ORE');
-    wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + oreDetail.length + ' source' + (oreDetail.length > 1 ? 's' : '') + ' · ' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3>' +
-      '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Your ore / compressed ore refines into these minerals at ' + Math.round(eff * 100) + '%.</p>' +
-      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Refine</th><th>Type</th><th>Units owned</th><th>Refines to</th></tr></thead><tbody>' +
-      oreDetail.map(o => '<tr><td><b>' + o.oreName + '</b></td><td><span class="pill" style="' + (tag(o) === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (tag(o) === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + tag(o) + '</span></td><td>' + fmtN(o.oreQty) + '</td><td>' + o.refined.map(m => m.name + ' ×' + fmtN(m.qty)).join(' + ') + '</td></tr>').join('') +
+    const rows = [];
+    for (const l of selected) {
+      const mid = +l.type_id;
+      for (const o of oreDetail) {
+        const r = o.refined.find(x => +x.mid === mid);
+        if (!r) continue;
+        rows.push({ mineral: l.name, need: l.qty, oreId: o.oreId, ore: o.oreName, oreQty: o.oreQty, locs: o.locs || [], yield: r.qty });
+      }
+    }
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint">None of your loaded ore / compressed ore refines into the materials you ticked <b>Use own</b>. ' + (locName ? 'Loaded scope: ' + srcLabel + ' @ ' + locName + '.' : '') + '</p></div>';
+      return;
+    }
+    const anyCompressed = rows.some(r => /compressed/i.test(r.ore || ''));
+    const tag = o => /compressed/i.test(o.ore || '') ? 'COMPRESSED ORE' : ((iceOreList || []).some(i => +i.id === +o.oreId) ? 'ICE' : 'ORE');
+    wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3>' +
+      '<p class="hint">' + (anyCompressed ? 'Compressed ore included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore, refined at ' + Math.round(eff * 100) + '%.</p>' +
+      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>From your ore</th><th>Units owned</th><th>Location</th><th>Refines to</th></tr></thead><tbody>' +
+      rows.map(r => '<tr><td><b>' + r.mineral + '</b></td><td>' + fmtN(r.need) + '</td><td><span class="pill" style="' + (tag(r) === 'COMPRESSED ORE' ? 'border-color:#3fb950;color:#3fb950' : (tag(r) === 'ICE' ? 'border-color:#58a6ff;color:#58a6ff' : '')) + '">' + r.ore + ' · ' + tag(r) + '</span></td><td>' + fmtN(r.oreQty) + '</td><td>' + (r.locs.length ? r.locs.slice(0, 2).join(', ') + (r.locs.length > 2 ? ' +' + (r.locs.length - 2) : '') : '<span class="nums">—</span>') + '</td><td>' + r.mineral + ' ×' + fmtN(r.yield) + '</td></tr>').join('') +
       '</tbody></table></div></div>';
   } catch (e) {
     wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery</h3><p class="hint" style="color:var(--danger)">Refinery failed: ' + (e && e.message ? e.message : e) + '</p></div>';
@@ -2085,6 +2100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ownBox) {
       ownSet(ownBox.dataset.own, ownBox.checked);
       if (S.root) renderShoppingList(S.runs || 1);
+      renderRefinery();
       return;
     }
     const shipTop = e.target.closest('#mineShipTop');
