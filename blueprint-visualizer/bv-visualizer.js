@@ -1749,22 +1749,25 @@ async function loadInventory() {
     function stationFor(a) {
       let cur = a, hops = 0, anchor = null;
       const seen = new Set();
+      const isRealLoc = n => (n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000);
       // walk container chain (cans inside cans, ship cargo, corp divisions) until we reach station/structure/system
       while (cur && cur.location_type === 'item' && cur.location_id && hops < 25) {
         const key = String(cur.item_id);
         if (seen.has(key)) break; // cycle guard
         seen.add(key);
-        const parent = idToAsset.get(String(cur.location_id));
+        const locId = cur.location_id;
+        if (isRealLoc(+locId)) anchor = locId; // remember the last real location passed
+        const parent = idToAsset.get(String(locId));
         if (!parent) break; // parent container not in this character's asset list — stop here
         cur = parent;
         hops++;
       }
       // deepest known non-item location is the authoritative station/structure/system
       if (cur && cur.location_type !== 'item' && cur.location_id) return cur.location_id;
-      // if the top of the chain is still an item (container's parent missing), use the raw location only
-      // when it's a real station/structure/system id, else fall back to the anchor we walked past
-      if (cur && cur.location_id) return cur.location_id;
-      return (anchor !== null) ? anchor : a.location_id;
+      // still an item: only trust it if it's a real location id, else fall back to the anchor
+      if (cur && cur.location_id && isRealLoc(+cur.location_id)) return cur.location_id;
+      if (anchor !== null) return anchor;
+      return a.location_id;
     }
     // resolve system for every distinct top-level location (station/citadel/system) so we can filter to the build system
     const topLocIds = [...new Set(assets.filter(a=>a && a.item_id).map(a => String(stationFor(a))).filter(Boolean))];
@@ -1774,7 +1777,21 @@ async function loadInventory() {
     for (const id of topLocIds) {
       const num = +id;
       if (num >= 30000000 && num < 40000000 && num < 1e9) { locSys[id] = num; continue; }
-      if (num >= 1e12) { try { const sc = bvStructCacheRead(); if (sc[id] && sc[id].system_id) locSys[id] = sc[id].system_id; } catch {} continue; }
+      if (num >= 1e12) {
+        // Citadel/upwell structure: resolve its system live (authed) so a fresh load
+        // isn't wiped just because the structure wasn't in the local cache.
+        try {
+          const sc = bvStructCacheRead();
+          if (sc[id] && sc[id].system_id) { locSys[id] = sc[id].system_id; continue; }
+          const st = await BVAuth.api('/universe/structures/' + num + '/?datasource=tranquility');
+          if (st && st.solar_system_id) {
+            locSys[id] = st.solar_system_id;
+            sc[id] = { name: st.name || ('Structure …' + String(id).slice(-4)), system_id: locSys[id], ts: Date.now() };
+            bvStructCacheWrite(sc);
+          }
+        } catch {}
+        continue;
+      }
       if (num >= 60000000 && num < 61000000) {
         if (staSysCache[id] && Date.now() - staSysCache[id].ts < 7*864e5) { locSys[id] = staSysCache[id].sys; continue; }
         try {
