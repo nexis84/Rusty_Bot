@@ -1840,6 +1840,20 @@ async function loadInventory() {
       if (deniedChanged) bvDeniedWrite(denied);
     }
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
+    // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
+    try {
+      const locTypes = { solar: 0, station: 0, struct: 0, other: 0 };
+      for (const id of topLocIds) {
+        const n = +id;
+        if (n >= 30000000 && n < 40000000) locTypes.solar++;
+        else if (n >= 1e12) locTypes.struct++;
+        else if (n >= 60000000 && n < 61000000) locTypes.station++;
+        else locTypes.other++;
+      }
+      const res = topLocIds.filter(id => +id >= 1e12 && locSys[id]).length;
+      const unres = topLocIds.filter(id => +id >= 1e12 && !locSys[id]).length;
+      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' structWarn=' + (structWarn || 'none'));
+    } catch {}
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     const selSysNum = parseInt(stkSysId(), 10);
     stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
