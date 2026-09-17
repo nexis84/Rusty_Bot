@@ -109,6 +109,7 @@ function init() {
   } catch {}
   try { const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); refreshPresets(pr); } catch {}
   try { const p = JSON.parse(localStorage.getItem('bvPrefs') || '{}'); for (const [k, v] of Object.entries(p)) { const el = $(k); if (el && v !== undefined) el.value = v; } } catch {}
+  try { S.own = ownRead(); } catch {}
   // ensure refinePct has a sane default if still empty
   try { if (!$('refinePct').value) $('refinePct').value = (DEF.refinePct ?? 75); } catch {}
   // ledger from share link
@@ -163,7 +164,7 @@ async function childBlueprint(materialTypeId, materialName) {
 }
 
 // ---- state ----
-const S = { root: null, nodes: new Map(), bom: [], product: null, trackedPrice: null };
+const S = { root: null, nodes: new Map(), bom: [], product: null, trackedPrice: null, own: {} };
 // drill-down navigation: breadcrumb trail of {bp, runs}; pendingNeed scales runs on entry
 const navStack = [];
 let pendingNeed = null;
@@ -451,12 +452,22 @@ function renderTree(runs) {
   });
 }
 
+// per-item "used own" toggle — persisted; unchecked BOM lines are bought in full regardless of inventory
+function ownRead() { try { return JSON.parse(localStorage.getItem('bvOwnSet') || 'null') || {}; } catch { return {}; } }
+function ownUse(typeId) { return S.own[typeId] === undefined ? true : !!S.own[typeId]; }
+function ownSet(typeId, val) { S.own[typeId] = !!val; try { localStorage.setItem('bvOwnSet', JSON.stringify(S.own)); } catch {} }
+function ownCell(l) {
+  const usable = (l.mode === 'buy' || l.mode === 'react');
+  return usable
+    ? '<label title="Use owned materials for this item (deduct from inventory)" style="cursor:pointer"><input type="checkbox" data-own="' + l.type_id + '"' + (ownUse(l.type_id) ? ' checked' : '') + '></label>'
+    : '<input type="checkbox" disabled checked style="opacity:.35" title="Not bought — own flag not applicable">';
+}
 async function renderBom(runs) {
   S.bom = effLeafCost(runs);
   const tb = $('bomBody');
   let vol = 0; for (const l of S.bom) vol += (await typeVolume(l.type_id)) * l.qty;
   let total = 0;
-  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + '</td></tr>'; }).join('');
+  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + '</td></tr>'; }).join('');
   $('bomMeta').textContent = S.bom.length + ' types';
   const split = bomCashSplit();
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
@@ -574,7 +585,7 @@ async function renderShoppingList(runs) {
   // compute per-line have/to-buy and volumes/totals
   let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
   const rows = shop.map(l => {
-    const have = doDeduct ? (invAgg[l.type_id] || 0) : 0;
+    const have = doDeduct && ownUse(l.type_id) ? (invAgg[l.type_id] || 0) : 0;
     const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
     const unit = l.unit || 0;
     return { l, have, toBuy, unit, totalNeed: unit * l.qty, totalBuy: unit * toBuy };
@@ -587,10 +598,11 @@ async function renderShoppingList(runs) {
   }
   sb.innerHTML = rows.map(r => {
     const clean = cleanName(r.l.name);
-    const haveTxt = doDeduct ? fmtN(r.have) : '—';
+    const useOwn = doDeduct && ownUse(r.l.type_id);
+    const haveTxt = useOwn ? fmtN(r.have) : '—';
     const toBuyTxt = fmtN(r.toBuy);
     const needTxt = fmtN(r.l.qty);
-    const haveCls = doDeduct && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
+    const haveCls = useOwn && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
     const toBuyCls = r.toBuy === 0 ? ' style="color:var(--build)"' : '';
     return '<tr><td><img src="https://images.evetech.net/types/' + r.l.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
   }).join('');
@@ -634,7 +646,7 @@ function shoppingLines() {
   const invAgg = stkDeductMap();
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
   return shop.map(l => {
-    const have = doDeduct ? (invAgg[l.type_id] || 0) : 0;
+    const have = doDeduct && ownUse(l.type_id) ? (invAgg[l.type_id] || 0) : 0;
     const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
     const needTxt = fmtN(l.qty);
     const haveTxt = doDeduct ? fmtN(have) : '0';
@@ -650,10 +662,11 @@ function shoppingBuyLines() {
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg || {}).length > 0;
   return shop.filter(l => {
     if (!doDeduct) return true;
+    if (!ownUse(l.type_id)) return true;
     const toBuy = Math.max(0, l.qty - (invAgg[l.type_id]||0));
     return toBuy > 0;
   }).map(l => {
-    const have = doDeduct ? (invAgg[l.type_id]||0) : 0;
+    const have = (doDeduct && ownUse(l.type_id)) ? (invAgg[l.type_id]||0) : 0;
     const toBuy = doDeduct ? Math.max(0, l.qty - have) : l.qty;
     return cleanName(l.name) + ' x' + toBuy;
   });
@@ -668,7 +681,7 @@ function bindHandoffs() {
   $('appraiseOut').onclick = () => { if (!S.product) return; window.open(appraisalURL([(S.product.qty * (parseInt($('runs').value) || 1)) + ' x ' + S.product.name]), '_blank', 'noopener'); };
   const cs = $('copyShopping'); if (cs) cs.onclick = async () => { const t = shoppingLines().join('\n'); if (!t) { status('Nothing to buy — all built/mined.'); return; } await navigator.clipboard.writeText(t); status('Shopping list copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' items).'); };
   const csm = $('copyShopMultibuy'); if (csm) csm.onclick = async () => { const t = shoppingBuyLines().join('\n'); if (!t) { status('Nothing to buy — all covered by inventory.'); return; } await navigator.clipboard.writeText(t); status('Multibuy (shopping) copied (' + t.split('\n').length + ' lines — after inventory deduct).'); };
-  const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const invAgg = stkDeductMap(); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg||{}).length>0; const lines = shop.map(l => { const toBuy = doDeduct ? Math.max(0, l.qty - (invAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
+  const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const invAgg = stkDeductMap(); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg||{}).length>0; const lines = shop.map(l => { const toBuy = (doDeduct && ownUse(l.type_id)) ? Math.max(0, l.qty - (invAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
   const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = buildRawLines(); if (!lines.length) { status('Nothing to build — set items to Build.'); return; } const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await navigator.clipboard.writeText(t); status('Build list copied (' + lines.length + ' raws).'); };
   const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
   const ab = $('appraiseBuildList'); if (ab) ab.onclick = () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
@@ -2025,6 +2038,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // mining alternative ore picker — dropdown in the per-material detail table recalculates with that rock
   // and top-right ship picker (mining plan header) — custom opens left Mine panel
   document.addEventListener('change', e => {
+    const ownBox = e.target.closest('[data-own]');
+    if (ownBox) {
+      ownSet(ownBox.dataset.own, ownBox.checked);
+      if (S.root) renderShoppingList(S.runs || 1);
+      return;
+    }
     const shipTop = e.target.closest('#mineShipTop');
     if (shipTop) {
       const val = shipTop.value;
