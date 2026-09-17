@@ -1390,7 +1390,7 @@ function renderStkRows() {
   const locName = stkCurrentSysName();
   const scopeLabel = locName || (sysVal ? ' @ ' + sysVal : ' in hangar');
   const isScopeIndustrialFiltered = (locVal || sysVal) && ($('stkFilter') && $('stkFilter').value === 'industrial');
-  const countLine = '<p class="hint">' + totalTypes + ' types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + sysVal : ' in hangar')) + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ((locVal || sysVal) ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; document.getElementById(\'stkSystem\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
+  const countLine = '<p class="hint">' + totalTypes + ' types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + sysVal : ' in hangar')) + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ((locVal || sysVal) ? ' · <a href="#" onclick="document.getElementById(\'stkLocation\').value=\'\'; document.getElementById(\'stkSystem\').value=\'\'; document.getElementById(\'stkSystemInput\').value=\'\'; renderStkRows(); renderShoppingList(S.runs||1); return false;" style="color:var(--accent)">show all</a>' : '') + '</p>'
     + (isScopeIndustrialFiltered && industrialCount===0 && totalTypes>0 ? '<p class="hint" style="color:var(--text2);border:1px dashed var(--border);border-radius:6px;padding:.45rem .6rem;margin:.4rem 0">This scope has <b>' + totalTypes + ' types</b> but <b>none are industrial</b>. Switch the Filter to <b>All assets</b> to see them, or pick a different System / Build location.</p>' : '');
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
@@ -1690,16 +1690,14 @@ async function loadInventory() {
         (stkSystems[sysName] = stkSystems[sysName] || []).push(id);
       }
       if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
-      // populate System dropdown (keep selection)
+      // stkSystem is a hidden value; keep it if still valid, and mirror into the autocomplete input
       const sysSel = $('stkSystem');
       if (sysSel) {
         const keepSys = sysSel.value;
-        const sysNames = Object.keys(stkSystems).sort((a,b)=>a.localeCompare(b));
-        sysSel.innerHTML = '<option value="">All systems (global)</option>' + sysNames.map(s => {
-          const n = stkSystems[s].length;
-          return '<option value="' + s + '"' + (s===keepSys?' selected':'') + '>' + s + ' — ' + n + ' location' + (n===1?'':'s') + '</option>';
-        }).join('');
-        stkSysLocIds = sysNames;
+        if (keepSys && !stkSystems[keepSys]) sysSel.value = '';
+        const sysInput = $('stkSystemInput');
+        if (sysInput) sysInput.value = sysSel.value || '';
+        stkSysLocIds = Object.keys(stkSystems);
       }
       // Build location dropdown now scoped to selected system
       const locSel = $('stkLocation');
@@ -1708,7 +1706,7 @@ async function loadInventory() {
       const scopeIds = curSys ? (stkSystems[curSys] || []) : locIds;
       if (locSel) {
         locSel.innerHTML = '<option value="">' + (curSys ? 'All locations in ' + curSys : 'All locations (global)') + '</option>'
-          + scopeIds.sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b))).map(id => {
+          + scopeIds.slice().sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b))).map(id => {
             return '<option value="' + id + '"' + (id===keepLoc?' selected':'') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>';
           }).join('');
       }
@@ -1756,6 +1754,74 @@ async function applyInventoryToShopping() {
   await renderShoppingList(S.runs||1);
   status('Inventory applied to shopping list — deducted owned qty.');
 }
+// System autocomplete for the Inventory tab — focused search over systems with assets (falls back to all Systems).
+function stkRescopeSystem() {
+  const sys = ($('stkSystem') && $('stkSystem').value) || '';
+  const sel = $('stkLocation');
+  if (sel) {
+    const keepLoc = sel.value;
+    const scopeIds = (sys ? (stkSystems[sys] || []) : Object.keys(stkAggByStation)).slice();
+    scopeIds.sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
+    sel.innerHTML = '<option value="">' + (sys ? 'All locations in ' + sys : 'All locations (global)') + '</option>'
+      + scopeIds.map(id => '<option value="' + id + '"' + (id===keepLoc ? ' selected' : '') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>').join('');
+  }
+  stkPage = 1;
+  renderStkRows();
+  if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
+}
+function attachStkSystemAutocomplete() {
+  const input = $('stkSystemInput'), box = $('stkSysSuggest');
+  if (!input || !box) return;
+  let active = -1, current = [];
+  function close() { box.classList.add('hidden'); box.innerHTML = ''; active = -1; current = []; }
+  function render(q) {
+    if (q.length < 2) { close(); return; }
+    // pool = systems we actually have assets in (focused), fall back to all Systems on first load
+    const keys = Object.keys(stkSystems);
+    let pool = keys.length ? keys : ((typeof Systems !== 'undefined' ? Systems : []) || []).map(s => s.name);
+    current = pool
+      .map(name => ({ name, sc: bvScore(name, q) }))
+      .filter(x => x.sc > 0)
+      .sort((a,b) => b.sc - a.sc || a.name.localeCompare(b.name))
+      .slice(0, 8);
+    if (!current.length) { close(); return; }
+    active = -1;
+    box.innerHTML = current.map((c, i) =>
+      '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span>' +
+      (keys.includes(c.name) ? '<span class="s">' + (stkSystems[c.name]||[]).length + ' locations</span>' : '<span class="s">no assets</span>') + '</div>'
+    ).join('');
+    box.classList.remove('hidden');
+    box.querySelectorAll('.suggest-item').forEach(el => el.onmousedown = e => { e.preventDefault(); pick(+el.dataset.i); });
+  }
+  function pick(i) {
+    const c = current[i]; if (!c) return;
+    $('stkSystem').value = c.name;
+    input.value = c.name;
+    input.dataset.pickedId = c.name;
+    close();
+    stkRescopeSystem();
+  }
+  let deb = null;
+  input.addEventListener('input', () => { delete input.dataset.pickedId; clearTimeout(deb); deb = setTimeout(() => render(input.value.trim().toLowerCase()), 120); });
+  input.addEventListener('focus', () => { if (input.value.trim().length >= 2) render(input.value.trim().toLowerCase()); });
+  input.addEventListener('keydown', e => {
+    const items = box.querySelectorAll('.suggest-item');
+    if (box.classList.contains('hidden') || !items.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % items.length; }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + items.length) % items.length; }
+    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); pick(active); return; }
+    else if (e.key === 'Escape') { close(); return; }
+    else return;
+    items.forEach((el, i) => el.classList.toggle('active', i === active));
+    items[active].scrollIntoView({ block: 'nearest' });
+  });
+  document.addEventListener('click', e => { if (!box.classList.contains('hidden') && !box.contains(e.target) && e.target !== input) close(); });
+}
+function highlight(name, q) {
+  const i = name.toLowerCase().indexOf(q);
+  if (i < 0) return name;
+  return name.slice(0, i) + '<span class="hl">' + name.slice(i, i + q.length) + '</span>' + name.slice(i + q.length);
+}
 
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
@@ -1797,22 +1863,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('rigs')) $('rigs').addEventListener('change', () => { try { savePrefs(); } catch {} });
   // inventory
   if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
+  if ($('stkSystemInput')) attachStkSystemAutocomplete();
   if ($('stkApply')) $('stkApply').onclick = applyInventoryToShopping;
   if ($('stkFilter')) $('stkFilter').onchange = () => { stkPage=1; renderStkRows(); };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkNames={}; const s1=$('stkSystem'); if(s1) s1.innerHTML='<option value="">All systems (global)</option>'; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
-  if ($('stkSystem')) $('stkSystem').onchange = () => {
-    const sys = $('stkSystem').value || '';
-    const sel = $('stkLocation');
-    if (sel) {
-      const keepLoc = sel.value;
-      const scopeIds = (sys ? (stkSystems[sys] || []) : Object.keys(stkAggByStation)).slice();
-      scopeIds.sort((a,b)=>String(stkLocationNames[a]||a).localeCompare(String(stkLocationNames[b]||b)));
-      sel.innerHTML = '<option value="">' + (sys ? 'All locations in ' + sys : 'All locations (global)') + '</option>'
-        + scopeIds.map(id => '<option value="' + id + '"' + (id===keepLoc ? ' selected' : '') + '>' + (stkLocationNames[id]||id) + ' — ' + Object.keys(stkAggByStation[id]||{}).length + ' types</option>').join('');
-    }
-    stkPage=1; renderStkRows();
-    if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
-  };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkNames={}; const s1=$('stkSystem'); if(s1) s1.value=''; const si=$('stkSystemInput'); if(si) si.value=''; const sel=$('stkLocation'); if(sel) sel.innerHTML='<option value="">All locations in selected system</option>'; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Refresh.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{} };
+  if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   if ($('stkLocation')) $('stkLocation').onchange = async () => { stkPage=1; renderStkRows(); if (S.root) await renderShoppingList(S.runs||1); };
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
