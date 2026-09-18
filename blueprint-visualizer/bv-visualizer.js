@@ -2172,6 +2172,44 @@ function stkSortBy(col) {
   stkPage = 1; renderStkRows(); renderStkDetail();
 }
 function renderStkDetail(){ const w=$('stkDetailWrap'); if(w) w.innerHTML=''; }
+// Scan progress bar with ETA. Phases are weighted (fetch 30 / structures 15 /
+// residue 20 / names 10 / classify+names 10 / snapshot 5); ETA derives from
+// elapsed time vs completed fraction. Button locks during the scan.
+let stkProgStart = 0;
+function stkProgress(frac, label) {
+  try {
+    const wrap = $('stkProgWrap'), bar = $('stkBar'), lab = $('stkBarLabel');
+    if (!wrap || !bar) return;
+    const f = Math.min(0.999, Math.max(0, frac || 0));
+    if (!stkProgStart) stkProgStart = Date.now();
+    wrap.style.display = 'block';
+    bar.style.width = (f * 100).toFixed(1) + '%';
+    let eta = '';
+    const el = (Date.now() - stkProgStart) / 1000;
+    if (f > 0.02 && el > 1) {
+      const rem = el / f * (1 - f);
+      eta = rem < 1 ? ' · <1s left' : ' · ~' + (rem < 60 ? Math.ceil(rem) + 's' : Math.floor(rem / 60) + 'm ' + Math.ceil(rem % 60) + 's') + ' left';
+    }
+    if (lab) lab.innerHTML = (label || 'Scanning…') + ' · ' + Math.round(f * 100) + '%' + eta;
+  } catch {}
+}
+function stkProgressDone(msg) {
+  try {
+    const wrap = $('stkProgWrap'), bar = $('stkBar'), lab = $('stkBarLabel');
+    if (bar) bar.style.width = '100%';
+    if (lab) lab.textContent = msg || 'Done.';
+    setTimeout(() => { try { wrap.style.display = 'none'; if (bar) bar.style.width = '0%'; } catch {} }, 5000);
+  } catch {}
+  stkProgStart = 0;
+}
+function stkProgressHide() {
+  try {
+    const wrap = $('stkProgWrap'), bar = $('stkBar');
+    if (wrap) wrap.style.display = 'none';
+    if (bar) bar.style.width = '0%';
+  } catch {}
+  stkProgStart = 0;
+}
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
   // simple one-box view: Item | Qty | System  — hide detailed per-stack table
@@ -2250,6 +2288,8 @@ async function loadInventory() {
     // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
     try { if ($('matSource')) $('matSource').value = src; } catch {}
     savePrefs();
+    try { const rb = $('stkRefresh'); if (rb) rb.disabled = true; } catch {}
+    stkProgress(0.03, 'Fetching assets…');
     let assets = [];
     let stkCorpWarn = null;
     let corpId = null;
@@ -2262,13 +2302,14 @@ async function loadInventory() {
     if (corpId) { try { const co = await fetchJSON(ESI + '/corporations/' + corpId + '/?datasource=tranquility'); if (co && co.name) scanCorp = co.name; } catch {} }
     if (src === 'corp' && !corpId) throw new Error('No corporation found for this character.');
     if (src === 'both' && !corpId) stkCorpWarn = 'No corporation found — corp assets skipped.';
-    const fetchAssetPages = async path => {
+    const fetchAssetPages = async (path, prog) => {
       const all = [];
       for (let pg = 1; pg <= 100; pg++) {
         try {
           const chunk = await BVAuth.api(path + '&page=' + pg);
           if (!Array.isArray(chunk) || !chunk.length) break;
           all.push(...chunk);
+          if (prog) prog(pg, all.length);
           if (chunk.length < 1000) break;
         } catch (e) {
           // ESI can answer 404 for the first page after the last page.
@@ -2281,7 +2322,8 @@ async function loadInventory() {
     };
     if ((src === 'corp' || src === 'both') && corpId) {
       try {
-        assets = assets.concat(await fetchAssetPages('/corporations/' + corpId + '/assets/?datasource=tranquility'));
+        assets = assets.concat(await fetchAssetPages('/corporations/' + corpId + '/assets/?datasource=tranquility',
+          (pg, n) => stkProgress(0.03 + 0.12 * Math.min(pg, 10) / 10, 'Fetching corp assets (page ' + pg + ', ' + fmtN(n) + ' stacks)…')));
       } catch(e) {
         const msg = String((e && e.message) || '');
         if (src === 'corp') throw (/403/.test(msg) ? new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.') : e);
@@ -2289,7 +2331,8 @@ async function loadInventory() {
       }
     }
     if (src === 'personal' || src === 'both') {
-      assets = assets.concat(await fetchAssetPages('/characters/' + cid + '/assets/?datasource=tranquility'));
+      assets = assets.concat(await fetchAssetPages('/characters/' + cid + '/assets/?datasource=tranquility',
+        (pg, n) => stkProgress(0.15 + 0.15 * Math.min(pg, 10) / 10, 'Fetching assets (page ' + pg + ', ' + fmtN(n) + ' stacks)…')));
     }
     stkRaw = assets;
     const selSysNum = parseInt(stkSysId(), 10);
@@ -2462,6 +2505,7 @@ async function loadInventory() {
       let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0, rateCut = false;
       const freshResolved = new Set();
       for (let i = 0; i < targets.length; i += 2) {
+        stkProgress(0.45 + 0.20 * (i / Math.max(1, targets.length)), 'Resolving structures (' + Math.min(i + 2, targets.length) + '/' + targets.length + ')…');
         await Promise.all(targets.slice(i, i + 2).map(async id => {
           if (bvEsiLimited) return;
           attempts++;
@@ -2622,7 +2666,9 @@ async function loadInventory() {
     if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
     const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n) && n>0);
     if (ids.length) {
+      stkProgress(0.65, 'Resolving ' + ids.length + ' type names…');
       for (let i=0;i<ids.length;i+=200) {
+        stkProgress(0.65 + 0.10 * (i / ids.length), 'Resolving type names (' + Math.min(i + 200, ids.length) + '/' + ids.length + ')…');
         const chunk = ids.slice(i,i+200);
         let tries=0; while(tries<2){
           try {
@@ -2642,6 +2688,7 @@ async function loadInventory() {
       if (missing.length && !bvEsiLimited) {
         for (let i=0;i<missing.length;i+=5) {
           if (bvEsiLimited) break;
+          stkProgress(0.75 + 0.05 * (i / missing.length), 'Filling ' + missing.length + ' missing names…');
           const batch = missing.slice(i,i+5);
           await Promise.all(batch.map(async id=>{ try{ stkNames[id]=await typeName(id);}catch(e){ bvHitLimit(e); } }));
           if (i+5 < missing.length) await new Promise(r=>setTimeout(r,250));
@@ -2675,7 +2722,7 @@ async function loadInventory() {
     // Panel renders after custom names arrive (below) so named ships/cans show names.
     // ---- probe unknown types via live SDE so new compressed/moon/gas grades
     // count as industrial even though no hardcoded list has them ----
-    try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; await stkProbeIndustrial(ids); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
+    try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; stkProgress(0.82, 'Classifying industrial types…'); await stkProbeIndustrial(ids); stkProgress(0.88, 'Industrial check done.'); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
     // ---- custom container/ship names (ESI assets/names) so cans show your
     // names instead of "Type NNN". Batch ONLY item_ids present in the current
     // asset manifest: assets/names 404s the whole request when fed station,
@@ -2683,11 +2730,13 @@ async function loadInventory() {
     // top-level IDs stay out. Failures fall back to type names gracefully.
     try {
       if (st) st.textContent = 'Resolving container names…';
+      stkProgress(0.90, 'Resolving container names…');
       const parentIds = [];
       for (const a of assets) {
         if (a && a.location_id && idToAsset.has(String(a.location_id))) parentIds.push(+a.location_id);
       }
       stkCustomNames = await stkFetchCustomNames(parentIds, src, cid, corpId);
+      stkProgress(0.94, 'Container names done.');
     } catch(e) { console.warn('[BV] custom names failed', e); stkCustomNames = {}; }
     try {
       for (const u of (stkUnresolvedLocs || [])) {
@@ -2698,6 +2747,7 @@ async function loadInventory() {
     // ---- build per-stack enriched (assest test pattern) for flag/item search & detail table ----
     try { buildStkEnriched(assets, idToAsset, locSys, stkLocationNames); stkDetailPage = 1; } catch(e) { console.warn('[BV] buildStkEnriched failed', e); }
     // ---- ore/compressed-ore/ice/moon/gas -> refined minerals at Refining yield % + keep snapshot in memory ----
+    stkProgress(0.96, 'Building snapshot…');
     await buildInventorySnapshot(stkSnapshotAggForSource());
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
@@ -2707,9 +2757,13 @@ async function loadInventory() {
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
     if ($('stkDeduct') && $('stkDeduct').checked && S.root) { await renderShoppingList(S.runs||1); }
+    stkProgressDone('Scan complete — ' + Object.keys(stkAgg).length + ' types in scope.');
   } catch(e) {
     if (box) box.textContent = 'Failed: ' + e.message;
     if (st) st.textContent = e.message;
+    stkProgressHide();
+  } finally {
+    try { const rb = $('stkRefresh'); if (rb) rb.disabled = !stkSysId() && !stkAllSystems(); } catch {}
   }
 }
 async function applyInventoryToShopping() {
@@ -2840,6 +2894,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkResetCaches')) $('stkResetCaches').onclick = () => {
     stkResetAllCaches();
     try { const uw = $('stkUnresolved'); if (uw) uw.innerHTML = ''; } catch {}
+    stkProgressHide();
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">All scan caches cleared. Pick a system and hit Scan system for a fully fresh lookup.</p>';
     if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
     if ($('stkStatus')) $('stkStatus').textContent = '';
@@ -2853,6 +2908,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={}; try { stkIndustrialProbed.clear(); } catch {}
     try { const uw = $('stkUnresolved'); if (uw) uw.innerHTML = ''; } catch {}
     stkUnresolvedLocs = [];
+    stkProgressHide();
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Scan system.</p>';
     if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
     if ($('stkStatus')) $('stkStatus').textContent = '';
