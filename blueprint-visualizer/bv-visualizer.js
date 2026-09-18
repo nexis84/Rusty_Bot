@@ -1449,10 +1449,27 @@ async function planMining(forcedId, opts) {
     st.textContent = phase;
     box.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-spinner fa-spin"></i> Mining plan</h3><p class="hint">' + phase + '</p></div>';
   };
-  say('Loading ore + ice yields (live SDE, cached for a week)…');
+  say('Loading ore, ice + moon yields (SDE-baked)…');
   await new Promise(r => setTimeout(r, 30)); // let the spinner paint before the network storm
   const ores = (await Promise.all(D.ores.map(o => fetchOre(o.id).catch(() => null)))).filter(Boolean);
-  const sources = ores.concat(iceOreList || []);
+  // Moon ores as mineable alternatives (SDE-baked yields; compressed excluded —
+  // you mine the rock, not the compressed unit). Common ones also yield
+  // standard minerals (Pyerite/Mexallon), so they rank for those needs.
+  const MOON_ORE_RE = /^(brimful|glistening|glowing|lavish|replete|shining|twinkling|copious|bountiful)?\s?(bitumens|coesite|sylvite|zeolites|scheelite|otavite|sperrylite|vanadinite|chromite|carnotite|zircon|pollucite|cinnabar|cobaltite|euxenite|titanite|loparite|monazite|xenotime|ytterbite)$/i;
+  let moonOres = [];
+  try {
+    const seen = new Set();
+    for (const o of (ores || []).concat(iceOreList || [])) if (o && o.id != null) seen.add(+o.id);
+    if (typeof BV_ORES !== 'undefined' && BV_ORES instanceof Map) {
+      for (const [id, e] of BV_ORES) {
+        if (seen.has(+id) || !e || !e.yields || !Object.keys(e.yields).length) continue;
+        if (!MOON_ORE_RE.test(e.name || '')) continue;
+        seen.add(+id);
+        moonOres.push({ id: +id, name: e.name, volume: e.volume, portion: e.portion, yields: { ...e.yields }, category: e.category });
+      }
+    }
+  } catch {}
+  const sources = ores.concat(iceOreList || [], moonOres);
   if (!sources.length) throw new Error('ore yield lookup failed (Everef unreachable)');
   say('Pricing ' + Object.keys(needs).length + ' materials @ ' + region + '…');
   await new Promise(r => setTimeout(r, 30));
