@@ -811,6 +811,15 @@ function renderBuildProgress() {
     return '<span class="ref-track" style="display:inline-block;width:70px;vertical-align:middle" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
+  // Auto-finish: any material fully covered by inventory ticks itself
+  // (persisted like manual ticks; the blueprint root row never auto-ticks).
+  if (hasInv) {
+    let changed = false;
+    for (const r of rows) {
+      if (r.depth >= 0 && r.qty > 0 && !ticked[r.key] && (invAgg[r.typeId] || 0) >= r.qty) { ticked[r.key] = true; changed = true; }
+    }
+    if (changed) bpProgWrite(ticked);
+  }
   if (pinned) h += '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint.</p>';
   src.children.forEach((c, ci) => {
     const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
