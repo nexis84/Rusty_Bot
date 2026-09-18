@@ -435,6 +435,118 @@ app.post('/api/bv/token-exchange', tokenExchangeLimiter, async (req, res) => {
     }
 });
 
+// BV shared structure cache — crowdsourced structure_id -> system_id mapping.
+// Same contract as oracal/rustybot-api/routes/bv-structures.js so local dev
+// (localhost:8080) and production share behavior. Store uses a .store suffix
+// so static serving never exposes the database as a downloadable .json file.
+// Only ESI-authoritative resolutions are accepted (verified token carrying
+// esi-universe.read_structures.v1); manual user mappings stay local-only.
+const BV_STRUCT_STORE = path.join(__dirname, 'bv-structures.store');
+const BV_STRUCT_MAX_LOOKUP = 500;
+const BV_STRUCT_MAX_UPLOAD = 200;
+const BV_STRUCT_MAX_REPORTERS = 50;
+const BV_STRUCT_SCOPE = 'esi-universe.read_structures.v1';
+let bvStructCache = null;
+
+function bvStructLoad() {
+    if (bvStructCache) return bvStructCache;
+    try {
+        const raw = fs.existsSync(BV_STRUCT_STORE) ? JSON.parse(fs.readFileSync(BV_STRUCT_STORE, 'utf8')) : {};
+        bvStructCache = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+    } catch (e) { bvStructCache = {}; }
+    return bvStructCache;
+}
+
+function bvStructSave() {
+    try { fs.writeFileSync(BV_STRUCT_STORE, JSON.stringify(bvStructCache, null, 2)); }
+    catch (e) { console.error('bv-structures save failed:', e.message); }
+}
+
+function bvValidStructId(v) {
+    const n = Number(v);
+    return (Number.isFinite(n) && n >= 1e12 && n < 1e16) ? Math.trunc(n) : null;
+}
+
+function bvValidSystemId(v) {
+    const n = Number(v);
+    return (Number.isFinite(n) && n >= 30000000 && n < 40000000) ? Math.trunc(n) : null;
+}
+
+async function bvVerifyEsiToken(accessToken) {
+    try {
+        const r = await fetchWithTimeout('https://login.eveonline.com/oauth/verify', {
+            headers: { Authorization: 'Bearer ' + accessToken }
+        });
+        if (!r.ok) return null;
+        const j = await r.json();
+        const scopes = String(j.Scopes || '').split(' ');
+        if (!j.CharacterID || !scopes.includes(BV_STRUCT_SCOPE)) return null;
+        return { characterId: String(j.CharacterID) };
+    } catch (e) { return null; }
+}
+
+app.get('/api/bv/structures', (req, res) => {
+    const raw = String(req.query.ids || '');
+    const ids = [...new Set(raw.split(',').map((s) => bvValidStructId(s.trim())).filter(Boolean))].slice(0, BV_STRUCT_MAX_LOOKUP);
+    if (!ids.length) {
+        return res.status(400).json({ error: 'ids query required (comma-separated structure IDs, max ' + BV_STRUCT_MAX_LOOKUP + ')' });
+    }
+    const s = bvStructLoad();
+    const out = {};
+    for (const id of ids) {
+        const e = s[String(id)];
+        if (e && e.system_id) {
+            out[String(id)] = { system_id: e.system_id, name: e.name || null, reporters: (e.reporters || []).length, updated: e.updated || null };
+        }
+    }
+    res.json({ structures: out });
+});
+
+app.post('/api/bv/structures', async (req, res) => {
+    const auth = String(req.headers.authorization || '');
+    const m = auth.match(/^Bearer\s+(.+)$/i);
+    if (!m) return res.status(401).json({ error: 'Bearer ESI token required' });
+    const who = await bvVerifyEsiToken(m[1].trim());
+    if (!who) return res.status(403).json({ error: 'Token invalid or missing ' + BV_STRUCT_SCOPE });
+    const list = req.body && Array.isArray(req.body.structures) ? req.body.structures.slice(0, BV_STRUCT_MAX_UPLOAD) : null;
+    if (!list) return res.status(400).json({ error: 'structures array required (max ' + BV_STRUCT_MAX_UPLOAD + ')' });
+    const s = bvStructLoad();
+    let accepted = 0, rejected = 0;
+    const now = Date.now();
+    for (const e of list) {
+        const sid = e ? bvValidStructId(e.structure_id) : null;
+        const sys = e ? bvValidSystemId(e.system_id) : null;
+        const name = e && typeof e.name === 'string' && e.name.trim() ? e.name.trim().slice(0, 120) : null;
+        if (!sid || !sys) { rejected++; continue; }
+        const key = String(sid);
+        const cur = s[key];
+        if (!cur) {
+            s[key] = { system_id: sys, name, reporters: [who.characterId], first_seen: now, updated: now };
+            accepted++;
+            continue;
+        }
+        if (!cur.reporters.includes(who.characterId)) {
+            cur.reporters.push(who.characterId);
+            if (cur.reporters.length > BV_STRUCT_MAX_REPORTERS) cur.reporters = cur.reporters.slice(-BV_STRUCT_MAX_REPORTERS);
+        }
+        if (cur.system_id !== sys) {
+            cur.votes = cur.votes || {};
+            cur.votes[String(sys)] = (cur.votes[String(sys)] || 0) + 1;
+            if (cur.votes[String(sys)] > (cur.votes[String(cur.system_id)] || 0) + 1) {
+                cur.system_id = sys;
+                if (name) cur.name = name;
+                cur.updated = now;
+            }
+            accepted++;
+            continue;
+        }
+        if (name && !cur.name) cur.name = name;
+        accepted++;
+    }
+    bvStructSave();
+    res.json({ ok: true, accepted, rejected });
+});
+
 // Static file serving (after routes for route priority).
 // Only whitelisted extensions are served; sensitive files are always blocked.
 const STATIC_ROOT = path.join(__dirname, '..');

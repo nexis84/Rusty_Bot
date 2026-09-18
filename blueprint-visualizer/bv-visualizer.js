@@ -1464,6 +1464,49 @@ function stkOverrideWrite(o) { try { localStorage.setItem('bvStructOverrides', J
 // remaining non-essential ESI lookups (names, per-type fallback, custom names)
 // instead of hammering a rate-limited endpoint. Reset at each scan start.
 let bvEsiLimited = false;
+// Shared backend structure cache (crowdsourced structure_id -> system_id).
+// Same backend that serves /api/bv/config + token-exchange.
+function bvBackendBase() {
+  try {
+    const host = (typeof location !== 'undefined' && location.hostname) || '';
+    if (['localhost', '127.0.0.1'].includes(host)) return 'http://localhost:8080';
+  } catch {}
+  return 'https://api.rustybot.co.uk';
+}
+// GET known mappings for unresolved IDs. Returns {id: {system_id, name}}.
+async function bvSharedLookup(ids) {
+  const out = {};
+  const clean = [...new Set((ids || []).map(n => +n).filter(n => Number.isFinite(n) && n >= 1e12))];
+  if (!clean.length) return out;
+  try {
+    for (let i = 0; i < clean.length; i += 500) {
+      const r = await fetchJSON(bvBackendBase() + '/api/bv/structures?ids=' + clean.slice(i, i + 500).join(','));
+      const got = (r && r.structures) || {};
+      for (const [k, v] of Object.entries(got)) {
+        if (v && v.system_id) out[String(k)] = v;
+      }
+    }
+  } catch (e) { console.warn('[BV] shared structure lookup failed', e && e.message); }
+  return out;
+}
+// POST ESI-authoritative resolutions (corp endpoint + successful GETs only —
+// NEVER manual user mappings, which stay local so guesses can't poison it).
+async function bvSharedUpload(list) {
+  const rows = (list || []).filter(e => e && e.structure_id && e.system_id);
+  if (!rows.length) return 0;
+  try {
+    const t = window.BVAuth && BVAuth.tokens();
+    if (!t || !t.access_token) return 0;
+    const r = await fetch(bvBackendBase() + '/api/bv/structures', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.access_token },
+      body: JSON.stringify({ structures: rows.slice(0, 200) })
+    });
+    if (!r.ok) { console.warn('[BV] shared structure upload rejected', r.status); return 0; }
+    const j = await r.json().catch(() => ({}));
+    return (j && j.accepted) || 0;
+  } catch (e) { console.warn('[BV] shared structure upload failed', e && e.message); return 0; }
+}
 function bvHitLimit(e) {
   const hit = /420|\b429\b/.test(String((e && e.message) || e || ''));
   if (hit && !bvEsiLimited) { bvEsiLimited = true; console.warn('[BV] ESI rate limit hit — remaining ESI lookups skipped this scan'); }
@@ -2331,6 +2374,39 @@ async function loadInventory() {
         continue;
       }
     }
+    // ESI-authoritative resolutions collected for the shared backend cache.
+    const shareUpload = [];
+    for (const [key, sys] of Object.entries(structSys)) {
+      if (sys && topLocIds.includes(key)) {
+        const nm = structCache[key] && structCache[key].name;
+        if (!String(nm || '').startsWith('Structure …')) shareUpload.push({ structure_id: +key, system_id: sys, name: nm || null });
+        else shareUpload.push({ structure_id: +key, system_id: sys });
+      }
+    }
+    // Shared crowdsourced cache: other users' ESI resolutions fill gaps before
+    // we spend per-structure GETs (and their 403s) on the residue below.
+    let sharedHits = 0;
+    try {
+      const need = topLocIds.filter(id => +id >= 1e12 && !locSys[id]);
+      if (need.length) {
+        if (st) st.textContent = 'Checking shared structure cache (' + need.length + ' unknown)…';
+        const shared = await bvSharedLookup(need);
+        for (const [key, v] of Object.entries(shared)) {
+          locSys[key] = +v.system_id;
+          if (v.name) {
+            structCache[key] = structCache[key] || {};
+            if (!structCache[key].name || String(structCache[key].name).startsWith('Structure …')) structCache[key].name = v.name;
+            structCache[key].system_id = +v.system_id;
+            structCache[key].ts = Date.now();
+          }
+          sharedHits++;
+        }
+        if (sharedHits) {
+          bvStructCacheWrite(structCache);
+          console.log('[BV] shared cache resolved ' + sharedHits + '/' + need.length + ' structures');
+        }
+      }
+    } catch (e) { console.warn('[BV] shared cache step failed', e && e.message); }
     // Residue: structures NOT covered by the corp call (e.g. a personal citadel the
     // character docks at but the corp doesn't own) or not yet cached. Strict
     // mode resolves EVERY accessible structure — rank by stack count (main
@@ -2367,6 +2443,7 @@ async function loadInventory() {
         .slice(0, 25)
         .filter(id => !(denied[id] && now - denied[id] < 3600e3));
       let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0, rateCut = false;
+      const freshResolved = new Set();
       for (let i = 0; i < targets.length; i += 2) {
         await Promise.all(targets.slice(i, i + 2).map(async id => {
           if (bvEsiLimited) return;
@@ -2379,6 +2456,7 @@ async function loadInventory() {
               cacheDirty = true;
               unresolvedLeft--;
               resolvedNow++;
+              freshResolved.add(String(id));
             }
           } catch (e) {
             const emsg = String((e && e.message) || '');
@@ -2396,6 +2474,19 @@ async function loadInventory() {
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
       console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length + (rateCut ? ' RATE-CUT' : ''));
+      // Contribute ONLY this scan's fresh ESI GET resolutions to the shared
+      // cache (never cached replays, never manual user mappings).
+      try {
+        for (const id of freshResolved) {
+          const e = structCache[id];
+          if (e && e.system_id) {
+            const nm = String(e.name || '');
+            shareUpload.push({ structure_id: +id, system_id: e.system_id, name: (!nm.startsWith('Structure …') && nm) || null });
+          }
+        }
+        const uploaded = await bvSharedUpload(shareUpload);
+        if (uploaded) console.log('[BV] shared cache uploaded ' + uploaded + ' resolutions');
+      } catch (e) { console.warn('[BV] shared upload step failed', e && e.message); }
     }
     // Strict scope: unresolved / no-access locations are excluded, never
     // trusted as the selected system. If ESI cannot resolve a structure
@@ -2594,7 +2685,7 @@ async function loadInventory() {
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (mappedCount ? ' · ' + mappedCount + ' manually mapped' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (mappedCount ? ' · ' + mappedCount + ' manually mapped' : '') + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
