@@ -189,7 +189,40 @@ async function resolveBlueprint(name) {
     if (inv2.length === 1) return inv2[0];
   }
   if (bp.length > 1) { const exact = bp.find(e => e.name.toLowerCase() === base.toLowerCase()) || bp.find(e => e.name.toLowerCase() === (base + ' blueprint').toLowerCase()); if (exact) return exact; }
+  if (!bp.length) {
+    // Fall through to Reaction Formulas (e.g. "Reinforced Carbon Fiber
+    // Reaction Formula") — resolved as first-class calculations, not errors.
+    const fcands = [...new Set([base, base + ' Reaction Formula', base.replace(/ reaction formula$/i, '') + ' Reaction Formula', base.replace(/ reaction formula$/i, '')])];
+    try {
+      const fr = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(fcands) });
+      const finv = Array.isArray(fr) ? fr : (fr.inventory_types || []);
+      const f = finv.find(e => e.name.toLowerCase() === base.toLowerCase())
+        || finv.find(e => e.name.toLowerCase() === (base + ' reaction formula').toLowerCase())
+        || finv.filter(e => /reaction formula/i.test(e.name))[0];
+      if (f) return { id: f.id, name: f.name, formula: true };
+    } catch {}
+  }
   throw new Error(bp.length > 1 ? 'Multiple matches (' + bp.map(b => b.name).slice(0, 5).join('; ') + '). Be more specific.' : 'Blueprint not found for "' + name + '"');
+}
+// Reaction-formula details for top-level formula calculations: reagents +
+// products via Everef SDE mirror (Fuzzwork fallback, estimate output ×1).
+async function formulaDetails(formulaId) {
+  try {
+    const b = await fetchJSON('https://ref-data.everef.net/blueprints/' + formulaId);
+    const rx = b.activities && (b.activities.reaction || b.activities.reactions);
+    const acts = Array.isArray(rx) ? rx[0] : rx;
+    if (acts && acts.materials) {
+      const reagents = Object.values(acts.materials);
+      const products = acts.products ? Object.values(acts.products) : [];
+      if (reagents.length) return { reagents, products, time: acts.time || 0, estimate: false };
+    }
+  } catch {}
+  try {
+    const fw = await fetchJSON('https://www.fuzzwork.co.uk/blueprint/api/blueprint.php?typeid=' + formulaId);
+    const mats = fw.activityMaterials && fw.activityMaterials['11'];
+    if (mats && mats.length) return { reagents: mats.map(m => ({ type_id: m.typeid || m.type_id, quantity: m.quantity })), products: [], time: 0, estimate: true };
+  } catch {}
+  return null;
 }
 async function blueprintData(typeId) {
   if (bpCache.has(typeId)) return bpCache.get(typeId);
@@ -231,24 +264,39 @@ async function calculate() {
   const imp = D.implants.find(i => i.id === $('implant').value) || D.implants[0];
   status('Resolving blueprint…');
   let bpRef; try { bpRef = await resolveBlueprint(name); } catch (e) { status('Lookup failed: ' + e.message); return; }
-  status('Fetching blueprint ' + bpRef.name + ' (' + bpRef.id + ')…');
-  let bp; try { bp = await blueprintData(bpRef.id); } catch (e) { status('Blueprint data unavailable: ' + e.message); return; }
-  let mats = bp.activities?.manufacturing?.materials; mats = Array.isArray(mats) ? mats : (mats ? Object.values(mats) : []);
-  if (!mats.length) { status('No manufacturing materials.'); return; }
-  let prods = bp.activities.manufacturing.products; prods = Array.isArray(prods) ? prods : (prods ? Object.values(prods) : []);
+  const isFormula = !!bpRef.formula;
+  let mats = [], prods = [], formulaEstimate = false;
+  if (isFormula) {
+    // Top-level Reaction Formula: reagents price like materials; ME does not
+    // apply to reactions, so per-run quantities are used unreduced.
+    status('Fetching reaction formula ' + bpRef.name + ' (' + bpRef.id + ')…');
+    let fd = null;
+    try { fd = await formulaDetails(bpRef.id); } catch (e) { status('Reaction data unavailable: ' + e.message); return; }
+    if (!fd || !fd.reagents.length) { status('Reaction data unavailable for ' + bpRef.name + '.'); return; }
+    mats = fd.reagents; prods = fd.products; formulaEstimate = !!fd.estimate;
+  } else {
+    status('Fetching blueprint ' + bpRef.name + ' (' + bpRef.id + ')…');
+    let bp; try { bp = await blueprintData(bpRef.id); } catch (e) { status('Blueprint data unavailable: ' + e.message); return; }
+    let bmats = bp.activities?.manufacturing?.materials; bmats = Array.isArray(bmats) ? bmats : (bmats ? Object.values(bmats) : []);
+    if (!bmats.length) { status('No manufacturing materials.'); return; }
+    mats = bmats;
+    let bprods = bp.activities.manufacturing.products; bprods = Array.isArray(bprods) ? bprods : (bprods ? Object.values(bprods) : []);
+    prods = bprods;
+  }
   const prod = prods[0] || null;
   if (pendingNeed) { runs = Math.max(1, Math.ceil(pendingNeed / ((prod && prod.quantity) || 1))); $('runs').value = runs; pendingNeed = null; }
   S.product = prod ? { type_id: prod.type_id, qty: prod.quantity || 1, name: await typeName(prod.type_id) } : null;
   S.nodes.clear(); S.bom = [];
   S.reactionsOn = ($('reactions').value === 'on');
   // build tree depth 1 (+ async depth 2 lookup, non-blocking for totals)
-  S.root = { bpId: bpRef.id, bpName: bpRef.name, mode: 'build', children: [] };
+  S.root = { bpId: bpRef.id, bpName: bpRef.name, mode: isFormula ? 'react' : 'build', children: [] };
   for (const m of mats) {
     const baseQty = m.quantity || 0;
-    const perRun = Math.max(0, Math.ceil(baseQty * (1 - meEff / 100)));
+    const perRun = isFormula ? Math.max(0, Math.ceil(baseQty)) : Math.max(0, Math.ceil(baseQty * (1 - meEff / 100)));
     const nm = await typeName(m.type_id);
     S.root.children.push({ type_id: m.type_id, name: nm, baseQty, perRun, mode: 'buy', child: null, unitSell: null, unitBuy: null, childCost: null });
   }
+  if (isFormula && formulaEstimate) status('Note: formula output estimated ×1 (Fuzzwork fallback) — reagent math is exact.');
   status('Pricing ' + S.root.children.length + ' materials (' + region + ')…');
   let matCostSell = 0, matCostBuy = 0;
   for (const c of S.root.children) {
@@ -467,7 +515,7 @@ function renderTree(runs) {
   const w = $('treeWrap'); if (!S.root) { w.innerHTML = ''; return; }
   const piKids = S.root.children.filter(c => isPI(c.type_id));
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
-    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span><span class="pill build">BUILD</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) : '') + '</div><div class="kids">';
+    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) : '') + '</div><div class="kids">';
   S.root.children.forEach((c, i) => {
     const m = c.child ? (c.child.margin >= 0 ? '<span class="margin-pos">build margin +' + fmtISK(c.child.margin) + '</span>' : '<span class="margin-neg">build margin ' + fmtISK(c.child.margin) + '</span>') : (c.child === null && c._tried ? '' : '<span class="nums">checking build…</span>');
     const rm = c.reaction ? (c.reaction.margin >= 0 ? '<span class="margin-pos">react margin +' + fmtISK(c.reaction.margin) + '/u</span>' : '<span class="margin-neg">react margin ' + fmtISK(c.reaction.margin) + '/u</span>') + (c.reaction.estimate ? '<span class="nums" title="Output quantity estimated">est</span>' : '') : '';
