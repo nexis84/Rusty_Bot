@@ -802,7 +802,7 @@ function renderBuildProgress() {
     const have = invAgg[typeId] || 0;
     const pct = Math.min(100, Math.round(have / qty * 100));
     const ok = have >= qty;
-    return '<span style="display:inline-flex;flex-direction:column;gap:.1rem;vertical-align:middle">'
+    return '<span style="display:inline-flex;flex-direction:column;gap:.1rem;vertical-align:middle;flex-shrink:0">'
       + '<span class="ref-track" style="display:block;width:90px;" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
       + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + '</span></span>';
   };
@@ -825,7 +825,7 @@ function renderBuildProgress() {
     const hasKids = subs.length > 0;
     const collapsed = bpProgCollapsed.has(ci);
     h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1">'
-      + '<label style="cursor:pointer;display:flex;align-items:center" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
+      + '<label style="cursor:pointer;display:flex;align-items:center;flex-shrink:0" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
       + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
@@ -833,7 +833,7 @@ function renderBuildProgress() {
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></div>'
       + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
         const st = !!ticked[s.key];
-        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
+        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
       }).join('') + '</div>' : '')
       + '</div>';
   });
