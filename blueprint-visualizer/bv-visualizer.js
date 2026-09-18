@@ -1442,6 +1442,12 @@ let stkEnriched = [], stkEnrichedAll = [], stkTypeFlags = {}, stkTypeGroups = {}
 // Custom user-set names for containers/ships (ESI assets/names, item_id -> name).
 // Preferred over type names in container display; cleared on Clear/source change.
 let stkCustomNames = {};
+// Manual structure -> system overrides (localStorage bvStructOverrides).
+// Covers citadels ESI 403s despite in-game docking access (new/dead structures
+// 403 by design) — the user knows where their stuff is, ESI won't say.
+let stkUnresolvedLocs = [];
+function stkOverrideRead() { try { const v = JSON.parse(localStorage.getItem('bvStructOverrides') || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
+function stkOverrideWrite(o) { try { localStorage.setItem('bvStructOverrides', JSON.stringify(o || {})); } catch {} }
 // ESI error-limit circuit breaker: once a 420/429 is seen, the scan skips all
 // remaining non-essential ESI lookups (names, per-type fallback, custom names)
 // instead of hammering a rate-limited endpoint. Reset at each scan start.
@@ -1938,6 +1944,91 @@ function stkApplyFlagSystemFilter() {
   }
   stkEnriched = base;
 }
+// Unresolved-structures mapping panel: ESI 403s structures it won't identify
+// (no ESI docking access, new types, dead structures 403 by design). The user
+// knows where their stuff is — map structure ID -> system, persisted locally,
+// applied at the next scan. Full IDs shown (suffixes collide across owners).
+function attachOvSysComplete(input) {
+  let box = input.parentElement.querySelector('[data-ovsysbox]');
+  if (!box) {
+    box = document.createElement('div');
+    box.setAttribute('data-ovsysbox', '');
+    box.className = 'suggest hidden';
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(box);
+  }
+  let current = [], deb = null;
+  function close() { box.classList.add('hidden'); box.innerHTML = ''; current = []; }
+  function render(q) {
+    if (!q || q.length < 2) { close(); return; }
+    const pool = ((typeof Systems !== 'undefined') ? Systems : []) || [];
+    current = pool.map(s => ({ id: s.id, name: s.name, sc: bvScore(s.name, q) }))
+      .filter(c => c.sc > 0).sort((a, b) => b.sc - a.sc || a.name.localeCompare(b.name)).slice(0, 8);
+    if (!current.length) { close(); return; }
+    box.innerHTML = current.map((c, i) => '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + c.id + '</span></div>').join('');
+    box.classList.remove('hidden');
+    box.querySelectorAll('.suggest-item').forEach(el => {
+      el.onmousedown = e => { e.preventDefault(); const c = current[+el.dataset.i]; if (!c) return; input.value = c.name; input.dataset.pickedId = String(c.id); close(); };
+    });
+  }
+  input.addEventListener('input', () => { delete input.dataset.pickedId; clearTimeout(deb); deb = setTimeout(() => render(input.value.trim().toLowerCase()), 120); });
+  input.addEventListener('focus', () => { if (input.value.trim().length >= 2) render(input.value.trim().toLowerCase()); });
+  document.addEventListener('click', e => { if (!box.classList.contains('hidden') && !box.contains(e.target) && e.target !== input) close(); });
+}
+function stkResolveSysInput(input) {
+  try {
+    if (input.dataset.pickedId) return String(input.dataset.pickedId);
+    const q = (input.value || '').trim().toLowerCase();
+    if (!q) return null;
+    const pool = ((typeof Systems !== 'undefined') ? Systems : []) || [];
+    const exact = pool.find(s => (s.name || '').toLowerCase() === q);
+    if (exact) return String(exact.id);
+  } catch {}
+  return null;
+}
+function renderStkOverrides() {
+  const box = $('stkUnresolved');
+  if (!box) return;
+  const ov = stkOverrideRead();
+  const mappedIds = Object.keys(ov);
+  const open = (stkUnresolvedLocs || []).filter(e => ov[e.id] == null);
+  if (!mappedIds.length && !open.length) { box.innerHTML = ''; return; }
+  let h = '';
+  if (open.length) {
+    h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-question-circle"></i> Unresolved structures (' + open.length + ') — ESI 403, system unknown</h4>'
+      + '<p class="hint">Citadels ESI won\'t identify (no ESI docking access, new or dead structures). If you know where one lives, map it — it joins the next scan. Full IDs shown because suffixes collide.</p>'
+      + open.slice(0, 50).map(e => '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;padding:.3rem 0;border-bottom:1px solid var(--border)">'
+        + '<span class="nums" title="Full location ID">' + e.id + '</span>'
+        + '<span style="flex:1;min-width:140px">' + e.stacks + ' stacks · ' + fmtN(e.qty) + ' units · ' + e.top.map(t => t.name + ' ×' + fmtN(t.qty)).join(', ') + '</span>'
+        + '<span style="display:inline-flex;gap:.3rem;align-items:center;position:relative"><input class="form-input" data-ovsys="' + e.id + '" placeholder="System…" autocomplete="off" style="width:150px"><button class="mode-btn" data-map="' + e.id + '">Map</button></span>'
+        + '</div>').join('')
+      + (open.length > 50 ? '<p class="hint">Showing 50 of ' + open.length + ' — map these and rescan for more.</p>' : '') + '</div>';
+  }
+  if (mappedIds.length) {
+    h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-map-marked-alt"></i> Mapped structures (' + mappedIds.length + ')</h4>'
+      + mappedIds.map(id => '<div style="display:flex;gap:.4rem;align-items:center;padding:.2rem 0;border-bottom:1px solid var(--border)"><span class="nums">' + id + '</span><span style="flex:1">→ ' + stkSysIdName(String(ov[id])) + '</span><button class="mode-btn" data-unmap="' + id + '" title="Remove mapping" style="color:var(--danger)"><i class="fas fa-times"></i></button></div>').join('') + '</div>';
+  }
+  box.innerHTML = h;
+  box.querySelectorAll('input[data-ovsys]').forEach(inp => attachOvSysComplete(inp));
+  box.querySelectorAll('[data-map]').forEach(btn => btn.onclick = () => {
+    const row = btn.closest('div');
+    const inp = row ? row.querySelector('input[data-ovsys]') : null;
+    const sysId = inp ? stkResolveSysInput(inp) : null;
+    if (!sysId) { status('Pick a system from the dropdown first.'); return; }
+    const o = stkOverrideRead();
+    o[btn.dataset.map] = sysId;
+    stkOverrideWrite(o);
+    status('Mapped ' + btn.dataset.map + ' → ' + stkSysIdName(sysId) + ' — rescanning…');
+    loadInventory();
+  });
+  box.querySelectorAll('[data-unmap]').forEach(btn => btn.onclick = () => {
+    const o = stkOverrideRead();
+    delete o[btn.dataset.unmap];
+    stkOverrideWrite(o);
+    status('Mapping removed — rescanning…');
+    loadInventory();
+  });
+}
 function stkDetailFiltered() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
   let out = stkEnriched;
@@ -2206,10 +2297,10 @@ async function loadInventory() {
     // storage first), up to 25/scan, concurrency 2. 403s stamp as 1h denials
     // (excluded); any 420/429 trips the circuit breaker and stops the scan's
     // remaining ESI lookups instead of burning the error budget.
-    // Before the per-structure GETs, unresolved IDs are probed in chunks via
-    // POST /universe/names (one cheap call per 25 IDs): anything that resolves
-    // as solar_system/station is attributed directly and never burns a 403;
-    // chunks that 400 are genuine (or all-)structures and fall through below.
+    // NOTE: POST /universe/names can NOT pre-classify these IDs — it 400s on
+    // all dynamic IDs (structures AND containers/ships), so per-structure
+    // authed GETs are the only resolution path. Anything still unresolved is
+    // mappable by hand via the Unresolved panel (structure overrides).
     const stacksPer = {};
     const unresolved = [];
     {
@@ -2227,50 +2318,10 @@ async function loadInventory() {
       }
     }
     let unresolvedLeft = unresolved.length;
-    let probedCount = 0;
-    if (unresolved.length && !structWarn && !bvEsiLimited) {
-      // Cheap pre-probe: some "structure-like" IDs may be stations, systems or
-      // other entities (e.g. another player's ship holding our items). Names
-      // categories tell us without spending 403s from the error budget.
-      try {
-        if (st) st.textContent = 'Checking ' + unresolved.length + ' unresolved locations…';
-        for (let i = 0; i < unresolved.length; i += 25) {
-          if (bvEsiLimited) break;
-          const chunk = unresolved.slice(i, i + 25).map(n => +n).filter(n => Number.isFinite(n));
-          if (!chunk.length) continue;
-          let rows = null;
-          try {
-            rows = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(chunk) });
-          } catch (e) {
-            if (bvHitLimit(e)) break; // rate-limited — stop probing, keep the rest unresolved
-            rows = null; // 400 etc: chunk holds (only) structures — fall through to GETs
-          }
-          for (const r of (Array.isArray(rows) ? rows : [])) {
-            if (!r || !r.id) continue;
-            const key = String(r.id);
-            if (r.category === 'solar_system') { locSys[key] = +r.id; unresolvedLeft--; probedCount++; }
-            else if (r.category === 'station') {
-              try {
-                if (staSysCache[key] && now - staSysCache[key].ts < 7 * 864e5) { locSys[key] = staSysCache[key].sys; }
-                else {
-                  const s = await fetchJSON(ESI + '/universe/stations/' + r.id + '/?datasource=tranquility');
-                  if (s && s.system_id) { locSys[key] = s.system_id; staSysCache[key] = { sys: locSys[key], ts: now }; staSysChanged = true; }
-                }
-                if (locSys[key]) { unresolvedLeft--; probedCount++; }
-              } catch (e) { if (bvHitLimit(e)) break; }
-              try { if (r.name) stkLocationNames[key] = r.name; } catch {}
-            }
-            // inventory_type here = a container/item outside our asset map — unresolvable, stays hidden
-          }
-          if (i + 25 < unresolved.length) await new Promise(r => setTimeout(r, 200));
-        }
-      } catch (e) { console.warn('[BV] unresolved names probe failed', e && e.message); }
-    }
     if (unresolved.length && !structWarn && !bvEsiLimited) {
       const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
       // Resolve all unresolved structures; 403s stamp as denied (excluded).
-      // Re-check locSys: the names pre-probe above may have resolved some already.
       const targets = unresolved
         .filter(id => !locSys[id])
         .slice(0, 25)
@@ -2299,12 +2350,25 @@ async function loadInventory() {
       }
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
-      console.log('[BV] residue probed=' + probedCount + ' attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length + (rateCut ? ' RATE-CUT' : ''));
+      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length + (rateCut ? ' RATE-CUT' : ''));
     }
     // Strict scope: unresolved / no-access locations are excluded, never
     // trusted as the selected system. If ESI cannot resolve a structure
     // (403 / no docking access), its stacks are skipped as inaccessible.
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
+    // Manual overrides win over ESI silence: structure IDs the user mapped to
+    // a system are attributed directly (checked before the scope loop below).
+    let mappedCount = 0;
+    try {
+      const ov = stkOverrideRead();
+      for (const id of topLocIds) {
+        if (!locSys[id] && ov[id] != null && String(ov[id]).trim() !== '') {
+          locSys[id] = +ov[id];
+          if (Number.isFinite(locSys[id])) mappedCount++;
+          else delete locSys[id];
+        }
+      }
+    } catch {}
     // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
     try {
       const locTypes = { solar: 0, station: 0, struct: 0, other: 0 };
@@ -2431,6 +2495,31 @@ async function loadInventory() {
         }
       }
     }
+    // ---- detail the still-unresolved structures for the manual mapping panel ----
+    try {
+      stkUnresolvedLocs = [];
+      const byLoc = {};
+      for (const a of assets) {
+        if (!a || !a.type_id) continue;
+        const _t = stationFor(a);
+        if (_t == null) continue;
+        const id = String(_t);
+        if (+id >= 1e12 && !locSys[id]) {
+          const e = (byLoc[id] = byLoc[id] || { stacks: 0, qty: 0, types: {} });
+          e.stacks++;
+          const q = Number(a.quantity) || 0;
+          e.qty += q;
+          e.types[a.type_id] = (e.types[a.type_id] || 0) + q;
+        }
+      }
+      for (const [id, e] of Object.entries(byLoc)) {
+        const top = Object.entries(e.types).sort((x, y) => y[1] - x[1]).slice(0, 3)
+          .map(([t, q]) => ({ typeId: +t, qty: q, name: stkNames[+t] || BV_MAT_NAMES.get(+t) || ('Type ' + t) }));
+        stkUnresolvedLocs.push({ id, stacks: e.stacks, qty: e.qty, top });
+      }
+      stkUnresolvedLocs.sort((a, b) => b.qty - a.qty);
+    } catch (e) { console.warn('[BV] unresolved detail failed', e); }
+    try { renderStkOverrides(); } catch (e) { console.warn('[BV] overrides render failed', e); }
     // ---- probe unknown types via live SDE so new compressed/moon/gas grades
     // count as industrial even though no hardcoded list has them ----
     try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; await stkProbeIndustrial(ids); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
@@ -2451,7 +2540,7 @@ async function loadInventory() {
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (mappedCount ? ' · ' + mappedCount + ' manually mapped' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
@@ -2589,6 +2678,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkClear')) $('stkClear').onclick = () => {
     stkSnapshotClear();
     stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={}; try { stkIndustrialProbed.clear(); } catch {}
+    try { const uw = $('stkUnresolved'); if (uw) uw.innerHTML = ''; } catch {}
+    stkUnresolvedLocs = [];
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Scan system.</p>';
     if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
     if ($('stkStatus')) $('stkStatus').textContent = '';
