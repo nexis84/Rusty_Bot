@@ -2553,18 +2553,15 @@ async function loadInventory() {
     // count as industrial even though no hardcoded list has them ----
     try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; await stkProbeIndustrial(ids); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
     // ---- custom container/ship names (ESI assets/names) so cans show your
-    // names instead of "Type NNN". Reverse workflow: every parent item_id in
-    // our map PLUS every unresolved top-level ID goes in — if an unresolved
-    // ID comes back with a name it is a named ship/container (e.g. courier
-    // package), not a citadel, and the mapping panel shows the name.
+    // names instead of "Type NNN". Batch ONLY item_ids present in the current
+    // asset manifest: assets/names 404s the whole request when fed station,
+    // system or structure IDs (it resolves items only), so unresolved
+    // top-level IDs stay out. Failures fall back to type names gracefully.
     try {
       if (st) st.textContent = 'Resolving container names…';
       const parentIds = [];
       for (const a of assets) {
         if (a && a.location_id && idToAsset.has(String(a.location_id))) parentIds.push(+a.location_id);
-      }
-      for (const id of topLocIds) {
-        if (!idToAsset.has(String(id))) parentIds.push(+id);
       }
       stkCustomNames = await stkFetchCustomNames(parentIds, src, cid, corpId);
     } catch(e) { console.warn('[BV] custom names failed', e); stkCustomNames = {}; }
