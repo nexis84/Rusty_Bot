@@ -1998,7 +1998,7 @@ function renderStkOverrides() {
     h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-question-circle"></i> Unresolved structures (' + open.length + ') — ESI 403, system unknown</h4>'
       + '<p class="hint">Citadels ESI won\'t identify (no ESI docking access, new or dead structures). If you know where one lives, map it — it joins the next scan. Full IDs shown because suffixes collide.</p>'
       + open.slice(0, 50).map(e => '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;padding:.3rem 0;border-bottom:1px solid var(--border)">'
-        + '<span class="nums" title="Full location ID">' + e.id + '</span>'
+        + '<span class="nums" title="Full location ID">' + e.id + (e.customName ? ' · <b>' + String(e.customName).replace(/</g, '&lt;') + '</b>' : '') + '</span>'
         + '<span style="flex:1;min-width:140px">' + e.stacks + ' stacks · ' + fmtN(e.qty) + ' units · ' + e.top.map(t => t.name + ' ×' + fmtN(t.qty)).join(', ') + '</span>'
         + '<span style="display:inline-flex;gap:.3rem;align-items:center;position:relative"><input class="form-input" data-ovsys="' + e.id + '" placeholder="System…" autocomplete="off" style="width:150px"><button class="mode-btn" data-map="' + e.id + '">Map</button></span>'
         + '</div>').join('')
@@ -2519,20 +2519,32 @@ async function loadInventory() {
       }
       stkUnresolvedLocs.sort((a, b) => b.qty - a.qty);
     } catch (e) { console.warn('[BV] unresolved detail failed', e); }
-    try { renderStkOverrides(); } catch (e) { console.warn('[BV] overrides render failed', e); }
+    // Panel renders after custom names arrive (below) so named ships/cans show names.
     // ---- probe unknown types via live SDE so new compressed/moon/gas grades
     // count as industrial even though no hardcoded list has them ----
     try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; await stkProbeIndustrial(ids); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
     // ---- custom container/ship names (ESI assets/names) so cans show your
-    // names instead of "Type NNN" ----
+    // names instead of "Type NNN". Reverse workflow: every parent item_id in
+    // our map PLUS every unresolved top-level ID goes in — if an unresolved
+    // ID comes back with a name it is a named ship/container (e.g. courier
+    // package), not a citadel, and the mapping panel shows the name.
     try {
       if (st) st.textContent = 'Resolving container names…';
       const parentIds = [];
       for (const a of assets) {
         if (a && a.location_id && idToAsset.has(String(a.location_id))) parentIds.push(+a.location_id);
       }
+      for (const id of topLocIds) {
+        if (!idToAsset.has(String(id))) parentIds.push(+id);
+      }
       stkCustomNames = await stkFetchCustomNames(parentIds, src, cid, corpId);
     } catch(e) { console.warn('[BV] custom names failed', e); stkCustomNames = {}; }
+    try {
+      for (const u of (stkUnresolvedLocs || [])) {
+        try { if (stkCustomNames[String(u.id)]) u.customName = stkCustomNames[String(u.id)]; } catch {}
+      }
+      renderStkOverrides();
+    } catch (e) { console.warn('[BV] overrides render failed', e); }
     // ---- build per-stack enriched (assest test pattern) for flag/item search & detail table ----
     try { buildStkEnriched(assets, idToAsset, locSys, stkLocationNames); stkDetailPage = 1; } catch(e) { console.warn('[BV] buildStkEnriched failed', e); }
     // ---- ore/compressed-ore/ice/moon/gas -> refined minerals at Refining yield % + keep snapshot in memory ----
