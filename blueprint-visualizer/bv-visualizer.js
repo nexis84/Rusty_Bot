@@ -797,18 +797,14 @@ function renderBuildProgress() {
   let invAgg = {};
   try { invAgg = stkDeductMap() || {}; } catch {}
   const hasInv = Object.keys(invAgg).length > 0;
-  const haveSpan = (typeId, qty) => {
-    if (!hasInv) return '';
-    const have = invAgg[typeId] || 0;
-    const ok = have >= qty;
-    return '<span class="nums" title="Owned in inventory"' + (ok ? ' style="color:var(--build)"' : '') + '>have ' + fmtN(have) + '</span>';
-  };
-  const haveBar = (typeId, qty) => {
+  const haveBlock = (typeId, qty) => {
     if (!hasInv || !(qty > 0)) return '';
     const have = invAgg[typeId] || 0;
     const pct = Math.min(100, Math.round(have / qty * 100));
     const ok = have >= qty;
-    return '<span class="ref-track" style="display:inline-block;width:70px;vertical-align:middle" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>';
+    return '<span style="display:inline-flex;flex-direction:column;gap:.1rem;vertical-align:middle">'
+      + '<span class="ref-track" style="display:block;width:90px;" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
+      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + '</span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
   // Auto-finish: any material fully covered by inventory ticks itself
@@ -830,14 +826,14 @@ function renderBuildProgress() {
     const collapsed = bpProgCollapsed.has(ci);
     h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1">'
       + '<label style="cursor:pointer;display:flex;align-items:center" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
-      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveSpan(c.type_id, top.qty) + haveBar(c.type_id, top.qty)
+      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (hasKids ? '<button class="mode-btn" data-pexp="' + ci + '" title="' + (collapsed ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (collapsed ? 'down' : 'up') + '"></i></button>' : '')
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></div>'
       + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
         const st = !!ticked[s.key];
-        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveSpan(s.typeId, s.qty) + haveBar(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
+        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
       }).join('') + '</div>' : '')
       + '</div>';
   });
@@ -1055,6 +1051,10 @@ function bindHandoffs() {
   const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
   const ab = $('appraiseBuildList'); if (ab) ab.onclick = () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
   const tb = $('toggleBuildExpand'); if (tb) tb.onclick = () => { const ds = document.querySelectorAll('#buildList details'); if (!ds.length) return; const anyClosed = [...ds].some(d=>!d.open); ds.forEach(d=>d.open = anyClosed); tb.innerHTML = anyClosed ? '<i class="fas fa-compress"></i> Collapse' : '<i class="fas fa-expand"></i> Expand'; };
+  const pinp = $('pinProgress'); if (pinp) pinp.onclick = () => {
+    if (!S.root || !S.root.children) { status('Run a calculation first, then pin it.'); return; }
+    bpProgPinCurrent();
+  };
   const cp = $('copyProgress'); if (cp) cp.onclick = async () => { const t = bpProgExportText(); if (!S.root) { status('Run a calculation first.'); return; } await navigator.clipboard.writeText(t); status('Checklist copied (' + t.split('\n').length + ' lines).'); };
   const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = async () => { const lines = bpProgRemainingMultibuy(); if (!lines.length) { status('Nothing remaining — all ticked.'); return; } await navigator.clipboard.writeText(lines.join('\n')); status('Remaining multibuy copied (' + lines.length + ' lines).'); };
   const tpe = $('toggleProgExpand'); if (tpe) tpe.onclick = () => {
