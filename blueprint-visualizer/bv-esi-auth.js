@@ -71,7 +71,7 @@
       location.href = 'https://login.eveonline.com/v2/oauth/authorize?' + p.toString();
     },
     logout() { localStorage.removeItem('bv_esi_tokens'); localStorage.removeItem('bv_esi_char'); location.reload(); },
-    async api(path, opts) {
+    async apiRaw(path, opts) {
       let t = tokens(); if (!t) throw new Error('Not signed in');
       // Proactive: never send a token we already know is dead.
       if (expired(t)) t = await refresh();
@@ -81,8 +81,20 @@
         t = await refresh();
         r = await doFetch(path, opts, t.access_token);
       }
-      if (!r.ok) throw new Error('ESI ' + r.status + ' ' + path);
-      return r.json();
+      if (!r.ok) {
+        const err = new Error('ESI ' + r.status + ' ' + path);
+        // Surface X-Pages on failures too (a 404 past the last page still
+        // carries the true page count — the asset pager depends on this).
+        try { err.pages = parseInt(r.headers.get('X-Pages') || '', 10) || null; } catch { err.pages = null; }
+        throw err;
+      }
+      let pages = null;
+      try { pages = parseInt(r.headers.get('X-Pages') || '', 10) || null; } catch {}
+      const data = await r.json();
+      return { data, pages };
+    },
+    async api(path, opts) {
+      return (await this.apiRaw(path, opts)).data;
     }
   };
 })();

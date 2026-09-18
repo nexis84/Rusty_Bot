@@ -2302,28 +2302,40 @@ async function loadInventory() {
     if (corpId) { try { const co = await fetchJSON(ESI + '/corporations/' + corpId + '/?datasource=tranquility'); if (co && co.name) scanCorp = co.name; } catch {} }
     if (src === 'corp' && !corpId) throw new Error('No corporation found for this character.');
     if (src === 'both' && !corpId) stkCorpWarn = 'No corporation found — corp assets skipped.';
+    // The program's way: fetch EVERYTHING first via the X-Pages header, like
+    // assest test. A short page no longer ends the fetch — only the header
+    // (or an empty/404 page) does. Returns { assets, pages }.
+    let stkPagesFatched = 0;
     const fetchAssetPages = async (path, prog) => {
       const all = [];
+      let totalPages = null, fetched = 0;
       for (let pg = 1; pg <= 100; pg++) {
+        let chunk = null, pages = null;
         try {
-          const chunk = await BVAuth.api(path + '&page=' + pg);
-          if (!Array.isArray(chunk) || !chunk.length) break;
-          all.push(...chunk);
-          if (prog) prog(pg, all.length);
-          if (chunk.length < 1000) break;
+          const res = await BVAuth.apiRaw(path + '&page=' + pg);
+          chunk = res.data; pages = res.pages;
         } catch (e) {
+          // A 404 past the last page still carries the true X-Pages count.
+          if (e && e.pages) totalPages = e.pages;
           // ESI can answer 404 for the first page after the last page.
           // That is a normal pagination terminator, not a failed scan.
           if (/\b404\b/.test(String((e && e.message) || ''))) break;
           throw e;
         }
+        if (pages) totalPages = pages;
+        if (!Array.isArray(chunk) || !chunk.length) break;
+        all.push(...chunk);
+        fetched++;
+        if (prog) prog(pg, all.length, totalPages);
+        if (totalPages ? pg >= totalPages : chunk.length < 1000) break;
       }
-      return all;
+      stkPagesFatched += fetched;
+      return { assets: all, pages: totalPages || fetched };
     };
     if ((src === 'corp' || src === 'both') && corpId) {
       try {
-        assets = assets.concat(await fetchAssetPages('/corporations/' + corpId + '/assets/?datasource=tranquility',
-          (pg, n) => stkProgress(0.03 + 0.12 * Math.min(pg, 10) / 10, 'Fetching corp assets (page ' + pg + ', ' + fmtN(n) + ' stacks)…')));
+        assets = assets.concat((await fetchAssetPages('/corporations/' + corpId + '/assets/?datasource=tranquility',
+          (pg, n, tp) => stkProgress(0.03 + 0.12 * (tp ? pg / tp : Math.min(pg, 10) / 10), 'Fetching corp assets (page ' + pg + (tp ? '/' + tp : '') + ', ' + fmtN(n) + ' stacks)…'))).assets);
       } catch(e) {
         const msg = String((e && e.message) || '');
         if (src === 'corp') throw (/403/.test(msg) ? new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.') : e);
@@ -2331,8 +2343,8 @@ async function loadInventory() {
       }
     }
     if (src === 'personal' || src === 'both') {
-      assets = assets.concat(await fetchAssetPages('/characters/' + cid + '/assets/?datasource=tranquility',
-        (pg, n) => stkProgress(0.15 + 0.15 * Math.min(pg, 10) / 10, 'Fetching assets (page ' + pg + ', ' + fmtN(n) + ' stacks)…')));
+      assets = assets.concat((await fetchAssetPages('/characters/' + cid + '/assets/?datasource=tranquility',
+        (pg, n, tp) => stkProgress(0.15 + 0.15 * (tp ? pg / tp : Math.min(pg, 10) / 10), 'Fetching assets (page ' + pg + (tp ? '/' + tp : '') + ', ' + fmtN(n) + ' stacks)…'))).assets);
     }
     stkRaw = assets;
     const selSysNum = parseInt(stkSysId(), 10);
@@ -2752,7 +2764,7 @@ async function loadInventory() {
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (mappedCount ? ' · ' + mappedCount + ' manually mapped' : '') + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + stkPagesFatched + ' page' + (stkPagesFatched===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (mappedCount ? ' · ' + mappedCount + ' manually mapped' : '') + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
