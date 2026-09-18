@@ -547,6 +547,21 @@ app.post('/api/bv/structures', async (req, res) => {
     res.json({ ok: true, accepted, rejected });
 });
 
+// DELETE /api/bv/structures — wipe the shared cache and start fresh.
+// Guarded by BV_STRUCT_ADMIN env secret:
+//   curl -X DELETE https://api.rustybot.co.uk/api/bv/structures -H "X-Admin-Token: <secret>"
+// With no secret configured the endpoint stays disabled (403).
+app.delete('/api/bv/structures', (req, res) => {
+    const secret = process.env.BV_STRUCT_ADMIN || '';
+    const given = String(req.headers['x-admin-token'] || '');
+    if (!secret || given !== secret) return res.status(403).json({ error: 'Admin wipe disabled or bad token' });
+    const s = bvStructLoad();
+    const had = Object.keys(s).length;
+    bvStructCache = {};
+    bvStructSave();
+    res.json({ ok: true, cleared: had });
+});
+
 // Static file serving (after routes for route priority).
 // Only whitelisted extensions are served; sensitive files are always blocked.
 const STATIC_ROOT = path.join(__dirname, '..');

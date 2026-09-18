@@ -1726,6 +1726,23 @@ function stkSnapshotWrite(s) {
   try { localStorage.setItem('bvInventorySnapshot', JSON.stringify(S.inventorySnapshots)); } catch {}
 }
 function stkSnapshotClear() { S.inventorySnapshots = {}; try { localStorage.removeItem('bvInventorySnapshot'); } catch {} }
+// Full scan-cache reset: wipes every locally cached scan artifact (structure
+// names, 403 denials, station systems, snapshots, ore yields) from storage AND
+// memory so the next scan starts completely fresh. Deliberately keeps UI prefs
+// (bvPrefs), list filters, page sizes, and manual structure mappings
+// (bvStructOverrides) — mappings are explicit user data with per-row remove.
+const BV_SCAN_CACHE_KEYS = ['bvStructNames', 'bvStructDenied', 'bvStaSys', 'bvInventorySnapshot', 'bvOres2'];
+function stkResetAllCaches() {
+  try { for (const k of BV_SCAN_CACHE_KEYS) localStorage.removeItem(k); } catch {}
+  try { oreCache.clear(); } catch {}
+  try { stkIndustrialProbed.clear(); } catch {}
+  S.inventorySnapshots = {};
+  stkRaw = []; stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {};
+  stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {};
+  stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkLocErr = {};
+  stkEnriched = []; stkEnrichedAll = []; stkTypeFlags = {}; stkContainerNames = {}; stkTypeGroups = {};
+  stkUnresolvedLocs = []; stkPage = 1; stkDetailPage = 1;
+}
 function matSource() { return ($('matSource') && $('matSource').value) || 'personal'; }
 // Refined deduction map for the calculator's Materials-owned source (ore already refined to
 // minerals at refine %), else the live scope. 'both' merges personal + corp snapshots.
@@ -2820,6 +2837,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
   if ($('stkSystemInput')) attachStkSystemAutocomplete();
   if ($('stkAllSystems')) $('stkAllSystems').onchange = () => { savePrefs(); stkRescopeSystem(); };
+  if ($('stkResetCaches')) $('stkResetCaches').onclick = () => {
+    stkResetAllCaches();
+    try { const uw = $('stkUnresolved'); if (uw) uw.innerHTML = ''; } catch {}
+    if ($('stkList')) $('stkList').innerHTML = '<p class="hint">All scan caches cleared. Pick a system and hit Scan system for a fully fresh lookup.</p>';
+    if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
+    if ($('stkStatus')) $('stkStatus').textContent = '';
+    if ($('stkTotals')) $('stkTotals').textContent = '';
+    if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
+    renderRefinery();
+    status('Scan caches cleared (structures, denials, snapshots, ore yields). Mappings and prefs kept.');
+  };
   if ($('stkClear')) $('stkClear').onclick = () => {
     stkSnapshotClear();
     stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={}; try { stkIndustrialProbed.clear(); } catch {}
