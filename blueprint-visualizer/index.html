@@ -111,7 +111,7 @@
      <p class="hint">Enter your <b>build system</b>, pick <b>Personal</b> or <b>Corp</b> (or Both), then <b>Scan system</b>. We pull every item in that system and list the industry materials — all ore, compressed ore, ice and compressed ice (worked out at your refining % from Calc &gt; Rigs). Tick <b>Use these</b> to deduct them from Shopping/Build/Mining and see them in the Refinery panel.</p>
       <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
       <input type="hidden" id="stkSystem" value="">
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems"> Search all personal systems (include assets outside the selected build system)</label>
+      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems" checked> Search all personal systems (include assets outside the selected build system)</label>
       <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkTrustSystem" checked> Trust selected system for structures ESI can’t access (common for personal assets in shared citadels)</label>
       <div class="field"><label>Filter list</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, compressed arkonor…" autocomplete="off"></div>
@@ -204,6 +204,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=100"></script>
+    <script src="bv-visualizer.js?v=101"></script>
 </body>
 </html>
