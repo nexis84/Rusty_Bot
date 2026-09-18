@@ -132,9 +132,9 @@ footer.legal a{color:var(--text2)}
    drift center and numbers stay right-aligned. Scoped to avoid touching
    the calculator tree which shares .rx-row/.row1. */
 #buildProgress .rx-row{flex-wrap:nowrap}
-#buildProgress .rx-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #buildProgress .tree-node .row1{flex-wrap:nowrap}
-#buildProgress .tree-node .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#buildProgress .tree-node .nm{flex:0 1 360px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#buildProgress .rx-row .nm{flex:0 1 360px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #buildProgress .tree-node .nums,#buildProgress .rx-row .nums{flex-shrink:0}
 #buildProgress .ref-track{flex-shrink:0}
 #buildProgress .ref-cap{font-size:.88rem;font-weight:600;color:var(--text)}
