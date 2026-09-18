@@ -1446,6 +1446,18 @@ let stkCustomNames = {};
 // Covers citadels ESI 403s despite in-game docking access (new/dead structures
 // 403 by design) — the user knows where their stuff is, ESI won't say.
 let stkUnresolvedLocs = [];
+// Per-structure failure reasons for the mapping panel: [Forbidden] vs queued.
+// Reset each scan; 403 denials persist separately (1h stamps).
+let stkLocErr = {};
+function stkLocReason(id) {
+  try {
+    const denied = bvDeniedRead();
+    if (denied && denied[String(id)] && Date.now() - denied[String(id)] < 3600e3)
+      return '[Forbidden] — ESI denied access (no ESI docking rights)';
+    if (stkLocErr[String(id)]) return 'Lookup failed (ESI ' + stkLocErr[String(id)] + ')';
+  } catch {}
+  return 'Queued — over the 25/scan cap, retries on a later scan';
+}
 function stkOverrideRead() { try { const v = JSON.parse(localStorage.getItem('bvStructOverrides') || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
 function stkOverrideWrite(o) { try { localStorage.setItem('bvStructOverrides', JSON.stringify(o || {})); } catch {} }
 // ESI error-limit circuit breaker: once a 420/429 is seen, the scan skips all
@@ -1998,7 +2010,7 @@ function renderStkOverrides() {
     h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-question-circle"></i> Unresolved structures (' + open.length + ') — ESI 403, system unknown</h4>'
       + '<p class="hint">Citadels ESI won\'t identify (no ESI docking access, new or dead structures). If you know where one lives, map it — it joins the next scan. Full IDs shown because suffixes collide.</p>'
       + open.slice(0, 50).map(e => '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;padding:.3rem 0;border-bottom:1px solid var(--border)">'
-        + '<span class="nums" title="Full location ID">' + e.id + (e.customName ? ' · <b>' + String(e.customName).replace(/</g, '&lt;') + '</b>' : '') + '</span>'
+        + '<span class="nums" title="Full location ID">' + e.id + (e.customName ? ' · <b>' + String(e.customName).replace(/</g, '&lt;') + '</b>' : '') + '<br><span style="opacity:.75">' + e.reason + '</span></span>'
         + '<span style="flex:1;min-width:140px">' + e.stacks + ' stacks · ' + fmtN(e.qty) + ' units · ' + e.top.map(t => t.name + ' ×' + fmtN(t.qty)).join(', ') + '</span>'
         + '<span style="display:inline-flex;gap:.3rem;align-items:center;position:relative"><input class="form-input" data-ovsys="' + e.id + '" placeholder="System…" autocomplete="off" style="width:150px"><button class="mode-btn" data-map="' + e.id + '">Map</button></span>'
         + '</div>').join('')
@@ -2158,6 +2170,7 @@ async function loadInventory() {
     stkRawSource = src;
     // Fresh error budget each scan; 403 denials persist 1h so we never re-flood.
     bvEsiLimited = false;
+    stkLocErr = {};
     // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
     try { if ($('matSource')) $('matSource').value = src; } catch {}
     savePrefs();
@@ -2342,8 +2355,13 @@ async function loadInventory() {
               resolvedNow++;
             }
           } catch (e) {
-            if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
+            const emsg = String((e && e.message) || '');
+            if (/403/.test(emsg)) { denied[id] = now; deniedChanged = true; }
             else if (bvHitLimit(e)) { rateCut = true; }
+            else {
+              const m = emsg.match(/ESI\s+(\d{3})/);
+              try { stkLocErr[String(id)] = m ? m[1] : 'error'; } catch {}
+            }
           }
         }));
         if (bvEsiLimited || rateCut) break;
@@ -2516,7 +2534,7 @@ async function loadInventory() {
       for (const [id, e] of Object.entries(byLoc)) {
         const top = Object.entries(e.types).sort((x, y) => y[1] - x[1]).slice(0, 3)
           .map(([t, q]) => ({ typeId: +t, qty: q, name: stkNames[+t] || BV_MAT_NAMES.get(+t) || ('Type ' + t) }));
-        stkUnresolvedLocs.push({ id, stacks: e.stacks, qty: e.qty, top });
+        stkUnresolvedLocs.push({ id, stacks: e.stacks, qty: e.qty, top, reason: stkLocReason(id) });
       }
       stkUnresolvedLocs.sort((a, b) => b.qty - a.qty);
     } catch (e) { console.warn('[BV] unresolved detail failed', e); }
