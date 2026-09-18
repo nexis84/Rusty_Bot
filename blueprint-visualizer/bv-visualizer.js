@@ -1574,6 +1574,7 @@ function isIndustrialMaterial(id) {
   // Deterministic: the SDE material set (already includes every Asteroid cat-25
   // ore/ice + compressed/variant/moon forms) plus minerals, ice products and PI.
   if (BV_MATERIALS.has(nid)) return true;
+  if (BV_MAT_NAMES.has(nid)) return true;
   if (D.minerals && D.minerals[nid]) return true;
   if (iceProductIds && iceProductIds.has(nid)) return true;
   try {
@@ -1640,7 +1641,11 @@ function stkFilteredAgg() {
       return nm.includes(q) || String(e.typeId).includes(q);
     });
   }
-  out.sort((a,b) => String(stkNames[a.typeId]||'').localeCompare(String(stkNames[b.typeId]||'')));
+  out.sort((a, b) => {
+    const aName = String(stkNames[a.typeId] || BV_MAT_NAMES.get(a.typeId) || '');
+    const bName = String(stkNames[b.typeId] || BV_MAT_NAMES.get(b.typeId) || '');
+    return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: 'base' }) || a.typeId - b.typeId;
+  });
   return out;
 }
 function renderStkRows() {
@@ -1737,14 +1742,26 @@ async function loadInventory() {
     if (corpId) { try { const co = await fetchJSON(ESI + '/corporations/' + corpId + '/?datasource=tranquility'); if (co && co.name) scanCorp = co.name; } catch {} }
     if (src === 'corp' && !corpId) throw new Error('No corporation found for this character.');
     if (src === 'both' && !corpId) stkCorpWarn = 'No corporation found — corp assets skipped.';
+    const fetchAssetPages = async path => {
+      const all = [];
+      for (let pg = 1; pg <= 100; pg++) {
+        try {
+          const chunk = await BVAuth.api(path + '&page=' + pg);
+          if (!Array.isArray(chunk) || !chunk.length) break;
+          all.push(...chunk);
+          if (chunk.length < 1000) break;
+        } catch (e) {
+          // ESI can answer 404 for the first page after the last page.
+          // That is a normal pagination terminator, not a failed scan.
+          if (/\b404\b/.test(String((e && e.message) || ''))) break;
+          throw e;
+        }
+      }
+      return all;
+    };
     if ((src === 'corp' || src === 'both') && corpId) {
       try {
-        for (let pg=1; pg<=100; pg++) {
-          const chunk = await BVAuth.api('/corporations/' + corpId + '/assets/?datasource=tranquility&page=' + pg);
-          if (!Array.isArray(chunk) || !chunk.length) break;
-          assets = assets.concat(chunk);
-          if (chunk.length < 1000) break;
-        }
+        assets = assets.concat(await fetchAssetPages('/corporations/' + corpId + '/assets/?datasource=tranquility'));
       } catch(e) {
         const msg = String((e && e.message) || '');
         if (src === 'corp') throw (/403/.test(msg) ? new Error('Corp assets need Director role + esi-assets.read_corporation_assets.v1. Re-login to grant the new scope.') : e);
@@ -1752,12 +1769,7 @@ async function loadInventory() {
       }
     }
     if (src === 'personal' || src === 'both') {
-      for (let pg=1; pg<=100; pg++) {
-        const chunk = await BVAuth.api('/characters/' + cid + '/assets/?datasource=tranquility&page=' + pg);
-        if (!Array.isArray(chunk) || !chunk.length) break;
-        assets = assets.concat(chunk);
-        if (chunk.length < 1000) break;
-      }
+      assets = assets.concat(await fetchAssetPages('/characters/' + cid + '/assets/?datasource=tranquility'));
     }
     stkRaw = assets;
     const selSysNum = parseInt(stkSysId(), 10);
