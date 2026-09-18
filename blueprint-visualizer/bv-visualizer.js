@@ -639,6 +639,143 @@ async function renderBuildList(runs) {
   wrap.innerHTML = html;
   if (meta) meta.textContent = builds.length + ' item' + (builds.length>1?'s':'') + ' to build' + (builds.filter(c=>!c.child).length ? ' · ' + builds.filter(c=>!c.child).length + ' loading…' : '') + ' · raw ' + fmtISK(grandTotal);
   if (totals) totals.textContent = 'Raw total for Build List ' + fmtISK(grandTotal) + ' · Volume ~' + fmtN(Math.round(grandVol)) + ' m³ · ' + totalRows + ' material rows' + (aggregated.size ? ' · ' + aggregated.size + ' unique raws' : '');
+  try { renderBuildProgress(); } catch {}
+}
+
+// ---- Build Progress checklist: collapsible parts + completion ticks + export ----
+// One row per material (top-level) plus its sub-part rows (build raws /
+// reaction reagents). Ticks persist per blueprint in localStorage; collapse
+// state persists per render in bpProgCollapsed. Export reuses the same model.
+const bpProgCollapsed = new Set();
+function bpProgStoreKey() { return 'bvBuildProg_' + (S.root ? S.root.bpId : 'none'); }
+function bpProgRead() { try { const v = JSON.parse(localStorage.getItem(bpProgStoreKey()) || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
+function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stringify(m || {})); } catch {} }
+// Flat row model for render + export so counts always agree.
+function bpProgModel() {
+  const rows = [];
+  if (!S.root || !S.root.children) return { rows, rootName: '', runs: 1 };
+  const runs = S.runs || 1;
+  rows.push({ key: 'root', typeId: S.root.bpId, name: S.root.bpName + ' × ' + runs, qty: runs, unit: null, depth: -1, mode: S.root.mode });
+  S.root.children.forEach((c, ci) => {
+    const need = c.perRun * runs;
+    const basis = ($('basis') && $('basis').value) || 'sell';
+    const unit = basis === 'buy' ? c.unitBuy : c.unitSell;
+    rows.push({ key: 'c' + ci + ':' + c.type_id, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci });
+    if (c.child && c.child.materials) {
+      const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
+      const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
+      for (const m of c.child.materials) {
+        rows.push({ key: 'g' + ci + ':' + m.type_id, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: 'buy' });
+      }
+    } else if (c.mode === 'react' && c.reaction && c.reaction.reagents) {
+      const n = reactRunsNeeded(c);
+      for (const rg of c.reaction.reagents) {
+        rows.push({ key: 'r' + ci + ':' + rg.type_id, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: 'react' });
+      }
+    }
+  });
+  return { rows, rootName: S.root.bpName, runs };
+}
+function bpProgCounts() {
+  const { rows } = bpProgModel();
+  const ticked = bpProgRead();
+  let done = 0;
+  for (const r of rows) if (ticked[r.key]) done++;
+  return { done, total: rows.length };
+}
+function bpProgRefreshHead() {
+  try {
+    const { done, total } = bpProgCounts();
+    const meta = $('progMeta'), totals = $('progressTotals');
+    if (meta) meta.textContent = total ? done + '/' + total + ' done' : '';
+    if (totals) {
+      const { rows } = bpProgModel();
+      const ticked = bpProgRead();
+      let leftVal = 0, leftN = 0;
+      for (const r of rows) {
+        if (r.depth < 0 || ticked[r.key]) continue;
+        leftN++;
+        leftVal += (r.unit || 0) * r.qty;
+      }
+      totals.textContent = total ? (done === total ? 'Complete — everything collected/built.' : leftN + ' remaining' + (leftVal > 0 ? ' · ' + fmtISK(leftVal) + ' buy value left' : '')) : '';
+    }
+  } catch {}
+}
+function renderBuildProgress() {
+  const wrap = $('buildProgress');
+  if (!wrap) return;
+  if (!S.root || !S.root.children || !S.root.children.length) {
+    wrap.innerHTML = '<p class="hint">No calculation yet — run a calculation, then tick items off as you collect or build them.</p>';
+    const meta = $('progMeta'), totals = $('progressTotals');
+    if (meta) meta.textContent = '';
+    if (totals) totals.textContent = '';
+    return;
+  }
+  const { rows } = bpProgModel();
+  const ticked = bpProgRead();
+  const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
+  let h = '';
+  S.root.children.forEach((c, ci) => {
+    const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
+    if (!top) return;
+    const subs = kidsOf(ci);
+    const t = !!ticked[top.key];
+    const hasKids = subs.length > 0;
+    const collapsed = bpProgCollapsed.has(ci);
+    h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1">'
+      + '<label style="cursor:pointer;display:flex;align-items:center" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
+      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>'
+      + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
+      + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
+      + (hasKids ? '<button class="mode-btn" data-pexp="' + ci + '" title="' + (collapsed ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (collapsed ? 'down' : 'up') + '"></i></button>' : '')
+      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></div>'
+      + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
+        const st = !!ticked[s.key];
+        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
+      }).join('') + '</div>' : '')
+      + '</div>';
+  });
+  // root row on top
+  const rk = 'root', rt = !!ticked[rk];
+  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + S.root.bpName + ' × ' + (S.runs || 1) + '</b></span><span class="pill ' + (S.root.mode === 'react' ? 'react' : 'build') + '">' + (S.root.mode === 'react' ? 'REACT' : 'BUILD') + '</span></div></div>' + h;
+  wrap.innerHTML = h;
+  if (!wrap.dataset.bound) {
+    wrap.dataset.bound = '1';
+    wrap.addEventListener('change', e => {
+      const box = e.target.closest('[data-prog]');
+      if (!box) return;
+      const m = bpProgRead();
+      if (box.checked) m[box.dataset.prog] = true; else delete m[box.dataset.prog];
+      bpProgWrite(m);
+      const row = box.closest('.tree-node, .rx-row');
+      if (row) row.style.opacity = box.checked ? '.55' : '';
+      bpProgRefreshHead();
+    });
+    wrap.addEventListener('click', e => {
+      const b = e.target.closest('[data-pexp]');
+      if (!b) return;
+      const ci = +b.dataset.pexp;
+      if (bpProgCollapsed.has(ci)) bpProgCollapsed.delete(ci); else bpProgCollapsed.add(ci);
+      renderBuildProgress();
+    });
+  }
+  bpProgRefreshHead();
+}
+function bpProgExportText() {
+  const { rows, rootName, runs } = bpProgModel();
+  const ticked = bpProgRead();
+  const lines = [rootName + ' ×' + runs + ' ' + (ticked['root'] ? '[x]' : '[ ]')];
+  for (const r of rows) {
+    if (r.depth < 0) continue;
+    const pad = r.depth === 1 ? '  ' : '';
+    lines.push(pad + cleanName(r.name) + ' ×' + fmtN(r.qty) + ' ' + (ticked[r.key] ? '[x]' : '[ ]'));
+  }
+  return lines.join('\n');
+}
+function bpProgRemainingMultibuy() {
+  const { rows } = bpProgModel();
+  const ticked = bpProgRead();
+  return rows.filter(r => r.depth >= 0 && !ticked[r.key]).map(r => cleanName(r.name) + ' x' + fmtN(r.qty));
 }
 
 function buildRawLines() {
@@ -790,6 +927,16 @@ function bindHandoffs() {
   const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
   const ab = $('appraiseBuildList'); if (ab) ab.onclick = () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
   const tb = $('toggleBuildExpand'); if (tb) tb.onclick = () => { const ds = document.querySelectorAll('#buildList details'); if (!ds.length) return; const anyClosed = [...ds].some(d=>!d.open); ds.forEach(d=>d.open = anyClosed); tb.innerHTML = anyClosed ? '<i class="fas fa-compress"></i> Collapse' : '<i class="fas fa-expand"></i> Expand'; };
+  const cp = $('copyProgress'); if (cp) cp.onclick = async () => { const t = bpProgExportText(); if (!S.root) { status('Run a calculation first.'); return; } await navigator.clipboard.writeText(t); status('Checklist copied (' + t.split('\n').length + ' lines).'); };
+  const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = async () => { const lines = bpProgRemainingMultibuy(); if (!lines.length) { status('Nothing remaining — all ticked.'); return; } await navigator.clipboard.writeText(lines.join('\n')); status('Remaining multibuy copied (' + lines.length + ' lines).'); };
+  const tpe = $('toggleProgExpand'); if (tpe) tpe.onclick = () => {
+    if (!S.root || !S.root.children) return;
+    const anyOpen = S.root.children.some((c, ci) => !bpProgCollapsed.has(ci) && (c.child && c.child.materials || c.mode === 'react' && c.reaction));
+    S.root.children.forEach((c, ci) => { if (anyOpen) bpProgCollapsed.add(ci); else bpProgCollapsed.delete(ci); });
+    renderBuildProgress();
+    tpe.innerHTML = anyOpen ? '<i class="fas fa-expand"></i> Expand' : '<i class="fas fa-compress"></i> Collapse';
+  };
+  const clp = $('clearProgress'); if (clp) clp.onclick = () => { bpProgWrite({}); renderBuildProgress(); status('Progress ticks cleared.'); };
 }
 
 // ---- OCR (kept from BPC, trimmed) ----

@@ -195,6 +195,17 @@
         <div id="buildList"><p class="hint">No calculation yet — set materials to <b>Build</b> in the tree above.</p></div>
         <p class="hint" id="buildTotals" style="margin-top:.5rem"></p>
       </div>
+      <div class="panel" style="margin-top:.8rem" id="progressPanel">
+        <h3><i class="fas fa-tasks"></i> Build Progress <span id="progMeta" class="pill" style="margin-left:.5rem"></span></h3>
+        <div class="btn-row" style="margin-bottom:.5rem">
+          <button id="copyProgress" class="calc-btn secondary"><i class="fas fa-copy"></i> Copy checklist</button>
+          <button id="copyProgressLeft" class="calc-btn secondary">Copy remaining multibuy</button>
+          <button id="toggleProgExpand" class="calc-btn secondary"><i class="fas fa-expand"></i> Expand/Collapse</button>
+          <button id="clearProgress" class="calc-btn secondary"><i class="fas fa-times"></i> Reset ticks</button>
+        </div>
+        <div id="buildProgress"><p class="hint">No calculation yet — run a calculation, then tick items off as you collect or build them.</p></div>
+        <p class="hint" id="progressTotals" style="margin-top:.5rem"></p>
+      </div>
       <div id="refineryWrap"></div>
       <div id="mineWrap"></div>
       <div class="panel" style="margin-top:.8rem" id="shoppingPanel">
@@ -220,7 +231,7 @@
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-ores.js?v=1"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=151"></script>
+    <script src="bv-visualizer.js?v=152"></script>
 <div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v151 -- moon-mined materials get Mine-it tag</div>
 </body>
 </html>
