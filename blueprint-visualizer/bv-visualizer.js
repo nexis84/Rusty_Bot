@@ -766,6 +766,13 @@ function renderBuildProgress() {
     const ok = have >= qty;
     return '<span class="nums" title="Owned in inventory"' + (ok ? ' style="color:var(--build)"' : '') + '>have ' + fmtN(have) + '</span>';
   };
+  const haveBar = (typeId, qty) => {
+    if (!hasInv || !(qty > 0)) return '';
+    const have = invAgg[typeId] || 0;
+    const pct = Math.min(100, Math.round(have / qty * 100));
+    const ok = have >= qty;
+    return '<span class="ref-track" style="display:inline-block;width:70px;vertical-align:middle" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>';
+  };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
   let h = pinned ? '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint. <a href="#" id="progUnpinLink" style="color:var(--accent)">Track live instead</a>.</p>' : '';
   src.children.forEach((c, ci) => {
@@ -777,14 +784,14 @@ function renderBuildProgress() {
     const collapsed = bpProgCollapsed.has(ci);
     h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1">'
       + '<label style="cursor:pointer;display:flex;align-items:center" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
-      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveSpan(c.type_id, top.qty)
+      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveSpan(c.type_id, top.qty) + haveBar(c.type_id, top.qty)
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (hasKids ? '<button class="mode-btn" data-pexp="' + ci + '" title="' + (collapsed ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (collapsed ? 'down' : 'up') + '"></i></button>' : '')
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></div>'
       + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
         const st = !!ticked[s.key];
-        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveSpan(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
+        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveSpan(s.typeId, s.qty) + haveBar(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
       }).join('') + '</div>' : '')
       + '</div>';
   });
