@@ -2168,8 +2168,8 @@ function renderStkOverrides() {
       + (open.length > 50 ? '<p class="hint">Showing 50 of ' + open.length + ' — map these and rescan for more.</p>' : '') + '</div>';
   }
   if (mappedIds.length) {
-    h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-map-marked-alt"></i> Mapped structures (' + mappedIds.length + ')</h4>'
-      + mappedIds.map(id => '<div style="display:flex;gap:.4rem;align-items:center;padding:.2rem 0;border-bottom:1px solid var(--border)"><span class="nums">' + id + '</span><span style="flex:1">→ ' + stkSysIdName(String(ov[id])) + '</span><button class="mode-btn" data-unmap="' + id + '" title="Remove mapping" style="color:var(--danger)"><i class="fas fa-times"></i></button></div>').join('') + '</div>';
+    h += '<div class="panel" style="margin-top:.6rem"><details class="hint-details"><summary><i class="fas fa-map-marked-alt"></i> Mapped structures (' + mappedIds.length + ') — expand to manage</summary>'
+      + '<div style="margin-top:.4rem">' + mappedIds.map(id => '<div style="display:flex;gap:.4rem;align-items:center;padding:.2rem 0;border-bottom:1px solid var(--border)"><span class="nums">' + id + '</span><span style="flex:1">→ ' + stkSysIdName(String(ov[id])) + '</span><button class="mode-btn" data-unmap="' + id + '" title="Remove mapping" style="color:var(--danger)"><i class="fas fa-times"></i></button></div>').join('') + '</div></details></div>';
   }
   box.innerHTML = h;
   box.querySelectorAll('input[data-ovsys]').forEach(inp => attachOvSysComplete(inp));
