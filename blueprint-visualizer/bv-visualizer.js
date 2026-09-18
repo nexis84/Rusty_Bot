@@ -805,7 +805,7 @@ function renderBuildProgress() {
     const ok = have >= qty;
     return '<span class="have-cell">'
       + '<span class="ref-track" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
-      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' · ' + pct + '%</span></span>';
+      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' (' + pct + '%)</span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
   // Auto-finish: any material fully covered by inventory ticks itself
