@@ -1588,7 +1588,25 @@ function stkFilteredAgg() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
   const srcAgg = stkCurrentAgg();
   const entries = Object.entries(srcAgg).map(([typeId, qty]) => ({ typeId: +typeId, qty }));
-  let out = entries.filter(e => isIndustrialMaterial(e.typeId));
+  
+  // Diagnostic: log which types are being filtered out
+  const industrialEntries = [];
+  const nonIndustrialEntries = [];
+  for (const e of entries) {
+    if (isIndustrialMaterial(e.typeId)) {
+      industrialEntries.push(e);
+    } else {
+      nonIndustrialEntries.push(e);
+    }
+  }
+  
+  if (nonIndustrialEntries.length > 0) {
+    console.log('[BV] Non-industrial types in inventory (first 20):', nonIndustrialEntries.slice(0, 20).map(e => e.typeId));
+    console.log('[BV] BV_MATERIALS size:', BV_MATERIALS.size);
+    console.log('[BV] Total types in srcAgg:', entries.length, 'Industrial:', industrialEntries.length, 'Non-industrial:', nonIndustrialEntries.length);
+  }
+  
+  let out = industrialEntries;
   if (q) {
     out = out.filter(e => {
       const nm = (stkNames[e.typeId] || '').toLowerCase();
