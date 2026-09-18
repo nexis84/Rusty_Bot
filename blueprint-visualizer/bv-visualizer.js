@@ -2157,7 +2157,7 @@ async function loadInventory() {
       // system-location ids -> local Systems names
       for (const id of locIds) { const num = +id; if (num >= 30000000 && num < 40000000) { stkLocationNames[id] = stkSysIdName(String(num)); } }
       // NPC stations (<1e12, not system ids) -> universe/names
-      const stationIds = locIds.filter(id => { const n = +id; return n >= 1000000 && n < 1e12 && !(n >= 30000000 && n < 40000000); });
+      const stationIds = locIds.filter(id => { const n = +id; return n >= 60000000 && n < 61000000; });
       for (let i=0;i<stationIds.length;i+=200) {
         const chunk = stationIds.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
         if (!chunk.length) continue;
@@ -2166,29 +2166,32 @@ async function loadInventory() {
             const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
             (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) stkLocationNames[n.id]=n.name; });
             break;
-          } catch(e){ const msg=String(e&&e.message||''); if (/420|429|400/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; } break; }
+          } catch(e){ const msg=String(e&&e.message||''); if (/420|429|400|404/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; } break; }
         }
         if (i+200 < stationIds.length) await new Promise(r=>setTimeout(r,250));
       }
-// citadels (>=1e12) -> authed, throttled, cached
-      // denial stamps persist so inaccessible structures aren't retried each scan
+// citadels (>=1e12) -> batch POST /universe/names first (no 403 spam), then authed fallback for missing
       const structIds = locIds.filter(id => String(id).length >= 12);
       if (structIds.length) {
         const denied = bvDeniedRead(), now = Date.now();
-        for (let s=0; s<structIds.length; s++) {
-          const sid = structIds[s];
-          try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name) stkLocationNames[sid]=sc[sid].name; } catch {}
-          if (stkLocationNames[sid]) continue;
-          if (denied[sid] && now - denied[sid] < 3600e3) { stkLocationNames[sid]='Structure …' + String(sid).slice(-4); continue; }
-          let tries=0; while(tries<2){
-            try {
-              const st = await BVAuth.api('/universe/structures/' + sid + '/?datasource=tranquility');
-              if (st && st.name) { stkLocationNames[sid]=st.name; try { const sc=bvStructCacheRead(); sc[sid]={name:st.name, system_id:st.solar_system_id||locSys[sid], ts:Date.now()}; bvStructCacheWrite(sc); } catch {} }
-              break;
-            } catch(e){ const msg=String(e&&e.message||''); if (/403|404/.test(msg)) { denied[sid]=Date.now(); stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break; } if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,1200)); tries++; continue; } stkLocationNames[sid]='Structure …' + String(sid).slice(-4); break; }
-          }
-          if (s < structIds.length-1) await new Promise(r=>setTimeout(r,200));
+        // Batch resolve structure names via POST /universe/names (no ACL needed) — mirrors assest test/esi_client.py:resolve_names fallback
+        const unresolvedForPost = structIds.filter(sid => {
+          try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name) { stkLocationNames[sid]=sc[sid].name; return false; } } catch {}
+          if (stkLocationNames[sid]) return false;
+          if (denied[sid] && now - denied[sid] < 3600e3) { stkLocationNames[sid]='Structure …' + String(sid).slice(-4); return false; }
+          return true;
+        });
+        for (let i=0;i<unresolvedForPost.length;i+=200) {
+          const chunk = unresolvedForPost.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
+          if (!chunk.length) continue;
+          try {
+            const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
+            (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) { stkLocationNames[n.id]=n.name; try { const sc=bvStructCacheRead(); sc[n.id]={name:n.name, system_id: sc[n.id]?.system_id || locSys[n.id], ts:Date.now()}; bvStructCacheWrite(sc); } catch {} } });
+          } catch(e){ /* POST can 404 for unknown structures — fallback to placeholder below */ }
+          if (i+200 < unresolvedForPost.length) await new Promise(r=>setTimeout(r,250));
         }
+        // Final placeholder for any still missing (no authed GET to avoid 403 spam — mirrors assest test silent fallback)
+        for (const sid of structIds) if (!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4);
         try{ bvDeniedWrite(denied); }catch{}
       }
 // stkSystems keyed by systemId + per-location system name
