@@ -1758,7 +1758,7 @@ async function loadInventory() {
         if (staSysCache[id] && now - staSysCache[id].ts < 7*864e5) { locSys[id] = staSysCache[id].sys; continue; }
         try {
           const s = await fetchJSON(ESI + '/universe/stations/' + num + '/?datasource=tranquility');
-          if (s && s.solar_system_id) { locSys[id] = s.solar_system_id; staSysCache[id] = { sys: locSys[id], ts: now }; staSysChanged = true; }
+          if (s && s.system_id) { locSys[id] = s.system_id; staSysCache[id] = { sys: locSys[id], ts: now }; staSysChanged = true; }
         } catch {}
         continue;
       }
