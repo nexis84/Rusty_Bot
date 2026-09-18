@@ -1873,20 +1873,33 @@ try {
   const s = parseInt(localStorage.getItem('bvStkPageSize') || '', 10);
   if (STK_PAGE_OPTIONS.includes(s)) stkPageSize = s;
 } catch {}
-const COMPREHENSIVE_IDS = new Set([18, 19, 20, 21, 22, 34, 35, 36, 37, 38, 39, 40, 44, 1055, 1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 1787, 1788, 2073, 2267, 2268, 2270, 2272, 2286, 2287, 2288, 2305, 2306, 2307, 2308, 2309, 2310, 2311, 2333, 2344, 2345, 2346, 2348, 2349, 2351, 2352, 2354, 2358, 2360, 2361, 2367, 2388, 2389, 2390, 2392, 2393, 2394, 2395, 2396, 2397, 2398, 2399, 2400, 2401, 2463, 2867, 2868, 2869, 2870, 2871, 2872, 2875, 2876, 3645, 3683, 3689, 3691, 3693, 3695, 3697, 3725, 3775, 3779, 3828, 9828, 9830, 9832, 9834, 9836, 9838, 9840, 9842, 9844, 9846, 9848, 11396, 11397, 11398, 11399, 11441, 11442, 11443, 11444, 11445, 11446, 11447, 11448, 11449, 11450, 11451, 11452, 11453, 11454, 11455, 12053, 15317, 16262, 16263, 16264, 16265, 16267, 16268, 16269, 16272, 16273, 16274, 16275, 16633, 16634, 16635, 16636, 16637, 16638, 16639, 16640, 16641, 16642, 16643, 16644, 16646, 16647, 16648, 16649, 16650, 16651, 16652, 17272, 17357, 17358, 17425, 17426, 17432, 17433, 17436, 17437, 17440, 17441, 17448, 17449, 17452, 17453, 17455, 17456, 17459, 17460, 17463, 17464, 17470, 17471, 17865, 17866, 17887, 17888, 17889, 17975, 25268, 25270, 25272, 25274, 25275, 25276, 25277, 25278, 25595, 25596, 25597, 25598, 25599, 25600, 25601, 25602, 25603, 25604, 25605, 25606, 25607, 25610, 25611, 25612, 25613, 25624, 25625, 28388, 28389, 28390, 28391, 28392, 28393, 28394, 28395, 28396, 28397, 28398, 28399, 28400, 28401, 28402, 28403, 28404, 28405, 28406, 28407, 28408, 28409, 28410, 28411, 28412, 28413, 28414, 28415, 28416, 28417, 28418, 28419, 28420, 28421, 28422, 28423, 28424, 28425, 28426, 28427, 28428, 28429, 28430, 28431, 28432, 28433, 28434, 28435, 28436, 28437, 28438, 28439, 28440, 28441, 28442, 30370, 30375, 30376, 30377, 30378, 30379]);
+const COMPREHENSIVE_IDS = new Set([18, 19, 20, 21, 22, 34, 35, 36, 37, 38, 39, 40, 44, 1055, 1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 1787, 1788, 2073, 2267, 2268, 2270, 2272, 2286, 2287, 2288, 2305, 2306, 2307, 2308, 2309, 2310, 2311, 2344, 2345, 2346, 2348, 2349, 2351, 2352, 2354, 2358, 2360, 2361, 2367, 2388, 2389, 2390, 2392, 2393, 2394, 2395, 2396, 2397, 2398, 2399, 2400, 2401, 2463, 2867, 2868, 2869, 2870, 2871, 2872, 2875, 2876, 3645, 3683, 3689, 3691, 3693, 3695, 3697, 3725, 3775, 3779, 3828, 9828, 9830, 9832, 9834, 9836, 9838, 9840, 9842, 9844, 9846, 9848, 11396, 11397, 11398, 11399, 15317, 16262, 16263, 16264, 16265, 16267, 16268, 16269, 16272, 16273, 16274, 16275, 16633, 16634, 16635, 16636, 16637, 16638, 16639, 16640, 16641, 16642, 16643, 16644, 16646, 16647, 16648, 16649, 16650, 16651, 16652, 17272, 17358, 17425, 17426, 17432, 17433, 17436, 17437, 17440, 17441, 17448, 17449, 17452, 17453, 17455, 17456, 17459, 17460, 17463, 17464, 17470, 17471, 17865, 17866, 17887, 17888, 17889, 17975, 25268, 25272, 25274, 25275, 25276, 25277, 25278, 25595, 25596, 25597, 25598, 25599, 25600, 25601, 25602, 25603, 25604, 25605, 25606, 25607, 25610, 25611, 25612, 25613, 25624, 25625, 28388, 28389, 28390, 28391, 28392, 28393, 28394, 28395, 28396, 28397, 28398, 28399, 28400, 28401, 28402, 28403, 28404, 28405, 28406, 28407, 28408, 28409, 28410, 28411, 28412, 28413, 28414, 28415, 28416, 28417, 28418, 28419, 28420, 28421, 28422, 28423, 28424, 28425, 28426, 28427, 28428, 28429, 28430, 28431, 28432, 28433, 28434, 28435, 28436, 28437, 28438, 28439, 28440, 28441, 28442, 30370, 30375, 30376, 30377, 30378]);
 // Dynamically probed refinable/industrial type IDs (new compressed grades,
 // moon/gas variants missing from the hardcoded lists). Filled per-scan by
 // stkProbeIndustrial() via live SDE yields; cleared on Clear/source change.
 const stkIndustrialProbed = new Set();
 // Name patterns for ores the static lists miss (all compressed grades incl.
 // 62xxx/82xxx, moon ores, ice, gas, isotopes). Used when SDE is unreachable.
+// Name fallback for post-SDE-build types missing from every baked list/table.
+// Hard-won exclusions (verified against SDE 3494416): blueprints are never
+// industrial; mining crystals match "mercoxit" but are equipment; "Cold-Gas"
+// modules match bare "gas"; "Compressed ..." railguns/coil guns match the
+// compressed prefix. Real compressed ore all starts with "Compressed " and is
+// in the baked table anyway — this only gates unknown future IDs.
 function stkIndustrialNameMatch(nm) {
   if (!nm || /^(Type\s+\d+|ID\s+\d+)/i.test(nm)) return false;
-  const n = String(nm).toLowerCase();
-  if (/^compressed\s/.test(n)) return true;
-  if (/(arkonor|bistot|crokite|dark ochre|gneiss|hedbergite|hemorphite|jaspet|kernite|mercoxit|omber|plagioclase|pyroxeres|scordite|spodumain|veldspar|kylixium|hezorime|mordunium|nocxite|talassonite|glacial mass|dark glitt|blue ice|clear icicle|white glaze|gelidus|glare crust|krystallos)/.test(n)) return true;
-  if (/(mykoserocin|cytoserocin|fullerene|\bgas\b)/.test(n)) return true;
-  if (/(isotope|heavy water|liquid ozone|strontium clathrates?)/.test(n)) return true;
+  const n = String(nm);
+  if (/blueprint/i.test(n)) return false;
+  if (/crystal/i.test(n)) return false;
+  if (/compressor/i.test(n)) return false;
+  if (/reaction formula$/i.test(n)) return false;
+  if (/design element/i.test(n) || /matte|satin|gloss/i.test(n)) return false;
+  if (/ ore processing$/i.test(n)) return false;
+  const l = n.toLowerCase();
+  if (/^compressed\s/i.test(l) && !/(railgun|blaster|cannon|autocannon|artillery|launcher|laser|coil gun|shell)/i.test(l)) return true;
+  if (/(arkonor|bistot|crokite|dark ochre|gneiss|hedbergite|hemorphite|jaspet|kernite|mercoxit|omber|plagioclase|pyroxeres|scordite|spodumain|veldspar|kylixium|hezorime|mordunium|nocxite|talassonite|glacial mass|dark glitt|blue ice|clear icicle|white glaze|gelidus|glare crust|krystallos)/i.test(l)) return true;
+  if (/(mykoserocin|cytoserocin|fullerene|fullerite)/i.test(l)) return true;
+  if (/(isotope|heavy water|liquid ozone|strontium clathrates?)/i.test(l)) return true;
   return false;
 }
 function stkTypeNameForFilter(id) {
