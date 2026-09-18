@@ -2226,7 +2226,17 @@ async function loadInventory() {
     // is a container/ship, NEVER a structure — item_ids also exceed 1e12, so the
     // structure heuristic must only apply to non-asset IDs. Unresolvable chains
     // return null (strict mode excludes them) instead of guessing.
+    // Memoized per scan: every asset resolves 3× (topLoc + stacks + scope
+    // loops), so cache per item_id instead of re-walking up to 25 hops.
+    const stationCache = new Map();
     function stationFor(a) {
+      const key = a ? String(a.item_id) : '';
+      if (stationCache.has(key)) return stationCache.get(key);
+      const res = stationForWalk(a);
+      stationCache.set(key, res);
+      return res;
+    }
+    function stationForWalk(a) {
       let cur = a, hops = 0;
       const seen = new Set();
       const isRealLoc = n => (n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000);

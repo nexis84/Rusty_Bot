@@ -142,10 +142,10 @@ function isRealLoc(n) {
   return (n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000);
 }
 
-function stationFor(asset, idToAsset) {
+function stationForWalk(asset, idToAsset) {
   let cur = asset, hops = 0, anchor = null;
   const seen = new Set();
-  
+
   while (cur && cur.location_type === 'item' && cur.location_id && hops < 25) {
     const key = String(cur.item_id);
     if (seen.has(key)) break;
@@ -161,6 +161,17 @@ function stationFor(asset, idToAsset) {
   if (cur && cur.location_id && isRealLoc(+cur.location_id)) return cur.location_id;
   if (anchor !== null) return anchor;
   return asset.location_id;
+}
+
+// Memoized: the scan resolves every asset 2+ times (topLoc + scope loops),
+// so cache per item_id instead of re-walking up to 25 hops each time.
+const stationCache = new Map();
+function stationFor(asset, idToAsset) {
+  const key = asset ? String(asset.item_id) : '';
+  if (stationCache.has(key)) return stationCache.get(key);
+  const res = stationForWalk(asset, idToAsset);
+  stationCache.set(key, res);
+  return res;
 }
 
 function simulateFullScan(assets, trustUnresolved) {
@@ -291,13 +302,17 @@ console.log('');
 
 // Assertions
 console.log('--- ASSERTIONS ---');
-const expectedKept = 130 + 70 + 495 + 20; // stations + corp structs + unresolved + containers
+// Section 4 adds 10 containers + 20 contents = 30 stacks (not 20).
+const expectedKept = 130 + 70 + 495 + 30; // stations + corp structs + unresolved + containers
 const expectedWrongSys = 50; // Jita assets
+// Unique top locations: the 10 containers sit inside UNRESOLVED_STRUCT_IDS[0..9],
+// so they resolve to existing structures — 26 + 7 + 165 = 198, not 208.
+const expectedLocs = 26 + 7 + 165;
 
 console.log(`Expected kept (with fallback): ${expectedKept}, Actual: ${result2.keptCount} ${result2.keptCount === expectedKept ? '✓' : '✗'}`);
 console.log(`Expected wrong system: ${expectedWrongSys}, Actual: ${result2.skippedWrongSystem} ${result2.skippedWrongSystem === expectedWrongSys ? '✓' : '✗'}`);
 console.log(`Expected inaccessible: 0, Actual: ${result2.skippedInaccessible} ${result2.skippedInaccessible === 0 ? '✓' : '✗'}`);
-console.log(`Expected locations: ${26 + 7 + 165 + 10}, Actual: ${result2.locationsInSystem} ${result2.locationsInSystem === 208 ? '✓' : '✗'}`);
+console.log(`Expected locations: ${expectedLocs}, Actual: ${result2.locationsInSystem} ${result2.locationsInSystem === expectedLocs ? '✓' : '✗'}`);
 
 // Test 3: Container chain resolution
 console.log('');
