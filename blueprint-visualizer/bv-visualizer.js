@@ -1391,14 +1391,27 @@ async function renderRefinery() {
       g.total += r.yield;
       for (const l of r.locs) g.locs.add(l);
     }
-    wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + srcLabel + (locName ? ' @ ' + locName : '') + '</span></h3>' +
-      '<p class="hint">' + (anyCompressed ? 'Compressed ore / ice included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore / ice, refined at ' + Math.round(eff * 100) + '%. Each material combines every ore / ice stack you own that refines into it.</p>' +
-      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>From your ore</th><th>Total refines to</th><th>Location</th></tr></thead><tbody>' +
-      [...groups.values()].map(g => {
+    // Shortfalls first so action items sit at the top; covered materials below.
+    const ordered = [...groups.values()].sort((a, b) => {
+      const sa = a.total >= a.need ? 1 : 0, sb = b.total >= b.need ? 1 : 0;
+      if (sa !== sb) return sa - sb;
+      return (b.need - b.total) - (a.need - a.total);
+    });
+    const nCovered = ordered.filter(g => g.total >= g.need).length;
+    const nShortUnits = ordered.reduce((s, g) => s + Math.max(0, g.need - g.total), 0);
+    wrap.innerHTML = '<div class="panel" style="margin-top:.8rem"><h3><i class="fas fa-industry"></i> Refinery <span class="pill" style="margin-left:.5rem">' + srcLabel + (locName ? ' @ ' + locName : '') + '</span> <span class="pill" style="margin-left:.25rem">' + nCovered + '/' + ordered.length + ' covered</span></h3>' +
+      '<p class="hint">' + (anyCompressed ? 'Compressed ore / ice included — un-compress at a structure before refining. ' : '') + 'Materials ticked <b>Use own</b> come from your ore / compressed ore / ice, refined at ' + Math.round(eff * 100) + '%.' + (nShortUnits ? ' Total shortfall <b>' + fmtN(nShortUnits) + '</b> units — mine or buy the rest.' : ' Everything covered — nothing left to mine or buy.') + '</p>' +
+      '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Need</th><th>Refines to</th><th>Coverage</th><th>From your ore</th><th>Location</th></tr></thead><tbody>' +
+      ordered.map(g => {
         const covered = g.total >= g.need;
+        const pct = g.need > 0 ? Math.min(100, Math.round(g.total / g.need * 100)) : 100;
         const sources = g.sources.map(s => s.ore + ' ×' + fmtN(s.qty)).join(' · ');
         const locsTxt = g.locs.size ? [...g.locs].slice(0, 2).join(', ') + (g.locs.size > 2 ? ' +' + (g.locs.size - 2) : '') : '<span class="nums">—</span>';
-        return '<tr><td><b>' + g.mineral + '</b></td><td>' + fmtN(g.need) + '</td><td>' + sources + '</td><td' + (covered ? ' style="color:var(--build)"' : '') + '>' + g.mineral + ' ×' + fmtN(g.total) + (covered ? ' <span style="color:var(--build)">✓ covers</span>' : ' <span style="color:var(--danger)">short ' + fmtN(g.need - g.total) + '</span>') + '</td><td>' + locsTxt + '</td></tr>';
+        return '<tr><td>' + bvIconImg(g.mid, 'width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111') + '<b>' + g.mineral + '</b></td>'
+          + '<td>' + fmtN(g.need) + '</td>'
+          + '<td' + (covered ? ' style="color:var(--build)"' : '') + '>' + fmtN(g.total) + '</td>'
+          + '<td><div class="ref-track"><span class="ref-fill' + (covered ? '' : ' short') + '" style="width:' + pct + '%"></span></div> <span class="ref-pct">' + pct + '%' + (covered ? ' ✓' : ' · short ' + fmtN(g.need - g.total)) + '</span></td>'
+          + '<td>' + sources + '</td><td>' + locsTxt + '</td></tr>';
       }).join('') +
       '</tbody></table></div></div>';
   } catch (e) {

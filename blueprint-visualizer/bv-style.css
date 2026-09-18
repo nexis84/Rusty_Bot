@@ -117,6 +117,11 @@ footer.legal a{color:var(--text2)}
 .suggest-item.active,.suggest-item:hover{background:rgba(232,217,0,.1);color:var(--accent)}
 .suggest-item .hl{color:var(--accent);font-weight:700}
 @media(max-width:1100px){.sidebar{width:100%;min-width:0;max-height:none}.main-container{flex-direction:column}.app{height:auto}}
+/* Refinery coverage bars */
+.ref-track{height:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;min-width:90px}
+.ref-fill{display:block;height:100%;background:var(--accent);transition:width .2s}
+.ref-fill.short{background:var(--danger)}
+.ref-pct{font-size:.72rem;color:var(--text2);white-space:nowrap}
 /* Inventory tab cleanup */
 .stk-section{margin:.8rem 0 .35rem;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
 .stk-section:first-of-type{margin-top:.2rem}
