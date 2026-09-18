@@ -1688,22 +1688,8 @@ try {
   const s = parseInt(localStorage.getItem('bvStkPageSize') || '', 10);
   if (STK_PAGE_OPTIONS.includes(s)) stkPageSize = s;
 } catch {}
-function isIndustrialMaterial(id) {
-  const nid = +id;
-  // Deterministic: the SDE material set (already includes every Asteroid cat-25
-  // ore/ice + compressed/variant/moon forms) plus minerals, ice products and PI.
-  if (BV_MATERIALS.has(nid)) return true;
-  if (BV_MAT_NAMES.has(nid)) return true;
-  if (D.minerals && D.minerals[nid]) return true;
-  if (iceProductIds && iceProductIds.has(nid)) return true;
-  try {
-    const P = (typeof PI_DATA !== 'undefined' ? PI_DATA : (typeof window !== 'undefined' && window.PI_DATA ? window.PI_DATA : null));
-    if (P && P.materials && P.materials[String(nid)]) return true;
-  } catch {}
-  try { if (D.ores && D.ores.some(o => o.id === nid)) return true; } catch {}
-  try { if (iceOreList && iceOreList.some(o => +o.id === nid)) return true; } catch {}
-  return false;
-}
+const COMPREHENSIVE_IDS = new Set([18, 19, 20, 21, 22, 34, 35, 36, 37, 38, 39, 40, 44, 1055, 1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 1787, 1788, 2073, 2267, 2268, 2270, 2272, 2286, 2287, 2288, 2305, 2306, 2307, 2308, 2309, 2310, 2311, 2333, 2344, 2345, 2346, 2348, 2349, 2351, 2352, 2354, 2358, 2360, 2361, 2367, 2388, 2389, 2390, 2392, 2393, 2394, 2395, 2396, 2397, 2398, 2399, 2400, 2401, 2463, 2867, 2868, 2869, 2870, 2871, 2872, 2875, 2876, 3645, 3683, 3689, 3691, 3693, 3695, 3697, 3725, 3775, 3779, 3828, 9828, 9830, 9832, 9834, 9836, 9838, 9840, 9842, 9844, 9846, 9848, 11396, 11397, 11398, 11399, 11441, 11442, 11443, 11444, 11445, 11446, 11447, 11448, 11449, 11450, 11451, 11452, 11453, 11454, 11455, 12053, 15317, 16262, 16263, 16264, 16265, 16267, 16268, 16269, 16272, 16273, 16274, 16275, 16633, 16634, 16635, 16636, 16637, 16638, 16639, 16640, 16641, 16642, 16643, 16644, 16646, 16647, 16648, 16649, 16650, 16651, 16652, 17272, 17357, 17358, 17425, 17426, 17432, 17433, 17436, 17437, 17440, 17441, 17448, 17449, 17452, 17453, 17455, 17456, 17459, 17460, 17463, 17464, 17470, 17471, 17865, 17866, 17887, 17888, 17889, 17975, 25268, 25270, 25272, 25274, 25275, 25276, 25277, 25278, 25595, 25596, 25597, 25598, 25599, 25600, 25601, 25602, 25603, 25604, 25605, 25606, 25607, 25610, 25611, 25612, 25613, 25624, 25625, 28388, 28389, 28390, 28391, 28392, 28393, 28394, 28395, 28396, 28397, 28398, 28399, 28400, 28401, 28402, 28403, 28404, 28405, 28406, 28407, 28408, 28409, 28410, 28411, 28412, 28413, 28414, 28415, 28416, 28417, 28418, 28419, 28420, 28421, 28422, 28423, 28424, 28425, 28426, 28427, 28428, 28429, 28430, 28431, 28432, 28433, 28434, 28435, 28436, 28437, 28438, 28439, 28440, 28441, 28442, 30370, 30375, 30376, 30377, 30378, 30379]);
+function isIndustrialMaterial(id){ const nid=+id; if(COMPREHENSIVE_IDS.has(nid)) return true; if(BV_MATERIALS && BV_MATERIALS.has(nid)) return true; if(BV_MAT_NAMES && BV_MAT_NAMES.has(nid)) return true; if(D.minerals&&D.minerals[nid]) return true; if(iceProductIds && iceProductIds.has(nid)) return true; try{ const P=(typeof PI_DATA!=='undefined'?PI_DATA:(typeof window!=='undefined'&&window.PI_DATA?window.PI_DATA:null)); if(P&&P.materials&&P.materials[String(nid)]) return true; }catch{} try{ if(D.ores&&D.ores.some(o=>o.id===nid)) return true; }catch{} try{ if(iceOreList&&iceOreList.some(o=>+o.id===nid)) return true; }catch{} return false; }
 function stkTypeName(id) {
   return stkNames[id] || BV_MAT_NAMES.get(+id) || ('Type ' + id);
 }
