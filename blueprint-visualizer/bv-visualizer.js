@@ -1900,7 +1900,7 @@ function renderStkDetail() {
           h += '<div style="overflow-x:auto;margin-top:.3rem"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Can / Container</th><th></th></tr></thead><tbody>';
           for (const a of arr.slice(0, 50)) {
             const nm = stkTypeName(a.type_id);
-            h += '<tr><td><img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:20px;height:20px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(a.quantity) + '</td><td>' + (a._containerName || '<span class="nums">—</span>') + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+            h += '<tr><td>' + iconT + nm + '</td><td>' + fmtN(a.quantity) + '</td><td>' + (a._containerName || '<span class="nums">—</span>') + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
           }
           if (arr.length > 50) h += '<tr><td colspan="4" class="hint">+ ' + (arr.length-50) + ' more in this hangar/bay</td></tr>';
           h += '</tbody></table></div></details>';
@@ -1921,7 +1921,9 @@ function renderStkDetail() {
       for (const a of page) {
         const nm = stkTypeName(a.type_id);
         const group = stkTypeGroups[a.type_id] || '';
-        h += '<tr><td><img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:22px;height:22px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">' + nm + '</td>'
+        const isBp2 = /blueprint/i.test(nm);
+        const icon2 = isBp2 ? '' : '<img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'" style="width:22px;height:22px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">';
+        h += '<tr><td>' + icon2 + nm + '</td>'
           + '<td>' + fmtN(a.quantity) + '</td>'
           + '<td>' + (a.system_name || '—') + '</td>'
           + '<td>' + (a.location_name || '—') + '</td>'
@@ -1981,7 +1983,9 @@ function renderStkRows() {
     for (const r of page) {
       const nm = stkTypeName(r.typeId);
       const sys = sysFor(r.typeId);
-      h += '<tr><td><img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
+      const isBp = /blueprint/i.test(nm);
+      const icon = isBp ? '' : '<img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">';
+      h += '<tr><td>' + icon + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
     }
   }
   h += '</tbody></table></div>';
@@ -2045,7 +2049,7 @@ function renderStkDetail() {
           h += '<div style="overflow-x:auto;margin-top:.3rem"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Can / Container</th><th></th></tr></thead><tbody>';
           for (const a of arr.slice(0, 50)) {
             const nm = stkTypeName(a.type_id);
-            h += '<tr><td><img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:20px;height:20px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(a.quantity) + '</td><td>' + (a._containerName || '<span class="nums">â€”</span>') + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+            h += '<tr><td>' + iconT + nm + '</td><td>' + fmtN(a.quantity) + '</td><td>' + (a._containerName || '<span class="nums">â€”</span>') + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
           }
           if (arr.length > 50) h += '<tr><td colspan="4" class="hint">+ ' + (arr.length-50) + ' more in this hangar/bay</td></tr>';
           h += '</tbody></table></div></details>';
