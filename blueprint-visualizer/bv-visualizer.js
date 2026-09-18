@@ -2047,6 +2047,9 @@ function invCategory(typeId){ const id=+typeId; return INV_CAT_BY_ID[id] || (BV_
 function invIsMaterial(typeId){ const c=invCategory(typeId); return c!=='Other'; }
 function invCategory(typeId){ const id=+typeId; if(INV_MINERALS[id]) return 'Mineral'; if(INV_ORE_RAW[id]) return 'Ore'; if(INV_ORE_COMP[id]) return 'Compressed Ore'; if(INV_ICE_RAW[id]) return 'Ice'; if(INV_ICE_COMP[id]) return 'Compressed Ice'; if(INV_ICE_PROD[id]) return 'Ice Product'; if(INV_MOON[id]) return 'Moon Ore'; if(INV_PI[id]) return 'PI'; if(BV_MATERIALS && BV_MATERIALS.has(id)) return 'Material'; if(D.minerals&&D.minerals[id]) return 'Mineral'; return 'Other'; }
 function invIsMaterial(typeId){ return invCategory(typeId)!=='Other'; }
+
+function stkTypeName(id){ return (typeof stkNames!=='undefined' && stkNames[id]) || (typeof BV_MAT_NAMES!=='undefined' && BV_MAT_NAMES.get(+id)) || ('Type '+id); }
+function isIndustrialMaterial(id){ const nid=+id; if(typeof BV_MATERIALS!=='undefined' && BV_MATERIALS.has(nid)) return true; if(typeof BV_MAT_NAMES!=='undefined' && BV_MAT_NAMES.has(nid)) return true; if(typeof INV_CAT_BY_ID!=='undefined' && INV_CAT_BY_ID[nid]) return INV_CAT_BY_ID[nid]!=='Other'; return false; }
 const INV_CACHE_KEY = 'bvInvCache';
 function invCacheRead(){ try{ return JSON.parse(localStorage.getItem(INV_CACHE_KEY)||'{}'); }catch{ return {}; } }
 function invCacheWrite(c){ try{ localStorage.setItem(INV_CACHE_KEY, JSON.stringify(c)); }catch{} }
@@ -2198,5 +2201,6 @@ document.addEventListener('DOMContentLoaded', () => {
   $('invQueueBom').onclick = () => { if (!invQueue.length) return; const lines = invQueue.map(q => q.d.runsNeeded + ' x ' + q.t2 + ' (' + q.d.name + ')'); window.open(appraisalURL(lines), '_blank', 'noopener'); };
   $('ledgerExport').onclick = () => { const l = ledRead(); if (!l.length) return; const csv = 'ts,blueprint,runs,cost,revenue,profit,hub\n' + l.map(e => [new Date(e.ts).toISOString(), '"' + e.bp + '"', e.runs, e.cost, e.revenue, e.profit, e.hub].join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'bv-ledger.csv'; a.click(); };
   $('ledgerClear').onclick = () => { localStorage.removeItem('bvLedger'); renderLedger(); };
-});
+}
+);
 })();
