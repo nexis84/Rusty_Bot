@@ -1625,12 +1625,12 @@ function stkFilteredAgg() {
     
     // Check for compressed ores specifically
     const compressedOreIds = [51647, 51648, 51649, 51650, 51651, 51652, 51653, 51654, 51655, 51656, 51657, 51658, 51659, 51660, 51661, 51662, 51663, 51664, 51665, 51666, 51667, 51668, 51669, 51670, 51671, 51672, 51673, 51674, 51675, 51676, 51677, 51678, 51679, 51680, 51681, 51682, 51683, 51684, 51685, 51686, 51687, 51688, 51689, 51690, 51691, 51692, 51693, 51694, 51695, 51696];
-    const hasCompressedOres = entries.filter(e => compressedOreIds.includes(e.typeId) || (stkNames[e.typeId] && stkNames[e.typeId].toLowerCase().includes('compressed')));
-    console.log('[BV] Compressed ores in inventory:', hasCompressedOres.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    const hasCompressedOres = entries.filter(e => compressedOreIds.includes(e.typeId) || /compressed/i.test(stkTypeName(e.typeId)));
+    console.log('[BV] Compressed ores in inventory:', hasCompressedOres.map(e => ({ id: e.typeId, name: stkTypeName(e.typeId), inMaterials: isIndustrialMaterial(e.typeId), qty: e.qty })));
     
     // Also check all items with "compressed" in the name
-    const allCompressedItems = entries.filter(e => stkNames[e.typeId] && stkNames[e.typeId].toLowerCase().includes('compressed'));
-    console.log('[BV] All items with "compressed" in name:', allCompressedItems.map(e => ({ id: e.typeId, name: stkNames[e.typeId], inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    const allCompressedItems = entries.filter(e => /compressed/i.test(stkTypeName(e.typeId)));
+    console.log('[BV] All items with "compressed" in name:', allCompressedItems.map(e => ({ id: e.typeId, name: stkTypeName(e.typeId), inMaterials: isIndustrialMaterial(e.typeId), qty: e.qty })));
     
     // Show top 50 items by quantity to see what's actually in the inventory
     const topItems = entries.sort((a, b) => b.qty - a.qty).slice(0, 50);
@@ -1669,12 +1669,12 @@ function renderStkRows() {
   const industrialCount = Object.keys(srcAgg).filter(id => isIndustrialMaterial(+id)).length;
   const sysVal = stkSysId();
   const locName = stkCurrentSysName();
-  const countLine = '<p class="hint">' + totalTypes + ' types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + stkSysIdName(sysVal) : ' in hangar')) + ' · ' + industrialCount + ' industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + '</p>';
+  const countLine = '<p class="hint">' + totalTypes + ' unique types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + stkSysIdName(sysVal) : ' in hangar')) + ' · ' + industrialCount + ' unique industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + '</p>';
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
     : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
   let h = countLine + pager;
-  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty owned</th><th>Refines / Location</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty owned (all stacks)</th><th>Refines / Location</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
   if (!page.length) {
     h += '<tr><td colspan="6" style="color:var(--text3)">No industrial materials match — clear the search.</td></tr>';
   } else {
