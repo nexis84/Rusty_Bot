@@ -1485,7 +1485,14 @@ function stkPassesOneFilter(a, f) {
   const fv = stkGetField(a, col);
   return stkEvalCompare(fv, f.compare, txt);
 }
+function stkAdvancedActive() {
+  // The JeveAssets filter-manager UI was removed from the page; stale saved
+  // filters in localStorage must not silently nuke results with no way to clear them.
+  try { if (!$('stkFilterRows')) return false; } catch { return false; }
+  return !!(stkFilters && stkFilters.length);
+}
 function stkPassesAdvanced(a) {
+  if (!stkAdvancedActive()) return true;
   if (!stkFilters || !stkFilters.length) return true;
   const enabled = stkFilters.filter(f => f.enabled && ((f.text || '').trim() !== '' || f.compare === 'Regex'));
   if (!enabled.length) return true;
@@ -1533,7 +1540,13 @@ function stkFlagMatchAsset(a, flag) {
   const q = flag.toLowerCase();
   if (q === 'hangar') return f.includes('hangar') || f.includes('corpsag') || f.includes('corp');
   if (q === 'bay') return f.includes('bay');
-  if (q === 'can') return cn.includes('container') || cg.includes('container') || ['cargo container','secure cargo container','audit log secure container','freight container'].includes(cg);
+  if (q === 'can') {
+    // Structural truth (like assest test: location_id in item_map ⇒ inside a container/can):
+    // container names may be unresolved ("Type 12345") when the names batch 400s,
+    // so a nested item counts as in a can/container even without the word in its name.
+    if (a._isNested) return true;
+    return cn.includes('container') || cg.includes('container') || ['cargo container','secure cargo container','audit log secure container','freight container'].includes(cg);
+  }
   if (q === 'assetsafety') return f.includes('assetsafety');
   if (q === 'corp hangar') return f.includes('corpsag');
   return f.includes(q) || cn.includes(q);
@@ -1747,6 +1760,7 @@ function buildStkEnriched(raw, idToAsset, locSys, stkLocationNamesArg) {
       _containerName: containerName,
       _containerGroup: containerGroup,
       _flagDisplay: flagDisplay,
+      _isNested: !!(a.location_id && idToAsset.has(String(a.location_id))),
       _searchText: (typeName + ' ' + containerName + ' ' + flagDisplay).toLowerCase(),
       _systemText: (systemName + ' ' + locationName).toLowerCase()
     };
@@ -1842,7 +1856,7 @@ function renderStkDetail() {
   const sysName = stkCurrentSysName();
   const sysHint = sysName ? ' @ ' + sysName : '';
   const flagHint = flag !== 'All' ? ' · ' + flag : '';
-  const advHint = (stkFilters && stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length) ? ' · ' + stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length + ' filter' + (stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length>1?'s':'') : '';
+  const advHint = (stkAdvancedActive() && stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length) ? ' · ' + stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length + ' filter' + (stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length>1?'s':'') : '';
   const indHint = stkIndustrialOnly() ? ' · Industrial only' : '';
   const display = filtered.slice(0, STK_MAX_DISPLAY);
   const trunc = total > STK_MAX_DISPLAY ? ' (showing ' + display.length + '/' + total + ' — filter more or raise limit)' : '';
@@ -2362,28 +2376,19 @@ async function loadInventory() {
         }
         if (i+200 < stationIds.length) await new Promise(r=>setTimeout(r,250));
       }
-// citadels (>=1e12) -> batch POST /universe/names first (no 403 spam), then authed fallback for missing
+// citadels (>=1e12) -> cache or placeholder only (no POST: ESI /universe/names
+      // rejects structure IDs with 400, and authed GET 403s without ACL — the
+      // system attribution already happened via locSys/trust fallback above, so
+      // names here are display-only). Mirrors assest test silent fallback.
       const structIds = locIds.filter(id => String(id).length >= 12);
       if (structIds.length) {
         const denied = bvDeniedRead(), now = Date.now();
-        // Batch resolve structure names via POST /universe/names (no ACL needed) — mirrors assest test/esi_client.py:resolve_names fallback
-        const unresolvedForPost = structIds.filter(sid => {
-          try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name) { stkLocationNames[sid]=sc[sid].name; return false; } } catch {}
-          if (stkLocationNames[sid]) return false;
-          if (denied[sid] && now - denied[sid] < 3600e3) { stkLocationNames[sid]='Structure …' + String(sid).slice(-4); return false; }
-          return true;
-        });
-        for (let i=0;i<unresolvedForPost.length;i+=200) {
-          const chunk = unresolvedForPost.slice(i,i+200).map(n=>+n).filter(n=>Number.isFinite(n));
-          if (!chunk.length) continue;
-          try {
-            const nm = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method:'POST', headers:{'Content-Type':'application/json','X-Compatibility-Date':'2026-08-18'}, body: JSON.stringify(chunk) });
-            (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name) { stkLocationNames[n.id]=n.name; try { const sc=bvStructCacheRead(); sc[n.id]={name:n.name, system_id: sc[n.id]?.system_id || locSys[n.id], ts:Date.now()}; bvStructCacheWrite(sc); } catch {} } });
-          } catch(e){ /* POST can 404 for unknown structures — fallback to placeholder below */ }
-          if (i+200 < unresolvedForPost.length) await new Promise(r=>setTimeout(r,250));
+        for (const sid of structIds) {
+          try { const sc=bvStructCacheRead(); if(sc[sid] && sc[sid].name) { stkLocationNames[sid]=sc[sid].name; continue; } } catch {}
+          if (stkLocationNames[sid]) continue;
+          if (denied[sid] && now - denied[sid] < 3600e3) { stkLocationNames[sid]='Structure …' + String(sid).slice(-4); continue; }
+          stkLocationNames[sid]='Structure …' + String(sid).slice(-4);
         }
-        // Final placeholder for any still missing (no authed GET to avoid 403 spam — mirrors assest test silent fallback)
-        for (const sid of structIds) if (!stkLocationNames[sid]) stkLocationNames[sid]='Structure …' + String(sid).slice(-4);
         try{ bvDeniedWrite(denied); }catch{}
       }
 // stkSystems keyed by systemId + per-location system name
