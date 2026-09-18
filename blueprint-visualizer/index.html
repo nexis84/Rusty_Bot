@@ -115,7 +115,11 @@
       <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkTrustSystem" checked> Trust selected system for structures ESI can’t access (common for personal assets in shared citadels)</label>
         <div class="field" style="margin:.4rem 0"><label style="display:flex;gap:.4rem;align-items:center;font-size:.82rem;color:var(--text2)"><input type="checkbox" id="stkIndustrialOnly"> Industrial only (minerals/ore/ice/PI — off = show all like JeveAssets)</label></div>
-
+        <div class="grid2">
+          <div class="field"><label>Location flag — hanger/bay/can</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option></select></div>
+          <div class="field"><label>Quick search</label><input id="stkSearch" class="form-input" placeholder="e.g. tritanium, rifter…" autocomplete="off"></div>
+        </div>
+        <p class="hint" style="margin:-.3rem 0 .4rem">Searches all hangers, bays and cans via <code>location_flag</code> + container chain (like assest test).</p>
 
        <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button><button id="stkExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button></div>
        <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
@@ -209,5 +213,6 @@
     <script src="bv-esi-auth.js?v=6"></script>
     <script src="bv-visualizer.js?v=117"></script>
 <div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v117 — citadel/can via stationFor + simple one-box (820 in O4T-Z5)</div>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v118 — simple one-box + detailed hanger/bay/can</div>
 </body>
 </html>

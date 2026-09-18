@@ -1944,7 +1944,6 @@ function renderStkDetail() {
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
   // simple one-box view: Item | Qty | System  — hide detailed per-stack table
-  const dw = $('stkDetailWrap'); if (dw) dw.innerHTML = '';
   const rows = stkFilteredAgg();
   const srcAgg = stkCurrentAgg();
   const totalTypes = Object.keys(srcAgg).length;
@@ -1991,8 +1990,102 @@ function renderStkRows() {
   const sel = box.querySelector('[data-stkpgsize]');
   if (sel) sel.onchange = () => { const n = parseInt(sel.value,10); if (STK_PAGE_OPTIONS.includes(n)) { stkPageSize=n; try{localStorage.setItem('bvStkPageSize', String(n));}catch{} } stkPage=1; renderStkRows(); };
   if (totals) totals.textContent = rows.length + ' types in view';
+  renderStkDetail();
 }
-function renderStkDetail(){ const dw=$('stkDetailWrap'); if(dw) dw.innerHTML=''; }
+function renderStkDetail() {
+  const wrap = $('stkDetailWrap'); if (!wrap) return;
+  if (!stkEnrichedAll.length) { wrap.innerHTML = ''; return; }
+  const filtered = stkDetailFiltered();
+  const total = filtered.length;
+  const flag = stkFlag();
+  const sysName = stkCurrentSysName();
+  const sysHint = sysName ? ' @ ' + sysName : '';
+  const flagHint = flag !== 'All' ? ' Â· ' + flag : '';
+  const advHint = (stkFilters && stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length) ? ' Â· ' + stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length + ' filter' + (stkFilters.filter(f=>f.enabled && (f.text||'').trim()).length>1?'s':'') : '';
+  const indHint = stkIndustrialOnly() ? ' Â· Industrial only' : '';
+  const display = filtered.slice(0, STK_MAX_DISPLAY);
+  const trunc = total > STK_MAX_DISPLAY ? ' (showing ' + display.length + '/' + total + ' â€” filter more or raise limit)' : '';
+  // pagination for detail (25/page, but also respect STK_MAX_DISPLAY)
+  const pages = Math.max(1, Math.ceil(display.length / STK_DETAIL_PAGE_SIZE));
+  if (stkDetailPage > pages) stkDetailPage = pages;
+  const start = (stkDetailPage - 1) * STK_DETAIL_PAGE_SIZE;
+  const page = display.slice(start, start + STK_DETAIL_PAGE_SIZE);
+  let h = '<div class="panel" style="margin-top:.6rem;background:var(--panel)"><div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:space-between"><h4 style="margin:0"><i class="fas fa-layer-group"></i> Per-stack detail <span class="pill" style="margin-left:.4rem">' + total + ' stacks' + sysHint + flagHint + advHint + indHint + trunc + '</span></h4>'
+    + '<button class="mode-btn" data-tree-toggle><i class="fas fa-' + (stkTreeMode ? 'list' : 'sitemap') + '"></i> ' + (stkTreeMode ? 'Flat' : 'Tree') + '</button></div>'
+    + '<span class="hint" style="font-weight:400">System | Structure | Hangar/Bay | Can Â· like JeveAssets Tree</span>';
+  h += '<p class="hint" style="margin:.2rem 0">Matches <b>assest test</b> `main.py:249` columns â€” flag includes `CorpSAG`â†’Hangar, Bay is `*Bay`, Can is container name/group. Sort by clicking headers. Advanced filters: And=must match, Or+Group=one in group (wiki/manual/filters).</p>';
+  const pager = pages > 1
+    ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-dpg="prev"' + (stkDetailPage <= 1 ? ' disabled' : '') + '>â€¹ Prev</button><span class="hint">Page ' + stkDetailPage + ' of ' + pages + ' â€” showing ' + (start+1) + 'â€“' + (start+page.length) + ' of ' + display.length + '</span><button class="mode-btn" data-dpg="next"' + (stkDetailPage >= pages ? ' disabled' : '') + '>Next â€º</button></div>'
+    : (total ? '<p class="hint">' + total + ' stacks' + (total > STK_DETAIL_PAGE_SIZE ? ' Â· ' + STK_DETAIL_PAGE_SIZE + '/page' : '') + '</p>' : '');
+  h += pager;
+  if (stkTreeMode && filtered.length) {
+    // JeveAssets-like tree grouped by system > location > flag
+    const tree = {};
+    for (const a of filtered.slice(0, STK_MAX_DISPLAY)) {
+      const sys = a.system_name || 'Unknown System';
+      const loc = a.location_name || 'Unknown Location';
+      const fl = a._flagDisplay || a.location_flag || 'Unknown';
+      if (!tree[sys]) tree[sys] = {};
+      if (!tree[sys][loc]) tree[sys][loc] = {};
+      if (!tree[sys][loc][fl]) tree[sys][loc][fl] = [];
+      tree[sys][loc][fl].push(a);
+    }
+    h += '<div style="display:flex;flex-direction:column;gap:.4rem">';
+    for (const sys of Object.keys(tree).sort()) {
+      const locs = tree[sys];
+      const sysCount = Object.values(locs).reduce((s, flags) => s + Object.values(flags).reduce((s2, arr) => s2 + arr.length, 0), 0);
+      h += '<details open style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem"><summary style="cursor:pointer;font-weight:700">' + sys + ' <span class="pill">' + sysCount + '</span></summary>';
+      for (const loc of Object.keys(locs).sort()) {
+        const flags = locs[loc];
+        const locCount = Object.values(flags).reduce((s, arr) => s + arr.length, 0);
+        h += '<details open style="margin:.35rem 0 0 1rem;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:.3rem"><summary style="cursor:pointer">' + loc + ' <span class="nums">' + locCount + '</span></summary>';
+        for (const fl of Object.keys(flags).sort()) {
+          const arr = flags[fl];
+          h += '<details open style="margin:.3rem 0 0 1rem"><summary style="cursor:pointer" class="nums">' + fl + ' <span class="pill">' + arr.length + '</span></summary>';
+          h += '<div style="overflow-x:auto;margin-top:.3rem"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Can / Container</th><th></th></tr></thead><tbody>';
+          for (const a of arr.slice(0, 50)) {
+            const nm = stkTypeName(a.type_id);
+            h += '<tr><td><img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:20px;height:20px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(a.quantity) + '</td><td>' + (a._containerName || '<span class="nums">â€”</span>') + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+          }
+          if (arr.length > 50) h += '<tr><td colspan="4" class="hint">+ ' + (arr.length-50) + ' more in this hangar/bay</td></tr>';
+          h += '</tbody></table></div></details>';
+        }
+        h += '</details>';
+      }
+      h += '</details>';
+    }
+    h += '</div>';
+  } else {
+    h += '<div style="overflow-x:auto"><table class="bom"><thead><tr>'
+      + '<th style="cursor:pointer" data-sort="name">Item ' + (stkSortCol==='name' ? (stkSortRev?'â–¼':'â–²') : '') + '</th>'
+      + '<th style="cursor:pointer" data-sort="qty">Qty ' + (stkSortCol==='qty' ? (stkSortRev?'â–¼':'â–²') : '') + '</th>'
+      + '<th>System</th><th>Structure / Station</th><th>Hangar / Bay</th><th>Can / Container</th><th>Group</th><th></th></tr></thead><tbody>';
+    if (!page.length) {
+      h += '<tr><td colspan="8" style="color:var(--text3)">No stacks match â€” clear search/flag/filters.</td></tr>';
+    } else {
+      for (const a of page) {
+        const nm = stkTypeName(a.type_id);
+        const group = stkTypeGroups[a.type_id] || '';
+        h += '<tr><td><img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:22px;height:22px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">' + nm + '</td>'
+          + '<td>' + fmtN(a.quantity) + '</td>'
+          + '<td>' + (a.system_name || 'â€”') + '</td>'
+          + '<td>' + (a.location_name || 'â€”') + '</td>'
+          + '<td>' + (a._flagDisplay || 'â€”') + '</td>'
+          + '<td>' + (a._containerName || '<span class="nums">â€”</span>') + '</td>'
+          + '<td class="nums">' + (group || 'â€”') + '</td>'
+          + '<td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+      }
+    }
+    h += '</tbody></table></div>';
+  }
+  if (total > STK_MAX_DISPLAY) h += '<p class="hint" style="margin-top:.4rem">Truncated ' + total + ' rows to ' + STK_MAX_DISPLAY + ' for speed â€” use filters to narrow (like `assest test/main.py:716`).</p>';
+  h += '</div>';
+  wrap.innerHTML = h;
+  wrap.querySelectorAll('[data-sort]').forEach(th => th.onclick = () => stkSortBy(th.dataset.sort));
+  wrap.querySelectorAll('[data-dpg]').forEach(b => b.onclick = () => { stkDetailPage += (b.dataset.dpg === 'next' ? 1 : -1); renderStkDetail(); });
+  const tbtn = wrap.querySelector('[data-tree-toggle]');
+  if (tbtn) tbtn.onclick = () => { stkTreeMode = !stkTreeMode; try { localStorage.setItem('bvStkTreeMode', stkTreeMode ? '1' : '0'); } catch {} renderStkDetail(); };
+}
 async function loadInventory() {
   const box = $('stkList'), st = $('stkStatus'), totals = $('stkTotals');
   if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needs esi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
