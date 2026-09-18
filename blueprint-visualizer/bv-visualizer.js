@@ -2007,8 +2007,10 @@ function renderStkOverrides() {
   if (!mappedIds.length && !open.length) { box.innerHTML = ''; return; }
   let h = '';
   if (open.length) {
+    const bulkSys = (!stkAllSystems() && stkSysId()) ? stkSysId() : null;
     h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-question-circle"></i> Unresolved structures (' + open.length + ') — ESI 403, system unknown</h4>'
       + '<p class="hint">Citadels ESI won\'t identify (no ESI docking access, new or dead structures). If you know where one lives, map it — it joins the next scan. Full IDs shown because suffixes collide.</p>'
+      + (bulkSys ? '<div style="margin:.3rem 0 .5rem"><button class="calc-btn" data-mapall="' + bulkSys + '"><i class="fas fa-map-marked-alt"></i> Map all ' + open.length + ' to ' + stkSysIdName(bulkSys) + '</button> <span class="hint">You said you dock anywhere here — one click records every ID above as this system. Mappings stay editable below.</span></div>' : '')
       + open.slice(0, 50).map(e => '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;padding:.3rem 0;border-bottom:1px solid var(--border)">'
         + '<span class="nums" title="Full location ID">' + e.id + (e.customName ? ' · <b>' + String(e.customName).replace(/</g, '&lt;') + '</b>' : '') + '<br><span style="opacity:.75">' + e.reason + '</span></span>'
         + '<span style="flex:1;min-width:140px">' + e.stacks + ' stacks · ' + fmtN(e.qty) + ' units · ' + e.top.map(t => t.name + ' ×' + fmtN(t.qty)).join(', ') + '</span>'
@@ -2040,6 +2042,20 @@ function renderStkOverrides() {
     status('Mapping removed — rescanning…');
     loadInventory();
   });
+  const mapAll = box.querySelector('[data-mapall]');
+  if (mapAll) mapAll.onclick = () => {
+    const sysId = mapAll.dataset.mapall;
+    if (!sysId) return;
+    const o = stkOverrideRead();
+    let n = 0;
+    for (const e of ((stkUnresolvedLocs || []).filter(x => o[x.id] == null))) {
+      o[e.id] = sysId;
+      n++;
+    }
+    stkOverrideWrite(o);
+    status('Mapped ' + n + ' structures → ' + stkSysIdName(sysId) + ' — rescanning…');
+    loadInventory();
+  };
 }
 function stkDetailFiltered() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
