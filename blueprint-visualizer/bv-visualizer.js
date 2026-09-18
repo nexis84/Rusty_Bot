@@ -91,7 +91,39 @@ async function marketPrice(typeId, region, basis) {
   const p = basis === 'buy' ? Math.max(...orders.map(o => o.price)) : Math.min(...orders.map(o => o.price));
   priceCache.set(key, p); return p;
 }
-async function typeVolume(id) { try { const t = await fetchJSON(ESI + '/universe/types/' + id + '/'); return t.volume || 0; } catch { return 0; } }
+// Type volumes are static SDE data — cache in memory + localStorage (no TTL)
+// and seed from the baked ore table, so volume math never storms ESI twice.
+const volCache = new Map();
+(function loadVolCache() {
+  // NOTE: BV_ORES seeding happens after its definition below (TDZ safe).
+  try {
+    const saved = JSON.parse(localStorage.getItem('bvVols') || '{}');
+    for (const [k, v] of Object.entries(saved || {})) if (!volCache.has(+k)) volCache.set(+k, +v || 0);
+  } catch {}
+})();
+function saveVolCache() {
+  try {
+    const o = {};
+    for (const [k, v] of volCache) o[k] = v;
+    localStorage.setItem('bvVols', JSON.stringify(o));
+  } catch {}
+}
+async function typeVolume(id) {
+  const key = +id;
+  if (volCache.has(key)) return volCache.get(key);
+  try { const t = await fetchJSON(ESI + '/universe/types/' + id + '/'); volCache.set(key, t.volume || 0); return t.volume || 0; }
+  catch { return 0; }
+}
+// Batch-preload volumes for a set of type IDs (concurrency 10) so render
+// loops below hit cache instead of firing sequential ESI requests.
+async function preloadVolumes(ids) {
+  const missing = [...new Set((ids || []).map(n => +n).filter(n => Number.isFinite(n) && n > 0 && !volCache.has(n)))];
+  if (!missing.length) return;
+  for (let i = 0; i < missing.length; i += 10) {
+    await Promise.all(missing.slice(i, i + 10).map(async id => { try { await typeVolume(id); } catch {} }));
+  }
+  saveVolCache();
+}
 
 // ---- init selects ----
 function fillRange(el, max, def) { el.innerHTML = ''; for (let i = 0; i <= max; i++) { const o = document.createElement('option'); o.value = i; o.textContent = (el.id === 'me' || el.id === 'te') ? i + '%' : i; if (i === def) o.selected = true; el.appendChild(o); } }
@@ -479,6 +511,7 @@ function ownCell(l) {
 async function renderBom(runs) {
   S.bom = effLeafCost(runs);
   const tb = $('bomBody');
+  await preloadVolumes(S.bom.map(l => l.type_id));
   let vol = 0; for (const l of S.bom) vol += (await typeVolume(l.type_id)) * l.qty;
   let total = 0;
   tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + '</td></tr>'; }).join('');
@@ -499,6 +532,12 @@ async function renderBuildList(runs) {
   let html = '';
   let grandTotal = 0, grandVol = 0, totalRows = 0;
   const aggregated = new Map();
+  // Preload all build-list volumes in one batch (was sequential ESI per row).
+  try {
+    const allIds = [];
+    for (const b of builds) for (const m of ((b.child && b.child.materials) || [])) allIds.push(m.type_id);
+    await preloadVolumes(allIds);
+  } catch {}
   for (let idx=0; idx<builds.length; idx++) {
     const c = builds[idx];
     const need = c.perRun * (S.runs || 1);
@@ -598,6 +637,8 @@ async function renderShoppingList(runs) {
   const snap = ded.snap;
   const locNameForDeduct = doDeduct ? ((snap && snap.systemName) ? (snap.systemName + (snap.eff ? ' @ ' + Math.round(snap.eff*100) + '% refine' : '')) : (stkCurrentSysName() || 'all locations')) : '';
   // compute per-line have/to-buy and volumes/totals
+  // Preload volumes in one batch (was sequential ESI per row).
+  try { await preloadVolumes(shop.map(l => l.type_id)); } catch {}
   let volNeed = 0, volBuy = 0, totalNeed = 0, totalBuy = 0;
   const rows = shop.map(l => {
     const have = doDeduct && ownUse(l.type_id) ? (invAgg[l.type_id] || 0) : 0;
@@ -1226,6 +1267,8 @@ function oreFromTable(id) {
   if (!e) return null;
   return { id: +id, name: e.name, volume: e.volume, portion: e.portion, yields: { ...e.yields }, category: e.category, baked: true };
 }
+// Seed volume cache from the baked ore table (runs after both exist).
+try { for (const [id, e] of BV_ORES) { if (!volCache.has(id)) volCache.set(id, e.volume || 0); } } catch {}
 async function fetchOre(id, nameHint) {
   if (oreCache.has(id)) return oreCache.get(id);
   const baked = oreFromTable(id);
