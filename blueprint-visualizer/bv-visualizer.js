@@ -781,10 +781,11 @@ function renderBuildProgress() {
   }
   const { rows, pinned, selPin } = bpProgModel();
   const ticked = bpProgRead();
-  // Default to fully expanded whenever the tracked build changes; manual
-  // collapse choices persist only while viewing the same blueprint.
+  // Default to fully expanded whenever the tracked build changes (blueprint,
+  // part count or run count — re-sending the same blueprint with new runs
+  // counts as new); manual collapse choices persist only within that view.
   try {
-    const srcKey = src.bpId + '|' + (src.children ? src.children.length : 0);
+    const srcKey = src.bpId + '|' + (src.children ? src.children.length : 0) + '|' + (src.runs || S.runs || 1);
     if (bpProgLastSrc !== srcKey) { bpProgLastSrc = srcKey; bpProgCollapsed.clear(); }
   } catch {}
   // Pin selector: Live + up to 5 pinned builds (persisted). Unpin via ×.
