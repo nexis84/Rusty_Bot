@@ -108,12 +108,11 @@
 
   <div class="panel tab-content" id="tab-stk">
      <h3><i class="fas fa-boxes"></i> Inventory</h3>
-     <p class="hint">Enter your <b>build system</b>, pick <b>Personal</b> or <b>Corp</b> (or Both), then <b>Scan system</b>. We pull every item in that system and list the industry materials — all ore, compressed ore, ice and compressed ice (worked out at your refining % from Calc &gt; Rigs). Tick <b>Use these</b> to deduct them from Shopping/Build/Mining and see them in the Refinery panel.</p>
+     <p class="hint">Enter your <b>build system</b>, pick <b>Personal</b> or <b>Corp</b> (or Both), then <b>Scan system</b>. We pull every accessible item in that system — structures ESI can't resolve are excluded, never guessed. Tick <b>Industrial only</b> to limit the list, snapshot and calculator to build materials (ore, compressed ore, ice, moon, gas, minerals, PI at your refining % from Calc &gt; Rigs). Tick <b>Use these</b> to deduct them from Shopping/Build/Mining and see them in the Refinery panel.</p>
       <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
       <input type="hidden" id="stkSystem" value="">
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems"> Search all personal systems (include assets outside the selected build system)</label>
       <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkTrustSystem" checked> Trust selected system for structures ESI can’t access (common for personal assets in shared citadels)</label>
         <div class="field" style="margin:.4rem 0"><label style="display:flex;gap:.4rem;align-items:center;font-size:.82rem;color:var(--text2)"><input type="checkbox" id="stkIndustrialOnly"> Industrial only (minerals/ore/ice/PI — off = show all like JeveAssets)</label></div>
         <div class="grid2">
           <div class="field"><label>Location flag — hanger/bay/can</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option></select></div>
@@ -210,7 +209,7 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=123"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v123 — remove per-stack detail + fix iconT crash + simple one-box</div>
+    <script src="bv-visualizer.js?v=125"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v125 — custom container/ship names via ESI assets/names</div>
 </body>
 </html>

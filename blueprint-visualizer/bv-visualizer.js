@@ -129,7 +129,7 @@ function init() {
 function savePrefs() {
   const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource', 'stkAllSystems'];
   const p = {}; ids.forEach(k => { const el = $(k); if (el) p[k] = el.value; });
-  const trust = $('stkTrustSystem'); if (trust) p.stkTrustSystem = trust.checked;
+
   try { localStorage.setItem('bvPrefs', JSON.stringify(p)); } catch {}
 }
 function refreshPresets(pr) { $('preset').innerHTML = '<option value="">— Load saved preset —</option>' + Object.keys(pr).map(k => '<option>' + k + '</option>').join(''); }
@@ -1431,6 +1431,39 @@ let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [], stkSysNames = {}, stk
 let stkOreDetail = [], stkRefineEff = 0.75;
 // Option A: port from assest test — enriched per-stack list + flag/container/type caches + detail view state
 let stkEnriched = [], stkEnrichedAll = [], stkTypeFlags = {}, stkTypeGroups = {}, stkContainerNames = {}, stkDetailPage = 1;
+// Custom user-set names for containers/ships (ESI assets/names, item_id -> name).
+// Preferred over type names in container display; cleared on Clear/source change.
+let stkCustomNames = {};
+// Resolve a container/ship asset's display name: custom name first, then type name.
+function stkContainerDisplayName(itemId, typeId) {
+  try { if (itemId != null && stkCustomNames[String(itemId)]) return stkCustomNames[String(itemId)]; } catch {}
+  try {
+    const pid = +typeId;
+    if (stkNames[pid]) return stkNames[pid];
+    if (BV_MAT_NAMES && BV_MAT_NAMES.get(pid)) return BV_MAT_NAMES.get(pid);
+  } catch {}
+  return 'Type ' + typeId;
+}
+// Batch-fetch custom names for container/ship item_ids (ESI assets/names,
+// max 1000 IDs/call, same scopes as the asset scan so no relogin is needed).
+// Missing entries simply have no custom name — callers fall back to type names.
+async function stkFetchCustomNames(parentIds, src, cid, corpId) {
+  const out = {};
+  const ids = [...new Set((parentIds || []).map(n => +n).filter(n => Number.isFinite(n) && n > 0))];
+  if (!ids.length) return out;
+  const posts = [];
+  if ((src === 'personal' || src === 'both') && cid) posts.push('/characters/' + cid + '/assets/names/?datasource=tranquility');
+  if ((src === 'corp' || src === 'both') && corpId) posts.push('/corporations/' + corpId + '/assets/names/?datasource=tranquility');
+  for (const path of posts) {
+    for (let i = 0; i < ids.length; i += 1000) {
+      try {
+        const rows = await BVAuth.api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids.slice(i, i + 1000)) });
+        (Array.isArray(rows) ? rows : []).forEach(r => { if (r && r.item_id && r.name) out[String(r.item_id)] = r.name; });
+      } catch (e) { console.warn('[BV] assets/names batch failed (' + path + '):', e && e.message); break; }
+    }
+  }
+  return out;
+}
 const STK_DETAIL_PAGE_SIZE = 25;
 let stkSortCol = 'name', stkSortRev = false;
 let _stkFilterTimer = null;
@@ -1657,13 +1690,14 @@ async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId,
     if (D.minerals && D.minerals[t]) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; }
     if (iceProductIds.has(t)) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; }
     try { if (isPI(t)) { refinedMap[t] = (refinedMap[t] || 0) + qty; continue; } } catch {}
-    // try ore refinement — ONLY Asteroid-category types (ore, compressed ore, ice,
-    // compressed ice, moon chunks). Ammo, salvage, modules etc. also carry
-    // type_materials but must NOT be refined into minerals here.
+    // try ore refinement — ore, compressed ore, ice, compressed ice, moon ore,
+    // compressed moon ore and gas. Ammo, salvage, modules etc. also carry
+    // type_materials but must NOT be refined into minerals here, so only
+    // ore-family types with yields refine (see stkIsRefinableOre).
     let ore = null;
     try { ore = await fetchOre(t); } catch {}
     const yields = (ore && ore.yields) || {};
-    if (ore && ore.category === 25 && Object.keys(yields).length) {
+    if (stkIsRefinableOre(ore, t)) {
       const oreName = stkNames[t] || ore.name || ('Type ' + t);
       const minerals = [];
       for (const [mid, y] of Object.entries(yields)) {
@@ -1685,6 +1719,21 @@ async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId,
   });
   return oreDetail;
 }
+// Snapshot source: when Industrial-only is ticked the filtered set feeds the
+// calculator (Shopping deduct + Refinery), otherwise the full scoped aggregate.
+function stkSnapshotAggForSource() {
+  try {
+    if (stkIndustrialOnly() && stkEnrichedAll.length) {
+      const rows = stkFilteredAgg();
+      if (rows && rows.length) {
+        const map = {};
+        for (const r of rows) map[r.typeId] = (map[r.typeId] || 0) + r.qty;
+        return map;
+      }
+    }
+  } catch {}
+  return null;
+}
 // Re-run the ore->minerals math with the current Refining % from the stored snapshot
 // (no asset re-fetch) and refresh Shopping + Refinery. Returns false if nothing loaded.
 async function rebuildInventorySnapshot() {
@@ -1702,7 +1751,74 @@ try {
   if (STK_PAGE_OPTIONS.includes(s)) stkPageSize = s;
 } catch {}
 const COMPREHENSIVE_IDS = new Set([18, 19, 20, 21, 22, 34, 35, 36, 37, 38, 39, 40, 44, 1055, 1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 1787, 1788, 2073, 2267, 2268, 2270, 2272, 2286, 2287, 2288, 2305, 2306, 2307, 2308, 2309, 2310, 2311, 2333, 2344, 2345, 2346, 2348, 2349, 2351, 2352, 2354, 2358, 2360, 2361, 2367, 2388, 2389, 2390, 2392, 2393, 2394, 2395, 2396, 2397, 2398, 2399, 2400, 2401, 2463, 2867, 2868, 2869, 2870, 2871, 2872, 2875, 2876, 3645, 3683, 3689, 3691, 3693, 3695, 3697, 3725, 3775, 3779, 3828, 9828, 9830, 9832, 9834, 9836, 9838, 9840, 9842, 9844, 9846, 9848, 11396, 11397, 11398, 11399, 11441, 11442, 11443, 11444, 11445, 11446, 11447, 11448, 11449, 11450, 11451, 11452, 11453, 11454, 11455, 12053, 15317, 16262, 16263, 16264, 16265, 16267, 16268, 16269, 16272, 16273, 16274, 16275, 16633, 16634, 16635, 16636, 16637, 16638, 16639, 16640, 16641, 16642, 16643, 16644, 16646, 16647, 16648, 16649, 16650, 16651, 16652, 17272, 17357, 17358, 17425, 17426, 17432, 17433, 17436, 17437, 17440, 17441, 17448, 17449, 17452, 17453, 17455, 17456, 17459, 17460, 17463, 17464, 17470, 17471, 17865, 17866, 17887, 17888, 17889, 17975, 25268, 25270, 25272, 25274, 25275, 25276, 25277, 25278, 25595, 25596, 25597, 25598, 25599, 25600, 25601, 25602, 25603, 25604, 25605, 25606, 25607, 25610, 25611, 25612, 25613, 25624, 25625, 28388, 28389, 28390, 28391, 28392, 28393, 28394, 28395, 28396, 28397, 28398, 28399, 28400, 28401, 28402, 28403, 28404, 28405, 28406, 28407, 28408, 28409, 28410, 28411, 28412, 28413, 28414, 28415, 28416, 28417, 28418, 28419, 28420, 28421, 28422, 28423, 28424, 28425, 28426, 28427, 28428, 28429, 28430, 28431, 28432, 28433, 28434, 28435, 28436, 28437, 28438, 28439, 28440, 28441, 28442, 30370, 30375, 30376, 30377, 30378, 30379]);
-function isIndustrialMaterial(id){ const nid=+id; if(COMPREHENSIVE_IDS.has(nid)) return true; if(BV_MATERIALS && BV_MATERIALS.has(nid)) return true; if(BV_MAT_NAMES && BV_MAT_NAMES.has(nid)) return true; if(D.minerals&&D.minerals[nid]) return true; if(iceProductIds && iceProductIds.has(nid)) return true; try{ const P=(typeof PI_DATA!=='undefined'?PI_DATA:(typeof window!=='undefined'&&window.PI_DATA?window.PI_DATA:null)); if(P&&P.materials&&P.materials[String(nid)]) return true; }catch{} try{ if(D.ores&&D.ores.some(o=>o.id===nid)) return true; }catch{} try{ if(iceOreList&&iceOreList.some(o=>+o.id===nid)) return true; }catch{} return false; }
+// Dynamically probed refinable/industrial type IDs (new compressed grades,
+// moon/gas variants missing from the hardcoded lists). Filled per-scan by
+// stkProbeIndustrial() via live SDE yields; cleared on Clear/source change.
+const stkIndustrialProbed = new Set();
+// Name patterns for ores the static lists miss (all compressed grades incl.
+// 62xxx/82xxx, moon ores, ice, gas, isotopes). Used when SDE is unreachable.
+function stkIndustrialNameMatch(nm) {
+  if (!nm || /^(Type\s+\d+|ID\s+\d+)/i.test(nm)) return false;
+  const n = String(nm).toLowerCase();
+  if (/^compressed\s/.test(n)) return true;
+  if (/(arkonor|bistot|crokite|dark ochre|gneiss|hedbergite|hemorphite|jaspet|kernite|mercoxit|omber|plagioclase|pyroxeres|scordite|spodumain|veldspar|kylixium|hezorime|mordunium|nocxite|talassonite|glacial mass|dark glitt|blue ice|clear icicle|white glaze|gelidus|glare crust|krystallos)/.test(n)) return true;
+  if (/(mykoserocin|cytoserocin|fullerene|\bgas\b)/.test(n)) return true;
+  if (/(isotope|heavy water|liquid ozone|strontium clathrates?)/.test(n)) return true;
+  return false;
+}
+function stkTypeNameForFilter(id) {
+  return stkNames[id] || (BV_MAT_NAMES && BV_MAT_NAMES.get(+id)) || '';
+}
+function isIndustrialMaterial(id){
+  const nid=+id;
+  if(COMPREHENSIVE_IDS.has(nid)) return true;
+  if(BV_MATERIALS && BV_MATERIALS.has(nid)) return true;
+  if(BV_MAT_NAMES && BV_MAT_NAMES.has(nid)) return true;
+  if(D.minerals&&D.minerals[nid]) return true;
+  if(iceProductIds && iceProductIds.has(nid)) return true;
+  if(stkIndustrialProbed.has(nid)) return true;
+  try{ const P=(typeof PI_DATA!=='undefined'?PI_DATA:(typeof window!=='undefined'&&window.PI_DATA?window.PI_DATA:null)); if(P&&P.materials&&P.materials[String(nid)]) return true; }catch{}
+  try{ if(D.ores&&D.ores.some(o=>o.id===nid)) return true; }catch{}
+  try{ if(iceOreList&&iceOreList.some(o=>+o.id===nid)) return true; }catch{}
+  try{ if(stkIndustrialNameMatch(stkTypeNameForFilter(nid))) return true; }catch{}
+  return false;
+}
+// Probe unknown scoped types via live SDE: anything with reprocessing yields
+// (ore/compressed/moon/gas/ice) counts as industrial even if no list has it.
+async function stkProbeIndustrial(ids) {
+  const todo = (ids || []).map(n=>+n).filter(n=>Number.isFinite(n) && n>0 && !COMPREHENSIVE_IDS.has(n)
+    && !(BV_MATERIALS && BV_MATERIALS.has(n)) && !(D.minerals&&D.minerals[n])
+    && !(iceProductIds && iceProductIds.has(n)) && !stkIndustrialProbed.has(n));
+  if (!todo.length) return;
+  try {
+    const P=(typeof PI_DATA!=='undefined'?PI_DATA:(typeof window!=='undefined'&&window.PI_DATA?window.PI_DATA:null));
+    for (let i=0;i<todo.length;i+=10) {
+      await Promise.all(todo.slice(i,i+10).map(async id => {
+        try {
+          if (P&&P.materials&&P.materials[String(id)]) { stkIndustrialProbed.add(id); return; }
+          if (stkIndustrialNameMatch(stkTypeNameForFilter(id))) { stkIndustrialProbed.add(id); return; }
+          let ore = null;
+          try { ore = await fetchOre(id); } catch {}
+          const yields = (ore && ore.yields) || {};
+          if (ore && Object.keys(yields).length) { stkIndustrialProbed.add(id); return; }
+          try { if(D.ores&&D.ores.some(o=>o.id===id)) { stkIndustrialProbed.add(id); return; } } catch {}
+          try { if(iceOreList&&iceOreList.some(o=>+o.id===id)) { stkIndustrialProbed.add(id); return; } } catch {}
+        } catch {}
+      }));
+    }
+  } catch {}
+}
+// Refinable = has SDE reprocessing yields and is an ore-family type. Category
+// 25 covers classic ore/ice; moon/gas/compressed variants yield too — accept
+// any probed industrial with yields rather than gating on one category.
+function stkIsRefinableOre(ore, typeId) {
+  const yields = (ore && ore.yields) || {};
+  if (!ore || !Object.keys(yields).length) return false;
+  if (ore.category === 25) return true;
+  try { if (stkIndustrialProbed.has(+typeId)) return true; } catch {}
+  try { if (stkIndustrialNameMatch(ore.name || stkTypeNameForFilter(typeId))) return true; } catch {}
+  return false;
+}
 function stkTypeName(id) {
   return stkNames[id] || BV_MAT_NAMES.get(+id) || ('Type ' + id);
 }
@@ -1717,37 +1833,48 @@ function buildStkEnriched(raw, idToAsset, locSys, stkLocationNamesArg) {
     if (!a || !a.type_id) continue;
     const qty = Number(a.quantity) || 0;
     if (qty <= 0) continue;
-    // resolve top-level station/structure → system + location name
+    // resolve top-level station/structure → system + location name.
+    // A location_id matching an asset item_id is a container/ship (item_ids
+    // also exceed 1e12), never a structure — check the map first.
     const topId = (() => {
-      // reuse stationFor logic inline for speed
-      let cur = a, hops = 0, anchor = null;
+      let cur = a, hops = 0;
       const seen = new Set();
       const isReal = n => (n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000);
       while (cur && cur.location_type === 'item' && cur.location_id && hops < 25) {
         const key = String(cur.item_id);
         if (seen.has(key)) break; seen.add(key);
         const lid = cur.location_id;
-        if (isReal(+lid)) anchor = lid;
         const parent = idToAsset.get(String(lid));
-        if (!parent) break;
-        cur = parent; hops++;
+        if (parent) { cur = parent; hops++; continue; }
+        if (isReal(+lid)) return String(lid);
+        break;
       }
       if (cur && cur.location_type !== 'item' && cur.location_id) return String(cur.location_id);
-      if (cur && cur.location_id && isReal(+cur.location_id)) return String(cur.location_id);
-      if (anchor !== null) return String(anchor);
-      return String(a.location_id);
+      if (cur && cur.location_id && !idToAsset.has(String(cur.location_id))) {
+        const n = +cur.location_id;
+        if ((n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000)) return String(cur.location_id);
+      }
+      return null;
     })();
-    const sysId = locSys[topId];
-    const systemName = sysId ? stkSysIdName(String(sysId)) : (stkLocationNames[topId] ? stkSysIdName(topId) : 'Unknown System');
-    const locationName = stkLocationNames[topId] || ('ID ' + topId);
-    // container direct parent
+    const sysId = (topId != null) ? locSys[topId] : null;
+    const systemName = sysId ? stkSysIdName(String(sysId)) : 'Unknown System';
+    const locationName = (topId != null) ? (stkLocationNames[topId] || ('ID ' + topId)) : 'Unknown location';
+    // container chain: walk all ancestors for full provenance (can in can in ship…)
     let containerName = '', containerGroup = '';
-    if (a.location_id && idToAsset.has(String(a.location_id))) {
-      const parent = idToAsset.get(String(a.location_id));
-      const pid = parent.type_id;
-      containerName = stkNames[pid] || BV_MAT_NAMES.get(+pid) || ('Type ' + pid);
-      // group for Can detection — fallback to name check
-      containerGroup = containerName;
+    const chainNames = [];
+    {
+      let cur = a, hops = 0;
+      const seen = new Set();
+      while (cur && cur.location_id && hops < 10) {
+        const key = String(cur.item_id);
+        if (seen.has(key)) break; seen.add(key);
+        const parent = idToAsset.get(String(cur.location_id));
+        if (!parent || !parent.type_id) break;
+        chainNames.push(stkContainerDisplayName(parent.item_id, parent.type_id));
+        cur = parent; hops++;
+        if (cur && cur.location_type !== 'item') break;
+      }
+      if (chainNames.length) { containerName = chainNames[0]; containerGroup = chainNames.join(' › '); }
     }
     const flag = a.location_flag || '';
     const flagDisplay = flag.replace('CorpSAG', 'Corp Hangar ').replace('Hangar', 'Hangar');
@@ -1760,8 +1887,8 @@ function buildStkEnriched(raw, idToAsset, locSys, stkLocationNamesArg) {
       _containerName: containerName,
       _containerGroup: containerGroup,
       _flagDisplay: flagDisplay,
-      _isNested: !!(a.location_id && idToAsset.has(String(a.location_id))),
-      _searchText: (typeName + ' ' + containerName + ' ' + flagDisplay).toLowerCase(),
+      _isNested: chainNames.length > 0,
+      _searchText: (typeName + ' ' + containerName + ' ' + containerGroup + ' ' + flagDisplay).toLowerCase(),
       _systemText: (systemName + ' ' + locationName).toLowerCase()
     };
     stkEnrichedAll.push(entry);
@@ -1917,6 +2044,8 @@ async function loadInventory() {
     if (!cid) { if(box) box.innerHTML='<p class="hint">No character ID — re-login.</p>'; return; }
     const src = ($('stkSource') && $('stkSource').value) || 'personal';
     stkRawSource = src;
+    // Strict mode: previously-denied structures get one fresh attempt each scan.
+    try { localStorage.removeItem('bvStructDenied'); } catch {}
     // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
     try { if ($('matSource')) $('matSource').value = src; } catch {}
     savePrefs();
@@ -1968,8 +2097,12 @@ async function loadInventory() {
     // build item_id -> asset map to resolve containers (location_type=item -> walk to station/structure)
     const idToAsset = new Map();
     for (const a of assets) if (a && a.item_id) idToAsset.set(String(a.item_id), a);
+    // Shared container-chain walk: a location_id that matches an asset item_id
+    // is a container/ship, NEVER a structure — item_ids also exceed 1e12, so the
+    // structure heuristic must only apply to non-asset IDs. Unresolvable chains
+    // return null (strict mode excludes them) instead of guessing.
     function stationFor(a) {
-      let cur = a, hops = 0, anchor = null;
+      let cur = a, hops = 0;
       const seen = new Set();
       const isRealLoc = n => (n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000);
       // walk container chain (cans inside cans, ship cargo, corp divisions) until we reach station/structure/system
@@ -1978,21 +2111,21 @@ async function loadInventory() {
         if (seen.has(key)) break; // cycle guard
         seen.add(key);
         const locId = cur.location_id;
-        if (isRealLoc(+locId)) anchor = locId; // remember the last real location passed
         const parent = idToAsset.get(String(locId));
-        if (!parent) break; // parent container not in this character's asset list — stop here
-        cur = parent;
-        hops++;
+        if (parent) { cur = parent; hops++; continue; } // container/ship — keep walking
+        if (isRealLoc(+locId)) return locId; // top-level station/structure/system
+        break; // parent container not in this asset list and not a real location — unresolvable
       }
       // deepest known non-item location is the authoritative station/structure/system
       if (cur && cur.location_type !== 'item' && cur.location_id) return cur.location_id;
-      // still an item: only trust it if it's a real location id, else fall back to the anchor
-      if (cur && cur.location_id && isRealLoc(+cur.location_id)) return cur.location_id;
-      if (anchor !== null) return anchor;
-      return a.location_id;
+      if (cur && cur.location_id && !idToAsset.has(String(cur.location_id))) {
+        const n = +cur.location_id;
+        if ((n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000)) return cur.location_id;
+      }
+      return null;
     }
     // resolve system for every distinct top-level location (station/citadel/system) so we can filter to the build system
-    const topLocIds = [...new Set(assets.filter(a=>a && a.item_id).map(a => String(stationFor(a))).filter(Boolean))];
+    const topLocIds = [...new Set(assets.filter(a=>a && a.item_id).map(a => stationFor(a)).filter(v => v != null).map(v => String(v)))];
     const locSys = {};
     const staSysCache = (() => { try { return JSON.parse(localStorage.getItem('bvStaSys') || '{}'); } catch { return {}; } })();
     let staSysChanged = false;
@@ -2048,23 +2181,23 @@ async function loadInventory() {
       }
     }
     // Residue: structures NOT covered by the corp call (e.g. a personal citadel the
-    // character docks at but the corp doesn't own) or not yet cached. Only
-    // structures holding INDUSTRIAL materials (ore/ice/components) matter for the
-    // scan — junk-only structures never need resolving, so they're excluded and
-    // never produce 403 noise. Rank the rest by stack count (main storage first),
-    // resolve up to 100/scan (personal scans have few structures; the industrial
-    // filter already stops the corp flood), concurrency 2, denial-stamp 403s.
+    // character docks at but the corp doesn't own) or not yet cached. Strict
+    // mode resolves EVERY accessible structure — rank by stack count (main
+    // storage first), up to 100/scan, concurrency 2. Denied stamps were cleared
+    // at scan start, so each scan retries once; fresh 403s simply exclude.
     const stacksPer = {};
     const unresolved = [];
     {
       const seen = new Set();
       for (const a of assets) {
         if (!a || !a.type_id) continue;
-        const id = String(stationFor(a));
+        const _top = stationFor(a);
+        if (_top == null) continue;
+        const id = String(_top);
         const n = +id;
         if (n >= 1e12 && !locSys[id]) {
           stacksPer[id] = (stacksPer[id] || 0) + 1;
-          if (isIndustrialMaterial(a.type_id) && !seen.has(id)) { seen.add(id); unresolved.push(id); }
+          if (!seen.has(id)) { seen.add(id); unresolved.push(id); }
         }
       }
     }
@@ -2072,9 +2205,7 @@ async function loadInventory() {
     if (unresolved.length && !structWarn) {
       const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
-      // Resolve industrial-bearing structures, skipping ones denied in the last
-      // hour (403s are deterministic — re-trying just floods the console). A
-      // manual rescan after access changes re-resolves them once the stamp lapses.
+      // Resolve all unresolved structures; 403s stamp as denied (excluded).
       const targets = unresolved
         .slice(0, 100)
         .filter(id => !(denied[id] && now - denied[id] < 3600e3));
@@ -2099,24 +2230,11 @@ async function loadInventory() {
       }
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
-      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' industrialStructs=' + unresolved.length);
+      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length);
     }
-    // Fallback: personal scans often hit 403 on shared citadels, containers, or
-    // other opaque locations. When the user explicitly trusts the selected system,
-    // include every unresolved top-level location. This favors completeness at the
-    // cost of potentially including assets from other systems; uncheck the box for
-    // strict filtering.
-    const trustSelectedSystem = $('stkTrustSystem') && $('stkTrustSystem').checked;
-    const trustFallbackStructs = new Set();
-    let trustFallbackAssetCount = 0;
-    if (trustSelectedSystem && selSysNum && !allSystems) {
-      for (const id of topLocIds) {
-        if (!locSys[id]) {
-          locSys[id] = selSysNum;
-          trustFallbackStructs.add(id);
-        }
-      }
-    }
+    // Strict scope: unresolved / no-access locations are excluded, never
+    // trusted as the selected system. If ESI cannot resolve a structure
+    // (403 / no docking access), its stacks are skipped as inaccessible.
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
     try {
@@ -2128,11 +2246,11 @@ async function loadInventory() {
         else if (n >= 60000000 && n < 61000000) locTypes.station++;
         else locTypes.other++;
       }
-      const res = topLocIds.filter(id => +id >= 1e12 && locSys[id] && !trustFallbackStructs.has(id)).length;
+      const res = topLocIds.filter(id => +id >= 1e12 && locSys[id]).length;
       const unres = topLocIds.filter(id => +id >= 1e12 && !locSys[id]).length;
       let scopes = '';
       try { scopes = (bvTokenScopes() || []).join(',') || 'none'; } catch { scopes = 'none'; }
-      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' trustFallbackStructs=' + trustFallbackStructs.size + ' structWarn=' + (structWarn || 'none') + ' scopes=' + scopes);
+      console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' structWarn=' + (structWarn || 'none') + ' scopes=' + scopes);
     } catch {}
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
@@ -2142,15 +2260,16 @@ async function loadInventory() {
       if (!a || !a.type_id) continue;
       const qty = Number(a.quantity) || 0;
       if (qty <= 0) continue;
-      const stnId = String(stationFor(a));
+      const _top = stationFor(a);
+      if (_top == null) { skippedInaccessible++; continue; } // strict: unresolvable container chains are excluded
+      const stnId = String(_top);
       const stnSys = locSys[stnId] != null ? locSys[stnId] : null;
-      if (stnSys == null && !allSystems) { skippedInaccessible++; continue; } // strict system scan cannot confirm this location
-      const scopeKey = stnSys == null ? 'unresolved' : String(stnSys);
+      if (stnSys == null) { skippedInaccessible++; continue; } // strict: unresolved / no-access locations are excluded in every mode
+      const scopeKey = String(stnSys);
       // Track all systems for diagnostics
       systemBreakdown[scopeKey] = (systemBreakdown[scopeKey] || 0) + 1;
       const inSelectedSystem = allSystems || stnSys === selSysNum;
       if (!allSystems && !inSelectedSystem) skippedWrongSystem++;
-      if (trustFallbackStructs.has(stnId)) trustFallbackAssetCount += qty;
       if (!stkAggBySystem[scopeKey]) stkAggBySystem[scopeKey] = {};
       stkAggBySystem[scopeKey][a.type_id] = (stkAggBySystem[scopeKey][a.type_id] || 0) + qty;
       stkAllAgg[a.type_id] = (stkAllAgg[a.type_id] || 0) + qty;
@@ -2189,8 +2308,8 @@ async function loadInventory() {
       }
 // citadels (>=1e12) -> cache or placeholder only (no POST: ESI /universe/names
       // rejects structure IDs with 400, and authed GET 403s without ACL — the
-      // system attribution already happened via locSys/trust fallback above, so
-      // names here are display-only). Mirrors assest test silent fallback.
+      // system attribution already happened via locSys above (strict: unresolved
+      // locations are excluded), so names here are display-only.
       const structIds = locIds.filter(id => String(id).length >= 12);
       if (structIds.length) {
         const denied = bvDeniedRead(), now = Date.now();
@@ -2241,15 +2360,27 @@ async function loadInventory() {
         }
       }
     }
+    // ---- probe unknown types via live SDE so new compressed/moon/gas grades
+    // count as industrial even though no hardcoded list has them ----
+    try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; await stkProbeIndustrial(ids); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
+    // ---- custom container/ship names (ESI assets/names) so cans show your
+    // names instead of "Type NNN" ----
+    try {
+      if (st) st.textContent = 'Resolving container names…';
+      const parentIds = [];
+      for (const a of assets) {
+        if (a && a.location_id && idToAsset.has(String(a.location_id))) parentIds.push(+a.location_id);
+      }
+      stkCustomNames = await stkFetchCustomNames(parentIds, src, cid, corpId);
+    } catch(e) { console.warn('[BV] custom names failed', e); stkCustomNames = {}; }
     // ---- build per-stack enriched (assest test pattern) for flag/item search & detail table ----
     try { buildStkEnriched(assets, idToAsset, locSys, stkLocationNames); stkDetailPage = 1; } catch(e) { console.warn('[BV] buildStkEnriched failed', e); }
-    // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
-    await buildInventorySnapshot();
-    const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units from ' + trustFallbackStructs.size + ' unresolved location' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
+    // ---- ore/compressed-ore/ice/moon/gas -> refined minerals at Refining yield % + keep snapshot in memory ----
+    await buildInventorySnapshot(stkSnapshotAggForSource());
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
@@ -2272,7 +2403,7 @@ async function applyInventoryScope() {
   stkPage = 1; stkDetailPage = 1;
   stkApplyFlagSystemFilter();
   const previous = stkSnapshotRead(matSource());
-  await buildInventorySnapshot(next, previous && previous.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkAllSystems() ? 'All personal systems' : stkSysIdName(stkSysId()));
+  await buildInventorySnapshot(stkSnapshotAggForSource() || next, previous && previous.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkAllSystems() ? 'All personal systems' : stkSysIdName(stkSysId()));
   renderStkRows();
   await renderRefinery();
   if (!stkAllSystems() && $('stkDeduct') && $('stkDeduct').checked && S.root) await renderShoppingList(S.runs || 1);
@@ -2386,7 +2517,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkAllSystems')) $('stkAllSystems').onchange = () => { savePrefs(); stkRescopeSystem(); };
   if ($('stkClear')) $('stkClear').onclick = () => {
     stkSnapshotClear();
-    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={};
+    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={}; try { stkIndustrialProbed.clear(); } catch {}
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Scan system.</p>';
     if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
     if ($('stkStatus')) $('stkStatus').textContent = '';
@@ -2395,8 +2526,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRefinery();
     status('Inventory snapshot cleared.');
   };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
-  if ($('stkTrustSystem')) $('stkTrustSystem').onchange = () => { savePrefs(); stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Trust setting changed — hit Scan system to apply.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkCustomNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; try { stkIndustrialProbed.clear(); } catch {} if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   function stkSchedFilter() {
     if (_stkFilterTimer) clearTimeout(_stkFilterTimer);
@@ -2423,7 +2554,19 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   // JeveAssets-like asset search: industrial toggle + multi-filter manager
   renderStkFilterRows();
-  if ($('stkIndustrialOnly')) $('stkIndustrialOnly').addEventListener('change', () => { stkPage=1; stkDetailPage=1; renderStkRows(); });
+  if ($('stkIndustrialOnly')) $('stkIndustrialOnly').addEventListener('change', async () => {
+    stkPage=1; stkDetailPage=1; renderStkRows();
+    // Industrial-only feeds the calculator: rebuild the snapshot from the
+    // filtered set (no asset re-fetch) and refresh Shopping + Refinery.
+    try {
+      const agg = stkSnapshotAggForSource();
+      const prev = stkSnapshotRead(matSource());
+      if (agg && Object.keys(agg).length) await buildInventorySnapshot(agg, prev && prev.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkCurrentSysName());
+      else await rebuildInventorySnapshot();
+      if (S.root) await renderShoppingList(S.runs||1);
+      await renderRefinery();
+    } catch(e) { console.warn('[BV] industrial toggle rebuild failed', e); }
+  });
   if ($('stkFilterAdd')) $('stkFilterAdd').onclick = () => { stkFilters.push({ enabled:true, logic:'And', group:0, column:'All', compare:'Contains', text:'' }); stkSaveFilters(); renderStkFilterRows(); };
   if ($('stkFilterClear')) $('stkFilterClear').onclick = () => { stkFilters=[]; stkSaveFilters(); renderStkFilterRows(); stkPage=1; stkDetailPage=1; renderStkRows(); };
   if ($('stkFilterSave')) $('stkFilterSave').onclick = () => {
