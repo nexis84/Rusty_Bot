@@ -542,6 +542,7 @@ function renderCrumbs(current) {
   let h = '<button class="crumb-back" data-nav="back"' + (navStack.length ? '' : ' disabled') + '><i class="fas fa-arrow-left"></i> Back</button>';
   navStack.forEach((e, i) => { h += '<button class="crumb-link" data-nav="crumb" data-i="' + i + '">' + e.bp + '</button><span class="crumb-sep">›</span>'; });
   h += '<span class="crumb-current">' + current + '</span>';
+  h += '<button class="mode-btn" data-sendbuild style="margin-left:auto" title="Pin this blueprint to the Build Progress tab"><i class="fas fa-paper-plane"></i> Send to Build process</button>';
   bar.innerHTML = h;
 }
 function drillDown(i) {
@@ -3474,6 +3475,13 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       if (nav.dataset.nav === 'back') goBack();
       else goCrumb(+nav.dataset.i);
+      return;
+    }
+    const send = e.target.closest('[data-sendbuild]');
+    if (send) {
+      e.preventDefault();
+      if (!bpProgPinCurrent()) status('Nothing to send — run a calculation first.');
+      return;
     }
   });
   $('invGo').onclick = invCompare;
