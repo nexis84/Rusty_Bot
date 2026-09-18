@@ -619,7 +619,7 @@ async function renderShoppingList(runs) {
     const needTxt = fmtN(r.l.qty);
     const haveCls = useOwn && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
     const toBuyCls = r.toBuy === 0 ? ' style="color:var(--build)"' : '';
-    return '<tr><td>' + (/blueprint/i.test(clean) ? '' : bvIconImg(r.l.type_id, 'width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111')) + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
+    return '<tr><td>' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
   }).join('');
   // prominent summary grid with full total — de-dupe when nothing is saved
   const sumGrid = $('shoppingSummary');
@@ -2126,8 +2126,9 @@ function renderStkRows() {
       const sys = sysFor(r.typeId);
       // No icon for blueprints (image server 400s) or unresolved names
       // (image server 404s) — avoids console error spam per row.
-      const noIcon = /blueprint/i.test(nm) || /^(Type|ID) \d+$/.test(nm);
-      const icon = noIcon ? '' : bvIconImg(r.typeId, 'width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111');
+      // Item icons removed: the image server 404s on many industry types and
+      // spams the console per row. Text-only list.
+      const icon = '';
       h += '<tr><td>' + icon + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
     }
   }
