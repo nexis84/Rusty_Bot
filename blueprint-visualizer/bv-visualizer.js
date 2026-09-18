@@ -1205,8 +1205,35 @@ function saveOreCache() {
     localStorage.setItem('bvOres2', JSON.stringify({ ts: Date.now(), ores }));
   } catch {}
 }
+// Baked SDE ore table (bv-ores.js): id -> {portion, volume, category, yields}.
+// Answers from local data with zero network; Everef stays only as a fallback
+// for post-SDE-build types (rare — re-run scripts/build-bv-ores.mjs instead).
+const BV_ORES = (() => {
+  try {
+    const o = (typeof window !== 'undefined' && window.BV_ORES) || {};
+    const m = new Map();
+    for (const [k, v] of Object.entries(o)) {
+      if (!Array.isArray(v) || v.length < 5) continue;
+      const yields = {};
+      for (const [mid, q] of (v[4] || [])) yields[mid] = q;
+      m.set(+k, { name: v[0], portion: v[1], volume: v[2], category: v[3], yields });
+    }
+    return m;
+  } catch { return new Map(); }
+})();
+function oreFromTable(id) {
+  const e = BV_ORES.get(+id);
+  if (!e) return null;
+  return { id: +id, name: e.name, volume: e.volume, portion: e.portion, yields: { ...e.yields }, category: e.category, baked: true };
+}
 async function fetchOre(id, nameHint) {
   if (oreCache.has(id)) return oreCache.get(id);
+  const baked = oreFromTable(id);
+  if (baked) {
+    if (nameHint && baked.name !== nameHint) baked.name = baked.name || nameHint;
+    oreCache.set(id, baked);
+    return baked;
+  }
   const d = await fetchJSON('https://ref-data.everef.net/types/' + id);
   const yields = {};
   for (const [mid, m] of Object.entries(d.type_materials || {})) yields[mid] = m.quantity;
@@ -1873,34 +1900,32 @@ function isIndustrialMaterial(id){
   if(D.minerals&&D.minerals[nid]) return true;
   if(iceProductIds && iceProductIds.has(nid)) return true;
   if(stkIndustrialProbed.has(nid)) return true;
+  try{ if(typeof BV_ORES!=='undefined' && BV_ORES.has(nid)) return true; }catch{}
   try{ const P=(typeof PI_DATA!=='undefined'?PI_DATA:(typeof window!=='undefined'&&window.PI_DATA?window.PI_DATA:null)); if(P&&P.materials&&P.materials[String(nid)]) return true; }catch{}
   try{ if(D.ores&&D.ores.some(o=>o.id===nid)) return true; }catch{}
   try{ if(iceOreList&&iceOreList.some(o=>+o.id===nid)) return true; }catch{}
   try{ if(stkIndustrialNameMatch(stkTypeNameForFilter(nid))) return true; }catch{}
   return false;
 }
-// Probe unknown scoped types via live SDE: anything with reprocessing yields
-// (ore/compressed/moon/gas/ice) counts as industrial even if no list has it.
-async function stkProbeIndustrial(ids) {
+// Pure local filter (NO network): classifies anything the static lists miss
+// via the baked SDE ore table (scripts/build-bv-ores.mjs) + name patterns.
+// The SDE already knows every refinable type, so classifying 500 types is
+// instant — no Everef round-trips. Synchronous; callers may still await it.
+function stkProbeIndustrial(ids) {
   const todo = (ids || []).map(n=>+n).filter(n=>Number.isFinite(n) && n>0 && !COMPREHENSIVE_IDS.has(n)
     && !(BV_MATERIALS && BV_MATERIALS.has(n)) && !(D.minerals&&D.minerals[n])
     && !(iceProductIds && iceProductIds.has(n)) && !stkIndustrialProbed.has(n));
   if (!todo.length) return;
   try {
     const P=(typeof PI_DATA!=='undefined'?PI_DATA:(typeof window!=='undefined'&&window.PI_DATA?window.PI_DATA:null));
-    for (let i=0;i<todo.length;i+=10) {
-      await Promise.all(todo.slice(i,i+10).map(async id => {
-        try {
-          if (P&&P.materials&&P.materials[String(id)]) { stkIndustrialProbed.add(id); return; }
-          if (stkIndustrialNameMatch(stkTypeNameForFilter(id))) { stkIndustrialProbed.add(id); return; }
-          let ore = null;
-          try { ore = await fetchOre(id); } catch {}
-          const yields = (ore && ore.yields) || {};
-          if (ore && Object.keys(yields).length) { stkIndustrialProbed.add(id); return; }
-          try { if(D.ores&&D.ores.some(o=>o.id===id)) { stkIndustrialProbed.add(id); return; } } catch {}
-          try { if(iceOreList&&iceOreList.some(o=>+o.id===id)) { stkIndustrialProbed.add(id); return; } } catch {}
-        } catch {}
-      }));
+    for (const id of todo) {
+      try {
+        if (P&&P.materials&&P.materials[String(id)]) { stkIndustrialProbed.add(id); continue; }
+        if (typeof BV_ORES !== 'undefined' && BV_ORES.has(id)) { stkIndustrialProbed.add(id); continue; }
+        if (stkIndustrialNameMatch(stkTypeNameForFilter(id))) { stkIndustrialProbed.add(id); continue; }
+        try { if(D.ores&&D.ores.some(o=>o.id===id)) { stkIndustrialProbed.add(id); continue; } } catch {}
+        try { if(iceOreList&&iceOreList.some(o=>+o.id===id)) { stkIndustrialProbed.add(id); continue; } } catch {}
+      } catch {}
     }
   } catch {}
 }
