@@ -1512,24 +1512,6 @@ let stkEnriched = [], stkEnrichedAll = [], stkTypeFlags = {}, stkTypeGroups = {}
 // Custom user-set names for containers/ships (ESI assets/names, item_id -> name).
 // Preferred over type names in container display; cleared on Clear/source change.
 let stkCustomNames = {};
-// Manual structure -> system overrides (localStorage bvStructOverrides).
-// Covers citadels ESI 403s despite in-game docking access (new/dead structures
-// 403 by design) — the user knows where their stuff is, ESI won't say.
-let stkUnresolvedLocs = [];
-// Per-structure failure reasons for the mapping panel: [Forbidden] vs queued.
-// Reset each scan; 403 denials persist separately (1h stamps).
-let stkLocErr = {};
-function stkLocReason(id) {
-  try {
-    const denied = bvDeniedRead();
-    if (denied && denied[String(id)] && Date.now() - denied[String(id)] < 3600e3)
-      return '[Forbidden] — ESI denied access (no ESI docking rights)';
-    if (stkLocErr[String(id)]) return 'Lookup failed (ESI ' + stkLocErr[String(id)] + ')';
-  } catch {}
-  return 'Queued — over the 25/scan cap, retries on a later scan';
-}
-function stkOverrideRead() { try { const v = JSON.parse(localStorage.getItem('bvStructOverrides') || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
-function stkOverrideWrite(o) { try { localStorage.setItem('bvStructOverrides', JSON.stringify(o || {})); } catch {} }
 // ESI error-limit circuit breaker: once a 420/429 is seen, the scan skips all
 // remaining non-essential ESI lookups (names, per-type fallback, custom names)
 // instead of hammering a rate-limited endpoint. Reset at each scan start.
@@ -1797,11 +1779,11 @@ function stkSnapshotWrite(s) {
 }
 function stkSnapshotClear() { S.inventorySnapshots = {}; try { localStorage.removeItem('bvInventorySnapshot'); } catch {} }
 // Full scan-cache reset: wipes every locally cached scan artifact (structure
-// names, 403 denials, station systems, snapshots, ore yields) from storage AND
-// memory so the next scan starts completely fresh. Deliberately keeps UI prefs
-// (bvPrefs), list filters, page sizes, and manual structure mappings
-// (bvStructOverrides) — mappings are explicit user data with per-row remove.
-const BV_SCAN_CACHE_KEYS = ['bvStructNames', 'bvStructDenied', 'bvStaSys', 'bvInventorySnapshot', 'bvOres2'];
+// names, 403 denials, station systems, snapshots, ore yields) plus any legacy
+// manual structure mappings, from storage AND memory so the next scan starts
+// completely fresh. Deliberately keeps UI prefs (bvPrefs), list filters and
+// page sizes.
+const BV_SCAN_CACHE_KEYS = ['bvStructNames', 'bvStructDenied', 'bvStaSys', 'bvInventorySnapshot', 'bvOres2', 'bvStructOverrides'];
 function stkResetAllCaches() {
   try { for (const k of BV_SCAN_CACHE_KEYS) localStorage.removeItem(k); } catch {}
   try { oreCache.clear(); } catch {}
@@ -1809,9 +1791,9 @@ function stkResetAllCaches() {
   S.inventorySnapshots = {};
   stkRaw = []; stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {};
   stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {};
-  stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkLocErr = {};
+  stkNames = {}; stkCustomNames = {}; stkOreDetail = [];
   stkEnriched = []; stkEnrichedAll = []; stkTypeFlags = {}; stkContainerNames = {}; stkTypeGroups = {};
-  stkUnresolvedLocs = []; stkPage = 1; stkDetailPage = 1;
+  stkPage = 1; stkDetailPage = 1;
 }
 function matSource() { return ($('matSource') && $('matSource').value) || 'personal'; }
 // Refined deduction map for the calculator's Materials-owned source (ore already refined to
@@ -2105,107 +2087,6 @@ function stkApplyFlagSystemFilter() {
   }
   stkEnriched = base;
 }
-// Unresolved-structures mapping panel: ESI 403s structures it won't identify
-// (no ESI docking access, new types, dead structures 403 by design). The user
-// knows where their stuff is — map structure ID -> system, persisted locally,
-// applied at the next scan. Full IDs shown (suffixes collide across owners).
-function attachOvSysComplete(input) {
-  let box = input.parentElement.querySelector('[data-ovsysbox]');
-  if (!box) {
-    box = document.createElement('div');
-    box.setAttribute('data-ovsysbox', '');
-    box.className = 'suggest hidden';
-    input.parentElement.style.position = 'relative';
-    input.parentElement.appendChild(box);
-  }
-  let current = [], deb = null;
-  function close() { box.classList.add('hidden'); box.innerHTML = ''; current = []; }
-  function render(q) {
-    if (!q || q.length < 2) { close(); return; }
-    const pool = ((typeof Systems !== 'undefined') ? Systems : []) || [];
-    current = pool.map(s => ({ id: s.id, name: s.name, sc: bvScore(s.name, q) }))
-      .filter(c => c.sc > 0).sort((a, b) => b.sc - a.sc || a.name.localeCompare(b.name)).slice(0, 8);
-    if (!current.length) { close(); return; }
-    box.innerHTML = current.map((c, i) => '<div class="suggest-item" data-i="' + i + '"><span class="t">' + highlight(c.name, q) + '</span><span class="s">' + c.id + '</span></div>').join('');
-    box.classList.remove('hidden');
-    box.querySelectorAll('.suggest-item').forEach(el => {
-      el.onmousedown = e => { e.preventDefault(); const c = current[+el.dataset.i]; if (!c) return; input.value = c.name; input.dataset.pickedId = String(c.id); close(); };
-    });
-  }
-  input.addEventListener('input', () => { delete input.dataset.pickedId; clearTimeout(deb); deb = setTimeout(() => render(input.value.trim().toLowerCase()), 120); });
-  input.addEventListener('focus', () => { if (input.value.trim().length >= 2) render(input.value.trim().toLowerCase()); });
-  document.addEventListener('click', e => { if (!box.classList.contains('hidden') && !box.contains(e.target) && e.target !== input) close(); });
-}
-function stkResolveSysInput(input) {
-  try {
-    if (input.dataset.pickedId) return String(input.dataset.pickedId);
-    const q = (input.value || '').trim().toLowerCase();
-    if (!q) return null;
-    const pool = ((typeof Systems !== 'undefined') ? Systems : []) || [];
-    const exact = pool.find(s => (s.name || '').toLowerCase() === q);
-    if (exact) return String(exact.id);
-  } catch {}
-  return null;
-}
-function renderStkOverrides() {
-  const box = $('stkUnresolved');
-  if (!box) return;
-  const ov = stkOverrideRead();
-  const mappedIds = Object.keys(ov);
-  const open = (stkUnresolvedLocs || []).filter(e => ov[e.id] == null);
-  if (!mappedIds.length && !open.length) { box.innerHTML = ''; return; }
-  let h = '';
-  if (open.length) {
-    const bulkSys = (!stkAllSystems() && stkSysId()) ? stkSysId() : null;
-    h += '<div class="panel" style="margin-top:.6rem"><h4><i class="fas fa-question-circle"></i> Unresolved structures (' + open.length + ') — ESI 403, system unknown</h4>'
-      + '<p class="hint">Citadels ESI won\'t identify (no ESI docking access, new or dead structures). If you know where one lives, map it — it joins the next scan. Full IDs shown because suffixes collide.</p>'
-      + (bulkSys ? '<div style="margin:.3rem 0 .5rem"><button class="calc-btn" data-mapall="' + bulkSys + '"><i class="fas fa-map-marked-alt"></i> Map all ' + open.length + ' to ' + stkSysIdName(bulkSys) + '</button> <span class="hint">You said you dock anywhere here — one click records every ID above as this system. Mappings stay editable below.</span></div>' : '')
-      + open.slice(0, 50).map(e => '<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;padding:.3rem 0;border-bottom:1px solid var(--border)">'
-        + '<span class="nums" title="Full location ID">' + e.id + (e.customName ? ' · <b>' + String(e.customName).replace(/</g, '&lt;') + '</b>' : '') + '<br><span style="opacity:.75">' + e.reason + '</span></span>'
-        + '<span style="flex:1;min-width:140px">' + e.stacks + ' stacks · ' + fmtN(e.qty) + ' units · ' + e.top.map(t => t.name + ' ×' + fmtN(t.qty)).join(', ') + '</span>'
-        + '<span style="display:inline-flex;gap:.3rem;align-items:center;position:relative"><input class="form-input" data-ovsys="' + e.id + '" placeholder="System…" autocomplete="off" style="width:150px"><button class="mode-btn" data-map="' + e.id + '">Map</button></span>'
-        + '</div>').join('')
-      + (open.length > 50 ? '<p class="hint">Showing 50 of ' + open.length + ' — map these and rescan for more.</p>' : '') + '</div>';
-  }
-  if (mappedIds.length) {
-    h += '<div class="panel" style="margin-top:.6rem"><details class="hint-details"><summary><i class="fas fa-map-marked-alt"></i> Mapped structures (' + mappedIds.length + ') — expand to manage</summary>'
-      + '<div style="margin-top:.4rem">' + mappedIds.map(id => '<div style="display:flex;gap:.4rem;align-items:center;padding:.2rem 0;border-bottom:1px solid var(--border)"><span class="nums">' + id + '</span><span style="flex:1">→ ' + stkSysIdName(String(ov[id])) + '</span><button class="mode-btn" data-unmap="' + id + '" title="Remove mapping" style="color:var(--danger)"><i class="fas fa-times"></i></button></div>').join('') + '</div></details></div>';
-  }
-  box.innerHTML = h;
-  box.querySelectorAll('input[data-ovsys]').forEach(inp => attachOvSysComplete(inp));
-  box.querySelectorAll('[data-map]').forEach(btn => btn.onclick = () => {
-    const row = btn.closest('div');
-    const inp = row ? row.querySelector('input[data-ovsys]') : null;
-    const sysId = inp ? stkResolveSysInput(inp) : null;
-    if (!sysId) { status('Pick a system from the dropdown first.'); return; }
-    const o = stkOverrideRead();
-    o[btn.dataset.map] = sysId;
-    stkOverrideWrite(o);
-    status('Mapped ' + btn.dataset.map + ' → ' + stkSysIdName(sysId) + ' — rescanning…');
-    loadInventory();
-  });
-  box.querySelectorAll('[data-unmap]').forEach(btn => btn.onclick = () => {
-    const o = stkOverrideRead();
-    delete o[btn.dataset.unmap];
-    stkOverrideWrite(o);
-    status('Mapping removed — rescanning…');
-    loadInventory();
-  });
-  const mapAll = box.querySelector('[data-mapall]');
-  if (mapAll) mapAll.onclick = () => {
-    const sysId = mapAll.dataset.mapall;
-    if (!sysId) return;
-    const o = stkOverrideRead();
-    let n = 0;
-    for (const e of ((stkUnresolvedLocs || []).filter(x => o[x.id] == null))) {
-      o[e.id] = sysId;
-      n++;
-    }
-    stkOverrideWrite(o);
-    status('Mapped ' + n + ' structures → ' + stkSysIdName(sysId) + ' — rescanning…');
-    loadInventory();
-  };
-}
 function stkDetailFiltered() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
   let out = stkEnriched;
@@ -2373,7 +2254,6 @@ async function loadInventory() {
     stkRawSource = src;
     // Fresh error budget each scan; 403 denials persist 1h so we never re-flood.
     bvEsiLimited = false;
-    stkLocErr = {};
     // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
     try { if ($('matSource')) $('matSource').value = src; } catch {}
     savePrefs();
@@ -2624,10 +2504,6 @@ async function loadInventory() {
             const emsg = String((e && e.message) || '');
             if (/403/.test(emsg)) { denied[id] = now; deniedChanged = true; }
             else if (bvHitLimit(e)) { rateCut = true; }
-            else {
-              const m = emsg.match(/ESI\s+(\d{3})/);
-              try { stkLocErr[String(id)] = m ? m[1] : 'error'; } catch {}
-            }
           }
         }));
         if (bvEsiLimited || rateCut) break;
@@ -2651,22 +2527,9 @@ async function loadInventory() {
       } catch (e) { console.warn('[BV] shared upload step failed', e && e.message); }
     }
     // Strict scope: unresolved / no-access locations are excluded, never
-    // trusted as the selected system. If ESI cannot resolve a structure
-    // (403 / no docking access), its stacks are skipped as inaccessible.
+    // trusted as the selected system. Dead structures and locations without
+    // ESI docking access leave no trace in the UI — not rows, not counts.
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
-    // Manual overrides win over ESI silence: structure IDs the user mapped to
-    // a system are attributed directly (checked before the scope loop below).
-    let mappedCount = 0;
-    try {
-      const ov = stkOverrideRead();
-      for (const id of topLocIds) {
-        if (!locSys[id] && ov[id] != null && String(ov[id]).trim() !== '') {
-          locSys[id] = +ov[id];
-          if (Number.isFinite(locSys[id])) mappedCount++;
-          else delete locSys[id];
-        }
-      }
-    } catch {}
     // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
     try {
       const locTypes = { solar: 0, station: 0, struct: 0, other: 0 };
@@ -2796,31 +2659,6 @@ async function loadInventory() {
         }
       }
     }
-    // ---- detail the still-unresolved structures for the manual mapping panel ----
-    try {
-      stkUnresolvedLocs = [];
-      const byLoc = {};
-      for (const a of assets) {
-        if (!a || !a.type_id) continue;
-        const _t = stationFor(a);
-        if (_t == null) continue;
-        const id = String(_t);
-        if (+id >= 1e12 && !locSys[id]) {
-          const e = (byLoc[id] = byLoc[id] || { stacks: 0, qty: 0, types: {} });
-          e.stacks++;
-          const q = Number(a.quantity) || 0;
-          e.qty += q;
-          e.types[a.type_id] = (e.types[a.type_id] || 0) + q;
-        }
-      }
-      for (const [id, e] of Object.entries(byLoc)) {
-        const top = Object.entries(e.types).sort((x, y) => y[1] - x[1]).slice(0, 3)
-          .map(([t, q]) => ({ typeId: +t, qty: q, name: stkNames[+t] || BV_MAT_NAMES.get(+t) || ('Type ' + t) }));
-        stkUnresolvedLocs.push({ id, stacks: e.stacks, qty: e.qty, top, reason: stkLocReason(id) });
-      }
-      stkUnresolvedLocs.sort((a, b) => b.qty - a.qty);
-    } catch (e) { console.warn('[BV] unresolved detail failed', e); }
-    // Panel renders after custom names arrive (below) so named ships/cans show names.
     // ---- probe unknown types via live SDE so new compressed/moon/gas grades
     // count as industrial even though no hardcoded list has them ----
     try { if (st) st.textContent = 'Classifying ' + ids.length + ' types (industrial check)…'; stkProgress(0.82, 'Classifying industrial types…'); await stkProbeIndustrial(ids); stkProgress(0.88, 'Industrial check done.'); } catch(e) { console.warn('[BV] stkProbeIndustrial failed', e); }
@@ -2842,21 +2680,14 @@ async function loadInventory() {
       stkCustomNames = await Promise.race([stkFetchCustomNames(parentIds, src, cid, corpId), namesTimeout]);
       stkProgress(0.94, 'Container names done.');
     } catch(e) { console.warn('[BV] custom names failed', e); stkCustomNames = {}; }
-    try {
-      for (const u of (stkUnresolvedLocs || [])) {
-        try { if (stkCustomNames[String(u.id)]) u.customName = stkCustomNames[String(u.id)]; } catch {}
-      }
-      renderStkOverrides();
-    } catch (e) { console.warn('[BV] overrides render failed', e); }
     // ---- build per-stack enriched (assest test pattern) for flag/item search & detail table ----
     try { buildStkEnriched(assets, idToAsset, locSys, stkLocationNames); stkDetailPage = 1; } catch(e) { console.warn('[BV] buildStkEnriched failed', e); }
     // ---- ore/compressed-ore/ice/moon/gas -> refined minerals at Refining yield % + keep snapshot in memory ----
     stkProgress(0.96, 'Building snapshot…');
     await buildInventorySnapshot(stkSnapshotAggForSource());
-    const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + stkPagesFatched + ' page' + (stkPagesFatched===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (mappedCount ? ' · ' + mappedCount + ' manually mapped' : '') + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + stkPagesFatched + ' page' + (stkPagesFatched===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (allSystems ? '' : wrongSysMsg) + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
@@ -2997,7 +2828,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkAllSystems')) $('stkAllSystems').onchange = () => { savePrefs(); stkRescopeSystem(); };
   if ($('stkResetCaches')) $('stkResetCaches').onclick = () => {
     stkResetAllCaches();
-    try { const uw = $('stkUnresolved'); if (uw) uw.innerHTML = ''; } catch {}
     stkProgressHide();
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">All scan caches cleared. Pick a system and hit Scan system for a fully fresh lookup.</p>';
     if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
@@ -3005,13 +2835,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if ($('stkTotals')) $('stkTotals').textContent = '';
     if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
     renderRefinery();
-    status('Scan caches cleared (structures, denials, snapshots, ore yields). Mappings and prefs kept.');
+    status('Scan caches cleared (structures, denials, snapshots, ore yields). Prefs kept.');
   };
   if ($('stkClear')) $('stkClear').onclick = () => {
     stkSnapshotClear();
     stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkCustomNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={}; try { stkIndustrialProbed.clear(); } catch {}
-    try { const uw = $('stkUnresolved'); if (uw) uw.innerHTML = ''; } catch {}
-    stkUnresolvedLocs = [];
     stkProgressHide();
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Scan system.</p>';
     if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
