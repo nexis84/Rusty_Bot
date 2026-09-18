@@ -1224,7 +1224,7 @@ async function fetchSystemIndex(sys) {
   } catch (e) { status(sys.name + ' selected — index lookup failed, kept current.'); }
 }
 function initAutocomplete() {
-  attachAutocomplete('bpName', 'bpSuggest', { source: 'blueprints' });
+  attachAutocomplete('bpName', 'bpSuggest', { source: 'blueprints', onPick: () => { try { calculate(); } catch {} } });
   attachAutocomplete('invSearch', 'invSuggest', { source: 'items' });
   attachAutocomplete('systemName', 'sysSuggest', { source: 'systems', onPick: fetchSystemIndex });
 }
@@ -2804,6 +2804,23 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
+  // Share links (#bv=...) calculate automatically — on page load and when
+  // clicked from the ledger (same-page hash change, no reload).
+  function calcFromHash() {
+    if (!location.hash.startsWith('#bv=')) return false;
+    try {
+      const e = JSON.parse(atob(location.hash.slice(4)));
+      if (e && e.bp) {
+        $('bpName').value = e.bp;
+        if (e.runs) $('runs').value = e.runs;
+        calculate();
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+  window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
+  try { calcFromHash(); } catch {}
   if ($('bpSearch')) $('bpSearch').addEventListener('input', () => { myBpPage = 1; renderBpRows(); });
   if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
   // refining sync (global % replaces Reprocess %)
