@@ -825,16 +825,17 @@ function renderBuildProgress() {
     const t = !!ticked[top.key];
     const hasKids = subs.length > 0;
     const collapsed = bpProgCollapsed.has(ci);
-    h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1">'
+    h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1 prog-row">'
       + '<label style="cursor:pointer;display:flex;align-items:center;flex-shrink:0" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
       + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
+      + '<span class="row-tail">'
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (hasKids ? '<button class="mode-btn" data-pexp="' + ci + '" title="' + (collapsed ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (collapsed ? 'down' : 'up') + '"></i></button>' : '')
-      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></div>'
+      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></span></div>'
       + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
         const st = !!ticked[s.key];
-        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
+        return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty) + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</span></div>';
       }).join('') + '</div>' : '')
       + '</div>';
   });

@@ -131,10 +131,11 @@ footer.legal a{color:var(--text2)}
 /* Build Progress checklist rows: strict left-to-right grid so names never
    drift center and numbers stay right-aligned. Scoped to avoid touching
    the calculator tree which shares .rx-row/.row1. */
-#buildProgress .rx-row{flex-wrap:nowrap}
-#buildProgress .tree-node .row1{flex-wrap:nowrap}
-#buildProgress .tree-node .nm{flex:0 1 360px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#buildProgress .rx-row .nm{flex:0 1 360px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#buildProgress .tree-node .row1.prow,#buildProgress .rx-row.prow{display:grid;grid-template-columns:22px minmax(120px,360px) 190px 1fr auto;gap:.6rem;align-items:center;flex-wrap:nowrap}
+#buildProgress .prow>label{grid-column:1}
+#buildProgress .prow>.nm{grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#buildProgress .prow>.have-cell{grid-column:3}
+#buildProgress .prow>.row-tail{grid-column:5;display:flex;align-items:center;gap:.6rem;justify-self:end;white-space:nowrap}
 #buildProgress .tree-node .nums,#buildProgress .rx-row .nums{flex-shrink:0}
 #buildProgress .ref-track{flex-shrink:0}
 #buildProgress .ref-cap{font-size:.88rem;font-weight:600;color:var(--text)}
@@ -158,7 +159,7 @@ footer.legal a{color:var(--text2)}
 #progScanWrap .stk-track{height:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
 #progScanBar{display:block;height:100%;width:0%;background:linear-gradient(180deg,var(--accent),#9a8f00);transition:width .2s}
 #progScanLabel{margin-top:.2rem}
-.have-cell{display:inline-flex;flex-direction:column;gap:.2rem;vertical-align:middle;flex-shrink:0;width:190px;margin-left:auto;margin-right:120px}
+.have-cell{display:inline-flex;flex-direction:column;gap:.2rem;vertical-align:middle;width:190px}
 .have-cell .ref-track{height:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
 .have-cell .ref-cap{font-size:.82rem}
 #stkBar{display:block;height:100%;width:0%;background:var(--accent);transition:width .2s}
