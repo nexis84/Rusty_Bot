@@ -746,11 +746,25 @@ function bpProgCounts() {
   for (const r of rows) if (ticked[r.key]) done++;
   return { done, total: rows.length };
 }
+function bpProgOverall() {
+  const { rows } = bpProgModel();
+  const ticked = bpProgRead();
+  const mat = rows.filter(r => r.key !== 'root');
+  let done = 0;
+  for (const r of mat) if (ticked[r.key]) done++;
+  const total = mat.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  return { done, total, pct };
+}
 function bpProgRefreshHead() {
   try {
     const { done, total } = bpProgCounts();
     const meta = $('progMeta'), totals = $('progressTotals');
     if (meta) meta.textContent = total ? done + '/' + total + ' done' : '';
+    const ov = bpProgOverall();
+    const fill = $('progOverallFill'), lbl = $('progOverallLabel');
+    if (fill) { fill.style.width = ov.pct + '%'; fill.classList.toggle('complete', ov.total > 0 && ov.done === ov.total); }
+    if (lbl) lbl.textContent = ov.pct + '%';
     if (totals) {
       const { rows } = bpProgModel();
       const ticked = bpProgRead();
@@ -847,10 +861,13 @@ function renderBuildProgress() {
       }).join('') + '</div>' : '')
       + '</div>';
   });
-  // root row on top
+  // root row on top (with overall progress bar pinned far-right, % only)
   const rk = 'root', rt = !!ticked[rk];
   const rruns = src.runs || S.runs || 1;
-  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + src.bpName + ' × ' + rruns + '</b></span><span class="pill ' + (src.mode === 'react' ? 'react' : 'build') + '">' + (src.mode === 'react' ? 'REACT' : 'BUILD') + '</span></div></div>' + h;
+  const ovDone = rows.filter(r => r.key !== 'root' && ticked[r.key]).length;
+  const ovTotal = rows.filter(r => r.key !== 'root').length;
+  const ovPct = ovTotal ? Math.round(ovDone / ovTotal * 100) : 0;
+  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1 prog-root"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + src.bpName + ' × ' + rruns + '</b></span><span class="row-tail prog-overall"><span class="pill ' + (src.mode === 'react' ? 'react' : 'build') + '">' + (src.mode === 'react' ? 'REACT' : 'BUILD') + '</span><span class="ref-track" title="' + ovDone + '/' + ovTotal + ' done"><span id="progOverallFill" class="ref-fill' + (ovTotal > 0 && ovDone === ovTotal ? ' complete' : '') + '" style="width:' + ovPct + '%"></span></span><span id="progOverallLabel" class="prog-pct">' + ovPct + '%</span></span></div></div>' + h;
   wrap.innerHTML = h;
   if (!wrap.dataset.bound) {
     wrap.dataset.bound = '1';
