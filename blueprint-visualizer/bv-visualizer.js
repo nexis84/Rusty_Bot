@@ -1585,6 +1585,9 @@ function isIndustrialMaterial(id) {
   try { if (iceOreList && iceOreList.some(o => +o.id === nid)) return true; } catch {}
   return false;
 }
+function stkTypeName(id) {
+  return stkNames[id] || BV_MAT_NAMES.get(+id) || ('Type ' + id);
+}
 function stkFilteredAgg() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
   const srcAgg = stkCurrentAgg();
@@ -1637,13 +1640,13 @@ function stkFilteredAgg() {
   let out = industrialEntries;
   if (q) {
     out = out.filter(e => {
-      const nm = (stkNames[e.typeId] || '').toLowerCase();
+      const nm = stkTypeName(e.typeId).toLowerCase();
       return nm.includes(q) || String(e.typeId).includes(q);
     });
   }
   out.sort((a, b) => {
-    const aName = String(stkNames[a.typeId] || BV_MAT_NAMES.get(a.typeId) || '');
-    const bName = String(stkNames[b.typeId] || BV_MAT_NAMES.get(b.typeId) || '');
+    const aName = stkTypeName(a.typeId);
+    const bName = stkTypeName(b.typeId);
     return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: 'base' }) || a.typeId - b.typeId;
   });
   return out;
@@ -1676,7 +1679,7 @@ function renderStkRows() {
     h += '<tr><td colspan="6" style="color:var(--text3)">No industrial materials match — clear the search.</td></tr>';
   } else {
     for (const r of page) {
-      const nm = stkNames[r.typeId] || ('Type ' + r.typeId);
+      const nm = stkTypeName(r.typeId);
       const locs = (stkTypeLocs[r.typeId] ? [...stkTypeLocs[r.typeId]] : []).map(l => stkLocationNames[l] || ('Structure …' + String(l).slice(-4)));
       const ore = stkOreDetail.find(o => o.oreId === r.typeId);
       let prov = '';
