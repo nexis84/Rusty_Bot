@@ -1911,17 +1911,17 @@ async function loadInventory() {
       if (deniedChanged) bvDeniedWrite(denied);
       console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' industrialStructs=' + unresolved.length);
     }
-    // Fallback: personal scans often hit 403 on shared citadels because the character
-    // lacks docking ACL. When the user has explicitly picked a build system, trust
-    // that selection for ALL unresolved structures. This gives completeness at the
-    // cost of potentially including assets from other systems if the user's assets
-    // are scattered across New Eden. The user can uncheck the box for strict filtering.
+    // Fallback: personal scans often hit 403 on shared citadels, containers, or
+    // other opaque locations. When the user explicitly trusts the selected system,
+    // include every unresolved top-level location. This favors completeness at the
+    // cost of potentially including assets from other systems; uncheck the box for
+    // strict filtering.
     const trustSelectedSystem = $('stkTrustSystem') && $('stkTrustSystem').checked;
     const trustFallbackStructs = new Set();
     let trustFallbackAssetCount = 0;
     if (trustSelectedSystem && selSysNum) {
       for (const id of topLocIds) {
-        if (+id >= 1e12 && !locSys[id]) {
+        if (!locSys[id]) {
           locSys[id] = selSysNum;
           trustFallbackStructs.add(id);
         }
@@ -2053,7 +2053,7 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units from ' + trustFallbackStructs.size + ' unresolved structure' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
+    const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units from ' + trustFallbackStructs.size + ' unresolved location' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + wrongSysMsg + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
