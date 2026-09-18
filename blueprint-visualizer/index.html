@@ -28,10 +28,9 @@
 <aside class="sidebar">
   <div class="panel"><div class="tabs">
      <button class="tab-btn active" data-tab="calc"><i class="fas fa-industry"></i> Calc</button>
-     <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
-     <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
-     <button class="tab-btn" data-tab="stk"><i class="fas fa-boxes"></i> Inventory</button>
-      <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
+      <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
+      <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
+       <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
       <button class="tab-btn" data-tab="mine"><i class="fas fa-gem"></i> Mining yield</button>
    </div></div>
 
@@ -106,23 +105,7 @@
     <button id="invQueueBom" class="calc-btn secondary">BOM for queued runs</button>
   </div>
 
-  <div class="panel tab-content" id="tab-stk">
-     <h3><i class="fas fa-boxes"></i> Inventory</h3>
-     <p class="hint">Enter your <b>build system</b>, pick <b>Personal</b> or <b>Corp</b> (or Both), then <b>Scan system</b>. We pull every item in that system and list the industry materials — all ore, compressed ore, ice and compressed ice (worked out at your refining % from Calc &gt; Rigs). Tick <b>Use these</b> to deduct them from Shopping/Build/Mining and see them in the Refinery panel.</p>
-      <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
-      <input type="hidden" id="stkSystem" value="">
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems" checked> Search all personal systems (include assets outside the selected build system)</label>
-      <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkTrustSystem" checked> Trust selected system for structures ESI can’t access (common for personal assets in shared citadels)</label>
-      <div class="field"><label>Filter list</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, compressed arkonor…" autocomplete="off"></div>
-      <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button></div>
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
-     <div id="stkStatus" class="progress"></div>
-     <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
-     <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
-   </div>
-
-    <div class="panel tab-content" id="tab-mine">
+     <div class="panel tab-content" id="tab-mine">
       <h3><i class="fas fa-gem"></i> Mining plan</h3>
       <p class="hint">Mark raw minerals and ice products with <b>Mine it</b> on the tree, then plan here. Yields are live SDE via Everef. Global refining % replaces the old Reprocess % for ores.</p>
       <div class="field"><label>Mining ship (rate is approx — edit it)</label><select id="mineShip"></select></div>
@@ -204,6 +187,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=101"></script>
+    <script src="bv-visualizer.js?v=104"></script>
 </body>
 </html>
