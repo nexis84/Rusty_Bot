@@ -225,10 +225,34 @@ async function formulaDetails(formulaId) {
   } catch {}
   return null;
 }
+// Baked SDE recipes (bv-blueprints.js): instant offline-capable lookup shaped
+// like ESI responses ({activities: {manufacturing: {materials, products}}}).
+function bpFromTable(typeId) {
+  try {
+    const T = (typeof window !== 'undefined' && window.BV_BLUEPRINTS) || null;
+    const e = T && T[String(typeId)];
+    if (!e || !e.m || !e.m.length) return null;
+    return {
+      activities: {
+        manufacturing: {
+          materials: e.m.map(([tid, q]) => ({ type_id: tid, quantity: q })),
+          products: (e.p || []).map(([tid, q]) => ({ type_id: tid, quantity: q })),
+          time: e.t || 0
+        }
+      }
+    };
+  } catch { return null; }
+}
 async function blueprintData(typeId) {
   if (bpCache.has(typeId)) return bpCache.get(typeId);
+  // ESI first (live TQ data), then the baked SDE table (instant; covers the
+  // blueprints ESI 404s, e.g. Capital Capacitor Battery 21020), Everef last.
   try { const b = await fetchJSON(ESI + '/universe/blueprints/' + typeId + '/'); bpCache.set(typeId, b); return b; }
-  catch { const b = await fetchJSON('https://ref-data.everef.net/blueprints/' + typeId); bpCache.set(typeId, b); return b; }
+  catch (e1) {
+    const baked = bpFromTable(typeId);
+    if (baked) { bpCache.set(typeId, baked); return baked; }
+    const b = await fetchJSON('https://ref-data.everef.net/blueprints/' + typeId); bpCache.set(typeId, b); return b;
+  }
 }
 async function childBlueprint(materialTypeId, materialName) {
   try {
