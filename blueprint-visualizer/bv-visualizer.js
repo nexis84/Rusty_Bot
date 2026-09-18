@@ -1943,73 +1943,56 @@ function renderStkDetail() {
 }
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
+  // simple one-box view: Item | Qty | System  — hide detailed per-stack table
+  const dw = $('stkDetailWrap'); if (dw) dw.innerHTML = '';
   const rows = stkFilteredAgg();
   const srcAgg = stkCurrentAgg();
   const totalTypes = Object.keys(srcAgg).length;
-  const filteredTypes = rows.length;
-  const flag = stkFlag();
+  if (!totalTypes) {
+    box.innerHTML = '<p class="hint">No assets loaded. Pick a system and hit <b>Scan system</b>.</p>';
+    if (totals) totals.textContent = '';
+    return;
+  }
+  // build system map for simple System column (most common system per type)
+  const typeSys = {};
+  for (const a of (stkEnriched && stkEnriched.length ? stkEnriched : [])) {
+    const tid = a.type_id; const sys = a.system_name || (a._systemText ? a._systemText.split(' ')[0] : '—');
+    if (!typeSys[tid]) typeSys[tid] = {};
+    typeSys[tid][sys] = (typeSys[tid][sys] || 0) + Number(a.quantity || 0);
+  }
+  const sysFor = (tid) => {
+    const m = typeSys[tid];
+    if (!m) return stkCurrentSysName() || '—';
+    let best='—', mx=0; for (const [s,q] of Object.entries(m)) if (q>mx) {mx=q; best=s;}
+    return best;
+  };
   const pages = Math.max(1, Math.ceil(rows.length / stkPageSize));
   if (stkPage > pages) stkPage = pages;
   const start = (stkPage - 1) * stkPageSize;
   const page = rows.slice(start, start + stkPageSize);
-  if (!totalTypes) {
-    box.innerHTML = '<p class="hint">No assets loaded. Pick a system and hit <b>Scan system</b>.</p>';
-    if (totals) totals.textContent = '';
-    const dw = $('stkDetailWrap'); if (dw) dw.innerHTML = '';
-    return;
-  }
-  const industrialCount = Object.keys(srcAgg).filter(id => isIndustrialMaterial(+id)).length;
-  const sysVal = stkSysId();
-  const locName = stkCurrentSysName();
-  const flagHint = flag !== 'All' ? ' · ' + flag : '';
-  const countLine = '<p class="hint">' + totalTypes + ' unique types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + stkSysIdName(sysVal) : ' in hangar')) + ' · ' + industrialCount + ' unique industrial types' + flagHint + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ' · sort: ' + stkSortCol + (stkSortRev ? ' ↓' : ' ↑') + '</p>';
+  const countLine = '<p class="hint">' + rows.length + ' types' + (stkIndustrialOnly() ? ' · Industrial only' : ' · All') + '</p>';
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
-    : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
+    : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types</p>' : '');
   let h = countLine + pager;
-  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th style="cursor:pointer" data-sort="name">Item ' + (stkSortCol==='name'?'▲':'') + '</th><th style="cursor:pointer" data-sort="qty">Qty owned (all stacks) ' + (stkSortCol==='qty'?(stkSortRev?'▼':'▲'):'') + '</th><th>Refines / Location</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>System</th></tr></thead><tbody>';
   if (!page.length) {
-    h += '<tr><td colspan="6" style="color:var(--text3)">No industrial materials match — clear the search.</td></tr>';
+    h += '<tr><td colspan="3" style="color:var(--text3)">No matches — clear search.</td></tr>';
   } else {
     for (const r of page) {
       const nm = stkTypeName(r.typeId);
-      const locs = (stkTypeLocs[r.typeId] ? [...stkTypeLocs[r.typeId]] : []).map(l => stkLocationNames[l] || ('Structure …' + String(l).slice(-4)));
-      const ore = stkOreDetail.find(o => o.oreId === r.typeId);
-      let prov = '';
-      if (ore && ore.refined.length) prov = '<div style="font-size:.75rem;color:var(--accent)">' + ore.refined.map(m => '→ ' + m.name + ' ×' + fmtN(m.qty)).join('<br>') + ' <span class="nums">@' + Math.round(stkRefineEff*100) + '% refine</span></div>';
-      if (locs.length) prov += '<div class="nums" style="font-size:.72rem">' + locs.slice(0,2).join(', ') + (locs.length>2 ? ' +' + (locs.length-2) : '') + '</div>';
-      h += '<tr><td><img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + (prov || '<span class="nums">—</span>') + '</td><td data-stkprice="' + r.typeId + '">—</td><td data-stktotal="' + r.typeId + '">—</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.typeId) + '"><i class="fas fa-chart-line"></i></a>' + (isPI(r.typeId) ? piIcon(r.typeId) : '') +'</td></tr>';
+      const sys = sysFor(r.typeId);
+      h += '<tr><td><img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
     }
   }
   h += '</tbody></table></div>';
   box.innerHTML = h;
-  box.querySelectorAll('[data-sort]').forEach(th => th.onclick = () => stkSortBy(th.dataset.sort));
   box.querySelectorAll('[data-stkpg]').forEach(b => b.onclick = () => { stkPage += (b.dataset.stkpg === 'next' ? 1 : -1); renderStkRows(); });
   const sel = box.querySelector('[data-stkpgsize]');
   if (sel) sel.onchange = () => { const n = parseInt(sel.value,10); if (STK_PAGE_OPTIONS.includes(n)) { stkPageSize=n; try{localStorage.setItem('bvStkPageSize', String(n));}catch{} } stkPage=1; renderStkRows(); };
-  renderStkDetail();
-  // lazy price fill for visible page
-  (async () => {
-    const region = hub();
-    for (const r of page) {
-      try {
-        const p = await marketPrice(r.typeId, region, 'sell');
-        const el = box.querySelector('[data-stkprice="'+r.typeId+'"]');
-        const el2 = box.querySelector('[data-stktotal="'+r.typeId+'"]');
-        if (el) el.textContent = p ? fmtISK(p) : '—';
-        if (el2) el2.textContent = p ? fmtISK(p * r.qty) : '—';
-      } catch {}
-    }
-    // totals line: total inventory value for the industrial set
-    if (totals) {
-      let totalVal = 0;
-      for (const e of rows) {
-        try { const p = await marketPrice(e.typeId, hub(), 'sell'); if(p) totalVal += p * e.qty; } catch {}
-      }
-      totals.textContent = 'Filtered value @ ' + ((D.hubs.find(h=>h.region===hub())||{}).name||hub()) + ': ' + fmtISK(totalVal) + (rows.length !== totalTypes ? ' ('+rows.length+' types)' : '') + (flag!=='All' ? ' · ' + flag : '');
-    }
-  })();
+  if (totals) totals.textContent = rows.length + ' types in view';
 }
+function renderStkDetail(){ const dw=$('stkDetailWrap'); if(dw) dw.innerHTML=''; }
 async function loadInventory() {
   const box = $('stkList'), st = $('stkStatus'), totals = $('stkTotals');
   if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needs esi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
