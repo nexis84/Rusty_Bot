@@ -707,6 +707,7 @@ async function renderBuildList(runs) {
 // reaction reagents). Ticks persist per blueprint in localStorage; collapse
 // state persists per render in bpProgCollapsed. Export reuses the same model.
 const bpProgCollapsed = new Set();
+let bpProgLastSrc = null;
 function bpProgStoreKey() { const src = bpProgSource(); return 'bvBuildProg_' + (src ? src.bpId : 'none'); }
 function bpProgRead() { try { const v = JSON.parse(localStorage.getItem(bpProgStoreKey()) || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
 function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stringify(m || {})); } catch {} }
@@ -780,6 +781,12 @@ function renderBuildProgress() {
   }
   const { rows, pinned, selPin } = bpProgModel();
   const ticked = bpProgRead();
+  // Default to fully expanded whenever the tracked build changes; manual
+  // collapse choices persist only while viewing the same blueprint.
+  try {
+    const srcKey = src.bpId + '|' + (src.children ? src.children.length : 0);
+    if (bpProgLastSrc !== srcKey) { bpProgLastSrc = srcKey; bpProgCollapsed.clear(); }
+  } catch {}
   // Pin selector: Live + up to 5 pinned builds (persisted). Unpin via ×.
   const pins = S.pinnedBuilds || [];
   let h = '';
