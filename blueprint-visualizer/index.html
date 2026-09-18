@@ -30,6 +30,7 @@
      <button class="tab-btn active" data-tab="calc"><i class="fas fa-industry"></i> Calc</button>
       <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
       <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
+      <button class="tab-btn" data-tab="stk"><i class="fas fa-boxes"></i> Inventory</button>
        <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
       <button class="tab-btn" data-tab="mine"><i class="fas fa-gem"></i> Mining yield</button>
    </div></div>
@@ -104,6 +105,19 @@
     <div id="invQueue" style="font-size:.82rem;color:var(--text2)">Nothing queued yet.</div>
     <button id="invQueueBom" class="calc-btn secondary">BOM for queued runs</button>
   </div>
+
+  <div class="panel tab-content" id="tab-stk">
+      <h3><i class="fas fa-boxes"></i> Inventory &amp; Material Resolution</h3>
+      <p class="hint">Authenticate via ESI (<code>esi-assets.read_assets.v1</code> + <code>esi-universe.read_structures.v1</code>), pick a system, pull assets. Auto-refine converts ores/ice to minerals at your refining %.</p>
+      <div class="field"><label>System</label><select id="stkSystem" class="form-input"><option value="">— Scan first —</option></select></div>
+      <div class="field"><label>Station / Structure</label><select id="stkLocation" class="form-input"><option value="">All locations in system</option></select></div>
+      <div class="btn-row"><button id="stkRefresh" class="calc-btn"><i class="fas fa-download"></i> Pull Inventory</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button></div>
+      <label style="display:flex;gap:.5rem;align-items:center;margin:.6rem 0;font-size:.85rem"><input type="checkbox" id="stkAutoRefine"> <i class="fas fa-fire"></i> Auto-Refine ores &amp; ice to minerals (uses Calc → Refining yield %)</label>
+      <div id="stkStatus" class="progress" style="margin:.4rem 0"></div>
+      <h4 style="margin:.6rem 0 .3rem">Materials Breakdown <span id="stkMatCount" class="pill" style="margin-left:.4rem">0</span></h4>
+      <div style="overflow-x:auto"><table class="bom" id="stkMatTable"><thead><tr><th>Icon</th><th>Item</th><th>Category</th><th>Available</th><th>Required</th><th>Net Delta</th></tr></thead><tbody id="stkMatBody"><tr><td colspan="6" style="color:var(--text3)">No inventory — pull first, then Calculate a blueprint.</td></tr></tbody></table></div>
+      <p class="hint" id="stkMatHint" style="margin-top:.4rem"></p>
+    </div>
 
      <div class="panel tab-content" id="tab-mine">
       <h3><i class="fas fa-gem"></i> Mining plan</h3>
@@ -187,6 +201,6 @@
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=104"></script>
+    <script src="bv-visualizer.js?v=105"></script>
 </body>
 </html>
