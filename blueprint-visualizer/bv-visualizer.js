@@ -825,7 +825,7 @@ function renderBuildProgress() {
     const t = !!ticked[top.key];
     const hasKids = subs.length > 0;
     const collapsed = bpProgCollapsed.has(ci);
-    h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1 prog-row">'
+    h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1 prow">'
       + '<label style="cursor:pointer;display:flex;align-items:center;flex-shrink:0" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
       + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
       + '<span class="row-tail">'

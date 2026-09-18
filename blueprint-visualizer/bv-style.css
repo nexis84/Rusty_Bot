@@ -131,7 +131,7 @@ footer.legal a{color:var(--text2)}
 /* Build Progress checklist rows: strict left-to-right grid so names never
    drift center and numbers stay right-aligned. Scoped to avoid touching
    the calculator tree which shares .rx-row/.row1. */
-#buildProgress .tree-node .row1.prow,#buildProgress .rx-row.prow{display:grid;grid-template-columns:22px minmax(120px,360px) auto 1fr auto;gap:.6rem;align-items:center;flex-wrap:nowrap}
+#buildProgress .tree-node .row1.prow,#buildProgress .rx-row.prow{display:grid;grid-template-columns:22px 360px 340px 1fr auto;gap:.6rem;align-items:center;flex-wrap:nowrap}
 #buildProgress .prow>label{grid-column:1}
 #buildProgress .prow>.nm{grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #buildProgress .prow>.have-cell{grid-column:3}
@@ -164,9 +164,9 @@ footer.legal a{color:var(--text2)}
 #progScanWrap .stk-track{height:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
 #progScanBar{display:block;height:100%;width:0%;background:linear-gradient(180deg,var(--accent),#9a8f00);transition:width .2s}
 #progScanLabel{margin-top:.2rem}
-.have-cell{display:inline-flex;flex-direction:row;align-items:center;gap:.5rem;vertical-align:middle}
+.have-cell{display:inline-flex;flex-direction:row;align-items:center;gap:.5rem;vertical-align:middle;width:340px;overflow:hidden}
 .have-cell .ref-track{width:110px;height:12px;flex-shrink:0;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
-.have-cell .ref-cap{font-size:.82rem}
+.have-cell .ref-cap{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #stkBar{display:block;height:100%;width:0%;background:var(--accent);transition:width .2s}
 #stkBarLabel{margin-top:.2rem}
 .stk-list{margin-top:.6rem;font-size:.82rem}
