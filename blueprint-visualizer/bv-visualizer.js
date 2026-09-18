@@ -705,13 +705,17 @@ function bpProgRefreshHead() {
     if (totals) {
       const { rows } = bpProgModel();
       const ticked = bpProgRead();
-      let leftVal = 0, leftN = 0;
+      let invAgg = {};
+      try { invAgg = stkDeductMap() || {}; } catch {}
+      const hasInv = Object.keys(invAgg).length > 0;
+      let leftVal = 0, leftN = 0, covered = 0;
       for (const r of rows) {
         if (r.depth < 0 || ticked[r.key]) continue;
         leftN++;
         leftVal += (r.unit || 0) * r.qty;
+        if (hasInv && (invAgg[r.typeId] || 0) >= r.qty) covered++;
       }
-      totals.textContent = total ? (done === total ? 'Complete — everything collected/built.' : leftN + ' remaining' + (leftVal > 0 ? ' · ' + fmtISK(leftVal) + ' buy value left' : '')) : '';
+      totals.textContent = total ? (done === total ? 'Complete — everything collected/built.' : leftN + ' remaining' + (leftVal > 0 ? ' · ' + fmtISK(leftVal) + ' buy value left' : '') + (hasInv && covered ? ' · ' + covered + ' already in inventory' : '')) : '';
     }
   } catch {}
 }
@@ -728,6 +732,16 @@ function renderBuildProgress() {
   }
   const { rows, pinned } = bpProgModel();
   const ticked = bpProgRead();
+  // Live inventory for Have vs Required (same snapshot the Shopping list deducts).
+  let invAgg = {};
+  try { invAgg = stkDeductMap() || {}; } catch {}
+  const hasInv = Object.keys(invAgg).length > 0;
+  const haveSpan = (typeId, qty) => {
+    if (!hasInv) return '';
+    const have = invAgg[typeId] || 0;
+    const ok = have >= qty;
+    return '<span class="nums" title="Owned in inventory"' + (ok ? ' style="color:var(--build)"' : '') + '>have ' + fmtN(have) + '</span>';
+  };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
   let h = pinned ? '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint. <a href="#" id="progUnpinLink" style="color:var(--accent)">Track live instead</a>.</p>' : '';
   src.children.forEach((c, ci) => {
@@ -739,14 +753,14 @@ function renderBuildProgress() {
     const collapsed = bpProgCollapsed.has(ci);
     h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1">'
       + '<label style="cursor:pointer;display:flex;align-items:center" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
-      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>'
+      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveSpan(c.type_id, top.qty)
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (hasKids ? '<button class="mode-btn" data-pexp="' + ci + '" title="' + (collapsed ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (collapsed ? 'down' : 'up') + '"></i></button>' : '')
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></div>'
       + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
         const st = !!ticked[s.key];
-        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
+        return '<div class="rx-row"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex:1" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveSpan(s.typeId, s.qty) + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</div>';
       }).join('') + '</div>' : '')
       + '</div>';
   });
@@ -782,11 +796,15 @@ function renderBuildProgress() {
 function bpProgExportText() {
   const { rows, rootName, runs } = bpProgModel();
   const ticked = bpProgRead();
+  let invAgg = {};
+  try { invAgg = stkDeductMap() || {}; } catch {}
+  const hasInv = Object.keys(invAgg).length > 0;
   const lines = [rootName + ' ×' + runs + ' ' + (ticked['root'] ? '[x]' : '[ ]')];
   for (const r of rows) {
     if (r.depth < 0) continue;
     const pad = r.depth === 1 ? '  ' : '';
-    lines.push(pad + cleanName(r.name) + ' ×' + fmtN(r.qty) + ' ' + (ticked[r.key] ? '[x]' : '[ ]'));
+    const have = hasInv ? ' (have ' + fmtN(invAgg[r.typeId] || 0) + ')' : '';
+    lines.push(pad + cleanName(r.name) + ' ×' + fmtN(r.qty) + have + ' ' + (ticked[r.key] ? '[x]' : '[ ]'));
   }
   return lines.join('\n');
 }
