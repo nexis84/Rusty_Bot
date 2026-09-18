@@ -164,6 +164,7 @@ function init() {
     document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); $('tab-' + b.dataset.tab).classList.add('active');
   });
+  document.querySelectorAll('[data-mainview]').forEach(b => b.onclick = () => switchMainView(b.dataset.mainview));
   updateSsoBtn(); renderLedger();
 }
 function savePrefs() {
@@ -371,9 +372,9 @@ async function childReaction(materialTypeId, materialName) {
   reactCache.set(key, out);
   return out;
 }
-function reactRunsNeeded(c) {
+function reactRunsNeeded(c, runs) {
   if (!c.reaction || !c.reaction.productQty) return 0;
-  return Math.ceil((c.perRun * (S.runs || 1)) / c.reaction.productQty);
+  return Math.ceil((c.perRun * (runs || S.runs || 1)) / c.reaction.productQty);
 }
 async function enrichChildren(runs) {
   S.runs = runs;
@@ -396,6 +397,7 @@ async function enrichChildren(runs) {
         const outP = await marketPrice(c.type_id, hub(), 'sell');
         const prodQty = (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
         c.child = { bpName: kid.bpName, subCost: sub, outPrice: outP, margin: (outP || 0) - sub, materials: kid.materials, productQty: prodQty, products: kid.products };
+        if (S.pinnedRoot && S.root && S.pinnedRoot.bpId === S.root.bpId) bpProgPinCurrent(true);
         renderTree(runs);
         renderBuildList(runs);
       }
@@ -412,6 +414,7 @@ async function enrichChildren(runs) {
         const unitCost = perRunCost / Math.max(1, rx.productQty);
         const outP = (c.unitSell != null ? c.unitSell : await marketPrice(c.type_id, hub(), 'sell')) || 0;
         c.reaction = { ...rx, perRunCost, unitCost, margin: outP - unitCost };
+        if (S.pinnedRoot && S.root && S.pinnedRoot.bpId === S.root.bpId) bpProgPinCurrent(true);
         renderTree(runs);
       }
     }
@@ -475,6 +478,16 @@ function renderSummary(s) {
     '<div class="summary-card"><div class="k">Blueprint</div><div class="v" style="font-size:.85rem">' + s.bpName + '</div><div class="k">TE bonus ' + s.teBonus.toFixed(0) + '% · Industry ' + s.ind + '/' + s.adv + ' · ' + s.imp.name + '</div></div>' + tracked;
 }
 
+// ---- main content views (Calculator vs Build Progress) ----
+function switchMainView(v) {
+  const calc = v !== 'prog';
+  try {
+    $('mainCalc').style.display = calc ? '' : 'none';
+    $('mainProg').style.display = calc ? 'none' : '';
+    document.querySelectorAll('[data-mainview]').forEach(b => b.classList.toggle('active', (b.dataset.mainview || 'calc') === (calc ? 'calc' : 'prog')));
+    if (!calc) renderBuildProgress();
+  } catch {}
+}
 // ---- drill-down navigation (breadcrumb trail) ----
 function renderCrumbs(current) {
   const bar = $('crumbBar');
@@ -647,16 +660,17 @@ async function renderBuildList(runs) {
 // reaction reagents). Ticks persist per blueprint in localStorage; collapse
 // state persists per render in bpProgCollapsed. Export reuses the same model.
 const bpProgCollapsed = new Set();
-function bpProgStoreKey() { return 'bvBuildProg_' + (S.root ? S.root.bpId : 'none'); }
+function bpProgStoreKey() { const src = bpProgSource(); return 'bvBuildProg_' + (src ? src.bpId : 'none'); }
 function bpProgRead() { try { const v = JSON.parse(localStorage.getItem(bpProgStoreKey()) || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
 function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stringify(m || {})); } catch {} }
 // Flat row model for render + export so counts always agree.
 function bpProgModel() {
   const rows = [];
-  if (!S.root || !S.root.children) return { rows, rootName: '', runs: 1 };
-  const runs = S.runs || 1;
-  rows.push({ key: 'root', typeId: S.root.bpId, name: S.root.bpName + ' × ' + runs, qty: runs, unit: null, depth: -1, mode: S.root.mode });
-  S.root.children.forEach((c, ci) => {
+  const src = bpProgSource();
+  if (!src || !src.children) return { rows, rootName: '', runs: 1, pinned: !!S.pinnedRoot };
+  const runs = src.runs || S.runs || 1;
+  rows.push({ key: 'root', typeId: src.bpId, name: src.bpName + ' × ' + runs, qty: runs, unit: null, depth: -1, mode: src.mode });
+  src.children.forEach((c, ci) => {
     const need = c.perRun * runs;
     const basis = ($('basis') && $('basis').value) || 'sell';
     const unit = basis === 'buy' ? c.unitBuy : c.unitSell;
@@ -668,13 +682,13 @@ function bpProgModel() {
         rows.push({ key: 'g' + ci + ':' + m.type_id, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: 'buy' });
       }
     } else if (c.mode === 'react' && c.reaction && c.reaction.reagents) {
-      const n = reactRunsNeeded(c);
+      const n = reactRunsNeeded(c, runs);
       for (const rg of c.reaction.reagents) {
         rows.push({ key: 'r' + ci + ':' + rg.type_id, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: 'react' });
       }
     }
   });
-  return { rows, rootName: S.root.bpName, runs };
+  return { rows, rootName: src.bpName, runs, pinned: !!S.pinnedRoot };
 }
 function bpProgCounts() {
   const { rows } = bpProgModel();
@@ -704,18 +718,19 @@ function bpProgRefreshHead() {
 function renderBuildProgress() {
   const wrap = $('buildProgress');
   if (!wrap) return;
-  if (!S.root || !S.root.children || !S.root.children.length) {
-    wrap.innerHTML = '<p class="hint">No calculation yet — run a calculation, then tick items off as you collect or build them.</p>';
+  const src = bpProgSource();
+  if (!src || !src.children || !src.children.length) {
+    wrap.innerHTML = '<p class="hint">No pinned build yet — open <b>My Blueprints</b> and hit <b>Send to Build</b> on any blueprint, or track the live calculation.</p>';
     const meta = $('progMeta'), totals = $('progressTotals');
     if (meta) meta.textContent = '';
     if (totals) totals.textContent = '';
     return;
   }
-  const { rows } = bpProgModel();
+  const { rows, pinned } = bpProgModel();
   const ticked = bpProgRead();
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
-  let h = '';
-  S.root.children.forEach((c, ci) => {
+  let h = pinned ? '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint. <a href="#" id="progUnpinLink" style="color:var(--accent)">Track live instead</a>.</p>' : '';
+  src.children.forEach((c, ci) => {
     const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
     if (!top) return;
     const subs = kidsOf(ci);
@@ -737,8 +752,11 @@ function renderBuildProgress() {
   });
   // root row on top
   const rk = 'root', rt = !!ticked[rk];
-  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + S.root.bpName + ' × ' + (S.runs || 1) + '</b></span><span class="pill ' + (S.root.mode === 'react' ? 'react' : 'build') + '">' + (S.root.mode === 'react' ? 'REACT' : 'BUILD') + '</span></div></div>' + h;
+  const rruns = src.runs || S.runs || 1;
+  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + src.bpName + ' × ' + rruns + '</b></span><span class="pill ' + (src.mode === 'react' ? 'react' : 'build') + '">' + (src.mode === 'react' ? 'REACT' : 'BUILD') + '</span></div></div>' + h;
   wrap.innerHTML = h;
+  const unpin = wrap.querySelector('#progUnpinLink');
+  if (unpin) unpin.onclick = e => { e.preventDefault(); S.pinnedRoot = null; renderBuildProgress(); status('Tracking the live calculation.'); };
   if (!wrap.dataset.bound) {
     wrap.dataset.bound = '1';
     wrap.addEventListener('change', e => {
@@ -930,13 +948,15 @@ function bindHandoffs() {
   const cp = $('copyProgress'); if (cp) cp.onclick = async () => { const t = bpProgExportText(); if (!S.root) { status('Run a calculation first.'); return; } await navigator.clipboard.writeText(t); status('Checklist copied (' + t.split('\n').length + ' lines).'); };
   const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = async () => { const lines = bpProgRemainingMultibuy(); if (!lines.length) { status('Nothing remaining — all ticked.'); return; } await navigator.clipboard.writeText(lines.join('\n')); status('Remaining multibuy copied (' + lines.length + ' lines).'); };
   const tpe = $('toggleProgExpand'); if (tpe) tpe.onclick = () => {
-    if (!S.root || !S.root.children) return;
-    const anyOpen = S.root.children.some((c, ci) => !bpProgCollapsed.has(ci) && (c.child && c.child.materials || c.mode === 'react' && c.reaction));
-    S.root.children.forEach((c, ci) => { if (anyOpen) bpProgCollapsed.add(ci); else bpProgCollapsed.delete(ci); });
+    const src = bpProgSource();
+    if (!src || !src.children) return;
+    const anyOpen = src.children.some((c, ci) => !bpProgCollapsed.has(ci) && (c.child && c.child.materials || c.mode === 'react' && c.reaction));
+    src.children.forEach((c, ci) => { if (anyOpen) bpProgCollapsed.add(ci); else bpProgCollapsed.delete(ci); });
     renderBuildProgress();
     tpe.innerHTML = anyOpen ? '<i class="fas fa-expand"></i> Expand' : '<i class="fas fa-compress"></i> Collapse';
   };
   const clp = $('clearProgress'); if (clp) clp.onclick = () => { bpProgWrite({}); renderBuildProgress(); status('Progress ticks cleared.'); };
+  const unp = $('unpinProgress'); if (unp) unp.onclick = () => { S.pinnedRoot = null; renderBuildProgress(); status('Tracking the live calculation.'); };
 }
 
 // ---- OCR (kept from BPC, trimmed) ----
@@ -1100,17 +1120,39 @@ function bpRowHtml(b) {
   const nm = myBpNames[b.type_id] || ('Type ' + b.type_id);
   const loc = BV_SHOW_LOCATIONS ? bpLocName(b) : null;
   const locHtml = loc ? ' · <span class="nums">@ ' + loc + (b.location_flag ? ' (' + b.location_flag + ')' : '') + '</span>' : '';
-  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button></div>';
+  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button><button class="mode-btn" data-sendbp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '" title="Calculate and pin to the Build Progress tab">Send to Build</button></div>';
 }
+async function bpApplyRow(btn) {
+  $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
+  if (!btn.dataset.bpo && +btn.dataset.runs > 0) $('runs').value = +btn.dataset.runs;
+  $('bpName').value = await typeName(+btn.dataset.bp);
+  savePrefs();
+}
+// Pin the current calculation as THE tracked build (deep snapshot incl. runs).
+// Progress keeps working while you browse other blueprints; sub-blueprint
+// details merged in the background auto-refresh the pin while it matches.
+function bpProgPinCurrent(silent) {
+  if (!S.root || !S.root.children) return false;
+  try {
+    S.pinnedRoot = JSON.parse(JSON.stringify({ bpId: S.root.bpId, bpName: S.root.bpName, mode: S.root.mode, runs: S.runs || parseInt(($('runs') && $('runs').value) || 1), children: S.root.children }));
+    if (!silent) { renderBuildProgress(); switchMainView('prog'); status('Sent ' + S.pinnedRoot.bpName + ' ×' + S.pinnedRoot.runs + ' to Build Progress.'); }
+    return true;
+  } catch { return false; }
+}
+function bpProgSource() { return S.pinnedRoot || S.root; }
 function bindBpLoadButtons(box) {
   box.querySelectorAll('[data-bp]').forEach(btn => btn.onclick = async () => {
-    $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
-    if (!btn.dataset.bpo && +btn.dataset.runs > 0) $('runs').value = +btn.dataset.runs;
-    $('bpName').value = await typeName(+btn.dataset.bp);
+    await bpApplyRow(btn);
     document.querySelector('[data-tab="calc"]').click();
-    savePrefs();
     status('Loading ' + $('bpName').value + ' (ME' + $('me').value + '/TE' + $('te').value + ( $('runs').value ? ' ×' + $('runs').value : '' ) + ')…');
     await calculate();
+  });
+  box.querySelectorAll('[data-sendbp]').forEach(btn => btn.onclick = async () => {
+    await bpApplyRow(btn);
+    status('Loading ' + $('bpName').value + ' for Build Progress…');
+    await calculate();
+    if (bpProgPinCurrent()) switchMainView('prog');
+    else status('Nothing to send — calculation produced no materials.');
   });
 }
 function renderBpRows() {
