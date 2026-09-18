@@ -1602,6 +1602,7 @@ function stkFilteredAgg() {
   
   if (nonIndustrialEntries.length > 0) {
     console.log('[BV] Non-industrial types in inventory (first 20):', nonIndustrialEntries.slice(0, 20).map(e => e.typeId));
+    console.log('[BV] Industrial types in inventory:', industrialEntries.map(e => e.typeId));
     console.log('[BV] BV_MATERIALS size:', BV_MATERIALS.size);
     console.log('[BV] Total types in srcAgg:', entries.length, 'Industrial:', industrialEntries.length, 'Non-industrial:', nonIndustrialEntries.length);
   }
