@@ -1615,9 +1615,13 @@ function stkFilteredAgg() {
     const hasMinerals = entries.filter(e => mineralIds.includes(e.typeId));
     const hasIce = entries.filter(e => iceIds.includes(e.typeId));
     
-    console.log('[BV] Ores in inventory:', hasOres.map(e => ({ id: e.typeId, inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
-    console.log('[BV] Minerals in inventory:', hasMinerals.map(e => ({ id: e.typeId, inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
-    console.log('[BV] Ice in inventory:', hasIce.map(e => ({ id: e.typeId, inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    console.log('[BV] Ores in inventory:', hasOres.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    console.log('[BV] Minerals in inventory:', hasMinerals.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    console.log('[BV] Ice in inventory:', hasIce.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    
+    // Show top 50 items by quantity to see what's actually in the inventory
+    const topItems = entries.sort((a, b) => b.qty - a.qty).slice(0, 50);
+    console.log('[BV] Top 50 items by quantity:', topItems.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', qty: e.qty, isIndustrial: isIndustrialMaterial(e.typeId) })));
   }
   
   let out = industrialEntries;
