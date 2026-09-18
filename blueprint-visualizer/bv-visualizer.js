@@ -1855,17 +1855,28 @@ async function loadInventory() {
     }
     // Fallback: personal scans often hit 403 on shared citadels because the character
     // lacks docking ACL. When the user has explicitly picked a build system, trust
-    // that selection for any structures whose system ESI refused to reveal.
+    // that selection for the most significant unresolved structures (ranked by asset
+    // quantity), but cap it so we don't attribute scattered assets across New Eden
+    // to the selected system.
     const trustSelectedSystem = $('stkTrustSystem') && $('stkTrustSystem').checked;
     const trustFallbackStructs = new Set();
-    let trustFallbackAssetCount = 0;
+    let trustFallbackAssetCount = 0, trustFallbackLimitHit = 0;
+    const MAX_TRUST_FALLBACK_STRUCTS = 10;
     if (trustSelectedSystem && selSysNum) {
-      for (const id of topLocIds) {
-        if (+id >= 1e12 && !locSys[id]) {
-          locSys[id] = selSysNum;
-          trustFallbackStructs.add(id);
+      const structQty = {};
+      for (const a of assets) {
+        if (!a || !a.type_id) continue;
+        const stnId = String(stationFor(a));
+        if (+stnId >= 1e12 && !locSys[stnId]) {
+          structQty[stnId] = (structQty[stnId] || 0) + (Number(a.quantity) || 0);
         }
       }
+      const ranked = Object.entries(structQty).sort((a, b) => b[1] - a[1]);
+      for (const [id, qty] of ranked.slice(0, MAX_TRUST_FALLBACK_STRUCTS)) {
+        locSys[id] = selSysNum;
+        trustFallbackStructs.add(id);
+      }
+      trustFallbackLimitHit = Math.max(0, ranked.length - MAX_TRUST_FALLBACK_STRUCTS);
     }
     if (staSysChanged) { try { localStorage.setItem('bvStaSys', JSON.stringify(staSysCache)); } catch {} }
     // diagnostic: report how the scan's locations resolved (helps debug personal/corp)
@@ -1987,8 +1998,9 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    const fallbackMsg = trustFallbackAssetCount > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units included from ' + trustFallbackStructs.size + ' unresolved structure' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft && !trustFallbackStructs.size ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units included from ' + trustFallbackStructs.size + ' unresolved structure' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
+    const fallbackLimitMsg = trustFallbackLimitHit > 0 ? ' · ' + trustFallbackLimitHit + ' more unresolved structure' + (trustFallbackLimitHit === 1 ? '' : 's') + ' skipped (trust fallback cap)' : '';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft && !trustFallbackStructs.size ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + fallbackMsg + fallbackLimitMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
