@@ -13,7 +13,7 @@ const BV_MAT_NAMES = (() => { try { return new Map((window.BV_MATERIAL_NAMES || 
 
 async function fetchJSON(url, opts, timeout = 12000) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), timeout);
-  try { const r = await fetch(url, { ...opts, signal: c.signal }); clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); const ct = r.headers.get('content-type') || ''; return ct.includes('json') ? r.json() : r.text(); }
+  try { const r = await fetch(url, { ...opts, signal: c.signal }); clearTimeout(t); if (!r.ok) { if (url.includes('/universe/names') && r.status === 400) return []; throw new Error('HTTP ' + r.status); } const ct = r.headers.get('content-type') || ''; return ct.includes('json') ? r.json() : r.text(); }
   catch (e) { clearTimeout(t); throw e; }
 }
 function status(m) { $('calcStatus').textContent = m || ''; console.log('[BV]', m); }
