@@ -117,3 +117,22 @@ footer.legal a{color:var(--text2)}
 .suggest-item.active,.suggest-item:hover{background:rgba(232,217,0,.1);color:var(--accent)}
 .suggest-item .hl{color:var(--accent);font-weight:700}
 @media(max-width:1100px){.sidebar{width:100%;min-width:0;max-height:none}.main-container{flex-direction:column}.app{height:auto}}
+/* Inventory tab cleanup */
+.stk-section{margin:.8rem 0 .35rem;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
+.stk-section:first-of-type{margin-top:.2rem}
+.hint-details{margin-bottom:.4rem}
+.hint-details summary{cursor:pointer;font-size:.78rem;color:var(--text2);list-style:none}
+.hint-details summary::-webkit-details-marker{display:none}
+.hint-details summary:before{content:'▸ ';color:var(--accent)}
+.hint-details[open] summary:before{content:'▾ '}
+.hint-details .hint{margin:.35rem 0 0}
+.check{display:flex;gap:.45rem;align-items:center;margin:.45rem 0;font-size:.8rem;color:var(--text2);cursor:pointer}
+.check input{width:auto;accent-color:var(--accent);margin:0}
+.btn-row.tight{margin-top:.4rem}
+.btn-row.tight .calc-btn{flex:1 1 auto;font-size:.76rem;padding:.4rem .5rem;margin-top:0}
+#stkProgWrap{display:none;margin:.4rem 0}
+#stkProgWrap .stk-track{height:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+#stkBar{display:block;height:100%;width:0%;background:var(--accent);transition:width .2s}
+#stkBarLabel{margin-top:.2rem}
+.stk-list{margin-top:.6rem;font-size:.82rem}
+#stkTotals{margin-top:.4rem}

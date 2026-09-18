@@ -108,28 +108,34 @@
 
   <div class="panel tab-content" id="tab-stk">
      <h3><i class="fas fa-boxes"></i> Inventory</h3>
-     <p class="hint">Enter your <b>build system</b>, pick <b>Personal</b> or <b>Corp</b> (or Both), then <b>Scan system</b>. We pull every accessible item in that system — structures ESI can't resolve are excluded, never guessed. Tick <b>Industrial only</b> to limit the list, snapshot and calculator to build materials (ore, compressed ore, ice, moon, gas, minerals, PI at your refining % from Calc &gt; Rigs). Tick <b>Use these</b> to deduct them from Shopping/Build/Mining and see them in the Refinery panel.</p>
+     <details class="hint-details">
+       <summary>How inventory search works</summary>
+       <p class="hint">Enter your <b>build system</b>, pick a source, then <b>Scan system</b>. We pull every accessible item in that system — structures ESI can't resolve are excluded, never guessed. <b>Industrial only</b> limits the list, snapshot and calculator to build materials (ore, compressed ore, ice, moon, gas, minerals, PI at your refining % from Calc &gt; Rigs). <b>Use these</b> deducts them from Shopping/Build/Mining and feeds the Refinery panel.</p>
+     </details>
+     <h4 class="stk-section">Scope</h4>
       <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
       <input type="hidden" id="stkSystem" value="">
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems"> Search all personal systems (include assets outside the selected build system)</label>
-      <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
-        <div class="field" style="margin:.4rem 0"><label style="display:flex;gap:.4rem;align-items:center;font-size:.82rem;color:var(--text2)"><input type="checkbox" id="stkIndustrialOnly"> Industrial only (minerals/ore/ice/PI — off = show all like JeveAssets)</label></div>
-        <div class="grid2">
-          <div class="field"><label>Location flag — hanger/bay/can</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option></select></div>
-          <div class="field"><label>Quick search</label><input id="stkSearch" class="form-input" placeholder="e.g. tritanium, rifter…" autocomplete="off"></div>
-        </div>
-        <p class="hint" style="margin:-.3rem 0 .4rem">Searches all hangers, bays and cans via <code>location_flag</code> + container chain (like assest test).</p>
-
-       <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button><button id="stkResetCaches" class="calc-btn secondary" title="Wipe structure names, denials, snapshots and ore caches for a fully fresh scan"><i class="fas fa-trash-restore"></i> Reset caches</button><button id="stkExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button></div>
-       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
-      <div id="stkStatus" class="progress"></div>
-      <div id="stkProgWrap" style="display:none;margin:.4rem 0">
-        <div style="height:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden"><div id="stkBar" style="height:100%;width:0%;background:var(--accent);transition:width .2s"></div></div>
-        <div id="stkBarLabel" class="hint" style="margin-top:.2rem"></div>
+      <div class="grid2">
+        <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
+        <div class="field"><label>Location flag</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option></select></div>
       </div>
-      <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
-      <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
-      <div id="stkUnresolved" style="margin-top:.4rem;font-size:.82rem"></div>
+      <label class="check"><input type="checkbox" id="stkAllSystems"> All systems (include assets outside the build system)</label>
+     <h4 class="stk-section">Filters</h4>
+      <label class="check"><input type="checkbox" id="stkIndustrialOnly"> Industrial only (off = show all like JeveAssets)</label>
+      <div class="field"><label>Quick search</label><input id="stkSearch" class="form-input" placeholder="e.g. tritanium, rifter…" autocomplete="off"></div>
+     <h4 class="stk-section">Actions</h4>
+      <button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button>
+      <div class="btn-row tight"><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button><button id="stkResetCaches" class="calc-btn secondary" title="Wipe structure names, denials, snapshots and ore caches for a fully fresh scan"><i class="fas fa-trash-restore"></i> Reset caches</button><button id="stkExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button></div>
+      <label class="check"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
+     <h4 class="stk-section">Results</h4>
+      <div id="stkStatus" class="progress"></div>
+      <div id="stkProgWrap">
+        <div class="stk-track"><div id="stkBar"></div></div>
+        <div id="stkBarLabel" class="hint"></div>
+      </div>
+      <div id="stkList" class="stk-list"></div>
+      <p class="hint" id="stkTotals"></p>
+      <div id="stkUnresolved" class="stk-list"></div>
     </div>
 
     <div class="panel tab-content" id="tab-mine">
@@ -215,7 +221,7 @@
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-ores.js?v=1"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=142"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v142 -- snapshot skips non-ore network fetches + names timeout guard</div>
+    <script src="bv-visualizer.js?v=143"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v143 -- inventory tab UI cleanup</div>
 </body>
 </html>
