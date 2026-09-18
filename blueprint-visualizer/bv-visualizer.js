@@ -37,6 +37,14 @@ function piIcon(typeId) {
   if (!isPI(typeId)) return '';
   return '<a class="pi-link" target="_blank" rel="noopener" href="' + piURL(typeId) + '" title="View ' + piTier(typeId) + ' chain in PI Visualizer"><i class="fas fa-globe"></i></a>';
 }
+// Image-server miss cache: types confirmed icon-less this session skip the
+// <img> entirely instead of 404ing on every render.
+const bvIconMiss = new Set();
+try { window.BVIconMiss = id => { try { bvIconMiss.add(+id); } catch {} }; } catch {}
+function bvIconImg(typeId, style) {
+  if (bvIconMiss.has(+typeId)) return '';
+  return '<img src="https://images.evetech.net/types/' + typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\';try{window.BVIconMiss&&window.BVIconMiss(' + typeId + ')}catch(e){}"' + (style ? ' style="' + style + '"' : '') + '>';
+}
 // EVE's image service has no renders for blueprint type IDs (returns 400), so skip their icons.
 function iconHTML(typeId, name, style) {
   if (/blueprint|bpc/i.test(String(name || ''))) return '';
@@ -611,7 +619,7 @@ async function renderShoppingList(runs) {
     const needTxt = fmtN(r.l.qty);
     const haveCls = useOwn && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
     const toBuyCls = r.toBuy === 0 ? ' style="color:var(--build)"' : '';
-    return '<tr><td><img src="https://images.evetech.net/types/' + r.l.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
+    return '<tr><td>' + (/blueprint/i.test(clean) ? '' : bvIconImg(r.l.type_id, 'width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111')) + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
   }).join('');
   // prominent summary grid with full total — de-dupe when nothing is saved
   const sumGrid = $('shoppingSummary');
@@ -2025,8 +2033,10 @@ function renderStkRows() {
     for (const r of page) {
       const nm = stkTypeName(r.typeId);
       const sys = sysFor(r.typeId);
-      const isBp = /blueprint/i.test(nm);
-      const icon = isBp ? '' : '<img src="https://images.evetech.net/types/' + r.typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">';
+      // No icon for blueprints (image server 400s) or unresolved names
+      // (image server 404s) — avoids console error spam per row.
+      const noIcon = /blueprint/i.test(nm) || /^(Type|ID) \d+$/.test(nm);
+      const icon = noIcon ? '' : bvIconImg(r.typeId, 'width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111');
       h += '<tr><td>' + icon + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
     }
   }
@@ -2196,6 +2206,10 @@ async function loadInventory() {
     // storage first), up to 25/scan, concurrency 2. 403s stamp as 1h denials
     // (excluded); any 420/429 trips the circuit breaker and stops the scan's
     // remaining ESI lookups instead of burning the error budget.
+    // Before the per-structure GETs, unresolved IDs are probed in chunks via
+    // POST /universe/names (one cheap call per 25 IDs): anything that resolves
+    // as solar_system/station is attributed directly and never burns a 403;
+    // chunks that 400 are genuine (or all-)structures and fall through below.
     const stacksPer = {};
     const unresolved = [];
     {
@@ -2213,11 +2227,52 @@ async function loadInventory() {
       }
     }
     let unresolvedLeft = unresolved.length;
-    if (unresolved.length && !structWarn) {
+    let probedCount = 0;
+    if (unresolved.length && !structWarn && !bvEsiLimited) {
+      // Cheap pre-probe: some "structure-like" IDs may be stations, systems or
+      // other entities (e.g. another player's ship holding our items). Names
+      // categories tell us without spending 403s from the error budget.
+      try {
+        if (st) st.textContent = 'Checking ' + unresolved.length + ' unresolved locations…';
+        for (let i = 0; i < unresolved.length; i += 25) {
+          if (bvEsiLimited) break;
+          const chunk = unresolved.slice(i, i + 25).map(n => +n).filter(n => Number.isFinite(n));
+          if (!chunk.length) continue;
+          let rows = null;
+          try {
+            rows = await fetchJSON(ESI + '/universe/names/?datasource=tranquility', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(chunk) });
+          } catch (e) {
+            if (bvHitLimit(e)) break; // rate-limited — stop probing, keep the rest unresolved
+            rows = null; // 400 etc: chunk holds (only) structures — fall through to GETs
+          }
+          for (const r of (Array.isArray(rows) ? rows : [])) {
+            if (!r || !r.id) continue;
+            const key = String(r.id);
+            if (r.category === 'solar_system') { locSys[key] = +r.id; unresolvedLeft--; probedCount++; }
+            else if (r.category === 'station') {
+              try {
+                if (staSysCache[key] && now - staSysCache[key].ts < 7 * 864e5) { locSys[key] = staSysCache[key].sys; }
+                else {
+                  const s = await fetchJSON(ESI + '/universe/stations/' + r.id + '/?datasource=tranquility');
+                  if (s && s.system_id) { locSys[key] = s.system_id; staSysCache[key] = { sys: locSys[key], ts: now }; staSysChanged = true; }
+                }
+                if (locSys[key]) { unresolvedLeft--; probedCount++; }
+              } catch (e) { if (bvHitLimit(e)) break; }
+              try { if (r.name) stkLocationNames[key] = r.name; } catch {}
+            }
+            // inventory_type here = a container/item outside our asset map — unresolvable, stays hidden
+          }
+          if (i + 25 < unresolved.length) await new Promise(r => setTimeout(r, 200));
+        }
+      } catch (e) { console.warn('[BV] unresolved names probe failed', e && e.message); }
+    }
+    if (unresolved.length && !structWarn && !bvEsiLimited) {
       const denied = bvDeniedRead();
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
       // Resolve all unresolved structures; 403s stamp as denied (excluded).
+      // Re-check locSys: the names pre-probe above may have resolved some already.
       const targets = unresolved
+        .filter(id => !locSys[id])
         .slice(0, 25)
         .filter(id => !(denied[id] && now - denied[id] < 3600e3));
       let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0, rateCut = false;
@@ -2244,7 +2299,7 @@ async function loadInventory() {
       }
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
-      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length + (rateCut ? ' RATE-CUT' : ''));
+      console.log('[BV] residue probed=' + probedCount + ' attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length + (rateCut ? ' RATE-CUT' : ''));
     }
     // Strict scope: unresolved / no-access locations are excluded, never
     // trusted as the selected system. If ESI cannot resolve a structure
