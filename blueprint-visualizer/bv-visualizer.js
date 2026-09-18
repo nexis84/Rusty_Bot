@@ -1860,8 +1860,16 @@ async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId,
     // compressed moon ore and gas. Ammo, salvage, modules etc. also carry
     // type_materials but must NOT be refined into minerals here, so only
     // ore-family types with yields refine (see stkIsRefinableOre).
+    // Pre-filter: the baked SDE table answers instantly; only IDs in it (or
+    // matching ore-name patterns but missing from the table, i.e. post-SDE
+    // types) may hit the network. Ships/modules/ammo skip it entirely —
+    // previously every one burned a sequential Everef round-trip here.
     let ore = null;
-    try { ore = await fetchOre(t); } catch {}
+    try {
+      const inTable = (typeof BV_ORES !== 'undefined' && BV_ORES.has(t)) || oreCache.has(t);
+      if (inTable) ore = await fetchOre(t);
+      else if (stkIndustrialNameMatch(stkTypeNameForFilter(t))) { try { ore = await fetchOre(t); } catch {} }
+    } catch {}
     const yields = (ore && ore.yields) || {};
     if (stkIsRefinableOre(ore, t)) {
       const oreName = stkNames[t] || ore.name || ('Type ' + t);
@@ -2828,7 +2836,10 @@ async function loadInventory() {
       for (const a of assets) {
         if (a && a.location_id && idToAsset.has(String(a.location_id))) parentIds.push(+a.location_id);
       }
-      stkCustomNames = await stkFetchCustomNames(parentIds, src, cid, corpId);
+      // 30s guard: BVAuth has no request timeout, so a hung ESI connection
+      // must never stall the scan — fall back to type names on timeout.
+      const namesTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error('names timeout')), 30000));
+      stkCustomNames = await Promise.race([stkFetchCustomNames(parentIds, src, cid, corpId), namesTimeout]);
       stkProgress(0.94, 'Container names done.');
     } catch(e) { console.warn('[BV] custom names failed', e); stkCustomNames = {}; }
     try {
