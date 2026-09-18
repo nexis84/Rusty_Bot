@@ -114,12 +114,17 @@
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems" checked> Search all personal systems (include assets outside the selected build system)</label>
       <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkTrustSystem" checked> Trust selected system for structures ESI can’t access (common for personal assets in shared citadels)</label>
-      <div class="field"><label>Filter list</label><input id="stkSearch" class="form-input" placeholder="Filter — e.g. tritanium, compressed arkonor…" autocomplete="off"></div>
-      <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button></div>
-      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
-     <div id="stkStatus" class="progress"></div>
-     <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
-     <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
+       <div class="grid2">
+         <div class="field"><label>Filter item</label><input id="stkSearch" class="form-input" placeholder="Tritanium, Rifter…" autocomplete="off"></div>
+         <div class="field"><label>Location flag</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option><option value="Corp Hangar">Corp Hangar (SAG 1-7)</option></select></div>
+       </div>
+       <p class="hint" style="margin:-.3rem 0 .4rem">Flag mirrors <b>assest test</b> `filter_by_flag`: Hangar includes `CorpSAG`, Bay is `*Bay`, Can checks container name/groups.</p>
+       <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button><button id="stkExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button></div>
+       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
+      <div id="stkStatus" class="progress"></div>
+      <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
+      <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
+      <div id="stkDetailWrap" style="margin-top:.8rem"></div>
    </div>
 
     <div class="panel tab-content" id="tab-mine">

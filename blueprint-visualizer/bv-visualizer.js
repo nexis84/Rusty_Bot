@@ -1429,6 +1429,27 @@ async function planMining(forcedId, opts) {
 let stkRaw = [], stkAgg = {}, stkAllAgg = {}, stkAggBySystem = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
 let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [], stkSysNames = {}, stkTypeLocs = {};
 let stkOreDetail = [], stkRefineEff = 0.75;
+// Option A: port from assest test — enriched per-stack list + flag/container/type caches + detail view state
+let stkEnriched = [], stkEnrichedAll = [], stkTypeFlags = {}, stkTypeGroups = {}, stkContainerNames = {}, stkDetailPage = 1;
+const STK_DETAIL_PAGE_SIZE = 25;
+let stkSortCol = 'name', stkSortRev = false;
+let _stkFilterTimer = null;
+const STK_MAX_DISPLAY = 2500;
+function stkFlag() { try { return ($('stkFlag') && $('stkFlag').value) || 'All'; } catch { return 'All'; } }
+// Mirrors assest test/asset_classifier.py:filter_by_flag
+function stkFlagMatchAsset(a, flag) {
+  if (!flag || flag === 'All') return true;
+  const f = (a.location_flag || '').toLowerCase();
+  const cn = (a._containerName || '').toLowerCase();
+  const cg = (a._containerGroup || '').toLowerCase();
+  const q = flag.toLowerCase();
+  if (q === 'hangar') return f.includes('hangar') || f.includes('corpsag') || f.includes('corp');
+  if (q === 'bay') return f.includes('bay');
+  if (q === 'can') return cn.includes('container') || cg.includes('container') || ['cargo container','secure cargo container','audit log secure container','freight container'].includes(cg);
+  if (q === 'assetsafety') return f.includes('assetsafety');
+  if (q === 'corp hangar') return f.includes('corpsag');
+  return f.includes(q) || cn.includes(q);
+}
 // system-first: #stkSystem holds the selected solar_system_id (e.g. '30004691' for O4T-Z5)
 function stkSysId() { try { return ($('stkSystem') && $('stkSystem').value) || ''; } catch { return ''; } }
 function stkAllSystems() { try { return !!($('stkAllSystems') && $('stkAllSystems').checked); } catch { return false; } }
@@ -1598,68 +1619,201 @@ function isIndustrialMaterial(id) {
 function stkTypeName(id) {
   return stkNames[id] || BV_MAT_NAMES.get(+id) || ('Type ' + id);
 }
+// Build per-stack enriched list like assest test/esi_client.py:enrich_assets + main.py:on_assets_ready
+// Each entry gets _searchText, _systemText, _containerName, _containerGroup, _flagDisplay, system_name, location_name
+function buildStkEnriched(raw, idToAsset, locSys, stkLocationNamesArg) {
+  stkEnrichedAll = [];
+  stkTypeFlags = {};
+  stkContainerNames = {};
+  stkTypeGroups = {};
+  for (const a of raw) {
+    if (!a || !a.type_id) continue;
+    const qty = Number(a.quantity) || 0;
+    if (qty <= 0) continue;
+    // resolve top-level station/structure → system + location name
+    const topId = (() => {
+      // reuse stationFor logic inline for speed
+      let cur = a, hops = 0, anchor = null;
+      const seen = new Set();
+      const isReal = n => (n >= 30000000 && n < 40000000) || (n >= 1e12) || (n >= 60000000 && n < 61000000);
+      while (cur && cur.location_type === 'item' && cur.location_id && hops < 25) {
+        const key = String(cur.item_id);
+        if (seen.has(key)) break; seen.add(key);
+        const lid = cur.location_id;
+        if (isReal(+lid)) anchor = lid;
+        const parent = idToAsset.get(String(lid));
+        if (!parent) break;
+        cur = parent; hops++;
+      }
+      if (cur && cur.location_type !== 'item' && cur.location_id) return String(cur.location_id);
+      if (cur && cur.location_id && isReal(+cur.location_id)) return String(cur.location_id);
+      if (anchor !== null) return String(anchor);
+      return String(a.location_id);
+    })();
+    const sysId = locSys[topId];
+    const systemName = sysId ? stkSysIdName(String(sysId)) : (stkLocationNames[topId] ? stkSysIdName(topId) : 'Unknown System');
+    const locationName = stkLocationNames[topId] || ('ID ' + topId);
+    // container direct parent
+    let containerName = '', containerGroup = '';
+    if (a.location_id && idToAsset.has(String(a.location_id))) {
+      const parent = idToAsset.get(String(a.location_id));
+      const pid = parent.type_id;
+      containerName = stkNames[pid] || BV_MAT_NAMES.get(+pid) || ('Type ' + pid);
+      // group for Can detection — fallback to name check
+      containerGroup = containerName;
+    }
+    const flag = a.location_flag || '';
+    const flagDisplay = flag.replace('CorpSAG', 'Corp Hangar ').replace('Hangar', 'Hangar');
+    const typeName = stkTypeName(a.type_id);
+    const entry = {
+      ...a,
+      _topId: topId,
+      system_name: systemName,
+      location_name: locationName,
+      _containerName: containerName,
+      _containerGroup: containerGroup,
+      _flagDisplay: flagDisplay,
+      _searchText: (typeName + ' ' + containerName + ' ' + flagDisplay).toLowerCase(),
+      _systemText: (systemName + ' ' + locationName).toLowerCase()
+    };
+    stkEnrichedAll.push(entry);
+    // track flags per type for aggregated filter
+    if (!stkTypeFlags[a.type_id]) stkTypeFlags[a.type_id] = new Set();
+    stkTypeFlags[a.type_id].add(flag || '');
+    if (containerName) stkContainerNames[a.type_id] = containerName;
+  }
+  // default enriched is all; strict system trim applied via stkApplyFlagSystemFilter()
+  stkEnriched = stkEnrichedAll.slice();
+  // strict system trim if not allSystems and system selected (mirrors assest test main.py:496 strict)
+  if (!stkAllSystems() && stkSysId()) {
+    const sid = stkSysIdName(stkSysId()).toLowerCase();
+    const trimmed = stkEnrichedAll.filter(e => (e.system_name || '').toLowerCase() === sid);
+    if (trimmed.length) stkEnriched = trimmed;
+  }
+}
+function stkApplyFlagSystemFilter() {
+  // Re-apply system strict + flag filter to stkEnriched (called on flag/system change without refetch)
+  let base = stkEnrichedAll.slice();
+  if (!stkAllSystems() && stkSysId()) {
+    const sid = stkSysIdName(stkSysId()).toLowerCase();
+    const trimmed = base.filter(e => (e.system_name || '').toLowerCase() === sid);
+    if (trimmed.length) base = trimmed;
+  }
+  const flag = stkFlag();
+  if (flag && flag !== 'All') {
+    base = base.filter(e => stkFlagMatchAsset(e, flag));
+  }
+  stkEnriched = base;
+}
+function stkDetailFiltered() {
+  const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
+  const flag = stkFlag();
+  let out = stkEnriched;
+  // system already trimmed in stkEnriched; flag also
+  if (q) out = out.filter(e => e._searchText.includes(q) || String(e.type_id).includes(q) || e._systemText.includes(q));
+  return out;
+}
 function stkFilteredAgg() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
+  const flag = stkFlag();
   const srcAgg = stkCurrentAgg();
   const entries = Object.entries(srcAgg).map(([typeId, qty]) => ({ typeId: +typeId, qty }));
-  
-  // Diagnostic: log which types are being filtered out
   const industrialEntries = [];
   const nonIndustrialEntries = [];
   for (const e of entries) {
-    if (isIndustrialMaterial(e.typeId)) {
-      industrialEntries.push(e);
+    if (isIndustrialMaterial(e.typeId)) industrialEntries.push(e);
+    else nonIndustrialEntries.push(e);
+  }
+  // flag-aware: keep only types where at least one stack matches flag (via stkTypeFlags + per-stack check)
+  let out = industrialEntries;
+  if (flag && flag !== 'All') {
+    // if we have enriched stacks, use them for precise flag check; else fallback to typeFlags set
+    if (stkEnrichedAll.length) {
+      const allowedTypes = new Set(stkEnriched.filter(e => stkFlagMatchAsset(e, flag)).map(e => e.type_id));
+      // also consider trimmed system: if system filter removed all stacks of a type, it won't be in allowedTypes
+      out = out.filter(e => allowedTypes.has(e.typeId));
     } else {
-      nonIndustrialEntries.push(e);
+      out = out.filter(e => {
+        const flags = stkTypeFlags[e.typeId];
+        if (!flags) return false;
+        for (const f of flags) if (stkFlagMatchAsset({ location_flag: f, _containerName: stkContainerNames[e.typeId] || '' }, flag)) return true;
+        return false;
+      });
     }
   }
-  
-  if (nonIndustrialEntries.length > 0) {
-    console.log('[BV] Non-industrial types in inventory (first 20):', nonIndustrialEntries.slice(0, 20).map(e => e.typeId));
-    console.log('[BV] Industrial types in inventory:', industrialEntries.map(e => e.typeId));
-    console.log('[BV] BV_MATERIALS size:', BV_MATERIALS.size);
-    console.log('[BV] Total types in srcAgg:', entries.length, 'Industrial:', industrialEntries.length, 'Non-industrial:', nonIndustrialEntries.length);
-    
-    // Check for specific categories that should be industrial
-    const oreIds = [18, 19, 20, 21, 22, 1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 11396];
-    const mineralIds = [34, 35, 36, 37, 38, 39, 40, 11399];
-    const iceIds = [16262, 16263, 16264, 16265, 16266, 16267, 16268, 16269, 16272, 16273, 16274, 16275, 16276, 16277, 16278, 16279, 16280, 16281, 16282, 16283, 16284];
-    
-    const hasOres = entries.filter(e => oreIds.includes(e.typeId));
-    const hasMinerals = entries.filter(e => mineralIds.includes(e.typeId));
-    const hasIce = entries.filter(e => iceIds.includes(e.typeId));
-    
-    console.log('[BV] Ores in inventory:', hasOres.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
-    console.log('[BV] Minerals in inventory:', hasMinerals.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
-    console.log('[BV] Ice in inventory:', hasIce.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
-    
-    // Check for compressed ores specifically
-    const compressedOreIds = [51647, 51648, 51649, 51650, 51651, 51652, 51653, 51654, 51655, 51656, 51657, 51658, 51659, 51660, 51661, 51662, 51663, 51664, 51665, 51666, 51667, 51668, 51669, 51670, 51671, 51672, 51673, 51674, 51675, 51676, 51677, 51678, 51679, 51680, 51681, 51682, 51683, 51684, 51685, 51686, 51687, 51688, 51689, 51690, 51691, 51692, 51693, 51694, 51695, 51696];
-    const hasCompressedOres = entries.filter(e => compressedOreIds.includes(e.typeId) || /compressed/i.test(stkTypeName(e.typeId)));
-    console.log('[BV] Compressed ores in inventory:', hasCompressedOres.map(e => ({ id: e.typeId, name: stkTypeName(e.typeId), inMaterials: isIndustrialMaterial(e.typeId), qty: e.qty })));
-    
-    // Also check all items with "compressed" in the name
-    const allCompressedItems = entries.filter(e => /compressed/i.test(stkTypeName(e.typeId)));
-    console.log('[BV] All items with "compressed" in name:', allCompressedItems.map(e => ({ id: e.typeId, name: stkTypeName(e.typeId), inMaterials: isIndustrialMaterial(e.typeId), qty: e.qty })));
-    
-    // Show top 50 items by quantity to see what's actually in the inventory
-    const topItems = entries.sort((a, b) => b.qty - a.qty).slice(0, 50);
-    console.log('[BV] Top 50 items by quantity:', topItems.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', qty: e.qty, isIndustrial: isIndustrialMaterial(e.typeId) })));
-  }
-  
-  let out = industrialEntries;
   if (q) {
     out = out.filter(e => {
       const nm = stkTypeName(e.typeId).toLowerCase();
       return nm.includes(q) || String(e.typeId).includes(q);
     });
   }
-  out.sort((a, b) => {
-    const aName = stkTypeName(a.typeId);
-    const bName = stkTypeName(b.typeId);
-    return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: 'base' }) || a.typeId - b.typeId;
-  });
+  // sort respects stkSortCol like assest test main.py:732
+  if (stkSortCol === 'qty') {
+    out.sort((a, b) => stkSortRev ? b.qty - a.qty : a.qty - b.qty);
+  } else if (stkSortCol === 'type') {
+    out.sort((a, b) => stkSortRev ? b.typeId - a.typeId : a.typeId - b.typeId);
+  } else {
+    out.sort((a, b) => {
+      const an = stkTypeName(a.typeId), bn = stkTypeName(b.typeId);
+      const c = an.localeCompare(bn, undefined, { numeric: true, sensitivity: 'base' });
+      return stkSortRev ? -c : c;
+    });
+  }
   return out;
+}
+function stkSortBy(col) {
+  if (stkSortCol === col) stkSortRev = !stkSortRev; else { stkSortCol = col; stkSortRev = (col === 'qty'); }
+  stkPage = 1; renderStkRows(); renderStkDetail();
+}
+function renderStkDetail() {
+  const wrap = $('stkDetailWrap'); if (!wrap) return;
+  if (!stkEnrichedAll.length) { wrap.innerHTML = ''; return; }
+  const filtered = stkDetailFiltered();
+  const total = filtered.length;
+  const flag = stkFlag();
+  const sysName = stkCurrentSysName();
+  const sysHint = sysName ? ' @ ' + sysName : '';
+  const flagHint = flag !== 'All' ? ' · ' + flag : '';
+  const display = filtered.slice(0, STK_MAX_DISPLAY);
+  const trunc = total > STK_MAX_DISPLAY ? ' (showing ' + display.length + '/' + total + ' — filter more or raise limit)' : '';
+  // pagination for detail (25/page, but also respect STK_MAX_DISPLAY)
+  const pages = Math.max(1, Math.ceil(display.length / STK_DETAIL_PAGE_SIZE));
+  if (stkDetailPage > pages) stkDetailPage = pages;
+  const start = (stkDetailPage - 1) * STK_DETAIL_PAGE_SIZE;
+  const page = display.slice(start, start + STK_DETAIL_PAGE_SIZE);
+  let h = '<div class="panel" style="margin-top:.6rem;background:var(--panel)"><h4 style="margin:0 0 .4rem"><i class="fas fa-layer-group"></i> Per-stack detail <span class="pill" style="margin-left:.4rem">' + total + ' stacks' + sysHint + flagHint + trunc + '</span>'
+    + '<span class="hint" style="margin-left:.6rem;font-weight:400">System | Structure | Hangar/Bay | Can</span></h4>';
+  h += '<p class="hint" style="margin:.2rem 0">Matches <b>assest test</b> `main.py:249` columns — flag includes `CorpSAG`→Hangar, Bay is `*Bay`, Can is container name/group. Sort by clicking headers.</p>';
+  const pager = pages > 1
+    ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-dpg="prev"' + (stkDetailPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkDetailPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + display.length + '</span><button class="mode-btn" data-dpg="next"' + (stkDetailPage >= pages ? ' disabled' : '') + '>Next ›</button></div>'
+    : (total ? '<p class="hint">' + total + ' stacks' + (total > STK_DETAIL_PAGE_SIZE ? ' · ' + STK_DETAIL_PAGE_SIZE + '/page' : '') + '</p>' : '');
+  h += pager;
+  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr>'
+    + '<th style="cursor:pointer" data-sort="name">Item ' + (stkSortCol==='name' ? (stkSortRev?'▼':'▲') : '') + '</th>'
+    + '<th style="cursor:pointer" data-sort="qty">Qty ' + (stkSortCol==='qty' ? (stkSortRev?'▼':'▲') : '') + '</th>'
+    + '<th>System</th><th>Structure / Station</th><th>Hangar / Bay</th><th>Can / Container</th><th>Group</th><th></th></tr></thead><tbody>';
+  if (!page.length) {
+    h += '<tr><td colspan="8" style="color:var(--text3)">No stacks match — clear search/flag.</td></tr>';
+  } else {
+    for (const a of page) {
+      const nm = stkTypeName(a.type_id);
+      const group = stkTypeGroups[a.type_id] || '';
+      h += '<tr><td><img src="https://images.evetech.net/types/' + a.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:22px;height:22px;vertical-align:middle;margin-right:.3rem;border-radius:4px;background:#111">' + nm + '</td>'
+        + '<td>' + fmtN(a.quantity) + '</td>'
+        + '<td>' + (a.system_name || '—') + '</td>'
+        + '<td>' + (a.location_name || '—') + '</td>'
+        + '<td>' + (a._flagDisplay || '—') + '</td>'
+        + '<td>' + (a._containerName || '<span class="nums">—</span>') + '</td>'
+        + '<td class="nums">' + (group || '—') + '</td>'
+        + '<td><a class="mkt-link" target="_blank" href="' + marketURL(a.type_id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+    }
+  }
+  h += '</tbody></table></div>';
+  if (total > STK_MAX_DISPLAY) h += '<p class="hint" style="margin-top:.4rem">Truncated ' + total + ' rows to ' + STK_MAX_DISPLAY + ' for speed — use System/Flag/Item filters to narrow (like `assest test/main.py:716`).</p>';
+  h += '</div>';
+  wrap.innerHTML = h;
+  wrap.querySelectorAll('[data-sort]').forEach(th => th.onclick = () => stkSortBy(th.dataset.sort));
+  wrap.querySelectorAll('[data-dpg]').forEach(b => b.onclick = () => { stkDetailPage += (b.dataset.dpg === 'next' ? 1 : -1); renderStkDetail(); });
 }
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
@@ -1667,6 +1821,7 @@ function renderStkRows() {
   const srcAgg = stkCurrentAgg();
   const totalTypes = Object.keys(srcAgg).length;
   const filteredTypes = rows.length;
+  const flag = stkFlag();
   const pages = Math.max(1, Math.ceil(rows.length / stkPageSize));
   if (stkPage > pages) stkPage = pages;
   const start = (stkPage - 1) * stkPageSize;
@@ -1674,17 +1829,19 @@ function renderStkRows() {
   if (!totalTypes) {
     box.innerHTML = '<p class="hint">No assets loaded. Pick a system and hit <b>Scan system</b>.</p>';
     if (totals) totals.textContent = '';
+    const dw = $('stkDetailWrap'); if (dw) dw.innerHTML = '';
     return;
   }
   const industrialCount = Object.keys(srcAgg).filter(id => isIndustrialMaterial(+id)).length;
   const sysVal = stkSysId();
   const locName = stkCurrentSysName();
-  const countLine = '<p class="hint">' + totalTypes + ' unique types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + stkSysIdName(sysVal) : ' in hangar')) + ' · ' + industrialCount + ' unique industrial types' + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + '</p>';
+  const flagHint = flag !== 'All' ? ' · ' + flag : '';
+  const countLine = '<p class="hint">' + totalTypes + ' unique types' + (locName ? ' @ ' + locName : (sysVal ? ' in ' + stkSysIdName(sysVal) : ' in hangar')) + ' · ' + industrialCount + ' unique industrial types' + flagHint + (filteredTypes !== totalTypes ? ' · filtered to ' + filteredTypes : '') + ' · sort: ' + stkSortCol + (stkSortRev ? ' ↓' : ' ↑') + '</p>';
   const pager = pages > 1
     ? '<div style="display:flex;gap:.5rem;align-items:center;margin:.4rem 0"><button class="mode-btn" data-stkpg="prev"' + (stkPage <= 1 ? ' disabled' : '') + '>‹ Prev</button><span class="hint">Page ' + stkPage + ' of ' + pages + ' — showing ' + (start+1) + '–' + (start+page.length) + ' of ' + rows.length + '</span><button class="mode-btn" data-stkpg="next"' + (stkPage >= pages ? ' disabled' : '') + '>Next ›</button> <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></div>'
     : (rows.length ? '<p class="hint">Showing ' + rows.length + ' types · per page <select data-stkpgsize style="width:auto;display:inline-block;padding:2px 6px">' + STK_PAGE_OPTIONS.map(n => '<option value="'+n+'"' + (n===stkPageSize?' selected':'') + '>'+n+'</option>').join('') + '</select></p>' : '');
   let h = countLine + pager;
-  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty owned (all stacks)</th><th>Refines / Location</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="bom"><thead><tr><th style="cursor:pointer" data-sort="name">Item ' + (stkSortCol==='name'?'▲':'') + '</th><th style="cursor:pointer" data-sort="qty">Qty owned (all stacks) ' + (stkSortCol==='qty'?(stkSortRev?'▼':'▲'):'') + '</th><th>Refines / Location</th><th>Unit price</th><th>Total value</th><th></th></tr></thead><tbody>';
   if (!page.length) {
     h += '<tr><td colspan="6" style="color:var(--text3)">No industrial materials match — clear the search.</td></tr>';
   } else {
@@ -1700,9 +1857,11 @@ function renderStkRows() {
   }
   h += '</tbody></table></div>';
   box.innerHTML = h;
+  box.querySelectorAll('[data-sort]').forEach(th => th.onclick = () => stkSortBy(th.dataset.sort));
   box.querySelectorAll('[data-stkpg]').forEach(b => b.onclick = () => { stkPage += (b.dataset.stkpg === 'next' ? 1 : -1); renderStkRows(); });
   const sel = box.querySelector('[data-stkpgsize]');
   if (sel) sel.onchange = () => { const n = parseInt(sel.value,10); if (STK_PAGE_OPTIONS.includes(n)) { stkPageSize=n; try{localStorage.setItem('bvStkPageSize', String(n));}catch{} } stkPage=1; renderStkRows(); };
+  renderStkDetail();
   // lazy price fill for visible page
   (async () => {
     const region = hub();
@@ -1721,7 +1880,7 @@ function renderStkRows() {
       for (const e of rows) {
         try { const p = await marketPrice(e.typeId, hub(), 'sell'); if(p) totalVal += p * e.qty; } catch {}
       }
-      totals.textContent = 'Filtered value @ ' + ((D.hubs.find(h=>h.region===hub())||{}).name||hub()) + ': ' + fmtISK(totalVal) + (rows.length !== totalTypes ? ' ('+rows.length+' types)' : '');
+      totals.textContent = 'Filtered value @ ' + ((D.hubs.find(h=>h.region===hub())||{}).name||hub()) + ': ' + fmtISK(totalVal) + (rows.length !== totalTypes ? ' ('+rows.length+' types)' : '') + (flag!=='All' ? ' · ' + flag : '');
     }
   })();
 }
@@ -2071,6 +2230,8 @@ async function loadInventory() {
         }
       }
     }
+    // ---- build per-stack enriched (assest test pattern) for flag/item search & detail table ----
+    try { buildStkEnriched(assets, idToAsset, locSys, stkLocationNames); stkDetailPage = 1; } catch(e) { console.warn('[BV] buildStkEnriched failed', e); }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
     const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units from ' + trustFallbackStructs.size + ' unresolved location' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
@@ -2095,9 +2256,10 @@ async function applyInventoryToShopping() {
 }
 async function applyInventoryScope() {
   const next = stkAllSystems() ? stkAllAgg : (stkAggBySystem[stkSysId()] || {});
-  if (!Object.keys(next).length) { stkPage = 1; renderStkRows(); return; }
+  if (!Object.keys(next).length) { stkPage = 1; stkDetailPage = 1; stkApplyFlagSystemFilter(); renderStkRows(); return; }
   stkAgg = next;
-  stkPage = 1;
+  stkPage = 1; stkDetailPage = 1;
+  stkApplyFlagSystemFilter();
   const previous = stkSnapshotRead(matSource());
   await buildInventorySnapshot(next, previous && previous.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkAllSystems() ? 'All personal systems' : stkSysIdName(stkSysId()));
   renderStkRows();
@@ -2212,18 +2374,41 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('stkAllSystems')) $('stkAllSystems').onchange = () => { savePrefs(); stkRescopeSystem(); };
   if ($('stkClear')) $('stkClear').onclick = () => {
     stkSnapshotClear();
-    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkOreDetail = [];
+    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkOreDetail = []; stkEnriched=[]; stkEnrichedAll=[]; stkTypeFlags={}; stkContainerNames={}; stkTypeGroups={};
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Scan system.</p>';
+    if ($('stkDetailWrap')) $('stkDetailWrap').innerHTML = '';
     if ($('stkStatus')) $('stkStatus').textContent = '';
     if ($('stkTotals')) $('stkTotals').textContent = '';
     if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
     renderRefinery();
     status('Inventory snapshot cleared.');
   };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
-  if ($('stkTrustSystem')) $('stkTrustSystem').onchange = () => { savePrefs(); stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Trust setting changed — hit Scan system to apply.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('stkTrustSystem')) $('stkTrustSystem').onchange = () => { savePrefs(); stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Trust setting changed — hit Scan system to apply.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
-  if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
+  function stkSchedFilter() {
+    if (_stkFilterTimer) clearTimeout(_stkFilterTimer);
+    _stkFilterTimer = setTimeout(() => { stkPage = 1; stkDetailPage = 1; stkApplyFlagSystemFilter(); renderStkRows(); }, 300);
+  }
+  if ($('stkSearch')) $('stkSearch').addEventListener('input', stkSchedFilter);
+  if ($('stkFlag')) $('stkFlag').addEventListener('change', () => { stkPage = 1; stkDetailPage = 1; stkApplyFlagSystemFilter(); renderStkRows(); });
+  if ($('stkExport')) $('stkExport').onclick = () => {
+    const flag = stkFlag();
+    const q = (($('stkSearch') && $('stkSearch').value) || '').trim();
+    // export detail filtered stacks (per-stack) like assest test main.py:768
+    const rows = stkDetailFiltered();
+    if (!rows.length) { status('Nothing to export — no stacks match filter.'); return; }
+    const sys = stkCurrentSysName() || 'all';
+    let csv = 'type_name,type_id,quantity,system,location,location_flag,container,location_id,item_id\n';
+    for (const a of rows) {
+      const esc = s => '"' + String(s||'').replace(/"/g,'""') + '"';
+      csv += [esc(stkTypeName(a.type_id)), a.type_id, a.quantity, esc(a.system_name), esc(a.location_name), esc(a.location_flag), esc(a._containerName), a.location_id, a.item_id].join(',') + '\n';
+    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const al = document.createElement('a'); al.href = url; al.download = 'bv_inventory_' + sys.replace(/\s+/g,'_') + (flag!=='All'?'_' + flag : '') + (q?'_filtered':'') + '.csv'; al.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    status('Exported ' + rows.length + ' stacks to CSV.');
+  };
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
   if ($('matSource')) $('matSource').onchange = async () => { try { savePrefs(); } catch {}; if (S.root) await renderShoppingList(S.runs||1); renderRefinery(); };
   // ship picker + dual yield inputs (m³/min <-> m³/sec) — pick a ship for approx rate or type a custom rate, both stay in sync
