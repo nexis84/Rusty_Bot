@@ -268,7 +268,29 @@ async function childBlueprint(materialTypeId, materialName) {
 }
 
 // ---- state ----
-const S = { root: null, nodes: new Map(), bom: [], product: null, trackedPrice: null, own: {} };
+const S = { root: null, nodes: new Map(), bom: [], product: null, trackedPrice: null, own: {}, pinnedBuilds: [], pinnedSel: null };
+// Pinned builds (max 5, persisted): snapshot {bpId,bpName,mode,runs,children}
+// so progress survives reloads and blueprint browsing. Ticks stay per-bpId.
+const BV_MAX_PINS = 5;
+function bpPinsLoad() {
+  try {
+    const v = JSON.parse(localStorage.getItem('bvPinnedBuilds') || 'null');
+    if (v && Array.isArray(v.pins)) {
+      S.pinnedBuilds = v.pins.filter(p => p && p.bpId && p.children).slice(0, BV_MAX_PINS);
+      S.pinnedSel = v.sel || null;
+    }
+  } catch {}
+  if (!Array.isArray(S.pinnedBuilds)) S.pinnedBuilds = [];
+}
+function bpPinsSave() {
+  try { localStorage.setItem('bvPinnedBuilds', JSON.stringify({ pins: (S.pinnedBuilds || []).slice(0, BV_MAX_PINS), sel: S.pinnedSel || null })); } catch {}
+}
+function bpProgSelPin() {
+  const pins = S.pinnedBuilds || [];
+  if (!pins.length || S.pinnedSel === 'live') return null;
+  if (S.pinnedSel) return pins.find(p => String(p.bpId) === String(S.pinnedSel)) || pins[0];
+  return pins[0];
+}
 // drill-down navigation: breadcrumb trail of {bp, runs}; pendingNeed scales runs on entry
 const navStack = [];
 let pendingNeed = null;
@@ -421,7 +443,7 @@ async function enrichChildren(runs) {
         const outP = await marketPrice(c.type_id, hub(), 'sell');
         const prodQty = (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
         c.child = { bpName: kid.bpName, subCost: sub, outPrice: outP, margin: (outP || 0) - sub, materials: kid.materials, productQty: prodQty, products: kid.products };
-        if (S.pinnedRoot && S.root && S.pinnedRoot.bpId === S.root.bpId) bpProgPinCurrent(true);
+        bpProgRefreshPin();
         renderTree(runs);
         renderBuildList(runs);
       }
@@ -438,7 +460,7 @@ async function enrichChildren(runs) {
         const unitCost = perRunCost / Math.max(1, rx.productQty);
         const outP = (c.unitSell != null ? c.unitSell : await marketPrice(c.type_id, hub(), 'sell')) || 0;
         c.reaction = { ...rx, perRunCost, unitCost, margin: outP - unitCost };
-        if (S.pinnedRoot && S.root && S.pinnedRoot.bpId === S.root.bpId) bpProgPinCurrent(true);
+        bpProgRefreshPin();
         renderTree(runs);
       }
     }
@@ -691,7 +713,8 @@ function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stri
 function bpProgModel() {
   const rows = [];
   const src = bpProgSource();
-  if (!src || !src.children) return { rows, rootName: '', runs: 1, pinned: !!S.pinnedRoot };
+  const selPin = bpProgSelPin();
+  if (!src || !src.children) return { rows, rootName: '', runs: 1, pinned: !!selPin, selPin };
   const runs = src.runs || S.runs || 1;
   rows.push({ key: 'root', typeId: src.bpId, name: src.bpName + ' × ' + runs, qty: runs, unit: null, depth: -1, mode: src.mode });
   src.children.forEach((c, ci) => {
@@ -712,7 +735,7 @@ function bpProgModel() {
       }
     }
   });
-  return { rows, rootName: src.bpName, runs, pinned: !!S.pinnedRoot };
+  return { rows, rootName: src.bpName, runs, pinned: !!selPin, selPin };
 }
 function bpProgCounts() {
   const { rows } = bpProgModel();
@@ -754,8 +777,22 @@ function renderBuildProgress() {
     if (totals) totals.textContent = '';
     return;
   }
-  const { rows, pinned } = bpProgModel();
+  const { rows, pinned, selPin } = bpProgModel();
   const ticked = bpProgRead();
+  // Pin selector: Live + up to 5 pinned builds (persisted). Unpin via ×.
+  const pins = S.pinnedBuilds || [];
+  let h = '';
+  if (pins.length || S.root) {
+    const liveOn = !selPin;
+    h += '<div style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">'
+      + '<button class="mode-btn' + (liveOn ? ' on-buy' : '') + '" data-pinsel="live" title="Track the live calculation">Live</button>'
+      + pins.map(p => {
+        const on = selPin && String(selPin.bpId) === String(p.bpId);
+        return '<span style="display:inline-flex;gap:.15rem;align-items:center"><button class="mode-btn' + (on ? ' on-build' : '') + '" data-pinsel="' + p.bpId + '" title="Show ' + p.bpName + ' ×' + p.runs + '">' + p.bpName + ' ×' + p.runs + '</button>'
+          + '<button class="mode-btn" data-unpin="' + p.bpId + '" title="Unpin ' + p.bpName + '" style="color:var(--danger)">×</button></span>';
+      }).join('')
+      + '<span class="hint" style="margin:0">' + pins.length + '/' + BV_MAX_PINS + ' pinned</span></div>';
+  }
   // Live inventory for Have vs Required (same snapshot the Shopping list deducts).
   let invAgg = {};
   try { invAgg = stkDeductMap() || {}; } catch {}
@@ -774,7 +811,7 @@ function renderBuildProgress() {
     return '<span class="ref-track" style="display:inline-block;width:70px;vertical-align:middle" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
-  let h = pinned ? '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint. <a href="#" id="progUnpinLink" style="color:var(--accent)">Track live instead</a>.</p>' : '';
+  if (pinned) h += '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint.</p>';
   src.children.forEach((c, ci) => {
     const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
     if (!top) return;
@@ -800,8 +837,6 @@ function renderBuildProgress() {
   const rruns = src.runs || S.runs || 1;
   h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + src.bpName + ' × ' + rruns + '</b></span><span class="pill ' + (src.mode === 'react' ? 'react' : 'build') + '">' + (src.mode === 'react' ? 'REACT' : 'BUILD') + '</span></div></div>' + h;
   wrap.innerHTML = h;
-  const unpin = wrap.querySelector('#progUnpinLink');
-  if (unpin) unpin.onclick = e => { e.preventDefault(); S.pinnedRoot = null; renderBuildProgress(); status('Tracking the live calculation.'); };
   if (!wrap.dataset.bound) {
     wrap.dataset.bound = '1';
     wrap.addEventListener('change', e => {
@@ -815,6 +850,23 @@ function renderBuildProgress() {
       bpProgRefreshHead();
     });
     wrap.addEventListener('click', e => {
+      const ps = e.target.closest('[data-pinsel]');
+      if (ps) {
+        S.pinnedSel = ps.dataset.pinsel === 'live' ? 'live' : String(ps.dataset.pinsel);
+        bpPinsSave();
+        renderBuildProgress();
+        return;
+      }
+      const up = e.target.closest('[data-unpin]');
+      if (up) {
+        const id = String(up.dataset.unpin);
+        S.pinnedBuilds = (S.pinnedBuilds || []).filter(p => String(p.bpId) !== id);
+        if (S.pinnedSel === id) S.pinnedSel = null;
+        bpPinsSave();
+        renderBuildProgress();
+        status('Unpinned.');
+        return;
+      }
       const b = e.target.closest('[data-pexp]');
       if (!b) return;
       const ci = +b.dataset.pexp;
@@ -1177,18 +1229,50 @@ async function bpApplyRow(btn) {
   $('bpName').value = await typeName(+btn.dataset.bp);
   savePrefs();
 }
-// Pin the current calculation as THE tracked build (deep snapshot incl. runs).
+// Pin the current calculation into the tracked-build list (max 5, persisted).
 // Progress keeps working while you browse other blueprints; sub-blueprint
-// details merged in the background auto-refresh the pin while it matches.
+// details merged in the background refresh the matching pin (child/reaction
+// data only — pinned per-run quantities are preserved).
 function bpProgPinCurrent(silent) {
   if (!S.root || !S.root.children) return false;
   try {
-    S.pinnedRoot = JSON.parse(JSON.stringify({ bpId: S.root.bpId, bpName: S.root.bpName, mode: S.root.mode, runs: S.runs || parseInt(($('runs') && $('runs').value) || 1), children: S.root.children }));
-    if (!silent) { renderBuildProgress(); switchMainView('prog'); status('Sent ' + S.pinnedRoot.bpName + ' ×' + S.pinnedRoot.runs + ' to Build Progress.'); }
+    if (!Array.isArray(S.pinnedBuilds)) S.pinnedBuilds = [];
+    const snap = JSON.parse(JSON.stringify({ bpId: S.root.bpId, bpName: S.root.bpName, mode: S.root.mode, runs: S.runs || parseInt(($('runs') && $('runs').value) || 1), children: S.root.children }));
+    const ix = S.pinnedBuilds.findIndex(p => String(p.bpId) === String(snap.bpId));
+    if (ix >= 0) {
+      // Re-send refreshes quantities; keep existing order, reselect it.
+      S.pinnedBuilds[ix] = snap;
+      S.pinnedSel = String(snap.bpId);
+    } else {
+      if (S.pinnedBuilds.length >= BV_MAX_PINS) {
+        if (!silent) status('Pin limit (' + BV_MAX_PINS + ') — unpin one first.');
+        return false;
+      }
+      S.pinnedBuilds.push(snap);
+      S.pinnedSel = String(snap.bpId);
+    }
+    bpPinsSave();
+    if (!silent) { renderBuildProgress(); switchMainView('prog'); status('Sent ' + snap.bpName + ' ×' + snap.runs + ' to Build Progress (' + S.pinnedBuilds.length + '/' + BV_MAX_PINS + ' pinned).'); }
     return true;
   } catch { return false; }
 }
-function bpProgSource() { return S.pinnedRoot || S.root; }
+// Merge background-enriched child/reaction details into the matching pin
+// without touching its pinned per-run quantities.
+function bpProgRefreshPin() {
+  try {
+    if (!S.root || !S.root.bpId) return;
+    const pin = (S.pinnedBuilds || []).find(p => String(p.bpId) === String(S.root.bpId));
+    if (!pin || !pin.children) return;
+    for (const c of (S.root.children || [])) {
+      const pc = (pin.children || []).find(x => x && x.type_id === c.type_id);
+      if (!pc) continue;
+      if (c.child) pc.child = JSON.parse(JSON.stringify(c.child));
+      if (c.reaction) pc.reaction = JSON.parse(JSON.stringify(c.reaction));
+    }
+    bpPinsSave();
+  } catch {}
+}
+function bpProgSource() { return bpProgSelPin() || S.root; }
 function bindBpLoadButtons(box) {
   box.querySelectorAll('[data-bp]').forEach(btn => btn.onclick = async () => {
     await bpApplyRow(btn);
@@ -3121,7 +3205,7 @@ function highlight(name, q) {
 
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
-  init(); bindHandoffs(); initAutocomplete();
+  init(); bindHandoffs(); initAutocomplete(); try { bpPinsLoad(); } catch {}
   renderRefinery();
   // Resolve ice products in the background so Mine-it tags show on isotopes/ozone/water/strontium.
   ensureIceProducts().then(() => { if (S.root) { try { renderTree(S.runs || 1); renderBom(S.runs || 1); } catch {} } }).catch(() => {});
