@@ -802,8 +802,8 @@ function renderBuildProgress() {
     const have = invAgg[typeId] || 0;
     const pct = Math.min(100, Math.round(have / qty * 100));
     const ok = have >= qty;
-    return '<span style="display:inline-flex;flex-direction:column;gap:.1rem;vertical-align:middle;flex-shrink:0">'
-      + '<span class="ref-track" style="display:block;width:90px;" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
+    return '<span style="display:inline-flex;flex-direction:column;gap:.15rem;vertical-align:middle;flex-shrink:0">'
+      + '<span class="ref-track" style="display:block;width:120px;" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
       + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + '</span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));

@@ -137,6 +137,8 @@ footer.legal a{color:var(--text2)}
 #buildProgress .tree-node .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #buildProgress .tree-node .nums,#buildProgress .rx-row .nums{flex-shrink:0}
 #buildProgress .ref-track{flex-shrink:0}
+#buildProgress .ref-cap{font-size:.88rem;font-weight:600;color:var(--text)}
+#buildProgress .ref-track{height:10px}
 /* Inventory tab cleanup */
 .stk-section{margin:.8rem 0 .35rem;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
 .stk-section:first-of-type{margin-top:.2rem}
