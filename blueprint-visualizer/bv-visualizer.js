@@ -2050,6 +2050,17 @@ function invIsMaterial(typeId){ return invCategory(typeId)!=='Other'; }
 
 function stkTypeName(id){ return (typeof stkNames!=='undefined' && stkNames[id]) || (typeof BV_MAT_NAMES!=='undefined' && BV_MAT_NAMES.get(+id)) || ('Type '+id); }
 function isIndustrialMaterial(id){ const nid=+id; if(typeof BV_MATERIALS!=='undefined' && BV_MATERIALS.has(nid)) return true; if(typeof BV_MAT_NAMES!=='undefined' && BV_MAT_NAMES.has(nid)) return true; if(typeof INV_CAT_BY_ID!=='undefined' && INV_CAT_BY_ID[nid]) return INV_CAT_BY_ID[nid]!=='Other'; return false; }
+
+
+function stkDeductSnapshot(){ try{ const map={}; for(const a of invLocationFilteredAssets()) map[a.type_id]=(map[a.type_id]||0)+Number(a.quantity||0); return {snap:null, map, src:'personal'}; }catch{ return {snap:null, map:{}, src:'personal'}; } }
+function stkDeductMap(){ return stkDeductSnapshot().map; }
+function stkCurrentAgg(){ const m={}; for(const a of invAssets) m[a.type_id]=(m[a.type_id]||0)+Number(a.quantity||0); return m; }
+function stkCurrentSysName(){ try{ const sel=$('stkSystem'); if(sel && sel.value) return sel.options[sel.selectedIndex]?.text||''; return ''; }catch{ return ''; } }
+function renderStkFilterRows(){}
+function renderStkRows(){}
+function renderStkDetail(){}
+function stkSortBy(){}
+
 const INV_CACHE_KEY = 'bvInvCache';
 function invCacheRead(){ try{ return JSON.parse(localStorage.getItem(INV_CACHE_KEY)||'{}'); }catch{ return {}; } }
 function invCacheWrite(c){ try{ localStorage.setItem(INV_CACHE_KEY, JSON.stringify(c)); }catch{} }
