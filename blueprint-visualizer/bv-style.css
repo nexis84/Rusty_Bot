@@ -122,6 +122,11 @@ footer.legal a{color:var(--text2)}
 .ref-fill{display:block;height:100%;background:var(--accent);transition:width .2s}
 .ref-fill.short{background:var(--danger)}
 .ref-pct{font-size:.72rem;color:var(--text2);white-space:nowrap}
+.ref-src{display:flex;flex-direction:column;gap:.15rem;font-size:.78rem;min-width:180px}
+.ref-src-row{display:flex;justify-content:space-between;gap:.8rem;padding:.1rem 0;border-bottom:1px dotted rgba(255,255,255,.06)}
+.ref-src-row:last-child{border-bottom:none}
+.ref-src-row .nums{color:var(--build);white-space:nowrap}
+.ref-src-more{font-size:.72rem;color:var(--text3)}
 /* Inventory tab cleanup */
 .stk-section{margin:.8rem 0 .35rem;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3)}
 .stk-section:first-of-type{margin-top:.2rem}

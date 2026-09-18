@@ -1387,7 +1387,7 @@ async function renderRefinery() {
     for (const r of rows) {
       let g = groups.get(r.mid);
       if (!g) { g = { mid: r.mid, mineral: r.mineral, need: r.need, sources: [], total: 0, locs: new Set() }; groups.set(r.mid, g); }
-      g.sources.push({ ore: r.ore, qty: r.oreQty });
+      g.sources.push({ ore: r.ore, qty: r.oreQty, yield: r.yield });
       g.total += r.yield;
       for (const l of r.locs) g.locs.add(l);
     }
@@ -1405,7 +1405,11 @@ async function renderRefinery() {
       ordered.map(g => {
         const covered = g.total >= g.need;
         const pct = g.need > 0 ? Math.min(100, Math.round(g.total / g.need * 100)) : 100;
-        const sources = g.sources.map(s => s.ore + ' ×' + fmtN(s.qty)).join(' · ');
+        const srcRows = [...g.sources].sort((a, b) => b.yield - a.yield);
+        const shown = srcRows.slice(0, 6);
+        const sources = '<div class="ref-src">' + shown.map(s =>
+          '<div class="ref-src-row"><span>' + s.ore + ' ×' + fmtN(s.qty) + '</span><span class="nums">+' + fmtN(s.yield) + '</span></div>'
+        ).join('') + (srcRows.length > 6 ? '<div class="ref-src-more">+' + (srcRows.length - 6) + ' more</div>' : '') + '</div>';
         const locsTxt = g.locs.size ? [...g.locs].slice(0, 2).join(', ') + (g.locs.size > 2 ? ' +' + (g.locs.size - 2) : '') : '<span class="nums">—</span>';
         return '<tr><td>' + bvIconImg(g.mid, 'width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111') + '<b>' + g.mineral + '</b></td>'
           + '<td>' + fmtN(g.need) + '</td>'
