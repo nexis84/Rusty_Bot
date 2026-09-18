@@ -1787,6 +1787,7 @@ async function loadInventory() {
           if (cs.length < 1000) break;
         }
         bvStructCacheWrite(structCache);
+        console.log('[BV] corp structures endpoint returned ' + Object.keys(structSys).length + ' structures with system_id');
       } catch (e) {
         const msg = String((e && e.message) || '');
         structWarn = /403/.test(msg) ? 'Structure scope missing — re-login to grant esi-corporations.read_structures.v1 (using cached structures only).' : ('Structures lookup failed: ' + e.message);
@@ -1888,7 +1889,8 @@ async function loadInventory() {
     } catch {}
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
     stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
-    let keptCount = 0, skippedInaccessible = 0;
+    let keptCount = 0, skippedInaccessible = 0, skippedWrongSystem = 0;
+    const systemBreakdown = {}; // system_id -> stack count
     for (const a of assets) {
       if (!a || !a.type_id) continue;
       const qty = Number(a.quantity) || 0;
@@ -1896,7 +1898,9 @@ async function loadInventory() {
       const stnId = String(stationFor(a));
       const stnSys = locSys[stnId] != null ? locSys[stnId] : null;
       if (stnSys == null) { skippedInaccessible++; continue; } // structure we can't access -> can't confirm system
-      if (stnSys !== selSysNum) continue; // different system
+      // Track all systems for diagnostics
+      systemBreakdown[stnSys] = (systemBreakdown[stnSys] || 0) + 1;
+      if (stnSys !== selSysNum) { skippedWrongSystem++; continue; } // different system
       if (trustFallbackStructs.has(stnId)) trustFallbackAssetCount += qty;
       keptCount++;
       stkAgg[a.type_id] = (stkAgg[a.type_id] || 0) + qty;
@@ -1906,6 +1910,9 @@ async function loadInventory() {
         (stkTypeLocs[a.type_id] = stkTypeLocs[a.type_id] || new Set()).add(stnId);
       }
     }
+    // Log system breakdown for diagnostics
+    console.log('[BV] system breakdown:', Object.entries(systemBreakdown).map(([sys, count]) => stkSysIdName(sys) + ':' + count).join(', '));
+    console.log('[BV] filter results: kept=' + keptCount + ' skippedInaccessible=' + skippedInaccessible + ' skippedWrongSystem=' + skippedWrongSystem);
     // resolve names for this system's locations (local systems + station names + authed citadels), then dropdown + snapshot
     try {
       const locIds = Object.keys(stkAggByStation);
@@ -1989,8 +1996,10 @@ async function loadInventory() {
     }
     // ---- ore/compressed-ore -> refined minerals at Refining yield % + keep snapshot in memory ----
     await buildInventorySnapshot();
-    const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units included from ' + trustFallbackStructs.size + ' unresolved structure' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ' — may include assets from other systems)' : '';
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '') + (unresolvedLeft && !trustFallbackStructs.size ? ' · ' + unresolvedLeft + ' industrial structure' + (unresolvedLeft===1?'':'s') + ' unresolved (no docking access)' : '') + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units from ' + trustFallbackStructs.size + ' unresolved structure' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
+    const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
+    const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + wrongSysMsg + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
