@@ -3226,6 +3226,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Resolve ice products in the background so Mine-it tags show on isotopes/ozone/water/strontium.
   ensureIceProducts().then(() => { if (S.root) { try { renderTree(S.runs || 1); renderBom(S.runs || 1); } catch {} } }).catch(() => {});
   $('calcBtn').onclick = calculate;
+  const scb = $('sendCalcToBuild');
+  if (scb) scb.onclick = async () => {
+    const name = ($('bpName') && $('bpName').value || '').trim();
+    if (!name) { status('Enter a blueprint name first.'); return; }
+    await calculate();
+    if (bpProgPinCurrent()) switchMainView('prog');
+    else status('Nothing to send — calculation produced no materials.');
+  };
   $('bpName').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
   $('resetBtn').onclick = () => { ['bpName', 'runs', 'systemName'].forEach(k => $(k).value = k === 'runs' ? 1 : k === 'systemName' ? 'Jita' : ''); status(''); };
   $('savePreset').onclick = () => { const n = prompt('Preset name:'); if (!n) return; const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const ids = ['hubSelect', 'me', 'te', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'refinePct', 'mineRate', 'mineShip']; pr[n] = Object.fromEntries(ids.map(k => [k, $(k) ? $(k).value : undefined])); localStorage.setItem('bvPresets', JSON.stringify(pr)); refreshPresets(pr); status('Preset saved.'); };
