@@ -2415,6 +2415,7 @@ function attachStkSystemAutocomplete() {
     input.value = c.name;
     input.dataset.pickedId = String(c.id);
     close();
+    try{ const cb=$('stkAllSystems'); if(cb && cb.checked){ cb.checked=false; try{ localStorage.setItem('bvStkAllSystems','0'); }catch{} } }catch{}
     stkRescopeSystem();
   }
   let deb = null;
