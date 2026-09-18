@@ -28,10 +28,10 @@
 <aside class="sidebar">
   <div class="panel"><div class="tabs">
      <button class="tab-btn active" data-tab="calc"><i class="fas fa-industry"></i> Calc</button>
-      <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
-      <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
-      <button class="tab-btn" data-tab="stk"><i class="fas fa-boxes"></i> Inventory</button>
-       <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
+     <button class="tab-btn" data-tab="bps"><i class="fas fa-scroll"></i> Blueprints</button>
+     <button class="tab-btn" data-tab="inv"><i class="fas fa-flask"></i> Invention</button>
+     <button class="tab-btn" data-tab="stk"><i class="fas fa-boxes"></i> Inventory</button>
+      <button class="tab-btn" data-tab="ledger"><i class="fas fa-book"></i> Ledger</button>
       <button class="tab-btn" data-tab="mine"><i class="fas fa-gem"></i> Mining yield</button>
    </div></div>
 
@@ -107,19 +107,41 @@
   </div>
 
   <div class="panel tab-content" id="tab-stk">
-      <h3><i class="fas fa-boxes"></i> Inventory &amp; Material Resolution</h3>
-      <p class="hint">Authenticate via ESI (<code>esi-assets.read_assets.v1</code> + <code>esi-universe.read_structures.v1</code>), pick a system, pull assets. Auto-refine converts ores/ice to minerals at your refining %.</p>
-      <div class="field"><label>System</label><select id="stkSystem" class="form-input"><option value="">— Scan first —</option></select></div>
-      <div class="field"><label>Station / Structure</label><select id="stkLocation" class="form-input"><option value="">All locations in system</option></select></div>
-      <div class="btn-row"><button id="stkRefresh" class="calc-btn"><i class="fas fa-download"></i> Pull Inventory</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button></div>
-      <label style="display:flex;gap:.5rem;align-items:center;margin:.6rem 0;font-size:.85rem"><input type="checkbox" id="stkAutoRefine"> <i class="fas fa-fire"></i> Auto-Refine ores &amp; ice to minerals (uses Calc → Refining yield %)</label>
-      <div id="stkStatus" class="progress" style="margin:.4rem 0"></div>
-      <h4 style="margin:.6rem 0 .3rem">Materials Breakdown <span id="stkMatCount" class="pill" style="margin-left:.4rem">0</span></h4>
-      <div style="overflow-x:auto"><table class="bom" id="stkMatTable"><thead><tr><th>Icon</th><th>Item</th><th>Category</th><th>Available</th><th>Required</th><th>Net Delta</th></tr></thead><tbody id="stkMatBody"><tr><td colspan="6" style="color:var(--text3)">No inventory — pull first, then Calculate a blueprint.</td></tr></tbody></table></div>
-      <p class="hint" id="stkMatHint" style="margin-top:.4rem"></p>
-    </div>
+     <h3><i class="fas fa-boxes"></i> Inventory</h3>
+     <p class="hint">Enter your <b>build system</b>, pick <b>Personal</b> or <b>Corp</b> (or Both), then <b>Scan system</b>. We pull every item in that system and list the industry materials — all ore, compressed ore, ice and compressed ice (worked out at your refining % from Calc &gt; Rigs). Tick <b>Use these</b> to deduct them from Shopping/Build/Mining and see them in the Refinery panel.</p>
+      <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
+      <input type="hidden" id="stkSystem" value="">
+      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkAllSystems" checked> Search all personal systems (include assets outside the selected build system)</label>
+      <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
+      <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkTrustSystem" checked> Trust selected system for structures ESI can’t access (common for personal assets in shared citadels)</label>
+        <div class="field" style="margin:.4rem 0"><label style="display:flex;gap:.4rem;align-items:center;font-size:.82rem;color:var(--text2)"><input type="checkbox" id="stkIndustrialOnly"> Industrial only (minerals/ore/ice/PI — off = show all like JeveAssets)</label></div>
+        <div class="grid2">
+          <div class="field"><label>Quick filter (All columns)</label><input id="stkSearch" class="form-input" placeholder="JeveAssets All columns — e.g. tritanium, rifter…" autocomplete="off"></div>
+          <div class="field"><label>Location flag (quick)</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option><option value="Corp Hangar">Corp Hangar (SAG 1-7)</option></select></div>
+        </div>
+        <p class="hint" style="margin:-.3rem 0 .4rem">Quick flag mirrors <b>assest test</b> `filter_by_flag` — also available as Column=Flag filter below.</p>
+        <div id="stkFilterManager" class="panel" style="margin:.6rem 0;padding:.6rem;background:var(--panel2);border:1px solid var(--border);border-radius:8px">
+          <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;margin-bottom:.4rem">
+            <span style="font-weight:700;font-size:.82rem"><i class="fas fa-filter"></i> Filters — JeveAssets style</span>
+            <button id="stkFilterAdd" class="mode-btn"><i class="fas fa-plus"></i> Add</button>
+            <button id="stkFilterClear" class="mode-btn">Clear</button>
+            <button id="stkFilterSave" class="mode-btn"><i class="fas fa-save"></i> Save</button>
+            <select id="stkFilterLoadSelect" style="width:auto;display:inline-block;padding:2px 6px"><option value="">— Load saved —</option></select>
+            <button id="stkFilterLoad" class="mode-btn"><i class="fas fa-folder-open"></i> Load</button>
+            <span class="hint" style="margin-left:auto">And=must match · Or+Group=one in group</span>
+          </div>
+          <div id="stkFilterRows" style="display:flex;flex-direction:column;gap:.35rem"></div>
+          <p class="hint" style="margin:.4rem 0 0">Columns: All/Name/System/Location/Flag/Container/Quantity/Group · Compare: Contains/Not/Equals/Regex/>/&lt; — saved to localStorage</p>
+        </div>
+       <div class="btn-row"><button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button><button id="stkExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button></div>
+       <label style="display:flex;gap:.4rem;align-items:center;margin:.5rem 0;font-size:.78rem;color:var(--text2)"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
+      <div id="stkStatus" class="progress"></div>
+      <div id="stkList" style="margin-top:.6rem;font-size:.82rem"></div>
+      <p class="hint" id="stkTotals" style="margin-top:.4rem"></p>
+      <div id="stkDetailWrap" style="margin-top:.8rem"></div>
+   </div>
 
-     <div class="panel tab-content" id="tab-mine">
+    <div class="panel tab-content" id="tab-mine">
       <h3><i class="fas fa-gem"></i> Mining plan</h3>
       <p class="hint">Mark raw minerals and ice products with <b>Mine it</b> on the tree, then plan here. Yields are live SDE via Everef. Global refining % replaces the old Reprocess % for ores.</p>
       <div class="field"><label>Mining ship (rate is approx — edit it)</label><select id="mineShip"></select></div>
@@ -195,13 +217,13 @@
 </main>
 </div>
 </div>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v109 — fix invResolveNames 400</div>
 <script src="../market/items_database.js?v=1"></script>
 <script src="../market/systems.js?v=1"></script>
 <script src="../PI/pi-data.js?v=1"></script>
 <script src="bv-data.js?v=4"></script>
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=109"></script>
+    <script src="bv-visualizer.js?v=103"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">v110 — restored assest test port (working)</div>
 </body>
 </html>
