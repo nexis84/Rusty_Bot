@@ -136,6 +136,11 @@ footer.legal a{color:var(--text2)}
 #buildProgress .prow>.nm{grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #buildProgress .prow>.have-cell{grid-column:3}
 #buildProgress .prow>.row-tail{grid-column:5;display:flex;align-items:center;gap:.6rem;justify-self:end;white-space:nowrap}
+/* Calculator tree rows share the same grid language (no have column there). */
+#treeWrap .tree-node .row1.prow,#treeWrap .rx-row.prow{display:grid;grid-template-columns:32px minmax(120px,1fr) 1fr auto;gap:.6rem;align-items:center}
+#treeWrap .prow>img{grid-column:1}
+#treeWrap .prow .nm{grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#treeWrap .prow>.row-tail{grid-column:4;display:flex;align-items:center;gap:.6rem;justify-self:end;white-space:nowrap;flex-wrap:wrap;justify-content:flex-end}
 #buildProgress .tree-node .nums,#buildProgress .rx-row .nums{flex-shrink:0}
 #buildProgress .ref-track{flex-shrink:0}
 #buildProgress .ref-cap{font-size:.88rem;font-weight:600;color:var(--text)}
