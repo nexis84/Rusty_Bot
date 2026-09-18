@@ -127,7 +127,7 @@ function init() {
   updateSsoBtn(); renderLedger();
 }
 function savePrefs() {
-  const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource'];
+  const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource', 'stkAllSystems'];
   const p = {}; ids.forEach(k => { const el = $(k); if (el) p[k] = el.value; });
   const trust = $('stkTrustSystem'); if (trust) p.stkTrustSystem = trust.checked;
   try { localStorage.setItem('bvPrefs', JSON.stringify(p)); } catch {}
@@ -1426,11 +1426,12 @@ async function planMining(forcedId, opts) {
 }
 
 // ---- Inventory (industrial stock: character + corp) ----
-let stkRaw = [], stkAgg = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
+let stkRaw = [], stkAgg = {}, stkAllAgg = {}, stkAggBySystem = {}, stkAggByStation = {}, stkLocationNames = {}, stkNames = {}, stkPage = 1, stkPageSize = 25;
 let stkSystems = {}, stkLocSystem = {}, stkSysLocIds = [], stkSysNames = {}, stkTypeLocs = {};
 let stkOreDetail = [], stkRefineEff = 0.75;
 // system-first: #stkSystem holds the selected solar_system_id (e.g. '30004691' for O4T-Z5)
 function stkSysId() { try { return ($('stkSystem') && $('stkSystem').value) || ''; } catch { return ''; } }
+function stkAllSystems() { try { return !!($('stkAllSystems') && $('stkAllSystems').checked); } catch { return false; } }
 function stkSysIdName(id) {
   if (stkSysNames[id]) return stkSysNames[id];
   try { const s = (typeof Systems !== 'undefined' ? Systems.find(x => String(x.id) === String(id)) : null); if (s) { stkSysNames[id] = s.name; return s.name; } } catch {}
@@ -1439,12 +1440,21 @@ function stkSysIdName(id) {
 function stkCurrentAgg() {
   // the scanned system aggregate lives in stkAgg; after a page reload fall back
   // to the saved snapshot so the list/refinery still show the last scan
-  if (Object.keys(stkAgg).length) return stkAgg;
   const snap = stkSnapshotRead(matSource());
+  if (stkAllSystems()) {
+    if (Object.keys(stkAllAgg).length) return stkAllAgg;
+    if (snap && snap.allByType) return snap.allByType;
+  } else {
+    const scoped = stkAggBySystem[stkSysId()];
+    if (scoped && Object.keys(scoped).length) return scoped;
+    if (snap && snap.bySystem && snap.bySystem[stkSysId()]) return snap.bySystem[stkSysId()];
+  }
+  if (Object.keys(stkAgg).length) return stkAgg;
   if (snap && snap.byType) return snap.byType;
   return stkAgg;
 }
 function stkCurrentSysName() {
+  if (stkAllSystems()) return 'All personal systems';
   const sys = stkSysId();
   if (sys) return stkSysIdName(sys);
   const snap = stkSnapshotRead(matSource());
@@ -1549,7 +1559,7 @@ async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId,
     source: source || (($('stkSource') && $('stkSource').value) || 'personal'),
     ver: SNAPSHOT_VER, eff, at: Date.now(),
     byType: agg, byLoc: stkAggByStation, locNames: stkLocationNames,
-    refinedMap, oreDetail
+    bySystem: stkAggBySystem, allByType: stkAllAgg, refinedMap, oreDetail
   });
   return oreDetail;
 }
@@ -1718,8 +1728,9 @@ function renderStkRows() {
 async function loadInventory() {
   const box = $('stkList'), st = $('stkStatus'), totals = $('stkTotals');
   if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needs esi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
-  if (!stkSysId()) { if (st) st.textContent = 'Pick a build system first.'; if (box) box.innerHTML = '<p class="hint">Type your build system above, pick it from the list, then hit <b>Scan system</b>.</p>'; return; }
-  if (box) box.textContent = 'Scanning ' + stkSysIdName(stkSysId()) + '…';
+  const allSystems = stkAllSystems();
+  if (!stkSysId() && !allSystems) { if (st) st.textContent = 'Pick a build system first, or enable all-systems search.'; if (box) box.innerHTML = '<p class="hint">Type your build system above, pick it from the list, or enable <b>Search all personal systems</b>.</p>'; return; }
+  if (box) box.textContent = allSystems ? 'Scanning all personal systems…' : 'Scanning ' + stkSysIdName(stkSysId()) + '…';
   if (st) st.textContent = 'Fetching assets…';
   if (totals) totals.textContent = '';
   try {
@@ -1777,7 +1788,7 @@ async function loadInventory() {
     stkRaw = assets;
     const selSysNum = parseInt(stkSysId(), 10);
     // aggregate by type_id across all hangars/containers (quantity summed) — global + per-station/citadel
-    stkAgg = {}; stkAggByStation = {}; stkLocationNames = {};
+    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {};
     // build item_id -> asset map to resolve containers (location_type=item -> walk to station/structure)
     const idToAsset = new Map();
     for (const a of assets) if (a && a.item_id) idToAsset.set(String(a.item_id), a);
@@ -1922,7 +1933,7 @@ async function loadInventory() {
     const trustSelectedSystem = $('stkTrustSystem') && $('stkTrustSystem').checked;
     const trustFallbackStructs = new Set();
     let trustFallbackAssetCount = 0;
-    if (trustSelectedSystem && selSysNum) {
+    if (trustSelectedSystem && selSysNum && !allSystems) {
       for (const id of topLocIds) {
         if (!locSys[id]) {
           locSys[id] = selSysNum;
@@ -1948,7 +1959,7 @@ async function loadInventory() {
       console.log('[BV] scan src=' + src + ' assets=' + assets.length + ' locs=' + topLocIds.length + ' ' + JSON.stringify(locTypes) + ' structsResolved=' + res + ' structsUnresolved=' + unres + ' trustFallbackStructs=' + trustFallbackStructs.size + ' structWarn=' + (structWarn || 'none') + ' scopes=' + scopes);
     } catch {}
     // STRICT SCOPE: only keep assets whose location resolves to the selected build system
-    stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
+    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkLocSystem = {}; stkSystems = {}; stkTypeLocs = {};
     let keptCount = 0, skippedInaccessible = 0, skippedWrongSystem = 0;
     const systemBreakdown = {}; // system_id -> stack count
     for (const a of assets) {
@@ -1957,11 +1968,17 @@ async function loadInventory() {
       if (qty <= 0) continue;
       const stnId = String(stationFor(a));
       const stnSys = locSys[stnId] != null ? locSys[stnId] : null;
-      if (stnSys == null) { skippedInaccessible++; continue; } // structure we can't access -> can't confirm system
+      if (stnSys == null && !allSystems) { skippedInaccessible++; continue; } // strict system scan cannot confirm this location
+      const scopeKey = stnSys == null ? 'unresolved' : String(stnSys);
       // Track all systems for diagnostics
-      systemBreakdown[stnSys] = (systemBreakdown[stnSys] || 0) + 1;
-      if (stnSys !== selSysNum) { skippedWrongSystem++; continue; } // different system
+      systemBreakdown[scopeKey] = (systemBreakdown[scopeKey] || 0) + 1;
+      const inSelectedSystem = allSystems || stnSys === selSysNum;
+      if (!allSystems && !inSelectedSystem) skippedWrongSystem++;
       if (trustFallbackStructs.has(stnId)) trustFallbackAssetCount += qty;
+      if (!stkAggBySystem[scopeKey]) stkAggBySystem[scopeKey] = {};
+      stkAggBySystem[scopeKey][a.type_id] = (stkAggBySystem[scopeKey][a.type_id] || 0) + qty;
+      stkAllAgg[a.type_id] = (stkAllAgg[a.type_id] || 0) + qty;
+      if (!inSelectedSystem) continue;
       keptCount++;
       stkAgg[a.type_id] = (stkAgg[a.type_id] || 0) + qty;
       if (stnId) {
@@ -1977,7 +1994,7 @@ async function loadInventory() {
     try {
       const locIds = Object.keys(stkAggByStation);
       const selSys = stkSysId();
-      const selName = stkSysIdName(selSys);
+      const selName = allSystems ? 'All personal systems' : stkSysIdName(selSys);
       // system-location ids -> local Systems names
       for (const id of locIds) { const num = +id; if (num >= 30000000 && num < 40000000) { stkLocationNames[id] = stkSysIdName(String(num)); } }
       // NPC stations (<1e12, not system ids) -> universe/names
@@ -2016,8 +2033,8 @@ async function loadInventory() {
         try{ bvDeniedWrite(denied); }catch{}
       }
 // stkSystems keyed by systemId + per-location system name
-      stkSystems[selSys] = locIds;
-      stkSysNames[selSys] = selName;
+      stkSystems[selSys || 'all'] = locIds;
+      stkSysNames[selSys || 'all'] = selName;
       for (const id of locIds) {
         let sId = locSys[id];
         if (!sId) { try { const sc=bvStructCacheRead(); if (sc[id] && sc[id].system_id) sId = sc[id].system_id; } catch {} }
@@ -2059,7 +2076,8 @@ async function loadInventory() {
     const fallbackMsg = trustFallbackStructs.size > 0 ? ' · ' + fmtN(trustFallbackAssetCount) + ' units from ' + trustFallbackStructs.size + ' unresolved location' + (trustFallbackStructs.size === 1 ? '' : 's') + ' (trusted as ' + stkSysIdName(stkSysId()) + ')' : '';
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + stkSysIdName(stkSysId()) + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + wrongSysMsg + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + fallbackMsg + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
@@ -2075,14 +2093,24 @@ async function applyInventoryToShopping() {
   await renderShoppingList(S.runs||1);
   status('Inventory applied to shopping list — deducted owned qty.');
 }
+async function applyInventoryScope() {
+  const next = stkAllSystems() ? stkAllAgg : (stkAggBySystem[stkSysId()] || {});
+  if (!Object.keys(next).length) { stkPage = 1; renderStkRows(); return; }
+  stkAgg = next;
+  stkPage = 1;
+  const previous = stkSnapshotRead(matSource());
+  await buildInventorySnapshot(next, previous && previous.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkAllSystems() ? 'All personal systems' : stkSysIdName(stkSysId()));
+  renderStkRows();
+  await renderRefinery();
+  if (!stkAllSystems() && $('stkDeduct') && $('stkDeduct').checked && S.root) await renderShoppingList(S.runs || 1);
+}
 // System autocomplete for the Inventory tab — search ALL systems (build system picked first).
 function stkRescopeSystem() {
   const sysId = stkSysId();
   // enable Scan button once a system is picked
-  try { const b = $('stkRefresh'); if (b) b.disabled = !sysId; } catch {}
+  try { const b = $('stkRefresh'); if (b) b.disabled = !sysId && !stkAllSystems(); } catch {}
   stkPage = 1;
-  renderStkRows();
-  if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
+  applyInventoryScope().catch(() => { renderStkRows(); });
 }
 function attachStkSystemAutocomplete() {
   const input = $('stkSystemInput'), box = $('stkSysSuggest');
@@ -2181,9 +2209,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // inventory
   if ($('stkRefresh')) $('stkRefresh').onclick = loadInventory;
   if ($('stkSystemInput')) attachStkSystemAutocomplete();
+  if ($('stkAllSystems')) $('stkAllSystems').onchange = () => { savePrefs(); stkRescopeSystem(); };
   if ($('stkClear')) $('stkClear').onclick = () => {
     stkSnapshotClear();
-    stkAgg = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkOreDetail = [];
+    stkAgg = {}; stkAllAgg = {}; stkAggBySystem = {}; stkAggByStation = {}; stkLocationNames = {}; stkSystems = {}; stkLocSystem = {}; stkTypeLocs = {}; stkNames = {}; stkOreDetail = [];
     if ($('stkList')) $('stkList').innerHTML = '<p class="hint">Cleared. Pick a system and hit Scan system.</p>';
     if ($('stkStatus')) $('stkStatus').textContent = '';
     if ($('stkTotals')) $('stkTotals').textContent = '';
@@ -2191,8 +2220,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRefinery();
     status('Inventory snapshot cleared.');
   };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
-  if ($('stkTrustSystem')) $('stkTrustSystem').onchange = () => { savePrefs(); stkRaw=[]; stkAgg={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Trust setting changed — hit Scan system to apply.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('stkTrustSystem')) $('stkTrustSystem').onchange = () => { savePrefs(); stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkOreDetail=[]; if($('stkList')) $('stkList').innerHTML='<p class="hint">Trust setting changed — hit Scan system to apply.</p>'; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   if ($('stkSearch')) $('stkSearch').addEventListener('input', () => { stkPage=1; renderStkRows(); });
   if ($('stkDeduct')) $('stkDeduct').onchange = async () => { if (S.root) await renderShoppingList(S.runs||1); };
