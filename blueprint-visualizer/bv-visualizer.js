@@ -1605,6 +1605,19 @@ function stkFilteredAgg() {
     console.log('[BV] Industrial types in inventory:', industrialEntries.map(e => e.typeId));
     console.log('[BV] BV_MATERIALS size:', BV_MATERIALS.size);
     console.log('[BV] Total types in srcAgg:', entries.length, 'Industrial:', industrialEntries.length, 'Non-industrial:', nonIndustrialEntries.length);
+    
+    // Check for specific categories that should be industrial
+    const oreIds = [18, 19, 20, 21, 22, 1223, 1224, 1225, 1226, 1227, 1228, 1229, 1230, 1231, 1232, 11396];
+    const mineralIds = [34, 35, 36, 37, 38, 39, 40, 11399];
+    const iceIds = [16262, 16263, 16264, 16265, 16266, 16267, 16268, 16269, 16272, 16273, 16274, 16275, 16276, 16277, 16278, 16279, 16280, 16281, 16282, 16283, 16284];
+    
+    const hasOres = entries.filter(e => oreIds.includes(e.typeId));
+    const hasMinerals = entries.filter(e => mineralIds.includes(e.typeId));
+    const hasIce = entries.filter(e => iceIds.includes(e.typeId));
+    
+    console.log('[BV] Ores in inventory:', hasOres.map(e => ({ id: e.typeId, inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    console.log('[BV] Minerals in inventory:', hasMinerals.map(e => ({ id: e.typeId, inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    console.log('[BV] Ice in inventory:', hasIce.map(e => ({ id: e.typeId, inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
   }
   
   let out = industrialEntries;
