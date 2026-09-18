@@ -1057,7 +1057,14 @@ function bindHandoffs() {
     tpe.innerHTML = anyOpen ? '<i class="fas fa-expand"></i> Expand' : '<i class="fas fa-compress"></i> Collapse';
   };
   const clp = $('clearProgress'); if (clp) clp.onclick = () => { bpProgWrite({}); renderBuildProgress(); status('Progress ticks cleared.'); };
-  const unp = $('unpinProgress'); if (unp) unp.onclick = () => { S.pinnedRoot = null; renderBuildProgress(); status('Tracking the live calculation.'); };
+  const unp = $('unpinProgress'); if (unp) unp.onclick = async () => {
+    S.pinnedSel = 'live'; bpPinsSave();
+    unp.disabled = true;
+    try { await loadInventory(); } catch {}
+    try { renderBuildProgress(); } catch {}
+    unp.disabled = false;
+    status('Tracking the live calculation — materials re-pulled from game.');
+  };
 }
 
 // ---- OCR (kept from BPC, trimmed) ----
