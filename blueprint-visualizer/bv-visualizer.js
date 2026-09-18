@@ -2316,7 +2316,7 @@ async function loadInventory() {
     // ---- resolve type names FIRST so the ore snapshot stores real ore names ----
     stkNames = {}; stkPage = 1;
     if (st) st.textContent = 'Resolving ' + Object.keys(stkAgg).length + ' types across ' + Object.keys(stkAggByStation).length + ' location(s)…';
-    const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n));
+    const ids = Object.keys(stkAgg).map(n=>+n).filter(n=>Number.isFinite(n) && n>0);
     if (ids.length) {
       for (let i=0;i<ids.length;i+=200) {
         const chunk = ids.slice(i,i+200);
