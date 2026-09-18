@@ -1434,6 +1434,15 @@ let stkEnriched = [], stkEnrichedAll = [], stkTypeFlags = {}, stkTypeGroups = {}
 // Custom user-set names for containers/ships (ESI assets/names, item_id -> name).
 // Preferred over type names in container display; cleared on Clear/source change.
 let stkCustomNames = {};
+// ESI error-limit circuit breaker: once a 420/429 is seen, the scan skips all
+// remaining non-essential ESI lookups (names, per-type fallback, custom names)
+// instead of hammering a rate-limited endpoint. Reset at each scan start.
+let bvEsiLimited = false;
+function bvHitLimit(e) {
+  const hit = /420|\b429\b/.test(String((e && e.message) || e || ''));
+  if (hit && !bvEsiLimited) { bvEsiLimited = true; console.warn('[BV] ESI rate limit hit — remaining ESI lookups skipped this scan'); }
+  return hit;
+}
 // Resolve a container/ship asset's display name: custom name first, then type name.
 function stkContainerDisplayName(itemId, typeId) {
   try { if (itemId != null && stkCustomNames[String(itemId)]) return stkCustomNames[String(itemId)]; } catch {}
@@ -1449,6 +1458,7 @@ function stkContainerDisplayName(itemId, typeId) {
 // Missing entries simply have no custom name — callers fall back to type names.
 async function stkFetchCustomNames(parentIds, src, cid, corpId) {
   const out = {};
+  if (bvEsiLimited) return out;
   const ids = [...new Set((parentIds || []).map(n => +n).filter(n => Number.isFinite(n) && n > 0))];
   if (!ids.length) return out;
   const posts = [];
@@ -1459,7 +1469,7 @@ async function stkFetchCustomNames(parentIds, src, cid, corpId) {
       try {
         const rows = await BVAuth.api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids.slice(i, i + 1000)) });
         (Array.isArray(rows) ? rows : []).forEach(r => { if (r && r.item_id && r.name) out[String(r.item_id)] = r.name; });
-      } catch (e) { console.warn('[BV] assets/names batch failed (' + path + '):', e && e.message); break; }
+      } catch (e) { bvHitLimit(e); console.warn('[BV] assets/names batch failed (' + path + '):', e && e.message); break; }
     }
   }
   return out;
@@ -2044,8 +2054,8 @@ async function loadInventory() {
     if (!cid) { if(box) box.innerHTML='<p class="hint">No character ID — re-login.</p>'; return; }
     const src = ($('stkSource') && $('stkSource').value) || 'personal';
     stkRawSource = src;
-    // Strict mode: previously-denied structures get one fresh attempt each scan.
-    try { localStorage.removeItem('bvStructDenied'); } catch {}
+    // Fresh error budget each scan; 403 denials persist 1h so we never re-flood.
+    bvEsiLimited = false;
     // follow the search source in the calculator's Materials-owned selector so a corp search deducts corp
     try { if ($('matSource')) $('matSource').value = src; } catch {}
     savePrefs();
@@ -2183,8 +2193,9 @@ async function loadInventory() {
     // Residue: structures NOT covered by the corp call (e.g. a personal citadel the
     // character docks at but the corp doesn't own) or not yet cached. Strict
     // mode resolves EVERY accessible structure — rank by stack count (main
-    // storage first), up to 100/scan, concurrency 2. Denied stamps were cleared
-    // at scan start, so each scan retries once; fresh 403s simply exclude.
+    // storage first), up to 25/scan, concurrency 2. 403s stamp as 1h denials
+    // (excluded); any 420/429 trips the circuit breaker and stops the scan's
+    // remaining ESI lookups instead of burning the error budget.
     const stacksPer = {};
     const unresolved = [];
     {
@@ -2207,11 +2218,12 @@ async function loadInventory() {
       unresolved.sort((a, b) => (stacksPer[b] || 0) - (stacksPer[a] || 0));
       // Resolve all unresolved structures; 403s stamp as denied (excluded).
       const targets = unresolved
-        .slice(0, 100)
+        .slice(0, 25)
         .filter(id => !(denied[id] && now - denied[id] < 3600e3));
-      let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0;
+      let deniedChanged = false, cacheDirty = false, attempts = 0, resolvedNow = 0, rateCut = false;
       for (let i = 0; i < targets.length; i += 2) {
         await Promise.all(targets.slice(i, i + 2).map(async id => {
+          if (bvEsiLimited) return;
           attempts++;
           try {
             const st = await BVAuth.api('/universe/structures/' + id + '/?datasource=tranquility');
@@ -2224,13 +2236,15 @@ async function loadInventory() {
             }
           } catch (e) {
             if (/403/.test(String((e && e.message) || ''))) { denied[id] = now; deniedChanged = true; }
+            else if (bvHitLimit(e)) { rateCut = true; }
           }
         }));
+        if (bvEsiLimited || rateCut) break;
         if (i + 2 < targets.length) await new Promise(r => setTimeout(r, 80));
       }
       if (cacheDirty) bvStructCacheWrite(structCache);
       if (deniedChanged) bvDeniedWrite(denied);
-      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length);
+      console.log('[BV] residue attempted=' + attempts + ' resolvedNow=' + resolvedNow + ' unresolvedLeft=' + unresolvedLeft + ' unresolvedStructs=' + unresolved.length + (rateCut ? ' RATE-CUT' : ''));
     }
     // Strict scope: unresolved / no-access locations are excluded, never
     // trusted as the selected system. If ESI cannot resolve a structure
@@ -2344,18 +2358,20 @@ async function loadInventory() {
             (Array.isArray(nm)?nm:[]).forEach(n=>{ if(n&&n.id&&n.name&&n.category==='inventory_type') stkNames[n.id]=n.name; });
             break;
           } catch(e){
-            const msg=String(e&&e.message||'');
-            if (/420|429/.test(msg) && tries===0){ await new Promise(r=>setTimeout(r,900)); tries++; continue; }
+            // Never retry a 420/429 — the error budget is gone; flag it and move on.
+            if (bvHitLimit(e)) { console.warn('[BV] inventory names batch rate-limited, using cached names', e&&e.message); break; }
             console.warn('[BV] inventory names batch failed', e&&e.message); break;
           }
         }
         if (i+200 < ids.length) await new Promise(r=>setTimeout(r,300));
       }
       const missing = ids.filter(id=>!stkNames[id]);
-      if (missing.length) {
+      // Per-type fallback storms a rate-limited ESI — skip entirely when cut off.
+      if (missing.length && !bvEsiLimited) {
         for (let i=0;i<missing.length;i+=5) {
+          if (bvEsiLimited) break;
           const batch = missing.slice(i,i+5);
-          await Promise.all(batch.map(async id=>{ try{ stkNames[id]=await typeName(id);}catch{} }));
+          await Promise.all(batch.map(async id=>{ try{ stkNames[id]=await typeName(id);}catch(e){ bvHitLimit(e); } }));
           if (i+5 < missing.length) await new Promise(r=>setTimeout(r,250));
         }
       }
@@ -2380,7 +2396,7 @@ async function loadInventory() {
     const skippedMsg = skippedInaccessible ? ' · ' + skippedInaccessible + ' stacks skipped (structures you can\u2019t access)' : '';
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + Math.ceil(assets.length/1000) + ' page' + (Math.ceil(assets.length/1000)===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + skippedMsg + (allSystems ? '' : wrongSysMsg) + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
