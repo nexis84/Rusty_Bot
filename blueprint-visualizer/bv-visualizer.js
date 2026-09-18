@@ -1624,6 +1624,10 @@ function stkFilteredAgg() {
     const hasCompressedOres = entries.filter(e => compressedOreIds.includes(e.typeId) || (stkNames[e.typeId] && stkNames[e.typeId].toLowerCase().includes('compressed')));
     console.log('[BV] Compressed ores in inventory:', hasCompressedOres.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
     
+    // Also check all items with "compressed" in the name
+    const allCompressedItems = entries.filter(e => stkNames[e.typeId] && stkNames[e.typeId].toLowerCase().includes('compressed'));
+    console.log('[BV] All items with "compressed" in name:', allCompressedItems.map(e => ({ id: e.typeId, name: stkNames[e.typeId], inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    
     // Show top 50 items by quantity to see what's actually in the inventory
     const topItems = entries.sort((a, b) => b.qty - a.qty).slice(0, 50);
     console.log('[BV] Top 50 items by quantity:', topItems.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', qty: e.qty, isIndustrial: isIndustrialMaterial(e.typeId) })));
