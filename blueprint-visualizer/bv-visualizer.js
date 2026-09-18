@@ -803,9 +803,9 @@ function renderBuildProgress() {
     const have = invAgg[typeId] || 0;
     const pct = Math.min(100, Math.round(have / qty * 100));
     const ok = have >= qty;
-    return '<span style="display:inline-flex;flex-direction:column;gap:.15rem;vertical-align:middle;flex-shrink:0">'
-      + '<span class="ref-track" style="display:block;width:120px;" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
-      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + '</span></span>';
+    return '<span class="have-cell">'
+      + '<span class="ref-track" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
+      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' · ' + pct + '%</span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
   // Auto-finish: any material fully covered by inventory ticks itself
@@ -2585,6 +2585,19 @@ function renderStkDetail(){ const w=$('stkDetailWrap'); if(w) w.innerHTML=''; }
 // residue 20 / names 10 / classify+names 10 / snapshot 5); ETA derives from
 // elapsed time vs completed fraction. Button locks during the scan.
 let stkProgStart = 0;
+// Mirror helper: the scan progress also shows in the Build tab so Update
+// inventory displays a loading bar where the user pressed it.
+function stkProgressMirror(frac, label, doneMsg, hide) {
+  try {
+    const wrap = $('progScanWrap'), bar = $('progScanBar'), lab = $('progScanLabel');
+    if (!wrap || !bar) return;
+    if (hide) { wrap.style.display = 'none'; bar.style.width = '0%'; return; }
+    const f = Math.min(0.999, Math.max(0, frac || 0));
+    wrap.style.display = 'block';
+    bar.style.width = (f * 100).toFixed(1) + '%';
+    if (lab) lab.textContent = doneMsg || ((label || 'Scanning…') + ' · ' + Math.round(f * 100) + '%');
+  } catch {}
+}
 function stkProgress(frac, label) {
   try {
     const wrap = $('stkProgWrap'), bar = $('stkBar'), lab = $('stkBarLabel');
@@ -2600,6 +2613,7 @@ function stkProgress(frac, label) {
       eta = rem < 1 ? ' · <1s left' : ' · ~' + (rem < 60 ? Math.ceil(rem) + 's' : Math.floor(rem / 60) + 'm ' + Math.ceil(rem % 60) + 's') + ' left';
     }
     if (lab) lab.innerHTML = (label || 'Scanning…') + ' · ' + Math.round(f * 100) + '%' + eta;
+    stkProgressMirror(f, label);
   } catch {}
 }
 function stkProgressDone(msg) {
@@ -2608,6 +2622,8 @@ function stkProgressDone(msg) {
     if (bar) bar.style.width = '100%';
     if (lab) lab.textContent = msg || 'Done.';
     setTimeout(() => { try { wrap.style.display = 'none'; if (bar) bar.style.width = '0%'; } catch {} }, 5000);
+    stkProgressMirror(1, null, msg || 'Done.');
+    setTimeout(() => stkProgressMirror(0, null, null, true), 5000);
   } catch {}
   stkProgStart = 0;
 }
@@ -2616,6 +2632,7 @@ function stkProgressHide() {
     const wrap = $('stkProgWrap'), bar = $('stkBar');
     if (wrap) wrap.style.display = 'none';
     if (bar) bar.style.width = '0%';
+    stkProgressMirror(0, null, null, true);
   } catch {}
   stkProgStart = 0;
 }
