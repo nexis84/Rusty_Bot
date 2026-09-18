@@ -823,11 +823,12 @@ function renderBuildProgress() {
   const haveBlock = (typeId, qty) => {
     if (!hasInv || !(qty > 0)) return '';
     const have = invAgg[typeId] || 0;
+    const left = Math.max(0, qty - have);
     const pct = Math.min(100, Math.round(have / qty * 100));
     const ok = have >= qty;
     return '<span class="have-cell">'
-      + '<span class="ref-track" title="Have ' + fmtN(have) + ' of ' + fmtN(qty) + ' required (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
-      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' (' + pct + '%)</span></span>';
+      + '<span class="ref-track" title="Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' · Left ' + fmtN(left) + ' (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span>'
+      + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>NEED ' + fmtN(qty) + ' · HAVE ' + fmtN(have) + ' · LEFT ' + fmtN(left) + '</span><span class="prog-pct">' + pct + '%</span></span>';
   };
   const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
   // Auto-finish: any material fully covered by inventory ticks itself
