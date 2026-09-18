@@ -1619,6 +1619,11 @@ function stkFilteredAgg() {
     console.log('[BV] Minerals in inventory:', hasMinerals.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
     console.log('[BV] Ice in inventory:', hasIce.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
     
+    // Check for compressed ores specifically
+    const compressedOreIds = [51647, 51648, 51649, 51650, 51651, 51652, 51653, 51654, 51655, 51656, 51657, 51658, 51659, 51660, 51661, 51662, 51663, 51664, 51665, 51666, 51667, 51668, 51669, 51670, 51671, 51672, 51673, 51674, 51675, 51676, 51677, 51678, 51679, 51680, 51681, 51682, 51683, 51684, 51685, 51686, 51687, 51688, 51689, 51690, 51691, 51692, 51693, 51694, 51695, 51696];
+    const hasCompressedOres = entries.filter(e => compressedOreIds.includes(e.typeId) || (stkNames[e.typeId] && stkNames[e.typeId].toLowerCase().includes('compressed')));
+    console.log('[BV] Compressed ores in inventory:', hasCompressedOres.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', inMaterials: BV_MATERIALS.has(e.typeId), qty: e.qty })));
+    
     // Show top 50 items by quantity to see what's actually in the inventory
     const topItems = entries.sort((a, b) => b.qty - a.qty).slice(0, 50);
     console.log('[BV] Top 50 items by quantity:', topItems.map(e => ({ id: e.typeId, name: stkNames[e.typeId] || 'Unknown', qty: e.qty, isIndustrial: isIndustrialMaterial(e.typeId) })));
