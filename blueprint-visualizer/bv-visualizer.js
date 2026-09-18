@@ -67,7 +67,7 @@ async function ensureIceProducts() {
   } catch {}
   return iceOreList;
 }
-function isMineable(typeId) { try { if (isMineral(typeId)) return true; return iceProductIds.has(+typeId); } catch { return false; } }
+function isMineable(typeId) { try { if (isMineral(typeId)) return true; if (iceProductIds.has(+typeId)) return true; if (typeof BV_MINE_MATS !== 'undefined' && BV_MINE_MATS.has(+typeId)) return true; return false; } catch { return false; } }
 function mineIcon(typeId) {
   if (!isMineable(typeId)) return '';
   return '<a class="mine-link" data-mine="' + typeId + '" title="Show mining plan for ' + (D.minerals[typeId] || 'ice product') + '"><i class="fas fa-gem"></i></a>';
@@ -1317,6 +1317,21 @@ function oreFromTable(id) {
 }
 // Seed volume cache from the baked ore table (runs after both exist).
 try { for (const [id, e] of BV_ORES) { if (!volCache.has(id)) volCache.set(id, e.volume || 0); } } catch {}
+// Every material yielded by a NON-compressed baked ore is mineable: minerals,
+// ice products and the whole moon-material family (Hydrocarbons, Evaporite
+// Deposits, …). SDE-driven — no hardcoded IDs. Compressed-only outputs stay
+// out (you mine the rock, not the unit).
+const BV_MINE_MATS = (() => {
+  try {
+    const s = new Set();
+    for (const [, e] of BV_ORES) {
+      if (!e || !e.yields || !Object.keys(e.yields).length) continue;
+      if (/^compressed\s/i.test(e.name || '')) continue;
+      for (const mid of Object.keys(e.yields)) s.add(+mid);
+    }
+    return s;
+  } catch { return new Set(); }
+})();
 async function fetchOre(id, nameHint) {
   if (oreCache.has(id)) return oreCache.get(id);
   const baked = oreFromTable(id);
