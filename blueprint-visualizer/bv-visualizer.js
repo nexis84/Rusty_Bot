@@ -930,6 +930,107 @@ function bpProgRemainingMultibuy() {
   return rows.filter(r => r.depth >= 0 && !ticked[r.key]).map(r => cleanName(r.name) + ' x' + fmtN(r.qty));
 }
 
+// ---- Send remaining materials to Evemail (via shared RustyBot sender) ----
+// Remaining = unticked rows minus inventory cover. Linked form uses EVE HTML:
+//   <url=showinfo:{typeId}>Name</url> x{qty}
+// Hard cap: max 3 mails per build. If the linked form needs more, warn and
+// fall back to plain text (no links). Text overflow beyond 3 is truncated.
+const BV_MAIL_MAX_PARTS = 3;
+const BV_MAIL_CHUNK = 9500;
+function bvMailStatus(m) { try { const el = $('mailStatus'); if (el) el.textContent = m || ''; } catch {} if (m) status(m); }
+function bvMailEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function bvMailRemainingItems() {
+  const { rows, rootName, runs } = bpProgModel();
+  const ticked = bpProgRead();
+  let invAgg = {};
+  try { invAgg = stkDeductMap() || {}; } catch {}
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg).length > 0;
+  const items = [];
+  for (const r of rows) {
+    if (r.depth < 0 || ticked[r.key]) continue;
+    const qty = Math.max(0, Math.floor(r.qty || 0));
+    if (qty <= 0) continue;
+    const have = (doDeduct && ownUse(r.typeId)) ? (invAgg[r.typeId] || 0) : 0;
+    const toSend = doDeduct ? Math.max(0, qty - Math.floor(have)) : qty;
+    if (toSend <= 0) continue;
+    const typeId = +r.typeId;
+    if (!Number.isFinite(typeId) || typeId <= 0) continue;
+    items.push({ typeId, name: cleanName(r.name || ('Type ' + r.typeId)), qty: toSend, depth: r.depth });
+  }
+  return { items, rootName, runs };
+}
+function bvMailChunk(header, lines, footer) {
+  const parts = [];
+  let cur = header;
+  for (let i = 0; i < lines.length; i++) {
+    const last = i === lines.length - 1;
+    const seg = (cur === header ? '' : '\n') + lines[i] + (last && footer ? '\n' + footer : '');
+    if ((cur + seg).length > BV_MAIL_CHUNK && cur !== header) {
+      parts.push(cur);
+      cur = header + lines[i] + (last && footer ? '\n' + footer : '');
+    } else {
+      cur += seg;
+    }
+  }
+  parts.push(cur);
+  return parts;
+}
+async function sendProgMail() {
+  const btn = $('sendProgMail');
+  const setBusy = b => { if (btn) btn.disabled = !!b; };
+  try {
+    if (!window.BVAuth || !BVAuth.signedIn()) { bvMailStatus('Sign in with SSO first, then send materials to Evemail.'); return; }
+    const ch = await resolveBvCharacter();
+    const cid = ch && (ch.id || ch.character_id || ch.CharacterID);
+    if (!cid) { bvMailStatus('Signed in, but no character found — sign out and sign in again.'); return; }
+    const src = bpProgSource();
+    if (!src || !src.children || !src.children.length) { bvMailStatus('Run a calculation or pin a build first.'); return; }
+    const { items, rootName, runs } = bvMailRemainingItems();
+    if (!items.length) { bvMailStatus('Nothing remaining — all materials ticked or covered by inventory.'); return; }
+    const t = window.BVAuth && BVAuth.tokens();
+    if (!t || !t.access_token) { bvMailStatus('SSO session expired — sign in again.'); return; }
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const title = (rootName || 'Build') + ' ×' + (runs || 1);
+    // Linked form first.
+    const linkedLines = items.map(it => (it.depth === 1 ? '  ' : '- ') + '<url=showinfo:' + it.typeId + '>' + bvMailEsc(it.name) + '</url> x' + fmtN(it.qty));
+    const linkedHeader = title + ' — remaining materials (' + dateStr + ')\nSent from Blueprint Visualizer by RustyBot\n\n';
+    let parts = bvMailChunk(linkedHeader, linkedLines, '');
+    let linked = true;
+    if (parts.length > BV_MAIL_MAX_PARTS) {
+      bvMailStatus('Build too large for linked Evemail (needs ' + parts.length + ' mails, cap is 3) — will send as plain text without clickable links.');
+      const ok = window.confirm('This build is too large for linked Evemail (would need ' + parts.length + ' mails, max is 3).\n\nSend as plain text instead (no clickable item links)?\n\nOK = send text-only · Cancel = abort');
+      if (!ok) { bvMailStatus('Evemail send cancelled — no mails sent.'); return; }
+      const textLines = items.map(it => (it.depth === 1 ? '  ' : '- ') + it.name + ' x' + fmtN(it.qty));
+      parts = bvMailChunk(linkedHeader, textLines, '');
+      linked = false;
+      if (parts.length > BV_MAIL_MAX_PARTS) {
+        // Absolute cap: keep first 3, note truncation in the last part.
+        parts = parts.slice(0, BV_MAIL_MAX_PARTS);
+        parts[BV_MAIL_MAX_PARTS - 1] += '\n…truncated — full list in Blueprint Visualizer > Build Progress';
+      }
+    }
+    setBusy(true);
+    const total = parts.length;
+    for (let i = 0; i < total; i++) {
+      const n = i + 1;
+      bvMailStatus('Sending Evemail ' + n + '/' + total + (linked ? ' (linked items)…' : ' (plain text — too large for links)…'));
+      const subject = (title + ' materials' + (total > 1 ? ' (Part ' + n + '/' + total + ')' : '')).slice(0, 1000);
+      const r = await fetch(bvBackendBase() + '/api/bv/mail/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.access_token },
+        body: JSON.stringify({ recipient_id: String(cid), subject, body: parts[i], part: n, parts: total })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    }
+    bvMailStatus('Evemail sent to ' + ((ch && ch.name) || 'your character') + ' (' + total + '/' + total + (linked ? ', linked items' : ', plain text') + ') — check in-game mail from RustyBot.');
+  } catch (e) {
+    bvMailStatus('Evemail send failed: ' + (e && e.message ? e.message : e));
+  } finally {
+    setBusy(false);
+  }
+}
+
 function buildRawLines() {
   const out = [];
   if (!S.root || !S.root.children) return out;
@@ -1102,6 +1203,7 @@ function bindHandoffs() {
     unp.disabled = false;
     status('Tracking the live calculation — materials re-pulled from game.');
   };
+  const smp = $('sendProgMail'); if (smp) smp.onclick = () => { sendProgMail(); };
 }
 
 // ---- OCR (kept from BPC, trimmed) ----
