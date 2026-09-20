@@ -272,18 +272,39 @@ const S = { root: null, nodes: new Map(), bom: [], product: null, trackedPrice: 
 // Pinned builds (max 5, persisted): snapshot {bpId,bpName,mode,runs,children}
 // so progress survives reloads and blueprint browsing. Ticks stay per-bpId.
 const BV_MAX_PINS = 5;
-function bpPinsLoad() {
+function bpPinsRead(key) {
   try {
-    const v = JSON.parse(localStorage.getItem('bvPinnedBuilds') || 'null');
-    if (v && Array.isArray(v.pins)) {
-      S.pinnedBuilds = v.pins.filter(p => p && p.bpId && p.children).slice(0, BV_MAX_PINS);
-      S.pinnedSel = v.sel || null;
-    }
+    const v = JSON.parse(localStorage.getItem(key) || 'null');
+    if (v && Array.isArray(v.pins)) return v;
   } catch {}
+  return null;
+}
+function bpPinsLoad() {
+  // Primary first, then the backup of the last good state (a corrupt/partial
+  // primary write must not nuke pins — explicit unpin-all still saves a
+  // valid empty primary, which correctly loads as empty).
+  const v = bpPinsRead('bvPinnedBuilds') || bpPinsRead('bvPinnedBuilds.bak');
+  if (v) {
+    const fromBackup = !bpPinsRead('bvPinnedBuilds');
+    S.pinnedBuilds = v.pins.filter(p => p && p.bpId && p.children).slice(0, BV_MAX_PINS);
+    S.pinnedSel = v.sel || null;
+    if (fromBackup) {
+      // Recovered from backup — repair the primary so the next load is direct.
+      try { localStorage.setItem('bvPinnedBuilds', JSON.stringify(v)); } catch {}
+    }
+  }
   if (!Array.isArray(S.pinnedBuilds)) S.pinnedBuilds = [];
 }
 function bpPinsSave() {
-  try { localStorage.setItem('bvPinnedBuilds', JSON.stringify({ pins: (S.pinnedBuilds || []).slice(0, BV_MAX_PINS), sel: S.pinnedSel || null })); } catch {}
+  try {
+    // Stash the last good primary as backup BEFORE overwriting, so a bad
+    // write here can never destroy the previous pins.
+    const prev = bpPinsRead('bvPinnedBuilds');
+    if (prev && prev.pins && prev.pins.length) {
+      try { localStorage.setItem('bvPinnedBuilds.bak', JSON.stringify(prev)); } catch {}
+    }
+    localStorage.setItem('bvPinnedBuilds', JSON.stringify({ pins: (S.pinnedBuilds || []).slice(0, BV_MAX_PINS), sel: S.pinnedSel || null }));
+  } catch {}
 }
 function bpProgSelPin() {
   const pins = S.pinnedBuilds || [];
@@ -3368,7 +3389,8 @@ function highlight(name, q) {
 
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
-  init(); bindHandoffs(); initAutocomplete(); try { bpPinsLoad(); } catch {}
+  try { bpPinsLoad(); } catch {}
+  init(); bindHandoffs(); initAutocomplete();
   renderRefinery();
   // Resolve ice products in the background so Mine-it tags show on isotopes/ozone/water/strontium.
   ensureIceProducts().then(() => { if (S.root) { try { renderTree(S.runs || 1); renderBom(S.runs || 1); } catch {} } }).catch(() => {});
