@@ -903,6 +903,14 @@ function goCrumb(i) {
   calculate();
 }
 
+// Canonical toggle order everywhere: Build, Buy, Mine, React, Extract
+// (absent modes omitted, so Buy is always second). Pure string builder.
+function topModeButtons(c, i, rxBtn) {
+  const buyBtn = '<button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>';
+  if (isMineable(c.type_id)) return buyBtn + '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button>';
+  if (isPI(c.type_id)) return buyBtn + '<button class="mode-btn ' + (c.mode === 'extract' ? 'on-extract' : '') + '" data-i="' + i + '" data-m="extract"><i class="fas fa-globe"></i> Extract</button>';
+  return '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button>' + buyBtn + (rxBtn || '');
+}
 // Expand state for calculator breakdowns (tree + build list share it;
 // Build Progress keeps its own set so views don't fight). Calculator starts
 // COLLAPSED — rows expand on click (opposite default to Progress).
@@ -964,22 +972,22 @@ function renderTree(runs) {
     const nmHtml = c.child
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
-    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + (isMineable(c.type_id)
-      ? '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
-      : (isPI(c.type_id)
-        ? '<button class="mode-btn ' + (c.mode === 'extract' ? 'on-extract' : '') + '" data-i="' + i + '" data-m="extract"><i class="fas fa-globe"></i> Extract</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
-        : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn)) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
+    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
   w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
     const idx = +b.dataset.i, mode = b.dataset.m;
-    S.root.children[idx].mode = mode;
+    const c = S.root.children[idx];
+    if (!c) return;
+    // Cascade through the whole section: Buy pins the subtree to Buy, any
+    // other mode auto-sources it (mine/react/extract/build by type).
+    // Per-row tweaks can still override afterwards.
+    try { await bulkApplyToTop(c, idx, mode === 'buy' ? 'buy' : 'auto', mode); } catch {}
     try { bvModesSave(); } catch {}
     renderTree(runs); await renderBom(runs); await renderBuildList(runs); if (S.lastCalc) renderSummary(S.lastCalc);
-    // auto-update mining plan in the background when Mine it is toggled — do NOT switch tabs or steal focus
-    if (mode === 'mine' || mode === 'buy' || mode === 'extract' || isMineable(S.root.children[idx].type_id)) {
-      try { planMining(undefined, { auto: true }); } catch {}
-    }
+    try { renderBuildProgress(); } catch {}
+    // auto-update mining plan in the background when sourcing changes — do NOT switch tabs or steal focus
+    try { planMining(undefined, { auto: true }); } catch {}
   });
   w.querySelectorAll('[data-tree-exp]').forEach(b => b.onclick = () => {
     const k = b.dataset.treeExp;
@@ -1041,54 +1049,11 @@ async function bulkSetModes(kind) {
   if (!S.root || !S.root.children || !S.root.children.length) { status('Run a calculation first.'); return; }
   status(kind === 'buy' ? 'Setting everything to Buy…' : 'Auto-sourcing everything (mine/react/extract/build)…');
   try {
-    const map = deepModeMap();
-    const autoTop = async c => {
-      try {
-        if (isMineable(+c.type_id)) return 'mine';
-        if (isPI(+c.type_id)) return 'extract';
-        if (c.child) return 'build';
-        if (c.reaction && S.reactionsOn !== false) return 'react';
-        const node = await deepResolve(+c.type_id, c.name, []);
-        if (node && node.kind === 'bp') return 'build';
-        if (node && node.kind === 'rx' && S.reactionsOn !== false) return 'react';
-      } catch {}
-      return 'buy';
-    };
-    const autoDeep = (tid, sub) => {
-      try {
-        if (isMineable(tid)) return 'mine';
-        if (isPI(tid)) return 'extract';
-        if (sub && sub.kind === 'bp') return 'build';
-        if (sub && sub.kind === 'rx' && S.reactionsOn !== false) return 'react';
-      } catch {}
-      return null; // unknown yet — leave unset so defaults apply on resolve
-    };
-    // Top level first (sequential: peeks may hit network for bare rows).
+    const ciOf = new Map(S.root.children.map((c, i) => [c, i]));
     for (const c of S.root.children) {
       if (!c) continue;
-      c.mode = (kind === 'buy') ? 'buy' : await autoTop(c);
+      await bulkApplyToTop(c, ciOf.get(c), kind);
     }
-    // Then every depth (keys match the toggle buttons exactly).
-    const rec = (mats, ci, trail, depth, rx) => {
-      for (const m of (mats || [])) {
-        const tid = deepMatId(m);
-        if (!Number.isFinite(tid) || tid <= 0) continue;
-        const key = progKey(ci, trail.concat([tid]), depth, rx);
-        if (kind === 'buy') {
-          try { map[key] = 'buy'; } catch {}
-        } else {
-          const sub = m._deep;
-          const want = autoDeep(tid, sub);
-          if (want) { try { map[key] = want; } catch {} }
-        }
-        const sub = m._deep;
-        if (sub && sub.materials) rec(sub.materials, ci, trail.concat([tid]), depth + 1, sub.kind === 'rx');
-      }
-    };
-    S.root.children.forEach((c, ci) => {
-      const srcm = (c.child && c.child.materials) ? c.child.materials : ((c.reaction && c.reaction.reagents) || []);
-      rec(srcm, ci, [+c.type_id], 1, !!(c.reaction && !(c.child && c.child.materials)));
-    });
     try { bvModesSave(); } catch {}
     try { renderTree(S.runs || 1); } catch {}
     try { await renderBom(S.runs || 1); } catch {}
@@ -1100,6 +1065,55 @@ async function bulkSetModes(kind) {
   } catch (e) {
     status('Bulk set failed: ' + (e && e.message ? e.message : e));
   }
+}
+// Apply a bulk kind to ONE top-level child + its whole subtree.
+// 'buy' pins everything Buy (including unresolved rows); 'auto' sources by
+// type (mine/react/extract/build) and skips unresolved rows so recipe
+// defaults (same mapping) apply when they resolve. An explicit topMode
+// (user's click) is never recomputed — only the subtree is mapped.
+async function bulkApplyToTop(c, ci, kind, topMode) {
+  if (!c) return;
+  const map = deepModeMap();
+  const autoTop = async c => {
+    try {
+      if (isMineable(+c.type_id)) return 'mine';
+      if (isPI(+c.type_id)) return 'extract';
+      if (c.child) return 'build';
+      if (c.reaction && S.reactionsOn !== false) return 'react';
+      const node = await deepResolve(+c.type_id, c.name, []);
+      if (node && node.kind === 'bp') return 'build';
+      if (node && node.kind === 'rx' && S.reactionsOn !== false) return 'react';
+    } catch {}
+    return 'buy';
+  };
+  const autoDeep = (tid, sub) => {
+    try {
+      if (isMineable(tid)) return 'mine';
+      if (isPI(tid)) return 'extract';
+      if (sub && sub.kind === 'bp') return 'build';
+      if (sub && sub.kind === 'rx' && S.reactionsOn !== false) return 'react';
+    } catch {}
+    return null; // unknown yet — leave unset so defaults apply on resolve
+  };
+  c.mode = (kind === 'buy') ? 'buy' : (topMode || await autoTop(c));
+  const rec = (mats, trail, depth, rx) => {
+    for (const m of (mats || [])) {
+      const tid = deepMatId(m);
+      if (!Number.isFinite(tid) || tid <= 0) continue;
+      const key = progKey(ci, trail.concat([tid]), depth, rx);
+      if (kind === 'buy') {
+        try { map[key] = 'buy'; } catch {}
+      } else {
+        const sub = m._deep;
+        const want = autoDeep(tid, sub);
+        if (want) { try { map[key] = want; } catch {} }
+      }
+      const sub = m._deep;
+      if (sub && sub.materials) rec(sub.materials, trail.concat([tid]), depth + 1, sub.kind === 'rx');
+    }
+  };
+  const srcm = (c.child && c.child.materials) ? c.child.materials : ((c.reaction && c.reaction.reagents) || []);
+  rec(srcm, [+c.type_id], 1, !!(c.reaction && !(c.child && c.child.materials)));
 }
 // Set a deep toggle and refresh every costing surface.
 async function deepModeSet(key, mode) {
@@ -1124,13 +1138,13 @@ function deepModeButtons(key, cur, info) {
   if (!info) info = {};
   if (bvModePiOf(key)) {
     const on = m => cur === m ? ' on-' + m : '';
-    return '<button class="mode-btn' + on('extract') + '" data-dkey="' + key + '" data-dm="extract">Extract</button>'
-      + '<button class="mode-btn' + on('buy') + '" data-dkey="' + key + '" data-dm="buy">Buy</button>';
+    return '<button class="mode-btn' + on('buy') + '" data-dkey="' + key + '" data-dm="buy">Buy</button>'
+      + '<button class="mode-btn' + on('extract') + '" data-dkey="' + key + '" data-dm="extract">Extract</button>';
   }
   if (!info.hasBp && !info.hasRx && !info.mineable) return '';
   const on = m => cur === m ? ' on-' + m : '';
   const btn = (m, label) => '<button class="mode-btn' + on(m) + '" data-dkey="' + key + '" data-dm="' + m + '">' + label + '</button>';
-  if (info.mineable) return btn('mine', '<i class="fas fa-gem"></i> Mine') + btn('buy', 'Buy');
+  if (info.mineable) return btn('buy', 'Buy') + btn('mine', '<i class="fas fa-gem"></i> Mine');
   let h = '';
   if (info.hasBp) h += btn('build', 'Build');
   h += btn('buy', 'Buy');
