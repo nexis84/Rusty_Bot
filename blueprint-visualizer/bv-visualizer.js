@@ -364,6 +364,8 @@ async function calculate() {
     const nm = await typeName(m.type_id);
     S.root.children.push({ type_id: m.type_id, name: nm, baseQty, perRun, mode: 'buy', child: null, unitSell: null, unitBuy: null, childCost: null });
   }
+  // Restore persisted Build/Buy/Mine/React toggles for this blueprint.
+  const modesRestored = bvModesApply();
   if (isFormula && formulaEstimate) status('Note: formula output estimated ×1 (Fuzzwork fallback) — reagent math is exact.');
   status('Pricing ' + S.root.children.length + ' materials (' + region + ')…');
   let matCostSell = 0, matCostBuy = 0;
@@ -402,7 +404,7 @@ async function calculate() {
   pushLedger({ ts: Date.now(), bp: bpRef.name, bpId: bpRef.id, runs, cost: Math.round(totalCash), revenue: Math.round(revenue), profit: Math.round(profitCash), hub: region, mined: Math.round(cash.mined) });
   // async: resolve sub-blueprints for buildable children
   enrichChildren(runs);
-  status('Done. Toggle Build/Buy on sub-components; sub-BOMs resolve in background.');
+  status('Done. Toggle Build/Buy on sub-components; sub-BOMs resolve in background.' + (modesRestored > 0 ? ' (' + modesRestored + ' saved toggle' + (modesRestored === 1 ? '' : 's') + ' restored.)' : ''));
 }
 
 // ---- reactions (refinery formulas, e.g. moon goo) ----
@@ -692,6 +694,7 @@ function renderTree(runs) {
   w.querySelectorAll('.mode-btn').forEach(b => b.onclick = async () => {
     const idx = +b.dataset.i, mode = b.dataset.m;
     S.root.children[idx].mode = mode;
+    try { bvModesSave(); } catch {}
     renderTree(runs); await renderBom(runs); await renderBuildList(runs); if (S.lastCalc) renderSummary(S.lastCalc);
     // auto-update mining plan in the background when Mine it is toggled — do NOT switch tabs or steal focus
     if (mode === 'mine' || mode === 'buy' || isMineable(S.root.children[idx].type_id)) {
@@ -700,6 +703,42 @@ function renderTree(runs) {
   });
 }
 
+// Persisted Build/Buy/Mine/React toggles per blueprint — restored on every
+// calculate so drill-down/back, recalc, pin switches and reloads keep intent.
+// Only non-default modes are stored; stale types are ignored on restore.
+const BV_MODES_MAX_BP = 20;
+function bvModesRead() { try { const v = JSON.parse(localStorage.getItem('bvModes') || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
+function bvModesWrite(m) { try { localStorage.setItem('bvModes', JSON.stringify(m || {})); } catch {} }
+function bvModesSave() {
+  try {
+    if (!S.root || !S.root.bpId || !S.root.children) return;
+    const key = String(S.root.bpId);
+    const all = bvModesRead();
+    delete all[key]; // re-insert for recency
+    const entry = {};
+    for (const c of S.root.children) {
+      if (c && Number.isFinite(+c.type_id) && c.mode && c.mode !== 'buy') entry[c.type_id] = c.mode;
+    }
+    if (Object.keys(entry).length) all[key] = entry;
+    for (const k of Object.keys(all).slice(0, Math.max(0, Object.keys(all).length - BV_MODES_MAX_BP))) delete all[k];
+    bvModesWrite(all);
+  } catch {}
+}
+function bvModesApply() {
+  try {
+    if (!S.root || !S.root.bpId || !S.root.children) return 0;
+    const entry = bvModesRead()[String(S.root.bpId)] || {};
+    let n = 0;
+    for (const c of S.root.children) {
+      const m = entry[c.type_id];
+      if (m !== 'build' && m !== 'buy' && m !== 'mine' && m !== 'react') continue;
+      if (m === 'react' && !S.reactionsOn) continue;
+      if (m === 'mine') { try { if (!isMineable(c.type_id)) continue; } catch {} }
+      if (c.mode !== m) { c.mode = m; n++; }
+    }
+    return n;
+  } catch { return 0; }
+}
 // per-item "used own" toggle — persisted; unchecked BOM lines are bought in full regardless of inventory
 function ownRead() { try { return JSON.parse(localStorage.getItem('bvOwnSet') || 'null') || {}; } catch { return {}; } }
 function ownUse(typeId) { return S.own[typeId] === undefined ? true : !!S.own[typeId]; }
