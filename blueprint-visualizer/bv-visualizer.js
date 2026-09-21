@@ -303,7 +303,10 @@ function bpPinsSave() {
     if (prev && prev.pins && prev.pins.length) {
       try { localStorage.setItem('bvPinnedBuilds.bak', JSON.stringify(prev)); } catch {}
     }
-    localStorage.setItem('bvPinnedBuilds', JSON.stringify({ pins: (S.pinnedBuilds || []).slice(0, BV_MAX_PINS), sel: S.pinnedSel || null }));
+    localStorage.setItem('bvPinnedBuilds', JSON.stringify({ pins: (S.pinnedBuilds || []).slice(0, BV_MAX_PINS), sel: S.pinnedSel || null },
+      // Background-only deep-chain fields (_deep/_deepState) never persist —
+      // they bloat localStorage and go stale; re-resolved per session.
+      (k, v) => ((k === '_deep' || k === '_deepState') ? undefined : v)));
   } catch {}
 }
 function bpProgSelPin() {
@@ -564,6 +567,89 @@ async function enrichChildren(runs) {
   const nRx = S.root.children.filter(c => c.reaction).length;
   renderBom(runs);
   status('Done. Toggle Build/Buy' + (nRx ? '/React' : '') + ' on sub-components' + (nRx ? ' (' + nRx + ' reaction' + (nRx > 1 ? 's' : '') + ' found)' : '') + '.');
+  try { bpProgDeepEnrich(); } catch {}
+}
+
+// ---- Build Progress deep chains ----
+// Background BFS resolving nested manufacturing/reaction inputs for the
+// TRACKED build (live or pinned), storing _deep nodes on material objects.
+// bpProgModel picks them up on every render (progressive fill); pins strip
+// _deep on save so localStorage stays lean (re-resolved per session).
+const BV_PROG_DEEP_MAX = 500;
+let bpProgDeepRunning = false;
+function progDeepMats(children) {
+  const out = [];
+  for (const c of (children || [])) {
+    if (!c) continue;
+    if (c.child && c.child.materials) for (const m of c.child.materials) out.push(m);
+    if (c.mode === 'react' && c.reaction && c.reaction.reagents) for (const rg of c.reaction.reagents) out.push(rg);
+  }
+  return out;
+}
+async function bpProgDeepEnrich() {
+  if (bpProgDeepRunning) return;
+  const src = (typeof bpProgSource === 'function') ? bpProgSource() : null;
+  if (!src || !src.children) return;
+  bpProgDeepRunning = true;
+  const priceMissingUnits = async node => {
+    try {
+      const basis = ($('basis') && $('basis').value) || 'sell';
+      for (const sm of (node.materials || [])) {
+        if (sm.unit == null) { try { sm.unit = (await marketPrice(sm.type_id, hub(), basis)) || 0; } catch { sm.unit = 0; } }
+      }
+    } catch {}
+  };
+  try {
+    try { deepSeedFrom(src); } catch {}
+    let done = 0, changed = false;
+    let frontier = progDeepMats(src.children);
+    while (frontier.length && done < BV_PROG_DEEP_MAX) {
+      // Group by type so shared sub-materials resolve once, attach everywhere.
+      const byTid = new Map();
+      for (const m of frontier) {
+        const tid = deepMatId(m);
+        if (!Number.isFinite(tid) || tid <= 0 || (m && (m._deep || m._deepState === 'pending'))) continue;
+        if (deepIsLeaf(tid)) continue;
+        if (deepCache.has(tid)) {
+          try {
+            const node = deepCache.get(tid);
+            if (node && node.materials) await priceMissingUnits(node);
+            m._deep = node || null; m._deepState = 'done';
+          } catch { try { m._deep = null; m._deepState = 'done'; } catch {} }
+          changed = true;
+          continue;
+        }
+        if (!byTid.has(tid)) byTid.set(tid, []);
+        byTid.get(tid).push(m);
+      }
+      const groups = [...byTid.entries()];
+      if (!groups.length && !changed) break;
+      if (changed) { try { renderBuildProgress(); } catch {} changed = false; }
+      if (!groups.length) break;
+      const next = [];
+      for (let i = 0; i < groups.length; i += 5) {
+        const slice = groups.slice(i, i + 5);
+        await Promise.all(slice.map(async ([tid, mats]) => {
+          const first = mats[0];
+          try { for (const m of mats) { try { m._deepState = 'pending'; } catch {} } } catch {}
+          try {
+            const node = await deepResolve(tid, (first && first.name) || ('Type ' + tid), []);
+            done++;
+            if (node && node.materials && node.materials.length) await priceMissingUnits(node);
+            for (const m of mats) { try { m._deep = (node && node.materials && node.materials.length) ? node : null; m._deepState = 'done'; } catch {} }
+            if (node && node.materials) for (const sm of node.materials) next.push(sm);
+          } catch {
+            for (const m of mats) { try { m._deep = null; m._deepState = 'done'; } catch {} }
+          }
+        }));
+      }
+      try { renderBuildProgress(); } catch {}
+      frontier = next;
+    }
+  } finally {
+    bpProgDeepRunning = false;
+    try { renderBuildProgress(); } catch {}
+  }
 }
 
 function effLeafCost(runs) {
@@ -628,6 +714,7 @@ function switchMainView(v) {
     $('mainProg').style.display = calc ? 'none' : '';
     document.querySelectorAll('[data-mainview]').forEach(b => b.classList.toggle('active', (b.dataset.mainview || 'calc') === (calc ? 'calc' : 'prog')));
     if (!calc) renderBuildProgress();
+    if (!calc) { try { bpProgDeepEnrich(); } catch {} }
   } catch {}
 }
 // ---- drill-down navigation (breadcrumb trail) ----
@@ -845,6 +932,9 @@ function bpProgStoreKey() { const src = bpProgSource(); return 'bvBuildProg_' + 
 function bpProgRead() { try { const v = JSON.parse(localStorage.getItem(bpProgStoreKey()) || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
 function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stringify(m || {})); } catch {} }
 // Flat row model for render + export so counts always agree.
+// Recurses into background-resolved _deep nodes (depth 2+); depth-1 keys are
+// unchanged for existing ticks, and deep keys ('d'+ci+':'+trail) match the
+// Evemail expander exactly so ticks flow into mail.
 function bpProgModel() {
   const rows = [];
   const src = bpProgSource();
@@ -852,21 +942,56 @@ function bpProgModel() {
   if (!src || !src.children) return { rows, rootName: '', runs: 1, pinned: !!selPin, selPin };
   const runs = src.runs || S.runs || 1;
   rows.push({ key: 'root', typeId: src.bpId, name: src.bpName + ' × ' + runs, qty: runs, unit: null, depth: -1, mode: src.mode });
+  let deepRows = 0;
+  const pushDeep = (matTid, matFull, node, ancestors, depth, parentKey, ci) => {
+    if (!node || !node.materials || !node.materials.length || depth > 12 || deepRows > 1000) return;
+    if (ancestors.concat([+matTid]).length > 12) return;
+    const batches = Math.max(1, Math.ceil((matFull || 0) / Math.max(1, node.productQty || 1)));
+    for (const sm of node.materials) {
+      const tid = deepMatId(sm);
+      if (!Number.isFinite(tid) || tid <= 0) continue;
+      const trail = ancestors.concat([+matTid, tid]);
+      if (trail.indexOf(tid) !== trail.lastIndexOf(tid)) continue; // cycle guard
+      const full = Math.max(0, Math.floor(deepMatQty(sm) * batches));
+      if (full <= 0) continue;
+      const key = 'd' + ci + ':' + trail.join('>');
+      const sub = sm._deep;
+      const pend = !sub && sm._deepState === 'pending';
+      deepRows++;
+      rows.push({ key, typeId: tid, name: sm.name || ('Type ' + tid), qty: full, unit: sm.unit || 0, depth, mode: node.kind === 'rx' ? 'react' : 'buy', ci, parent: parentKey,
+        hasKids: !!(sub && sub.materials && sub.materials.length) || pend, pending: pend });
+      if (sub) pushDeep(tid, full, sub, ancestors.concat([+matTid]), depth + 1, key, ci);
+    }
+  };
   src.children.forEach((c, ci) => {
     const need = c.perRun * runs;
     const basis = ($('basis') && $('basis').value) || 'sell';
     const unit = basis === 'buy' ? c.unitBuy : c.unitSell;
-    rows.push({ key: 'c' + ci + ':' + c.type_id, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci });
+    const topKey = 'c' + ci + ':' + c.type_id;
+    const top = { key: topKey, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci, parent: 'root', hasKids: false, pending: false };
+    rows.push(top);
     if (c.child && c.child.materials) {
       const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
       const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
       for (const m of c.child.materials) {
-        rows.push({ key: 'g' + ci + ':' + m.type_id, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: 'buy' });
+        const key = 'g' + ci + ':' + m.type_id;
+        const sub = m._deep;
+        const pend = !sub && m._deepState === 'pending';
+        rows.push({ key, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: 'buy', ci, parent: topKey,
+          hasKids: !!(sub && sub.materials && sub.materials.length) || pend, pending: pend });
+        if (sub) pushDeep(m.type_id, (m.quantity || 0) * batches, sub, [+c.type_id], 2, key, ci);
+        top.hasKids = true;
       }
     } else if (c.mode === 'react' && c.reaction && c.reaction.reagents) {
       const n = reactRunsNeeded(c, runs);
       for (const rg of c.reaction.reagents) {
-        rows.push({ key: 'r' + ci + ':' + rg.type_id, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: 'react' });
+        const key = 'r' + ci + ':' + rg.type_id;
+        const sub = rg._deep;
+        const pend = !sub && rg._deepState === 'pending';
+        rows.push({ key, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: 'react', ci, parent: topKey,
+          hasKids: !!(sub && sub.materials && sub.materials.length) || pend, pending: pend });
+        if (sub) pushDeep(rg.type_id, (rg.quantity || 0) * n, sub, [+c.type_id], 2, key, ci);
+        top.hasKids = true;
       }
     }
   });
@@ -928,11 +1053,12 @@ function renderBuildProgress() {
   }
   const { rows, pinned, selPin } = bpProgModel();
   const ticked = bpProgRead();
-  // Default to fully expanded whenever the tracked build changes (blueprint,
-  // part count or run count — re-sending the same blueprint with new runs
-  // counts as new); manual collapse choices persist only within that view.
+  // Default to fully expanded whenever the tracked view changes (blueprint,
+  // part count, run count, or Live-vs-pin selection — re-sending the same
+  // blueprint with new runs counts as new); manual collapse choices persist
+  // only within that view.
   try {
-    const srcKey = src.bpId + '|' + (src.children ? src.children.length : 0) + '|' + (src.runs || S.runs || 1);
+    const srcKey = (selPin ? 'pin:' + selPin.bpId : 'live') + '|' + src.bpId + '|' + (src.children ? src.children.length : 0) + '|' + (src.runs || S.runs || 1);
     if (bpProgLastSrc !== srcKey) { bpProgLastSrc = srcKey; bpProgCollapsed.clear(); }
   } catch {}
   // Pin selector: Live + up to 5 pinned builds (persisted). Unpin via ×.
@@ -963,7 +1089,24 @@ function renderBuildProgress() {
       + '<span class="ref-track" title="Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' · Left ' + fmtN(left) + ' (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span><span class="prog-pct">' + pct + '%</span>'
       + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>NEED ' + fmtN(qty) + ' · HAVE ' + fmtN(have) + ' · LEFT ' + fmtN(left) + '</span></span>';
   };
-  const kidsOf = ci => rows.filter(r => r.depth === 1 && (r.key.startsWith('g' + ci + ':') || r.key.startsWith('r' + ci + ':')));
+  const kidsOfKey = parentKey => rows.filter(r => r.parent === parentKey);
+  // Recursive sub-tree renderer: every row with kids (or a pending lookup)
+  // gets its own chevron + nested kids, so any sub-component opens to show
+  // how it is built. Collapse state is keyed by row key (path strings).
+  const renderKids = parentKey => {
+    return kidsOfKey(parentKey).map(s => {
+      const st = !!ticked[s.key];
+      const kids = kidsOfKey(s.key);
+      const open = !bpProgCollapsed.has(s.key);
+      const kidsHtml = (s.pending && !kids.length)
+        ? '<div class="kids"><div class="rx-row prow"><span class="nm" style="color:var(--text3)">resolving sub-materials…</span></div></div>'
+        : (kids.length && open ? '<div class="kids">' + renderKids(s.key) + '</div>' : '');
+      return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty)
+        + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '')
+        + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>' : '')
+        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a></span></div>' + kidsHtml;
+    }).join('');
+  };
   // Auto-finish: any material fully covered by inventory ticks itself
   // (persisted like manual ticks; the blueprint root row never auto-ticks).
   if (hasInv) {
@@ -976,22 +1119,17 @@ function renderBuildProgress() {
   src.children.forEach((c, ci) => {
     const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
     if (!top) return;
-    const subs = kidsOf(ci);
     const t = !!ticked[top.key];
-    const hasKids = subs.length > 0;
-    const collapsed = bpProgCollapsed.has(ci);
+    const kidsHtml = (top.hasKids && !bpProgCollapsed.has(top.key)) ? '<div class="kids">' + renderKids(top.key) + '</div>' : '';
     h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1 prow">'
       + '<label style="cursor:pointer;display:flex;align-items:center;flex-shrink:0" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
       + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
       + '<span class="row-tail">'
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
-      + (hasKids ? '<button class="mode-btn" data-pexp="' + ci + '" title="' + (collapsed ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (collapsed ? 'down' : 'up') + '"></i></button>' : '')
+      + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgCollapsed.has(top.key) ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (bpProgCollapsed.has(top.key) ? 'down' : 'up') + '"></i></button>' : '')
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></span></div>'
-      + (hasKids && !collapsed ? '<div class="kids">' + subs.map(s => {
-        const st = !!ticked[s.key];
-        return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty) + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '</span></div>';
-      }).join('') + '</div>' : '')
+      + kidsHtml
       + '</div>';
   });
   // root row on top (with overall progress bar pinned far-right, % only)
@@ -1020,6 +1158,7 @@ function renderBuildProgress() {
         S.pinnedSel = ps.dataset.pinsel === 'live' ? 'live' : String(ps.dataset.pinsel);
         bpPinsSave();
         renderBuildProgress();
+        try { bpProgDeepEnrich(); } catch {}
         return;
       }
       const up = e.target.closest('[data-unpin]');
@@ -1034,8 +1173,8 @@ function renderBuildProgress() {
       }
       const b = e.target.closest('[data-pexp]');
       if (!b) return;
-      const ci = +b.dataset.pexp;
-      if (bpProgCollapsed.has(ci)) bpProgCollapsed.delete(ci); else bpProgCollapsed.add(ci);
+      const k = b.dataset.pexp;
+      if (bpProgCollapsed.has(k)) bpProgCollapsed.delete(k); else bpProgCollapsed.add(k);
       renderBuildProgress();
     });
   }
@@ -1309,7 +1448,10 @@ function bvMailRemainingItems() {
   } catch {}
   const items = [];
   for (const r of rows) {
-    if (r.depth < 0 || ticked[r.key]) continue;
+    // Depth 0/1 only — deeper rows are regenerated by bvMailExpand from the
+    // depth-0 roots (same batches, same 'd'-key ticks); listing them here too
+    // would duplicate every sub-tree.
+    if (r.depth < 0 || r.depth >= 2 || ticked[r.key]) continue;
     const qty = Math.max(0, Math.floor(r.qty || 0));
     if (qty <= 0) continue;
     const have = (doDeduct && ownUse(r.typeId)) ? (invAgg[r.typeId] || 0) : 0;
@@ -1582,10 +1724,11 @@ function bindHandoffs() {
   const cp = $('copyProgress'); if (cp) cp.onclick = async () => { const t = bpProgExportText(); if (!S.root) { status('Run a calculation first.'); return; } await navigator.clipboard.writeText(t); status('Checklist copied (' + t.split('\n').length + ' lines).'); };
   const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = async () => { const lines = bpProgRemainingMultibuy(); if (!lines.length) { status('Nothing remaining — all ticked.'); return; } await navigator.clipboard.writeText(lines.join('\n')); status('Remaining multibuy copied (' + lines.length + ' lines).'); };
   const tpe = $('toggleProgExpand'); if (tpe) tpe.onclick = () => {
-    const src = bpProgSource();
-    if (!src || !src.children) return;
-    const anyOpen = src.children.some((c, ci) => !bpProgCollapsed.has(ci) && (c.child && c.child.materials || c.mode === 'react' && c.reaction));
-    src.children.forEach((c, ci) => { if (anyOpen) bpProgCollapsed.add(ci); else bpProgCollapsed.delete(ci); });
+    let withKids = [];
+    try { withKids = bpProgModel().rows.filter(r => r.key !== 'root' && r.hasKids).map(r => r.key); } catch {}
+    if (!withKids.length) return;
+    const anyOpen = withKids.some(k => !bpProgCollapsed.has(k));
+    if (anyOpen) withKids.forEach(k => bpProgCollapsed.add(k)); else withKids.forEach(k => bpProgCollapsed.delete(k));
     renderBuildProgress();
     tpe.innerHTML = anyOpen ? '<i class="fas fa-expand"></i> Expand' : '<i class="fas fa-compress"></i> Collapse';
   };
@@ -1794,6 +1937,7 @@ function bpProgPinCurrent(silent) {
     }
     bpPinsSave();
     if (!silent) { renderBuildProgress(); switchMainView('prog'); status('Sent ' + snap.bpName + ' ×' + snap.runs + ' to Build Progress (' + S.pinnedBuilds.length + '/' + BV_MAX_PINS + ' pinned).'); }
+    try { bpProgDeepEnrich(); } catch {}
     return true;
   } catch { return false; }
 }
