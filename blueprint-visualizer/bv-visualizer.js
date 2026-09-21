@@ -443,6 +443,79 @@ function reactRunsNeeded(c, runs) {
   if (!c.reaction || !c.reaction.productQty) return 0;
   return Math.ceil((c.perRun * (runs || S.runs || 1)) / c.reaction.productQty);
 }
+// ---- Deep recipe trees (shared by Build List + Evemail) ----
+// Recursively resolves manufacturing blueprints + reaction formulas until raw
+// inputs (minerals, ice products, PI goods, other mineables). Session-memory
+// cache only — pins and localStorage formats are untouched.
+const deepCache = new Map(); // typeId -> {kind:'bp'|'rx',label,productQty,materials:[{type_id,quantity,name}]} | null
+function deepIsLeaf(typeId) {
+  const id = +typeId;
+  try { if (isMineral(id)) return true; } catch {}
+  try { if (iceProductIds && iceProductIds.has(id)) return true; } catch {}
+  try { if (isPI(id)) return true; } catch {}
+  // Other mineables (moon goo, gas) have no recipe — skip the wasted lookup.
+  // Direct ref (not typeof): TDZ ReferenceError is caught when called pre-eval.
+  try { if (BV_MINE_MATS && BV_MINE_MATS.has(id)) return true; } catch {}
+  return false;
+}
+function deepMatId(m) { try { const v = +(m.type_id ?? m.typeID ?? m.typeid); return Number.isFinite(v) ? v : NaN; } catch { return NaN; } }
+function deepMatQty(m) { try { return Math.max(0, (+(m.quantity ?? m.qty ?? 0)) || 0); } catch { return 0; } }
+async function deepResolve(typeId, name, trail) {
+  const id = +typeId;
+  if (!Number.isFinite(id) || id <= 0) return null;
+  if (deepIsLeaf(id)) return null;
+  trail = trail || [];
+  if (trail.indexOf(id) >= 0) return null; // cycle guard (A→B→A)
+  if (deepCache.has(id)) return deepCache.get(id);
+  let node = null;
+  try {
+    const kid = await childBlueprint(id, name);
+    if (kid && kid.materials && kid.materials.length) {
+      const prodQty = (kid.productQty) || (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
+      node = { kind: 'bp', label: kid.bpName, productQty: prodQty || 1,
+        materials: kid.materials.map(m => ({ type_id: deepMatId(m), quantity: deepMatQty(m), name: m.name || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
+      if (!node.materials.length) node = null;
+    }
+  } catch {}
+  const rxOn = !((typeof S !== 'undefined') && S && S.reactionsOn === false);
+  if (!node && rxOn) {
+    try {
+      const rx = await childReaction(id, name);
+      if (rx && rx.reagents && rx.reagents.length) {
+        node = { kind: 'rx', label: rx.formulaName, productQty: rx.productQty || 1,
+          materials: rx.reagents.map(r => ({ type_id: deepMatId(r), quantity: deepMatQty(r), name: r.name || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
+        if (!node.materials.length) node = null;
+      }
+    } catch {}
+  }
+  if (node) {
+    // Fill display names now (mail + tree need names; pricing stays with the consumer).
+    for (const m of node.materials) {
+      if (!m.name) { try { m.name = await typeName(m.type_id); } catch { m.name = 'Type ' + m.type_id; } }
+    }
+  }
+  deepCache.set(id, node);
+  return node;
+}
+// Seed the deep cache from already-enriched depth-1 data (avoids re-fetching
+// universe/ids for materials the calculation resolved). Live refs — background
+// enrichment filling in names lands in the cache too.
+function deepSeedFrom(src) {
+  try {
+    const rxOn = !((typeof S !== 'undefined') && S && S.reactionsOn === false);
+    for (const c of ((src && src.children) || [])) {
+      if (!c || !Number.isFinite(+c.type_id)) continue;
+      const id = +c.type_id;
+      if (deepCache.has(id) || deepIsLeaf(id)) continue;
+      if (c.child && c.child.materials && c.child.materials.length) {
+        const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
+        deepCache.set(id, { kind: 'bp', label: c.child.bpName, productQty: prodQty || 1, materials: c.child.materials });
+      } else if (rxOn && c.reaction && c.reaction.reagents && c.reaction.reagents.length) {
+        deepCache.set(id, { kind: 'rx', label: c.reaction.formulaName, productQty: c.reaction.productQty || 1, materials: c.reaction.reagents });
+      }
+    }
+  } catch {}
+}
 async function enrichChildren(runs) {
   S.runs = runs;
   const rxOn = S.reactionsOn;
@@ -1027,62 +1100,151 @@ const BV_MAIL_SECTIONS = [
   { key: 'components', title: 'COMPONENTS' },
   { key: 'other', title: 'OTHER MATERIALS' }
 ];
-function bvMailBuildSections(items, fmtLine) {
+function bvMailIndent(depth) {
+  if (!depth || depth <= 0) return '- ';
+  let s = '';
+  for (let i = 0; i < depth; i++) s += '  ';
+  return s;
+}
+function bvMailBuildSections(blocks, fmtLine) {
+  // blocks: [{root, rows:[descendants in pre-order]}] — one atomic unit each.
+  // Sections group top-level parents (fixed industry order); descendants ride
+  // along inline under their parent so the tree never splits across sections.
   const byKey = new Map();
-  for (const it of (items || [])) {
-    const k = bvMailGroup(it);
+  for (const b of (blocks || [])) {
+    if (!b || !b.root) continue;
+    const k = bvMailGroup(b.root);
     if (!byKey.has(k)) byKey.set(k, []);
-    byKey.get(k).push(it);
+    byKey.get(k).push(b);
   }
   const out = [];
   for (const s of BV_MAIL_SECTIONS) {
     const list = byKey.get(s.key);
     if (!list || !list.length) continue;
-    // Stable order within a section: top-level first, then name A-Z.
-    list.sort((a, b) => ((a.depth || 0) - (b.depth || 0)) || String(a.name || '').localeCompare(String(b.name || '')));
-    out.push({ key: s.key, title: s.title + ' (' + list.length + ')', lines: list.map(fmtLine) });
+    list.sort((a, b) => String(a.root.name || '').localeCompare(String(b.root.name || '')));
+    const flat = [], starts = [];
+    for (const b of list) {
+      starts.push(flat.length);
+      flat.push(fmtLine(b.root));
+      for (const r of (b.rows || [])) flat.push(fmtLine(r));
+    }
+    out.push({ key: s.key, title: s.title + ' (' + list.length + ')', lines: flat, starts });
   }
   return out;
 }
-// Group-aware chunker: keeps a whole section in one part when possible.
-// Oversized single sections split across parts with a "(cont.)" header.
+// Safety cap on deep expansion per mail (pathological chains stop as leaves).
+const BV_MAIL_DEEP_MAX = 500;
+// Expand remaining top-level items into parent+subtree blocks.
+// - Respects depth-1 ticks ('g'/'r' keys, matching bpProgModel) + inventory
+//   deduct per row; deeper rows use 'd' keys (forward-compat, UI never writes
+//   them yet). Ticked-out or fully-covered branches prune their whole subtree.
+// - Batches derive from the FULL need (pre-deduct), matching depth-1 math.
+// - maxDepth caps descendant depth (1 = today's flat content, tree-ordered).
+async function bvMailExpand(items, maxDepth, onProgress) {
+  const ticked = bpProgRead();
+  let invAgg = {};
+  try { invAgg = stkDeductMap() || {}; } catch {}
+  const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg).length > 0;
+  try { deepSeedFrom((typeof bpProgSource === 'function') ? bpProgSource() : null); } catch {}
+  let resolved = 0, expanded = 0;
+  const prog = () => { try { onProgress && onProgress(resolved); } catch {} };
+  const deduct = (typeId, full) => {
+    let have = 0;
+    try { have = (doDeduct && ownUse(typeId)) ? (invAgg[typeId] || 0) : 0; } catch {}
+    return doDeduct ? Math.max(0, full - Math.floor(have || 0)) : full;
+  };
+  async function kidsOf(parentTid, parentName, parentFull, ci, ancestors, depth) {
+    if (depth > maxDepth || expanded >= BV_MAIL_DEEP_MAX) return [];
+    const node = await deepResolve(parentTid, parentName, ancestors);
+    resolved++; prog();
+    if (!node || !node.materials || !node.materials.length) return [];
+    const batches = Math.max(1, Math.ceil((parentFull || 0) / Math.max(1, node.productQty || 1)));
+    const subs = [];
+    for (const m of node.materials) {
+      const tid = deepMatId(m);
+      if (!Number.isFinite(tid) || tid <= 0) continue;
+      const full = Math.max(0, Math.floor(deepMatQty(m) * batches));
+      if (full <= 0) continue;
+      if (!m.name) { try { m.name = await typeName(tid); } catch { m.name = 'Type ' + tid; } }
+      const ck = (depth === 1)
+        ? ((node.kind === 'rx' ? 'r' : 'g') + ci + ':' + tid)
+        : ('d' + ci + ':' + ancestors.concat([+parentTid, tid]).join('>'));
+      if (ticked[ck]) continue;
+      const toSend = deduct(tid, full);
+      if (toSend <= 0) continue;
+      subs.push({ tid, nm: m.name || ('Type ' + tid), full, toSend });
+    }
+    const out = [];
+    // Limited parallelism (5) — bounds ESI/Everef pressure on deep trees.
+    for (let i = 0; i < subs.length; i += 5) {
+      const slice = subs.slice(i, i + 5);
+      const rs = await Promise.all(slice.map(s => kidsOf(s.tid, s.nm, s.full, ci, ancestors.concat([+parentTid]), depth + 1)));
+      slice.forEach((s, ix) => {
+        out.push({ typeId: s.tid, name: cleanName(s.nm), qty: s.toSend, fullQty: s.full, depth, mode: node.kind === 'rx' ? 'react' : 'buy', ci });
+        expanded++;
+        for (const drow of (rs[ix] || [])) out.push(drow);
+      });
+    }
+    return out;
+  }
+  const blocks = [];
+  for (const it of ((items || []).filter(x => x && x.depth === 0))) {
+    const ci = (it.ci !== undefined && it.ci !== null) ? +it.ci : -1;
+    const rows = await kidsOf(it.typeId, it.name, it.fullQty || it.qty || 0, ci, [], 1);
+    blocks.push({ root: it, rows });
+  }
+  return blocks;
+}
+// Group-aware chunker: the atomic spill unit is one parent+subtree block.
+// Blocks move whole to the next part when possible; an oversized single block
+// splits line-by-line with a "(cont.)" header. Sections use sec.starts (block
+// start indices); sections without starts degrade to one block.
 function bvMailChunkGrouped(header, sections, footer) {
   const parts = [];
   let cur = header;
   const push = () => { parts.push(cur); cur = header; };
   for (const sec of (sections || [])) {
     const head = '-- ' + sec.title + ' --';
-    const block = [head].concat(sec.lines || []);
-    const blockText = block.join('\n');
-    // Whole block fits in a fresh part but not in the remainder → spill whole.
-    if ((cur !== header) && ((cur + '\n\n' + blockText + (footer ? '\n' + footer : '')).length > BV_MAIL_CHUNK)) {
-      push();
-    }
-    // Fits (in remainder or fresh) → append atomically.
-    const asOne = (cur === header ? cur + blockText : cur + '\n\n' + blockText);
-    if (asOne.length <= BV_MAIL_CHUNK || cur === header) {
-      if (asOne.length <= BV_MAIL_CHUNK) { cur = asOne; continue; }
-      // Single block alone exceeds the cap → split its lines across parts.
-    } else {
-      push();
-    }
-    // Split one oversized section line-by-line (header repeats with cont.).
-    let first = (cur === header);
-    let secHead = head;
-    for (let i = 0; i < block.length; i++) {
-      const line = (i === 0) ? secHead : block[i];
-      const seg = (cur === header) ? line : '\n' + line;
-      if ((cur + seg).length > BV_MAIL_CHUNK && cur !== header) {
-        push();
-        secHead = head + ' (cont.)';
-        cur = header + secHead;
-        if (i === 0) continue;
-        cur += '\n' + block[i];
-      } else {
-        cur += seg;
-        if (i === 0 && !first) { /* head placed */ }
+    const lines = sec.lines || [];
+    if (!lines.length) continue;
+    const starts = (sec.starts && sec.starts.length) ? sec.starts : [0];
+    const blocks = starts.map((s, i) => lines.slice(s, i + 1 < starts.length ? starts[i + 1] : lines.length)).filter(b => b && b.length);
+    if (!blocks.length) continue;
+    let cont = false; // this section already started in an earlier part
+    let headOpen = false; // section header already emitted into cur
+    const headText = () => head + (cont ? ' (cont.)' : '');
+    for (const block of blocks) {
+      const btext = block.join('\n');
+      // 1) Try to append atomically (header first when not open in cur).
+      const sep = (cur === header) ? '' : '\n\n';
+      const withHead = headOpen ? '' : (headText() + '\n');
+      if ((cur + sep + withHead + btext).length <= BV_MAIL_CHUNK) {
+        cur += sep + withHead + btext;
+        headOpen = true;
+        continue;
       }
-      first = false;
+      // 2) Spill the whole block to a fresh part (cont. only if this
+      // section already emitted content — a spill before its first block
+      // starts it clean in the new part).
+      if (cur !== header) { if (headOpen) cont = true; push(); headOpen = false; }
+      const fresh = header + headText() + '\n' + btext;
+      if (fresh.length <= BV_MAIL_CHUNK) {
+        cur = fresh;
+        headOpen = true;
+        continue;
+      }
+      // 3) Oversized single block — split its lines across parts.
+      cur = header + headText();
+      headOpen = true;
+      for (let i = 0; i < block.length; i++) {
+        const seg = '\n' + block[i];
+        if ((cur + seg).length > BV_MAIL_CHUNK && cur !== header + headText()) {
+          push(); cont = true;
+          cur = header + headText();
+          headOpen = true;
+        }
+        cur += seg;
+      }
     }
   }
   if (footer) cur += '\n' + footer;
@@ -1116,7 +1278,7 @@ function bvMailRemainingItems() {
     const typeId = +r.typeId;
     if (!Number.isFinite(typeId) || typeId <= 0) continue;
     const ci = (r && r.ci !== undefined) ? +r.ci : null;
-    items.push({ typeId, name: cleanName(r.name || ('Type ' + r.typeId)), qty: toSend, depth: r.depth, buildable: (r.depth === 0 && ci !== null && buildableTop.has(ci)) });
+    items.push({ typeId, name: cleanName(r.name || ('Type ' + r.typeId)), qty: toSend, fullQty: qty, depth: r.depth, mode: r.mode, ci, buildable: (r.depth === 0 && ci !== null && buildableTop.has(ci)) });
   }
   return { items, rootName, runs };
 }
@@ -1153,17 +1315,29 @@ async function sendProgMail() {
     if (!t || !t.access_token) { bvMailStatus('SSO session expired — sign in again.'); return; }
     const dateStr = new Date().toISOString().slice(0, 10);
     const title = (rootName || 'Build') + ' ×' + (runs || 1);
-    // Grouped linked form first (sections in fixed industry order).
-    const fmtLinked = it => (it.depth === 1 ? '  ' : '- ') + '<url=showinfo:' + it.typeId + '>' + bvMailEsc(it.name) + '</url> x' + fmtN(it.qty);
-    const fmtText = it => (it.depth === 1 ? '  ' : '- ') + it.name + ' x' + fmtN(it.qty);
+    // Depth-aware formatters: parents '-', descendants indented per level.
+    const fmtLinked = it => bvMailIndent(it.depth) + '<url=showinfo:' + it.typeId + '>' + bvMailEsc(it.name) + '</url> x' + fmtN(it.qty);
+    const fmtText = it => bvMailIndent(it.depth) + it.name + ' x' + fmtN(it.qty);
     const linkedHeader = title + ' — remaining materials (' + dateStr + ')\nSent from Blueprint Visualizer by RustyBot\n\n';
-    let parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(items, fmtLinked), '');
+    setBusy(true);
+    // Wait-then-send: resolve the full chain tree before chunking.
+    bvMailStatus('Resolving sub-material chains…');
+    let blocks = await bvMailExpand(items, Infinity, n => bvMailStatus('Resolving sub-material chains (' + n + ' lookups)…'));
+    let parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(blocks, fmtLinked), '');
     let linked = true;
+    if (parts.length > BV_MAIL_MAX_PARTS) {
+      // Depth-cap fallback: retry the full tree at depth 1 (flat, tree-ordered)
+      // before giving up links for plaintext.
+      bvMailStatus('Full chain tree needs ' + parts.length + ' mails — retrying capped at depth 1…');
+      blocks = await bvMailExpand(items, 1, null);
+      parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(blocks, fmtLinked), '');
+    }
     if (parts.length > BV_MAIL_MAX_PARTS) {
       bvMailStatus('Build too large for linked Evemail (needs ' + parts.length + ' mails, cap is 3) — will send as plain text without clickable links.');
       const ok = window.confirm('This build is too large for linked Evemail (would need ' + parts.length + ' mails, max is 3).\n\nSend as plain text instead (no clickable item links)?\n\nOK = send text-only · Cancel = abort');
       if (!ok) { bvMailStatus('Evemail send cancelled — no mails sent.'); return; }
-      parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(items, fmtText), '');
+      blocks = await bvMailExpand(items, Infinity, null);
+      parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(blocks, fmtText), '');
       linked = false;
       if (parts.length > BV_MAIL_MAX_PARTS) {
         // Absolute cap: keep first 3, note truncation in the last part.
@@ -1171,7 +1345,6 @@ async function sendProgMail() {
         parts[BV_MAIL_MAX_PARTS - 1] += '\n…truncated — full list in Blueprint Visualizer > Build Progress';
       }
     }
-    setBusy(true);
     const total = parts.length;
     for (let i = 0; i < total; i++) {
       const n = i + 1;
