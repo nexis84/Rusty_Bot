@@ -753,22 +753,68 @@ async function bpProgDeepEnrich(forcedSrc) {
 }
 
 function effLeafCost(runs) {
-  // BOM uses Build/Buy/React modes. React expands into its reagents (rounded up to whole reaction runs).
-  const out = [];
-  for (const c of S.root.children) {
-    if (c.mode === 'build' && c.child) { out.push({ type_id: c.type_id, name: c.name + ' (built)', qty: c.perRun * runs, unit: c.child.subCost / Math.max(1, c.perRun), total: c.child.subCost * runs, mode: 'build' }); }
-    else if (c.mode === 'react' && c.reaction) {
-      const n = reactRunsNeeded(c);
-      for (const rg of c.reaction.reagents) {
-        out.push({ type_id: rg.type_id, name: rg.name + ' (react: ' + c.name + ')', qty: rg.quantity * n, unit: rg.unit || 0, total: (rg.unit || 0) * rg.quantity * n, mode: 'react' });
+  // Recursive roll-up: every node resolves by its own mode. Build/react
+  // nodes expand into their recipe (children resolve by THEIR toggles);
+  // buy/mine nodes are leaves. Output is aggregated leaf lines
+  // {type_id,name,qty,unit,total,mode} — same shape as before, so every
+  // consumer (BOM table, shopping, mining, multibuy, refinery) keeps working.
+  const agg = new Map();
+  const leaf = (tid, name, qty, mode, unit) => {
+    if (!Number.isFinite(+tid) || +tid <= 0 || !(qty > 0)) return;
+    const k = tid + '|' + mode;
+    const e = agg.get(k);
+    if (e) { e.qty += qty; e.total = (e.unit || 0) * e.qty; }
+    else agg.set(k, { type_id: +tid, name, qty, unit: unit || 0, total: (unit || 0) * qty, mode });
+  };
+  const walk = (tid, name, fullNeed, node, ci, trail, depth, rxKind, unit) => {
+    if (!(fullNeed > 0)) return;
+    if (depth > 12) { leaf(tid, name, Math.floor(fullNeed), 'buy', unit); return; }
+    const key = progKey(ci, trail.concat([+tid]), depth, rxKind);
+    const hasBp = !!(node && node.kind === 'bp' && node.materials && node.materials.length);
+    const hasRx = !!(node && node.kind === 'rx' && node.materials && node.materials.length);
+    let mineable = false;
+    try { mineable = isMineable(+tid); } catch {}
+    const eff = deepModeFor(key, { hasBp, hasRx, mineable });
+    if (eff === 'mine') { leaf(tid, name, Math.floor(fullNeed), 'mine', unit); return; }
+    let use = null, useRx = false;
+    if (eff === 'build' && hasBp) use = node;
+    else if (eff === 'react' && hasRx) { use = node; useRx = true; }
+    if (!use) { leaf(tid, name, Math.floor(fullNeed), 'buy', unit); return; }
+    const batches = deepBatches(fullNeed, use.productQty);
+    for (const sm of (use.materials || [])) {
+      const stid = deepMatId(sm);
+      if (!Number.isFinite(stid) || stid <= 0) continue;
+      const sqty = Math.floor(deepMatQty(sm) * batches);
+      if (sqty <= 0) continue;
+      walk(stid, sm.name || ('Type ' + stid), sqty, sm._deep || null, ci, trail.concat([+tid]), depth + 1, useRx || (sm._deep && sm._deep.kind === 'rx'), sm.unit);
+    }
+  };
+  try {
+    if (!S.root || !S.root.children) return [];
+    (S.root.children || []).forEach((c, ci) => {
+      if (!c) return;
+      const need = c.perRun * runs;
+      if (!(need > 0)) return;
+      const u = ($('basis') && $('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0;
+      let node = null;
+      if (c.mode === 'build' && c.child && c.child.materials && c.child.materials.length) {
+        node = { kind: 'bp', productQty: c.child.productQty || 1, materials: c.child.materials };
+      } else if (c.mode === 'react' && c.reaction && c.reaction.reagents && c.reaction.reagents.length) {
+        node = { kind: 'rx', productQty: c.reaction.productQty || 1, materials: c.reaction.reagents };
       }
-    }
-    else {
-      const u = $('basis').value === 'buy' ? c.unitBuy : c.unitSell;
-      out.push({ type_id: c.type_id, name: c.name, qty: c.perRun * runs, unit: u || 0, total: (u || 0) * c.perRun * runs, mode: c.mode });
-    }
-  }
-  return out;
+      if (c.mode === 'mine') { leaf(c.type_id, c.name, need, 'mine', u); return; }
+      if (!node) { leaf(c.type_id, c.name, need, 'buy', u); return; }
+      const batches = deepBatches(need, node.productQty);
+      for (const m of node.materials) {
+        const tid = deepMatId(m);
+        if (!Number.isFinite(tid) || tid <= 0) continue;
+        const qty = Math.floor(deepMatQty(m) * batches);
+        if (qty <= 0) continue;
+        walk(tid, m.name || ('Type ' + tid), qty, m._deep || null, ci, [+c.type_id], 1, node.kind === 'rx', m.unit);
+      }
+    });
+  } catch {}
+  return [...agg.values()];
 }
 
 // cash vs mined split of the current BOM: mined lines cost no ISK out of pocket
@@ -877,11 +923,14 @@ function renderTree(runs) {
       const key = progKey(ci, trail.concat([tid]), depth, rx);
       const open = calcExpanded.has(key);
       const unit = m.unit || 0;
+      const dinfo = { hasBp: !!(sub && sub.kind === 'bp' && sub.materials && sub.materials.length), hasRx: !!(sub && sub.kind === 'rx' && sub.materials && sub.materials.length), mineable: isMineable(tid) };
+      const dcur = deepModeFor(key, dinfo);
       const kids = (sub && sub.materials && sub.materials.length && open)
         ? '<div class="kids">' + renderTreeDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]), ci, sub.kind === 'rx') + '</div>'
         : ((pend && open) ? '<div class="kids"><div class="rx-row prow"><span class="nm" style="color:var(--text3)">resolving sub-materials…</span></div></div>' : '');
       return '<div class="rx-row prow"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="nm">' + nm + ' × ' + fmtN(qty) + '</span>'
         + '<span class="row-tail"><span class="nums">' + fmtISK(unit) + ' ea</span><span class="nums">' + fmtISK(unit * qty) + '</span>'
+        + '<span class="mode-toggle">' + deepModeButtons(key, dcur, dinfo) + '</span>'
         + (hasKids ? '<button class="mode-btn" data-tree-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>' : '')
         + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</span></div>' + kids;
     }).join('');
@@ -932,24 +981,97 @@ function renderTree(runs) {
     if (calcExpanded.has(k)) calcExpanded.delete(k); else calcExpanded.add(k);
     renderTree(runs);
   });
+  bindDeepModeButtons(w);
 }
 
 // Persisted Build/Buy/Mine/React toggles per blueprint — restored on every
 // calculate so drill-down/back, recalc, pin switches and reloads keep intent.
-// Only non-default modes are stored; stale types are ignored on restore.
+// Top-level modes key by type ID; DEEP (sub-component) modes key by row path
+// ('g0:901', 'd0:900>901>34') so they survive object rebuilds. Only
+// non-default modes are stored; stale entries are ignored on restore.
 const BV_MODES_MAX_BP = 20;
 function bvModesRead() { try { const v = JSON.parse(localStorage.getItem('bvModes') || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
 function bvModesWrite(m) { try { localStorage.setItem('bvModes', JSON.stringify(m || {})); } catch {} }
+// In-memory working map for the current blueprint (top typeIds + deep paths).
+function deepModeMap() {
+  try {
+    const bp = String((S.root && S.root.bpId) || '');
+    if (!S._deepModes || S._deepModesBp !== bp) {
+      S._deepModesBp = bp;
+      const entry = bvModesRead()[bp];
+      S._deepModes = (entry && typeof entry === 'object') ? Object.assign({}, entry) : {};
+    }
+    return S._deepModes;
+  } catch { return {}; }
+}
+// Effective mode for a deep node: stored toggle (validated against what
+// recipes actually exist), else recipe default (buildable → build,
+// reaction-only → react, raw → buy).
+function deepModeFor(key, info) {
+  const hasBp = !!(info && info.hasBp), hasRx = !!(info && info.hasRx), mineable = !!(info && info.mineable);
+  let m = null;
+  try { m = deepModeMap()[key]; } catch {}
+  if (m === 'build' && hasBp) return 'build';
+  if (m === 'react' && hasRx) return 'react';
+  if (m === 'mine' && mineable) return 'mine';
+  if (m === 'buy') return 'buy';
+  if (hasBp) return 'build';
+  if (hasRx) return 'react';
+  return 'buy';
+}
+// Set a deep toggle and refresh every costing surface.
+async function deepModeSet(key, mode) {
+  try { deepModeMap()[key] = mode; bvModesSave(); } catch {}
+  try { renderTree(S.runs || 1); } catch {}
+  try { await renderBom(S.runs || 1); } catch {}
+  try { await renderBuildList(S.runs || 1); } catch {}
+  try { if (S.lastCalc) renderSummary(S.lastCalc); } catch {}
+  try { renderBuildProgress(); } catch {}
+  if (mode === 'mine' || mode === 'buy') {
+    try {
+      const tid = +String(key || '').split('>').pop().split(':').pop();
+      if (mode === 'mine') { try { planMining(undefined, { auto: true }); } catch {} }
+      else if (Number.isFinite(tid) && isMineable(tid)) { try { planMining(undefined, { auto: true }); } catch {} }
+    } catch {}
+  }
+}
+// Toggle buttons for one deep row. info: {hasBp, hasRx, mineable}.
+// Always offers Buy; Build/React/Mine only where valid. Empty when the row
+// is a plain buy leaf with no options.
+function deepModeButtons(key, cur, info) {
+  if (!info || (!info.hasBp && !info.hasRx && !info.mineable)) return '';
+  const on = m => cur === m ? ' on-' + m : '';
+  const btn = (m, label) => '<button class="mode-btn' + on(m) + '" data-dkey="' + key + '" data-dm="' + m + '">' + label + '</button>';
+  if (info.mineable) return btn('mine', '<i class="fas fa-gem"></i> Mine') + btn('buy', 'Buy');
+  let h = '';
+  if (info.hasBp) h += btn('build', 'Build');
+  h += btn('buy', 'Buy');
+  if (info.hasRx) h += btn('react', 'React');
+  return h;
+}
+function bindDeepModeButtons(box) {
+  if (!box || !box.querySelectorAll) return;
+  box.querySelectorAll('[data-dkey]').forEach(b => b.onclick = async () => {
+    try { await deepModeSet(b.dataset.dkey, b.dataset.dm); }
+    catch (e) { try { status('Toggle failed: ' + (e && e.message ? e.message : e)); } catch {} }
+  });
+}
 function bvModesSave() {
   try {
     if (!S.root || !S.root.bpId || !S.root.children) return;
     const key = String(S.root.bpId);
     const all = bvModesRead();
-    delete all[key]; // re-insert for recency
+    const prev = (all[key] && typeof all[key] === 'object') ? all[key] : {};
     const entry = {};
     for (const c of S.root.children) {
       if (c && Number.isFinite(+c.type_id) && c.mode && c.mode !== 'buy') entry[c.type_id] = c.mode;
     }
+    // Preserve path-keyed deep toggles (contain ':') from memory or store.
+    const src = (S._deepModesBp === key && S._deepModes) ? S._deepModes : prev;
+    for (const k of Object.keys(src)) {
+      if (k.indexOf(':') >= 0 && src[k]) entry[k] = src[k];
+    }
+    delete all[key]; // re-insert for recency
     if (Object.keys(entry).length) all[key] = entry;
     for (const k of Object.keys(all).slice(0, Math.max(0, Object.keys(all).length - BV_MODES_MAX_BP))) delete all[k];
     bvModesWrite(all);
@@ -995,6 +1117,37 @@ async function renderBom(runs) {
   await renderRefinery();
 }
 
+// Recursive leaf lines for ONE build-mode top child, honoring deep toggles
+// (a Buy-toggled sub-assembly stops as a leaf instead of expanding).
+// Same _deep data as Progress; subtotals roll up from these leaves.
+async function buildLeafLines(c, need, ci) {
+  const out = [];
+  const src = (c && c.child && c.child.materials) ? c.child.materials : null;
+  if (!src || !src.length) return out;
+  const rec = async (mats, parentFull, pq, depth, trail) => {
+    const batches = deepBatches(parentFull, pq);
+    for (const m of mats) {
+      const tid = deepMatId(m);
+      if (!Number.isFinite(tid) || tid <= 0) continue;
+      const qty = Math.floor(deepMatQty(m) * batches);
+      if (qty <= 0) continue;
+      if (!m.name) { try { m.name = await typeName(tid); } catch { m.name = 'Type ' + tid; } }
+      const key = progKey(ci, trail.concat([tid]), depth, false);
+      const sub = m._deep;
+      const info = { hasBp: !!(sub && sub.kind === 'bp'), hasRx: !!(sub && sub.kind === 'rx'), mineable: isMineable(tid) };
+      const eff = deepModeFor(key, info);
+      if ((eff === 'build' && info.hasBp) || (eff === 'react' && info.hasRx)) {
+        await rec(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]));
+      } else {
+        if (m.unit == null) { try { let p = await marketPrice(tid, hub(), ($('basis') && $('basis').value) || 'sell'); if (p == null) p = await marketPrice(tid, hub(), 'sell'); m.unit = p || 0; } catch { m.unit = 0; } }
+        const unit = m.unit || 0;
+        out.push({ type_id: tid, name: m.name || ('Type ' + tid), qty, unit, total: unit * qty });
+      }
+    }
+  };
+  await rec(src, need, (c.child.productQty || 1), 1, [+c.type_id]);
+  return out;
+}
 async function renderBuildList(runs) {
   const wrap = $('buildList'), meta = $('buildMeta'), totals = $('buildTotals');
   if (!wrap) return;
@@ -1007,7 +1160,14 @@ async function renderBuildList(runs) {
   // Preload all build-list volumes in one batch (was sequential ESI per row).
   try {
     const allIds = [];
-    for (const b of builds) for (const m of ((b.child && b.child.materials) || [])) allIds.push(m.type_id);
+    const gatherIds = list => {
+      for (const m of (list || [])) {
+        allIds.push(deepMatId(m));
+        const s = m && m._deep;
+        if (s && s.materials) gatherIds(s.materials);
+      }
+    };
+    for (const b of builds) gatherIds((b.child && b.child.materials) || []);
     await preloadVolumes(allIds);
   } catch {}
   for (let idx=0; idx<builds.length; idx++) {
@@ -1021,23 +1181,20 @@ async function renderBuildList(runs) {
     const child = c.child;
     const mats = child.materials || [];
     const prodQty = child.productQty || (child.products && child.products[0] && child.products[0].quantity) || 1;
-    const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
+    const batches = deepBatches(need, prodQty);
+    // Leaf roll-up honors deep toggles (Buy-toggled branches stop as leaves).
+    const leafLines = await buildLeafLines(c, need, S.root.children.indexOf(c));
     let subTotal = 0; let subVol = 0;
-    for (const m of mats) {
-      if (!m.name) { try { m.name = await typeName(m.type_id); } catch { m.name = 'Type ' + m.type_id; } }
-      if (m.unit == null) { try { let p = await marketPrice(m.type_id, hub(), $('basis').value); if (p==null) p = await marketPrice(m.type_id, hub(), 'sell'); m.unit = p || 0; } catch { m.unit = 0; } }
-      const qty = (m.quantity || 0) * batches;
-      const tot = (m.unit || 0) * qty;
-      subTotal += tot;
-      subVol += (await typeVolume(m.type_id)) * qty;
-      const key = m.type_id;
-      if (!aggregated.has(key)) aggregated.set(key, { qty: 0, unit: m.unit||0, name: m.name || ('Type '+m.type_id) });
-      aggregated.get(key).qty += qty;
+    for (const L of leafLines) {
+      subTotal += L.total;
+      subVol += (await typeVolume(L.type_id)) * L.qty;
+      if (!aggregated.has(L.type_id)) aggregated.set(L.type_id, { qty: 0, unit: L.unit || 0, name: L.name });
+      aggregated.get(L.type_id).qty += L.qty;
     }
     grandTotal += subTotal;
     grandVol += subVol;
-    totalRows += mats.length;
-    html += '<details class="tree-node build" open style="margin-bottom:.6rem;padding:.6rem;background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--build);border-radius:8px"><summary style="cursor:pointer;display:flex;align-items:center;gap:.6rem;list-style:none"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:28px;height:28px;border-radius:4px;background:#111"><span class="nm" style="flex:1;font-weight:700">' + c.name + ' × ' + fmtN(need) + '</span><span class="pill build">BUILD</span><span class="nums">' + fmtISK(subTotal) + ' for ' + mats.length + ' raws · ×' + batches + ' batch' + (batches>1?'es':'') + '</span><span style="margin-left:auto;color:var(--text3)"><i class="fas fa-chevron-down"></i></span></summary>';
+    totalRows += leafLines.length;
+    html += '<details class="tree-node build" open style="margin-bottom:.6rem;padding:.6rem;background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--build);border-radius:8px"><summary style="cursor:pointer;display:flex;align-items:center;gap:.6rem;list-style:none"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:28px;height:28px;border-radius:4px;background:#111"><span class="nm" style="flex:1;font-weight:700">' + c.name + ' × ' + fmtN(need) + '</span><span class="pill build">BUILD</span><span class="nums">' + fmtISK(subTotal) + ' for ' + leafLines.length + ' raws · ×' + batches + ' batch' + (batches>1?'es':'') + '</span><span style="margin-left:auto;color:var(--text3)"><i class="fas fa-chevron-down"></i></span></summary>';
     html += '<div style="margin-top:.6rem;overflow-x:auto"><table class="bom"><thead><tr><th>Raw material</th><th>Qty</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody>';
     const ci = S.root.children.indexOf(c);
     // Recursive display-only sub-rows (same _deep data as Progress; subtotals stay depth-1).
@@ -1057,16 +1214,19 @@ async function renderBuildList(runs) {
         const key = progKey(ci, trail.concat([tid]), depth, false);
         const open = calcExpanded.has(key);
         const pad = 'padding-left:' + (0.4 + depth * 1.1) + 'rem';
+        const binfo = { hasBp: !!(sub && sub.kind === 'bp' && sub.materials && sub.materials.length), hasRx: !!(sub && sub.kind === 'rx' && sub.materials && sub.materials.length), mineable: isMineable(tid) };
+        const bcur = deepModeFor(key, binfo);
+        const bbtns = deepModeButtons(key, bcur, binfo);
         let row = '<tr><td style="' + pad + '"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">'
           + (hasKids ? '<button class="mode-btn" data-build-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '" style="padding:0 .3rem"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button> ' : '')
-          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</td></tr>';
+          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + (bbtns ? '<br><span class="mode-toggle">' + bbtns + '</span>' : '') + '</td></tr>';
         if (sub && sub.materials && sub.materials.length && open) row += renderBuildDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]));
         else if (pend && open) row += '<tr><td style="' + pad + 'color:var(--text3)">resolving sub-materials…</td><td></td><td></td><td></td><td></td></tr>';
         return row;
       }).join('');
     };
     html += renderBuildDeep(mats, need, prodQty, 1, [+c.type_id]);
-    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + mats.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a></p></details>';
+    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + leafLines.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a></p></details>';
   }
   if (aggregated.size > 1 && builds.filter(c=>c.child && c.child.materials).length > 1) {
     html += '<div class="panel" style="margin-top:.6rem;background:var(--panel2)"><h4>Aggregated raw totals (' + aggregated.size + ' types across ' + builds.filter(c=>c.child).length + ' builds)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Total qty</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody>';
@@ -1087,6 +1247,7 @@ async function renderBuildList(runs) {
     if (calcExpanded.has(k)) calcExpanded.delete(k); else calcExpanded.add(k);
     try { await renderBuildList(S.runs || 1); } catch {}
   });
+  bindDeepModeButtons(wrap);
   if (meta) meta.textContent = builds.length + ' item' + (builds.length>1?'s':'') + ' to build' + (builds.filter(c=>!c.child).length ? ' · ' + builds.filter(c=>!c.child).length + ' loading…' : '') + ' · raw ' + fmtISK(grandTotal);
   if (totals) totals.textContent = 'Raw total for Build List ' + fmtISK(grandTotal) + ' · Volume ~' + fmtN(Math.round(grandVol)) + ' m³ · ' + totalRows + ' material rows' + (aggregated.size ? ' · ' + aggregated.size + ' unique raws' : '');
   try { renderBuildProgress(); } catch {}
@@ -1129,7 +1290,7 @@ function bpProgModel() {
       const pend = !sub && sm._deepState === 'pending';
       const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
       deepRows++;
-      rows.push({ key, typeId: tid, name: sm.name || ('Type ' + tid), qty: full, unit: sm.unit || 0, depth, mode: node.kind === 'rx' ? 'react' : 'buy', ci, parent: parentKey,
+      rows.push({ key, typeId: tid, name: sm.name || ('Type ' + tid), qty: full, unit: sm.unit || 0, depth, mode: deepModeFor(key, { hasBp: sub && sub.kind === 'bp', hasRx: sub && sub.kind === 'rx', mineable: isMineable(tid) }), ci, parent: parentKey,
         hasKids, pending: pend, path: trail.slice(1), maybe: !hasKids && !pend && !deepIsLeaf(tid) });
       if (sub) pushDeep(tid, full, sub, ancestors.concat([+matTid]), depth + 1, key, ci);
     }
@@ -1149,7 +1310,7 @@ function bpProgModel() {
         const sub = m._deep;
         const pend = !sub && m._deepState === 'pending';
         const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
-        rows.push({ key, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: 'buy', ci, parent: topKey,
+        rows.push({ key, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: deepModeFor(key, { hasBp: sub && sub.kind === 'bp', hasRx: sub && sub.kind === 'rx', mineable: isMineable(+m.type_id) }), ci, parent: topKey,
           hasKids, pending: pend, path: [+m.type_id], maybe: !hasKids && !pend && !deepIsLeaf(+m.type_id) });
         if (sub) pushDeep(m.type_id, (m.quantity || 0) * batches, sub, [+c.type_id], 2, key, ci);
         top.hasKids = true;
@@ -1163,7 +1324,7 @@ function bpProgModel() {
         const sub = rg._deep;
         const pend = !sub && rg._deepState === 'pending';
         const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
-        rows.push({ key, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: 'react', ci, parent: topKey,
+        rows.push({ key, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: deepModeFor(key, { hasBp: sub && sub.kind === 'bp', hasRx: sub && sub.kind === 'rx', mineable: isMineable(+rg.type_id) }), ci, parent: topKey,
           hasKids, pending: pend, path: [+rg.type_id], maybe: !hasKids && !pend && !deepIsLeaf(+rg.type_id) });
         if (sub) pushDeep(rg.type_id, (rg.quantity || 0) * n, sub, [+c.type_id], 2, key, ci);
         top.hasKids = true;
@@ -1278,7 +1439,7 @@ function renderBuildProgress() {
         ? '<div class="kids"><div class="rx-row prow"><span class="nm" style="color:var(--text3)">resolving sub-materials…</span></div></div>'
         : (kids.length && open ? '<div class="kids">' + renderKids(s.key) + '</div>' : '');
       return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty)
-        + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '')
+        + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '<span class="pill ' + s.mode + '">' + String(s.mode || 'buy').toUpperCase() + '</span>'
         + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>'
           : (s.maybe ? '<button class="mode-btn" data-prog-resolve="' + s.ci + ':' + ((s.path || []).join('>')) + '" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
         + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a></span></div>' + kidsHtml;
@@ -1563,29 +1724,52 @@ async function bvMailExpand(items, maxDepth, onProgress) {
     resolved++; prog();
     if (!node || !node.materials || !node.materials.length) return [];
     const batches = deepBatches(parentFull, node.productQty);
-    const subs = [];
+    const trail = ancestors.concat([+parentTid]);
+    const mats = [];
     for (const m of node.materials) {
       const tid = deepMatId(m);
       if (!Number.isFinite(tid) || tid <= 0) continue;
       const full = Math.max(0, Math.floor(deepMatQty(m) * batches));
       if (full <= 0) continue;
       if (!m.name) { try { m.name = await typeName(tid); } catch { m.name = 'Type ' + tid; } }
-      const ck = progKey(ci, ancestors.concat([+parentTid, tid]), depth, node.kind === 'rx');
+      const ck = progKey(ci, trail.concat([tid]), depth, node.kind === 'rx');
       if (ticked[ck]) continue;
       const toSend = deduct(tid, full);
       if (toSend <= 0) continue;
-      subs.push({ tid, nm: m.name || ('Type ' + tid), full, toSend });
+      mats.push({ tid, nm: m.name || ('Type ' + tid), full, toSend, ck });
+    }
+    // Child recipes resolve in parallel (memoized); buy/mine leaves then cost
+    // nothing extra, buildable branches expand exactly as before by default.
+    for (let i = 0; i < mats.length; i += 10) {
+      const slice = mats.slice(i, i + 10);
+      await Promise.all(slice.map(async e => {
+        try { e.childNode = await deepResolve(e.tid, e.nm, trail); } catch { e.childNode = null; }
+      }));
+    }
+    const entries = [];
+    for (const e of mats) {
+      let mineable = false;
+      try { mineable = isMineable(e.tid); } catch {}
+      const info = { hasBp: !!(e.childNode && e.childNode.kind === 'bp'), hasRx: !!(e.childNode && e.childNode.kind === 'rx'), mineable };
+      const eff = deepModeFor(e.ck, info);
+      const row = { typeId: e.tid, name: cleanName(e.nm), qty: e.toSend, fullQty: e.full, depth, mode: eff, ci };
+      if ((eff === 'build' && info.hasBp) || (eff === 'react' && info.hasRx)) entries.push({ row, sub: e });
+      else { entries.push({ row, sub: null }); expanded++; }
+    }
+    // Recurse expandable branches (5-wide) preserving recipe order.
+    const subIx = entries.map((e, i) => (e.sub ? i : -1)).filter(i => i >= 0);
+    for (let i = 0; i < subIx.length; i += 5) {
+      const slice = subIx.slice(i, i + 5);
+      const rs = await Promise.all(slice.map(ix => {
+        const e = entries[ix].sub;
+        return kidsOf(e.tid, e.nm, e.full, ci, trail, depth + 1);
+      }));
+      slice.forEach((ix, j) => { entries[ix].kids = rs[j] || []; });
     }
     const out = [];
-    // Limited parallelism (5) — bounds ESI/Everef pressure on deep trees.
-    for (let i = 0; i < subs.length; i += 5) {
-      const slice = subs.slice(i, i + 5);
-      const rs = await Promise.all(slice.map(s => kidsOf(s.tid, s.nm, s.full, ci, ancestors.concat([+parentTid]), depth + 1)));
-      slice.forEach((s, ix) => {
-        out.push({ typeId: s.tid, name: cleanName(s.nm), qty: s.toSend, fullQty: s.full, depth, mode: node.kind === 'rx' ? 'react' : 'buy', ci });
-        expanded++;
-        for (const drow of (rs[ix] || [])) out.push(drow);
-      });
+    for (const e of entries) {
+      out.push(e.row); expanded++;
+      for (const k of (e.kids || [])) out.push(k);
     }
     return out;
   }
@@ -1791,24 +1975,20 @@ async function sendProgMail() {
   }
 }
 
-function buildRawLines() {
+async function buildRawLines() {
   const out = [];
   if (!S.root || !S.root.children) return out;
   for (const c of S.root.children.filter(x=>x.mode==='build' && x.child && x.child.materials)) {
     const need = c.perRun * (S.runs||1);
-    const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
-    const batches = deepBatches(need, prodQty);
-    for (const m of c.child.materials) {
-      const qty = (m.quantity||0) * batches;
-      const nm = m.name || ('Type ' + m.type_id);
-      out.push({ type_id: m.type_id, name: nm, qty, unit: m.unit||0, total: (m.unit||0)*qty });
+    for (const L of (await buildLeafLines(c, need, S.root.children.indexOf(c)))) {
+      out.push({ type_id: L.type_id, name: L.name, qty: L.qty, unit: L.unit, total: L.total });
     }
   }
   return out;
 }
-function buildAggLines() {
+async function buildAggLines() {
   const map = new Map();
-  for (const r of buildRawLines()) {
+  for (const r of (await buildRawLines())) {
     const k = r.type_id;
     if (!map.has(k)) map.set(k, { type_id:k, name:r.name, qty:0, unit:r.unit });
     map.get(k).qty += r.qty;
@@ -1936,9 +2116,9 @@ function bindHandoffs() {
   const cs = $('copyShopping'); if (cs) cs.onclick = async () => { const t = shoppingLines().join('\n'); if (!t) { status('Nothing to buy — all built/mined.'); return; } await navigator.clipboard.writeText(t); status('Shopping list copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' items).'); };
   const csm = $('copyShopMultibuy'); if (csm) csm.onclick = async () => { const t = shoppingBuyLines().join('\n'); if (!t) { status('Nothing to buy — all covered by inventory.'); return; } await navigator.clipboard.writeText(t); status('Multibuy (shopping) copied (' + t.split('\n').length + ' lines — after inventory deduct).'); };
   const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const invAgg = stkDeductMap(); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg||{}).length>0; const lines = shop.map(l => { const toBuy = (doDeduct && ownUse(l.type_id)) ? Math.max(0, l.qty - (invAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
-  const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = buildRawLines(); if (!lines.length) { status('Nothing to build — set items to Build.'); return; } const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await navigator.clipboard.writeText(t); status('Build list copied (' + lines.length + ' raws).'); };
-  const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
-  const ab = $('appraiseBuildList'); if (ab) ab.onclick = () => { const agg = buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
+  const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = await buildRawLines(); if (!lines.length) { status('Nothing to build — set items to Build.'); return; } const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await navigator.clipboard.writeText(t); status('Build list copied (' + lines.length + ' raws).'); };
+  const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = await buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
+  const ab = $('appraiseBuildList'); if (ab) ab.onclick = async () => { const agg = await buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
   const tb = $('toggleBuildExpand'); if (tb) tb.onclick = () => { const ds = document.querySelectorAll('#buildList details'); if (!ds.length) return; const anyClosed = [...ds].some(d=>!d.open); ds.forEach(d=>d.open = anyClosed); tb.innerHTML = anyClosed ? '<i class="fas fa-compress"></i> Collapse' : '<i class="fas fa-expand"></i> Expand'; };
   const pinp = $('pinProgress'); if (pinp) pinp.onclick = () => {
     if (!S.root || !S.root.children) { status('Run a calculation first, then pin it.'); return; }
@@ -2592,16 +2772,10 @@ function mineralNeeds(forcedId) {
     const c = S.root.children.find(x => +x.type_id === fid);
     if (c) needs[fid] = (needs[fid] || 0) + c.perRun * (S.runs || 1);
   }
-  // 2) minerals / ice products inside sub-components set to Build (BOM only shows one "(built)" line for these)
-  const runs = S.runs || 1;
-  for (const c of ((S.root && S.root.children) || [])) {
-    if (c.mode === 'build' && c.child && c.child.materials) {
-      for (const m of c.child.materials) {
-        if (!isMineable(m.type_id)) continue;
-        needs[m.type_id] = (needs[m.type_id] || 0) + (m.quantity || 0) * runs;
-      }
-    }
-  }
+  // 2) REMOVED (deep-mode update): the recursive BOM now emits mine-mode
+  //    leaves at every depth, so path 1 above already covers minerals
+  //    inside built sub-components. The old depth-1-only scan would double
+  //    count them. Mine deep minerals explicitly with the Mine toggle.
   return needs;
 }
 function fmtTime(mins) {
