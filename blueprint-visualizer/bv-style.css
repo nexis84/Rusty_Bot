@@ -60,6 +60,9 @@ select:focus,.form-input:focus{outline:none;border-color:var(--accent)}
 .tree-node.mine{border-left:4px solid #f5c542}
 .mode-btn.on-mine{border-color:#f5c542;color:#f5c542}
 .pill.mine{border-color:#f5c542;color:#f5c542}
+.tree-node.extract{border-left:4px solid #2dd4bf}
+.mode-btn.on-extract{border-color:#2dd4bf;color:#2dd4bf}
+.pill.extract{border-color:#2dd4bf;color:#2dd4bf}
 .rx-row{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.3rem 0;font-size:.8rem;color:var(--text2)}
 .rx-row img{width:24px;height:24px;border-radius:4px;background:#111}
 .rx-row .nm{flex:1;min-width:120px;color:var(--text)}

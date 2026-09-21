@@ -775,7 +775,7 @@ function effLeafCost(runs) {
     let mineable = false;
     try { mineable = isMineable(+tid); } catch {}
     const eff = deepModeFor(key, { hasBp, hasRx, mineable });
-    if (eff === 'mine') { leaf(tid, name, Math.floor(fullNeed), 'mine', unit); return; }
+    if (eff === 'mine' || eff === 'extract') { leaf(tid, name, Math.floor(fullNeed), eff, unit); return; }
     let use = null, useRx = false;
     if (eff === 'build' && hasBp) use = node;
     else if (eff === 'react' && hasRx) { use = node; useRx = true; }
@@ -802,7 +802,7 @@ function effLeafCost(runs) {
       } else if (c.mode === 'react' && c.reaction && c.reaction.reagents && c.reaction.reagents.length) {
         node = { kind: 'rx', productQty: c.reaction.productQty || 1, materials: c.reaction.reagents };
       }
-      if (c.mode === 'mine') { leaf(c.type_id, c.name, need, 'mine', u); return; }
+      if (c.mode === 'mine' || c.mode === 'extract') { leaf(c.type_id, c.name, need, c.mode, u); return; }
       if (!node) { leaf(c.type_id, c.name, need, 'buy', u); return; }
       const batches = deepBatches(need, node.productQty);
       for (const m of node.materials) {
@@ -817,14 +817,16 @@ function effLeafCost(runs) {
   return [...agg.values()];
 }
 
-// cash vs mined split of the current BOM: mined lines cost no ISK out of pocket
+// cash vs mined/extracted split of the current BOM: mined + extracted lines
+// cost no ISK out of pocket (both tracked separately with opportunity value)
 function bomCashSplit() {
-  let cash = 0, mined = 0;
+  let cash = 0, mined = 0, extracted = 0;
   for (const l of (S.bom || [])) {
     if (l.mode === 'mine') mined += l.total || 0;
+    else if (l.mode === 'extract') extracted += l.total || 0;
     else cash += l.total || 0;
   }
-  return { cash, mined };
+  return { cash, mined, extracted };
 }
 
 function renderSummary(s) {
@@ -836,15 +838,16 @@ function renderSummary(s) {
     const tn = (D.hubs.find(h => h.region === S.trackedPrice.region) || {}).name || S.trackedPrice.region;
     tracked = '<div class="summary-card"><div class="k">Output @ ' + tn + '</div><div class="v">' + fmtISK(S.trackedPrice.price * s.outQty) + '</div></div>';
   }
-  // mode-aware cash totals: mined minerals are excluded from out-of-pocket cost
+  // mode-aware cash totals: mined minerals + extracted PI are excluded from out-of-pocket cost
   const split = bomCashSplit();
   const totalCash = split.cash + s.feePerRun * s.runs;
   const profitCash = s.revenue - s.sellFees - totalCash;
   const roiCash = totalCash > 0 ? profitCash / totalCash * 100 : 0;
-  const profitFull = profitCash - split.mined;
-  const roiFull = (totalCash + split.mined) > 0 ? profitFull / (totalCash + split.mined) * 100 : 0;
-  const minedNote = split.mined > 0 ? ' · excl. ' + fmtISK(split.mined) + ' mined' : '';
-  const oppNote = split.mined > 0 ? ' · valuing mined: ' + fmtISK(profitFull) + ' (' + roiFull.toFixed(1) + '%)' : '';
+  const selfMade = (split.mined || 0) + (split.extracted || 0);
+  const profitFull = profitCash - selfMade;
+  const roiFull = (totalCash + selfMade) > 0 ? profitFull / (totalCash + selfMade) * 100 : 0;
+  const minedNote = (split.mined > 0 ? ' · excl. ' + fmtISK(split.mined) + ' mined' : '') + (split.extracted > 0 ? ' · excl. ' + fmtISK(split.extracted) + ' extracted' : '');
+  const oppNote = selfMade > 0 ? ' · valuing self-made: ' + fmtISK(profitFull) + ' (' + roiFull.toFixed(1) + '%)' : '';
   g.innerHTML =
     '<div class="summary-card"><div class="k">Total cost (' + s.runs + 'x)</div><div class="v">' + fmtISK(totalCash) + '</div><div class="k">' + fmtISK(totalCash / Math.max(1, s.runs)) + '/run' + minedNote + '</div></div>' +
     '<div class="summary-card"><div class="k">Output revenue ' + brokName + '</div><div class="v">' + fmtISK(s.revenue) + '</div><div class="k">' + fmtN(s.outQty) + 'x @ ' + fmtISK(s.unitOut) + '</div></div>' +
@@ -963,7 +966,9 @@ function renderTree(runs) {
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
     h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + (isMineable(c.type_id)
       ? '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
-      : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
+      : (isPI(c.type_id)
+        ? '<button class="mode-btn ' + (c.mode === 'extract' ? 'on-extract' : '') + '" data-i="' + i + '" data-m="extract"><i class="fas fa-globe"></i> Extract</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
+        : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn)) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
   w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
@@ -972,7 +977,7 @@ function renderTree(runs) {
     try { bvModesSave(); } catch {}
     renderTree(runs); await renderBom(runs); await renderBuildList(runs); if (S.lastCalc) renderSummary(S.lastCalc);
     // auto-update mining plan in the background when Mine it is toggled — do NOT switch tabs or steal focus
-    if (mode === 'mine' || mode === 'buy' || isMineable(S.root.children[idx].type_id)) {
+    if (mode === 'mine' || mode === 'buy' || mode === 'extract' || isMineable(S.root.children[idx].type_id)) {
       try { planMining(undefined, { auto: true }); } catch {}
     }
   });
@@ -1006,7 +1011,14 @@ function deepModeMap() {
 }
 // Effective mode for a deep node: stored toggle (validated against what
 // recipes actually exist), else recipe default (buildable → build,
-// reaction-only → react, raw → buy).
+// reaction-only → react, raw → buy). Extract validates on PI goods only
+// (parsed from the key so callers don't thread flags).
+function bvModePiOf(key) {
+  try {
+    const tid = +String(key || '').split('>').pop().split(':').pop();
+    return isPI(tid);
+  } catch { return false; }
+}
 function deepModeFor(key, info) {
   const hasBp = !!(info && info.hasBp), hasRx = !!(info && info.hasRx), mineable = !!(info && info.mineable);
   let m = null;
@@ -1014,10 +1026,80 @@ function deepModeFor(key, info) {
   if (m === 'build' && hasBp) return 'build';
   if (m === 'react' && hasRx) return 'react';
   if (m === 'mine' && mineable) return 'mine';
+  if (m === 'extract' && bvModePiOf(key)) return 'extract';
   if (m === 'buy') return 'buy';
   if (hasBp) return 'build';
   if (hasRx) return 'react';
   return 'buy';
+}
+// Blueprint-level bulk sourcing: 'buy' sets EVERYTHING (all depths) to Buy;
+// 'auto' (Build All) sources in-house by type — mineable→Mine, reaction→
+// React, PI→Extract, blueprint→Build, else Buy. Per-row toggles still
+// override afterwards. Unresolved rows: buy-all pins them Buy; auto skips
+// them so recipe defaults (same mapping) apply on resolve.
+async function bulkSetModes(kind) {
+  if (!S.root || !S.root.children || !S.root.children.length) { status('Run a calculation first.'); return; }
+  status(kind === 'buy' ? 'Setting everything to Buy…' : 'Auto-sourcing everything (mine/react/extract/build)…');
+  try {
+    const map = deepModeMap();
+    const autoTop = async c => {
+      try {
+        if (isMineable(+c.type_id)) return 'mine';
+        if (isPI(+c.type_id)) return 'extract';
+        if (c.child) return 'build';
+        if (c.reaction && S.reactionsOn !== false) return 'react';
+        const node = await deepResolve(+c.type_id, c.name, []);
+        if (node && node.kind === 'bp') return 'build';
+        if (node && node.kind === 'rx' && S.reactionsOn !== false) return 'react';
+      } catch {}
+      return 'buy';
+    };
+    const autoDeep = (tid, sub) => {
+      try {
+        if (isMineable(tid)) return 'mine';
+        if (isPI(tid)) return 'extract';
+        if (sub && sub.kind === 'bp') return 'build';
+        if (sub && sub.kind === 'rx' && S.reactionsOn !== false) return 'react';
+      } catch {}
+      return null; // unknown yet — leave unset so defaults apply on resolve
+    };
+    // Top level first (sequential: peeks may hit network for bare rows).
+    for (const c of S.root.children) {
+      if (!c) continue;
+      c.mode = (kind === 'buy') ? 'buy' : await autoTop(c);
+    }
+    // Then every depth (keys match the toggle buttons exactly).
+    const rec = (mats, ci, trail, depth, rx) => {
+      for (const m of (mats || [])) {
+        const tid = deepMatId(m);
+        if (!Number.isFinite(tid) || tid <= 0) continue;
+        const key = progKey(ci, trail.concat([tid]), depth, rx);
+        if (kind === 'buy') {
+          try { map[key] = 'buy'; } catch {}
+        } else {
+          const sub = m._deep;
+          const want = autoDeep(tid, sub);
+          if (want) { try { map[key] = want; } catch {} }
+        }
+        const sub = m._deep;
+        if (sub && sub.materials) rec(sub.materials, ci, trail.concat([tid]), depth + 1, sub.kind === 'rx');
+      }
+    };
+    S.root.children.forEach((c, ci) => {
+      const srcm = (c.child && c.child.materials) ? c.child.materials : ((c.reaction && c.reaction.reagents) || []);
+      rec(srcm, ci, [+c.type_id], 1, !!(c.reaction && !(c.child && c.child.materials)));
+    });
+    try { bvModesSave(); } catch {}
+    try { renderTree(S.runs || 1); } catch {}
+    try { await renderBom(S.runs || 1); } catch {}
+    try { await renderBuildList(S.runs || 1); } catch {}
+    try { if (S.lastCalc) renderSummary(S.lastCalc); } catch {}
+    try { renderBuildProgress(); } catch {}
+    try { planMining(undefined, { auto: true }); } catch {}
+    status(kind === 'buy' ? 'Everything set to Buy — override any row as needed.' : 'Everything auto-sourced — override any row as needed.');
+  } catch (e) {
+    status('Bulk set failed: ' + (e && e.message ? e.message : e));
+  }
 }
 // Set a deep toggle and refresh every costing surface.
 async function deepModeSet(key, mode) {
@@ -1027,10 +1109,10 @@ async function deepModeSet(key, mode) {
   try { await renderBuildList(S.runs || 1); } catch {}
   try { if (S.lastCalc) renderSummary(S.lastCalc); } catch {}
   try { renderBuildProgress(); } catch {}
-  if (mode === 'mine' || mode === 'buy') {
+  if (mode === 'mine' || mode === 'buy' || mode === 'extract') {
     try {
       const tid = +String(key || '').split('>').pop().split(':').pop();
-      if (mode === 'mine') { try { planMining(undefined, { auto: true }); } catch {} }
+      if (mode === 'mine' || mode === 'extract') { try { planMining(undefined, { auto: true }); } catch {} }
       else if (Number.isFinite(tid) && isMineable(tid)) { try { planMining(undefined, { auto: true }); } catch {} }
     } catch {}
   }
@@ -1039,7 +1121,13 @@ async function deepModeSet(key, mode) {
 // Always offers Buy; Build/React/Mine only where valid. Empty when the row
 // is a plain buy leaf with no options.
 function deepModeButtons(key, cur, info) {
-  if (!info || (!info.hasBp && !info.hasRx && !info.mineable)) return '';
+  if (!info) info = {};
+  if (bvModePiOf(key)) {
+    const on = m => cur === m ? ' on-' + m : '';
+    return '<button class="mode-btn' + on('extract') + '" data-dkey="' + key + '" data-dm="extract">Extract</button>'
+      + '<button class="mode-btn' + on('buy') + '" data-dkey="' + key + '" data-dm="buy">Buy</button>';
+  }
+  if (!info.hasBp && !info.hasRx && !info.mineable) return '';
   const on = m => cur === m ? ' on-' + m : '';
   const btn = (m, label) => '<button class="mode-btn' + on(m) + '" data-dkey="' + key + '" data-dm="' + m + '">' + label + '</button>';
   if (info.mineable) return btn('mine', '<i class="fas fa-gem"></i> Mine') + btn('buy', 'Buy');
@@ -1084,9 +1172,10 @@ function bvModesApply() {
     let n = 0;
     for (const c of S.root.children) {
       const m = entry[c.type_id];
-      if (m !== 'build' && m !== 'buy' && m !== 'mine' && m !== 'react') continue;
+      if (m !== 'build' && m !== 'buy' && m !== 'mine' && m !== 'react' && m !== 'extract') continue;
       if (m === 'react' && !S.reactionsOn) continue;
       if (m === 'mine') { try { if (!isMineable(c.type_id)) continue; } catch {} }
+      if (m === 'extract') { try { if (!isPI(c.type_id)) continue; } catch {} }
       if (c.mode !== m) { c.mode = m; n++; }
     }
     return n;
@@ -1111,7 +1200,7 @@ async function renderBom(runs) {
   tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + '</td></tr>'; }).join('');
   $('bomMeta').textContent = S.bom.length + ' types';
   const split = bomCashSplit();
-  $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
+  $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + (split.extracted > 0 ? ' (+ ' + fmtISK(split.extracted) + ' extracted @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
   await renderShoppingList(runs);
   await renderBuildList(runs);
   await renderRefinery();
@@ -2110,6 +2199,8 @@ function shoppingBuyLines() {
 function cleanName(n) { return n.replace(/ \(built\)$/, '').replace(/ \(react: .*\)$/, ''); }
 function multibuyLines() { return S.bom.filter(l => l.mode === 'buy' || l.mode === 'react').map(l => cleanName(l.name) + ' x' + l.qty); }
 function bindHandoffs() {
+  const bbAll = $('bulkBuyAll'); if (bbAll) bbAll.onclick = async () => { try { await bulkSetModes('buy'); } catch (e) { status('Bulk set failed.'); } };
+  const bbAuto = $('bulkBuildAll'); if (bbAuto) bbAuto.onclick = async () => { try { await bulkSetModes('auto'); } catch (e) { status('Bulk set failed.'); } };
   $('copyMultibuy').onclick = async () => { const t = multibuyLines().join('\n'); if (!t) { status('Nothing to copy (all built).'); return; } await navigator.clipboard.writeText(t); status('Multibuy copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' lines).'); };
   $('appraiseBom').onclick = () => { const lines = S.bom.map(l => l.qty + ' x ' + cleanName(l.name)); if (!lines.length) return; window.open(appraisalURL(lines), '_blank', 'noopener'); };
   $('appraiseOut').onclick = () => { if (!S.product) return; window.open(appraisalURL([(S.product.qty * (parseInt($('runs').value) || 1)) + ' x ' + S.product.name]), '_blank', 'noopener'); };
