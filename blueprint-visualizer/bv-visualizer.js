@@ -903,13 +903,14 @@ function goCrumb(i) {
   calculate();
 }
 
-// Canonical toggle order everywhere: Build, Buy, Mine, React, Extract
-// (absent modes omitted, so Buy is always second). Pure string builder.
+// Canonical toggle order everywhere: Buy, Build, Mine, React, Extract
+// (absent modes omitted, so Buy is always first — matches the Buy All /
+// Build All toolbar). Pure string builder.
 function topModeButtons(c, i, rxBtn) {
   const buyBtn = '<button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>';
   if (isMineable(c.type_id)) return buyBtn + '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button>';
   if (isPI(c.type_id)) return buyBtn + '<button class="mode-btn ' + (c.mode === 'extract' ? 'on-extract' : '') + '" data-i="' + i + '" data-m="extract"><i class="fas fa-globe"></i> Extract</button>';
-  return '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button>' + buyBtn + (rxBtn || '');
+  return buyBtn + '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button>' + (rxBtn || '');
 }
 // Expand state for calculator breakdowns (tree + build list share it;
 // Build Progress keeps its own set so views don't fight). Calculator starts
@@ -1145,9 +1146,8 @@ function deepModeButtons(key, cur, info) {
   const on = m => cur === m ? ' on-' + m : '';
   const btn = (m, label) => '<button class="mode-btn' + on(m) + '" data-dkey="' + key + '" data-dm="' + m + '">' + label + '</button>';
   if (info.mineable) return btn('buy', 'Buy') + btn('mine', '<i class="fas fa-gem"></i> Mine');
-  let h = '';
+  let h = btn('buy', 'Buy');
   if (info.hasBp) h += btn('build', 'Build');
-  h += btn('buy', 'Buy');
   if (info.hasRx) h += btn('react', 'React');
   return h;
 }
