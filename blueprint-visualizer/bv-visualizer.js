@@ -1028,8 +1028,10 @@ function bpProgRemainingMultibuy() {
 //   <url=showinfo:{typeId}>Name</url> x{qty}
 // Hard cap: max 3 mails per build. If the linked form needs more, warn and
 // fall back to plain text (no links). Text overflow beyond 3 is truncated.
+// Chunk cap is 7500 — ESI rejects mail bodies over 8000 chars, so we stay
+// well clear (leaves room for the truncation note + encoding variance).
 const BV_MAIL_MAX_PARTS = 3;
-const BV_MAIL_CHUNK = 9500;
+const BV_MAIL_CHUNK = 7500;
 function bvMailStatus(m) { try { const el = $('mailStatus'); if (el) el.textContent = m || ''; } catch {} if (m) status(m); }
 function bvMailEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 // ---- Grouped Evemail sections (Full industry split, fixed order) ----
