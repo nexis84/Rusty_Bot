@@ -369,6 +369,8 @@ async function calculate() {
   }
   // Restore persisted Build/Buy/Mine/React toggles for this blueprint.
   const modesRestored = bvModesApply();
+  // Fresh blueprints (no saved toggles) start auto-sourced, not all-Buy.
+  const modesDefaulted = bvApplyDefaultTops(bpRef.id, S.root.children);
   if (isFormula && formulaEstimate) status('Note: formula output estimated ×1 (Fuzzwork fallback) — reagent math is exact.');
   status('Pricing ' + S.root.children.length + ' materials (' + region + ')…');
   let matCostSell = 0, matCostBuy = 0;
@@ -620,6 +622,8 @@ async function enrichChildren(runs) {
         const outP = await marketPrice(c.type_id, hub(), 'sell');
         const prodQty = (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
         c.child = { bpName: kid.bpName, subCost: sub, outPrice: outP, margin: (outP || 0) - sub, materials: kid.materials, productQty: prodQty, products: kid.products };
+        // Fresh default: untouched rows flip to Build as recipes land.
+        if (c.mode === 'buy' && !bvHasStoredTop(S.root.bpId, c.type_id)) { c.mode = 'build'; try { bvModesSave(); } catch {} }
         bpProgRefreshPin();
         renderTree(runs);
         renderBuildList(runs);
@@ -637,6 +641,8 @@ async function enrichChildren(runs) {
         const unitCost = perRunCost / Math.max(1, rx.productQty);
         const outP = (c.unitSell != null ? c.unitSell : await marketPrice(c.type_id, hub(), 'sell')) || 0;
         c.reaction = { ...rx, perRunCost, unitCost, margin: outP - unitCost };
+        // Fresh default: untouched rows flip to React as formulas land.
+        if (c.mode === 'buy' && !bvHasStoredTop(S.root.bpId, c.type_id)) { c.mode = 'react'; try { bvModesSave(); } catch {} }
         bpProgRefreshPin();
         renderTree(runs);
       }
@@ -697,8 +703,18 @@ async function bpProgDeepEnrich(forcedSrc) {
         && Number.isFinite(+c.type_id) && !progDeepTopTried.has(+c.type_id) && !deepIsLeaf(+c.type_id));
       for (const c of tops) progDeepTopTried.add(+c.type_id);
       for (let i = 0; i < tops.length; i += 5) {
-        const rs = await Promise.all(tops.slice(i, i + 5).map(c => progDeepResolveTop(c, false).catch(() => false)));
-        if (rs.some(Boolean)) progDeepRerender(live);
+        const slice = tops.slice(i, i + 5);
+        const rs = await Promise.all(slice.map(c => progDeepResolveTop(c, false).catch(() => false)));
+        let flipped = false;
+        slice.forEach((c, ix) => {
+          if (!rs[ix] || c.mode !== 'buy' || bvHasStoredTop(src.bpId, c.type_id)) return;
+          if (c.child) c.mode = 'build';
+          else if (c.reaction) c.mode = 'react';
+          else return;
+          flipped = true;
+        });
+        if (flipped && live) { try { bvModesSave(); } catch {} }
+        if (rs.some(Boolean) || flipped) progDeepRerender(live);
       }
     } catch {}
     let done = 0, changed = false;
@@ -1029,7 +1045,9 @@ function bvModePiOf(key) {
   } catch { return false; }
 }
 function deepModeFor(key, info) {
-  const hasBp = !!(info && info.hasBp), hasRx = !!(info && info.hasRx), mineable = !!(info && info.mineable);
+  const hasBp = !!(info && info.hasBp), hasRx = !!(info && info.hasRx);
+  let mineable = !!(info && info.mineable);
+  if (!mineable) { try { mineable = isMineable(+String(key || '').split('>').pop().split(':').pop()); } catch {} }
   let m = null;
   try { m = deepModeMap()[key]; } catch {}
   if (m === 'build' && hasBp) return 'build';
@@ -1039,6 +1057,8 @@ function deepModeFor(key, info) {
   if (m === 'buy') return 'buy';
   if (hasBp) return 'build';
   if (hasRx) return 'react';
+  try { if (mineable) return 'mine'; } catch {}
+  if (bvModePiOf(key)) return 'extract';
   return 'buy';
 }
 // Blueprint-level bulk sourcing: 'buy' sets EVERYTHING (all depths) to Buy;
@@ -1194,6 +1214,37 @@ function bvModesApply() {
     }
     return n;
   } catch { return 0; }
+}
+// Auto-source default for a top-level child with no stored toggle:
+// mineable→Mine, PI→Extract, resolved child→Build, resolved reaction→React,
+// else Buy (flips to Build/React later when recipes resolve).
+function bvAutoTopMode(c) {
+  try {
+    if (isMineable(+c.type_id)) return 'mine';
+    if (isPI(+c.type_id)) return 'extract';
+    if (c.child) return 'build';
+    if (c.reaction && S.reactionsOn !== false) return 'react';
+  } catch {}
+  return 'buy';
+}
+function bvHasStoredTop(bpId, tid) {
+  try {
+    const e = bvModesRead()[String(bpId)] || {};
+    return e[tid] !== undefined;
+  } catch { return false; }
+}
+// Apply defaults to tops lacking stored toggles (fresh blueprints start
+// sourced, not all-Buy). Returns count changed.
+function bvApplyDefaultTops(bpId, children) {
+  let n = 0;
+  try {
+    for (const c of (children || [])) {
+      if (!c || bvHasStoredTop(bpId, c.type_id)) continue;
+      const m = bvAutoTopMode(c);
+      if (c.mode !== m) { c.mode = m; n++; }
+    }
+  } catch {}
+  return n;
 }
 // per-item "used own" toggle — persisted; unchecked BOM lines are bought in full regardless of inventory
 function ownRead() { try { return JSON.parse(localStorage.getItem('bvOwnSet') || 'null') || {}; } catch { return {}; } }
@@ -1649,6 +1700,12 @@ async function progDeepResolveOne(ci, path) {
       try { reactCache.delete('rx' + (+c.type_id)); } catch {}
       status('Resolving ' + (c.name || ('Type ' + c.type_id)) + '…');
       await progDeepResolveTop(c, true);
+      // Explicit expand implies build intent: flip untouched Buy rows.
+      if (c.mode === 'buy' && !bvHasStoredTop(src.bpId, c.type_id)) {
+        if (c.child) c.mode = 'build';
+        else if (c.reaction) c.mode = 'react';
+        if (src === S.root) { try { bvModesSave(); } catch {} }
+      }
       renderBuildProgress();
       try { renderTree(S.runs || 1); } catch {}
     } else {
