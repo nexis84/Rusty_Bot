@@ -934,7 +934,6 @@ function renderBuildProgress() {
     }
     if (changed) bpProgWrite(ticked);
   }
-  if (pinned) h += '<p class="hint">Tracking pinned build — browse freely, ticks persist per blueprint.</p>';
   src.children.forEach((c, ci) => {
     const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
     if (!top) return;
@@ -1311,8 +1310,12 @@ async function sendProgMail() {
     const { items, rootName, runs } = bvMailRemainingItems();
     if (!items.length) { bvMailStatus('Nothing remaining — all materials ticked or covered by inventory.'); return; }
     try { await ensureIceProducts(); } catch {}
-    const t = window.BVAuth && BVAuth.tokens();
-    if (!t || !t.access_token) { bvMailStatus('SSO session expired — sign in again.'); return; }
+    // Fresh-token up front (auto-refreshes the ~20-min access token instead
+    // of failing the whole send). Throws "SSO session expired" when there is
+    // nothing renewable — caught below into mail status.
+    let mailToken;
+    try { mailToken = await BVAuth.getAccessToken(); }
+    catch (e) { bvMailStatus(e && e.message ? e.message : 'SSO session expired — sign in again.'); return; }
     const dateStr = new Date().toISOString().slice(0, 10);
     const title = (rootName || 'Build') + ' ×' + (runs || 1);
     // Depth-aware formatters: parents '-', descendants indented per level.
@@ -1346,17 +1349,33 @@ async function sendProgMail() {
       }
     }
     const total = parts.length;
+    const mailPost = async (subject, body, part, parts) => {
+      const sendOnce = async token => {
+        const r = await fetch(bvBackendBase() + '/api/bv/mail/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ recipient_id: String(cid), subject, body, part, parts })
+        });
+        const j = await r.json().catch(() => ({}));
+        return { r, j };
+      };
+      let { r, j } = await sendOnce(mailToken);
+      if (r.status === 401) {
+        // Token died mid-send (multi-part sends straddle expiry) — one
+        // forced refresh + retry before giving up.
+        try {
+          await BVAuth.refreshToken();
+          mailToken = await BVAuth.getAccessToken();
+          ({ r, j } = await sendOnce(mailToken));
+        } catch {}
+      }
+      if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    };
     for (let i = 0; i < total; i++) {
       const n = i + 1;
       bvMailStatus('Sending Evemail ' + n + '/' + total + (linked ? ' (linked items)…' : ' (plain text — too large for links)…'));
       const subject = (title + ' materials' + (total > 1 ? ' (Part ' + n + '/' + total + ')' : '')).slice(0, 1000);
-      const r = await fetch(bvBackendBase() + '/api/bv/mail/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.access_token },
-        body: JSON.stringify({ recipient_id: String(cid), subject, body: parts[i], part: n, parts: total })
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+      await mailPost(subject, parts[i], n, total);
     }
     bvMailStatus('Evemail sent to ' + ((ch && ch.name) || 'your character') + ' (' + total + '/' + total + (linked ? ', linked items' : ', plain text') + ') — check in-game mail from RustyBot.');
   } catch (e) {
@@ -1570,9 +1589,9 @@ async function resolveBvCharacter() {
   try { ch = BVAuth.character(); } catch { ch = null; }
   if (!ch) {
     try {
-      const t = BVAuth.tokens();
-      if (!t) return null;
-      const v = await (await fetch('https://login.eveonline.com/oauth/verify', { headers: { Authorization: 'Bearer ' + t.access_token } })).json();
+      const accessToken = await BVAuth.getAccessToken().catch(() => null);
+      if (!accessToken) return null;
+      const v = await (await fetch('https://login.eveonline.com/oauth/verify', { headers: { Authorization: 'Bearer ' + accessToken } })).json();
       if (v && v.CharacterID) { ch = { id: String(v.CharacterID), name: v.CharacterName || 'Unknown' }; try { localStorage.setItem('bv_esi_char', JSON.stringify(ch)); } catch {} }
     } catch {}
   }
@@ -2450,13 +2469,23 @@ async function bvSharedUpload(list) {
   const rows = (list || []).filter(e => e && e.structure_id && e.system_id);
   if (!rows.length) return 0;
   try {
-    const t = window.BVAuth && BVAuth.tokens();
-    if (!t || !t.access_token) return 0;
-    const r = await fetch(bvBackendBase() + '/api/bv/structures', {
+    // Fresh token (silent refresh) + one forced-refresh retry on 401 — a
+    // background inventory scan must never force a re-login on its own.
+    const postOnce = async token => fetch(bvBackendBase() + '/api/bv/structures', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.access_token },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ structures: rows.slice(0, 200) })
     });
+    let accessToken = await BVAuth.getAccessToken().catch(() => null);
+    if (!accessToken) return 0;
+    let r = await postOnce(accessToken);
+    if (r.status === 401) {
+      try {
+        await BVAuth.refreshToken();
+        accessToken = await BVAuth.getAccessToken();
+        r = await postOnce(accessToken);
+      } catch { return 0; }
+    }
     if (!r.ok) { console.warn('[BV] shared structure upload rejected', r.status); return 0; }
     const j = await r.json().catch(() => ({}));
     return (j && j.accepted) || 0;

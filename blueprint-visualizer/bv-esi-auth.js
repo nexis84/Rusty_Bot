@@ -21,7 +21,11 @@
   function saveTokens(t) { try { localStorage.setItem('bv_esi_tokens', JSON.stringify(t)); } catch {} }
   function char_() { try { return JSON.parse(localStorage.getItem('bv_esi_char') || 'null'); } catch { return null; } }
   function expired(t) {
-    return !t || !t.access_token || (t.expires_at && Date.now() >= t.expires_at - REFRESH_SKEW_MS);
+    // No timestamp (legacy sessions) counts as expired — the refresh below
+    // will either renew it or fail cleanly into "sign in again".
+    if (!t || !t.access_token) return true;
+    if (!t.expires_at) return true;
+    return Date.now() >= t.expires_at - REFRESH_SKEW_MS;
   }
   // Single-flight refresh: parallel api() calls share one backend request
   // (the token endpoint is rate-limited to 5/min).
@@ -63,6 +67,20 @@
   window.BVAuth = {
     tokens, character: char_,
     signedIn() { return !!tokens(); },
+    // Guaranteed-fresh access token for call sites that can't go through
+    // api() (backend POSTs, oauth/verify). Proactively refreshes via the
+    // shared single-flight refresh(); throws "SSO session expired" when
+    // there is nothing to refresh with (caller prompts sign-in).
+    async getAccessToken() {
+      let t = tokens();
+      if (!t || !t.access_token) throw new Error('SSO session expired — sign in again');
+      if (expired(t)) t = await refresh();
+      if (!t || !t.access_token) throw new Error('SSO session expired — sign in again');
+      return t.access_token;
+    },
+    // Force a refresh regardless of expiry (used for one retry after a 401
+    // from a backend call that already used a "fresh" token).
+    async refreshToken() { return refresh(); },
     async login() {
       const cid = await getClientId();
       const state = Math.random().toString(36).slice(2);
@@ -97,4 +115,24 @@
       return (await this.apiRaw(path, opts)).data;
     }
   };
+  // Silent keep-alive: while signed in and the tab is visible, renew the
+  // token shortly before it dies so long build sessions never hit the
+  // 20-minute cliff. Failures are silent — a revoked grant simply surfaces
+  // as "sign in again" on the next action.
+  const KEEPALIVE_MS = 14 * 60 * 1000;
+  async function keepAlive() {
+    try {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      const t = tokens();
+      if (!t || !t.access_token || !t.refresh_token) return;
+      if (expired(t)) await refresh();
+    } catch {}
+  }
+  try {
+    setInterval(keepAlive, KEEPALIVE_MS);
+    if (typeof document !== 'undefined' && document.addEventListener) {
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) keepAlive(); });
+      if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('focus', keepAlive);
+    }
+  } catch {}
 })();
