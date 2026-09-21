@@ -88,9 +88,11 @@ function matchItem(rawName) {
             }
             if (matched === normWords.length && matched > 0) {
                 score = 20000 - (item.norm.length - norm.length) - pos;
-            } else if (matched >= Math.min(2, normWords.length)) {
-                score = 8000 + matched * 100 - (item.norm.length - norm.length);
             }
+            // NOTE: no partial-overlap tier — sharing 1-2 tokens with a
+            // 23k-type database is a lottery, not a match (e.g. an inventory
+            // row force-matching an officer module). Near-misses surface as
+            // suggestions below, never auto-matches.
         }
 
         if (score > bestScore) {
@@ -99,10 +101,62 @@ function matchItem(rawName) {
         }
     }
 
-    return bestScore >= 0 ? best : null;
+    if (bestScore >= 0) return best;
+
+    // Typo tier (bounded edit distance): catches genuine misspellings
+    // without the old 2-token lottery.
+    if (norm.length >= 4) {
+        let typoBest = null, typoDist = 3;
+        for (const item of ItemDB.all) {
+            if (Math.abs(item.norm.length - norm.length) > 2) continue;
+            const d = normDistance(norm, item.norm, 2);
+            if (d < typoDist) {
+                typoDist = d;
+                typoBest = { id: item.id, name: item.name };
+                if (d === 1 && item.norm.length === norm.length) break;
+            }
+        }
+        if (typoBest) return typoBest;
+    }
+
+    // Partial overlap never auto-matches anymore — surface as suggestion.
+    let sug = null, sugMatched = 0;
+    for (const item of ItemDB.all) {
+        let pos = 0, matched = 0;
+        for (const w of normWords) {
+            const idx = item.norm.indexOf(w, pos);
+            if (idx >= 0) { pos = idx + w.length; matched++; }
+        }
+        if (matched >= Math.min(2, normWords.length) && matched > sugMatched) {
+            sugMatched = matched;
+            sug = { id: item.id, name: item.name };
+        }
+    }
+    if (sug) return { suggest: sug };
+    return null;
+}
+
+// Bounded Levenshtein on normalized names (early exit past cap).
+function normDistance(a, b, cap) {
+    if (Math.abs(a.length - b.length) > cap) return cap + 1;
+    let prev = new Array(b.length + 1);
+    for (let j = 0; j <= b.length; j++) prev[j] = j;
+    for (let i = 1; i <= a.length; i++) {
+        const cur = [i];
+        let rowMin = i;
+        for (let j = 1; j <= b.length; j++) {
+            const c = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            cur.push(c);
+            if (c < rowMin) rowMin = c;
+        }
+        if (rowMin > cap) return cap + 1;
+        prev = cur;
+    }
+    return prev[b.length];
 }
 
 // ---- Clipboard parsing ----
+let parseStats = { ignored: 0 };
 function parseQuantityNumber(str) {
     if (str === null || str === undefined) return null;
     const cleaned = str.replace(/[\s,.\u00a0]/g, '');
@@ -117,6 +171,19 @@ function parseLine(line) {
 
     let qty = null;
     let name = null;
+
+    // 0) EVE client inventory TSV: Name\tQty\tGroup\t… (volume + est. price
+    //    columns ignored). Must come first — a whole TSV row must never be
+    //    treated as one item name (fuzzy lottery + qty 1). Malformed rows are
+    //    ignored (counted), never guessed.
+    if (text.indexOf('\t') >= 0) {
+        const cells = text.split('\t').map(c => c.trim());
+        const tsvName = cells[0] || '';
+        const tsvQty = cells.length > 1 ? parseQuantityNumber(cells[1]) : null;
+        if (tsvName && tsvQty !== null) return { name: tsvName, qty: tsvQty, tsv: true };
+        parseStats.ignored++;
+        return null;
+    }
 
     // 1) "qty x Name"  e.g. "25 x Tritanium"
     let m = text.match(/^([\d.,\s\u00a0]+)\s*[xX\u00d7]\s*(.+)$/);
@@ -163,6 +230,7 @@ function parseLine(line) {
 
 function parsePaste(text) {
     const results = [];
+    parseStats.ignored = 0;
     const lines = text.replace(/\r\n/g, '\n').split('\n');
     for (const line of lines) {
         if (!line.trim()) continue;
@@ -557,7 +625,7 @@ function renderResults(items, prices, unmatched, region, hubName) {
     const umList = el('unmatchedList');
     if (unmatched.length > 0) {
         umList.innerHTML = unmatched.map(u => `
-            <li><i class="fas fa-triangle-exclamation"></i> <span>${escapeHtml(u.raw)}</span>${u.qty > 1 ? ` <span class="num">x ${fmtInt(u.qty)}</span>` : ''}</li>`).join('');
+            <li><i class="fas fa-triangle-exclamation"></i> <span>${escapeHtml(u.raw)}</span>${u.qty > 1 ? ` <span class="num">x ${fmtInt(u.qty)}</span>` : ''}${u.suggest ? ` <span class="hint">did you mean ${escapeHtml(u.suggest)}?</span>` : ''}</li>`).join('');
         umSection.classList.remove('hidden');
     } else {
         umSection.classList.add('hidden');
@@ -776,6 +844,9 @@ async function runAppraisal() {
         showMessage('No items could be read from the pasted text.', 'error');
         return;
     }
+    if (parseStats.ignored > 0) {
+        showMessage('Ignored ' + parseStats.ignored + ' non-item row' + (parseStats.ignored === 1 ? '' : 's') + ' (headers/garbage are never guessed).', 'success');
+    }
 
     const region = el('hubSelect').value;
     const btn = el('appraiseBtn');
@@ -798,7 +869,7 @@ async function runAppraisal() {
     const unmatched = [];
     for (const p of parsed) {
         const matched = matchItem(p.name);
-        if (matched) {
+        if (matched && matched.id) {
             const existing = byId.get(matched.id);
             if (existing) {
                 existing.qty += p.qty;
@@ -806,7 +877,7 @@ async function runAppraisal() {
                 byId.set(matched.id, { id: matched.id, name: matched.name, qty: p.qty });
             }
         } else {
-            unmatched.push({ raw: p.name, qty: p.qty });
+            unmatched.push({ raw: p.name, qty: p.qty, suggest: matched && matched.suggest ? matched.suggest.name : null });
         }
     }
 
