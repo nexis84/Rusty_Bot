@@ -1689,6 +1689,13 @@ function bpProgRemainingMultibuy() {
   const ticked = bpProgRead();
   return rows.filter(r => r.depth >= 0 && !ticked[r.key]).map(r => cleanName(r.name) + ' x' + fmtN(r.qty));
 }
+// Shared by the top + bottom "Copy remaining multibuy" buttons.
+async function copyRemainingMultibuy() {
+  const lines = bpProgRemainingMultibuy();
+  if (!lines.length) { status('Nothing remaining — all ticked.'); return; }
+  await navigator.clipboard.writeText(lines.join('\n'));
+  status('Remaining multibuy copied (' + lines.length + ' lines).');
+}
 
 // ---- Send remaining materials to Evemail (via shared RustyBot sender) ----
 // Remaining = unticked rows minus inventory cover. Linked form uses EVE HTML:
@@ -2230,7 +2237,8 @@ function bindHandoffs() {
     bpProgPinCurrent();
   };
   const cp = $('copyProgress'); if (cp) cp.onclick = async () => { const t = bpProgExportText(); if (!S.root) { status('Run a calculation first.'); return; } await navigator.clipboard.writeText(t); status('Checklist copied (' + t.split('\n').length + ' lines).'); };
-  const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = async () => { const lines = bpProgRemainingMultibuy(); if (!lines.length) { status('Nothing remaining — all ticked.'); return; } await navigator.clipboard.writeText(lines.join('\n')); status('Remaining multibuy copied (' + lines.length + ' lines).'); };
+  const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = () => copyRemainingMultibuy();
+  const cplB = $('copyProgressLeftBottom'); if (cplB) cplB.onclick = () => copyRemainingMultibuy();
   const tpe = $('toggleProgExpand'); if (tpe) tpe.onclick = () => {
     let withKids = [];
     try { withKids = bpProgModel().rows.filter(r => r.key !== 'root' && r.hasKids).map(r => r.key); } catch {}
@@ -2421,6 +2429,15 @@ async function bpApplyRow(btn) {
   $('bpName').value = await typeName(+btn.dataset.bp);
   savePrefs();
 }
+// Shared by the sidebar + bottom-of-calculator Send buttons: recalculate,
+// pin the live build, and switch to Build Progress.
+async function sendCalcToBuild() {
+  const name = ($('bpName') && $('bpName').value || '').trim();
+  if (!name) { status('Enter a blueprint name first.'); return; }
+  await calculate();
+  if (bpProgPinCurrent()) switchMainView('prog');
+  else status('Nothing to send — calculation produced no materials.');
+}
 // Pin the current calculation into the tracked-build list (max 5, persisted).
 // Progress keeps working while you browse other blueprints; sub-blueprint
 // details merged in the background refresh the matching pin (child/reaction
@@ -2450,7 +2467,9 @@ function bpProgPinCurrent(silent) {
   } catch { return false; }
 }
 // Merge background-enriched child/reaction details into the matching pin
-// without touching its pinned per-run quantities.
+// without touching its pinned per-run quantities. Sourcing modes merge too
+// so toggles (Buy/Build/…) stay live on pins; deep rows follow the shared
+// path-keyed store on their own.
 function bpProgRefreshPin() {
   try {
     if (!S.root || !S.root.bpId) return;
@@ -2459,6 +2478,7 @@ function bpProgRefreshPin() {
     for (const c of (S.root.children || [])) {
       const pc = (pin.children || []).find(x => x && x.type_id === c.type_id);
       if (!pc) continue;
+      if (c.mode) pc.mode = c.mode;
       if (c.child) pc.child = JSON.parse(JSON.stringify(c.child));
       if (c.reaction) pc.reaction = JSON.parse(JSON.stringify(c.reaction));
     }
@@ -4426,13 +4446,9 @@ document.addEventListener('DOMContentLoaded', () => {
   ensureIceProducts().then(() => { if (S.root) { try { renderTree(S.runs || 1); renderBom(S.runs || 1); } catch {} } }).catch(() => {});
   $('calcBtn').onclick = calculate;
   const scb = $('sendCalcToBuild');
-  if (scb) scb.onclick = async () => {
-    const name = ($('bpName') && $('bpName').value || '').trim();
-    if (!name) { status('Enter a blueprint name first.'); return; }
-    await calculate();
-    if (bpProgPinCurrent()) switchMainView('prog');
-    else status('Nothing to send — calculation produced no materials.');
-  };
+  if (scb) scb.onclick = () => sendCalcToBuild();
+  const scbB = $('sendCalcToBuildBottom');
+  if (scbB) scbB.onclick = () => sendCalcToBuild();
   $('bpName').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
   $('resetBtn').onclick = () => { ['bpName', 'runs', 'systemName'].forEach(k => $(k).value = k === 'runs' ? 1 : k === 'systemName' ? 'Jita' : ''); status(''); };
   $('savePreset').onclick = () => { const n = prompt('Preset name:'); if (!n) return; const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const ids = ['hubSelect', 'me', 'te', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'refinePct', 'mineRate', 'mineShip']; pr[n] = Object.fromEntries(ids.map(k => [k, $(k) ? $(k).value : undefined])); localStorage.setItem('bvPresets', JSON.stringify(pr)); refreshPresets(pr); status('Preset saved.'); };

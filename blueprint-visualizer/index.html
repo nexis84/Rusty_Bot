@@ -214,6 +214,9 @@
          <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Need</th><th>Have</th><th>To buy</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody id="shoppingBody"><tr><td colspan="7" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
         <div class="summary-grid" id="shoppingSummary" style="display:none;margin-top:.6rem"></div>
         <p class="hint" id="shoppingTotals" style="margin-top:.5rem"></p>
+        <div class="btn-row" style="margin-top:.5rem">
+          <button id="sendCalcToBuildBottom" class="calc-btn secondary" title="Calculate this blueprint and pin it to the Build Progress tab"><i class="fas fa-paper-plane"></i> Send blueprint to Build process</button>
+        </div>
       </div>
    </div>
    <div id="mainProg" style="display:none">
@@ -234,6 +237,7 @@
         <div id="buildProgress"><p class="hint">No pinned build yet — open <b>My Blueprints</b> and hit <b>Send to Build</b> on any blueprint, or track the live calculation.</p></div>
         <p class="hint" id="progressTotals" style="margin-top:.5rem"></p>
         <div class="btn-row" style="margin-top:.5rem">
+          <button id="copyProgressLeftBottom" class="calc-btn secondary">Copy remaining multibuy</button>
           <button id="sendProgMail" class="calc-btn"><i class="fas fa-envelope"></i> Send materials to Evemail</button>
         </div>
         <div id="mailStatus" class="progress" role="status"></div>
@@ -252,7 +256,7 @@
     <script src="bv-ores.js?v=1"></script>
     <script src="bv-blueprints.js?v=1"></script>
     <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=194"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V193</div>
+    <script src="bv-visualizer.js?v=195"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V194</div>
 </body>
 </html>
