@@ -854,9 +854,10 @@ function goCrumb(i) {
   calculate();
 }
 
-// Collapse state for calculator breakdowns (tree + build list share it;
-// Build Progress keeps its own set so views don't fight).
-const calcCollapsed = new Set();
+// Expand state for calculator breakdowns (tree + build list share it;
+// Build Progress keeps its own set so views don't fight). Calculator starts
+// COLLAPSED — rows expand on click (opposite default to Progress).
+const calcExpanded = new Set();
 function renderTree(runs) {
   const w = $('treeWrap'); if (!S.root) { w.innerHTML = ''; return; }
   const piKids = S.root.children.filter(c => isPI(c.type_id));
@@ -874,7 +875,7 @@ function renderTree(runs) {
       const pend = !sub && m._deepState === 'pending';
       const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
       const key = progKey(ci, trail.concat([tid]), depth, rx);
-      const open = !calcCollapsed.has(key);
+      const open = calcExpanded.has(key);
       const unit = m.unit || 0;
       const kids = (sub && sub.materials && sub.materials.length && open)
         ? '<div class="kids">' + renderTreeDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]), ci, sub.kind === 'rx') + '</div>'
@@ -892,22 +893,28 @@ function renderTree(runs) {
     const rm = c.reaction ? (c.reaction.margin >= 0 ? '<span class="margin-pos">react margin +' + fmtISK(c.reaction.margin) + '/u</span>' : '<span class="margin-neg">react margin ' + fmtISK(c.reaction.margin) + '/u</span>') + (c.reaction.estimate ? '<span class="nums" title="Output quantity estimated">est</span>' : '') : '';
     const rxBtn = c.reaction ? '<button class="mode-btn ' + (c.mode === 'react' ? 'on-react' : '') + '" data-i="' + i + '" data-m="react" title="' + c.reaction.formulaName + '">React</button>' : '';
     const topNeed = c.perRun * runs;
+    const topKey = progKey(i, [+c.type_id], 0, false);
+    const hasBreakdown = !!((c.child && c.child.materials && c.child.materials.length) || (c.reaction && c.reaction.reagents && c.reaction.reagents.length));
+    const topOpen = calcExpanded.has(topKey);
     let rxKids = '', buildKids = '';
     // Mirror the Progress model branches (child first, then reaction) so the
-    // calculator tree shows the same breakdowns in every mode.
-    if (c.child && c.child.materials && c.child.materials.length) {
-      buildKids = '<div class="kids">' + renderTreeDeep(c.child.materials, topNeed, c.child.productQty || 1, 1, [+c.type_id], i, false) + '</div>';
-    } else if (c.reaction && c.reaction.reagents && c.reaction.reagents.length) {
-      const n = reactRunsNeeded(c);
-      rxKids = '<div class="kids">' + renderTreeDeep(c.reaction.reagents, topNeed, c.reaction.productQty || 1, 1, [+c.type_id], i, true) + '</div>'
-        + '<div class="rx-note">' + c.reaction.formulaName + ' · ×' + fmtN(c.reaction.productQty) + ' per run · ' + n + ' run' + (n === 1 ? '' : 's') + ' for ' + fmtN(c.perRun * runs) + ' needed</div>';
+    // calculator tree shows the same breakdowns in every mode. Built only
+    // when expanded — the tree starts collapsed.
+    if (hasBreakdown && topOpen) {
+      if (c.child && c.child.materials && c.child.materials.length) {
+        buildKids = '<div class="kids">' + renderTreeDeep(c.child.materials, topNeed, c.child.productQty || 1, 1, [+c.type_id], i, false) + '</div>';
+      } else if (c.reaction && c.reaction.reagents && c.reaction.reagents.length) {
+        const n = reactRunsNeeded(c);
+        rxKids = '<div class="kids">' + renderTreeDeep(c.reaction.reagents, topNeed, c.reaction.productQty || 1, 1, [+c.type_id], i, true) + '</div>'
+          + '<div class="rx-note">' + c.reaction.formulaName + ' · ×' + fmtN(c.reaction.productQty) + ' per run · ' + n + ' run' + (n === 1 ? '' : 's') + ' for ' + fmtN(c.perRun * runs) + ' needed</div>';
+      }
     }
     const nmHtml = c.child
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
     h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + (isMineable(c.type_id)
       ? '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
-      : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
+      : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
   w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
@@ -922,7 +929,7 @@ function renderTree(runs) {
   });
   w.querySelectorAll('[data-tree-exp]').forEach(b => b.onclick = () => {
     const k = b.dataset.treeExp;
-    if (calcCollapsed.has(k)) calcCollapsed.delete(k); else calcCollapsed.add(k);
+    if (calcExpanded.has(k)) calcExpanded.delete(k); else calcExpanded.add(k);
     renderTree(runs);
   });
 }
@@ -1048,7 +1055,7 @@ async function renderBuildList(runs) {
         const pend = !sub && sm._deepState === 'pending';
         const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
         const key = progKey(ci, trail.concat([tid]), depth, false);
-        const open = !calcCollapsed.has(key);
+        const open = calcExpanded.has(key);
         const pad = 'padding-left:' + (0.4 + depth * 1.1) + 'rem';
         let row = '<tr><td style="' + pad + '"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">'
           + (hasKids ? '<button class="mode-btn" data-build-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '" style="padding:0 .3rem"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button> ' : '')
@@ -1077,7 +1084,7 @@ async function renderBuildList(runs) {
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-build-exp]').forEach(b => b.onclick = async () => {
     const k = b.dataset.buildExp;
-    if (calcCollapsed.has(k)) calcCollapsed.delete(k); else calcCollapsed.add(k);
+    if (calcExpanded.has(k)) calcExpanded.delete(k); else calcExpanded.add(k);
     try { await renderBuildList(S.runs || 1); } catch {}
   });
   if (meta) meta.textContent = builds.length + ' item' + (builds.length>1?'s':'') + ' to build' + (builds.filter(c=>!c.child).length ? ' · ' + builds.filter(c=>!c.child).length + ' loading…' : '') + ' · raw ' + fmtISK(grandTotal);
