@@ -465,7 +465,30 @@ function deepIsLeaf(typeId) {
 }
 function deepMatId(m) { try { const v = +(m.type_id ?? m.typeID ?? m.typeid); return Number.isFinite(v) ? v : NaN; } catch { return NaN; } }
 function deepMatQty(m) { try { return Math.max(0, (+(m.quantity ?? m.qty ?? 0)) || 0); } catch { return 0; } }
-async function deepResolve(typeId, name, trail) {
+// Whole reaction/manufacturing runs needed for a material need (shared math
+// for Progress model, Evemail expander, calculator tree + build list).
+function deepBatches(need, productQty) { return Math.max(1, Math.ceil((need || 0) / Math.max(1, productQty || 1))); }
+// Row-key scheme shared by the Progress model, calculator tree/build-list
+// collapse state, and Evemail tick checks. trail = full type path from the
+// top-level material down to the row's own type (depth+1 entries).
+function progKey(ci, trail, depth, rx) {
+  try {
+    const t = (trail || []).map(Number);
+    if (depth <= 0) return 'c' + ci + ':' + t[0];
+    if (depth === 1) return (rx ? 'r' : 'g') + ci + ':' + t[t.length - 1];
+    return 'd' + ci + ':' + t.join('>');
+  } catch { return 'x' + ci + ':' + depth; }
+}
+// Pricer for deep nodes (names come from deepResolve; units stay lazy).
+async function deepPriceUnits(node) {
+  try {
+    const basis = ($('basis') && $('basis').value) || 'sell';
+    for (const sm of ((node && node.materials) || [])) {
+      if (sm.unit == null) { try { sm.unit = (await marketPrice(sm.type_id, hub(), basis)) || 0; } catch { sm.unit = 0; } }
+    }
+  } catch {}
+}
+async function deepResolve(typeId, name, trail, forceRx) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return null;
   if (deepIsLeaf(id)) return null;
@@ -482,7 +505,7 @@ async function deepResolve(typeId, name, trail) {
       if (!node.materials.length) node = null;
     }
   } catch {}
-  const rxOn = !((typeof S !== 'undefined') && S && S.reactionsOn === false);
+  const rxOn = !!forceRx || !((typeof S !== 'undefined') && S && S.reactionsOn === false);
   if (!node && rxOn) {
     try {
       const rx = await childReaction(id, name);
@@ -520,6 +543,61 @@ function deepSeedFrom(src) {
       }
     }
   } catch {}
+}
+// Session guard so the top-level retry pass runs once per type (explicit
+// on-demand clicks bypass it).
+const progDeepTopTried = new Set();
+// Resolve ONE top-level child into enrichChildren-compatible c.child /
+// c.reaction shapes (names + units + margins). forceRx bypasses the Reactions
+// toggle for on-demand display (costing untouched — modes don't change).
+async function progDeepResolveTop(c, forceRx) {
+  if (!c || !Number.isFinite(+c.type_id) || deepIsLeaf(+c.type_id)) return false;
+  const id = +c.type_id;
+  if (c.child || (c.mode === 'react' && c.reaction)) return true;
+  if (forceRx) {
+    try { deepCache.delete(id); } catch {}
+    try { reactCache.delete('rx' + id); } catch {}
+  }
+  let node = null;
+  try { node = await deepResolve(id, c.name, [], !!forceRx); } catch {}
+  if (!node || !node.materials || !node.materials.length) {
+    try { c._tried = true; c._rxTried = true; } catch {}
+    return false;
+  }
+  try { await deepPriceUnits(node); } catch {}
+  if (node.kind === 'bp') {
+    let sub = 0;
+    for (const m of node.materials) sub += (m.unit || 0) * Math.ceil(deepMatQty(m));
+    let outP = 0;
+    try { outP = (await marketPrice(id, hub(), 'sell')) || 0; } catch {}
+    c.child = { bpName: node.label, subCost: sub, outPrice: outP, margin: outP - sub, materials: node.materials, productQty: node.productQty || 1, products: [] };
+    try { c._tried = true; } catch {}
+  } else {
+    const perRunCost = node.materials.reduce((s, m) => s + (m.unit || 0) * deepMatQty(m), 0);
+    let outP = c.unitSell;
+    if (outP == null) { try { outP = (await marketPrice(id, hub(), 'sell')) || 0; } catch { outP = 0; } }
+    const unitCost = perRunCost / Math.max(1, node.productQty || 1);
+    c.reaction = { formulaId: null, formulaName: node.label, reagents: node.materials, productQty: node.productQty || 1, time: 0, estimate: false, perRunCost, unitCost, margin: (outP || 0) - unitCost };
+    try { c._rxTried = true; } catch {}
+  }
+  try { if (typeof bpProgRefreshPin === 'function') bpProgRefreshPin(); } catch {}
+  return true;
+}
+// Locate a material object inside a tracked build for on-demand resolution.
+// path = typeIds from the depth-1 material down to the target (inclusive).
+function progFindMaterial(src, ci, path) {
+  try {
+    const c = src && src.children && src.children[ci];
+    if (!c || !path || !path.length) return null;
+    let mats = (c.child && c.child.materials) || (c.reaction && c.reaction.reagents) || [];
+    let m = null;
+    for (const tid of path) {
+      m = (mats || []).find(x => +deepMatId(x) === +tid) || null;
+      if (!m) return null;
+      mats = (m._deep && m._deep.materials) || [];
+    }
+    return m;
+  } catch { return null; }
 }
 async function enrichChildren(runs) {
   S.runs = runs;
@@ -567,40 +645,62 @@ async function enrichChildren(runs) {
   const nRx = S.root.children.filter(c => c.reaction).length;
   renderBom(runs);
   status('Done. Toggle Build/Buy' + (nRx ? '/React' : '') + ' on sub-components' + (nRx ? ' (' + nRx + ' reaction' + (nRx > 1 ? 's' : '') + ' found)' : '') + '.');
+  // Deep chains for the live root (calculator tree + build list) as well as
+  // the tracked build — the no-arg call below covers whichever is tracked.
+  try { bpProgDeepEnrich(S.root); } catch {}
   try { bpProgDeepEnrich(); } catch {}
 }
 
 // ---- Build Progress deep chains ----
-// Background BFS resolving nested manufacturing/reaction inputs for the
-// TRACKED build (live or pinned), storing _deep nodes on material objects.
+// Background BFS resolving nested manufacturing/reaction inputs for a build
+// (live S.root or a pin), storing _deep nodes on material objects.
 // bpProgModel picks them up on every render (progressive fill); pins strip
 // _deep on save so localStorage stays lean (re-resolved per session).
 const BV_PROG_DEEP_MAX = 500;
-let bpProgDeepRunning = false;
+const progDeepActive = new Set(); // src objects currently enriching
 function progDeepMats(children) {
   const out = [];
   for (const c of (children || [])) {
     if (!c) continue;
     if (c.child && c.child.materials) for (const m of c.child.materials) out.push(m);
-    if (c.mode === 'react' && c.reaction && c.reaction.reagents) for (const rg of c.reaction.reagents) out.push(rg);
+    if (c.reaction && c.reaction.reagents) for (const rg of c.reaction.reagents) out.push(rg);
   }
   return out;
 }
-async function bpProgDeepEnrich() {
-  if (bpProgDeepRunning) return;
-  const src = (typeof bpProgSource === 'function') ? bpProgSource() : null;
+// Re-render every surface showing deep chains. Live surfaces (calculator
+// tree, build list) only refresh when the enriched build is the live root.
+function progDeepRerender(live) {
+  try { renderBuildProgress(); } catch {}
+  if (!live) return;
+  try { renderTree(S.runs || 1); } catch {}
+  try {
+    if (typeof renderBuildList === 'function') {
+      const r = renderBuildList(S.runs || 1);
+      if (r && typeof r.catch === 'function') r.catch(() => {});
+    }
+  } catch {}
+}
+async function bpProgDeepEnrich(forcedSrc) {
+  const src = forcedSrc || ((typeof bpProgSource === 'function') ? bpProgSource() : null);
   if (!src || !src.children) return;
-  bpProgDeepRunning = true;
-  const priceMissingUnits = async node => {
-    try {
-      const basis = ($('basis') && $('basis').value) || 'sell';
-      for (const sm of (node.materials || [])) {
-        if (sm.unit == null) { try { sm.unit = (await marketPrice(sm.type_id, hub(), basis)) || 0; } catch { sm.unit = 0; } }
-      }
-    } catch {}
-  };
+  if (progDeepActive.has(src)) return;
+  progDeepActive.add(src);
+  const live = (typeof S !== 'undefined') && src === S.root;
   try {
     try { deepSeedFrom(src); } catch {}
+    // 0) Top-level children missing depth-1 data entirely (the RCF case:
+    // pinned before enrichment, transient lookup failure, or rx-off at
+    // calc time). Retried once per type per session; on-demand clicks
+    // bypass the guard.
+    try {
+      const tops = (src.children || []).filter(c => c && !c.child && !(c.mode === 'react' && c.reaction)
+        && Number.isFinite(+c.type_id) && !progDeepTopTried.has(+c.type_id) && !deepIsLeaf(+c.type_id));
+      for (const c of tops) progDeepTopTried.add(+c.type_id);
+      for (let i = 0; i < tops.length; i += 5) {
+        const rs = await Promise.all(tops.slice(i, i + 5).map(c => progDeepResolveTop(c, false).catch(() => false)));
+        if (rs.some(Boolean)) progDeepRerender(live);
+      }
+    } catch {}
     let done = 0, changed = false;
     let frontier = progDeepMats(src.children);
     while (frontier.length && done < BV_PROG_DEEP_MAX) {
@@ -613,7 +713,7 @@ async function bpProgDeepEnrich() {
         if (deepCache.has(tid)) {
           try {
             const node = deepCache.get(tid);
-            if (node && node.materials) await priceMissingUnits(node);
+            if (node && node.materials) await deepPriceUnits(node);
             m._deep = node || null; m._deepState = 'done';
           } catch { try { m._deep = null; m._deepState = 'done'; } catch {} }
           changed = true;
@@ -624,7 +724,7 @@ async function bpProgDeepEnrich() {
       }
       const groups = [...byTid.entries()];
       if (!groups.length && !changed) break;
-      if (changed) { try { renderBuildProgress(); } catch {} changed = false; }
+      if (changed) { progDeepRerender(live); changed = false; }
       if (!groups.length) break;
       const next = [];
       for (let i = 0; i < groups.length; i += 5) {
@@ -635,7 +735,7 @@ async function bpProgDeepEnrich() {
           try {
             const node = await deepResolve(tid, (first && first.name) || ('Type ' + tid), []);
             done++;
-            if (node && node.materials && node.materials.length) await priceMissingUnits(node);
+            if (node && node.materials && node.materials.length) await deepPriceUnits(node);
             for (const m of mats) { try { m._deep = (node && node.materials && node.materials.length) ? node : null; m._deepState = 'done'; } catch {} }
             if (node && node.materials) for (const sm of node.materials) next.push(sm);
           } catch {
@@ -643,12 +743,12 @@ async function bpProgDeepEnrich() {
           }
         }));
       }
-      try { renderBuildProgress(); } catch {}
+      progDeepRerender(live);
       frontier = next;
     }
   } finally {
-    bpProgDeepRunning = false;
-    try { renderBuildProgress(); } catch {}
+    try { progDeepActive.delete(src); } catch {}
+    progDeepRerender(live);
   }
 }
 
@@ -754,31 +854,63 @@ function goCrumb(i) {
   calculate();
 }
 
+// Collapse state for calculator breakdowns (tree + build list share it;
+// Build Progress keeps its own set so views don't fight).
+const calcCollapsed = new Set();
 function renderTree(runs) {
   const w = $('treeWrap'); if (!S.root) { w.innerHTML = ''; return; }
   const piKids = S.root.children.filter(c => isPI(c.type_id));
+  // Recursive display-only breakdowns: deep rows show prices but no toggles
+  // (toggles stay top-level only).
+  const renderTreeDeep = (mats, parentFull, productQty, depth, trail, ci, rx) => {
+    const batches = deepBatches(parentFull, productQty);
+    return mats.map(m => {
+      const tid = deepMatId(m);
+      if (!Number.isFinite(tid) || tid <= 0) return '';
+      const qty = Math.max(0, Math.floor(deepMatQty(m) * batches));
+      if (qty <= 0) return '';
+      const nm = m.name || ('Type ' + tid);
+      const sub = m._deep;
+      const pend = !sub && m._deepState === 'pending';
+      const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
+      const key = progKey(ci, trail.concat([tid]), depth, rx);
+      const open = !calcCollapsed.has(key);
+      const unit = m.unit || 0;
+      const kids = (sub && sub.materials && sub.materials.length && open)
+        ? '<div class="kids">' + renderTreeDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]), ci, sub.kind === 'rx') + '</div>'
+        : ((pend && open) ? '<div class="kids"><div class="rx-row prow"><span class="nm" style="color:var(--text3)">resolving sub-materials…</span></div></div>' : '');
+      return '<div class="rx-row prow"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="nm">' + nm + ' × ' + fmtN(qty) + '</span>'
+        + '<span class="row-tail"><span class="nums">' + fmtISK(unit) + ' ea</span><span class="nums">' + fmtISK(unit * qty) + '</span>'
+        + (hasKids ? '<button class="mode-btn" data-tree-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>' : '')
+        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</span></div>' + kids;
+    }).join('');
+  };
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
     '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) : '') + '</div><div class="kids">';
   S.root.children.forEach((c, i) => {
     const m = c.child ? (c.child.margin >= 0 ? '<span class="margin-pos">build margin +' + fmtISK(c.child.margin) + '</span>' : '<span class="margin-neg">build margin ' + fmtISK(c.child.margin) + '</span>') : (c.child === null && c._tried ? '' : '<span class="nums">checking build…</span>');
     const rm = c.reaction ? (c.reaction.margin >= 0 ? '<span class="margin-pos">react margin +' + fmtISK(c.reaction.margin) + '/u</span>' : '<span class="margin-neg">react margin ' + fmtISK(c.reaction.margin) + '/u</span>') + (c.reaction.estimate ? '<span class="nums" title="Output quantity estimated">est</span>' : '') : '';
     const rxBtn = c.reaction ? '<button class="mode-btn ' + (c.mode === 'react' ? 'on-react' : '') + '" data-i="' + i + '" data-m="react" title="' + c.reaction.formulaName + '">React</button>' : '';
-    let rxKids = '';
-    if (c.mode === 'react' && c.reaction) {
+    const topNeed = c.perRun * runs;
+    let rxKids = '', buildKids = '';
+    // Mirror the Progress model branches (child first, then reaction) so the
+    // calculator tree shows the same breakdowns in every mode.
+    if (c.child && c.child.materials && c.child.materials.length) {
+      buildKids = '<div class="kids">' + renderTreeDeep(c.child.materials, topNeed, c.child.productQty || 1, 1, [+c.type_id], i, false) + '</div>';
+    } else if (c.reaction && c.reaction.reagents && c.reaction.reagents.length) {
       const n = reactRunsNeeded(c);
-      rxKids = '<div class="kids">' + c.reaction.reagents.map(rg =>
-        '<div class="rx-row prow"><img src="https://images.evetech.net/types/' + rg.type_id + '/icon?size=32" onerror="this.style.display=\'none\'"><span class="nm">' + rg.name + ' × ' + fmtN(rg.quantity * n) + '</span><span class="row-tail"><span class="nums">' + fmtISK(rg.unit || 0) + ' ea</span><span class="nums">' + fmtISK((rg.unit || 0) * rg.quantity * n) + '</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(rg.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(rg.type_id) + '</span></div>'
-      ).join('') + '<div class="rx-note">' + c.reaction.formulaName + ' · ×' + fmtN(c.reaction.productQty) + ' per run · ' + n + ' run' + (n === 1 ? '' : 's') + ' for ' + fmtN(c.perRun * runs) + ' needed</div></div>';
+      rxKids = '<div class="kids">' + renderTreeDeep(c.reaction.reagents, topNeed, c.reaction.productQty || 1, 1, [+c.type_id], i, true) + '</div>'
+        + '<div class="rx-note">' + c.reaction.formulaName + ' · ×' + fmtN(c.reaction.productQty) + ' per run · ' + n + ' run' + (n === 1 ? '' : 's') + ' for ' + fmtN(c.perRun * runs) + ' needed</div>';
     }
     const nmHtml = c.child
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
     h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + (isMineable(c.type_id)
       ? '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>'
-      : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + '</div>';
+      : '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button><button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>' + rxBtn) + '</span><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
-  w.querySelectorAll('.mode-btn').forEach(b => b.onclick = async () => {
+  w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
     const idx = +b.dataset.i, mode = b.dataset.m;
     S.root.children[idx].mode = mode;
     try { bvModesSave(); } catch {}
@@ -787,6 +919,11 @@ function renderTree(runs) {
     if (mode === 'mine' || mode === 'buy' || isMineable(S.root.children[idx].type_id)) {
       try { planMining(undefined, { auto: true }); } catch {}
     }
+  });
+  w.querySelectorAll('[data-tree-exp]').forEach(b => b.onclick = () => {
+    const k = b.dataset.treeExp;
+    if (calcCollapsed.has(k)) calcCollapsed.delete(k); else calcCollapsed.add(k);
+    renderTree(runs);
   });
 }
 
@@ -895,12 +1032,33 @@ async function renderBuildList(runs) {
     totalRows += mats.length;
     html += '<details class="tree-node build" open style="margin-bottom:.6rem;padding:.6rem;background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--build);border-radius:8px"><summary style="cursor:pointer;display:flex;align-items:center;gap:.6rem;list-style:none"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:28px;height:28px;border-radius:4px;background:#111"><span class="nm" style="flex:1;font-weight:700">' + c.name + ' × ' + fmtN(need) + '</span><span class="pill build">BUILD</span><span class="nums">' + fmtISK(subTotal) + ' for ' + mats.length + ' raws · ×' + batches + ' batch' + (batches>1?'es':'') + '</span><span style="margin-left:auto;color:var(--text3)"><i class="fas fa-chevron-down"></i></span></summary>';
     html += '<div style="margin-top:.6rem;overflow-x:auto"><table class="bom"><thead><tr><th>Raw material</th><th>Qty</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody>';
-    for (const m of mats) {
-      const qty = (m.quantity || 0) * batches;
-      const tot = (m.unit || 0) * qty;
-      const clean = m.name || ('Type ' + m.type_id);
-      html += '<tr><td><img src="https://images.evetech.net/types/' + m.type_id + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + clean + (isPI(m.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(m.type_id) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(m.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(m.type_id) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(m.type_id) + mineIcon(m.type_id) + '</td></tr>';
-    }
+    const ci = S.root.children.indexOf(c);
+    // Recursive display-only sub-rows (same _deep data as Progress; subtotals stay depth-1).
+    const renderBuildDeep = (list, parentFull, productQty, depth, trail) => {
+      const b2 = deepBatches(parentFull, productQty);
+      return list.map(sm => {
+        const tid = deepMatId(sm);
+        if (!Number.isFinite(tid) || tid <= 0) return '';
+        const qty = Math.max(0, Math.floor(deepMatQty(sm) * b2));
+        if (qty <= 0) return '';
+        const nm = sm.name || ('Type ' + tid);
+        const unit = sm.unit || 0;
+        const tot = unit * qty;
+        const sub = sm._deep;
+        const pend = !sub && sm._deepState === 'pending';
+        const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
+        const key = progKey(ci, trail.concat([tid]), depth, false);
+        const open = !calcCollapsed.has(key);
+        const pad = 'padding-left:' + (0.4 + depth * 1.1) + 'rem';
+        let row = '<tr><td style="' + pad + '"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">'
+          + (hasKids ? '<button class="mode-btn" data-build-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '" style="padding:0 .3rem"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button> ' : '')
+          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</td></tr>';
+        if (sub && sub.materials && sub.materials.length && open) row += renderBuildDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]));
+        else if (pend && open) row += '<tr><td style="' + pad + 'color:var(--text3)">resolving sub-materials…</td><td></td><td></td><td></td><td></td></tr>';
+        return row;
+      }).join('');
+    };
+    html += renderBuildDeep(mats, need, prodQty, 1, [+c.type_id]);
     html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + mats.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a></p></details>';
   }
   if (aggregated.size > 1 && builds.filter(c=>c.child && c.child.materials).length > 1) {
@@ -917,6 +1075,11 @@ async function renderBuildList(runs) {
     grandVol = aggVol;
   }
   wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-build-exp]').forEach(b => b.onclick = async () => {
+    const k = b.dataset.buildExp;
+    if (calcCollapsed.has(k)) calcCollapsed.delete(k); else calcCollapsed.add(k);
+    try { await renderBuildList(S.runs || 1); } catch {}
+  });
   if (meta) meta.textContent = builds.length + ' item' + (builds.length>1?'s':'') + ' to build' + (builds.filter(c=>!c.child).length ? ' · ' + builds.filter(c=>!c.child).length + ' loading…' : '') + ' · raw ' + fmtISK(grandTotal);
   if (totals) totals.textContent = 'Raw total for Build List ' + fmtISK(grandTotal) + ' · Volume ~' + fmtN(Math.round(grandVol)) + ' m³ · ' + totalRows + ' material rows' + (aggregated.size ? ' · ' + aggregated.size + ' unique raws' : '');
   try { renderBuildProgress(); } catch {}
@@ -946,7 +1109,7 @@ function bpProgModel() {
   const pushDeep = (matTid, matFull, node, ancestors, depth, parentKey, ci) => {
     if (!node || !node.materials || !node.materials.length || depth > 12 || deepRows > 1000) return;
     if (ancestors.concat([+matTid]).length > 12) return;
-    const batches = Math.max(1, Math.ceil((matFull || 0) / Math.max(1, node.productQty || 1)));
+    const batches = deepBatches(matFull, node.productQty);
     for (const sm of node.materials) {
       const tid = deepMatId(sm);
       if (!Number.isFinite(tid) || tid <= 0) continue;
@@ -954,12 +1117,13 @@ function bpProgModel() {
       if (trail.indexOf(tid) !== trail.lastIndexOf(tid)) continue; // cycle guard
       const full = Math.max(0, Math.floor(deepMatQty(sm) * batches));
       if (full <= 0) continue;
-      const key = 'd' + ci + ':' + trail.join('>');
+      const key = progKey(ci, trail, depth, node.kind === 'rx');
       const sub = sm._deep;
       const pend = !sub && sm._deepState === 'pending';
+      const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
       deepRows++;
       rows.push({ key, typeId: tid, name: sm.name || ('Type ' + tid), qty: full, unit: sm.unit || 0, depth, mode: node.kind === 'rx' ? 'react' : 'buy', ci, parent: parentKey,
-        hasKids: !!(sub && sub.materials && sub.materials.length) || pend, pending: pend });
+        hasKids, pending: pend, path: trail.slice(1), maybe: !hasKids && !pend && !deepIsLeaf(tid) });
       if (sub) pushDeep(tid, full, sub, ancestors.concat([+matTid]), depth + 1, key, ci);
     }
   };
@@ -967,33 +1131,38 @@ function bpProgModel() {
     const need = c.perRun * runs;
     const basis = ($('basis') && $('basis').value) || 'sell';
     const unit = basis === 'buy' ? c.unitBuy : c.unitSell;
-    const topKey = 'c' + ci + ':' + c.type_id;
-    const top = { key: topKey, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci, parent: 'root', hasKids: false, pending: false };
+    const topKey = progKey(ci, [+c.type_id], 0, false);
+    const top = { key: topKey, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci, parent: 'root', hasKids: false, pending: false, path: [], maybe: false };
     rows.push(top);
     if (c.child && c.child.materials) {
       const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
-      const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
+      const batches = deepBatches(need, prodQty);
       for (const m of c.child.materials) {
-        const key = 'g' + ci + ':' + m.type_id;
+        const key = progKey(ci, [+c.type_id, +m.type_id], 1, false);
         const sub = m._deep;
         const pend = !sub && m._deepState === 'pending';
+        const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
         rows.push({ key, typeId: m.type_id, name: m.name || ('Type ' + m.type_id), qty: (m.quantity || 0) * batches, unit: m.unit || 0, depth: 1, mode: 'buy', ci, parent: topKey,
-          hasKids: !!(sub && sub.materials && sub.materials.length) || pend, pending: pend });
+          hasKids, pending: pend, path: [+m.type_id], maybe: !hasKids && !pend && !deepIsLeaf(+m.type_id) });
         if (sub) pushDeep(m.type_id, (m.quantity || 0) * batches, sub, [+c.type_id], 2, key, ci);
         top.hasKids = true;
       }
-    } else if (c.mode === 'react' && c.reaction && c.reaction.reagents) {
+    } else if (c.reaction && c.reaction.reagents) {
+      // Reaction reagents show in every mode (same as blueprint children
+      // above): the breakdown is informational, and countable when built.
       const n = reactRunsNeeded(c, runs);
       for (const rg of c.reaction.reagents) {
-        const key = 'r' + ci + ':' + rg.type_id;
+        const key = progKey(ci, [+c.type_id, +rg.type_id], 1, true);
         const sub = rg._deep;
         const pend = !sub && rg._deepState === 'pending';
+        const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
         rows.push({ key, typeId: rg.type_id, name: rg.name || ('Type ' + rg.type_id), qty: (rg.quantity || 0) * n, unit: rg.unit || 0, depth: 1, mode: 'react', ci, parent: topKey,
-          hasKids: !!(sub && sub.materials && sub.materials.length) || pend, pending: pend });
+          hasKids, pending: pend, path: [+rg.type_id], maybe: !hasKids && !pend && !deepIsLeaf(+rg.type_id) });
         if (sub) pushDeep(rg.type_id, (rg.quantity || 0) * n, sub, [+c.type_id], 2, key, ci);
         top.hasKids = true;
       }
     }
+    if (!top.hasKids) { try { top.maybe = !deepIsLeaf(+c.type_id); } catch {} }
   });
   return { rows, rootName: src.bpName, runs, pinned: !!selPin, selPin };
 }
@@ -1103,7 +1272,8 @@ function renderBuildProgress() {
         : (kids.length && open ? '<div class="kids">' + renderKids(s.key) + '</div>' : '');
       return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty)
         + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '')
-        + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>' : '')
+        + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>'
+          : (s.maybe ? '<button class="mode-btn" data-prog-resolve="' + s.ci + ':' + ((s.path || []).join('>')) + '" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
         + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a></span></div>' + kidsHtml;
     }).join('');
   };
@@ -1127,7 +1297,8 @@ function renderBuildProgress() {
       + '<span class="row-tail">'
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
-      + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgCollapsed.has(top.key) ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (bpProgCollapsed.has(top.key) ? 'down' : 'up') + '"></i></button>' : '')
+      + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgCollapsed.has(top.key) ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (bpProgCollapsed.has(top.key) ? 'down' : 'up') + '"></i></button>'
+        : (top.maybe ? '<button class="mode-btn" data-prog-resolve="' + ci + ':" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></span></div>'
       + kidsHtml
       + '</div>';
@@ -1172,13 +1343,60 @@ function renderBuildProgress() {
         return;
       }
       const b = e.target.closest('[data-pexp]');
-      if (!b) return;
-      const k = b.dataset.pexp;
-      if (bpProgCollapsed.has(k)) bpProgCollapsed.delete(k); else bpProgCollapsed.add(k);
-      renderBuildProgress();
+      if (b) {
+        const k = b.dataset.pexp;
+        if (bpProgCollapsed.has(k)) bpProgCollapsed.delete(k); else bpProgCollapsed.add(k);
+        renderBuildProgress();
+        return;
+      }
+      // On-demand resolve for rows with no recipe data yet (missed/slow
+      // background lookup, pinned-before-enrichment, or Reactions off).
+      // Bypasses the Reactions gate for display only — costing untouched.
+      const rs = e.target.closest('[data-prog-resolve]');
+      if (rs) {
+        const raw = String(rs.dataset.progResolve || '');
+        const cpos = raw.indexOf(':');
+        const ci = +(cpos < 0 ? raw : raw.slice(0, cpos));
+        const path = (cpos < 0 ? '' : raw.slice(cpos + 1)).split('>').map(Number).filter(n => Number.isFinite(n) && n > 0);
+        progDeepResolveOne(ci, path);
+        return;
+      }
     });
   }
   bpProgRefreshHead();
+}
+// Resolve a single row on demand (chevron click): bare top-level child or a
+// material at path. Busts null-caches so transient failures retry.
+async function progDeepResolveOne(ci, path) {
+  try {
+    const src = (typeof bpProgSource === 'function') ? bpProgSource() : null;
+    if (!src || !src.children || !Number.isFinite(ci)) return;
+    if (!path || !path.length) {
+      const c = src.children[ci];
+      if (!c || c.child || (c.mode === 'react' && c.reaction)) { renderBuildProgress(); return; }
+      try { deepCache.delete(+c.type_id); } catch {}
+      try { reactCache.delete('rx' + (+c.type_id)); } catch {}
+      status('Resolving ' + (c.name || ('Type ' + c.type_id)) + '…');
+      await progDeepResolveTop(c, true);
+      renderBuildProgress();
+      try { renderTree(S.runs || 1); } catch {}
+    } else {
+      const m = progFindMaterial(src, ci, path);
+      if (!m) return;
+      if (m._deep) { renderBuildProgress(); return; }
+      const tid = deepMatId(m);
+      try { deepCache.delete(tid); } catch {}
+      try { reactCache.delete('rx' + tid); } catch {}
+      try { m._deepState = 'pending'; } catch {}
+      renderBuildProgress();
+      let node = null;
+      try { node = await deepResolve(tid, m.name || ('Type ' + tid), [], true); } catch {}
+      if (node && node.materials) { try { await deepPriceUnits(node); } catch {} }
+      try { m._deep = (node && node.materials && node.materials.length) ? node : null; m._deepState = 'done'; } catch {}
+      renderBuildProgress();
+    }
+    try { bpProgDeepEnrich(); } catch {}
+  } catch {}
 }
 function bpProgExportText() {
   const { rows, rootName, runs } = bpProgModel();
@@ -1189,7 +1407,7 @@ function bpProgExportText() {
   const lines = [rootName + ' ×' + runs + ' ' + (ticked['root'] ? '[x]' : '[ ]')];
   for (const r of rows) {
     if (r.depth < 0) continue;
-    const pad = r.depth === 1 ? '  ' : '';
+    const pad = r.depth > 0 ? new Array(Math.min(r.depth, 4) + 1).join('  ') : '';
     const have = hasInv ? ' (have ' + fmtN(invAgg[r.typeId] || 0) + ')' : '';
     lines.push(pad + cleanName(r.name) + ' ×' + fmtN(r.qty) + have + ' ' + (ticked[r.key] ? '[x]' : '[ ]'));
   }
@@ -1337,7 +1555,7 @@ async function bvMailExpand(items, maxDepth, onProgress) {
     const node = await deepResolve(parentTid, parentName, ancestors);
     resolved++; prog();
     if (!node || !node.materials || !node.materials.length) return [];
-    const batches = Math.max(1, Math.ceil((parentFull || 0) / Math.max(1, node.productQty || 1)));
+    const batches = deepBatches(parentFull, node.productQty);
     const subs = [];
     for (const m of node.materials) {
       const tid = deepMatId(m);
@@ -1345,9 +1563,7 @@ async function bvMailExpand(items, maxDepth, onProgress) {
       const full = Math.max(0, Math.floor(deepMatQty(m) * batches));
       if (full <= 0) continue;
       if (!m.name) { try { m.name = await typeName(tid); } catch { m.name = 'Type ' + tid; } }
-      const ck = (depth === 1)
-        ? ((node.kind === 'rx' ? 'r' : 'g') + ci + ':' + tid)
-        : ('d' + ci + ':' + ancestors.concat([+parentTid, tid]).join('>'));
+      const ck = progKey(ci, ancestors.concat([+parentTid, tid]), depth, node.kind === 'rx');
       if (ticked[ck]) continue;
       const toSend = deduct(tid, full);
       if (toSend <= 0) continue;
@@ -1574,7 +1790,7 @@ function buildRawLines() {
   for (const c of S.root.children.filter(x=>x.mode==='build' && x.child && x.child.materials)) {
     const need = c.perRun * (S.runs||1);
     const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
-    const batches = Math.max(1, Math.ceil(need / Math.max(1, prodQty)));
+    const batches = deepBatches(need, prodQty);
     for (const m of c.child.materials) {
       const qty = (m.quantity||0) * batches;
       const nm = m.name || ('Type ' + m.type_id);
