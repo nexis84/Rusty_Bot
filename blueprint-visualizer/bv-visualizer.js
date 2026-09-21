@@ -960,12 +960,151 @@ const BV_MAIL_MAX_PARTS = 3;
 const BV_MAIL_CHUNK = 9500;
 function bvMailStatus(m) { try { const el = $('mailStatus'); if (el) el.textContent = m || ''; } catch {} if (m) status(m); }
 function bvMailEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+// ---- Grouped Evemail sections (Full industry split, fixed order) ----
+// Priority: minerals > ice > PI (by tier) > gas > moon > components > other.
+// Uses only offline/runtime sources — no extra ESI calls at mail time.
+function bvMailPiTierNum(typeId) {
+  try {
+    const P = (typeof PI_DATA !== 'undefined' ? PI_DATA : (typeof window !== 'undefined' && window.PI_DATA ? window.PI_DATA : null));
+    const m = P && P.materials && P.materials[String(typeId)];
+    const t = m ? +m.tier : NaN;
+    return Number.isFinite(t) ? t : null;
+  } catch { return null; }
+}
+let bvMailGasSet = null;
+function bvMailGasMats() {
+  if (bvMailGasSet) return bvMailGasSet;
+  bvMailGasSet = new Set();
+  try {
+    // BV_ORES is defined further below — only touched at mail time (post-eval), so no TDZ issue.
+    for (const [, e] of BV_ORES) {
+      if (!e || e.category !== 2 || !e.yields) continue;
+      for (const mid of Object.keys(e.yields)) bvMailGasSet.add(+mid);
+    }
+  } catch {}
+  return bvMailGasSet;
+}
+function bvMailIsGas(typeId, name) {
+  try { if (bvMailGasMats().has(+typeId)) return true; } catch {}
+  try { if (/gas|fuller|mykoserocin|cytoserocin/i.test(String(name || ''))) return true; } catch {}
+  return false;
+}
+function bvMailIsMoon(typeId) {
+  try { if (BV_MINE_MATS && BV_MINE_MATS.has(+typeId)) return true; } catch {}
+  return false;
+}
+// Returns section key: minerals|ice|pi4|pi3|pi2|pi1|pi0|gas|moon|components|other
+function bvMailGroup(it) {
+  const id = +it.typeId;
+  try { if (isMineral(id)) return 'minerals'; } catch {}
+  try { if (iceProductIds && iceProductIds.has(id)) return 'ice'; } catch {}
+  try {
+    if (isPI(id)) {
+      const t = bvMailPiTierNum(id);
+      if (t === 4) return 'pi4';
+      if (t === 3) return 'pi3';
+      if (t === 2) return 'pi2';
+      if (t === 1) return 'pi1';
+      if (t === 0) return 'pi0';
+      return 'pi0';
+    }
+  } catch {}
+  if (bvMailIsGas(id, it.name)) return 'gas';
+  if (bvMailIsMoon(id)) return 'moon';
+  if (it.buildable) return 'components';
+  return 'other';
+}
+const BV_MAIL_SECTIONS = [
+  { key: 'minerals', title: 'MINERALS' },
+  { key: 'ice', title: 'ICE PRODUCTS' },
+  { key: 'pi4', title: 'PI — P4' },
+  { key: 'pi3', title: 'PI — P3' },
+  { key: 'pi2', title: 'PI — P2' },
+  { key: 'pi1', title: 'PI — P1' },
+  { key: 'pi0', title: 'PI — P0' },
+  { key: 'gas', title: 'GAS & FULLERENES' },
+  { key: 'moon', title: 'MOON MATERIALS' },
+  { key: 'components', title: 'COMPONENTS' },
+  { key: 'other', title: 'OTHER MATERIALS' }
+];
+function bvMailBuildSections(items, fmtLine) {
+  const byKey = new Map();
+  for (const it of (items || [])) {
+    const k = bvMailGroup(it);
+    if (!byKey.has(k)) byKey.set(k, []);
+    byKey.get(k).push(it);
+  }
+  const out = [];
+  for (const s of BV_MAIL_SECTIONS) {
+    const list = byKey.get(s.key);
+    if (!list || !list.length) continue;
+    // Stable order within a section: top-level first, then name A-Z.
+    list.sort((a, b) => ((a.depth || 0) - (b.depth || 0)) || String(a.name || '').localeCompare(String(b.name || '')));
+    out.push({ key: s.key, title: s.title + ' (' + list.length + ')', lines: list.map(fmtLine) });
+  }
+  return out;
+}
+// Group-aware chunker: keeps a whole section in one part when possible.
+// Oversized single sections split across parts with a "(cont.)" header.
+function bvMailChunkGrouped(header, sections, footer) {
+  const parts = [];
+  let cur = header;
+  const push = () => { parts.push(cur); cur = header; };
+  for (const sec of (sections || [])) {
+    const head = '-- ' + sec.title + ' --';
+    const block = [head].concat(sec.lines || []);
+    const blockText = block.join('\n');
+    // Whole block fits in a fresh part but not in the remainder → spill whole.
+    if ((cur !== header) && ((cur + '\n\n' + blockText + (footer ? '\n' + footer : '')).length > BV_MAIL_CHUNK)) {
+      push();
+    }
+    // Fits (in remainder or fresh) → append atomically.
+    const asOne = (cur === header ? cur + blockText : cur + '\n\n' + blockText);
+    if (asOne.length <= BV_MAIL_CHUNK || cur === header) {
+      if (asOne.length <= BV_MAIL_CHUNK) { cur = asOne; continue; }
+      // Single block alone exceeds the cap → split its lines across parts.
+    } else {
+      push();
+    }
+    // Split one oversized section line-by-line (header repeats with cont.).
+    let first = (cur === header);
+    let secHead = head;
+    for (let i = 0; i < block.length; i++) {
+      const line = (i === 0) ? secHead : block[i];
+      const seg = (cur === header) ? line : '\n' + line;
+      if ((cur + seg).length > BV_MAIL_CHUNK && cur !== header) {
+        push();
+        secHead = head + ' (cont.)';
+        cur = header + secHead;
+        if (i === 0) continue;
+        cur += '\n' + block[i];
+      } else {
+        cur += seg;
+        if (i === 0 && !first) { /* head placed */ }
+      }
+      first = false;
+    }
+  }
+  if (footer) cur += '\n' + footer;
+  parts.push(cur);
+  return parts;
+}
 function bvMailRemainingItems() {
   const { rows, rootName, runs } = bpProgModel();
   const ticked = bpProgRead();
   let invAgg = {};
   try { invAgg = stkDeductMap() || {}; } catch {}
   const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg).length > 0;
+  // Buildable lookup for COMPONENTS grouping: top-level rows whose material
+  // resolved to a sub-blueprint or reaction formula.
+  let src = null;
+  try { src = (typeof bpProgSource === 'function') ? bpProgSource() : null; } catch { src = null; }
+  const buildableTop = new Set();
+  try {
+    (src && src.children ? src.children : []).forEach((c, ci) => {
+      if (c && (c.child || c.reaction)) buildableTop.add(ci);
+    });
+  } catch {}
   const items = [];
   for (const r of rows) {
     if (r.depth < 0 || ticked[r.key]) continue;
@@ -976,7 +1115,8 @@ function bvMailRemainingItems() {
     if (toSend <= 0) continue;
     const typeId = +r.typeId;
     if (!Number.isFinite(typeId) || typeId <= 0) continue;
-    items.push({ typeId, name: cleanName(r.name || ('Type ' + r.typeId)), qty: toSend, depth: r.depth });
+    const ci = (r && r.ci !== undefined) ? +r.ci : null;
+    items.push({ typeId, name: cleanName(r.name || ('Type ' + r.typeId)), qty: toSend, depth: r.depth, buildable: (r.depth === 0 && ci !== null && buildableTop.has(ci)) });
   }
   return { items, rootName, runs };
 }
@@ -1008,21 +1148,22 @@ async function sendProgMail() {
     if (!src || !src.children || !src.children.length) { bvMailStatus('Run a calculation or pin a build first.'); return; }
     const { items, rootName, runs } = bvMailRemainingItems();
     if (!items.length) { bvMailStatus('Nothing remaining — all materials ticked or covered by inventory.'); return; }
+    try { await ensureIceProducts(); } catch {}
     const t = window.BVAuth && BVAuth.tokens();
     if (!t || !t.access_token) { bvMailStatus('SSO session expired — sign in again.'); return; }
     const dateStr = new Date().toISOString().slice(0, 10);
     const title = (rootName || 'Build') + ' ×' + (runs || 1);
-    // Linked form first.
-    const linkedLines = items.map(it => (it.depth === 1 ? '  ' : '- ') + '<url=showinfo:' + it.typeId + '>' + bvMailEsc(it.name) + '</url> x' + fmtN(it.qty));
+    // Grouped linked form first (sections in fixed industry order).
+    const fmtLinked = it => (it.depth === 1 ? '  ' : '- ') + '<url=showinfo:' + it.typeId + '>' + bvMailEsc(it.name) + '</url> x' + fmtN(it.qty);
+    const fmtText = it => (it.depth === 1 ? '  ' : '- ') + it.name + ' x' + fmtN(it.qty);
     const linkedHeader = title + ' — remaining materials (' + dateStr + ')\nSent from Blueprint Visualizer by RustyBot\n\n';
-    let parts = bvMailChunk(linkedHeader, linkedLines, '');
+    let parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(items, fmtLinked), '');
     let linked = true;
     if (parts.length > BV_MAIL_MAX_PARTS) {
       bvMailStatus('Build too large for linked Evemail (needs ' + parts.length + ' mails, cap is 3) — will send as plain text without clickable links.');
       const ok = window.confirm('This build is too large for linked Evemail (would need ' + parts.length + ' mails, max is 3).\n\nSend as plain text instead (no clickable item links)?\n\nOK = send text-only · Cancel = abort');
       if (!ok) { bvMailStatus('Evemail send cancelled — no mails sent.'); return; }
-      const textLines = items.map(it => (it.depth === 1 ? '  ' : '- ') + it.name + ' x' + fmtN(it.qty));
-      parts = bvMailChunk(linkedHeader, textLines, '');
+      parts = bvMailChunkGrouped(linkedHeader, bvMailBuildSections(items, fmtText), '');
       linked = false;
       if (parts.length > BV_MAIL_MAX_PARTS) {
         // Absolute cap: keep first 3, note truncation in the last part.
