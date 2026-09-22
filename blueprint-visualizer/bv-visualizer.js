@@ -92,6 +92,17 @@ async function openInGame(typeId) {
     try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); }
     return;
   }
+  // Session predates the in-client window scope — the call would 403. Offer a
+  // one-click re-login instead of a confusing failure.
+  if (needsOpenWinScope()) {
+    try { updateScopeNudge(); } catch {}
+    if (confirm('Open in game needs an updated sign-in. Sign out and sign back in now?')) {
+      try { BVAuth.logout(); } catch {}
+    } else {
+      status('Sign out and back in to enable Open in game.');
+    }
+    return;
+  }
   const url = ESI + '/ui/openwindow/marketdetails/?type_id=' + id;
   const attempt = tok => fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
   try {
@@ -102,7 +113,7 @@ async function openInGame(typeId) {
       try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) r = await attempt(token); } catch {}
     }
     if (r.status === 204 || r.ok) { status('Opened ' + id + ' in your EVE client.'); return; }
-    if (r.status === 403) { status('In-game permission missing — sign out and back in to grant it.'); return; }
+    if (r.status === 403) { status('In-game permission missing — sign out and back in to grant it.'); try { updateScopeNudge(); } catch {} return; }
     status('Could not open in game (ESI ' + r.status + ').');
   } catch (e) {
     const m = String((e && e.message) || e);
@@ -242,7 +253,31 @@ function init() {
   document.querySelectorAll('[data-mainview]').forEach(b => b.onclick = () => { switchMainView(b.dataset.mainview); try { localStorage.setItem('bvActiveView', b.dataset.mainview); } catch {} });
   // Resume preference toggle
   try { if ($('resumeLast')) $('resumeLast').checked = localStorage.getItem('bvResume') !== '0'; } catch {}
-  updateSsoBtn(); renderLedger();
+  updateSsoBtn(); renderLedger(); updateScopeNudge();
+}
+// The in-game button needs esi-ui.open_window.v1, which only exists on
+// sessions created after the scope was added. Nudge such users (once, until
+// dismissed) to sign out and back in.
+const BV_OPENWIN_SCOPE = 'esi-ui.open_window.v1';
+function needsOpenWinScope() {
+  try { return !!(window.BVAuth && BVAuth.signedIn()) && !BVAuth.hasScope(BV_OPENWIN_SCOPE); } catch { return false; }
+}
+function updateScopeNudge() {
+  const box = $('scopeNudge'); if (!box) return;
+  let dismissed = false;
+  try { dismissed = localStorage.getItem('bvOpenWinNudgeDismissed') === '1'; } catch {}
+  // Session now has the scope — clear any stale dismissal so a future scope
+  // addition can nudge again.
+  if (!needsOpenWinScope()) {
+    try { localStorage.removeItem('bvOpenWinNudgeDismissed'); } catch {}
+    box.style.display = 'none'; box.innerHTML = '';
+    return;
+  }
+  if (dismissed) { box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = '';
+  box.innerHTML = '<i class="fas fa-circle-info"></i> <span style="flex:1">Re-login to enable <b>Open in game</b> — your session predates the new in-client permission.</span><button class="mode-btn" id="scopeNudgeRe">Sign out &amp; back in</button><button class="mode-btn" id="scopeNudgeX" title="Dismiss">×</button>';
+  const re = $('scopeNudgeRe'); if (re) re.onclick = () => { try { BVAuth.logout(); } catch {} };
+  const x = $('scopeNudgeX'); if (x) x.onclick = () => { try { localStorage.setItem('bvOpenWinNudgeDismissed', '1'); } catch {} updateScopeNudge(); };
 }
 function savePrefs() {
   const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource', 'stkAllSystems'];
@@ -4832,7 +4867,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (S.reactionsOn) { status('Reactions ON — resolving formulas…'); enrichChildren(S.runs || 1); }
     else status('Reactions OFF — reaction materials priced from market.');
   };
-  $('ssoBtn').onclick = async () => { if (window.BVAuth && BVAuth.signedIn()) { if (confirm('Sign out?')) BVAuth.logout(); return; } try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + e.message); } };
+  $('ssoBtn').onclick = async () => {
+    if (window.BVAuth && BVAuth.signedIn()) {
+      if (confirm('Sign out?')) BVAuth.logout();
+      return;
+    }
+    try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + e.message); }
+  };
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;

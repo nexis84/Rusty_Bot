@@ -20,6 +20,18 @@
   function tokens() { try { return JSON.parse(localStorage.getItem('bv_esi_tokens') || 'null'); } catch { return null; } }
   function saveTokens(t) { try { localStorage.setItem('bv_esi_tokens', JSON.stringify(t)); } catch {} }
   function char_() { try { return JSON.parse(localStorage.getItem('bv_esi_char') || 'null'); } catch { return null; } }
+  // The granted scopes live in the access token's `scp` claim — decode locally
+  // (no network) so we can spot sessions created before a new scope was added.
+  function tokenScopes() {
+    try {
+      const t = tokens();
+      if (!t || !t.access_token) return [];
+      const payload = JSON.parse(atob(t.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      const scp = payload.scp || payload.scope || [];
+      if (Array.isArray(scp)) return scp;
+      return String(scp).split(/\s+/).filter(Boolean);
+    } catch { return []; }
+  }
   function expired(t) {
     // No timestamp (legacy sessions) counts as expired — the refresh below
     // will either renew it or fail cleanly into "sign in again".
@@ -67,6 +79,9 @@
   window.BVAuth = {
     tokens, character: char_,
     signedIn() { return !!tokens(); },
+    // Full granted scope list for the current session ([] when signed out).
+    scopes() { return tokenScopes(); },
+    hasScope(scope) { return tokenScopes().indexOf(scope) >= 0; },
     // Guaranteed-fresh access token for call sites that can't go through
     // api() (backend POSTs, oauth/verify). Proactively refreshes via the
     // shared single-flight refresh(); throws "SSO session expired" when

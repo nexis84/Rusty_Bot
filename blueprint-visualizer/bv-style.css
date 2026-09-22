@@ -101,6 +101,9 @@ table.bom th{color:var(--accent);font-size:.72rem;text-transform:uppercase;lette
 .game-link:hover{opacity:.8}
 .game-link img{height:14px;width:14px;vertical-align:middle;object-fit:contain}
 .game-link i{vertical-align:middle}
+.scope-nudge{display:flex;align-items:center;gap:.6rem;background:rgba(127,212,255,.08);border-bottom:1px solid rgba(127,212,255,.4);padding:.45rem .9rem;font-size:.82rem;color:var(--text2)}
+.scope-nudge i{color:#7fd4ff}
+.scope-nudge .mode-btn{margin-left:.2rem}
 .pi-banner{display:flex;align-items:center;gap:.6rem;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.4);border-radius:8px;padding:.55rem .8rem;margin:.6rem 0;font-size:.82rem}
 .pi-banner a{color:#3fb950;font-weight:700}
 .pill{display:inline-block;font-size:.7rem;border:1px solid var(--border);border-radius:20px;padding:.1rem .55rem;color:var(--text2)}
