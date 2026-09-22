@@ -87,7 +87,6 @@ function gameLink(typeId) {
 async function openInGame(typeId) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return;
-  console.log('[BV] openInGame click', id, 'signedIn=', !!(window.BVAuth && BVAuth.signedIn()));
   if (!(window.BVAuth && BVAuth.signedIn())) {
     status('Sign in to open items in game…');
     try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); }
@@ -110,14 +109,19 @@ async function openInGame(typeId) {
   const attempt = tok => fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
   try {
     let token = await BVAuth.getAccessToken();
-    console.log('[BV] openInGame: token scopes =', (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return '?'; } })());
     let r = await attempt(token);
-    console.log('[BV] openInGame: ESI POST status', r.status);
     if (r.status === 401) {
       // Token died mid-session: one refresh + retry.
-      try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) { r = await attempt(token); console.log('[BV] openInGame: ESI retry status', r.status); } } catch {}
+      try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) r = await attempt(token); } catch {}
     }
-    if (r.status === 204 || r.ok) { status('Opened ' + id + ' in your EVE client (ESI ' + r.status + ').'); return; }
+    if (r.status === 204 || r.ok) {
+      // ESI accepts and dispatches, but there is a long-standing CCP bug where
+      // the client (Photon UI) silently ignores the open request (esi-issues
+      // #1349) — and type_id must be sent as a query param (#1490), which we do.
+      console.log('[BV] openInGame: ESI accepted (204) for type', id);
+      status('Sent to EVE — if nothing opens, it\'s a known in-client bug (not a share).');
+      return;
+    }
     if (r.status === 403) {
       const sc = (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return ''; } })();
       status('In-game permission missing (403). Sign out and back in.');
