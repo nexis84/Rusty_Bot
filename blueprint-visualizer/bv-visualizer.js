@@ -236,8 +236,12 @@ function init() {
     document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); $('tab-' + b.dataset.tab).classList.add('active');
+    try { localStorage.setItem('bvActiveTab', b.dataset.tab); } catch {}
+    if (b.dataset.tab === 'ledger') { try { renderSavedList(); } catch {} }
   });
-  document.querySelectorAll('[data-mainview]').forEach(b => b.onclick = () => switchMainView(b.dataset.mainview));
+  document.querySelectorAll('[data-mainview]').forEach(b => b.onclick = () => { switchMainView(b.dataset.mainview); try { localStorage.setItem('bvActiveView', b.dataset.mainview); } catch {} });
+  // Resume preference toggle
+  try { if ($('resumeLast')) $('resumeLast').checked = localStorage.getItem('bvResume') !== '0'; } catch {}
   updateSsoBtn(); renderLedger();
 }
 function savePrefs() {
@@ -393,7 +397,8 @@ const navStack = [];
 let pendingNeed = null;
 
 // ---- main calculate ----
-async function calculate() {
+async function calculate(opts) {
+  opts = opts || {};
   savePrefs();
   const name = $('bpName').value.trim(); if (!name) { status('Enter a blueprint name.'); return; }
   let runs = Math.max(1, parseInt($('runs').value) || 1);
@@ -479,7 +484,9 @@ async function calculate() {
   renderCrumbs(bpRef.name);
   renderTree(runs);
   renderBom(runs);
-  pushLedger({ ts: Date.now(), bp: bpRef.name, bpId: bpRef.id, runs, cost: Math.round(totalCash), revenue: Math.round(revenue), profit: Math.round(profitCash), hub: region, mined: Math.round(cash.mined) });
+  if (!opts.noLedger) pushLedger({ ts: Date.now(), bp: bpRef.name, bpId: bpRef.id, runs, cost: Math.round(totalCash), revenue: Math.round(revenue), profit: Math.round(profitCash), hub: region, mined: Math.round(cash.mined) });
+  // Remember this view so the next visit resumes exactly here (bp + drill path).
+  try { localStorage.setItem('bvLastCalc', JSON.stringify({ state: collectState(), ts: Date.now() })); } catch {}
   // async: resolve sub-blueprints for buildable children
   enrichChildren(runs);
   status('Done. Toggle Build/Buy on sub-components; sub-BOMs resolve in background.' + (modesRestored > 0 ? ' (' + modesRestored + ' saved toggle' + (modesRestored === 1 ? '' : 's') + ' restored.)' : ''));
@@ -2833,8 +2840,24 @@ function renderQueue() {
 }
 
 // ---- Ledger + sharing ----
+const LEDGER_MAX = 200;
+const LEDGER_STATE_MAX = 25;            // keep full state only on the newest N
+const LEDGER_BUDGET_BYTES = 1.5 * 1024 * 1024;
 function ledRead() { try { return JSON.parse(localStorage.getItem('bvLedger') || '[]'); } catch { return []; } }
-function pushLedger(e) { try { e.st = collectState(); } catch {} const l = ledRead(); l.unshift(e); try { localStorage.setItem('bvLedger', JSON.stringify(l.slice(0, 200))); } catch {} renderLedger(); }
+function ledWrite(l) {
+  // Full state only on the newest LEDGER_STATE_MAX entries; strip beyond.
+  const list = (l || []).slice(0, LEDGER_MAX);
+  for (let i = LEDGER_STATE_MAX; i < list.length; i++) { if (list[i] && list[i].st) delete list[i].st; }
+  // Total-size guard: strip state from oldest entries until under budget.
+  let json = JSON.stringify(list);
+  if (json.length > LEDGER_BUDGET_BYTES) {
+    for (let i = list.length - 1; i >= 0 && json.length > LEDGER_BUDGET_BYTES; i--) {
+      if (list[i] && list[i].st) { delete list[i].st; json = JSON.stringify(list); }
+    }
+  }
+  try { localStorage.setItem('bvLedger', json); } catch {}
+}
+function pushLedger(e) { try { e.st = collectState(); } catch {} const l = ledRead(); l.unshift(e); ledWrite(l); renderLedger(); }
 function renderLedger() {
   const l = ledRead(); const box = $('ledgerList'); if (!box) return;
   box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <a class="mkt-link" href="#" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></a></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
@@ -2852,9 +2875,12 @@ function collectState() {
   const bpId = (S.root && S.root.bpId) || null;
   let modes = null;
   try { if (bpId) { const m = bvModesRead()[String(bpId)]; if (m && Object.keys(m).length) modes = m; } } catch {}
-  return { v: 1, bp: { bpName, runs, bpId: bpId ? +bpId : null }, inputs, modes };
+  let nav = [];
+  try { nav = (navStack || []).map(e => ({ bp: e.bp, runs: e.runs })); } catch {}
+  return { v: 1, bp: { bpName, runs, bpId: bpId ? +bpId : null }, inputs, modes, nav };
 }
-function applyState(st) {
+function applyState(st, opts) {
+  opts = opts || {};
   if (!st || typeof st !== 'object') return false;
   const inputs = st.inputs || {};
   for (const k of Object.keys(inputs)) { const el = $(k); if (el && inputs[k] !== undefined) el.value = inputs[k]; }
@@ -2863,10 +2889,16 @@ function applyState(st) {
   if (st.modes && st.bp && st.bp.bpId) {
     try { const all = bvModesRead(); all[String(st.bp.bpId)] = st.modes; bvModesWrite(all); } catch {}
   }
+  // Restore the exact drill-down trail so we land on the same sub-component.
+  try {
+    navStack.length = 0;
+    if (Array.isArray(st.nav)) for (const e of st.nav) { if (e && e.bp) navStack.push({ bp: e.bp, runs: parseInt(e.runs, 10) || 1 }); }
+    pendingNeed = null;
+  } catch {}
   // Drop the in-memory deep-mode cache so calculate() re-reads the seeded store.
   try { S._deepModes = null; S._deepModesBp = null; } catch {}
   savePrefs();
-  calculate();
+  calculate({ noLedger: !!opts.noLedger });
   return true;
 }
 async function createShareCode(state) {
@@ -2898,46 +2930,141 @@ async function shareLedgerEntry(i) {
   const e = (ledRead() || [])[i]; if (!e) return;
   status('Creating share link…');
   try {
-    const state = e.st || { v: 1, bp: { bpName: e.bp, runs: e.runs, bpId: e.bpId ? +e.bpId : null }, inputs: {}, modes: null };
+    const state = e.st || { v: 1, bp: { bpName: e.bp, runs: e.runs, bpId: e.bpId ? +e.bpId : null }, inputs: e.hub ? { hubSelect: e.hub } : {}, modes: null, nav: [] };
     const code = await createShareCode(state);
     await copyText(shareUrlFor(code), 'Share link copied to clipboard.');
   } catch (err) { status('Share link failed: ' + (err && err.message ? err.message : err)); }
 }
-async function saveCurrent() {
+
+// ---- Local saves (browser-only, no login) ----
+const LOCAL_SAVES_KEY = 'bvLocalSaves';
+const LOCAL_SAVES_MAX = 30;
+let accountSavesCache = null;
+function localSavesRead() { try { const v = JSON.parse(localStorage.getItem(LOCAL_SAVES_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } }
+function localSavesWrite(list) {
+  const trimmed = (list || []).slice(0, LOCAL_SAVES_MAX);
+  try { localStorage.setItem(LOCAL_SAVES_KEY, JSON.stringify(trimmed)); return true; }
+  catch { try { localStorage.setItem(LOCAL_SAVES_KEY, JSON.stringify(trimmed.slice(0, 10))); return true; } catch { status('Browser storage full — old saves kept.'); return false; } }
+}
+function localSaveId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function saveLocal(name) {
   if (!S.root || !S.root.bpId) { status('Run a calculation first.'); return; }
-  if (!(window.BVAuth && BVAuth.signedIn())) { status('Sign in to save calculations…'); try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); } return; }
+  if (!name) return;
+  const list = localSavesRead();
+  list.unshift({ id: localSaveId(), name: String(name).slice(0, 80), ts: Date.now(), state: collectState() });
+  localSavesWrite(list);
+  renderSavedList();
+  status('Saved “' + name + '” locally.');
+}
+function loadLocal(id) {
+  const e = localSavesRead().find(x => x && x.id === id); if (!e || !e.state) { status('Save not found.'); return; }
+  applyState(e.state);
+}
+function deleteLocal(id) { localSavesWrite(localSavesRead().filter(x => x && x.id !== id)); renderSavedList(); }
+async function shareLocal(id) {
+  const e = localSavesRead().find(x => x && x.id === id); if (!e || !e.state) { status('Save not found.'); return; }
+  status('Creating share link…');
+  try { const code = await createShareCode(e.state); await copyText(shareUrlFor(code), 'Share link copied to clipboard.'); }
+  catch (err) { status('Share link failed: ' + (err && err.message ? err.message : err)); }
+}
+async function syncLocal(id) {
+  const e = localSavesRead().find(x => x && x.id === id); if (!e || !e.state) { status('Save not found.'); return; }
+  if (!(window.BVAuth && BVAuth.signedIn())) {
+    status('Sign in to sync…');
+    try { await BVAuth.login(); } catch (er) { status('SSO unavailable: ' + (er && er.message ? er.message : er)); }
+    return;
+  }
+  status('Syncing…');
+  try {
+    const code = await createShareCode(e.state);
+    const token = await BVAuth.getAccessToken();
+    const r = await fetch(BV_API + '/api/bv/saves', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name: e.name, code }) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const list = localSavesRead(); const cur = list.find(x => x && x.id === id); if (cur) { cur.synced = code; }
+    localSavesWrite(list);
+    accountSavesCache = null;
+    status('Synced “' + e.name + '” to your account.');
+    renderSavedList();
+  } catch (err) { status('Sync failed: ' + (err && err.message ? err.message : err)); }
+}
+function exportLocalSaves() {
+  const list = localSavesRead();
+  if (!list.length) { status('No local saves to export.'); return; }
+  const blob = new Blob([JSON.stringify({ v: 1, saves: list })], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'bv-saves.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  status('Exported ' + list.length + ' local save' + (list.length === 1 ? '' : 's') + '.');
+}
+async function importLocalSaves(file) {
+  if (!file) return;
+  try {
+    const txt = await file.text();
+    const j = JSON.parse(txt);
+    const incoming = Array.isArray(j) ? j : (j && Array.isArray(j.saves) ? j.saves : []);
+    if (!incoming.length) { status('No saves found in that file.'); return; }
+    const list = localSavesRead();
+    const have = new Set(list.map(x => x && x.id));
+    let added = 0;
+    for (const s of incoming) {
+      if (!s || !s.state) continue;
+      const id = (s.id && !have.has(s.id)) ? String(s.id) : localSaveId();
+      list.unshift({ id, name: String(s.name || 'Imported').slice(0, 80), ts: s.ts || Date.now(), state: s.state, synced: s.synced || undefined });
+      have.add(id); added++;
+    }
+    localSavesWrite(list);
+    renderSavedList();
+    status('Imported ' + added + ' save' + (added === 1 ? '' : 's') + '.');
+  } catch (e) { status('Import failed: ' + (e && e.message ? e.message : e)); }
+}
+function importLocalSavesClick() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (f) importLocalSaves(f); };
+  inp.click();
+}
+function saveCurrent() {
+  if (!S.root || !S.root.bpId) { status('Run a calculation first.'); return; }
   const name = prompt('Name this calculation:', (S.root.bpName || 'Calculation') + ' ×' + (S.runs || 1));
   if (!name) return;
-  status('Saving…');
-  try {
-    const code = await createShareCode(collectState());
-    const token = await BVAuth.getAccessToken();
-    const r = await fetch(BV_API + '/api/bv/saves', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name, code }) });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    status('Saved “' + name + '”.');
-    await renderSavedList();
-  } catch (e) { status('Save failed: ' + (e && e.message ? e.message : e)); }
+  saveLocal(name.trim());
 }
-async function renderSavedList() {
-  const box = $('savedList'); if (!box) return;
-  if (!(window.BVAuth && BVAuth.signedIn())) { box.innerHTML = '<p class="hint">Sign in to save and reload calculations.</p>'; return; }
-  box.textContent = 'Loading saved…';
+
+// ---- Saved list (local + account) ----
+async function fetchAccountSaves() {
   try {
     const token = await BVAuth.getAccessToken();
     const r = await fetch(BV_API + '/api/bv/saves', { headers: { Authorization: 'Bearer ' + token } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
-    const saves = (j && j.saves) || [];
-    if (!saves.length) { box.innerHTML = '<p class="hint">No saved calculations yet.</p>'; return; }
-    box.innerHTML = saves.map(s => '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + escapeHtml(s.name) + ' <span class="hint">' + new Date(s.ts).toLocaleDateString() + '</span></span><button class="mode-btn" data-saveload="' + s.code + '">Load</button><button class="mode-btn" data-savedel="' + s.code + '">Delete</button></div>').join('');
-  } catch (e) { box.innerHTML = '<p class="hint">Saved list unavailable: ' + escapeHtml(e && e.message ? e.message : String(e)) + '</p>'; }
+    accountSavesCache = (j && j.saves) || [];
+  } catch { accountSavesCache = []; }
+  const box = $('savedList'); if (box) renderSavedList();
+}
+function renderSavedList() {
+  const box = $('savedList'); if (!box) return;
+  const locals = localSavesRead();
+  let h = '<div class="hint" style="margin:.2rem 0 .1rem">Local saves</div>';
+  h += locals.length
+    ? locals.map(s => '<div style="display:flex;gap:.3rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + escapeHtml(s.name) + ' <span class="hint">' + new Date(s.ts).toLocaleDateString() + '</span>' + (s.synced ? ' <span class="pill" style="border-color:var(--build);color:var(--build)">synced</span>' : '') + '</span><button class="mode-btn" data-sl-load="' + escapeHtml(s.id) + '">Load</button><button class="mode-btn" data-sl-share="' + escapeHtml(s.id) + '">Share</button><button class="mode-btn" data-sl-sync="' + escapeHtml(s.id) + '">Sync</button><button class="mode-btn" data-sl-del="' + escapeHtml(s.id) + '">Del</button></div>').join('')
+    : '<p class="hint">No local saves yet — hit Save calculation.</p>';
+  h += '<div class="btn-row tight" style="margin:.35rem 0"><button class="calc-btn secondary" data-sl-export><i class="fas fa-file-export"></i> Export saves</button><button class="calc-btn secondary" data-sl-import><i class="fas fa-file-import"></i> Import saves</button></div>';
+  const signedIn = !!(window.BVAuth && BVAuth.signedIn());
+  h += '<div class="hint" style="margin:.5rem 0 .1rem">Account saves</div>';
+  if (!signedIn) h += '<p class="hint">Sign in to sync saves across devices.</p>';
+  else if (accountSavesCache === null) h += '<p class="hint">Loading account saves…</p>';
+  else if (!accountSavesCache.length) h += '<p class="hint">No account saves yet — use Sync on a local save.</p>';
+  else h += accountSavesCache.map(s => '<div style="display:flex;gap:.3rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + escapeHtml(s.name) + ' <span class="hint">' + new Date(s.ts).toLocaleDateString() + '</span></span><button class="mode-btn" data-saveload="' + escapeHtml(s.code) + '">Load</button><button class="mode-btn" data-savedel="' + escapeHtml(s.code) + '">Delete</button></div>').join('');
+  box.innerHTML = h;
+  if (signedIn && accountSavesCache === null) fetchAccountSaves();
 }
 async function deleteSaved(code) {
   try {
     const token = await BVAuth.getAccessToken();
     const r = await fetch(BV_API + '/api/bv/saves/' + encodeURIComponent(code), { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    await renderSavedList();
+    accountSavesCache = (accountSavesCache || []).filter(s => s && s.code !== code);
+    renderSavedList();
   } catch (e) { status('Delete failed: ' + (e && e.message ? e.message : e)); }
 }
 async function loadShortCode(code) {
@@ -4712,6 +4839,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Share links calculate automatically — on page load and when clicked from
   // the ledger (same-page hash change, no reload). Supports the new short
   // code (#<code>) and the legacy #bv=<base64> form.
+  function hasShareHash() {
+    const h = location.hash.slice(1);
+    if (!h) return false;
+    if (h.startsWith('bv=')) return true;
+    return h.indexOf('=') === -1 && h.length <= 16 && /^[A-Za-z0-9_-]+$/.test(h);
+  }
   function calcFromHash() {
     const h = location.hash.slice(1);
     if (!h) return false;
@@ -4728,11 +4861,30 @@ document.addEventListener('DOMContentLoaded', () => {
       return false;
     }
     // Short share code: no '=' and a compact base64url token.
-    if (h.indexOf('=') === -1 && h.length <= 16 && /^[A-Za-z0-9_-]+$/.test(h)) { loadShortCode(h); }
+    if (h.indexOf('=') === -1 && h.length <= 16 && /^[A-Za-z0-9_-]+$/.test(h)) { loadShortCode(h); return true; }
     return false;
   }
+  // Resume the last calculation (blueprint + exact drill path) unless a share
+  // link is present. Live re-runs so prices are always fresh; no ledger entry.
+  function resumeLast() {
+    if (hasShareHash()) return false;
+    try { if (localStorage.getItem('bvResume') === '0') return false; } catch {}
+    let st = null;
+    try { const j = JSON.parse(localStorage.getItem('bvLastCalc') || 'null'); st = j && j.state; } catch {}
+    if (!st || !st.bp || !st.bp.bpName) return false;
+    applyState(st, { noLedger: true });
+    return true;
+  }
+  // Restore last active sidebar tab + main view.
+  function restoreUiState() {
+    try { const tab = localStorage.getItem('bvActiveTab'); if (tab) { const b = document.querySelector('.tab-btn[data-tab="' + tab + '"]'); if (b && !b.classList.contains('active')) b.click(); } } catch {}
+    try { const v = localStorage.getItem('bvActiveView'); if (v === 'prog' || v === 'calc') switchMainView(v); } catch {}
+    try { const lb = document.querySelector('.tab-btn[data-tab="ledger"]'); if (lb && lb.classList.contains('active')) renderSavedList(); } catch {}
+  }
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
-  try { calcFromHash(); } catch {}
+  try { const fromHash = calcFromHash(); if (!fromHash) resumeLast(); } catch {}
+  try { restoreUiState(); } catch {}
+  if ($('resumeLast')) $('resumeLast').onchange = () => { try { localStorage.setItem('bvResume', $('resumeLast').checked ? '1' : '0'); } catch {} };
   if ($('bpSearch')) $('bpSearch').addEventListener('input', () => { myBpPage = 1; renderBpRows(); });
   if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
   // refining sync (global % replaces Reprocess %)
@@ -4950,6 +5102,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sload) { e.preventDefault(); loadShortCode(sload.dataset.saveload); return; }
     const sdel = e.target.closest('[data-savedel]');
     if (sdel) { e.preventDefault(); if (confirm('Delete this saved calculation?')) deleteSaved(sdel.dataset.savedel); return; }
+    const slload = e.target.closest('[data-sl-load]');
+    if (slload) { e.preventDefault(); loadLocal(slload.dataset.slLoad); return; }
+    const slshare = e.target.closest('[data-sl-share]');
+    if (slshare) { e.preventDefault(); shareLocal(slshare.dataset.slShare); return; }
+    const slsync = e.target.closest('[data-sl-sync]');
+    if (slsync) { e.preventDefault(); syncLocal(slsync.dataset.slSync); return; }
+    const sldel = e.target.closest('[data-sl-del]');
+    if (sldel) { e.preventDefault(); if (confirm('Delete this local save?')) deleteLocal(sldel.dataset.slDel); return; }
+    const slexp = e.target.closest('[data-sl-export]');
+    if (slexp) { e.preventDefault(); exportLocalSaves(); return; }
+    const slimp = e.target.closest('[data-sl-import]');
+    if (slimp) { e.preventDefault(); importLocalSavesClick(); return; }
     const send = e.target.closest('[data-sendbuild]');
     if (send) {
       e.preventDefault();
@@ -4964,7 +5128,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('shopExport')) $('shopExport').onclick = exportShoppingCSV;
   if ($('shareCalc')) $('shareCalc').onclick = shareCurrent;
   if ($('saveCalc')) $('saveCalc').onclick = saveCurrent;
-  try { renderSavedList(); } catch {}
+  // Account saves are fetched lazily when the Ledger tab opens (see init tab handler).
   $('ledgerExport').onclick = () => { const l = ledRead(); if (!l.length) return; const csv = 'ts,blueprint,runs,cost,revenue,profit,hub\n' + l.map(e => [new Date(e.ts).toISOString(), '"' + e.bp + '"', e.runs, e.cost, e.revenue, e.profit, e.hub].join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'bv-ledger.csv'; a.click(); };
   $('ledgerClear').onclick = () => { localStorage.removeItem('bvLedger'); renderLedger(); };
 });

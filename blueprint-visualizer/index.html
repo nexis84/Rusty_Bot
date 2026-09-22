@@ -75,6 +75,7 @@
       <div class="field"><label>Mfg index %</label><input id="mfgIndex" type="number" step="0.1" value="4" class="form-input"></div>
     </div>
     <div class="field"><label>Tracked market (compare)</label><select id="tracked"></select></div>
+    <label class="check"><input type="checkbox" id="resumeLast" checked> Remember last calculation (resume on return)</label>
     <div class="field"><label>Production preset</label><select id="preset"><option value="">— Load saved preset —</option></select></div>
     <div class="field"><label>Materials owned — deduct source</label><select id="matSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Personal + Corp</option></select></div>
     <div class="btn-row"><button id="calcBtn" class="calc-btn"><i class="fas fa-calculator"></i> Calculate</button><button id="resetBtn" class="calc-btn secondary">Reset</button></div>
@@ -155,7 +156,7 @@
     <h3><i class="fas fa-book"></i> Ledger</h3>
     <p class="hint">Local log of calculations. Export CSV or copy a shareable link.</p>
     <h4>Save &amp; share</h4>
-    <p class="hint">Share link captures the current blueprint, inputs and Build/Buy sourcing (no inventory data). Saved calculations need SSO.</p>
+    <p class="hint">Share a short link (blueprint, inputs and Build/Buy sourcing — no inventory data). Saves are stored in this browser; sign in and Sync to reach them on any device.</p>
     <div class="btn-row" style="margin-bottom:.4rem">
       <button id="shareCalc" class="calc-btn"><i class="fas fa-share-nodes"></i> Copy share link</button>
       <button id="saveCalc" class="calc-btn secondary"><i class="fas fa-floppy-disk"></i> Save calculation</button>
@@ -267,7 +268,7 @@
     <script src="bv-ores.js?v=1"></script>
     <script src="bv-blueprints.js?v=1"></script>
     <script src="bv-esi-auth.js?v=7"></script>
-    <script src="bv-visualizer.js?v=197"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V196</div>
+    <script src="bv-visualizer.js?v=198"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V197</div>
 </body>
 </html>
