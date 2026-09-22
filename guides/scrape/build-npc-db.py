@@ -1,8 +1,10 @@
-import sqlite3, json, re, os, sys
+import json, re, os, sys
+from pathlib import Path
 
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'tmp', 'eve.db')
-if not os.path.exists(DB_PATH):
-    DB_PATH = r'C:\Users\nexis\AppData\Local\Temp\opencode\eve.db'
+# Reads CCP's JSONL SDE directly — no SQLite/Fuzzwork dump needed.
+# Override the location with the SDE_DIR env var; otherwise use the repo's sde/.
+_DEFAULT_SDE = Path(__file__).resolve().parent.parent.parent / 'sde'
+SDE_DIR = Path(os.environ.get('SDE_DIR', _DEFAULT_SDE))
 
 OUTPUT = os.path.join(os.path.dirname(__file__), '..', 'data', 'npc-ships.json')
 
@@ -68,12 +70,27 @@ FACTION_PATTERNS = [
     (r'merc(enarie)?s?|mercenary', 'Mercenaries'),
 ]
 
-def get_group_hierarchy(cursor):
-    cursor.execute('SELECT groupID, categoryID, groupName FROM invGroups')
-    return {r[0]: {'categoryID': r[1], 'groupName': r[2]} for r in cursor.fetchall()}
+def load_jsonl(filename):
+    path = SDE_DIR / filename
+    out = []
+    with open(path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                out.append(json.loads(line))
+    return out
+
+def get_group_hierarchy(groups):
+    return {
+        g['_key']: {
+            'categoryID': g.get('categoryID'),
+            'groupName': (g.get('name') or {}).get('en'),
+        }
+        for g in groups
+    }
 
 def classify_ship(group_name, type_name):
-    lower = group_name.lower()
+    lower = (group_name or '').lower()
     if 'frigate' in lower: return 'Frigate'
     if 'destroyer' in lower: return 'Destroyer'
     if 'battlecruiser' in lower: return 'Battlecruiser'
@@ -86,7 +103,7 @@ def classify_ship(group_name, type_name):
     return None
 
 def classify_faction(group_name, type_name):
-    combined = f'{group_name} {type_name}'.lower()
+    combined = f'{group_name or ""} {type_name or ""}'.lower()
     for pattern, faction in FACTION_PATTERNS:
         if re.search(pattern, combined):
             return faction
@@ -104,40 +121,46 @@ def damage_resonance_to_profile(em, therm, kin, exp, label='unknown'):
     }
 
 def main():
-    print(f'Connecting to SDE: {DB_PATH}')
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
+    print(f'Reading SDE JSONL: {SDE_DIR}')
+    if not (SDE_DIR / 'types.jsonl').exists():
+        sys.exit(f'types.jsonl not found in {SDE_DIR} — set SDE_DIR to the extracted JSONL SDE.')
 
-    groups = get_group_hierarchy(c)
-    entity_group_ids = [gid for gid, g in groups.items() if g['categoryID'] == 11]
+    types_raw = load_jsonl('types.jsonl')
+    groups_raw = load_jsonl('groups.jsonl')
+    dogma_raw = load_jsonl('typeDogma.jsonl')
 
+    groups = get_group_hierarchy(groups_raw)
+    entity_group_ids = {gid for gid, g in groups.items() if g['categoryID'] == 11}
     print(f'Entity groups: {len(entity_group_ids)}')
 
-    c.execute('''
-        SELECT t.typeID, t.typeName, t.groupID, g.groupName
-        FROM invTypes t
-        JOIN invGroups g ON t.groupID = g.groupID
-        WHERE t.groupID IN ({})
-    '''.format(','.join('?' * len(entity_group_ids))), entity_group_ids)
-    types = c.fetchall()
+    types = [
+        {
+            'typeID': t['_key'],
+            'typeName': (t.get('name') or {}).get('en'),
+            'groupID': t.get('groupID'),
+            'groupName': (groups.get(t.get('groupID')) or {}).get('groupName'),
+        }
+        for t in types_raw
+        if t.get('groupID') in entity_group_ids
+    ]
     print(f'Entity types: {len(types)}')
 
-    c.execute('SELECT typeID, attributeID, valueFloat, valueInt FROM dgmTypeAttributes')
     all_attrs = {}
-    for row in c.fetchall():
-        tid = row['typeID']
-        if tid not in all_attrs:
-            all_attrs[tid] = {}
-        val = row['valueFloat'] if row['valueFloat'] is not None else row['valueInt']
-        all_attrs[tid][row['attributeID']] = val
+    for row in dogma_raw:
+        tid = row['_key']
+        attrs = {}
+        for da in row.get('dogmaAttributes') or []:
+            attrs[da['attributeID']] = da.get('value')
+        if attrs:
+            all_attrs[tid] = attrs
 
     npc_ships = {}
     for t in types:
         type_id = t['typeID']
         type_name = t['typeName']
-        group_id = t['groupID']
         group_name = t['groupName']
+        if not type_name:
+            continue
 
         attrs = all_attrs.get(type_id, {})
         if not attrs:
@@ -220,8 +243,6 @@ def main():
         classes[c] = classes.get(c, 0) + 1
     print('\nBy faction:', dict(sorted(factions.items(), key=lambda x: -x[1])))
     print('\nBy class:', dict(sorted(classes.items(), key=lambda x: -x[1])))
-
-    conn.close()
 
 if __name__ == '__main__':
     main()

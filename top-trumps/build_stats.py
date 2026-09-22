@@ -16,6 +16,7 @@ from pathlib import Path
 SDE_DIR = Path(__file__).resolve().parent.parent / 'sde'
 OUTPUT_STATS = Path(__file__).resolve().parent / 'ship-stats.json'
 OUTPUT_ROSTER = Path(__file__).resolve().parent / 'ships.js'
+OUTPUT_ISK = Path(__file__).resolve().parent.parent / 'the-isk-is-right' / 'ships.js'
 
 # Dogma attribute IDs used as card stats (order defines card display order)
 STATS_META = {
@@ -165,6 +166,21 @@ def main():
     with open(OUTPUT_ROSTER, 'w', encoding='utf-8') as f:
         f.write(roster_js)
     print(f"Wrote {len(roster)} ships -> {OUTPUT_ROSTER.name}")
+
+    # The-isk-is-right consumes the same roster as a `const SHIPS` global. It was
+    # previously hand-maintained and drifted; emit it here so both stay in sync
+    # with the SDE.
+    isk_js = (
+        '// Auto-generated from EVE Online SDE by top-trumps/build_stats.py — do not edit by hand\n'
+        f'// SDE build: {build}\n'
+        f'// Ships: {len(roster)}\n'
+        f'// Generated: {stats_out["generated"]}\n\n'
+        f'const SHIPS = {json.dumps(roster, indent=2, ensure_ascii=False)};\n'
+    )
+    if OUTPUT_ISK.parent.exists():
+        with open(OUTPUT_ISK, 'w', encoding='utf-8') as f:
+            f.write(isk_js)
+        print(f"Wrote {len(roster)} ships -> ../the-isk-is-right/{OUTPUT_ISK.name}")
 
     # ---- validation ----
     print('\nValidation:')
