@@ -98,8 +98,9 @@ for await (const line of rl) {
   if (t.portionSize != null) e.ps = t.portionSize;
   if (t.basePrice != null) e.bp = t.basePrice;
   if (t.iconID != null) e.ic = t.iconID;
-  if (t.radius != null && t.radius > 0) e.r = t.radius;
-  if (t.mass != null && t.mass > 0) e.m = t.mass;
+  if (t.radius != null && t.radius > 0 && t.radius < 1e9) e.r = t.radius;
+  // SDE uses a ~1e23 placeholder for "no mass" on celestials/asteroids.
+  if (t.mass != null && t.mass > 0 && t.mass < 1e15) e.m = t.mass;
   out.types[String(t._key)] = e;
   stats.kept++;
 }

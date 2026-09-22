@@ -174,27 +174,35 @@ function bvInfoPanelEl() {
   document.body.appendChild(p);
   // Click inside: intercept showinfo links (nested browsing).
   p.addEventListener('click', e => {
-    const a = e.target.closest && e.target.closest('a[href^="showinfo:"]');
+    if (!e.target.closest) return;
+    const a = e.target.closest('a[href^="showinfo:"]');
     if (a) { e.preventDefault(); const cid = +a.getAttribute('href').split(':')[1]; if (cid) openItemInfo(cid); return; }
-    if (e.target.closest && e.target.closest('[data-info-close]')) { closeInfoPanel(); return; }
   });
-  // Drag by header.
+  // Close button — handled on pointerdown so drag/capture can never swallow it.
   p.addEventListener('pointerdown', e => {
-    const head = e.target.closest && e.target.closest('.bv-info-head');
+    if (e.target.closest && e.target.closest('[data-info-close]')) { e.preventDefault(); e.stopPropagation(); closeInfoPanel(); }
+  });
+  // Drag by header (never on the close button or other interactive bits).
+  p.addEventListener('pointerdown', e => {
+    if (!e.target.closest) return;
+    if (e.target.closest('[data-info-close]') || e.target.closest('a')) return;
+    const head = e.target.closest('.bv-info-head');
     if (!head) return;
+    e.preventDefault();
     const rect = p.getBoundingClientRect();
     const dx = e.clientX - rect.left, dy = e.clientY - rect.top;
-    p.setPointerCapture(e.pointerId);
+    try { p.setPointerCapture(e.pointerId); } catch {}
     const move = ev => {
       const x = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - dx));
       const y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - dy));
       p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.right = 'auto'; p.style.bottom = 'auto';
     };
     const up = ev => {
-      p.removeEventListener('pointermove', move); p.removeEventListener('pointerup', up);
+      p.removeEventListener('pointermove', move); p.removeEventListener('pointerup', up); p.removeEventListener('pointercancel', up);
+      try { p.releasePointerCapture(e.pointerId); } catch {}
       try { localStorage.setItem('bvInfoPanelPos', JSON.stringify({ left: p.style.left, top: p.style.top })); } catch {}
     };
-    p.addEventListener('pointermove', move); p.addEventListener('pointerup', up);
+    p.addEventListener('pointermove', move); p.addEventListener('pointerup', up); p.addEventListener('pointercancel', up);
   });
   return p;
 }
@@ -215,7 +223,8 @@ function bvInfoRows(info) {
   const ps = num(info.portionSize); if (ps !== null) rows.push(['Portion size', ps]);
   const bp = isk(info.basePrice); if (bp !== null) rows.push(['Base price', bp]);
   const r = num(info.radius); if (r !== null) rows.push(['Radius', r + ' m']);
-  const m = num(info.mass); if (m !== null) rows.push(['Mass', m + ' kg']);
+  // The SDE uses a 1e23-ish placeholder to mean "no mass" (celestials/asteroids).
+  const m = (info.mass != null && info.mass > 0 && info.mass < 1e15) ? num(info.mass) : null; if (m !== null) rows.push(['Mass', m + ' kg']);
   return rows.map(([k, v]) => '<div class="summary-card"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>').join('');
 }
 async function openItemInfo(idRaw) {
