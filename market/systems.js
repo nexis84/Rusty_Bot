@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total systems: 8490
-// Generated: 2026-07-30 10:32:17 UTC
+// Generated: 2026-09-22 21:13:30 UTC
 
 const Systems = [
     { id: 30000995, name: '0-3VW8', regionId: 10000011, securityStatus: -0.033765 },
@@ -1987,7 +1987,7 @@ const Systems = [
     { id: 30004297, name: 'Efu', regionId: 10000054, securityStatus: 0.092313 },
     { id: 30002420, name: 'Egbinger', regionId: 10000028, securityStatus: 0.034555 },
     { id: 30003401, name: 'Egbonbet', regionId: 10000042, securityStatus: 0.891302 },
-    { id: 30002693, name: 'Egghelende', regionId: 10000032, securityStatus: 0.449268 },
+    { id: 30002693, name: 'Egghelende', regionId: 10000032, securityStatus: 0.448268 },
     { id: 30003605, name: 'Eggheron', regionId: 10000044, securityStatus: 0.516244 },
     { id: 30002660, name: 'Eglennaert', regionId: 10000032, securityStatus: 0.824164 },
     { id: 30002099, name: 'Egmar', regionId: 10000042, securityStatus: 0.252872 },
@@ -2061,7 +2061,7 @@ const Systems = [
     { id: 30003078, name: 'Erkinen', regionId: 10000038, securityStatus: 0.592004 },
     { id: 30003463, name: 'Erlendur', regionId: 10000042, securityStatus: 0.450741 },
     { id: 30002640, name: 'Erme', regionId: 10000032, securityStatus: 0.798156 },
-    { id: 30003425, name: 'Erstet', regionId: 10000042, securityStatus: 0.449402 },
+    { id: 30003425, name: 'Erstet', regionId: 10000042, securityStatus: 0.448402 },
     { id: 30003419, name: 'Erstur', regionId: 10000042, securityStatus: 0.575795 },
     { id: 30004259, name: 'Ertoo', regionId: 10000054, securityStatus: 0.136933 },
     { id: 30100050, name: 'Erudite', regionId: 10001004, securityStatus: 1.0 },
@@ -2337,7 +2337,7 @@ const Systems = [
     { id: 30005072, name: 'Gademam', regionId: 10000065, securityStatus: 0.391041 },
     { id: 30002204, name: 'Gaha', regionId: 10000043, securityStatus: 0.73936 },
     { id: 30001698, name: 'Gaknem', regionId: 10000020, securityStatus: 0.614769 },
-    { id: 30003544, name: 'Galeh', regionId: 10000043, securityStatus: 0.449164 },
+    { id: 30003544, name: 'Galeh', regionId: 10000043, securityStatus: 0.448164 },
     { id: 30100033, name: 'Gallant', regionId: 10001004, securityStatus: 1.0 },
     { id: 30002674, name: 'Gallareue', regionId: 10000032, securityStatus: 0.750793 },
     { id: 30003844, name: 'Gallusiene', regionId: 10000048, securityStatus: 0.313434 },
@@ -5919,7 +5919,7 @@ const Systems = [
     { id: 30000154, name: 'Liekuri', regionId: 10000002, securityStatus: 0.600608 },
     { id: 30100059, name: 'Ligare', regionId: 10001004, securityStatus: 1.0 },
     { id: 30000020, name: 'Lilmad', regionId: 10000001, securityStatus: 0.160449 },
-    { id: 30005087, name: 'Liparer', regionId: 10000065, securityStatus: 0.449136 },
+    { id: 30005087, name: 'Liparer', regionId: 10000065, securityStatus: 0.448136 },
     { id: 30003459, name: 'Lirerim', regionId: 10000042, securityStatus: 0.614124 },
     { id: 30003025, name: 'Lirsautton', regionId: 10000037, securityStatus: 0.835556 },
     { id: 30005007, name: 'Lisbaetanne', regionId: 10000064, securityStatus: 0.373263 },
@@ -6324,7 +6324,7 @@ const Systems = [
     { id: 30005286, name: 'New Eden', regionId: 10000067, securityStatus: 0.260554 },
     { id: 30002650, name: 'Ney', regionId: 10000032, securityStatus: 0.456755 },
     { id: 30003859, name: 'Neyi', regionId: 10000049, securityStatus: 0.809547 },
-    { id: 30002246, name: 'Neziel', regionId: 10000043, securityStatus: 0.449944 },
+    { id: 30002246, name: 'Neziel', regionId: 10000043, securityStatus: 0.448944 },
     { id: 30000230, name: 'NFM-0V', regionId: 10000003, securityStatus: -0.499123 },
     { id: 30003325, name: 'NG-C6Y', regionId: 10000041, securityStatus: -0.003517 },
     { id: 30000650, name: 'NG-M8K', regionId: 10000007, securityStatus: -0.909782 },
@@ -6659,7 +6659,7 @@ const Systems = [
     { id: 30005198, name: 'Pakhshi', regionId: 10000067, securityStatus: 0.845483 },
     { id: 30001390, name: 'Pakkonen', regionId: 10000016, securityStatus: 0.42091 },
     { id: 30003878, name: 'Palas', regionId: 10000049, securityStatus: 0.505996 },
-    { id: 30004992, name: 'Palmon', regionId: 10000064, securityStatus: 0.44971 },
+    { id: 30004992, name: 'Palmon', regionId: 10000064, securityStatus: 0.44871 },
     { id: 30003008, name: 'Palpis', regionId: 10000036, securityStatus: 0.496165 },
     { id: 30005232, name: 'Pamah', regionId: 10000067, securityStatus: 0.497449 },
     { id: 30100066, name: 'Pamirasu', regionId: 10001004, securityStatus: 1.0 },
@@ -7010,7 +7010,7 @@ const Systems = [
     { id: 30002993, name: 'Riavayed', regionId: 10000036, securityStatus: 0.647601 },
     { id: 30003457, name: 'Ridoner', regionId: 10000042, securityStatus: 0.71845 },
     { id: 30100041, name: 'Rigor', regionId: 10001004, securityStatus: 1.0 },
-    { id: 30003916, name: 'Rilera', regionId: 10000049, securityStatus: 0.449848 },
+    { id: 30003916, name: 'Rilera', regionId: 10000049, securityStatus: 0.448848 },
     { id: 30002241, name: 'Rimbah', regionId: 10000043, securityStatus: 0.324924 },
     { id: 30001650, name: 'Riramia', regionId: 10000020, securityStatus: 0.565731 },
     { id: 30004472, name: 'RIT-A7', regionId: 10000056, securityStatus: -0.541435 },
