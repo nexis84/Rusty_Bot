@@ -55,9 +55,62 @@ const gasTypes = [
 ];
 
 // ==============================
-// ORE DATA (same as before but with known mineral amounts)
+// SDE ORE YIELDS
 // ==============================
-const mineralAmounts = {
+// Authoritative refine yields come from the SDE (typeMaterials, per portionSize
+// = 100 units for ore). The hardcoded table below is only a fallback for ores
+// the SDE has no entry for. Set SDE_DIR to override (defaults to repo ../sde).
+const _DEFAULT_SDE = path.join(__dirname, '..', '..', 'sde');
+const SDE_DIR = process.env.SDE_DIR || _DEFAULT_SDE;
+
+const MINERAL_TYPE_NAMES = {
+  34: 'tritanium', 35: 'pyerite', 36: 'mexallon', 37: 'isogen',
+  38: 'nocxium', 39: 'zydrine', 40: 'megacyte', 11399: 'morphite',
+};
+
+function loadJsonl(filename) {
+  const p = path.join(SDE_DIR, filename);
+  if (!fs.existsSync(p)) return null;
+  return fs.readFileSync(p, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+}
+
+// ore display name (lowercase) -> { minerals: {tritanium: 400, ...}, volume }
+function loadSdeOreData() {
+  const types = loadJsonl('types.jsonl');
+  const materials = loadJsonl('typeMaterials.jsonl');
+  if (!types || !materials) {
+    console.warn(`  (SDE not found at ${SDE_DIR} — using hardcoded ore yields)`);
+    return {};
+  }
+  const typeById = {};
+  for (const t of types) typeById[t._key] = t;
+  const matById = {};
+  for (const m of materials) matById[m._key] = m.materials || [];
+
+  const out = {};
+  for (const [idStr, mats] of Object.entries(matById)) {
+    const id = Number(idStr);
+    const t = typeById[id];
+    if (!t || !t.name || !t.name.en) continue;
+    const minerals = {};
+    for (const m of mats) {
+      const name = MINERAL_TYPE_NAMES[m.materialTypeID];
+      if (name) minerals[name] = m.quantity;
+    }
+    if (Object.keys(minerals).length === 0) continue;
+    out[t.name.en.toLowerCase()] = { minerals, volume: t.volume };
+  }
+  return out;
+}
+
+const sdeOreData = loadSdeOreData();
+const sdeOreCount = Object.keys(sdeOreData).length;
+if (sdeOreCount) console.log(`Loaded ${sdeOreCount} ore/ice yields from SDE (${SDE_DIR})`);
+
+// ==============================
+// ORE DATA (fallback yields only — SDE wins when present)
+// ==============================
+const fallbackMineralAmounts = {
   'Veldspar': { tritanium: 1000 },
   'Scordite': { tritanium: 833, pyerite: 416 },
   'Pyroxeres': { pyerite: 844, mexallon: 120 },
@@ -211,7 +264,8 @@ const knownSites = [
 ];
 
 const ores = Object.keys(oreVolumes).map(name => {
-  const minerals = mineralAmounts[name] || {};
+  const sde = sdeOreData[name.toLowerCase()];
+  const minerals = sde ? sde.minerals : (fallbackMineralAmounts[name] || {});
   const variants = variantNames[name] || [];
   const siteNames = knownSites.filter(s => s.name.toLowerCase().includes(name.toLowerCase())).map(s => s.name);
   const mineralNames = Object.keys(minerals);

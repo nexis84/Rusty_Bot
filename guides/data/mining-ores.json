@@ -4,7 +4,7 @@
       "name": "Veldspar",
       "volume": 0.1,
       "minerals": {
-        "tritanium": 1000
+        "tritanium": 400
       },
       "mineralNames": [
         "tritanium"
@@ -36,8 +36,8 @@
       "name": "Scordite",
       "volume": 0.15,
       "minerals": {
-        "tritanium": 833,
-        "pyerite": 416
+        "tritanium": 150,
+        "pyerite": 110
       },
       "mineralNames": [
         "tritanium",
@@ -67,8 +67,8 @@
       "name": "Pyroxeres",
       "volume": 0.3,
       "minerals": {
-        "pyerite": 844,
-        "mexallon": 120
+        "pyerite": 90,
+        "mexallon": 30
       },
       "mineralNames": [
         "pyerite",
@@ -98,8 +98,8 @@
       "name": "Plagioclase",
       "volume": 0.35,
       "minerals": {
-        "tritanium": 107,
-        "mexallon": 107
+        "tritanium": 175,
+        "mexallon": 70
       },
       "mineralNames": [
         "tritanium",
@@ -129,8 +129,8 @@
       "name": "Omber",
       "volume": 0.6,
       "minerals": {
-        "pyerite": 100,
-        "isogen": 85
+        "pyerite": 90,
+        "isogen": 75
       },
       "mineralNames": [
         "pyerite",
@@ -169,8 +169,8 @@
       "name": "Kernite",
       "volume": 1.2,
       "minerals": {
-        "mexallon": 386,
-        "isogen": 386
+        "mexallon": 60,
+        "isogen": 120
       },
       "mineralNames": [
         "mexallon",
@@ -204,8 +204,8 @@
       "name": "Jaspet",
       "volume": 2,
       "minerals": {
-        "mexallon": 350,
-        "nocxium": 75
+        "mexallon": 150,
+        "nocxium": 50
       },
       "mineralNames": [
         "mexallon",
@@ -240,8 +240,8 @@
       "name": "Hemorphite",
       "volume": 3,
       "minerals": {
-        "isogen": 100,
-        "nocxium": 100
+        "isogen": 240,
+        "nocxium": 90
       },
       "mineralNames": [
         "isogen",
@@ -275,8 +275,8 @@
       "name": "Hedbergite",
       "volume": 3,
       "minerals": {
-        "pyerite": 100,
-        "nocxium": 100
+        "pyerite": 450,
+        "nocxium": 120
       },
       "mineralNames": [
         "pyerite",
@@ -310,9 +310,9 @@
       "name": "Gneiss",
       "volume": 5,
       "minerals": {
-        "pyerite": 1100,
-        "mexallon": 220,
-        "isogen": 110
+        "pyerite": 2000,
+        "mexallon": 1500,
+        "isogen": 800
       },
       "mineralNames": [
         "pyerite",
@@ -357,9 +357,9 @@
       "name": "Dark Ochre",
       "volume": 8,
       "minerals": {
-        "mexallon": 350,
-        "isogen": 350,
-        "nocxium": 100
+        "mexallon": 1360,
+        "isogen": 1200,
+        "nocxium": 320
       },
       "mineralNames": [
         "mexallon",
@@ -403,9 +403,9 @@
       "name": "Crokite",
       "volume": 16,
       "minerals": {
-        "pyerite": 700,
-        "mexallon": 350,
-        "nocxium": 35
+        "pyerite": 800,
+        "mexallon": 2000,
+        "nocxium": 800
       },
       "mineralNames": [
         "pyerite",
@@ -444,11 +444,11 @@
       "name": "Spodumain",
       "volume": 16,
       "minerals": {
-        "tritanium": 560,
-        "isogen": 120,
-        "nocxium": 21,
-        "zydrine": 8,
-        "megacyte": 4
+        "tritanium": 48000,
+        "isogen": 1000,
+        "nocxium": 160,
+        "zydrine": 80,
+        "megacyte": 40
       },
       "mineralNames": [
         "tritanium",
@@ -481,9 +481,9 @@
       "name": "Arkonor",
       "volume": 16,
       "minerals": {
-        "pyerite": 300,
-        "mexallon": 300,
-        "megacyte": 300
+        "pyerite": 3200,
+        "mexallon": 1200,
+        "megacyte": 120
       },
       "mineralNames": [
         "pyerite",
@@ -519,9 +519,9 @@
       "name": "Bistot",
       "volume": 16,
       "minerals": {
-        "pyerite": 300,
-        "mexallon": 300,
-        "zydrine": 300
+        "pyerite": 3200,
+        "mexallon": 1200,
+        "zydrine": 160
       },
       "mineralNames": [
         "pyerite",
@@ -560,7 +560,7 @@
       "name": "Mercoxit",
       "volume": 40,
       "minerals": {
-        "morphite": 300
+        "morphite": 140
       },
       "mineralNames": [
         "morphite"
@@ -589,7 +589,7 @@
       "name": "Ducinium",
       "volume": 16,
       "minerals": {
-        "megacyte": 300
+        "megacyte": 170
       },
       "mineralNames": [
         "megacyte"
@@ -618,7 +618,7 @@
       "name": "Eifyrium",
       "volume": 16,
       "minerals": {
-        "zydrine": 300
+        "zydrine": 266
       },
       "mineralNames": [
         "zydrine"
@@ -647,7 +647,7 @@
       "name": "Mordunium",
       "volume": 0.1,
       "minerals": {
-        "pyerite": 1000
+        "pyerite": 97
       },
       "mineralNames": [
         "pyerite"
@@ -680,7 +680,7 @@
       "name": "Ytirium",
       "volume": 0.6,
       "minerals": {
-        "isogen": 850
+        "isogen": 240
       },
       "mineralNames": [
         "isogen"
@@ -709,9 +709,9 @@
       "name": "Bezdnacine",
       "volume": 16,
       "minerals": {
-        "tritanium": 420,
-        "isogen": 310,
-        "megacyte": 110
+        "tritanium": 40000,
+        "isogen": 4800,
+        "megacyte": 128
       },
       "mineralNames": [
         "tritanium",
@@ -737,9 +737,9 @@
       "name": "Rakovene",
       "volume": 16,
       "minerals": {
-        "tritanium": 420,
-        "isogen": 310,
-        "zydrine": 110
+        "tritanium": 40000,
+        "isogen": 3200,
+        "zydrine": 200
       },
       "mineralNames": [
         "tritanium",
@@ -765,9 +765,9 @@
       "name": "Talassonite",
       "volume": 16,
       "minerals": {
-        "tritanium": 410,
-        "nocxium": 280,
-        "megacyte": 110
+        "tritanium": 40000,
+        "nocxium": 960,
+        "megacyte": 32
       },
       "mineralNames": [
         "tritanium",
@@ -793,8 +793,8 @@
       "name": "Griemeer",
       "volume": 0.8,
       "minerals": {
-        "tritanium": 500,
-        "isogen": 300
+        "tritanium": 250,
+        "isogen": 80
       },
       "mineralNames": [
         "tritanium",
@@ -827,9 +827,9 @@
       "name": "Hezorime",
       "volume": 5,
       "minerals": {
-        "tritanium": 200,
+        "tritanium": 2000,
         "isogen": 120,
-        "zydrine": 50
+        "zydrine": 60
       },
       "mineralNames": [
         "tritanium",
@@ -866,7 +866,7 @@
       "minerals": {
         "tritanium": 300,
         "pyerite": 200,
-        "mexallon": 100
+        "mexallon": 550
       },
       "mineralNames": [
         "tritanium",
@@ -900,9 +900,9 @@
       "name": "Nocxite",
       "volume": 4,
       "minerals": {
-        "tritanium": 250,
+        "tritanium": 900,
         "pyerite": 150,
-        "nocxium": 80
+        "nocxium": 105
       },
       "mineralNames": [
         "tritanium",
@@ -936,8 +936,8 @@
       "name": "Ueganite",
       "volume": 5,
       "minerals": {
-        "tritanium": 300,
-        "megacyte": 50
+        "tritanium": 800,
+        "megacyte": 40
       },
       "mineralNames": [
         "tritanium",
