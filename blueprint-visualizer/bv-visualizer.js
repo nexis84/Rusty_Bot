@@ -87,6 +87,7 @@ function gameLink(typeId) {
 async function openInGame(typeId) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return;
+  console.log('[BV] openInGame click', id, 'signedIn=', !!(window.BVAuth && BVAuth.signedIn()));
   if (!(window.BVAuth && BVAuth.signedIn())) {
     status('Sign in to open items in game…');
     try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); }
@@ -95,8 +96,10 @@ async function openInGame(typeId) {
   // Session predates the in-client window scope — the call would 403. Offer a
   // one-click re-login instead of a confusing failure.
   if (needsOpenWinScope()) {
+    const sc = (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return ''; } })();
+    console.warn('[BV] openInGame: token missing esi-ui.open_window.v1. Granted scopes:', sc);
     try { updateScopeNudge(); } catch {}
-    if (confirm('Open in game needs an updated sign-in. Sign out and sign back in now?')) {
+    if (confirm('Open in game needs an updated sign-in.\n\nYour token has these scopes:\n' + (sc || '(none read)') + '\n\nSign out and sign back in now?')) {
       try { BVAuth.logout(); } catch {}
     } else {
       status('Sign out and back in to enable Open in game.');
@@ -107,16 +110,26 @@ async function openInGame(typeId) {
   const attempt = tok => fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
   try {
     let token = await BVAuth.getAccessToken();
+    console.log('[BV] openInGame: token scopes =', (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return '?'; } })());
     let r = await attempt(token);
+    console.log('[BV] openInGame: ESI POST status', r.status);
     if (r.status === 401) {
       // Token died mid-session: one refresh + retry.
-      try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) r = await attempt(token); } catch {}
+      try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) { r = await attempt(token); console.log('[BV] openInGame: ESI retry status', r.status); } } catch {}
     }
-    if (r.status === 204 || r.ok) { status('Opened ' + id + ' in your EVE client.'); return; }
-    if (r.status === 403) { status('In-game permission missing — sign out and back in to grant it.'); try { updateScopeNudge(); } catch {} return; }
+    if (r.status === 204 || r.ok) { status('Opened ' + id + ' in your EVE client (ESI ' + r.status + ').'); return; }
+    if (r.status === 403) {
+      const sc = (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return ''; } })();
+      status('In-game permission missing (403). Sign out and back in.');
+      console.warn('[BV] openInGame 403. Token scopes:', sc);
+      try { updateScopeNudge(); } catch {}
+      return;
+    }
     status('Could not open in game (ESI ' + r.status + ').');
+    try { const body = await r.text(); console.warn('[BV] openInGame error body:', body); } catch {}
   } catch (e) {
     const m = String((e && e.message) || e);
+    console.error('[BV] openInGame threw:', e);
     if (/expired|sign in/i.test(m)) { status('Session expired — signing in again…'); try { await BVAuth.login(); } catch {} }
     else status('Could not open in game: ' + m);
   }
