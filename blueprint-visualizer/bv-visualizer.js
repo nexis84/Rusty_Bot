@@ -82,7 +82,7 @@ function piIcon(typeId) {
 function gameLink(typeId) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return '';
-  return '<a class="game-link" data-openwin="' + id + '" href="javascript:void(0)" role="button" title="Open in game (market window)"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></a>';
+  return '<button type="button" class="game-link" data-openwin="' + id + '" title="Open in game (market window)"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></button>';
 }
 async function openInGame(typeId) {
   const id = +typeId;
@@ -2895,7 +2895,7 @@ function ledWrite(l) {
 function pushLedger(e) { try { e.st = collectState(); } catch {} const l = ledRead(); l.unshift(e); ledWrite(l); renderLedger(); }
 function renderLedger() {
   const l = ledRead(); const box = $('ledgerList'); if (!box) return;
-  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <a class="mkt-link" href="javascript:void(0)" role="button" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></a></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
+  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <button type="button" class="mkt-link icon-btn" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></button></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
 }
 
 // ---- Full calculation state (share / save) ----
