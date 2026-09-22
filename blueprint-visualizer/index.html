@@ -154,6 +154,14 @@
   <div class="panel tab-content" id="tab-ledger">
     <h3><i class="fas fa-book"></i> Ledger</h3>
     <p class="hint">Local log of calculations. Export CSV or copy a shareable link.</p>
+    <h4>Save &amp; share</h4>
+    <p class="hint">Share link captures the current blueprint, inputs and Build/Buy sourcing (no inventory data). Saved calculations need SSO.</p>
+    <div class="btn-row" style="margin-bottom:.4rem">
+      <button id="shareCalc" class="calc-btn"><i class="fas fa-share-nodes"></i> Copy share link</button>
+      <button id="saveCalc" class="calc-btn secondary"><i class="fas fa-floppy-disk"></i> Save calculation</button>
+    </div>
+    <div id="savedList" style="font-size:.8rem;margin-bottom:.6rem"></div>
+    <h4>History</h4>
     <button id="ledgerExport" class="calc-btn"><i class="fas fa-download"></i> Export CSV</button>
     <button id="ledgerClear" class="calc-btn secondary">Clear ledger</button>
     <div id="ledgerList" style="margin-top:.6rem;font-size:.8rem"></div>
@@ -187,6 +195,7 @@
         <button id="appraiseBom" class="calc-btn secondary"><i class="fas fa-coins"></i> Appraise BOM</button>
         <button id="appraiseOut" class="calc-btn secondary">Appraise output</button>
         <button id="mineFromBom" class="calc-btn secondary"><i class="fas fa-gem"></i> Mine it</button>
+        <button id="bomExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
       </div>
       <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Unit price</th><th>Total price</th><th>Mode</th><th>Own</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="7" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
        <p class="hint" id="bomTotals" style="margin-top:.5rem"></p>
@@ -198,6 +207,7 @@
           <button id="copyBuildMultibuy" class="calc-btn secondary">Copy multibuy</button>
           <button id="appraiseBuildList" class="calc-btn secondary"><i class="fas fa-coins"></i> Appraise raw</button>
           <button id="toggleBuildExpand" class="calc-btn secondary"><i class="fas fa-expand"></i> Expand/Collapse</button>
+          <button id="buildExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
         <div id="buildList"><p class="hint">No calculation yet — set materials to <b>Build</b> in the tree above.</p></div>
         <p class="hint" id="buildTotals" style="margin-top:.5rem"></p>
@@ -210,6 +220,7 @@
           <button id="copyShopping" class="calc-btn secondary"><i class="fas fa-copy"></i> Copy list</button>
           <button id="copyShopMultibuy" class="calc-btn secondary">Copy multibuy</button>
           <button id="appraiseShopping" class="calc-btn secondary"><i class="fas fa-coins"></i> Appraise</button>
+          <button id="shopExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
         </div>
          <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Need</th><th>Have</th><th>To buy</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody id="shoppingBody"><tr><td colspan="7" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
         <div class="summary-grid" id="shoppingSummary" style="display:none;margin-top:.6rem"></div>
@@ -255,8 +266,8 @@
     <script src="bv-materials.js?v=5"></script>
     <script src="bv-ores.js?v=1"></script>
     <script src="bv-blueprints.js?v=1"></script>
-    <script src="bv-esi-auth.js?v=6"></script>
-    <script src="bv-visualizer.js?v=196"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V195</div>
+    <script src="bv-esi-auth.js?v=7"></script>
+    <script src="bv-visualizer.js?v=197"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V196</div>
 </body>
 </html>

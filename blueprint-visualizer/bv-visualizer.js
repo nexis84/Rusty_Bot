@@ -7,9 +7,47 @@ const $ = id => document.getElementById(id);
 const fmtISK = n => (n === null || n === undefined || isNaN(n)) ? '—' : Math.round(n).toLocaleString('en-US') + ' ISK';
 const fmtN = n => (n === null || n === undefined || isNaN(n)) ? '—' : Number(n).toLocaleString('en-US');
 const nameCache = new Map(), priceCache = new Map(), bpCache = new Map();
+
+// ---- CSV export (import is a future feature) ----
+function csvEsc(v) { const s = (v === null || v === undefined) ? '' : String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function escapeHtml(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function downloadCSV(filename, rows) {
+  const csv = rows.map(r => r.map(csvEsc).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function exportBomCSV() {
+  const bom = S.bom || [];
+  if (!bom.length) { status('Nothing to export — run a calculation first.'); return; }
+  const rows = [['type_name', 'type_id', 'quantity', 'unit_price', 'total_price', 'mode']];
+  for (const l of bom) rows.push([l.name, l.type_id, l.qty, l.unit, l.total, l.mode]);
+  downloadCSV('bv-bom.csv', rows);
+  status('Exported BOM (' + bom.length + ' rows) to CSV.');
+}
+function exportBuildCSV() {
+  const agg = S.buildAgg || [];
+  if (!agg.length) { status('Nothing to export — set materials to Build first.'); return; }
+  const rows = [['material', 'type_id', 'quantity', 'unit_price', 'total_price']];
+  for (const a of agg) rows.push([a.name, a.type_id, a.qty, a.unit, a.unit * a.qty]);
+  downloadCSV('bv-build-list.csv', rows);
+  status('Exported build list (' + agg.length + ' rows) to CSV.');
+}
+function exportShoppingCSV() {
+  const sr = S.shopRows || [];
+  if (!sr.length) { status('Nothing to export — run a calculation first.'); return; }
+  const rows = [['type_name', 'type_id', 'need', 'have', 'to_buy', 'unit_price', 'total_to_buy']];
+  for (const r of sr) rows.push([r.l.name, r.l.type_id, r.l.qty, r.have, r.toBuy, r.unit, r.totalBuy]);
+  downloadCSV('bv-shopping-list.csv', rows);
+  status('Exported shopping list (' + sr.length + ' rows) to CSV.');
+}
 // SDE-derived set of every type ID used as a manufacturing/reaction material (bv-materials.js)
 const BV_MATERIALS = (() => { try { return new Set((window.BV_MATERIAL_IDS || []).map(Number)); } catch { return new Set(); } })();
 const BV_MAT_NAMES = (() => { try { return new Map((window.BV_MATERIAL_NAMES || []).map(([id, n]) => [+id, n])); } catch { return new Map(); } })();
+// Backend base URL — mirrors bv-esi-auth.js (BV share/save endpoints live here).
+const BV_API = ['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://localhost:8080' : 'https://api.rustybot.co.uk';
 
 async function fetchJSON(url, opts, timeout = 12000) {
   const c = new AbortController(); const t = setTimeout(() => c.abort(), timeout);
@@ -36,6 +74,41 @@ function piTier(typeId) {
 function piIcon(typeId) {
   if (!isPI(typeId)) return '';
   return '<a class="pi-link" target="_blank" rel="noopener" href="' + piURL(typeId) + '" title="View ' + piTier(typeId) + ' chain in PI Visualizer"><i class="fas fa-globe"></i></a>';
+}
+// Open a type's window inside the running EVE client. ESI only supports the
+// market-details window for types (esi-ui.open_window.v1); the info window
+// route is limited to characters/corps/alliances, so this one route covers
+// every item. Icon is EVE's "Show Info" glyph (CCP IEC), with a FA fallback.
+function gameLink(typeId) {
+  const id = +typeId;
+  if (!Number.isFinite(id) || id <= 0) return '';
+  return '<a class="game-link" data-openwin="' + id + '" href="#" title="Open in game (market window)"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></a>';
+}
+async function openInGame(typeId) {
+  const id = +typeId;
+  if (!Number.isFinite(id) || id <= 0) return;
+  if (!(window.BVAuth && BVAuth.signedIn())) {
+    status('Sign in to open items in game…');
+    try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); }
+    return;
+  }
+  const url = ESI + '/ui/openwindow/marketdetails/?type_id=' + id;
+  const attempt = tok => fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
+  try {
+    let token = await BVAuth.getAccessToken();
+    let r = await attempt(token);
+    if (r.status === 401) {
+      // Token died mid-session: one refresh + retry.
+      try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) r = await attempt(token); } catch {}
+    }
+    if (r.status === 204 || r.ok) { status('Opened ' + id + ' in your EVE client.'); return; }
+    if (r.status === 403) { status('In-game permission missing — sign out and back in to grant it.'); return; }
+    status('Could not open in game (ESI ' + r.status + ').');
+  } catch (e) {
+    const m = String((e && e.message) || e);
+    if (/expired|sign in/i.test(m)) { status('Session expired — signing in again…'); try { await BVAuth.login(); } catch {} }
+    else status('Could not open in game: ' + m);
+  }
 }
 // Image-server miss cache: types confirmed icon-less this session skip the
 // <img> entirely instead of 404ing on every render.
@@ -960,11 +1033,11 @@ function renderTree(runs) {
         + '<span class="row-tail"><span class="nums">' + fmtISK(unit) + ' ea</span><span class="nums">' + fmtISK(unit * qty) + '</span>'
         + '<span class="mode-toggle">' + deepModeButtons(key, dcur, dinfo) + '</span>'
         + (hasKids ? '<button class="mode-btn" data-tree-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>' : '')
-        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</span></div>' + kids;
+        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + gameLink(tid) + '</span></div>' + kids;
     }).join('');
   };
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
-    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) : '') + '</div><div class="kids">';
+    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + gameLink(S.root.bpId) + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) + gameLink(S.product.type_id) : '') + '</div><div class="kids">';
   S.root.children.forEach((c, i) => {
     const m = c.child ? (c.child.margin >= 0 ? '<span class="margin-pos">build margin +' + fmtISK(c.child.margin) + '</span>' : '<span class="margin-neg">build margin ' + fmtISK(c.child.margin) + '</span>') : (c.child === null && c._tried ? '' : '<span class="nums">checking build…</span>');
     const rm = c.reaction ? (c.reaction.margin >= 0 ? '<span class="margin-pos">react margin +' + fmtISK(c.reaction.margin) + '/u</span>' : '<span class="margin-neg">react margin ' + fmtISK(c.reaction.margin) + '/u</span>') + (c.reaction.estimate ? '<span class="nums" title="Output quantity estimated">est</span>' : '') : '';
@@ -989,7 +1062,7 @@ function renderTree(runs) {
     const nmHtml = c.child
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
-    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
+    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + gameLink(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
   w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
@@ -1262,7 +1335,7 @@ async function renderBom(runs) {
   await preloadVolumes(S.bom.map(l => l.type_id));
   let vol = 0; for (const l of S.bom) vol += (await typeVolume(l.type_id)) * l.qty;
   let total = 0;
-  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + '</td></tr>'; }).join('');
+  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + gameLink(l.type_id) + '</td></tr>'; }).join('');
   $('bomMeta').textContent = S.bom.length + ' types';
   const split = bomCashSplit();
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + (split.extracted > 0 ? ' (+ ' + fmtISK(split.extracted) + ' extracted @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
@@ -1305,6 +1378,7 @@ async function buildLeafLines(c, need, ci) {
 async function renderBuildList(runs) {
   const wrap = $('buildList'), meta = $('buildMeta'), totals = $('buildTotals');
   if (!wrap) return;
+  S.buildAgg = [];
   if (!S.root || !S.root.children) { wrap.innerHTML = '<p class="hint">No calculation yet — set materials to <b>Build</b> in the tree above.</p>'; if (meta) meta.textContent=''; if (totals) totals.textContent=''; return; }
   const builds = S.root.children.filter(c => c.mode === 'build');
   if (!builds.length) { wrap.innerHTML = '<p class="hint">Nothing set to Build — toggle <b>Build</b> on materials in the tree above. The list below will break each Build item into its raw materials.</p>'; if (meta) meta.textContent='0 items'; if (totals) totals.textContent=''; return; }
@@ -1373,15 +1447,16 @@ async function renderBuildList(runs) {
         const bbtns = deepModeButtons(key, bcur, binfo);
         let row = '<tr><td style="' + pad + '"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">'
           + (hasKids ? '<button class="mode-btn" data-build-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '" style="padding:0 .3rem"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button> ' : '')
-          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + (bbtns ? '<br><span class="mode-toggle">' + bbtns + '</span>' : '') + '</td></tr>';
+          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + gameLink(tid) + (bbtns ? '<br><span class="mode-toggle">' + bbtns + '</span>' : '') + '</td></tr>';
         if (sub && sub.materials && sub.materials.length && open) row += renderBuildDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]));
         else if (pend && open) row += '<tr><td style="' + pad + 'color:var(--text3)">resolving sub-materials…</td><td></td><td></td><td></td><td></td></tr>';
         return row;
       }).join('');
     };
     html += renderBuildDeep(mats, need, prodQty, 1, [+c.type_id]);
-    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + leafLines.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a></p></details>';
+    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + leafLines.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a>' + gameLink(c.type_id) + '</p></details>';
   }
+  S.buildAgg = Array.from(aggregated, ([type_id, v]) => ({ type_id: +type_id, name: v.name, qty: v.qty, unit: v.unit }));
   if (aggregated.size > 1 && builds.filter(c=>c.child && c.child.materials).length > 1) {
     html += '<div class="panel" style="margin-top:.6rem;background:var(--panel2)"><h4>Aggregated raw totals (' + aggregated.size + ' types across ' + builds.filter(c=>c.child).length + ' builds)</h4><div style="overflow-x:auto"><table class="bom"><thead><tr><th>Material</th><th>Total qty</th><th>Unit price</th><th>Total price</th><th></th></tr></thead><tbody>';
     let aggTotal = 0; let aggVol = 0;
@@ -1389,7 +1464,7 @@ async function renderBuildList(runs) {
       const tot = v.unit * v.qty;
       aggTotal += tot;
       aggVol += (await typeVolume(tid)) * v.qty;
-      html += '<tr><td><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + v.name + '</td><td>' + fmtN(v.qty) + '</td><td>' + fmtISK(v.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + '</td></tr>';
+      html += '<tr><td><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + v.name + '</td><td>' + fmtN(v.qty) + '</td><td>' + fmtISK(v.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + gameLink(tid) + '</td></tr>';
     }
     html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">Combined raw cost for all Build items: ' + fmtISK(aggTotal) + ' · Volume ~' + fmtN(Math.round(aggVol)) + ' m³</p></div>';
     grandTotal = aggTotal;
@@ -1596,7 +1671,7 @@ function renderBuildProgress() {
         + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '<span class="pill ' + s.mode + '">' + String(s.mode || 'buy').toUpperCase() + '</span>'
         + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>'
           : (s.maybe ? '<button class="mode-btn" data-prog-resolve="' + s.ci + ':' + ((s.path || []).join('>')) + '" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
-        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a></span></div>' + kidsHtml;
+        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(s.typeId) + '</span></div>' + kidsHtml;
     }).join('');
   };
   // Auto-finish: any material fully covered by inventory ticks itself
@@ -1621,7 +1696,7 @@ function renderBuildProgress() {
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgCollapsed.has(top.key) ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (bpProgCollapsed.has(top.key) ? 'down' : 'up') + '"></i></button>'
         : (top.maybe ? '<button class="mode-btn" data-prog-resolve="' + ci + ':" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
-      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a></span></div>'
+      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(c.type_id) + '</span></div>'
       + kidsHtml
       + '</div>';
   });
@@ -2166,6 +2241,7 @@ async function buildAggLines() {
 async function renderShoppingList(runs) {
   const sb = $('shoppingBody'), meta = $('shopMeta'), totals = $('shoppingTotals');
   if (!sb) return;
+  S.shopRows = [];
   const bom = S.bom || effLeafCost(runs);
   const shop = bom.filter(l => l.mode === 'buy' || l.mode === 'react');
   if (!shop.length) {
@@ -2197,6 +2273,7 @@ async function renderShoppingList(runs) {
     totalNeed += r.totalNeed;
     totalBuy += r.totalBuy;
   }
+  S.shopRows = rows;
   sb.innerHTML = rows.map(r => {
     const clean = cleanName(r.l.name);
     const useOwn = doDeduct && ownUse(r.l.type_id);
@@ -2205,7 +2282,7 @@ async function renderShoppingList(runs) {
     const needTxt = fmtN(r.l.qty);
     const haveCls = useOwn && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
     const toBuyCls = r.toBuy === 0 ? ' style="color:var(--build)"' : '';
-    return '<tr><td>' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
+    return '<tr><td>' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + gameLink(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
   }).join('');
   // prominent summary grid with full total — de-dupe when nothing is saved
   const sumGrid = $('shoppingSummary');
@@ -2478,7 +2555,7 @@ function bpRowHtml(b) {
   const nm = myBpNames[b.type_id] || ('Type ' + b.type_id);
   const loc = BV_SHOW_LOCATIONS ? bpLocName(b) : null;
   const locHtml = loc ? ' · <span class="nums">@ ' + loc + (b.location_flag ? ' (' + b.location_flag + ')' : '') + '</span>' : '';
-  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span><button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button><button class="mode-btn" data-sendbp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '" title="Calculate and pin to the Build Progress tab">Send to Build</button></div>';
+  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span>' + gameLink(b.type_id) + '<button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button><button class="mode-btn" data-sendbp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '" title="Calculate and pin to the Build Progress tab">Send to Build</button></div>';
 }
 async function bpApplyRow(btn) {
   $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
@@ -2746,21 +2823,131 @@ async function invCompare() {
       const runsNeeded = Math.ceil(target / chance);
       return { ...d, chance, runsNeeded };
     }).sort((a, b) => a.runsNeeded - b.runsNeeded);
-    out.innerHTML = '<p class="hint">' + t2.name + ' (' + t2.id + ') · base ' + (D.t2BaseChance * 100).toFixed(0) + '% · target ' + target + ' BPCs <a class="mkt-link" target="_blank" href="' + marketURL(t2.id) + '"><i class="fas fa-chart-line"></i></a></p>' +
+    out.innerHTML = '<p class="hint">' + t2.name + ' (' + t2.id + ') · base ' + (D.t2BaseChance * 100).toFixed(0) + '% · target ' + target + ' BPCs <a class="mkt-link" target="_blank" href="' + marketURL(t2.id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(t2.id) + '</p>' +
       rows.map((d, i) => '<div style="display:flex;gap:.4rem;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + d.name + ' · ' + (d.chance * 100).toFixed(1) + '% · runs ' + d.runsNeeded + ' · ME' + d.me + '/TE' + d.te + '</span><button class="mode-btn" data-q="' + i + '">Queue</button></div>').join('');
     out.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { invQueue.push({ t2: t2.name, t2id: t2.id, d: rows[+b.dataset.q], target }); renderQueue(); });
   } catch (e) { out.textContent = 'Failed: ' + e.message; }
 }
 function renderQueue() {
-  $('invQueue').innerHTML = invQueue.length ? invQueue.map((q, i) => '<div>' + (i + 1) + '. ' + q.t2 + ' × ' + q.target + ' via ' + q.d.name + ' (' + q.d.runsNeeded + ' runs) <a class="mkt-link" target="_blank" href="' + marketURL(q.t2id) + '"><i class="fas fa-chart-line"></i></a></div>').join('') : 'Nothing queued yet.';
+  $('invQueue').innerHTML = invQueue.length ? invQueue.map((q, i) => '<div>' + (i + 1) + '. ' + q.t2 + ' × ' + q.target + ' via ' + q.d.name + ' (' + q.d.runsNeeded + ' runs) <a class="mkt-link" target="_blank" href="' + marketURL(q.t2id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(q.t2id) + '</div>').join('') : 'Nothing queued yet.';
 }
 
-// ---- Ledger ----
+// ---- Ledger + sharing ----
 function ledRead() { try { return JSON.parse(localStorage.getItem('bvLedger') || '[]'); } catch { return []; } }
-function pushLedger(e) { const l = ledRead(); l.unshift(e); try { localStorage.setItem('bvLedger', JSON.stringify(l.slice(0, 200))); } catch {} renderLedger(); }
+function pushLedger(e) { try { e.st = collectState(); } catch {} const l = ledRead(); l.unshift(e); try { localStorage.setItem('bvLedger', JSON.stringify(l.slice(0, 200))); } catch {} renderLedger(); }
 function renderLedger() {
   const l = ledRead(); const box = $('ledgerList'); if (!box) return;
-  box.innerHTML = l.length ? l.slice(0, 30).map(e => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a> <a class="mkt-link" href="#bv=' + btoa(JSON.stringify({ bp: e.bp, runs: e.runs })) + '" title="Shareable link"><i class="fas fa-link"></i></a></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
+  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <a class="mkt-link" href="#" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></a></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
+}
+
+// ---- Full calculation state (share / save) ----
+// Personal inventory (owned-material toggles, asset snapshots) is deliberately
+// excluded from shared/saved state — only blueprint + inputs + sourcing modes.
+const BV_STATE_INPUTS = ['hubSelect', 'me', 'te', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'refinePct', 'matSource'];
+function collectState() {
+  const inputs = {};
+  for (const k of BV_STATE_INPUTS) { const el = $(k); if (el) inputs[k] = el.value; }
+  const bpName = (($('bpName') && $('bpName').value) || '').trim();
+  const runs = parseInt(($('runs') && $('runs').value) || 1, 10) || 1;
+  const bpId = (S.root && S.root.bpId) || null;
+  let modes = null;
+  try { if (bpId) { const m = bvModesRead()[String(bpId)]; if (m && Object.keys(m).length) modes = m; } } catch {}
+  return { v: 1, bp: { bpName, runs, bpId: bpId ? +bpId : null }, inputs, modes };
+}
+function applyState(st) {
+  if (!st || typeof st !== 'object') return false;
+  const inputs = st.inputs || {};
+  for (const k of Object.keys(inputs)) { const el = $(k); if (el && inputs[k] !== undefined) el.value = inputs[k]; }
+  if (st.bp && st.bp.bpName) $('bpName').value = st.bp.bpName;
+  if (st.bp && st.bp.runs) $('runs').value = st.bp.runs;
+  if (st.modes && st.bp && st.bp.bpId) {
+    try { const all = bvModesRead(); all[String(st.bp.bpId)] = st.modes; bvModesWrite(all); } catch {}
+  }
+  // Drop the in-memory deep-mode cache so calculate() re-reads the seeded store.
+  try { S._deepModes = null; S._deepModesBp = null; } catch {}
+  savePrefs();
+  calculate();
+  return true;
+}
+async function createShareCode(state) {
+  const r = await fetch(BV_API + '/api/bv/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ state }) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  if (!j || !j.code) throw new Error('no code returned');
+  return j.code;
+}
+function shareUrlFor(code) {
+  const path = location.pathname.replace(/\/index\.html$/, '/');
+  return location.origin + path + '#' + code;
+}
+async function copyText(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); status(okMsg); return true; }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    let ok = false; try { document.execCommand('copy'); ok = true; } catch {}
+    ta.remove(); status(ok ? okMsg : 'Could not copy to clipboard.'); return ok;
+  }
+}
+async function shareCurrent() {
+  if (!S.root || !S.root.bpId) { status('Run a calculation first.'); return; }
+  status('Creating share link…');
+  try { const code = await createShareCode(collectState()); await copyText(shareUrlFor(code), 'Share link copied to clipboard.'); }
+  catch (e) { status('Share link failed: ' + (e && e.message ? e.message : e)); }
+}
+async function shareLedgerEntry(i) {
+  const e = (ledRead() || [])[i]; if (!e) return;
+  status('Creating share link…');
+  try {
+    const state = e.st || { v: 1, bp: { bpName: e.bp, runs: e.runs, bpId: e.bpId ? +e.bpId : null }, inputs: {}, modes: null };
+    const code = await createShareCode(state);
+    await copyText(shareUrlFor(code), 'Share link copied to clipboard.');
+  } catch (err) { status('Share link failed: ' + (err && err.message ? err.message : err)); }
+}
+async function saveCurrent() {
+  if (!S.root || !S.root.bpId) { status('Run a calculation first.'); return; }
+  if (!(window.BVAuth && BVAuth.signedIn())) { status('Sign in to save calculations…'); try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); } return; }
+  const name = prompt('Name this calculation:', (S.root.bpName || 'Calculation') + ' ×' + (S.runs || 1));
+  if (!name) return;
+  status('Saving…');
+  try {
+    const code = await createShareCode(collectState());
+    const token = await BVAuth.getAccessToken();
+    const r = await fetch(BV_API + '/api/bv/saves', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name, code }) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    status('Saved “' + name + '”.');
+    await renderSavedList();
+  } catch (e) { status('Save failed: ' + (e && e.message ? e.message : e)); }
+}
+async function renderSavedList() {
+  const box = $('savedList'); if (!box) return;
+  if (!(window.BVAuth && BVAuth.signedIn())) { box.innerHTML = '<p class="hint">Sign in to save and reload calculations.</p>'; return; }
+  box.textContent = 'Loading saved…';
+  try {
+    const token = await BVAuth.getAccessToken();
+    const r = await fetch(BV_API + '/api/bv/saves', { headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const saves = (j && j.saves) || [];
+    if (!saves.length) { box.innerHTML = '<p class="hint">No saved calculations yet.</p>'; return; }
+    box.innerHTML = saves.map(s => '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + escapeHtml(s.name) + ' <span class="hint">' + new Date(s.ts).toLocaleDateString() + '</span></span><button class="mode-btn" data-saveload="' + s.code + '">Load</button><button class="mode-btn" data-savedel="' + s.code + '">Delete</button></div>').join('');
+  } catch (e) { box.innerHTML = '<p class="hint">Saved list unavailable: ' + escapeHtml(e && e.message ? e.message : String(e)) + '</p>'; }
+}
+async function deleteSaved(code) {
+  try {
+    const token = await BVAuth.getAccessToken();
+    const r = await fetch(BV_API + '/api/bv/saves/' + encodeURIComponent(code), { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await renderSavedList();
+  } catch (e) { status('Delete failed: ' + (e && e.message ? e.message : e)); }
+}
+async function loadShortCode(code) {
+  try {
+    const r = await fetch(BV_API + '/api/bv/share/' + encodeURIComponent(code));
+    if (!r.ok) return false;
+    const j = await r.json();
+    if (j && j.state) { applyState(j.state); return true; }
+  } catch {}
+  return false;
 }
 
 // ---- autocomplete (blueprints / items / systems — offline via market DBs) ----
@@ -3177,7 +3364,7 @@ async function planMining(forcedId, opts) {
       const opts = (p.ranked || []).map(r => '<option value="' + r.ore.id + '"' + (r.ore.id===p.chosenId?' selected':'') + '>' + (r.ore.id===fastestId ? '★ ' : '') + r.ore.name + ' — ' + fmtN(r.units) + ' units · ' + fmtN(Math.round(r.m3)) + ' m³ · ' + fmtTime(r.mins) + ' (' + fmtN(r.y) + '/portion)</option>').join('');
       const yieldHint = p.y ? ' ('+fmtN(p.y)+'/portion)' : '';
       const fastPill = (p.chosenId === fastestId) ? ' <span class="pill" style="border-color:var(--accent);color:var(--accent)" title="Fastest source for this material">★ fastest</span>' : '';
-      return '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td><select data-mine-choice="' + p.mid + '" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .4rem;font-family:inherit;font-size:.82rem;max-width:260px">' + opts + '</select>' + fastPill + '<span class="nums">' + yieldHint + '</span></td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a></td></tr>';
+      return '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td><select data-mine-choice="' + p.mid + '" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .4rem;font-family:inherit;font-size:.82rem;max-width:260px">' + opts + '</select>' + fastPill + '<span class="nums">' + yieldHint + '</span></td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(p.ore.id) + '</td></tr>';
     }).join('') +
     '</tbody></table></div>';
   box.innerHTML = h;
@@ -3938,7 +4125,7 @@ function renderStkRows() {
       // Item icons removed: the image server 404s on many industry types and
       // spams the console per row. Text-only list.
       const icon = '';
-      h += '<tr><td>' + icon + nm + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
+      h += '<tr><td>' + icon + nm + gameLink(r.typeId) + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
     }
   }
   h += '</tbody></table></div>';
@@ -4522,19 +4709,26 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
-  // Share links (#bv=...) calculate automatically — on page load and when
-  // clicked from the ledger (same-page hash change, no reload).
+  // Share links calculate automatically — on page load and when clicked from
+  // the ledger (same-page hash change, no reload). Supports the new short
+  // code (#<code>) and the legacy #bv=<base64> form.
   function calcFromHash() {
-    if (!location.hash.startsWith('#bv=')) return false;
-    try {
-      const e = JSON.parse(atob(location.hash.slice(4)));
-      if (e && e.bp) {
-        $('bpName').value = e.bp;
-        if (e.runs) $('runs').value = e.runs;
-        calculate();
-        return true;
-      }
-    } catch {}
+    const h = location.hash.slice(1);
+    if (!h) return false;
+    if (h.startsWith('bv=')) {
+      try {
+        const e = JSON.parse(atob(h.slice(3)));
+        if (e && e.bp) {
+          $('bpName').value = e.bp;
+          if (e.runs) $('runs').value = e.runs;
+          calculate();
+          return true;
+        }
+      } catch {}
+      return false;
+    }
+    // Short share code: no '=' and a compact base64url token.
+    if (h.indexOf('=') === -1 && h.length <= 16 && /^[A-Za-z0-9_-]+$/.test(h)) { loadShortCode(h); }
     return false;
   }
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
@@ -4748,6 +4942,14 @@ document.addEventListener('DOMContentLoaded', () => {
       else goCrumb(+nav.dataset.i);
       return;
     }
+    const openwin = e.target.closest('[data-openwin]');
+    if (openwin) { e.preventDefault(); openInGame(openwin.dataset.openwin); return; }
+    const lshare = e.target.closest('[data-ledgershare]');
+    if (lshare) { e.preventDefault(); shareLedgerEntry(+lshare.dataset.ledgershare); return; }
+    const sload = e.target.closest('[data-saveload]');
+    if (sload) { e.preventDefault(); loadShortCode(sload.dataset.saveload); return; }
+    const sdel = e.target.closest('[data-savedel]');
+    if (sdel) { e.preventDefault(); if (confirm('Delete this saved calculation?')) deleteSaved(sdel.dataset.savedel); return; }
     const send = e.target.closest('[data-sendbuild]');
     if (send) {
       e.preventDefault();
@@ -4757,6 +4959,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('invGo').onclick = invCompare;
   $('invQueueBom').onclick = () => { if (!invQueue.length) return; const lines = invQueue.map(q => q.d.runsNeeded + ' x ' + q.t2 + ' (' + q.d.name + ')'); window.open(appraisalURL(lines), '_blank', 'noopener'); };
+  if ($('bomExport')) $('bomExport').onclick = exportBomCSV;
+  if ($('buildExport')) $('buildExport').onclick = exportBuildCSV;
+  if ($('shopExport')) $('shopExport').onclick = exportShoppingCSV;
+  if ($('shareCalc')) $('shareCalc').onclick = shareCurrent;
+  if ($('saveCalc')) $('saveCalc').onclick = saveCurrent;
+  try { renderSavedList(); } catch {}
   $('ledgerExport').onclick = () => { const l = ledRead(); if (!l.length) return; const csv = 'ts,blueprint,runs,cost,revenue,profit,hub\n' + l.map(e => [new Date(e.ts).toISOString(), '"' + e.bp + '"', e.runs, e.cost, e.revenue, e.profit, e.hub].join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'bv-ledger.csv'; a.click(); };
   $('ledgerClear').onclick = () => { localStorage.removeItem('bvLedger'); renderLedger(); };
 });

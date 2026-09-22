@@ -97,6 +97,10 @@ table.bom th{color:var(--accent);font-size:.72rem;text-transform:uppercase;lette
 .pi-link:hover{text-decoration:underline}
 .mine-link{color:#f5c542;text-decoration:none;margin-left:.4rem;font-size:.8rem;cursor:pointer}
 .mine-link:hover{text-decoration:underline}
+.game-link{color:#7fd4ff;text-decoration:none;margin-left:.4rem;font-size:.8rem;cursor:pointer;display:inline-block;vertical-align:middle}
+.game-link:hover{opacity:.8}
+.game-link img{height:14px;width:14px;vertical-align:middle;object-fit:contain}
+.game-link i{vertical-align:middle}
 .pi-banner{display:flex;align-items:center;gap:.6rem;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.4);border-radius:8px;padding:.55rem .8rem;margin:.6rem 0;font-size:.82rem}
 .pi-banner a{color:#3fb950;font-weight:700}
 .pill{display:inline-block;font-size:.7rem;border:1px solid var(--border);border-radius:20px;padding:.1rem .55rem;color:var(--text2)}
