@@ -82,7 +82,7 @@ function piIcon(typeId) {
 function gameLink(typeId) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return '';
-  return '<a class="game-link" data-openwin="' + id + '" href="#" title="Open in game (market window)"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></a>';
+  return '<a class="game-link" data-openwin="' + id + '" href="javascript:void(0)" role="button" title="Open in game (market window)"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></a>';
 }
 async function openInGame(typeId) {
   const id = +typeId;
@@ -2895,7 +2895,7 @@ function ledWrite(l) {
 function pushLedger(e) { try { e.st = collectState(); } catch {} const l = ledRead(); l.unshift(e); ledWrite(l); renderLedger(); }
 function renderLedger() {
   const l = ledRead(); const box = $('ledgerList'); if (!box) return;
-  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <a class="mkt-link" href="#" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></a></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
+  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <a class="mkt-link" href="javascript:void(0)" role="button" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></a></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
 }
 
 // ---- Full calculation state (share / save) ----
@@ -2944,8 +2944,14 @@ async function createShareCode(state) {
   return j.code;
 }
 function shareUrlFor(code) {
+  if (!code) return '';
   const path = location.pathname.replace(/\/index\.html$/, '/');
   return location.origin + path + '#' + code;
+}
+// Reflect a created share code in the address bar (so "copy link address"
+// works) without firing hashchange / re-running the calculation.
+function showShareInAddressBar(code) {
+  try { if (code) history.replaceState(null, '', location.pathname + location.search + '#' + code); } catch {}
 }
 async function copyText(text, okMsg) {
   try { await navigator.clipboard.writeText(text); status(okMsg); return true; }
@@ -2958,7 +2964,12 @@ async function copyText(text, okMsg) {
 async function shareCurrent() {
   if (!S.root || !S.root.bpId) { status('Run a calculation first.'); return; }
   status('Creating share link…');
-  try { const code = await createShareCode(collectState()); await copyText(shareUrlFor(code), 'Share link copied to clipboard.'); }
+  try {
+    const code = await createShareCode(collectState());
+    if (!code) throw new Error('no code returned');
+    showShareInAddressBar(code);
+    await copyText(shareUrlFor(code), 'Share link copied to clipboard.');
+  }
   catch (e) { status('Share link failed: ' + (e && e.message ? e.message : e)); }
 }
 async function shareLedgerEntry(i) {
@@ -2967,6 +2978,8 @@ async function shareLedgerEntry(i) {
   try {
     const state = e.st || { v: 1, bp: { bpName: e.bp, runs: e.runs, bpId: e.bpId ? +e.bpId : null }, inputs: e.hub ? { hubSelect: e.hub } : {}, modes: null, nav: [] };
     const code = await createShareCode(state);
+    if (!code) throw new Error('no code returned');
+    showShareInAddressBar(code);
     await copyText(shareUrlFor(code), 'Share link copied to clipboard.');
   } catch (err) { status('Share link failed: ' + (err && err.message ? err.message : err)); }
 }
