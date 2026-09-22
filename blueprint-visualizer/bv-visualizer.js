@@ -75,69 +75,177 @@ function piIcon(typeId) {
   if (!isPI(typeId)) return '';
   return '<a class="pi-link" target="_blank" rel="noopener" href="' + piURL(typeId) + '" title="View ' + piTier(typeId) + ' chain in PI Visualizer"><i class="fas fa-globe"></i></a>';
 }
-// Open a type's window inside the running EVE client. ESI only supports the
-// market-details window for types (esi-ui.open_window.v1); the info window
-// route is limited to characters/corps/alliances, so this one route covers
-// every item. Icon is EVE's "Show Info" glyph (CCP IEC), with a FA fallback.
-function gameLink(typeId) {
+// Blueprint type IDs known from the generated index, so infoButton can hide
+// itself for blueprints even when only an id is passed.
+function bvIsBlueprintType(typeId) {
+  try {
+    const t = window.BV_TYPEINFO && window.BV_TYPEINFO.types && window.BV_TYPEINFO.types[String(+typeId)];
+    if (!t) return false;
+    return /blueprint|bpc/i.test(t.n || '');
+  } catch { return false; }
+}
+// "Item info" button — opens the floating info panel (local SDE → Everef → ESI).
+// EVE's in-client openwindow route is deliberately NOT used: CCP's client
+// silently ignores it (esi-issues #1349), so we surface the info in-page.
+function infoButton(typeId, name) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return '';
-  return '<button type="button" class="game-link" data-openwin="' + id + '" title="Open in game (market window)"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></button>';
+  // Blueprints have no useful description/stats — no button for them.
+  if (/blueprint|bpc/i.test(String(name || '')) || bvIsBlueprintType(id)) return '';
+  return '<button type="button" class="game-link" data-info="' + id + '" title="Item info"><img src="icons/showinfo.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline\'"><i class="fas fa-circle-info" style="display:none"></i></button>';
 }
-async function openInGame(typeId) {
-  const id = +typeId;
-  if (!Number.isFinite(id) || id <= 0) return;
-  if (!(window.BVAuth && BVAuth.signedIn())) {
-    status('Sign in to open items in game…');
-    try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + (e && e.message ? e.message : e)); }
-    return;
+
+// ---- Item info panel (floating, draggable) ----
+const infoCache = new Map();
+function bvTypeInfoLocal(id) {
+  try { return (window.BV_TYPEINFO && window.BV_TYPEINFO.types && window.BV_TYPEINFO.types[String(+id)]) || null; } catch { return null; }
+}
+function bvInfoName(map, id) {
+  try { return (window.BV_TYPEINFO && window.BV_TYPEINFO[map] && window.BV_TYPEINFO[map][String(id)]) || ''; } catch { return ''; }
+}
+// Resolve a normalised info record: local SDE → Everef → ESI → minimal.
+async function typeInfo(id) {
+  const key = +id;
+  if (infoCache.has(key)) return infoCache.get(key);
+  let out = null;
+  const local = bvTypeInfoLocal(key);
+  if (local) {
+    out = {
+      id: key, name: local.n || ('Type ' + key), desc: local.d || '',
+      group: bvInfoName('groups', local.g) || '', category: bvInfoName('categories', local.c) || '',
+      marketGroup: bvInfoName('marketGroups', local.mg) || '',
+      volume: local.v, packagedVolume: local.pv, portionSize: local.ps, basePrice: local.bp,
+      radius: local.r, mass: local.m, iconID: local.ic, source: 'local SDE',
+    };
   }
-  // Session predates the in-client window scope — the call would 403. Offer a
-  // one-click re-login instead of a confusing failure.
-  if (needsOpenWinScope()) {
-    const sc = (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return ''; } })();
-    console.warn('[BV] openInGame: token missing esi-ui.open_window.v1. Granted scopes:', sc);
-    try { updateScopeNudge(); } catch {}
-    if (confirm('Open in game needs an updated sign-in.\n\nYour token has these scopes:\n' + (sc || '(none read)') + '\n\nSign out and sign back in now?')) {
-      try { BVAuth.logout(); } catch {}
-    } else {
-      status('Sign out and back in to enable Open in game.');
-    }
-    return;
+  if (!out) {
+    try {
+      const r = await fetchJSON('https://ref-data.everef.net/types/' + key);
+      if (r && (r.name || r.type_id)) {
+        const nm = (r.name && (r.name.en || Object.values(r.name)[0])) || ('Type ' + key);
+        out = {
+          id: key, name: nm, desc: (r.description && r.description.en) || '',
+          group: '', category: '', marketGroup: '',
+          volume: r.volume, packagedVolume: r.packaged_volume, portionSize: r.portion_size, basePrice: r.base_price,
+          radius: (r.radius > 0 ? r.radius : undefined), mass: (r.mass > 0 ? r.mass : undefined), iconID: r.icon_id,
+          source: 'Everef',
+        };
+        // Friendly group/category names via Everef (best effort).
+        try {
+          if (r.group_id) { const g = await fetchJSON('https://ref-data.everef.net/groups/' + r.group_id); if (g && g.name) out.group = (g.name.en || ''); if (g && g.category_id) { const c = await fetchJSON('https://ref-data.everef.net/categories/' + g.category_id); if (c && c.name) out.category = (c.name.en || ''); } }
+        } catch {}
+      }
+    } catch {}
   }
-  const url = ESI + '/ui/openwindow/marketdetails/?type_id=' + id;
-  const attempt = tok => fetch(url, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
+  if (!out) {
+    try {
+      const t = await fetchJSON(ESI + '/universe/types/' + key + '/');
+      out = { id: key, name: t.name || await typeName(key), desc: t.description || '', group: '', category: '', marketGroup: '', volume: t.volume, packagedVolume: t.packaged_volume, portionSize: t.portion_size, basePrice: t.base_price, radius: undefined, mass: undefined, iconID: t.icon_id, source: 'ESI' };
+    } catch {}
+  }
+  if (!out) out = { id: key, name: await typeName(key).catch(() => 'Type ' + key), desc: '', group: '', category: '', marketGroup: '', source: 'minimal' };
+  // Auto-link known item names in plain-text descriptions (Everef/ESI fallbacks).
+  if (out.desc && !/<a\s/i.test(out.desc)) out.desc = bvLinkifyDescription(out.desc);
+  infoCache.set(key, out);
+  return out;
+}
+// Turn plain-text item names into showinfo anchors using the local autocomplete
+// index. Conservative: only exact, reasonably long names.
+function bvLinkifyDescription(text) {
   try {
-    let token = await BVAuth.getAccessToken();
-    let r = await attempt(token);
-    if (r.status === 401) {
-      // Token died mid-session: one refresh + retry.
-      try { const t = await BVAuth.refreshToken(); token = t && t.access_token; if (token) r = await attempt(token); } catch {}
-    }
-    if (r.status === 204 || r.ok) {
-      // ESI accepts and dispatches, but there is a long-standing CCP bug where
-      // the client (Photon UI) silently ignores the open request (esi-issues
-      // #1349) — and type_id must be sent as a query param (#1490), which we do.
-      console.log('[BV] openInGame: ESI accepted (204) for type', id);
-      status('Sent to EVE — if nothing opens, it\'s a known in-client bug (not a share).');
-      return;
-    }
-    if (r.status === 403) {
-      const sc = (() => { try { return (BVAuth.scopes() || []).join(' '); } catch { return ''; } })();
-      status('In-game permission missing (403). Sign out and back in.');
-      console.warn('[BV] openInGame 403. Token scopes:', sc);
-      try { updateScopeNudge(); } catch {}
-      return;
-    }
-    status('Could not open in game (ESI ' + r.status + ').');
-    try { const body = await r.text(); console.warn('[BV] openInGame error body:', body); } catch {}
-  } catch (e) {
-    const m = String((e && e.message) || e);
-    console.error('[BV] openInGame threw:', e);
-    if (/expired|sign in/i.test(m)) { status('Session expired — signing in again…'); try { await BVAuth.login(); } catch {} }
-    else status('Could not open in game: ' + m);
-  }
+    if (!BV_ITEMS.length) return text;
+    const names = BV_ITEMS.filter(i => i.name && i.name.length >= 5).map(i => [i.id, i.name]);
+    // Build one alternation of escaped names, longest first so substrings don't win.
+    names.sort((a, b) => b[1].length - a[1].length);
+    const re = new RegExp('\\b(' + names.slice(0, 4000).map(n => escRe(n[1])).join('|') + ')\\b', 'g');
+    const byName = new Map(names.map(([id, n]) => [n.toLowerCase(), id]));
+    return text.replace(re, (m) => { const id = byName.get(m.toLowerCase()); return id ? '<a href="showinfo:' + id + '">' + m + '</a>' : m; });
+  } catch { return text; }
 }
+function bvFmtNum(v) { return (v === null || v === undefined || isNaN(v)) ? null : Number(v).toLocaleString('en-US'); }
+function bvFmtIsk(v) { return (v === null || v === undefined || isNaN(v)) ? null : Number(v).toLocaleString('en-US') + ' ISK'; }
+function bvInfoPanelEl() {
+  let p = document.getElementById('bvInfoPanel');
+  if (p) return p;
+  p = document.createElement('div');
+  p.id = 'bvInfoPanel';
+  p.className = 'panel bv-info-panel';
+  p.style.display = 'none';
+  document.body.appendChild(p);
+  // Click inside: intercept showinfo links (nested browsing).
+  p.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href^="showinfo:"]');
+    if (a) { e.preventDefault(); const cid = +a.getAttribute('href').split(':')[1]; if (cid) openItemInfo(cid); return; }
+    if (e.target.closest && e.target.closest('[data-info-close]')) { closeInfoPanel(); return; }
+  });
+  // Drag by header.
+  p.addEventListener('pointerdown', e => {
+    const head = e.target.closest && e.target.closest('.bv-info-head');
+    if (!head) return;
+    const rect = p.getBoundingClientRect();
+    const dx = e.clientX - rect.left, dy = e.clientY - rect.top;
+    p.setPointerCapture(e.pointerId);
+    const move = ev => {
+      const x = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - dx));
+      const y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - dy));
+      p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.right = 'auto'; p.style.bottom = 'auto';
+    };
+    const up = ev => {
+      p.removeEventListener('pointermove', move); p.removeEventListener('pointerup', up);
+      try { localStorage.setItem('bvInfoPanelPos', JSON.stringify({ left: p.style.left, top: p.style.top })); } catch {}
+    };
+    p.addEventListener('pointermove', move); p.addEventListener('pointerup', up);
+  });
+  return p;
+}
+function bvInfoRestorePos() {
+  const p = bvInfoPanelEl();
+  try {
+    const saved = JSON.parse(localStorage.getItem('bvInfoPanelPos') || 'null');
+    if (saved && saved.left && saved.top) { p.style.left = saved.left; p.style.top = saved.top; p.style.right = 'auto'; p.style.bottom = 'auto'; return; }
+  } catch {}
+  // Default: bottom-right.
+  p.style.left = 'auto'; p.style.top = 'auto'; p.style.right = '1rem'; p.style.bottom = '1rem';
+}
+function bvInfoRows(info) {
+  const num = bvFmtNum, isk = bvFmtIsk;
+  const rows = [];
+  const vol = num(info.volume); if (vol !== null) rows.push(['Volume', vol + ' m³']);
+  const pv = num(info.packagedVolume); if (pv !== null) rows.push(['Packaged volume', pv + ' m³']);
+  const ps = num(info.portionSize); if (ps !== null) rows.push(['Portion size', ps]);
+  const bp = isk(info.basePrice); if (bp !== null) rows.push(['Base price', bp]);
+  const r = num(info.radius); if (r !== null) rows.push(['Radius', r + ' m']);
+  const m = num(info.mass); if (m !== null) rows.push(['Mass', m + ' kg']);
+  return rows.map(([k, v]) => '<div class="summary-card"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>').join('');
+}
+async function openItemInfo(idRaw) {
+  const id = +idRaw;
+  if (!Number.isFinite(id) || id <= 0) return;
+  const p = bvInfoPanelEl();
+  bvInfoRestorePos();
+  p.style.display = '';
+  p.innerHTML = '<div class="bv-info-head"><span class="bv-info-title"><span class="hint">Loading…</span></span><button type="button" class="mode-btn" data-info-close title="Close">×</button></div>';
+  let info;
+  try { info = await typeInfo(id); } catch { info = { id, name: await typeName(id).catch(() => 'Type ' + id), desc: '', source: 'minimal' }; }
+  const hubRegion = hub();
+  const crumbs = [info.group, info.category, info.marketGroup].filter(Boolean).join(' › ');
+  const descHtml = info.desc ? '<div class="bv-info-desc">' + info.desc + '</div>' : '<p class="hint">No description available.</p>';
+  p.innerHTML =
+    '<div class="bv-info-head">' +
+      '<img class="bv-info-icon" src="https://images.evetech.net/types/' + id + '/icon?size=64" alt="" onerror="this.style.display=\'none\'">' +
+      '<span class="bv-info-title"><b>' + info.name + '</b>' + (crumbs ? '<span class="hint">' + crumbs + '</span>' : '') + '</span>' +
+      '<button type="button" class="mode-btn" data-info-close title="Close">×</button>' +
+    '</div>' +
+    '<div class="bv-info-body">' + descHtml + '</div>' +
+    (bvInfoRows(info) ? '<div class="summary-grid bv-info-stats">' + bvInfoRows(info) + '</div>' : '') +
+    '<div class="bv-info-links">' +
+      '<a class="mkt-link" target="_blank" rel="noopener" href="https://everef.net/types/' + id + '">Everef</a>' +
+      '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(id, hubRegion) + '">Market</a>' +
+      '<a class="mkt-link" target="_blank" rel="noopener" href="' + ESI + '/universe/types/' + id + '/">ESI JSON</a>' +
+      '<span class="hint bv-info-src">source: ' + info.source + '</span>' +
+    '</div>';
+}
+function closeInfoPanel() { const p = document.getElementById('bvInfoPanel'); if (p) { p.style.display = 'none'; p.innerHTML = ''; } }
 // Image-server miss cache: types confirmed icon-less this session skip the
 // <img> entirely instead of 404ing on every render.
 const bvIconMiss = new Set();
@@ -151,8 +259,7 @@ function iconHTML(typeId, name, style) {
   if (/blueprint|bpc/i.test(String(name || ''))) return '';
   return '<img src="https://images.evetech.net/types/' + typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'"' + (style ? ' style="' + style + '"' : '') + '>';
 }
-function isMineral(typeId) { try { return !!(D.minerals && D.minerals[typeId]); } catch { return false; } }
-// Ice products (isotopes, ozone, heavy water, strontium) resolve at runtime — see ensureIceProducts.
+function isMineral(typeId) { try { return !!(D.minerals && D.minerals[typeId]); } catch { return false; } }// Ice products (isotopes, ozone, heavy water, strontium) resolve at runtime — see ensureIceProducts.
 const iceProductIds = new Set();
 let iceOreList = [], iceResolved = false;
 async function ensureIceProducts() {
@@ -270,31 +377,7 @@ function init() {
   document.querySelectorAll('[data-mainview]').forEach(b => b.onclick = () => { switchMainView(b.dataset.mainview); try { localStorage.setItem('bvActiveView', b.dataset.mainview); } catch {} });
   // Resume preference toggle
   try { if ($('resumeLast')) $('resumeLast').checked = localStorage.getItem('bvResume') !== '0'; } catch {}
-  updateSsoBtn(); renderLedger(); updateScopeNudge();
-}
-// The in-game button needs esi-ui.open_window.v1, which only exists on
-// sessions created after the scope was added. Nudge such users (once, until
-// dismissed) to sign out and back in.
-const BV_OPENWIN_SCOPE = 'esi-ui.open_window.v1';
-function needsOpenWinScope() {
-  try { return !!(window.BVAuth && BVAuth.signedIn()) && !BVAuth.hasScope(BV_OPENWIN_SCOPE); } catch { return false; }
-}
-function updateScopeNudge() {
-  const box = $('scopeNudge'); if (!box) return;
-  let dismissed = false;
-  try { dismissed = localStorage.getItem('bvOpenWinNudgeDismissed') === '1'; } catch {}
-  // Session now has the scope — clear any stale dismissal so a future scope
-  // addition can nudge again.
-  if (!needsOpenWinScope()) {
-    try { localStorage.removeItem('bvOpenWinNudgeDismissed'); } catch {}
-    box.style.display = 'none'; box.innerHTML = '';
-    return;
-  }
-  if (dismissed) { box.style.display = 'none'; box.innerHTML = ''; return; }
-  box.style.display = '';
-  box.innerHTML = '<i class="fas fa-circle-info"></i> <span style="flex:1">Re-login to enable <b>Open in game</b> — your session predates the new in-client permission.</span><button class="mode-btn" id="scopeNudgeRe">Sign out &amp; back in</button><button class="mode-btn" id="scopeNudgeX" title="Dismiss">×</button>';
-  const re = $('scopeNudgeRe'); if (re) re.onclick = () => { try { BVAuth.logout(); } catch {} };
-  const x = $('scopeNudgeX'); if (x) x.onclick = () => { try { localStorage.setItem('bvOpenWinNudgeDismissed', '1'); } catch {} updateScopeNudge(); };
+  updateSsoBtn(); renderLedger();
 }
 function savePrefs() {
   const ids = ['hubSelect', 'me', 'te', 'runs', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'systemName', 'preset', 'refinePct', 'mineRate', 'mineShip', 'matSource', 'stkAllSystems'];
@@ -1092,11 +1175,11 @@ function renderTree(runs) {
         + '<span class="row-tail"><span class="nums">' + fmtISK(unit) + ' ea</span><span class="nums">' + fmtISK(unit * qty) + '</span>'
         + '<span class="mode-toggle">' + deepModeButtons(key, dcur, dinfo) + '</span>'
         + (hasKids ? '<button class="mode-btn" data-tree-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>' : '')
-        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + gameLink(tid) + '</span></div>' + kids;
+        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + infoButton(tid) + '</span></div>' + kids;
     }).join('');
   };
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
-    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + gameLink(S.root.bpId) + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) + gameLink(S.product.type_id) : '') + '</div><div class="kids">';
+    '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + infoButton(S.root.bpId) + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) + infoButton(S.product.type_id) : '') + '</div><div class="kids">';
   S.root.children.forEach((c, i) => {
     const m = c.child ? (c.child.margin >= 0 ? '<span class="margin-pos">build margin +' + fmtISK(c.child.margin) + '</span>' : '<span class="margin-neg">build margin ' + fmtISK(c.child.margin) + '</span>') : (c.child === null && c._tried ? '' : '<span class="nums">checking build…</span>');
     const rm = c.reaction ? (c.reaction.margin >= 0 ? '<span class="margin-pos">react margin +' + fmtISK(c.reaction.margin) + '/u</span>' : '<span class="margin-neg">react margin ' + fmtISK(c.reaction.margin) + '/u</span>') + (c.reaction.estimate ? '<span class="nums" title="Output quantity estimated">est</span>' : '') : '';
@@ -1121,7 +1204,7 @@ function renderTree(runs) {
     const nmHtml = c.child
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
-    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + gameLink(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
+    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + infoButton(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
   w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
@@ -1394,7 +1477,7 @@ async function renderBom(runs) {
   await preloadVolumes(S.bom.map(l => l.type_id));
   let vol = 0; for (const l of S.bom) vol += (await typeVolume(l.type_id)) * l.qty;
   let total = 0;
-  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + gameLink(l.type_id) + '</td></tr>'; }).join('');
+  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + infoButton(l.type_id) + '</td></tr>'; }).join('');
   $('bomMeta').textContent = S.bom.length + ' types';
   const split = bomCashSplit();
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + (split.extracted > 0 ? ' (+ ' + fmtISK(split.extracted) + ' extracted @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
@@ -1506,14 +1589,14 @@ async function renderBuildList(runs) {
         const bbtns = deepModeButtons(key, bcur, binfo);
         let row = '<tr><td style="' + pad + '"><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">'
           + (hasKids ? '<button class="mode-btn" data-build-exp="' + key + '" title="' + (open ? 'Collapse' : 'Expand') + '" style="padding:0 .3rem"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button> ' : '')
-          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + gameLink(tid) + (bbtns ? '<br><span class="mode-toggle">' + bbtns + '</span>' : '') + '</td></tr>';
+          + nm + (isPI(tid) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(tid) + '</span>' : '') + '</td><td>' + fmtN(qty) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + infoButton(tid) + (bbtns ? '<br><span class="mode-toggle">' + bbtns + '</span>' : '') + '</td></tr>';
         if (sub && sub.materials && sub.materials.length && open) row += renderBuildDeep(sub.materials, qty, sub.productQty || 1, depth + 1, trail.concat([tid]));
         else if (pend && open) row += '<tr><td style="' + pad + 'color:var(--text3)">resolving sub-materials…</td><td></td><td></td><td></td><td></td></tr>';
         return row;
       }).join('');
     };
     html += renderBuildDeep(mats, need, prodQty, 1, [+c.type_id]);
-    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + leafLines.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a>' + gameLink(c.type_id) + '</p></details>';
+    html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">' + child.bpName + ' · product ×' + prodQty + ' per run · ' + leafLines.length + ' raws · subtotal ' + fmtISK(subTotal) + ' · <a class="mkt-link" target="_blank" href="' + marketURL(c.type_id) + '">price check build</a>' + infoButton(c.type_id) + '</p></details>';
   }
   S.buildAgg = Array.from(aggregated, ([type_id, v]) => ({ type_id: +type_id, name: v.name, qty: v.qty, unit: v.unit }));
   if (aggregated.size > 1 && builds.filter(c=>c.child && c.child.materials).length > 1) {
@@ -1523,7 +1606,7 @@ async function renderBuildList(runs) {
       const tot = v.unit * v.qty;
       aggTotal += tot;
       aggVol += (await typeVolume(tid)) * v.qty;
-      html += '<tr><td><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + v.name + '</td><td>' + fmtN(v.qty) + '</td><td>' + fmtISK(v.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + gameLink(tid) + '</td></tr>';
+      html += '<tr><td><img src="https://images.evetech.net/types/' + tid + '/icon?size=32" onerror="this.style.display=\'none\'" style="width:24px;height:24px;vertical-align:middle;margin-right:.4rem;border-radius:4px;background:#111">' + v.name + '</td><td>' + fmtN(v.qty) + '</td><td>' + fmtISK(v.unit) + '</td><td>' + fmtISK(tot) + '</td><td><a class="mkt-link" target="_blank" href="' + marketURL(tid) + '"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + infoButton(tid) + '</td></tr>';
     }
     html += '</tbody></table></div><p class="hint" style="margin-top:.4rem">Combined raw cost for all Build items: ' + fmtISK(aggTotal) + ' · Volume ~' + fmtN(Math.round(aggVol)) + ' m³</p></div>';
     grandTotal = aggTotal;
@@ -1730,7 +1813,7 @@ function renderBuildProgress() {
         + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '<span class="pill ' + s.mode + '">' + String(s.mode || 'buy').toUpperCase() + '</span>'
         + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>'
           : (s.maybe ? '<button class="mode-btn" data-prog-resolve="' + s.ci + ':' + ((s.path || []).join('>')) + '" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
-        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(s.typeId) + '</span></div>' + kidsHtml;
+        + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(s.typeId) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(s.typeId) + '</span></div>' + kidsHtml;
     }).join('');
   };
   // Auto-finish: any material fully covered by inventory ticks itself
@@ -1755,7 +1838,7 @@ function renderBuildProgress() {
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgCollapsed.has(top.key) ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (bpProgCollapsed.has(top.key) ? 'down' : 'up') + '"></i></button>'
         : (top.maybe ? '<button class="mode-btn" data-prog-resolve="' + ci + ':" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
-      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(c.type_id) + '</span></div>'
+      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '</span></div>'
       + kidsHtml
       + '</div>';
   });
@@ -2341,7 +2424,7 @@ async function renderShoppingList(runs) {
     const needTxt = fmtN(r.l.qty);
     const haveCls = useOwn && r.have >= r.l.qty ? ' style="color:var(--build)"' : '';
     const toBuyCls = r.toBuy === 0 ? ' style="color:var(--build)"' : '';
-    return '<tr><td>' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + gameLink(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
+    return '<tr><td>' + clean + (isPI(r.l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(r.l.type_id) + '</span>' : '') + (r.l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td><td>' + needTxt + '</td><td' + haveCls + '>' + haveTxt + '</td><td' + toBuyCls + '>' + toBuyTxt + '</td><td>' + fmtISK(r.unit) + '</td><td>' + fmtISK(r.totalBuy) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(r.l.type_id) + '" title="Price check"><i class="fas fa-chart-line"></i></a>' + piIcon(r.l.type_id) + infoButton(r.l.type_id) + ' <a class="mine-link" data-mine="' + r.l.type_id + '" title="Mining plan"><i class="fas fa-gem"></i></a></td></tr>';
   }).join('');
   // prominent summary grid with full total — de-dupe when nothing is saved
   const sumGrid = $('shoppingSummary');
@@ -2614,7 +2697,7 @@ function bpRowHtml(b) {
   const nm = myBpNames[b.type_id] || ('Type ' + b.type_id);
   const loc = BV_SHOW_LOCATIONS ? bpLocName(b) : null;
   const locHtml = loc ? ' · <span class="nums">@ ' + loc + (b.location_flag ? ' (' + b.location_flag + ')' : '') + '</span>' : '';
-  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span>' + gameLink(b.type_id) + '<button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button><button class="mode-btn" data-sendbp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '" title="Calculate and pin to the Build Progress tab">Send to Build</button></div>';
+  return '<div style="display:flex;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--border)"><span style="flex:1"><b data-bpname="' + b.type_id + '">' + nm + '</b> <span class="pill">' + tag + '</span> · ME' + b.material_efficiency + '/TE' + b.time_efficiency + locHtml + '</span>' + infoButton(b.type_id) + '<button class="mode-btn" data-bp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '">Load</button><button class="mode-btn" data-sendbp="' + b.type_id + '" data-me="' + b.material_efficiency + '" data-te="' + b.time_efficiency + '" data-runs="' + (b.runs > 0 ? b.runs : '') + '" data-bpo="' + (bpIsBPO(b) ? '1' : '') + '" title="Calculate and pin to the Build Progress tab">Send to Build</button></div>';
 }
 async function bpApplyRow(btn) {
   $('me').value = Math.min(10, +btn.dataset.me || 0); $('te').value = Math.min(20, +btn.dataset.te || 0);
@@ -2882,13 +2965,13 @@ async function invCompare() {
       const runsNeeded = Math.ceil(target / chance);
       return { ...d, chance, runsNeeded };
     }).sort((a, b) => a.runsNeeded - b.runsNeeded);
-    out.innerHTML = '<p class="hint">' + t2.name + ' (' + t2.id + ') · base ' + (D.t2BaseChance * 100).toFixed(0) + '% · target ' + target + ' BPCs <a class="mkt-link" target="_blank" href="' + marketURL(t2.id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(t2.id) + '</p>' +
+    out.innerHTML = '<p class="hint">' + t2.name + ' (' + t2.id + ') · base ' + (D.t2BaseChance * 100).toFixed(0) + '% · target ' + target + ' BPCs <a class="mkt-link" target="_blank" href="' + marketURL(t2.id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(t2.id) + '</p>' +
       rows.map((d, i) => '<div style="display:flex;gap:.4rem;align-items:center;padding:.3rem 0;border-bottom:1px solid var(--border)"><span style="flex:1">' + d.name + ' · ' + (d.chance * 100).toFixed(1) + '% · runs ' + d.runsNeeded + ' · ME' + d.me + '/TE' + d.te + '</span><button class="mode-btn" data-q="' + i + '">Queue</button></div>').join('');
     out.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { invQueue.push({ t2: t2.name, t2id: t2.id, d: rows[+b.dataset.q], target }); renderQueue(); });
   } catch (e) { out.textContent = 'Failed: ' + e.message; }
 }
 function renderQueue() {
-  $('invQueue').innerHTML = invQueue.length ? invQueue.map((q, i) => '<div>' + (i + 1) + '. ' + q.t2 + ' × ' + q.target + ' via ' + q.d.name + ' (' + q.d.runsNeeded + ' runs) <a class="mkt-link" target="_blank" href="' + marketURL(q.t2id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(q.t2id) + '</div>').join('') : 'Nothing queued yet.';
+  $('invQueue').innerHTML = invQueue.length ? invQueue.map((q, i) => '<div>' + (i + 1) + '. ' + q.t2 + ' × ' + q.target + ' via ' + q.d.name + ' (' + q.d.runsNeeded + ' runs) <a class="mkt-link" target="_blank" href="' + marketURL(q.t2id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(q.t2id) + '</div>').join('') : 'Nothing queued yet.';
 }
 
 // ---- Ledger + sharing ----
@@ -2912,7 +2995,7 @@ function ledWrite(l) {
 function pushLedger(e) { try { e.st = collectState(); } catch {} const l = ledRead(); l.unshift(e); ledWrite(l); renderLedger(); }
 function renderLedger() {
   const l = ledRead(); const box = $('ledgerList'); if (!box) return;
-  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(e.bpId) + ' <button type="button" class="mkt-link icon-btn" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></button></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
+  box.innerHTML = l.length ? l.slice(0, 30).map((e, i) => '<div style="padding:.3rem 0;border-bottom:1px solid var(--border)">' + new Date(e.ts).toLocaleString() + ' · <b>' + e.bp + '</b> ×' + e.runs + ' · profit ' + fmtISK(e.profit) + ' <a class="mkt-link" target="_blank" href="' + marketURL(e.bpId, e.hub) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(e.bpId) + ' <button type="button" class="mkt-link icon-btn" data-ledgershare="' + i + '" title="Copy short share link"><i class="fas fa-link"></i></button></div>').join('') : '<p class="hint">No entries yet — run a calculation.</p>';
 }
 
 // ---- Full calculation state (share / save) ----
@@ -3556,7 +3639,7 @@ async function planMining(forcedId, opts) {
       const opts = (p.ranked || []).map(r => '<option value="' + r.ore.id + '"' + (r.ore.id===p.chosenId?' selected':'') + '>' + (r.ore.id===fastestId ? '★ ' : '') + r.ore.name + ' — ' + fmtN(r.units) + ' units · ' + fmtN(Math.round(r.m3)) + ' m³ · ' + fmtTime(r.mins) + ' (' + fmtN(r.y) + '/portion)</option>').join('');
       const yieldHint = p.y ? ' ('+fmtN(p.y)+'/portion)' : '';
       const fastPill = (p.chosenId === fastestId) ? ' <span class="pill" style="border-color:var(--accent);color:var(--accent)" title="Fastest source for this material">★ fastest</span>' : '';
-      return '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td><select data-mine-choice="' + p.mid + '" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .4rem;font-family:inherit;font-size:.82rem;max-width:260px">' + opts + '</select>' + fastPill + '<span class="nums">' + yieldHint + '</span></td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a>' + gameLink(p.ore.id) + '</td></tr>';
+      return '<tr><td>' + p.name + '</td><td>' + fmtN(p.need) + '</td><td><select data-mine-choice="' + p.mid + '" style="background:#141414;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.3rem .4rem;font-family:inherit;font-size:.82rem;max-width:260px">' + opts + '</select>' + fastPill + '<span class="nums">' + yieldHint + '</span></td><td>' + fmtN(p.units) + '</td><td>' + fmtN(Math.round(p.m3)) + ' m³</td><td>' + fmtTime(p.mins) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(p.ore.id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(p.ore.id) + '</td></tr>';
     }).join('') +
     '</tbody></table></div>';
   box.innerHTML = h;
@@ -4317,7 +4400,7 @@ function renderStkRows() {
       // Item icons removed: the image server 404s on many industry types and
       // spams the console per row. Text-only list.
       const icon = '';
-      h += '<tr><td>' + icon + nm + gameLink(r.typeId) + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
+      h += '<tr><td>' + icon + nm + infoButton(r.typeId) + '</td><td>' + fmtN(r.qty) + '</td><td>' + sys + '</td></tr>';
     }
   }
   h += '</tbody></table></div>';
@@ -4955,6 +5038,12 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
   try { const fromHash = calcFromHash(); if (!fromHash) resumeLast(); } catch {}
   try { restoreUiState(); } catch {}
+  // Item info panel: close on Esc and on outside click.
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInfoPanel(); });
+  document.addEventListener('pointerdown', e => {
+    const p = document.getElementById('bvInfoPanel');
+    if (p && p.style.display !== 'none' && !p.contains(e.target) && !(e.target.closest && e.target.closest('[data-info]'))) closeInfoPanel();
+  });
   if ($('resumeLast')) $('resumeLast').onchange = () => { try { localStorage.setItem('bvResume', $('resumeLast').checked ? '1' : '0'); } catch {} };
   if ($('bpSearch')) $('bpSearch').addEventListener('input', () => { myBpPage = 1; renderBpRows(); });
   if ($('skillBtn')) $('skillBtn').onclick = loadMySkills;
@@ -5165,8 +5254,8 @@ document.addEventListener('DOMContentLoaded', () => {
       else goCrumb(+nav.dataset.i);
       return;
     }
-    const openwin = e.target.closest('[data-openwin]');
-    if (openwin) { e.preventDefault(); openInGame(openwin.dataset.openwin); return; }
+    const info = e.target.closest('[data-info]');
+    if (info) { e.preventDefault(); openItemInfo(info.dataset.info); return; }
     const lshare = e.target.closest('[data-ledgershare]');
     if (lshare) { e.preventDefault(); shareLedgerEntry(+lshare.dataset.ledgershare); return; }
     const sload = e.target.closest('[data-saveload]');

@@ -18,6 +18,9 @@ fi
 node "$ROOT/scripts/build-pi-data.js"
 node "$ROOT/scripts/validate-pi-data.js"
 
+# Rebuild the Blueprint Visualizer type-info index from the refreshed SDE.
+node "$ROOT/scripts/build-bv-typeinfo.mjs" || true
+
 # bump PI_ASSET_VERSION if files changed
 if ! git -C "$ROOT" diff --quiet -- PI/pi-data.js PI/pi-systems.js PI/pi-jumps.js PI/pi-planets.js 2>/dev/null; then
   echo "PI data changed (build ${NEW_BUILD:-unknown}), bumping asset version"

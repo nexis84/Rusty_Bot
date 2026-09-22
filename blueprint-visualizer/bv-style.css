@@ -102,9 +102,22 @@ table.bom th{color:var(--accent);font-size:.72rem;text-transform:uppercase;lette
 .game-link img{height:14px;width:14px;vertical-align:middle;object-fit:contain}
 .game-link i{vertical-align:middle}
 .icon-btn{background:none;border:0;padding:0;cursor:pointer;line-height:1}
-.scope-nudge{display:flex;align-items:center;gap:.6rem;background:rgba(127,212,255,.08);border-bottom:1px solid rgba(127,212,255,.4);padding:.45rem .9rem;font-size:.82rem;color:var(--text2)}
-.scope-nudge i{color:#7fd4ff}
-.scope-nudge .mode-btn{margin-left:.2rem}
+/* Floating item info panel — matches the site theme (same tokens as .panel). */
+.bv-info-panel{position:fixed;z-index:200;width:360px;max-width:90vw;max-height:70vh;overflow-y:auto;padding:0;box-shadow:0 16px 44px rgba(0,0,0,.6)}
+.bv-info-head{display:flex;align-items:center;gap:.6rem;padding:.6rem .7rem;background:var(--panel2);border-bottom:1px solid var(--border);border-radius:8px 8px 0 0;cursor:move;position:sticky;top:0;z-index:1}
+.bv-info-head .bv-info-icon{width:40px;height:40px;border-radius:6px;background:#111;flex-shrink:0}
+.bv-info-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.bv-info-title b{color:#fff;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bv-info-title .hint{margin:0;font-size:.72rem}
+.bv-info-body{padding:.7rem;font-size:.82rem;color:var(--text2);line-height:1.45}
+.bv-info-body a{color:var(--accent);text-decoration:none}
+.bv-info-body a:hover{text-decoration:underline}
+.bv-info-stats{margin:0;padding:0 .7rem .7rem;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.bv-info-stats .summary-card{padding:.45rem}
+.bv-info-stats .summary-card .v{font-size:.85rem}
+.bv-info-links{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.5rem .7rem;border-top:1px solid var(--border)}
+.bv-info-links .mkt-link{margin-left:0}
+.bv-info-src{margin:0 0 0 auto;font-size:.7rem}
 .pi-banner{display:flex;align-items:center;gap:.6rem;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.4);border-radius:8px;padding:.55rem .8rem;margin:.6rem 0;font-size:.82rem}
 .pi-banner a{color:#3fb950;font-weight:700}
 .pill{display:inline-block;font-size:.7rem;border:1px solid var(--border);border-radius:20px;padding:.1rem .55rem;color:var(--text2)}
