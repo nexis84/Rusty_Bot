@@ -2479,6 +2479,29 @@ function progBpHead() {
   const have = rows.filter(b => ticked[bpProgBpKey(b.typeId)]).length;
   meta.textContent = have + ' / ' + rows.length + ' acquired';
 }
+// Auto-tick required blueprints the inventory scan shows we already own, so
+// the checklist only lists what's still needed. Additive only: a manual tick
+// is never cleared, and with no scan there are no owned blueprints so nothing
+// changes. Runs on every Build Progress render (i.e. on each build) and again
+// whenever the owned-blueprint list refreshes after a scan.
+function bpProgSyncOwnedBlueprints(rows) {
+  try {
+    const list = rows || [];
+    if (!list.length) return 0;
+    let owned = [];
+    try { owned = stkOwnedBlueprints(); } catch { owned = []; }
+    if (!owned.length) return 0;
+    const ownedIds = new Set(owned.map(b => b.type_id));
+    const ticked = bpProgRead();
+    let changed = 0;
+    for (const b of list) {
+      const key = bpProgBpKey(b.typeId);
+      if (ownedIds.has(b.typeId) && !ticked[key]) { ticked[key] = true; changed++; }
+    }
+    if (changed) { bpProgWrite(ticked); }
+    return changed;
+  } catch { return 0; }
+}
 function renderProgBlueprints() {
   const panel = $('progBpPanel'), list = $('progBpList'), meta = $('progBpMeta');
   if (!panel || !list) return;
@@ -2486,6 +2509,7 @@ function renderProgBlueprints() {
   try { rows = trackedBlueprintList(); } catch { rows = []; }
   panel.style.display = rows.length ? '' : 'none';
   if (!rows.length) { list.innerHTML = ''; if (meta) meta.textContent = ''; return; }
+  bpProgSyncOwnedBlueprints(rows);
   const ticked = bpProgRead();
   list.innerHTML = rows.map(b => {
     const key = bpProgBpKey(b.typeId);
@@ -4991,6 +5015,8 @@ function renderStkBlueprintList() {
     '<div class="rx-row"><span class="nm">' + escapeHtml(String(r.name)) + (r.qty > 1 ? ' <span class="pill">' + fmtN(r.qty) + '</span>' : '') + '</span></div>'
   ).join('');
   if (meta) meta.textContent = rows.length + ' type' + (rows.length === 1 ? '' : 's') + (totalCopies > rows.length ? ' · ' + fmtN(totalCopies) + ' copies' : '');
+  // The owned set just changed, so re-sync the required-blueprint checklist.
+  try { renderProgBlueprints(); } catch {}
 }
 async function copyStkBlueprintList() {
   const rows = stkOwnedBlueprints();
