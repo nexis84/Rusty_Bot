@@ -2181,7 +2181,7 @@ function bpProgRefreshHead() {
       const { rows } = bpProgModel();
       const ticked = bpProgRead();
       let invAgg = {};
-      try { invAgg = stkDeductMap() || {}; } catch {}
+      try { invAgg = stkOwnedMap() || {}; } catch {}
       const hasInv = Object.keys(invAgg).length > 0;
       let leftVal = 0, leftN = 0, covered = 0;
       for (const r of rows) {
@@ -2229,9 +2229,10 @@ function renderBuildProgress() {
       }).join('')
       + '<span class="hint" style="margin:0">' + pins.length + '/' + BV_MAX_PINS + ' pinned</span></div>';
   }
-  // Live inventory for Have vs Required (same snapshot the Shopping list deducts).
+  // Live inventory for Have vs Required (the owned map: every industrial item
+  // in scope, not just the materials the Shopping list deducts).
   let invAgg = {};
-  try { invAgg = stkDeductMap() || {}; } catch {}
+  try { invAgg = stkOwnedMap() || {}; } catch {}
   const hasInv = Object.keys(invAgg).length > 0;
   const haveBlock = (typeId, qty) => {
     if (!hasInv || !(qty > 0)) return '';
@@ -2466,7 +2467,7 @@ function bpProgExportText() {
   const { rows, rootName, runs } = bpProgModel();
   const ticked = bpProgRead();
   let invAgg = {};
-  try { invAgg = stkDeductMap() || {}; } catch {}
+  try { invAgg = stkOwnedMap() || {}; } catch {}
   const hasInv = Object.keys(invAgg).length > 0;
   const lines = [rootName + ' ×' + runs + ' ' + (ticked['root'] ? '[x]' : '[ ]')];
   for (const r of rows) {
@@ -4554,7 +4555,8 @@ function stkHasLocationData() { return Object.keys(stkAggByStation).length > 0; 
 let stkRawSource = 'personal', stkLastSnapshotSource = 'personal';
 // Bump when the snapshot layout changes (e.g. refining rules) so stale saved
 // snapshots are ignored and rebuilt on the next inventory search.
-const SNAPSHOT_VER = 2;
+// v3: added ownedMap (industrial items the deduct map drops) for Build Progress.
+const SNAPSHOT_VER = 3;
 function stkSnapshotStoreRead() {
   try {
     const v = JSON.parse(localStorage.getItem('bvInventorySnapshot') || 'null');
@@ -4604,27 +4606,34 @@ function stkDeductSnapshot() {
   const store = S.inventorySnapshots || stkSnapshotStoreRead();
   if (src === 'both') {
     const mergedSnap = store['both'];
-    if (mergedSnap && mergedSnap.refinedMap) return { snap: mergedSnap, map: mergedSnap.refinedMap, src };
+    if (mergedSnap && mergedSnap.refinedMap) return { snap: mergedSnap, map: mergedSnap.refinedMap, owned: mergedSnap.ownedMap || mergedSnap.refinedMap, src };
     const list = ['personal', 'corp'].map(s => store[s]).filter(s => s && s.refinedMap);
     if (list.length) {
-      const out = {};
+      const out = {}; const own = {};
       for (const s of list) for (const [t, q] of Object.entries(s.refinedMap)) out[t] = (out[t] || 0) + q;
-      return { snap: list[0], map: out, src };
+      for (const s of list) for (const [t, q] of Object.entries(s.ownedMap || s.refinedMap)) own[t] = (own[t] || 0) + q;
+      return { snap: list[0], map: out, owned: own, src };
     }
-    return { snap: null, map: stkCurrentAgg(), src };
+    return { snap: null, map: stkCurrentAgg(), owned: stkCurrentAgg(), src };
   }
-  if (store[src] && store[src].refinedMap) return { snap: store[src], map: store[src].refinedMap, src };
+  if (store[src] && store[src].refinedMap) return { snap: store[src], map: store[src].refinedMap, owned: store[src].ownedMap || store[src].refinedMap, src };
   // No snapshot for the chosen source — fall back to the most recent one, else the live scope.
-  if (stkLastSnapshotSource && store[stkLastSnapshotSource] && store[stkLastSnapshotSource].refinedMap) return { snap: store[stkLastSnapshotSource], map: store[stkLastSnapshotSource].refinedMap, src };
-  if ((stkRawSource || 'personal') === src) return { snap: null, map: stkCurrentAgg(), src };
-  return { snap: null, map: {}, src };
+  if (stkLastSnapshotSource && store[stkLastSnapshotSource] && store[stkLastSnapshotSource].refinedMap) return { snap: store[stkLastSnapshotSource], map: store[stkLastSnapshotSource].refinedMap, owned: store[stkLastSnapshotSource].ownedMap || store[stkLastSnapshotSource].refinedMap, src };
+  if ((stkRawSource || 'personal') === src) return { snap: null, map: stkCurrentAgg(), owned: stkCurrentAgg(), src };
+  return { snap: null, map: {}, owned: {}, src };
 }
 function stkDeductMap() { return stkDeductSnapshot().map; }
+// Everything industrial the scan found, including the items the deduct map
+// drops on purpose. Build Progress's "have" tally and auto-tick read this,
+// never stkDeductMap.
+function stkOwnedMap() {
+  try { const d = stkDeductSnapshot(); return d.owned || d.map || {}; } catch { return {}; }
+}
 // Expand ore / compressed-ore / ice stacks into refined minerals at the selected
 // Refining yield %, keep every row's provenance (which citadel/station/can), and
 // store the whole system snapshot. aggOverride lets the refine-% auto-rebuild reuse
 // the stored aggregate after a page reload (when the live stkAgg is empty).
-async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId, sysName) {
+async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId, sysName, ownedOverride) {
   const agg = aggOverride || stkCurrentAgg();
   const eff = (parseFloat(($('refinePct') && $('refinePct').value) || 75) || 75) / 100;
   stkRefineEff = eff;
@@ -4667,12 +4676,22 @@ async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId,
     refinedMap[t] = (refinedMap[t] || 0) + qty;
   }
   stkOreDetail = oreDetail;
+  // "Have" tally for Build Progress: refinedMap (so a row for Hafnium is
+  // covered by owning raw ore) PLUS the owned industrial items the deduct map
+  // deliberately drops - hulls and the R.A.M./R.Db tool components.
+  const ownedAgg = ownedOverride || agg;
+  const ownedMap = Object.assign({}, refinedMap);
+  for (const [tid, qty] of Object.entries(ownedAgg)) {
+    const t = +tid;
+    if (Object.prototype.hasOwnProperty.call(ownedMap, t)) continue;
+    try { if (isIndustrialItem(t)) ownedMap[t] = qty; } catch {}
+  }
   stkSnapshotWrite({
     system: sysId || stkSysId(), systemName: sysName || stkSysIdName(stkSysId()),
     source: source || (($('stkSource') && $('stkSource').value) || 'personal'),
     ver: SNAPSHOT_VER, eff, at: Date.now(),
     byType: agg, byLoc: stkAggByStation, locNames: stkLocationNames,
-    bySystem: stkAggBySystem, allByType: stkAllAgg, refinedMap, oreDetail
+    bySystem: stkAggBySystem, allByType: stkAllAgg, refinedMap, ownedMap, oreDetail
   });
   return oreDetail;
 }
@@ -4695,6 +4714,27 @@ function stkSnapshotAggForSource() {
         // are inside this branch), so the right answer is "deduct nothing",
         // not "fall back to the unscoped aggregate" which would feed every
         // asset in scope into the shopping deduct.
+        return map;
+      }
+    }
+  } catch {}
+  return null;
+}
+// Same scope as stkSnapshotAggForSource, but keeps every industrial ITEM
+// (materials, hulls and the R.A.M./R.Db tool components) instead of materials
+// only. Feeds the Build Progress "have" tally: owning a finished component is
+// real progress against a build, but it must never deduct from a shopping
+// list, so the two maps are built separately from one shared scope.
+function stkOwnedAggForSource() {
+  try {
+    if (stkIndustrialOnly() && stkEnrichedAll.length) {
+      const rows = stkFilteredAgg();
+      if (rows && rows.length) {
+        const map = {};
+        for (const r of rows) {
+          if (!isIndustrialItem(r.typeId)) continue;
+          map[r.typeId] = (map[r.typeId] || 0) + r.qty;
+        }
         return map;
       }
     }
@@ -5604,7 +5644,7 @@ async function loadInventory() {
     try { buildStkEnriched(assets, idToAsset, locSys, stkLocationNames); stkDetailPage = 1; } catch(e) { console.warn('[BV] buildStkEnriched failed', e); }
     // ---- ore/compressed-ore/ice/moon/gas -> refined minerals at Refining yield % + keep snapshot in memory ----
     stkProgress(0.96, 'Building snapshot…');
-    await buildInventorySnapshot(stkSnapshotAggForSource());
+    await buildInventorySnapshot(stkSnapshotAggForSource(), null, null, null, null, stkOwnedAggForSource());
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
     const ownedBp = stkOwnedBlueprints().length;
@@ -5638,7 +5678,7 @@ async function applyInventoryScope() {
   stkPage = 1; stkDetailPage = 1;
   stkApplyFlagSystemFilter();
   const previous = stkSnapshotRead(matSource());
-  await buildInventorySnapshot(stkSnapshotAggForSource() || next, previous && previous.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkAllSystems() ? 'All personal systems' : stkSysIdName(stkSysId()));
+  await buildInventorySnapshot(stkSnapshotAggForSource() || next, previous && previous.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkAllSystems() ? 'All personal systems' : stkSysIdName(stkSysId()), stkOwnedAggForSource());
   renderStkRows();
   await renderRefinery();
   if (!stkAllSystems() && $('stkDeduct') && $('stkDeduct').checked && S.root) await renderShoppingList(S.runs || 1);
@@ -6511,7 +6551,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const agg = stkSnapshotAggForSource();
       const prev = stkSnapshotRead(matSource());
-      if (agg && Object.keys(agg).length) await buildInventorySnapshot(agg, prev && prev.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkCurrentSysName());
+      if (agg && Object.keys(agg).length) await buildInventorySnapshot(agg, prev && prev.oreDetail, matSource(), stkAllSystems() ? '' : stkSysId(), stkCurrentSysName(), stkOwnedAggForSource());
       else await rebuildInventorySnapshot();
       if (S.root) await renderShoppingList(S.runs||1);
       await renderRefinery();
