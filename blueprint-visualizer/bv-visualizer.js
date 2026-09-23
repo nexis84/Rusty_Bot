@@ -2476,8 +2476,8 @@ function progBpHead() {
   try { rows = trackedBlueprintList(); } catch { rows = []; }
   if (!rows.length) { meta.textContent = ''; return; }
   const ticked = bpProgRead();
-  const have = rows.filter(b => ticked[bpProgBpKey(b.typeId)]).length;
-  meta.textContent = have + ' / ' + rows.length + ' acquired';
+  const left = rows.filter(b => !ticked[bpProgBpKey(b.typeId)]).length;
+  meta.textContent = left ? left + ' still needed' : 'all ' + rows.length + ' acquired';
 }
 // Auto-tick required blueprints the inventory scan shows we already own, so
 // the checklist only lists what's still needed. Additive only: a manual tick
@@ -2512,6 +2512,11 @@ function bpProgSyncOwnedBlueprints(rows) {
     return changed;
   } catch { return 0; }
 }
+// Blueprints still NEEDED for the tracked build. Anything already acquired
+// (auto-ticked from the owned scan, or ticked by hand) is filtered OUT of the
+// list rather than shown struck-through, so this panel is a pure "what's left"
+// to-do list. The "N / M acquired" pill in the header still tracks the full
+// total so progress stays visible.
 function renderProgBlueprints() {
   const panel = $('progBpPanel'), list = $('progBpList'), meta = $('progBpMeta');
   if (!panel || !list) return;
@@ -2521,11 +2526,16 @@ function renderProgBlueprints() {
   if (!rows.length) { list.innerHTML = ''; if (meta) meta.textContent = ''; return; }
   bpProgSyncOwnedBlueprints(rows);
   const ticked = bpProgRead();
-  list.innerHTML = rows.map(b => {
+  const needed = rows.filter(b => !ticked[bpProgBpKey(b.typeId)]);
+  if (!needed.length) {
+    list.innerHTML = '<div class="hint" style="padding:.4rem 0"><i class="fas fa-check-circle" style="color:var(--build)"></i> Every required blueprint is acquired.</div>';
+    progBpHead();
+    return;
+  }
+  list.innerHTML = needed.map(b => {
     const key = bpProgBpKey(b.typeId);
-    const got = !!ticked[key];
-    return '<div class="rx-row' + (got ? ' bp-have' : '') + '">'
-      + '<label class="bp-check" title="I have this blueprint"><input type="checkbox" data-progbp="' + key + '"' + (got ? ' checked' : '') + '></label>'
+    return '<div class="rx-row">'
+      + '<label class="bp-check" title="I have this blueprint"><input type="checkbox" data-progbp="' + key + '"></label>'
       + '<img src="https://images.evetech.net/types/' + b.typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'">'
       + '<span class="nm">' + escapeHtml(b.name) + (b.kind === 'rx' ? ' <span class="pill react">FORMULA</span>' : ' <span class="pill">BP</span>') + (b.kind === 'bp' && bvBpIsT2(b.name) ? ' <span class="pill invent" title="Tech II — copy runs require invention">T2</span>' : '') + '</span>'
       + '<span class="row-tail"><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(b.typeId) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + infoButton(b.typeId) + '</span></div>';
@@ -2535,9 +2545,8 @@ function renderProgBlueprints() {
       const m = bpProgRead();
       if (box.checked) m[box.dataset.progbp] = true; else delete m[box.dataset.progbp];
       bpProgWrite(m);
-      const row = box.closest('.rx-row');
-      if (row) row.classList.toggle('bp-have', !!box.checked);
-      progBpHead();
+      // Checking one drops it out of the "still needed" list.
+      renderProgBlueprints();
     };
   });
   progBpHead();
