@@ -2076,7 +2076,17 @@ function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stri
 // Recurses into background-resolved _deep nodes (depth 2+); depth-1 keys are
 // unchanged for existing ticks, and deep keys ('d'+ci+':'+trail) match the
 // Evemail expander exactly so ticks flow into mail.
+// Hard ceiling on expanded sub-material rows. A big build can exceed it, and
+// the tree then stops expanding partway - so the model flags `truncated` and the
+// panel says so rather than silently dead-ending.
+const BV_PROG_DEEP_ROWS = 1000;
+// One model build per render pass. renderBuildProgress() rebuilds the whole
+// deep tree, and it used to be rebuilt four times per paint (bpProgCounts,
+// bpProgOverall, the totals block and the render itself) which made large
+// builds crawl and left clicks looking dead. Cleared at the top of each render.
+let _bpProgModel = null;
 function bpProgModel() {
+  if (_bpProgModel) return _bpProgModel;
   const rows = [];
   const src = bpProgSource();
   const selPin = bpProgSelPin();
@@ -2084,8 +2094,10 @@ function bpProgModel() {
   const runs = src.runs || S.runs || 1;
   rows.push({ key: 'root', typeId: src.bpId, name: src.bpName + ' × ' + runs, qty: runs, unit: null, depth: -1, mode: src.mode });
   let deepRows = 0;
+  let truncated = false;
   const pushDeep = (matTid, matFull, node, ancestors, depth, parentKey, ci) => {
-    if (!node || !node.materials || !node.materials.length || depth > 12 || deepRows > 1000) return;
+    if (!node || !node.materials || !node.materials.length || depth > 12) return;
+    if (deepRows >= BV_PROG_DEEP_ROWS) { truncated = true; return; }
     if (ancestors.concat([+matTid]).length > 12) return;
     const batches = deepBatches(matFull, node.productQty);
     for (const sm of node.materials) {
@@ -2149,7 +2161,9 @@ function bpProgModel() {
     }
     if (!top.hasKids) { try { top.maybe = !deepIsLeaf(+c.type_id); } catch {} }
   });
-  return { rows, rootName: src.bpName, runs, pinned: !!selPin, selPin };
+  const out = { rows, rootName: src.bpName, runs, pinned: !!selPin, selPin, truncated };
+  _bpProgModel = out;
+  return out;
 }
 function bpProgCounts() {
   const { rows } = bpProgModel();
@@ -2197,6 +2211,7 @@ function bpProgRefreshHead() {
 function renderBuildProgress() {
   const wrap = $('buildProgress');
   if (!wrap) return;
+  _bpProgModel = null;
   const src = bpProgSource();
   if (!src || !src.children || !src.children.length) {
     wrap.innerHTML = '<p class="hint">No pinned build yet — open <b>My Blueprints</b> and hit <b>Send to Build</b> on any blueprint, or track the live calculation.</p>';
@@ -2205,7 +2220,7 @@ function renderBuildProgress() {
     if (totals) totals.textContent = '';
     return;
   }
-  const { rows, pinned, selPin } = bpProgModel();
+  const { rows, pinned, selPin, truncated } = bpProgModel();
   const ticked = bpProgRead();
   // Default to fully COLLAPSED whenever the tracked view changes (blueprint,
   // part count, run count, or Live-vs-pin selection — re-sending the same
@@ -2218,6 +2233,11 @@ function renderBuildProgress() {
   // Pin selector: Live + up to 5 pinned builds (persisted). Unpin via ×.
   const pins = S.pinnedBuilds || [];
   let h = '';
+  if (truncated) {
+    h += '<div class="removed-bar"><i class="fas fa-list-ol"></i><span>This build is too large to expand completely '
+      + '(showing the first ' + fmtN(BV_PROG_DEEP_ROWS) + ' sub-material rows). Deeper branches are not listed, so some '
+      + 'sub-components have nothing to expand into.</span></div>';
+  }
   if (pins.length || S.root) {
     const liveOn = !selPin;
     h += '<div style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">'
@@ -2232,8 +2252,7 @@ function renderBuildProgress() {
   // Live inventory for Have vs Required (the owned map: every industrial item
   // in scope, not just the materials the Shopping list deducts).
   let invAgg = {};
-  try { invAgg = stkOwnedMap() || {}; } catch {}
-  const hasInv = Object.keys(invAgg).length > 0;
+  try { invAgg = stkOwnedMap() || {}; } catch {}  const hasInv = Object.keys(invAgg).length > 0;
   const haveBlock = (typeId, qty) => {
     if (!hasInv || !(qty > 0)) return '';
     const have = invAgg[typeId] || 0;
@@ -2244,7 +2263,15 @@ function renderBuildProgress() {
       + '<span class="ref-track" title="Need ' + fmtN(qty) + ' · Have ' + fmtN(have) + ' · Left ' + fmtN(left) + ' (' + pct + '%)"><span class="ref-fill' + (ok ? '' : ' short') + '" style="width:' + pct + '%"></span></span><span class="prog-pct">' + pct + '%</span>'
       + '<span class="ref-cap"' + (ok ? ' style="color:var(--build)"' : '') + '>NEED ' + fmtN(qty) + ' · HAVE ' + fmtN(have) + ' · LEFT ' + fmtN(left) + '</span></span>';
   };
-  const kidsOfKey = parentKey => rows.filter(r => r.parent === parentKey);
+  // Index rows by parent once. kidsOfKey used to filter the whole row array
+  // per row, which is O(n^2) and made big builds stutter on every expand.
+  const kidsByParent = new Map();
+  for (const r of rows) {
+    if (!r.parent) continue;
+    const a = kidsByParent.get(r.parent);
+    if (a) a.push(r); else kidsByParent.set(r.parent, [r]);
+  }
+  const kidsOfKey = parentKey => kidsByParent.get(parentKey) || [];
   // Recursive sub-tree renderer: every row with kids (or a pending lookup)
   // gets its own chevron + nested kids, so any sub-component opens to show
   // how it is built. Collapse state is keyed by row key (path strings).
