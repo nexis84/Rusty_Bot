@@ -123,7 +123,7 @@
       </div>
       <label class="check"><input type="checkbox" id="stkAllSystems"> All systems (include assets outside the build system)</label>
      <h4 class="stk-section">Filters</h4>
-      <label class="check"><input type="checkbox" id="stkIndustrialOnly"> Industrial only (off = show all assets)</label>
+      <label class="check"><input type="checkbox" id="stkIndustrialOnly" checked> Industrial only (off = show all assets)</label>
       <div class="field"><label>Quick search</label><input id="stkSearch" class="form-input" placeholder="e.g. tritanium, rifter…" autocomplete="off"></div>
      <h4 class="stk-section">Actions</h4>
       <button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button>
@@ -200,6 +200,7 @@
         <button id="mineFromBom" class="calc-btn secondary"><i class="fas fa-gem"></i> Mine it</button>
         <button id="bomExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
         <button id="toggleBomOpen" class="calc-btn secondary" title="Show or hide the Bill of Materials table"><i class="fas fa-chevron-up"></i> Hide</button>
+        <button id="clearOwnFlags" class="calc-btn secondary" title="Reset every owned-material tick back to the default"><i class="fas fa-eraser"></i> Reset owned</button>
       </div>
       <div id="bomWrap">
         <div style="overflow-x:auto"><table class="bom bom-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Volume</th><th class="num">Unit price</th><th class="num">Total price</th><th>Mode</th><th class="ctr">Own</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="8" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
@@ -246,6 +247,11 @@
           <button id="toggleProgExpand" class="calc-btn secondary"><i class="fas fa-expand"></i> Expand/Collapse</button>
           <button id="clearProgress" class="calc-btn secondary"><i class="fas fa-times"></i> Reset ticks</button>
           <button id="unpinProgress" class="calc-btn secondary" title="Track the live calculation and re-pull materials from game"><i class="fas fa-sync"></i> Update inventory</button>
+        </div>
+        <div id="progRemovedBar" class="removed-bar" style="display:none">
+          <i class="fas fa-trash-restore"></i>
+          <span id="progRemovedText"></span>
+          <button class="mode-btn" id="progRestore" title="Bring the removed items back into this build"><i class="fas fa-undo"></i> Restore removed</button>
         </div>
         <div id="progScanWrap">
           <div class="stk-track"><div id="progScanBar"></div></div>
@@ -330,7 +336,7 @@
     <script src="bv-typeinfo.js?v=2"></script>
     <script src="bv-esi-auth.js?v=9"></script>
     <script src="bv-fits.js?v=1"></script>
-    <script src="bv-visualizer.js?v=219"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V218</div>
+    <script src="bv-visualizer.js?v=223"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V222</div>
 </body>
 </html>

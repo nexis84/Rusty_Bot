@@ -547,6 +547,11 @@ let pendingNeed = null;
 async function calculate(opts) {
   opts = opts || {};
   savePrefs();
+  // A new top-level calculation starts a fresh drill-down trail; only
+  // Back / crumb / drill navigation keeps the existing one. Without this the
+  // breadcrumb keeps showing the previously searched blueprint above the new
+  // build (e.g. sending a fit to the calculator).
+  if (!opts.fromNav) { try { navStack.length = 0; } catch {} }
   // A fresh calculation always starts from the full material list — removals
   // apply to the build on screen only, never carried to the next blueprint.
   calcRemovedReset();
@@ -1027,7 +1032,14 @@ function effLeafCost(runs) {
     if (!Number.isFinite(+tid) || +tid <= 0 || !(qty > 0)) return;
     const k = tid + '|' + mode;
     const e = agg.get(k);
-    if (e) { e.qty += qty; e.total = (e.unit || 0) * e.qty; }
+    if (e) {
+      // A later occurrence with a real price must win over an earlier unpriced
+      // one — deep sub-materials can resolve with unit 0 when ESI has no quote,
+      // and keeping that 0 would zero the whole merged line's total.
+      if (!e.unit && unit) e.unit = unit;
+      e.qty += qty;
+      e.total = e.unit * e.qty;
+    }
     else agg.set(k, { type_id: +tid, name, qty, unit: unit || 0, total: (unit || 0) * qty, mode });
   };
   const walk = (tid, name, fullNeed, node, ci, trail, depth, rxKind, unit) => {
@@ -1163,14 +1175,14 @@ function drillDown(i) {
   $('bpName').value = c.child.bpName;
   pendingNeed = c.perRun * (S.runs || 1);
   status('Opening ' + c.child.bpName + ' (need ' + fmtN(pendingNeed) + ')…');
-  calculate();
+  calculate({ fromNav: true });
 }
 function goBack() {
   const prev = navStack.pop();
   if (!prev) return;
   $('bpName').value = prev.bp; $('runs').value = prev.runs;
   pendingNeed = null;
-  calculate();
+  calculate({ fromNav: true });
 }
 function goCrumb(i) {
   const target = navStack[i];
@@ -1178,7 +1190,7 @@ function goCrumb(i) {
   navStack.length = i;
   $('bpName').value = target.bp; $('runs').value = target.runs;
   pendingNeed = null;
-  calculate();
+  calculate({ fromNav: true });
 }
 
 // Canonical toggle order everywhere: Buy, Build, Mine, React, Extract
@@ -1245,12 +1257,20 @@ function calcRemoveItem(i) {
 // there is no stored set to simply put back.
 async function calcRestoreRemoved() {
   if (!calcRemovedRead().length) { status('Nothing to restore.'); return; }
+  // A pin may be showing a shorter list than the calculation; re-pin after the
+  // rebuild so Build Progress matches. bpId survives, so it reuses the slot.
+  const pinBpId = (() => { const p = bpProgSelPin(); return p ? p.bpId : null; })();
   calcRemovedReset();
   if (S.lastCalc && S.lastCalc.fit) {
     const t = ($('fitPaste') && $('fitPaste').value) || '';
-    if (t) { await calculateFit(); return; }
+    if (t) { await calculateFit(); if (pinBpId) bpProgPinCurrent(true); renderBuildProgress(); return; }
   }
-  if (S.root && $('bpName') && $('bpName').value.trim()) { await calculate(); return; }
+  if (S.root && $('bpName') && $('bpName').value.trim()) {
+    await calculate();
+    if (pinBpId) bpProgPinCurrent(true);
+    renderBuildProgress();
+    return;
+  }
   status('Removed items restored.');
 }
 // Wipe the live calculation and every panel that renders from it, returning the
@@ -1324,8 +1344,9 @@ function progRemoveItem(ci) {
   if (!c) return;
   if (src === S.root) { calcRemoveItem(ci); return; }
   const name = c.name || 'item';
+  // Always record, so the "Restore removed" bar can offer an undo on a pin too.
+  calcRemovedAdd(c.type_id);
   if (S.root && S.root !== src && String(S.root.bpId) === String(src.bpId) && (S.root.children || [])[ci]) {
-    calcRemovedAdd(c.type_id);
     S.root.children.splice(ci, 1);
     try { S._deepModes = null; } catch {}
     try { calcExpanded.clear(); } catch {}
@@ -1671,6 +1692,15 @@ function bvApplyDefaultTops(bpId, children) {
 function ownRead() { try { return JSON.parse(localStorage.getItem('bvOwnSet') || 'null') || {}; } catch { return {}; } }
 function ownUse(typeId) { return S.own[typeId] === undefined ? true : !!S.own[typeId]; }
 function ownSet(typeId, val) { S.own[typeId] = !!val; try { localStorage.setItem('bvOwnSet', JSON.stringify(S.own)); } catch {} }
+// Owned-material flags are kept in localStorage so they survive reloads and
+// inventory re-scans; this is the explicit way to wipe them.
+function ownClearAll() {
+  const n = Object.keys(S.own || {}).length;
+  S.own = {};
+  try { localStorage.removeItem('bvOwnSet'); } catch {}
+  try { if (S.root) { const r = S.runs || 1; renderBom(r); } } catch {}
+  status(n ? 'Cleared ' + n + ' owned-material flag' + (n === 1 ? '' : 's') + '.' : 'No owned-material flags to clear.');
+}
 function ownCell(l) {
   const usable = (l.mode === 'buy' || l.mode === 'react');
   return usable
@@ -1690,6 +1720,7 @@ const BOM_SECTIONS = [
   { key: 'pi0', title: 'PI — P0' },
   { key: 'gas', title: 'Gas & Fullerenes' },
   { key: 'moon', title: 'Moon Materials' },
+  { key: 'salvage', title: 'Salvage' },
   { key: 'ships', title: 'Ships & Drones' },
   { key: 'modules', title: 'Modules & Subsystems' },
   { key: 'charges', title: 'Charges & Ammunition' },
@@ -1704,6 +1735,25 @@ const BV_LEGACY_MINERALS = new Set([18, 19, 20, 21, 22]);
 // load, and the gas name heuristic is loose (it would otherwise swallow
 // "Atmospheric Gases", a moon material). PI is handled first of all because it
 // needs its own per-tier split. Anything still unplaced falls back to category.
+// CCP never gave the Rogue Drone and Amarr industrial hulls proper groups in
+// the SDE. They sit in group 332 ("Tool") and group 356 ("Tool Blueprint"),
+// so any group-driven sectioning files them as tools. Their market group is
+// only populated for some rows, and several are missing from the baked
+// typeinfo altogether, so the item NAME is the dependable signal. Covers both
+// the hulls and their blueprints:
+//   "R.A.M.- Ammunition Tech" / "R.A.M.- Ammunition Tech Blueprint"
+//   "R.Db - CreoDron"        / "R.Db.- Hybrid Technology Blueprint"
+function bvIsIndustrialHullAlias(id, name) {
+  try {
+    if (/^(R\.A\.M\.|R\.Db\.?)\s*-/.test(String(name || '').trim())) return true;
+    const info = bvTypeInfoLocal(id);
+    if (info) {
+      const mg = bvInfoName('marketGroups', info.mg);
+      if (mg === 'R.A.M.' || mg === 'R.Db') return true;
+    }
+  } catch {}
+  return false;
+}
 function bomSectionKey(l) {
   const id = +l.type_id;
   try {
@@ -1716,11 +1766,14 @@ function bomSectionKey(l) {
       return 'pi0';
     }
   } catch {}
+  // R.A.M. / R.Db hulls and blueprints are industrial ships, not tools.
+  try { if (bvIsIndustrialHullAlias(id, l.name)) return 'ships'; } catch {}
   let grp = '', c;
   try { const info = bvTypeInfoLocal(id); if (info) { grp = bvInfoName('groups', info.g) || ''; c = info.c; } } catch {}
   if (grp === 'Mineral' || grp === 'Unrefined Mineral') return 'minerals';
   if (grp === 'Ice Product') return 'ice';
   if (grp === 'Moon Materials') return 'moon';
+  if (grp === 'Ancient Salvage' || grp === 'Salvaged Materials' || grp === 'Abyssal Materials') return 'salvage';
   try { if (bvMailIsGas(id, l.name)) return 'gas'; } catch {}
   if (BV_LEGACY_MINERALS.has(id)) return 'minerals';
   try { if (isMineral(id)) return 'minerals'; } catch {}
@@ -1864,7 +1917,9 @@ async function renderBuildList(runs) {
       subTotal += L.total;
       subVol += (await typeVolume(L.type_id)) * L.qty;
       if (!aggregated.has(L.type_id)) aggregated.set(L.type_id, { qty: 0, unit: L.unit || 0, name: L.name });
-      aggregated.get(L.type_id).qty += L.qty;
+      const arow = aggregated.get(L.type_id);
+      if (!arow.unit && L.unit) arow.unit = L.unit; // later real price wins over an earlier 0
+      arow.qty += L.qty;
     }
     grandTotal += subTotal;
     grandVol += subVol;
@@ -2213,6 +2268,19 @@ function renderBuildProgress() {
   }
   bpProgRefreshHead();
   renderProgBlueprints();
+  renderProgRemovedBar();
+}
+
+// Mirror the Calculator's "Restore removed" affordance here, so an item
+// dropped from a tracked build can be brought back without switching tabs.
+function renderProgRemovedBar() {
+  const bar = $('progRemovedBar'), text = $('progRemovedText');
+  if (!bar) return;
+  let n = 0;
+  try { n = calcRemovedRead().length; } catch {}
+  if (!n) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  if (text) text.innerHTML = '<b>' + n + ' item' + (n === 1 ? '' : 's') + '</b> removed from this build.';
 }
 
 // Blueprints required for whichever build Build Progress is currently tracking (live or
@@ -2244,7 +2312,7 @@ function renderProgBlueprints() {
     return '<div class="rx-row' + (got ? ' bp-have' : '') + '">'
       + '<label class="bp-check" title="I have this blueprint"><input type="checkbox" data-progbp="' + key + '"' + (got ? ' checked' : '') + '></label>'
       + '<img src="https://images.evetech.net/types/' + b.typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'">'
-      + '<span class="nm">' + escapeHtml(b.name) + (b.kind === 'rx' ? ' <span class="pill react">FORMULA</span>' : ' <span class="pill">BP</span>') + '</span>'
+      + '<span class="nm">' + escapeHtml(b.name) + (b.kind === 'rx' ? ' <span class="pill react">FORMULA</span>' : ' <span class="pill">BP</span>') + (b.kind === 'bp' && bvBpIsT2(b.name) ? ' <span class="pill invent" title="Tech II — copy runs require invention">T2</span>' : '') + '</span>'
       + '<span class="row-tail"><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(b.typeId) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + infoButton(b.typeId) + '</span></div>';
   }).join('');
   list.querySelectorAll('[data-progbp]').forEach(box => {
@@ -2880,6 +2948,7 @@ function bindHandoffs() {
     tpe.innerHTML = anyOpen ? '<i class="fas fa-expand"></i> Expand' : '<i class="fas fa-compress"></i> Collapse';
   };
   const clp = $('clearProgress'); if (clp) clp.onclick = () => { bpProgWrite({}); renderBuildProgress(); status('Progress ticks cleared.'); };
+  const pr = $('progRestore'); if (pr) pr.onclick = () => { calcRestoreRemoved(); };
   const cpb = $('copyProgBps'); if (cpb) cpb.onclick = async () => {
     let rows = [];
     try { rows = trackedBlueprintList(); } catch {}
@@ -5436,6 +5505,10 @@ function fitCalcNoteRender() {
 function fitLoadToCalculator() {
   if (!(S.root && S.lastCalc && S.lastCalc.fit)) return false;
   fitInCalculator = true;
+  // A fit is a brand-new build root, not a drill-down from whatever blueprint
+  // was on screen, so drop the old trail — otherwise the breadcrumb keeps
+  // showing the previously searched blueprint above the fit.
+  try { navStack.length = 0; } catch {}
   try {
     renderCrumbs(S.root.bpName);
     renderTree(1);
@@ -5730,6 +5803,47 @@ async function fitRenderAll() {
   }
 }
 
+// ---- T2 / invention flag for the required-blueprints list ----
+// This SDE snapshot carries no metaGroupID and blueprint market groups are
+// empty, so the blueprint type's GROUP is the only reliable signal. T2-only
+// groups are listed here: ships (Cruiser and up, plus command/strategic/flag),
+// T2 fighters, the "Advanced" T2 charge families, and Precursor weapons.
+// Mixed groups (Energy/Hybrid/Projectile Weapon, Missile, Script, Capacitor
+// Battery, …) are deliberately absent — those contain both T1 and T2, so the
+// group can't tell them apart and guessing would be worse than no flag.
+const BV_T2_BP_GROUPS = new Set([
+  'Battlecruiser Blueprint', 'Battleship Blueprint', 'Carrier Blueprint', 'Cruiser Blueprint',
+  'Destroyer Blueprint', 'Dreadnought Blueprint', 'Titan Blueprint', 'Supercarrier Blueprints',
+  'Elite Hauler Blueprint', 'Freighter Blueprint', 'Command Destroyer Blueprint',
+  'Tactical Destroyer Blueprint', 'Expedition Command Ship Blueprint',
+  'Industrial Command Ship Blueprint', 'Strategic Cruiser Blueprints',
+  'Support Fighter Blueprint', 'Command Burst Blueprint', 'Command Burst Charge Blueprint',
+  'Precursor Weapon Blueprint', 'Energy Nosferatu Blueprint',
+  'Advanced Frequency Crystal Blueprint', 'Advanced Hybrid Charge Blueprint',
+  'Advanced Projectile Ammo Blueprint', 'Advanced Exotic Plasma Charge Blueprint',
+  'Advanced Condenser Pack Blueprint', 'Exotic Plasma Charge Blueprint'
+]);
+let _bvBpNameIdx = null;
+// Blueprint name -> SDE group name, via the local category-9 index. Built once.
+function bvBpGroupForName(bpName) {
+  try {
+    if (_bvBpNameIdx === null) {
+      _bvBpNameIdx = new Map();
+      const T = (window.BV_TYPEINFO && window.BV_TYPEINFO.types) || {};
+      for (const id in T) {
+        const t = T[id];
+        if (!t || t.c !== 9 || !t.n) continue;
+        const k = t.n.toLowerCase();
+        if (!_bvBpNameIdx.has(k)) _bvBpNameIdx.set(k, id);
+      }
+    }
+    const id = _bvBpNameIdx.get(String(bpName || '').toLowerCase());
+    if (!id) return '';
+    const t = window.BV_TYPEINFO.types[id];
+    return t ? (bvInfoName('groups', t.g) || '') : '';
+  } catch { return ''; }
+}
+function bvBpIsT2(bpName) { return BV_T2_BP_GROUPS.has(bvBpGroupForName(bpName)); }
 // Blueprints (and reaction formulas) needed for a build — walks every included
 // item's build/reaction tree and collects the recipe labels actually being
 // used. Works on any build root: the live calculation or a pinned snapshot.
@@ -6204,6 +6318,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Bill of Materials collapse (persisted, independent of the Build List toggle)
   if ($('toggleBomOpen')) $('toggleBomOpen').onclick = () => bomToggleOpen();
   try { bomApplyOpen(localStorage.getItem('bvBomOpen') !== '0'); } catch {}
+  if ($('clearOwnFlags')) $('clearOwnFlags').onclick = ownClearAll;
   if ($('buildExport')) $('buildExport').onclick = exportBuildCSV;
   if ($('shopExport')) $('shopExport').onclick = exportShoppingCSV;
   if ($('shareCalc')) $('shareCalc').onclick = shareCurrent;

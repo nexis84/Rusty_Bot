@@ -64,6 +64,7 @@ select:focus,.form-input:focus{outline:none;border-color:var(--accent)}
 .tree-node.build{border-left:4px solid var(--build)}.tree-node.buy{border-left:4px solid var(--buy)}.tree-node.react{border-left:4px solid var(--accent-2)}
 .mode-btn.on-react{border-color:var(--accent-2);color:var(--accent-2)}
 .pill.react{border-color:var(--accent-2);color:var(--accent-2)}
+.pill.invent{border-color:#db8b35;color:#db8b35}
 .tree-node.mine{border-left:4px solid #f5c542}
 .mode-btn.on-mine{border-color:#f5c542;color:#f5c542}
 .pill.mine{border-color:#f5c542;color:#f5c542}
