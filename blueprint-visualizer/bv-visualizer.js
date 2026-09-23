@@ -593,6 +593,8 @@ async function calculate(opts) {
   }
   // Restore persisted Build/Buy/Mine/React toggles for this blueprint.
   const modesRestored = bvModesApply();
+  // Drop anything the user removed from this build's list.
+  calcApplyRemoved(S.root);
   // Fresh blueprints (no saved toggles) start auto-sourced, not all-Buy.
   const modesDefaulted = bvApplyDefaultTops(bpRef.id, S.root.children);
   if (isFormula && formulaEstimate) status('Note: formula output estimated ×1 (Fuzzwork fallback) — reagent math is exact.');
@@ -1196,6 +1198,56 @@ function topModeButtons(c, i, rxBtn) {
 // Build Progress keeps its own set so views don't fight). Calculator starts
 // COLLAPSED — rows expand on click (opposite default to Progress).
 const calcExpanded = new Set();
+// Items the user removed from the current build's list, keyed by blueprint id
+// so a recalculate / drill-down / reload doesn't silently bring them back.
+// Restorable from the "Restore removed" bar above the tree.
+function calcRemovedKey(bpId) { return 'bvCalcRemoved_' + bpId; }
+function calcRemovedRead(bpId) { try { const v = JSON.parse(localStorage.getItem(calcRemovedKey(bpId)) || '[]'); return Array.isArray(v) ? v.map(Number).filter(n => n > 0) : []; } catch { return []; } }
+function calcRemovedWrite(bpId, list) { try { localStorage.setItem(calcRemovedKey(bpId), JSON.stringify(list || [])); } catch {} }
+function calcRemovedAdd(bpId, typeId) {
+  const list = calcRemovedRead(bpId);
+  if (!list.includes(+typeId)) { list.push(+typeId); calcRemovedWrite(bpId, list); }
+  return list;
+}
+// Drop any children the user previously removed. Applied to every freshly
+// built root so removals survive a recalculate.
+function calcApplyRemoved(src) {
+  try {
+    if (!src || !src.bpId || !Array.isArray(src.children)) return src;
+    const gone = calcRemovedRead(src.bpId);
+    if (gone.length) src.children = src.children.filter(c => c && !gone.includes(+c.type_id));
+  } catch {}
+  return src;
+}
+// Remove one top-level item from the live build and everything derived from it.
+function calcRemoveItem(i) {
+  if (!S.root || !Array.isArray(S.root.children)) return;
+  const c = S.root.children[i];
+  if (!c) return;
+  const name = c.name || ('Type ' + c.type_id);
+  calcRemovedAdd(S.root.bpId, c.type_id);
+  // A fit also tracks inclusion in its own store, so Build Progress (and a
+  // later re-send of the same fit) agree the item is gone.
+  try { if (S.lastCalc && S.lastCalc.fit) { c.include = false; const ig = fitIgnRead(S.root.bpId); ig[c.type_id] = false; fitIgnWrite(S.root.bpId, ig); } } catch {}
+  S.root.children.splice(i, 1);
+  try { S._deepModes = null; } catch {}
+  try { calcExpanded.clear(); } catch {}
+  S.bom = effLeafCost(1);
+  renderTree(S.runs || 1);
+  try { renderBom(S.runs || 1); } catch {}
+  try { renderBuildList(S.runs || 1); } catch {}
+  try { if (S.lastCalc) renderSummary(S.lastCalc); } catch {}
+  try { const p = renderShoppingList(S.runs || 1); if (p && typeof p.catch === 'function') p.catch(() => {}); } catch {}
+  try { bpProgRefreshPin(); } catch {}
+  try { renderBuildProgress(); } catch {}
+  try { fitRefresh(); } catch {}
+  status('Removed ' + name + ' from the list.');
+}
+function calcRestoreRemoved() {
+  if (!S.root || !S.root.bpId) return;
+  calcRemovedWrite(S.root.bpId, []);
+  status('Removed items restored — calculate to rebuild the full list.');
+}
 // Wipe the live calculation and every panel that renders from it, returning the
 // Calculator to its empty state. Pinned builds (Build Progress) and the saved
 // fit paste are left alone — only the working calculation is cleared.
@@ -1257,7 +1309,11 @@ function renderTree(runs) {
         + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(tid) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(tid) + mineIcon(tid) + infoButton(tid) + '</span></div>' + kids;
     }).join('');
   };
+  // "Restore removed" bar — only when this build actually has removals saved.
+  let removedN = 0;
+  try { removedN = calcRemovedRead(S.root.bpId).length; } catch {}
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
+    (removedN ? '<div class="removed-bar"><i class="fas fa-trash-restore"></i><span><b>' + removedN + ' item' + (removedN === 1 ? '' : 's') + '</b> removed from this list.</span><button class="mode-btn" data-tree-restore="1" title="Bring the removed items back"><i class="fas fa-undo"></i> Restore removed</button></div>' : '') +
     '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + infoButton(S.root.bpId) + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) + infoButton(S.product.type_id) : '') + '</div><div class="kids">';
   S.root.children.forEach((c, i) => {
     const m = c.child ? (c.child.margin >= 0 ? '<span class="margin-pos">build margin +' + fmtISK(c.child.margin) + '</span>' : '<span class="margin-neg">build margin ' + fmtISK(c.child.margin) + '</span>') : (c.child === null && c._tried ? '' : '<span class="nums">checking build…</span>');
@@ -1284,9 +1340,11 @@ function renderTree(runs) {
     const nmHtml = drillable
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
-    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + infoButton(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
+    h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + infoButton(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '<button class="mode-btn tree-remove" data-tree-rm="' + i + '" title="Remove ' + escapeHtml(c.name) + ' from this list"><i class="fas fa-xmark"></i></button></span></div>' + rxKids + buildKids + '</div>';
   });
   w.innerHTML = h + '</div></div>';
+  w.querySelectorAll('[data-tree-rm]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); calcRemoveItem(+b.dataset.treeRm); });
+  w.querySelectorAll('[data-tree-restore]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); calcRestoreRemoved(); });
   w.querySelectorAll('.mode-btn[data-m]').forEach(b => b.onclick = async () => {
     const idx = +b.dataset.i, mode = b.dataset.m;
     const c = S.root.children[idx];
@@ -2904,6 +2962,14 @@ function bpProgRefreshPin() {
     if (!S.root || !S.root.bpId) return;
     const pin = (S.pinnedBuilds || []).find(p => String(p.bpId) === String(S.root.bpId));
     if (!pin || !pin.children) return;
+    // Items the user removed from the live list drop out of the pin too, so
+    // Build Progress mirrors the Calculator exactly.
+    const liveIds = new Set((S.root.children || []).filter(Boolean).map(c => c.type_id));
+    if (pin.children.length) {
+      const before = pin.children.length;
+      pin.children = pin.children.filter(x => x && liveIds.has(x.type_id));
+      if (pin.children.length !== before) { try { bpProgLastSrc = null; } catch {} }
+    }
     for (const c of (S.root.children || [])) {
       const pc = (pin.children || []).find(x => x && x.type_id === c.type_id);
       if (!pc) continue;
@@ -5333,6 +5399,8 @@ async function calculateFit() {
       include: ign[c.type_id] !== false
     });
   }
+  // Items removed from the Calculator stay out even if the fit is re-analysed.
+  calcApplyRemoved(S.root);
   // Restore saved Build/Buy/Mine toggles for this fit (children now exist).
   let modesRestored = 0;
   try {
