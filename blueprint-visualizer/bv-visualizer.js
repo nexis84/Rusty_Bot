@@ -755,6 +755,9 @@ function deepIsLeaf(typeId) {
   // Other mineables (moon goo, gas) have no recipe — skip the wasted lookup.
   // Direct ref (not typeof): TDZ ReferenceError is caught when called pre-eval.
   try { if (BV_MINE_MATS && BV_MINE_MATS.has(id)) return true; } catch {}
+  // Types a lookup already proved have no recipe. Without this the row keeps
+  // offering an expand chevron that can only ever come back empty.
+  try { if (progDeepNone.has(id)) return true; } catch {}
   return false;
 }
 function deepMatId(m) { try { const v = +(m.type_id ?? m.typeID ?? m.typeid); return Number.isFinite(v) ? v : NaN; } catch { return NaN; } }
@@ -841,6 +844,7 @@ function deepSeedFrom(src) {
 // Session guard so the top-level retry pass runs once per type (explicit
 // on-demand clicks bypass it).
 const progDeepTopTries = new Map(); // src -> Map(typeId -> failed attempts)
+const progDeepNone = new Set(); // typeIds confirmed to have no sub-materials
 // Resolve ONE top-level child into enrichChildren-compatible c.child /
 // c.reaction shapes (names + units + margins). forceRx bypasses the Reactions
 // toggle for on-demand display (costing untouched — modes don't change).
@@ -1065,6 +1069,7 @@ async function bpProgDeepEnrich(forcedSrc) {
             done++;
             if (node && node.materials && node.materials.length) await deepPriceUnits(node);
             for (const m of mats) { try { m._deep = (node && node.materials && node.materials.length) ? node : null; m._deepState = 'done'; } catch {} }
+            try { if (node && node.materials && node.materials.length) progDeepNone.delete(tid); else progDeepNone.add(tid); } catch {}
             if (node && node.materials) for (const sm of node.materials) next.push(sm);
           } catch {
             for (const m of mats) { try { m._deep = null; m._deepState = 'done'; } catch {} }
@@ -1226,22 +1231,38 @@ function renderCrumbs(current) {
   h += '<button class="mode-btn" data-sendbuild style="margin-left:auto" title="Pin this blueprint to the Build Progress tab"><i class="fas fa-paper-plane"></i> Send to Build process</button>';
   bar.innerHTML = h;
 }
+function drillNavFail(e) {
+  const msg = e && e.message ? e.message : String(e || 'unknown error');
+  try { status('Drill-down failed: ' + msg); } catch {}
+  try { toast('Drill-down failed — ' + msg, 'error', 5000); } catch {}
+  try { console.error('[bv] drill-down failed', e); } catch {}
+}
+function drillCalc(opts) {
+  // calculate() is async and does network lookups; without a catch a rejection
+  // here surfaced as a click that appeared to do nothing at all.
+  try { return Promise.resolve(calculate(opts)).catch(drillNavFail); } catch (e) { drillNavFail(e); return Promise.resolve(); }
+}
 function drillDown(i) {
   const c = S.root && S.root.children[i];
-  if (!c || !c.child) return;
+  if (!c) { try { status('Cannot open that item — it is no longer in the build.'); } catch {} return; }
+  if (!c.child) {
+    try { status('No manufacturing blueprint for ' + (c.name || 'that item') + ' — build it as a raw material instead.'); } catch {}
+    try { toast('No blueprint to open for ' + (c.name || 'that item'), 'warn'); } catch {}
+    return;
+  }
   navStack.push({ bp: $('bpName').value.trim(), runs: parseInt($('runs').value) || 1 });
   if (navStack.length > 12) navStack.shift();
   $('bpName').value = c.child.bpName;
   pendingNeed = c.perRun * (S.runs || 1);
   status('Opening ' + c.child.bpName + ' (need ' + fmtN(pendingNeed) + ')…');
-  calculate({ fromNav: true });
+  drillCalc({ fromNav: true });
 }
 function goBack() {
   const prev = navStack.pop();
   if (!prev) return;
   $('bpName').value = prev.bp; $('runs').value = prev.runs;
   pendingNeed = null;
-  calculate({ fromNav: true });
+  drillCalc({ fromNav: true });
 }
 function goCrumb(i) {
   const target = navStack[i];
@@ -1249,7 +1270,7 @@ function goCrumb(i) {
   navStack.length = i;
   $('bpName').value = target.bp; $('runs').value = target.runs;
   pendingNeed = null;
-  calculate({ fromNav: true });
+  drillCalc({ fromNav: true });
 }
 
 // Canonical toggle order everywhere: Buy, Build, Mine, React, Extract
@@ -1794,15 +1815,13 @@ const BV_LEGACY_MINERALS = new Set([18, 19, 20, 21, 22]);
 // load, and the gas name heuristic is loose (it would otherwise swallow
 // "Atmospheric Gases", a moon material). PI is handled first of all because it
 // needs its own per-tier split. Anything still unplaced falls back to category.
-// CCP never gave the Rogue Drone and Amarr industrial hulls proper groups in
-// the SDE. They sit in group 332 ("Tool") and group 356 ("Tool Blueprint"),
-// so any group-driven sectioning files them as tools. Their market group is
-// only populated for some rows, and several are missing from the baked
-// typeinfo altogether, so the item NAME is the dependable signal. Covers both
-// the hulls and their blueprints:
+// R.A.M. / R.Db components are TOOLS, not hulls: CCP files them under group 332
+// "Tool" (category 17 Commodity) instead of a ship group, and they were absent
+// from the baked typeinfo, so the item NAME is the dependable signal. Covers
+// both the components and their blueprints:
 //   "R.A.M.- Ammunition Tech" / "R.A.M.- Ammunition Tech Blueprint"
 //   "R.Db - CreoDron"        / "R.Db.- Hybrid Technology Blueprint"
-function bvIsIndustrialHullAlias(id, name) {
+function bvIsIndustrialComponentAlias(id, name) {
   try {
     if (/^(R\.A\.M\.|R\.Db\.?)\s*-/.test(String(name || '').trim())) return true;
     const info = bvTypeInfoLocal(id);
@@ -1825,8 +1844,9 @@ function bomSectionKey(l) {
       return 'pi0';
     }
   } catch {}
-  // R.A.M. / R.Db hulls and blueprints are industrial ships, not tools.
-  try { if (bvIsIndustrialHullAlias(id, l.name)) return 'ships'; } catch {}
+  // R.A.M. / R.Db are tools (group 332), not ships — file them as components
+  // rather than letting the old hull alias drop them in the Ships section.
+  try { if (bvIsIndustrialComponentAlias(id, l.name)) return 'components'; } catch {}
   let grp = '', c;
   try { const info = bvTypeInfoLocal(id); if (info) { grp = bvInfoName('groups', info.g) || ''; c = info.c; } } catch {}
   if (grp === 'Mineral' || grp === 'Unrefined Mineral') return 'minerals';
@@ -2395,41 +2415,52 @@ function renderProgBlueprints() {
 // Resolve a single row on demand (chevron click): bare top-level child or a
 // material at path. Busts null-caches so transient failures retry.
 async function progDeepResolveOne(ci, path) {
+  const label = 'Resolve sub-materials';
+  const fail = msg => { try { status(label + ' failed — ' + msg); } catch {} try { toast(label + ' failed — ' + msg, 'error', 5000); } catch {} };
   try {
     const src = (typeof bpProgSource === 'function') ? bpProgSource() : null;
-    if (!src || !src.children || !Number.isFinite(ci)) return;
+    if (!src || !src.children || !Number.isFinite(ci)) { fail('no build is being tracked'); return; }
     if (!path || !path.length) {
       const c = src.children[ci];
-      if (!c || c.child || (c.mode === 'react' && c.reaction)) { renderBuildProgress(); return; }
+      if (!c) { fail('that item is no longer in the build'); renderBuildProgress(); return; }
+      if (c.child || (c.mode === 'react' && c.reaction)) { renderBuildProgress(); return; }
       try { deepCache.delete(+c.type_id); } catch {}
       try { reactCache.delete('rx' + (+c.type_id)); } catch {}
       status('Resolving ' + (c.name || ('Type ' + c.type_id)) + '…');
       await progDeepResolveTop(c, true);
-      // Explicit expand implies build intent: flip untouched Buy rows.
       if (c.mode === 'buy' && !bvHasStoredTop(src.bpId, c.type_id)) {
         if (c.child) c.mode = 'build';
         else if (c.reaction) c.mode = 'react';
         if (src === S.root) { try { bvModesSave(); } catch {} }
       }
+      if (!c.child && !c.reaction) fail('no manufacturing blueprint or reaction for ' + (c.name || ('Type ' + c.type_id)));
       renderBuildProgress();
       try { renderTree(S.runs || 1); } catch {}
     } else {
       const m = progFindMaterial(src, ci, path);
-      if (!m) return;
+      if (!m) { fail('could not locate that material in the tracked build (item ' + ci + ', path ' + path.join('>') + ')'); renderBuildProgress(); return; }
       if (m._deep) { renderBuildProgress(); return; }
       const tid = deepMatId(m);
+      const nm = m.name || ('Type ' + tid);
       try { deepCache.delete(tid); } catch {}
       try { reactCache.delete('rx' + tid); } catch {}
       try { m._deepState = 'pending'; } catch {}
       renderBuildProgress();
-      let node = null;
-      try { node = await deepResolve(tid, m.name || ('Type ' + tid), [], true); } catch {}
+      let node = null, err = null;
+      try { node = await deepResolve(tid, nm, [], true); } catch (e) { err = e; }
       if (node && node.materials) { try { await deepPriceUnits(node); } catch {} }
-      try { m._deep = (node && node.materials && node.materials.length) ? node : null; m._deepState = 'done'; } catch {}
+      const got = !!(node && node.materials && node.materials.length);
+      try { m._deep = got ? node : null; m._deepState = 'done'; } catch {}
+      try { if (got) progDeepNone.delete(tid); else progDeepNone.add(tid); } catch {}
+      if (got) { try { status(nm + ' — ' + node.materials.length + ' sub-material' + (node.materials.length === 1 ? '' : 's') + '.'); } catch {} }
+      else if (err) fail(nm + ': ' + (err.message || err));
+      else fail(nm + ' has no further sub-materials in the SDE (nothing to expand)');
       renderBuildProgress();
     }
     try { bpProgDeepEnrich(); } catch {}
-  } catch {}
+  } catch (e) {
+    fail(e && e.message ? e.message : String(e || 'unknown error'));
+  }
 }
 function bpProgExportText() {
   const { rows, rootName, runs } = bpProgModel();
@@ -3575,15 +3606,19 @@ function applyState(st, opts) {
     try { const all = bvModesRead(); all[String(st.bp.bpId)] = st.modes; bvModesWrite(all); } catch {}
   }
   // Restore the exact drill-down trail so we land on the same sub-component.
+  // fromNav keeps calculate() from wiping what we just restored — without it
+  // the trail was rebuilt here and then cleared on the next line, so a resumed
+  // session always lost its breadcrumbs.
+  let restoredNav = 0;
   try {
     navStack.length = 0;
-    if (Array.isArray(st.nav)) for (const e of st.nav) { if (e && e.bp) navStack.push({ bp: e.bp, runs: parseInt(e.runs, 10) || 1 }); }
+    if (Array.isArray(st.nav)) for (const e of st.nav) { if (e && e.bp) { navStack.push({ bp: e.bp, runs: parseInt(e.runs, 10) || 1 }); restoredNav++; } }
     pendingNeed = null;
   } catch {}
   // Drop the in-memory deep-mode cache so calculate() re-reads the seeded store.
   try { S._deepModes = null; S._deepModesBp = null; } catch {}
   savePrefs();
-  calculate({ noLedger: !!opts.noLedger });
+  calculate({ noLedger: !!opts.noLedger, fromNav: restoredNav > 0 });
   return true;
 }
 async function createShareCode(state) {
@@ -4741,17 +4776,19 @@ const BV_INDUSTRIAL_HULL_GROUPS = new Set([
 function isIndustrialHull(id) {
   const nid = +id;
   if (!Number.isFinite(nid) || nid <= 0) return false;
-  // R.A.M. / R.Db: CCP filed these in the broken "Tool" group and they are
-  // absent from the baked typeinfo, so the name is the only signal.
-  try { if (bvIsIndustrialHullAlias(nid, stkTypeNameForFilter(nid))) return true; } catch {}
+  // R.A.M. / R.Db are deliberately NOT here: they are components filed under
+  // the "Tool" group, not hulls. isIndustrialItem still counts them so the
+  // inventory filter keeps them.
   try {
     const info = bvTypeInfoLocal(nid);
     if (info && info.c === 6 && BV_INDUSTRIAL_HULL_GROUPS.has(bvInfoName('groups', info.g) || '')) return true;
   } catch {}
   return false;
 }
-// Anything "Industrial only" should SHOW: build materials + industrial hulls.
+// Anything "Industrial only" should SHOW: build materials, industrial hulls,
+// and the R.A.M. / R.Db tool components.
 function isIndustrialItem(id) {
+  try { if (bvIsIndustrialComponentAlias(id, stkTypeNameForFilter(+id))) return true; } catch {}
   return isIndustrialMaterial(id) || isIndustrialHull(id);
 }
 // Blueprints are inventory assets, so the scan already pulls them, but they are

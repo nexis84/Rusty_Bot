@@ -67,6 +67,17 @@ const INDUSTRY_CATS = new Set([
   65,  // Structure Module
 ]);
 
+// CCP files the R.A.M. / R.Db industrial components under group 332 "Tool",
+// whose category is 17 (Commodity) rather than an industry category. They are
+// real, blueprinted industry items, so force them in despite the bad category -
+// otherwise the product type is missing from the index while its blueprint
+// (group 356, category 9) is present, and nothing can resolve its materials.
+const FORCE_GROUPS = new Set([
+  332, // Tool (R.A.M.- *)
+  356, // Tool Blueprint
+  716, // Data Interfaces (R.Db.- Hybrid Technology)
+]);
+
 const out = { types: {}, groups: {}, categories: {}, marketGroups: {} };
 for (const [id, g] of groups) out.groups[String(id)] = g.name;
 for (const [id, n] of categories) out.categories[String(id)] = n;
@@ -85,7 +96,7 @@ for await (const line of rl) {
   if (!name) { stats.skippedNoName++; continue; }
   const g = groups.get(t.groupID);
   const cat = g ? g.categoryID : null;
-  if (cat == null || !INDUSTRY_CATS.has(cat)) { stats.skippedCat++; continue; }
+  if (cat == null || (!INDUSTRY_CATS.has(cat) && !FORCE_GROUPS.has(t.groupID))) { stats.skippedCat++; continue; }
 
   const e = { n: name };
   const desc = (t.description && t.description.en) || '';
