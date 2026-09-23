@@ -108,6 +108,10 @@ table.bom th{color:var(--accent);font-size:.72rem;text-transform:uppercase;lette
 .bom-table td.ctr,.bom-table th.ctr{text-align:center}
 .bom-table td.bom-name{min-width:220px}
 .bom-table td.bom-name img{width:32px;height:32px;border-radius:3px;background:#111;vertical-align:middle;margin-right:.45rem}
+.bom-table tr.bom-sec td{background:rgba(88,166,255,.07);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.4rem .5rem}
+.bom-table tr.bom-sec:first-child td{border-top:none}
+.bom-sec-title{font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;font-size:.72rem}
+.bom-sec-sub{float:right;color:var(--text2);font-size:.72rem;font-weight:400;letter-spacing:0}
 #bomWrap.hidden{display:none}
 .mkt-link{color:var(--accent);text-decoration:none;margin-left:.4rem;font-size:.8rem}
 .mkt-link:hover{text-decoration:underline}

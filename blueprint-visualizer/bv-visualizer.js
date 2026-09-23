@@ -547,6 +547,9 @@ let pendingNeed = null;
 async function calculate(opts) {
   opts = opts || {};
   savePrefs();
+  // A fresh calculation always starts from the full material list — removals
+  // apply to the build on screen only, never carried to the next blueprint.
+  calcRemovedReset();
   // A blueprint calculation belongs in the Calculator view even if Fit Builder is open.
   try { if ($('mainFit') && $('mainFit').style.display !== 'none') switchMainView('calc'); } catch {}
   const name = $('bpName').value.trim(); if (!name) { status('Enter a blueprint name.'); return; }
@@ -596,8 +599,6 @@ async function calculate(opts) {
   }
   // Restore persisted Build/Buy/Mine/React toggles for this blueprint.
   const modesRestored = bvModesApply();
-  // Drop anything the user removed from this build's list.
-  calcApplyRemoved(S.root);
   // Fresh blueprints (no saved toggles) start auto-sourced, not all-Buy.
   const modesDefaulted = bvApplyDefaultTops(bpRef.id, S.root.children);
   if (isFormula && formulaEstimate) status('Note: formula output estimated ×1 (Fuzzwork fallback) — reagent math is exact.');
@@ -1201,37 +1202,30 @@ function topModeButtons(c, i, rxBtn) {
 // Build Progress keeps its own set so views don't fight). Calculator starts
 // COLLAPSED — rows expand on click (opposite default to Progress).
 const calcExpanded = new Set();
-// Items the user removed from the current build's list, keyed by blueprint id
-// so a recalculate / drill-down / reload doesn't silently bring them back.
-// Restorable from the "Restore removed" bar above the tree.
-function calcRemovedKey(bpId) { return 'bvCalcRemoved_' + bpId; }
-function calcRemovedRead(bpId) { try { const v = JSON.parse(localStorage.getItem(calcRemovedKey(bpId)) || '[]'); return Array.isArray(v) ? v.map(Number).filter(n => n > 0) : []; } catch { return []; } }
-function calcRemovedWrite(bpId, list) { try { localStorage.setItem(calcRemovedKey(bpId), JSON.stringify(list || [])); } catch {} }
-function calcRemovedAdd(bpId, typeId) {
-  const list = calcRemovedRead(bpId);
-  if (!list.includes(+typeId)) { list.push(+typeId); calcRemovedWrite(bpId, list); }
-  return list;
+// Items the user removed from the current build's list. Deliberately
+// session-only and in-memory: a removal applies to the calculation on screen
+// and is forgotten the moment a different build is calculated, so a part you
+// dropped from one blueprint never silently disappears from the next.
+// Restorable via the "Restore removed" bar above the tree.
+function calcRemovedRead() { return Array.isArray(S.calcRemoved) ? S.calcRemoved : []; }
+function calcRemovedWrite(list) { S.calcRemoved = Array.isArray(list) ? list.map(Number).filter(n => n > 0) : []; return S.calcRemoved; }
+function calcRemovedAdd(typeId) {
+  const list = calcRemovedRead();
+  if (!list.includes(+typeId)) list.push(+typeId);
+  return calcRemovedWrite(list);
 }
-// Drop any children the user previously removed. Applied to every freshly
-// built root so removals survive a recalculate.
-function calcApplyRemoved(src) {
-  try {
-    if (!src || !src.bpId || !Array.isArray(src.children)) return src;
-    const gone = calcRemovedRead(src.bpId);
-    if (gone.length) src.children = src.children.filter(c => c && !gone.includes(+c.type_id));
-  } catch {}
-  return src;
-}
+function calcRemovedReset() { calcRemovedWrite([]); }
 // Remove one top-level item from the live build and everything derived from it.
 function calcRemoveItem(i) {
   if (!S.root || !Array.isArray(S.root.children)) return;
   const c = S.root.children[i];
   if (!c) return;
   const name = c.name || ('Type ' + c.type_id);
-  calcRemovedAdd(S.root.bpId, c.type_id);
-  // A fit also tracks inclusion in its own store, so Build Progress (and a
-  // later re-send of the same fit) agree the item is gone.
-  try { if (S.lastCalc && S.lastCalc.fit) { c.include = false; const ig = fitIgnRead(S.root.bpId); ig[c.type_id] = false; fitIgnWrite(S.root.bpId, ig); } } catch {}
+  calcRemovedAdd(c.type_id);
+  // Deliberately does NOT touch the fit's persistent include store: that store
+  // belongs to the include checkboxes, which are the explicit "keep this
+  // choice" control. The X is a one-off for the build on screen.
+  c.include = false;
   removeChildAt(S.root, i);
   try { S._deepModes = null; } catch {}
   try { calcExpanded.clear(); } catch {}
@@ -1247,10 +1241,17 @@ function calcRemoveItem(i) {
   status('Removed ' + name + ' from the list.');
   try { if (S.lastCalc && S.lastCalc.fit) fitStatus('Removed ' + name + ' from the fit.'); } catch {}
 }
-function calcRestoreRemoved() {
-  if (!S.root || !S.root.bpId) return;
-  calcRemovedWrite(S.root.bpId, []);
-  status('Removed items restored — calculate to rebuild the full list.');
+// Restoring rebuilds the list from scratch — removals are session-only, so
+// there is no stored set to simply put back.
+async function calcRestoreRemoved() {
+  if (!calcRemovedRead().length) { status('Nothing to restore.'); return; }
+  calcRemovedReset();
+  if (S.lastCalc && S.lastCalc.fit) {
+    const t = ($('fitPaste') && $('fitPaste').value) || '';
+    if (t) { await calculateFit(); return; }
+  }
+  if (S.root && $('bpName') && $('bpName').value.trim()) { await calculate(); return; }
+  status('Removed items restored.');
 }
 // Wipe the live calculation and every panel that renders from it, returning the
 // Calculator to its empty state. Pinned builds (Build Progress) and the saved
@@ -1324,7 +1325,7 @@ function progRemoveItem(ci) {
   if (src === S.root) { calcRemoveItem(ci); return; }
   const name = c.name || 'item';
   if (S.root && S.root !== src && String(S.root.bpId) === String(src.bpId) && (S.root.children || [])[ci]) {
-    calcRemovedAdd(S.root.bpId, c.type_id);
+    calcRemovedAdd(c.type_id);
     S.root.children.splice(ci, 1);
     try { S._deepModes = null; } catch {}
     try { calcExpanded.clear(); } catch {}
@@ -1374,7 +1375,7 @@ function renderTree(runs) {
   };
   // "Restore removed" bar — only when this build actually has removals saved.
   let removedN = 0;
-  try { removedN = calcRemovedRead(S.root.bpId).length; } catch {}
+  try { removedN = calcRemovedRead().length; } catch {}
   let h = (piKids.length ? '<div class="pi-banner"><i class="fas fa-globe" style="color:#3fb950"></i><span>This build uses <b>' + piKids.length + ' PI material' + (piKids.length > 1 ? 's' : '') + '</b> (' + piKids.slice(0, 3).map(c => c.name).join(', ') + (piKids.length > 3 ? ', …' : '') + '). Plan them in our <a target="_blank" rel="noopener" href="' + piURL(piKids[0].type_id) + '">PI Visualizer</a></span></div>' : '') +
     (removedN ? '<div class="removed-bar"><i class="fas fa-trash-restore"></i><span><b>' + removedN + ' item' + (removedN === 1 ? '' : 's') + '</b> removed from this list.</span><button class="mode-btn" data-tree-restore="1" title="Bring the removed items back"><i class="fas fa-undo"></i> Restore removed</button></div>' : '') +
     '<div class="tree-node build"><div class="row1">' + (S.product ? iconHTML(S.product.type_id, S.product.name) : '') + '<span class="nm">' + S.root.bpName + ' × ' + runs + '</span>' + (S.root.mode === 'react' ? '<span class="pill react">REACT</span>' : '<span class="pill build">BUILD</span>') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.root.bpId) + '" title="Price check blueprint"><i class="fas fa-chart-line"></i></a>' + infoButton(S.root.bpId) + (S.product ? '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(S.product.type_id) + '" title="Price check product"><i class="fas fa-box"></i></a>' + piIcon(S.product.type_id) + infoButton(S.product.type_id) : '') + '</div><div class="kids">';
@@ -1676,6 +1677,76 @@ function ownCell(l) {
     ? '<label title="Use owned materials for this item (deduct from inventory)" style="cursor:pointer"><input type="checkbox" data-own="' + l.type_id + '"' + (ownUse(l.type_id) ? ' checked' : '') + '></label>'
     : '<input type="checkbox" disabled checked style="opacity:.35" title="Not bought — own flag not applicable">';
 }
+// Bill of Materials section order — raw industry inputs first, manufactured
+// items after, mirroring the Evemail grouping. Empty sections are skipped, so
+// a build only ever shows the headings it actually has.
+const BOM_SECTIONS = [
+  { key: 'minerals', title: 'Minerals' },
+  { key: 'ice', title: 'Ice Products' },
+  { key: 'pi4', title: 'PI — P4' },
+  { key: 'pi3', title: 'PI — P3' },
+  { key: 'pi2', title: 'PI — P2' },
+  { key: 'pi1', title: 'PI — P1' },
+  { key: 'pi0', title: 'PI — P0' },
+  { key: 'gas', title: 'Gas & Fullerenes' },
+  { key: 'moon', title: 'Moon Materials' },
+  { key: 'ships', title: 'Ships & Drones' },
+  { key: 'modules', title: 'Modules & Subsystems' },
+  { key: 'charges', title: 'Charges & Ammunition' },
+  { key: 'other', title: 'Other Materials' }
+];
+// The five oldest minerals (Plagioclase, Spodumain, Kernite, Hedbergite,
+// Arkonor) sit in SDE category 25 in a group named after themselves, so the
+// 'Mineral' group check misses them. Stable, tiny, and worth naming explicitly.
+const BV_LEGACY_MINERALS = new Set([18, 19, 20, 21, 22]);
+// Section for one BOM line. The SDE group name is checked first because it is
+// complete and synchronous — the runtime iceProductIds set only fills in after
+// load, and the gas name heuristic is loose (it would otherwise swallow
+// "Atmospheric Gases", a moon material). PI is handled first of all because it
+// needs its own per-tier split. Anything still unplaced falls back to category.
+function bomSectionKey(l) {
+  const id = +l.type_id;
+  try {
+    if (isPI(id)) {
+      const t = bvMailPiTierNum(id);
+      if (t >= 4) return 'pi4';
+      if (t === 3) return 'pi3';
+      if (t === 2) return 'pi2';
+      if (t === 1) return 'pi1';
+      return 'pi0';
+    }
+  } catch {}
+  let grp = '', c;
+  try { const info = bvTypeInfoLocal(id); if (info) { grp = bvInfoName('groups', info.g) || ''; c = info.c; } } catch {}
+  if (grp === 'Mineral' || grp === 'Unrefined Mineral') return 'minerals';
+  if (grp === 'Ice Product') return 'ice';
+  if (grp === 'Moon Materials') return 'moon';
+  try { if (bvMailIsGas(id, l.name)) return 'gas'; } catch {}
+  if (BV_LEGACY_MINERALS.has(id)) return 'minerals';
+  try { if (isMineral(id)) return 'minerals'; } catch {}
+  try { if (iceProductIds && iceProductIds.has(id)) return 'ice'; } catch {}
+  try { if (bvMailIsMoon(id)) return 'moon'; } catch {}
+  if (c === 6 || c === 18) return 'ships';
+  if (c === 7 || c === 20 || c === 22 || c === 32) return 'modules';
+  if (c === 8) return 'charges';
+  if (c === 4 || c === 43) return 'components'; // reaction sub-materials, PI stragglers
+  return 'other';
+}
+function bomRowHtml(l) {
+  const clean = escapeHtml(cleanName(l.name || ('Type ' + l.type_id)));
+  const v = Math.round(typeVolumeCached(l.type_id) * l.qty);
+  return '<tr>'
+    + '<td class="bom-name">' + bvIconImg(l.type_id) + ' ' + clean
+      + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '')
+      + (l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td>'
+    + '<td class="num">' + fmtN(l.qty) + '</td>'
+    + '<td class="num">' + (v ? fmtN(v) + ' m3' : '—') + '</td>'
+    + '<td class="num">' + fmtISK(l.unit) + '</td>'
+    + '<td class="num">' + fmtISK(l.total) + '</td>'
+    + '<td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td>'
+    + '<td class="ctr">' + ownCell(l) + '</td>'
+    + '<td class="ctr"><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + infoButton(l.type_id) + '</td></tr>';
+}
 // Bill of Materials panel collapse. State is persisted so a reload keeps the
 // user's choice; the panel's buttons stay visible either way.
 function bomApplyOpen(open) {
@@ -1695,24 +1766,24 @@ async function renderBom(runs) {
   const tb = $('bomBody');
   await preloadVolumes(S.bom.map(l => l.type_id));
   let vol = 0; for (const l of S.bom) vol += (await typeVolume(l.type_id)) * l.qty;
-  let total = 0;
-  tb.innerHTML = S.bom.map(l => {
-    total += l.total;
-    const clean = escapeHtml(cleanName(l.name || ('Type ' + l.type_id)));
-    const v = Math.round(typeVolumeCached(l.type_id) * l.qty);
-    return '<tr>'
-      + '<td class="bom-name">' + bvIconImg(l.type_id) + ' ' + clean
-        + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '')
-        + (l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td>'
-      + '<td class="num">' + fmtN(l.qty) + '</td>'
-      + '<td class="num">' + (v ? fmtN(v) + ' m3' : '—') + '</td>'
-      + '<td class="num">' + fmtISK(l.unit) + '</td>'
-      + '<td class="num">' + fmtISK(l.total) + '</td>'
-      + '<td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td>'
-      + '<td class="ctr">' + ownCell(l) + '</td>'
-      + '<td class="ctr"><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + infoButton(l.type_id) + '</td></tr>';
+  // Group into fixed industry order, preserving the existing order within each
+  // section, and drop any section that has no lines.
+  const rank = new Map(BOM_SECTIONS.map((s, i) => [s.key, i]));
+  const groups = new Map();
+  for (const l of S.bom) {
+    const k = bomSectionKey(l);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(l);
+  }
+  const ordered = [...groups.entries()].sort((a, b) => (rank.has(a[0]) ? rank.get(a[0]) : 999) - (rank.has(b[0]) ? rank.get(b[0]) : 999));
+  tb.innerHTML = ordered.map(([key, lines]) => {
+    const sec = BOM_SECTIONS.find(s => s.key === key);
+    let sub = 0; for (const l of lines) sub += l.total;
+    return '<tr class="bom-sec"><td colspan="8"><span class="bom-sec-title">' + escapeHtml(sec ? sec.title : 'Other Materials') + '</span>'
+      + '<span class="bom-sec-sub">' + lines.length + ' item' + (lines.length === 1 ? '' : 's') + ' · ' + fmtISK(sub) + '</span></td></tr>'
+      + lines.map(bomRowHtml).join('');
   }).join('');
-  $('bomMeta').textContent = S.bom.length + ' types';
+  $('bomMeta').textContent = S.bom.length + ' types · ' + ordered.length + ' section' + (ordered.length === 1 ? '' : 's');
   const split = bomCashSplit();
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + (split.extracted > 0 ? ' (+ ' + fmtISK(split.extracted) + ' extracted @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
   await renderShoppingList(runs);
@@ -5443,6 +5514,7 @@ async function fitResolveNames(list, onProgress) {
 }
 
 async function calculateFit() {
+  calcRemovedReset();
   const text = ($('fitPaste') && $('fitPaste').value) || '';
   const fits = (window.BVFits && BVFits.parseEftFits) ? BVFits.parseEftFits(text) : [];
   if (!fits.length) { fitProgressHide(); fitStatus('Nothing parsed — paste a fit whose first line is [Ship, Fit Name].'); return; }
@@ -5493,8 +5565,6 @@ async function calculateFit() {
       include: ign[c.type_id] !== false
     });
   }
-  // Items removed from the Calculator stay out even if the fit is re-analysed.
-  calcApplyRemoved(S.root);
   // Restore saved Build/Buy/Mine toggles for this fit (children now exist).
   let modesRestored = 0;
   try {
