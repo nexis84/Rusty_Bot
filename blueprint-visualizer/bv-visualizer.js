@@ -3114,6 +3114,7 @@ function cleanName(n) { return n.replace(/ \(built\)$/, '').replace(/ \(react: .
 function multibuyLines() { return S.bom.filter(l => l.mode === 'buy' || l.mode === 'react').map(l => cleanName(l.name) + ' x' + l.qty); }
 function bindHandoffs() {
   const bbAll = $('bulkBuyAll'); if (bbAll) bbAll.onclick = async () => { try { await bulkSetModes('buy'); } catch (e) { status('Bulk set failed.'); } };
+  const bbCollapse = $('bulkCollapseAll'); if (bbCollapse) bbCollapse.onclick = () => { try { calcExpanded.clear(); renderTree(S.runs || 1); } catch (e) { status('Collapse failed.'); } };
   const bbAuto = $('bulkBuildAll'); if (bbAuto) bbAuto.onclick = async () => { try { await bulkSetModes('auto'); } catch (e) { status('Bulk set failed.'); } };
   $('copyMultibuy').onclick = async () => {
     const lines = multibuyLines();
