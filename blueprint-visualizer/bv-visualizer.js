@@ -2484,6 +2484,13 @@ function progBpHead() {
 // is never cleared, and with no scan there are no owned blueprints so nothing
 // changes. Runs on every Build Progress render (i.e. on each build) and again
 // whenever the owned-blueprint list refreshes after a scan.
+//
+// The two lists identify a blueprint differently: the required list carries the
+// PRODUCT type id (Wreathe = 582, from the recipe's output) while ownership
+// carries the BLUEPRINT ITEM type id (the "Wreathe Blueprint" asset). Those ids
+// are different numbers, so we match on the canonical blueprint/formula NAME
+// ("Wreathe Blueprint") and only fall back to the raw id in case a future path
+// already stores blueprint ids.
 function bpProgSyncOwnedBlueprints(rows) {
   try {
     const list = rows || [];
@@ -2491,12 +2498,15 @@ function bpProgSyncOwnedBlueprints(rows) {
     let owned = [];
     try { owned = stkOwnedBlueprints(); } catch { owned = []; }
     if (!owned.length) return 0;
+    const norm = s => String(s == null ? '' : s).trim().toLowerCase();
     const ownedIds = new Set(owned.map(b => b.type_id));
+    const ownedNames = new Set(owned.map(b => norm(b.name)).filter(Boolean));
     const ticked = bpProgRead();
     let changed = 0;
     for (const b of list) {
       const key = bpProgBpKey(b.typeId);
-      if (ownedIds.has(b.typeId) && !ticked[key]) { ticked[key] = true; changed++; }
+      if (ticked[key]) continue;
+      if (ownedIds.has(b.typeId) || (norm(b.name) && ownedNames.has(norm(b.name)))) { ticked[key] = true; changed++; }
     }
     if (changed) { bpProgWrite(ticked); }
     return changed;
@@ -3229,13 +3239,16 @@ function bindHandoffs() {
     renderProgBlueprints();
     status(n ? 'Cleared ' + n + ' blueprint tick' + (n === 1 ? '' : 's') + '.' : 'No blueprint ticks to clear.');
   };
+  // "Update inventory" only re-pulls the current scope; it must NOT switch the
+  // tracked build to the live/active blueprint (that used to be forced here and
+  // made a plain inventory refresh jump to whatever was in the search box).
+  // Use the "Live" chip in the pin selector to switch back to the live build.
   const unp = $('unpinProgress'); if (unp) unp.onclick = async () => {
-    S.pinnedSel = 'live'; bpPinsSave();
     unp.disabled = true;
     try { await loadInventory(); } catch {}
     try { renderBuildProgress(); } catch {}
     unp.disabled = false;
-    status('Tracking the live calculation — materials re-pulled from game.');
+    status('Inventory refreshed for the current scope.');
   };
   const smp = $('sendProgMail'); if (smp) smp.onclick = () => { sendProgMail(); };
 }
