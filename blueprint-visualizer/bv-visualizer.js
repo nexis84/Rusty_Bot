@@ -3114,7 +3114,27 @@ function cleanName(n) { return n.replace(/ \(built\)$/, '').replace(/ \(react: .
 function multibuyLines() { return S.bom.filter(l => l.mode === 'buy' || l.mode === 'react').map(l => cleanName(l.name) + ' x' + l.qty); }
 function bindHandoffs() {
   const bbAll = $('bulkBuyAll'); if (bbAll) bbAll.onclick = async () => { try { await bulkSetModes('buy'); } catch (e) { status('Bulk set failed.'); } };
-  const bbCollapse = $('bulkCollapseAll'); if (bbCollapse) bbCollapse.onclick = () => { try { calcExpanded.clear(); renderTree(S.runs || 1); } catch (e) { status('Collapse failed.'); } };
+  // Collapse every expanded thing in the app: calculator tree, Build Progress
+  // tree, the Build List <details> groups, and the Bill of Materials panel.
+  // Each surface keeps its own expansion state, so they are cleared separately
+  // and the per-panel toggle labels are reset to "Expand".
+  const bbCollapse = $('bulkCollapseAll');
+  if (bbCollapse) bbCollapse.onclick = () => {
+    try { calcExpanded.clear(); renderTree(S.runs || 1); } catch (e) { status('Collapse failed.'); }
+    try {
+      bpProgExpanded.clear();
+      const tpe = $('toggleProgExpand');
+      if (tpe) tpe.innerHTML = '<i class="fas fa-expand"></i> Expand';
+      renderBuildProgress();
+    } catch (e) {}
+    try {
+      const ds = document.querySelectorAll('#buildList details');
+      ds.forEach(d => { d.open = false; });
+      const tb = $('toggleBuildExpand');
+      if (tb) tb.innerHTML = '<i class="fas fa-expand"></i> Expand';
+    } catch (e) {}
+    try { bomApplyOpen(false); localStorage.setItem('bvBomOpen', '0'); } catch (e) {}
+  };
   const bbAuto = $('bulkBuildAll'); if (bbAuto) bbAuto.onclick = async () => { try { await bulkSetModes('auto'); } catch (e) { status('Bulk set failed.'); } };
   $('copyMultibuy').onclick = async () => {
     const lines = multibuyLines();
