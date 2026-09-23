@@ -331,6 +331,9 @@ async function typeVolume(id) {
   try { const t = await fetchJSON(ESI + '/universe/types/' + id + '/'); volCache.set(key, t.volume || 0); return t.volume || 0; }
   catch { return 0; }
 }
+// Sync read of the volume cache — valid after preloadVolumes()/typeVolume()
+// have run for the ids. No network, no await.
+function typeVolumeCached(id) { const v = volCache.get(+id); return (v === undefined || v === null) ? 0 : v; }
 // Batch-preload volumes for a set of type IDs (concurrency 10) so render
 // loops below hit cache instead of firing sequential ESI requests.
 async function preloadVolumes(ids) {
@@ -1269,7 +1272,8 @@ function calcResetAll() {
   const hide = (id) => { const el = $(id); if (el) el.style.display = 'none'; };
   hide('summaryGrid'); hide('crumbBar'); hide('shoppingSummary');
   set('treeWrap', ''); set('refineryWrap', ''); set('mineWrap', '');
-  set('bomBody', emptyRow); set('shoppingBody', emptyRow);
+  set('bomBody', '<tr><td colspan="8" style="color:var(--text3)">No calculation yet.</td></tr>');
+  set('shoppingBody', emptyRow);
   txt('bomMeta', ''); txt('bomTotals', ''); txt('shopMeta', ''); txt('shoppingTotals', '');
   txt('buildMeta', ''); txt('buildTotals', '');
   set('buildList', '<p class="hint">No calculation yet — calculate a blueprint or send a fit.</p>');
@@ -1672,13 +1676,42 @@ function ownCell(l) {
     ? '<label title="Use owned materials for this item (deduct from inventory)" style="cursor:pointer"><input type="checkbox" data-own="' + l.type_id + '"' + (ownUse(l.type_id) ? ' checked' : '') + '></label>'
     : '<input type="checkbox" disabled checked style="opacity:.35" title="Not bought — own flag not applicable">';
 }
+// Bill of Materials panel collapse. State is persisted so a reload keeps the
+// user's choice; the panel's buttons stay visible either way.
+function bomApplyOpen(open) {
+  const wrap = $('bomWrap'), btn = $('toggleBomOpen');
+  if (wrap) wrap.classList.toggle('hidden', !open);
+  if (btn) btn.innerHTML = open ? '<i class="fas fa-chevron-up"></i> Hide' : '<i class="fas fa-chevron-down"></i> Show';
+}
+function bomToggleOpen() {
+  const wrap = $('bomWrap');
+  if (!wrap) return;
+  const open = wrap.classList.contains('hidden');
+  bomApplyOpen(open);
+  try { localStorage.setItem('bvBomOpen', open ? '1' : '0'); } catch {}
+}
 async function renderBom(runs) {
   S.bom = effLeafCost(runs);
   const tb = $('bomBody');
   await preloadVolumes(S.bom.map(l => l.type_id));
   let vol = 0; for (const l of S.bom) vol += (await typeVolume(l.type_id)) * l.qty;
   let total = 0;
-  tb.innerHTML = S.bom.map(l => { total += l.total; return '<tr><td>' + l.name + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '') + '</td><td>' + fmtN(l.qty) + '</td><td>' + fmtISK(l.unit) + '</td><td>' + fmtISK(l.total) + '</td><td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td><td style="text-align:center">' + ownCell(l) + '</td><td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + infoButton(l.type_id) + '</td></tr>'; }).join('');
+  tb.innerHTML = S.bom.map(l => {
+    total += l.total;
+    const clean = escapeHtml(cleanName(l.name || ('Type ' + l.type_id)));
+    const v = Math.round(typeVolumeCached(l.type_id) * l.qty);
+    return '<tr>'
+      + '<td class="bom-name">' + bvIconImg(l.type_id) + ' ' + clean
+        + (isPI(l.type_id) ? ' <span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(l.type_id) + '</span>' : '')
+        + (l.mode === 'react' ? ' <span class="pill react">REACT</span>' : '') + '</td>'
+      + '<td class="num">' + fmtN(l.qty) + '</td>'
+      + '<td class="num">' + (v ? fmtN(v) + ' m3' : '—') + '</td>'
+      + '<td class="num">' + fmtISK(l.unit) + '</td>'
+      + '<td class="num">' + fmtISK(l.total) + '</td>'
+      + '<td><span class="pill ' + l.mode + '">' + l.mode.toUpperCase() + '</span></td>'
+      + '<td class="ctr">' + ownCell(l) + '</td>'
+      + '<td class="ctr"><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(l.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(l.type_id) + mineIcon(l.type_id) + infoButton(l.type_id) + '</td></tr>';
+  }).join('');
   $('bomMeta').textContent = S.bom.length + ' types';
   const split = bomCashSplit();
   $('bomTotals').textContent = 'Cash total ' + fmtISK(split.cash) + (split.mined > 0 ? ' (+ ' + fmtISK(split.mined) + ' mined @ market)' : '') + (split.extracted > 0 ? ' (+ ' + fmtISK(split.extracted) + ' extracted @ market)' : '') + ' · Volume ~' + fmtN(Math.round(vol)) + ' m3 · ' + hub();
@@ -6098,6 +6131,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('invGo').onclick = invCompare;
   $('invQueueBom').onclick = () => { if (!invQueue.length) return; const lines = invQueue.map(q => q.d.runsNeeded + ' x ' + q.t2 + ' (' + q.d.name + ')'); window.open(appraisalURL(lines), '_blank', 'noopener'); };
   if ($('bomExport')) $('bomExport').onclick = exportBomCSV;
+  // Bill of Materials collapse (persisted, independent of the Build List toggle)
+  if ($('toggleBomOpen')) $('toggleBomOpen').onclick = () => bomToggleOpen();
+  try { bomApplyOpen(localStorage.getItem('bvBomOpen') !== '0'); } catch {}
   if ($('buildExport')) $('buildExport').onclick = exportBuildCSV;
   if ($('shopExport')) $('shopExport').onclick = exportShoppingCSV;
   if ($('shareCalc')) $('shareCalc').onclick = shareCurrent;

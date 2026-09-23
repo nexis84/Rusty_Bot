@@ -191,7 +191,7 @@
     <div id="crumbBar" class="crumb-bar hidden"></div>
     <div id="fitCalcNote" class="calc-note hidden"><i class="fas fa-paper-plane"></i> <b>Fit loaded.</b> This build was also sent to <b>Build Progress</b> automatically — tick items off there as you gather them.</div>
     <div id="treeWrap"></div>
-    <div class="panel" style="margin-top:.8rem">
+    <div class="panel" style="margin-top:.8rem" id="bomPanel">
       <h3><i class="fas fa-list"></i> Bill of Materials <span id="bomMeta" class="pill" style="margin-left:.5rem"></span></h3>
       <div class="btn-row" style="margin-bottom:.5rem">
         <button id="copyMultibuy" class="calc-btn secondary">Copy multibuy</button>
@@ -199,10 +199,13 @@
         <button id="appraiseOut" class="calc-btn secondary">Appraise output</button>
         <button id="mineFromBom" class="calc-btn secondary"><i class="fas fa-gem"></i> Mine it</button>
         <button id="bomExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
+        <button id="toggleBomOpen" class="calc-btn secondary" title="Show or hide the Bill of Materials table"><i class="fas fa-chevron-up"></i> Hide</button>
       </div>
-      <div style="overflow-x:auto"><table class="bom"><thead><tr><th>Item</th><th>Qty</th><th>Unit price</th><th>Total price</th><th>Mode</th><th>Own</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="7" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
-       <p class="hint" id="bomTotals" style="margin-top:.5rem"></p>
-     </div>
+      <div id="bomWrap">
+        <div style="overflow-x:auto"><table class="bom bom-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Volume</th><th class="num">Unit price</th><th class="num">Total price</th><th>Mode</th><th class="ctr">Own</th><th></th></tr></thead><tbody id="bomBody"><tr><td colspan="8" style="color:var(--text3)">No calculation yet.</td></tr></tbody></table></div>
+        <p class="hint" id="bomTotals" style="margin-top:.5rem"></p>
+      </div>
+    </div>
       <div class="panel" style="margin-top:.8rem" id="buildPanel">
         <h3><i class="fas fa-hammer"></i> Build List <span id="buildMeta" class="pill" style="margin-left:.5rem"></span></h3>
         <div class="btn-row" style="margin-bottom:.5rem">
@@ -327,7 +330,7 @@
     <script src="bv-typeinfo.js?v=2"></script>
     <script src="bv-esi-auth.js?v=9"></script>
     <script src="bv-fits.js?v=1"></script>
-    <script src="bv-visualizer.js?v=217"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V216</div>
+    <script src="bv-visualizer.js?v=218"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V217</div>
 </body>
 </html>

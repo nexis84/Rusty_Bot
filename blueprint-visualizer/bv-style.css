@@ -103,6 +103,12 @@ select:focus,.form-input:focus{outline:none;border-color:var(--accent)}
 table.bom{width:100%;border-collapse:collapse;font-size:.82rem}
 table.bom th,table.bom td{padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:left}
 table.bom th{color:var(--accent);font-size:.72rem;text-transform:uppercase;letter-spacing:.6px}
+/* Bill of Materials: numbers right-aligned, item name carries its icon */
+.bom-table td.num,.bom-table th.num{text-align:right;white-space:nowrap}
+.bom-table td.ctr,.bom-table th.ctr{text-align:center}
+.bom-table td.bom-name{min-width:220px}
+.bom-table td.bom-name img{width:32px;height:32px;border-radius:3px;background:#111;vertical-align:middle;margin-right:.45rem}
+#bomWrap.hidden{display:none}
 .mkt-link{color:var(--accent);text-decoration:none;margin-left:.4rem;font-size:.8rem}
 .mkt-link:hover{text-decoration:underline}
 .pi-link{color:#3fb950;text-decoration:none;margin-left:.4rem;font-size:.8rem}
