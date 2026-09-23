@@ -112,23 +112,25 @@
      <h3><i class="fas fa-boxes"></i> Inventory</h3>
      <details class="hint-details">
        <summary>How inventory search works</summary>
-       <p class="hint">Enter your <b>build system</b>, pick a source, then <b>Scan system</b>. We pull every accessible item in that system — structures ESI can't resolve are excluded, never guessed. <b>Industrial only</b> limits the list, snapshot and calculator to build materials (ore, compressed ore, ice, moon, gas, minerals, PI at your refining % from Calc &gt; Rigs). <b>Use these</b> deducts them from Shopping/Build/Mining and feeds the Refinery panel.</p>
+        <p class="hint">Enter your <b>build system</b>, pick a source, then <b>Scan system</b>. We pull every accessible item in that system — structures ESI can't resolve are excluded, never guessed. <b>Industrial only</b> limits the <b>list</b> to build materials (ore, compressed ore, ice, moon, gas, minerals, PI at your refining % from Calc &gt; Rigs) plus industrial hulls (R.A.M., R.Db, haulers, barges, exhumers, Rorqual, Orca). Only the build materials go into the <b>snapshot</b> used for deducting and the Refinery — a hull is never a raw material. <b>Use these</b> deducts them from Shopping/Build/Mining and feeds the Refinery panel.</p>
      </details>
      <h4 class="stk-section">Scope</h4>
       <div class="field suggest-wrap"><label>Build system (type to search — all systems)</label><input id="stkSystemInput" class="form-input" placeholder="Type your build system — e.g. O4T-Z5, Jita…" autocomplete="off"><div id="stkSysSuggest" class="suggest hidden"></div></div>
       <input type="hidden" id="stkSystem" value="">
+      <div id="stkSavedSys" class="stk-saved-sys"></div>
       <div class="grid2">
         <div class="field"><label>Source</label><select id="stkSource"><option value="personal">Personal</option><option value="corp">Corp</option><option value="both">Both (Personal + Corp)</option></select></div>
         <div class="field"><label>Location flag</label><select id="stkFlag" class="form-input"><option value="All">All</option><option value="Hangar">Hangar / Corp Hangar</option><option value="Bay">Bay (Ship/Fuel/Drone)</option><option value="Can">Can / Container</option><option value="AssetSafety">Asset Safety</option></select></div>
       </div>
       <label class="check"><input type="checkbox" id="stkAllSystems"> All systems (include assets outside the build system)</label>
      <h4 class="stk-section">Filters</h4>
-      <label class="check"><input type="checkbox" id="stkIndustrialOnly" checked> Industrial only (off = show all assets)</label>
+      <label class="check"><input type="checkbox" id="stkIndustrialOnly" checked> Industrial only (build materials + industrial hulls; off = show all assets)</label>
       <div class="field"><label>Quick search</label><input id="stkSearch" class="form-input" placeholder="e.g. tritanium, rifter…" autocomplete="off"></div>
      <h4 class="stk-section">Actions</h4>
       <button id="stkRefresh" class="calc-btn" disabled><i class="fas fa-search"></i> Scan system</button>
       <div class="btn-row tight"><button id="stkClear" class="calc-btn secondary"><i class="fas fa-times"></i> Clear</button><button id="stkResetCaches" class="calc-btn secondary" title="Wipe structure names, denials, snapshots and ore caches for a fully fresh scan"><i class="fas fa-trash-restore"></i> Reset caches</button><button id="stkExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button></div>
       <label class="check"><input type="checkbox" id="stkDeduct" checked> Use these materials (deduct from Shopping/Build/Mining)</label>
+      <label class="check" title="Re-run the scan for the active system every 20 minutes"><input type="checkbox" id="stkAutoRefresh" checked> Auto-refresh active system every 20 min</label>
      <h4 class="stk-section">Results</h4>
       <div id="stkStatus" class="progress"></div>
       <div id="stkProgWrap">
@@ -137,6 +139,15 @@
       </div>
       <div id="stkList" class="stk-list"></div>
       <p class="hint" id="stkTotals"></p>
+      <div class="panel" id="stkBpPanel" style="display:none;margin-top:.8rem">
+        <h3><i class="fas fa-scroll"></i> My blueprints in inventory <span id="stkBpMeta" class="pill" style="margin-left:.5rem"></span></h3>
+        <p class="hint">Pulled from the same scan, so this is everything in scope you actually own — originals and copies. Blueprints are never treated as build materials, so they never deduct from a shopping list.</p>
+        <div class="btn-row" style="margin-bottom:.5rem">
+          <button id="copyStkBps" class="calc-btn secondary"><i class="fas fa-copy"></i> Copy list</button>
+          <button id="stkBpExport" class="calc-btn secondary"><i class="fas fa-file-csv"></i> Export CSV</button>
+        </div>
+        <div id="stkBpList" class="stk-list"></div>
+      </div>
     </div>
 
     <div class="panel tab-content" id="tab-mine">
@@ -336,7 +347,8 @@
     <script src="bv-typeinfo.js?v=2"></script>
     <script src="bv-esi-auth.js?v=9"></script>
     <script src="bv-fits.js?v=1"></script>
-    <script src="bv-visualizer.js?v=223"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V222</div>
+    <script src="bv-visualizer.js?v=228"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V227</div>
+<div id="toastWrap" aria-live="polite" aria-atomic="false"></div>
 </body>
 </html>

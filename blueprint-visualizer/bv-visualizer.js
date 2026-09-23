@@ -11,6 +11,61 @@ const nameCache = new Map(), priceCache = new Map(), bpCache = new Map();
 // ---- CSV export (import is a future feature) ----
 function csvEsc(v) { const s = (v === null || v === undefined) ? '' : String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
 function escapeHtml(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// ---- toast notifications ----
+// Copy actions are easy to miss: the status line is often scrolled out of view
+// in the long BOM/shopping tables. A toast puts the confirmation (or failure)
+// where the eye already is, and auto-dismisses so it never blocks the UI.
+const BV_TOAST_MS = 2600;
+function toast(msg, kind, ms) {
+  try {
+    const wrap = $('toastWrap');
+    if (!wrap) { status(msg); return; }
+    const k = kind || 'info';
+    const el = document.createElement('div');
+    el.className = 'bv-toast ' + k;
+    el.setAttribute('role', k === 'error' ? 'alert' : 'status');
+    const icon = (k === 'error' || k === 'warn') ? 'fa-triangle-exclamation' : 'fa-check-circle';
+    el.innerHTML = '<i class="fas ' + icon + '"></i><span>' + escapeHtml(msg) + '</span>';
+    wrap.appendChild(el);
+    void el.offsetWidth;            // force reflow so the entry transition runs
+    el.classList.add('in');
+    const kill = () => {
+      el.classList.remove('in');
+      setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 260);
+    };
+    const timer = setTimeout(kill, ms || BV_TOAST_MS);
+    el.addEventListener('click', () => { clearTimeout(timer); kill(); });
+  } catch { try { status(msg); } catch {} }
+}
+// Single place for every clipboard copy, so no copy button can fail silently
+// when the browser blocks clipboard access (no permission / insecure context).
+// Falls back to a hidden textarea + execCommand, which still works where the
+// async Clipboard API is unavailable, so the toast only claims success when
+// the text really landed on the clipboard.
+async function copyToClipboard(text, okMsg, emptyMsg) {
+  if (!text) { toast(emptyMsg || 'Nothing to copy.', 'warn'); return false; }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(okMsg, 'success');
+    return true;
+  } catch {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
+    if (ok) { toast(okMsg, 'success'); return true; }
+  } catch {}
+  toast('Copy failed — your browser blocked clipboard access.', 'error');
+  return false;
+}
 function downloadCSV(filename, rows) {
   const csv = rows.map(r => r.map(csvEsc).join(',')).join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -785,7 +840,7 @@ function deepSeedFrom(src) {
 }
 // Session guard so the top-level retry pass runs once per type (explicit
 // on-demand clicks bypass it).
-const progDeepTopTried = new Set();
+const progDeepTopTries = new Map(); // src -> Map(typeId -> failed attempts)
 // Resolve ONE top-level child into enrichChildren-compatible c.child /
 // c.reaction shapes (names + units + margins). forceRx bypasses the Reactions
 // toggle for on-demand display (costing untouched — modes don't change).
@@ -949,17 +1004,21 @@ async function bpProgDeepEnrich(forcedSrc) {
     try { deepSeedFrom(src); } catch {}
     // 0) Top-level children missing depth-1 data entirely (the RCF case:
     // pinned before enrichment, transient lookup failure, or rx-off at
-    // calc time). Retried once per type per session; on-demand clicks
-    // bypass the guard.
+    // calc time). Attempts are counted per source ONLY when a resolve
+    // actually fails, so a slow/raced first attempt still gets retried on a
+    // later pass. Capped at 3; after that the row keeps its manual
+    // "Resolve sub-materials" chevron instead of silently staying dead.
     try {
+      const triesFor = src => { let m = progDeepTopTries.get(src); if (!m) { m = new Map(); progDeepTopTries.set(src, m); } return m; };
+      const tries = triesFor(src);
       const tops = (src.children || []).filter(c => c && !c.child && !(c.mode === 'react' && c.reaction)
-        && Number.isFinite(+c.type_id) && !progDeepTopTried.has(+c.type_id) && !deepIsLeaf(+c.type_id));
-      for (const c of tops) progDeepTopTried.add(+c.type_id);
+        && Number.isFinite(+c.type_id) && (tries.get(+c.type_id) || 0) < 3 && !deepIsLeaf(+c.type_id));
       for (let i = 0; i < tops.length; i += 5) {
         const slice = tops.slice(i, i + 5);
         const rs = await Promise.all(slice.map(c => progDeepResolveTop(c, false).catch(() => false)));
         let flipped = false;
         slice.forEach((c, ix) => {
+          if (!rs[ix]) tries.set(+c.type_id, (tries.get(+c.type_id) || 0) + 1);
           if (!rs[ix] || c.mode !== 'buy' || bvHasStoredTop(src.bpId, c.type_id)) return;
           if (c.child) c.mode = 'build';
           else if (c.reaction) c.mode = 'react';
@@ -2032,7 +2091,13 @@ function bpProgModel() {
     const basis = ($('basis') && $('basis').value) || 'sell';
     const unit = basis === 'buy' ? c.unitBuy : c.unitSell;
     const topKey = progKey(ci, [+c.type_id], 0, false);
-    const top = { key: topKey, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci, parent: 'root', hasKids: false, pending: false, path: [], maybe: false };
+    // No resolved recipe yet: still offer a resolve chevron so the row is never
+    // a dead end (the background enrich retries a few times, but a row that
+    // stays unresolved must stay manually actionable).
+    const topMaybe = !(c.child && c.child.materials && c.child.materials.length)
+      && !(c.reaction && c.reaction.reagents && c.reaction.reagents.length)
+      && !isMineable(c.type_id) && !isPI(c.type_id);
+    const top = { key: topKey, typeId: c.type_id, name: c.name, qty: need, unit: unit || 0, depth: 0, mode: c.mode, ci, parent: 'root', hasKids: false, pending: false, path: [], maybe: topMaybe };
     rows.push(top);
     if (c.child && c.child.materials) {
       const prodQty = c.child.productQty || (c.child.products && c.child.products[0] && c.child.products[0].quantity) || 1;
@@ -2389,9 +2454,11 @@ function bpProgRemainingMultibuy() {
 // Shared by the top + bottom "Copy remaining multibuy" buttons.
 async function copyRemainingMultibuy() {
   const lines = bpProgRemainingMultibuy();
-  if (!lines.length) { status('Nothing remaining — all ticked.'); return; }
-  await navigator.clipboard.writeText(lines.join('\n'));
-  status('Remaining multibuy copied (' + lines.length + ' lines).');
+  await copyToClipboard(
+    lines.length ? lines.join('\n') : '',
+    'Remaining multibuy copied (' + lines.length + ' lines).',
+    'Nothing remaining — every item is ticked off.'
+  );
 }
 
 // ---- Send remaining materials to Evemail (via shared RustyBot sender) ----
@@ -2921,21 +2988,49 @@ function multibuyLines() { return S.bom.filter(l => l.mode === 'buy' || l.mode =
 function bindHandoffs() {
   const bbAll = $('bulkBuyAll'); if (bbAll) bbAll.onclick = async () => { try { await bulkSetModes('buy'); } catch (e) { status('Bulk set failed.'); } };
   const bbAuto = $('bulkBuildAll'); if (bbAuto) bbAuto.onclick = async () => { try { await bulkSetModes('auto'); } catch (e) { status('Bulk set failed.'); } };
-  $('copyMultibuy').onclick = async () => { const t = multibuyLines().join('\n'); if (!t) { status('Nothing to copy (all built).'); return; } await navigator.clipboard.writeText(t); status('Multibuy copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' lines).'); };
+  $('copyMultibuy').onclick = async () => {
+    const lines = multibuyLines();
+    await copyToClipboard(
+      lines.length ? lines.join('\n') : '',
+      'Multibuy copied (' + lines.length + ' lines).',
+      'Nothing to copy — everything is built.'
+    );
+  };
   $('appraiseBom').onclick = () => { const lines = S.bom.map(l => l.qty + ' x ' + cleanName(l.name)); if (!lines.length) return; window.open(appraisalURL(lines), '_blank', 'noopener'); };
   $('appraiseOut').onclick = () => { if (!S.product) return; window.open(appraisalURL([(S.product.qty * (parseInt($('runs').value) || 1)) + ' x ' + S.product.name]), '_blank', 'noopener'); };
-  const cs = $('copyShopping'); if (cs) cs.onclick = async () => { const t = shoppingLines().join('\n'); if (!t) { status('Nothing to buy — all built/mined.'); return; } await navigator.clipboard.writeText(t); status('Shopping list copied (' + S.bom.filter(l=>l.mode==='buy'||l.mode==='react').length + ' items).'); };
-  const csm = $('copyShopMultibuy'); if (csm) csm.onclick = async () => { const t = shoppingBuyLines().join('\n'); if (!t) { status('Nothing to buy — all covered by inventory.'); return; } await navigator.clipboard.writeText(t); status('Multibuy (shopping) copied (' + t.split('\n').length + ' lines — after inventory deduct).'); };
+  const cs = $('copyShopping'); if (cs) cs.onclick = async () => {
+    const lines = shoppingLines();
+    await copyToClipboard(
+      lines.length ? lines.join('\n') : '',
+      'Shopping list copied (' + lines.length + ' items).',
+      'Nothing to buy — everything is built or mined.'
+    );
+  };
+  const csm = $('copyShopMultibuy'); if (csm) csm.onclick = async () => {
+    const lines = shoppingBuyLines();
+    await copyToClipboard(
+      lines.length ? lines.join('\n') : '',
+      'Shopping multibuy copied (' + lines.length + ' lines — after inventory deduct).',
+      'Nothing to buy — everything is covered by inventory.'
+    );
+  };
   const apS = $('appraiseShopping'); if (apS) apS.onclick = () => { const bom = S.bom || []; const shop = bom.filter(l => l.mode==='buy'||l.mode==='react'); const invAgg = stkDeductMap(); const doDeduct = ($('stkDeduct') && $('stkDeduct').checked) && Object.keys(invAgg||{}).length>0; const lines = shop.map(l => { const toBuy = (doDeduct && ownUse(l.type_id)) ? Math.max(0, l.qty - (invAgg[l.type_id]||0)) : l.qty; return toBuy>0 ? toBuy + ' x ' + cleanName(l.name) : null; }).filter(Boolean); if (!lines.length) { status('Nothing to appraise — all built/mined/owned.'); return; } window.open(appraisalURL(lines), '_blank', 'noopener'); };
-  const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = await buildRawLines(); if (!lines.length) { status('Nothing to build — set items to Build.'); return; } const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await navigator.clipboard.writeText(t); status('Build list copied (' + lines.length + ' raws).'); };
-  const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => { const agg = await buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const t = agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n'); await navigator.clipboard.writeText(t); status('Build multibuy copied (' + agg.length + ' types).'); };
+  const cb = $('copyBuildList'); if (cb) cb.onclick = async () => { const lines = await buildRawLines(); const t = lines.map(r => r.name + ' x' + fmtN(r.qty) + ' — ' + fmtISK(r.unit) + ' ea = ' + fmtISK(r.total)).join('\n'); await copyToClipboard(t, 'Build list copied (' + lines.length + ' raws).', 'Nothing to build — set items to Build.'); };
+  const cbm = $('copyBuildMultibuy'); if (cbm) cbm.onclick = async () => {
+    const agg = await buildAggLines();
+    await copyToClipboard(
+      agg.length ? agg.map(v => v.name + ' x' + fmtN(v.qty)).join('\n') : '',
+      'Build multibuy copied (' + agg.length + ' types).',
+      'Nothing to build — set materials to Build.'
+    );
+  };
   const ab = $('appraiseBuildList'); if (ab) ab.onclick = async () => { const agg = await buildAggLines(); if (!agg.length) { status('Nothing to build.'); return; } const lines = agg.map(v => v.qty + ' x ' + v.name); window.open(appraisalURL(lines), '_blank', 'noopener'); };
   const tb = $('toggleBuildExpand'); if (tb) tb.onclick = () => { const ds = document.querySelectorAll('#buildList details'); if (!ds.length) return; const anyClosed = [...ds].some(d=>!d.open); ds.forEach(d=>d.open = anyClosed); tb.innerHTML = anyClosed ? '<i class="fas fa-compress"></i> Collapse' : '<i class="fas fa-expand"></i> Expand'; };
   const pinp = $('pinProgress'); if (pinp) pinp.onclick = () => {
     if (!S.root || !S.root.children) { status('Run a calculation first, then pin it.'); return; }
     bpProgPinCurrent();
   };
-  const cp = $('copyProgress'); if (cp) cp.onclick = async () => { const t = bpProgExportText(); if (!S.root) { status('Run a calculation first.'); return; } await navigator.clipboard.writeText(t); status('Checklist copied (' + t.split('\n').length + ' lines).'); };
+  const cp = $('copyProgress'); if (cp) cp.onclick = async () => { if (!S.root) { toast('Run a calculation first.', 'warn'); return; } const t = bpProgExportText(); await copyToClipboard(t, 'Checklist copied (' + t.split('\n').length + ' lines).', 'Nothing on the checklist yet.'); };
   const cpl = $('copyProgressLeft'); if (cpl) cpl.onclick = () => copyRemainingMultibuy();
   const cplB = $('copyProgressLeftBottom'); if (cplB) cplB.onclick = () => copyRemainingMultibuy();
   const tpe = $('toggleProgExpand'); if (tpe) tpe.onclick = () => {
@@ -2952,9 +3047,7 @@ function bindHandoffs() {
   const cpb = $('copyProgBps'); if (cpb) cpb.onclick = async () => {
     let rows = [];
     try { rows = trackedBlueprintList(); } catch {}
-    if (!rows.length) { status('No blueprints resolved yet.'); return; }
-    try { await navigator.clipboard.writeText(rows.map(b => b.name).join('\n')); status('Blueprint list copied (' + rows.length + ').'); }
-    catch { status('Clipboard blocked.'); }
+    await copyToClipboard(rows.length ? rows.map(b => b.name).join('\n') : '', 'Blueprint list copied (' + rows.length + ').', 'No blueprints resolved yet.');
   };
   const xpb = $('clearProgBps'); if (xpb) xpb.onclick = () => {
     const m = bpProgRead();
@@ -4333,6 +4426,64 @@ function stkFlagMatchAsset(a, flag) {
 // system-first: #stkSystem holds the selected solar_system_id (e.g. '30004691' for O4T-Z5)
 function stkSysId() { try { return ($('stkSystem') && $('stkSystem').value) || ''; } catch { return ''; } }
 function stkAllSystems() { try { return !!($('stkAllSystems') && $('stkAllSystems').checked); } catch { return false; } }
+
+// A scan is in flight — set by loadInventory so the 20-minute auto-refresh
+// can't start a second concurrent scan.
+let stkScanBusy = false;
+// ---- saved build systems ----
+// Selecting a system adds it here so the common industrial systems stay one
+// click away. Held in localStorage (survives reload) and de-duplicated by id.
+const STK_SAVED_SYS_KEY = 'bvStkSavedSystems';
+function stkSavedSystemsRead() {
+  try {
+    const v = JSON.parse(localStorage.getItem(STK_SAVED_SYS_KEY) || '[]');
+    if (!Array.isArray(v)) return [];
+    return v.filter(e => e && e.id && e.name).map(e => ({ id: String(e.id), name: String(e.name) }));
+  } catch { return []; }
+}
+function stkSavedSystemsWrite(list) {
+  try { localStorage.setItem(STK_SAVED_SYS_KEY, JSON.stringify(list || [])); } catch {}
+}
+function stkSavedSystemAdd(id, name) {
+  const sid = String(id || ''), nm = String(name || '').trim();
+  if (!sid || !nm) return;
+  const list = stkSavedSystemsRead().filter(e => e.id !== sid);
+  list.unshift({ id: sid, name: nm });               // most recent first
+  stkSavedSystemsWrite(list.slice(0, 12));
+  renderStkSavedSystems();
+}
+function stkSavedSystemRemove(id) {
+  stkSavedSystemsWrite(stkSavedSystemsRead().filter(e => e.id !== String(id)));
+  renderStkSavedSystems();
+}
+function renderStkSavedSystems() {
+  const box = $('stkSavedSys');
+  if (!box) return;
+  const list = stkSavedSystemsRead();
+  const active = stkSysId();
+  if (!list.length) { box.innerHTML = ''; return; }
+  box.innerHTML = list.map(e =>
+    '<span class="stk-sys-chip' + (e.id === active ? ' active' : '') + '" data-syssid="' + escapeHtml(e.id) + '" title="' + escapeHtml(e.name) + ' (click to use)">'
+    + '<span class="nm">' + escapeHtml(e.name) + '</span>'
+    + '<button data-sysrm="' + escapeHtml(e.id) + '" title="Remove ' + escapeHtml(e.name) + ' from this list" aria-label="Remove ' + escapeHtml(e.name) + '">&times;</button></span>'
+  ).join('');
+  box.querySelectorAll('[data-sysrm]').forEach(b => b.onclick = e => {
+    e.preventDefault(); e.stopPropagation();
+    stkSavedSystemRemove(b.dataset.sysrm);
+  });
+  box.querySelectorAll('.stk-sys-chip').forEach(chip => chip.onclick = () => {
+    const id = chip.dataset.syssid;
+    const entry = stkSavedSystemsRead().find(x => x.id === id);
+    if (!entry) return;
+    const input = $('stkSystemInput');
+    if ($('stkSystem')) $('stkSystem').value = entry.id;
+    if (input) { input.value = entry.name; input.dataset.pickedId = entry.id; }
+    try { stkSysNames[entry.id] = entry.name; } catch {}
+    try { const cb = $('stkAllSystems'); if (cb && cb.checked) { cb.checked = false; try { localStorage.setItem('bvStkAllSystems', '0'); } catch {} } } catch {}
+    renderStkSavedSystems();
+    stkRescopeSystem();
+  });
+}
 function stkSysIdName(id) {
   if (stkSysNames[id]) return stkSysNames[id];
   try { const s = (typeof Systems !== 'undefined' ? Systems.find(x => String(x.id) === String(id)) : null); if (s) { stkSysNames[id] = s.name; return s.name; } } catch {}
@@ -4492,13 +4643,23 @@ async function buildInventorySnapshot(aggOverride, prevOreDetail, source, sysId,
 }
 // Snapshot source: when Industrial-only is ticked the filtered set feeds the
 // calculator (Shopping deduct + Refinery), otherwise the full scoped aggregate.
+// Hulls are stripped here on purpose: the view shows industrial ships, but a
+// hull is never a build material, so it must not deduct from a shopping list
+// or be handed to the refinery.
 function stkSnapshotAggForSource() {
   try {
     if (stkIndustrialOnly() && stkEnrichedAll.length) {
       const rows = stkFilteredAgg();
       if (rows && rows.length) {
         const map = {};
-        for (const r of rows) map[r.typeId] = (map[r.typeId] || 0) + r.qty;
+        for (const r of rows) {
+          if (!isIndustrialMaterial(r.typeId)) continue;
+          map[r.typeId] = (map[r.typeId] || 0) + r.qty;
+        }
+        // Return the map even when empty: the industrial filter DID match (we
+        // are inside this branch), so the right answer is "deduct nothing",
+        // not "fall back to the unscoped aggregate" which would feed every
+        // asset in scope into the shopping deduct.
         return map;
       }
     }
@@ -4567,6 +4728,90 @@ function isIndustrialMaterial(id){
   try{ if(iceOreList&&iceOreList.some(o=>+o.id===nid)) return true; }catch{}
   try{ if(stkIndustrialNameMatch(stkTypeNameForFilter(nid))) return true; }catch{}
   return false;
+}
+// Industrial HULLS. Kept separate from isIndustrialMaterial on purpose: a ship
+// is something you build or buy, never something you refine, so hulls must stay
+// OUT of the Shopping deduct / Refinery snapshot that the calculator consumes.
+// They are only wanted in the inventory *view* when "Industrial only" is on.
+// Deliberately excludes combat command hulls (Command Ship / Command Destroyer /
+// Combat Battlecruiser / Recon / Command Carrier) — those are not industrial.
+const BV_INDUSTRIAL_HULL_GROUPS = new Set([
+  'Capital Industrial Ship', 'Exhumer', 'Hauler', 'Industrial Command Ship', 'Mining Barge'
+]);
+function isIndustrialHull(id) {
+  const nid = +id;
+  if (!Number.isFinite(nid) || nid <= 0) return false;
+  // R.A.M. / R.Db: CCP filed these in the broken "Tool" group and they are
+  // absent from the baked typeinfo, so the name is the only signal.
+  try { if (bvIsIndustrialHullAlias(nid, stkTypeNameForFilter(nid))) return true; } catch {}
+  try {
+    const info = bvTypeInfoLocal(nid);
+    if (info && info.c === 6 && BV_INDUSTRIAL_HULL_GROUPS.has(bvInfoName('groups', info.g) || '')) return true;
+  } catch {}
+  return false;
+}
+// Anything "Industrial only" should SHOW: build materials + industrial hulls.
+function isIndustrialItem(id) {
+  return isIndustrialMaterial(id) || isIndustrialHull(id);
+}
+// Blueprints are inventory assets, so the scan already pulls them, but they are
+// never "industrial" and never a build material — they get their own list.
+// SDE category 9 is authoritative; the name suffix covers types the baked
+// typeinfo is missing (and reaction formulas, which are not cat 9 but are
+// inventory assets in the same family).
+function isBlueprintAsset(id, name) {
+  const nid = +id;
+  if (!Number.isFinite(nid) || nid <= 0) return false;
+  try {
+    const info = bvTypeInfoLocal(nid);
+    if (info) {
+      if (info.c === 9) return true;
+      if (info.c === 24) return true; // Reaction formula — same owned-assets family
+    }
+  } catch {}
+  const n = String(name || stkTypeNameForFilter(nid) || '');
+  return / blueprint$/i.test(n) || / reaction formula$/i.test(n);
+}
+// Every blueprint type present in the scanned inventory, aggregated by type.
+function stkOwnedBlueprints() {
+  const out = new Map();
+  try {
+    const src = stkCurrentAgg() || {};
+    for (const key of Object.keys(src)) {
+      const id = +key, qty = Number(src[key]) || 0;
+      if (!(qty > 0) || !isBlueprintAsset(id)) continue;
+      out.set(id, (out.get(id) || 0) + qty);
+    }
+  } catch {}
+  return [...out.entries()]
+    .map(([type_id, qty]) => ({ type_id, qty, name: stkTypeName(type_id) }))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' }));
+}
+function renderStkBlueprintList() {
+  const panel = $('stkBpPanel'), list = $('stkBpList'), meta = $('stkBpMeta');
+  if (!panel || !list) return;
+  const rows = stkOwnedBlueprints();
+  panel.style.display = rows.length ? '' : 'none';
+  if (!rows.length) { list.innerHTML = ''; if (meta) meta.textContent = ''; return; }
+  const totalCopies = rows.reduce((a, r) => a + r.qty, 0);
+  list.innerHTML = rows.map(r =>
+    '<div class="rx-row"><span class="nm">' + escapeHtml(String(r.name)) + (r.qty > 1 ? ' <span class="pill">' + fmtN(r.qty) + '</span>' : '') + '</span></div>'
+  ).join('');
+  if (meta) meta.textContent = rows.length + ' type' + (rows.length === 1 ? '' : 's') + (totalCopies > rows.length ? ' · ' + fmtN(totalCopies) + ' copies' : '');
+}
+async function copyStkBlueprintList() {
+  const rows = stkOwnedBlueprints();
+  await copyToClipboard(
+    rows.length ? rows.map(r => r.name + (r.qty > 1 ? ' x' + r.qty : '')).join('\n') : '',
+    'Blueprint list copied (' + rows.length + ').',
+    'No blueprints found in the scanned inventory.'
+  );
+}
+function exportStkBlueprintsCSV() {
+  const rows = stkOwnedBlueprints();
+  if (!rows.length) { toast('No blueprints to export.', 'warn'); return; }
+  downloadCSV('bv-inventory-blueprints.csv', [['type_name', 'type_id', 'quantity']].concat(rows.map(r => [r.name, r.type_id, r.qty])));
+  status('Exported owned blueprints (' + rows.length + ' types) to CSV.');
 }
 // Pure local filter (NO network): classifies anything the static lists miss
 // via the baked SDE ore table (scripts/build-bv-ores.mjs) + name patterns.
@@ -4706,7 +4951,7 @@ function stkDetailFiltered() {
   const q = (($('stkSearch') && $('stkSearch').value) || '').trim().toLowerCase();
   let out = stkEnriched;
   if (q) out = out.filter(e => e._searchText.includes(q) || String(e.type_id).includes(q) || e._systemText.includes(q) || stkTypeName(e.type_id).toLowerCase().includes(q));
-  if (stkIndustrialOnly()) out = out.filter(e => isIndustrialMaterial(e.type_id));
+  if (stkIndustrialOnly()) out = out.filter(e => isIndustrialItem(e.type_id));
   // JeveAssets advanced filters (And/Or Group) — AND with quick filters
   if (stkFilters && stkFilters.length) out = out.filter(e => stkPassesAdvanced(e));
   return out;
@@ -4728,7 +4973,7 @@ function stkFilteredAgg() {
   const flag = stkFlag();
   const srcAgg = stkCurrentAgg();
   let entries = Object.entries(srcAgg).map(([typeId, qty]) => ({ typeId: +typeId, qty }));
-  if (stkIndustrialOnly()) entries = entries.filter(e => isIndustrialMaterial(e.typeId));
+  if (stkIndustrialOnly()) entries = entries.filter(e => isIndustrialItem(e.typeId));
   if (flag && flag !== 'All') {
     entries = entries.filter(e => {
       const flags = stkTypeFlags[e.typeId];
@@ -4814,6 +5059,9 @@ function stkProgressHide() {
 }
 function renderStkRows() {
   const box = $('stkList'), totals = $('stkTotals'); if (!box) return;
+  // Owned-blueprint list tracks the same scan, so refresh it on every render
+  // (before the early return — it must also clear when scope empties out).
+  try { renderStkBlueprintList(); } catch {}
   // simple one-box view: Item | Qty | System  — hide detailed per-stack table
   const rows = stkFilteredAgg();
   const srcAgg = stkCurrentAgg();
@@ -4870,9 +5118,12 @@ function renderStkRows() {
 function renderStkDetail(){ const w=$('stkDetailWrap'); if(w) w.innerHTML=''; }
 async function loadInventory() {
   const box = $('stkList'), st = $('stkStatus'), totals = $('stkTotals');
+  // Guard so the 20-min auto-refresh can never stack on a manual scan.
+  if (stkScanBusy) return;
   if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needs esi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
   const allSystems = stkAllSystems();
   if (!stkSysId() && !allSystems) { if (st) st.textContent = 'Pick a build system first, or enable all-systems search.'; if (box) box.innerHTML = '<p class="hint">Type your build system above, pick it from the list, or enable <b>Search all personal systems</b>.</p>'; return; }
+  stkScanBusy = true;
   if (box) box.textContent = allSystems ? 'Scanning all personal systems…' : 'Scanning ' + stkSysIdName(stkSysId()) + '…';
   if (st) st.textContent = 'Fetching assets…';
   if (totals) totals.textContent = '';
@@ -5319,17 +5570,21 @@ async function loadInventory() {
     await buildInventorySnapshot(stkSnapshotAggForSource());
     const wrongSysMsg = skippedWrongSystem ? ' · ' + skippedWrongSystem + ' stacks in other systems' : '';
     const scanScope = allSystems ? 'all personal systems' : stkSysIdName(stkSysId());
-    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + stkPagesFatched + ' page' + (stkPagesFatched===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id=>isIndustrialMaterial(+id)).length + ' industrial' + (allSystems ? '' : wrongSysMsg) + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
+    const ownedBp = stkOwnedBlueprints().length;
+    if (st) st.textContent = (stkCorpWarn ? stkCorpWarn + ' · ' : '') + (structWarn ? structWarn + ' · ' : '') + 'as ' + scanWho + (scanCorp ? ' (' + scanCorp + ')' : '') + ' · ' + scanScope + ': ' + assets.length + ' stacks (' + stkPagesFatched + ' page' + (stkPagesFatched===1?'':'s') + ') → ' + Object.keys(stkAggByStation).length + ' locations · ' + Object.keys(stkAgg).length + ' types · ' + Object.keys(stkAgg).filter(id => isIndustrialItem(+id)).length + ' industrial' + (ownedBp ? ' · ' + ownedBp + ' blueprint' + (ownedBp === 1 ? '' : 's') + ' owned' : '') + (allSystems ? '' : wrongSysMsg) + (sharedHits ? ' · ' + sharedHits + ' via shared cache' : '') + (stkOreDetail.length ? ' · ' + stkOreDetail.length + ' ore refined @ ' + Math.round(stkRefineEff*100) + '%' : '') + (bvEsiLimited ? ' · ESI rate-limited — some names show as Type IDs, rescan in a minute' : '') + ' — snapshot kept, deducting from Shopping/Build/Mining.';
     renderStkRows();
     await renderRefinery();
     // auto-apply to shopping list if checkbox was already checked and a calc exists
     if ($('stkDeduct') && $('stkDeduct').checked && S.root) { await renderShoppingList(S.runs||1); }
     stkProgressDone('Scan complete — ' + Object.keys(stkAgg).length + ' types in scope.');
+    _stkLastScanAt = Date.now();
   } catch(e) {
     if (box) box.textContent = 'Failed: ' + e.message;
     if (st) st.textContent = e.message;
     stkProgressHide();
+    try { renderStkBlueprintList(); } catch {}
   } finally {
+    stkScanBusy = false;
     try { const rb = $('stkRefresh'); if (rb) rb.disabled = !stkSysId() && !stkAllSystems(); } catch {}
   }
 }
@@ -5356,8 +5611,55 @@ function stkRescopeSystem() {
   const sysId = stkSysId();
   // enable Scan button once a system is picked
   try { const b = $('stkRefresh'); if (b) b.disabled = !sysId && !stkAllSystems(); } catch {}
+  try { renderStkSavedSystems(); } catch {}
   stkPage = 1;
   applyInventoryScope().catch(() => { renderStkRows(); });
+}
+
+// ---- auto-refresh ----
+// Re-runs the scan for the active system every 20 minutes so the material
+// list, the owned-blueprint list and the deduct snapshot stay current without
+// the user re-scanning by hand. Opt-out via the checkbox, and it no-ops when
+// signed out, no system chosen, or a scan is already running.
+const STK_AUTO_MS = 20 * 60 * 1000;
+let _stkAutoTimer = null;
+let _stkLastScanAt = 0;
+function stkAutoRefreshOn() { try { return !($('stkAutoRefresh') && $('stkAutoRefresh').checked === false); } catch { return false; } }
+function stkAutoRefreshReady() {
+  return stkAutoRefreshOn()
+    && !stkScanBusy
+    && window.BVAuth && BVAuth.signedIn()
+    && (stkSysId() || stkAllSystems());
+}
+async function stkAutoRefreshRun(reason) {
+  try {
+    if (!stkAutoRefreshReady() || document.hidden) return;
+    const who = stkSysIdName(stkSysId()) || 'all systems';
+    try { const st = $('stkStatus'); if (st) st.textContent = 'Auto-refreshing ' + who + (reason ? ' (' + reason + ')' : '') + '…'; } catch {}
+    await loadInventory();
+  } catch {}
+}
+function stkScheduleAutoRefresh() {
+  if (_stkAutoTimer) { clearTimeout(_stkAutoTimer); _stkAutoTimer = null; }
+  if (!stkAutoRefreshOn()) return;
+  _stkAutoTimer = setTimeout(async () => {
+    _stkAutoTimer = null;
+    await stkAutoRefreshRun('20 min');
+    // reschedule regardless of whether this tick actually scanned
+    stkScheduleAutoRefresh();
+  }, STK_AUTO_MS);
+}
+// A hidden tab is never scanned (saves ESI traffic), so catch up on the way
+// back if the data has gone stale rather than showing an old snapshot.
+function stkBindAutoRefresh() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    try { stkScheduleAutoRefresh(); } catch {}
+    if (!stkAutoRefreshOn()) return;
+    if (!_stkLastScanAt) return;
+    if (Date.now() - _stkLastScanAt < STK_AUTO_MS) return;
+    stkAutoRefreshRun('returned to tab');
+  });
 }
 function attachStkSystemAutocomplete() {
   const input = $('stkSystemInput'), box = $('stkSysSuggest');
@@ -5389,6 +5691,7 @@ function attachStkSystemAutocomplete() {
     input.dataset.pickedId = String(c.id);
     close();
     try{ const cb=$('stkAllSystems'); if(cb && cb.checked){ cb.checked=false; try{ localStorage.setItem('bvStkAllSystems','0'); }catch{} } }catch{}
+    stkSavedSystemAdd(c.id, c.name);
     stkRescopeSystem();
   }
   let deb = null;
@@ -6069,6 +6372,18 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
   try { const fromHash = calcFromHash(); if (!fromHash) resumeLast(); } catch {}
   try { restoreUiState(); } catch {}
+  // ---- Inventory: saved build systems + 20-minute auto-refresh ----
+  try { renderStkSavedSystems(); } catch {}
+  if ($('stkAutoRefresh')) {
+    const ar = $('stkAutoRefresh');
+    try { ar.checked = localStorage.getItem('bvStkAutoRefresh') !== '0'; } catch {}
+    ar.onchange = () => {
+      try { localStorage.setItem('bvStkAutoRefresh', ar.checked ? '1' : '0'); } catch {}
+  stkScheduleAutoRefresh();
+  stkBindAutoRefresh();
+    };
+  }
+  stkScheduleAutoRefresh();
   // Item info panel: close on Esc and on outside click.
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInfoPanel(); });
   document.addEventListener('pointerdown', e => {
@@ -6119,9 +6434,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if ($('stkTotals')) $('stkTotals').textContent = '';
     if (S.root) { try { renderShoppingList(S.runs||1); } catch {} }
     renderRefinery();
+    try { renderStkBlueprintList(); } catch {}
     status('Inventory snapshot cleared.');
   };
-  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkCustomNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; try { stkIndustrialProbed.clear(); } catch {} if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
+  if ($('copyStkBps')) $('copyStkBps').onclick = () => { copyStkBlueprintList(); };
+  if ($('stkBpExport')) $('stkBpExport').onclick = exportStkBlueprintsCSV;
+  if ($('stkSource')) $('stkSource').onchange = () => { stkRaw=[]; stkAgg={}; stkAllAgg={}; stkAggBySystem={}; stkAggByStation={}; stkLocationNames={}; stkSystems={}; stkLocSystem={}; stkTypeLocs={}; stkNames={}; stkCustomNames={}; stkOreDetail=[]; stkEnriched=[]; stkEnrichedAll=[]; try { stkIndustrialProbed.clear(); } catch {} try { renderStkBlueprintList(); } catch {} if($('stkList')) $('stkList').innerHTML='<p class="hint">Source changed — hit Scan system.</p>'; if($('stkDetailWrap')) $('stkDetailWrap').innerHTML=''; if($('stkStatus')) $('stkStatus').textContent=''; if (S.root) try{ renderShoppingList(S.runs||1); }catch{}; renderRefinery(); };
 
   if ($('stkSystem')) $('stkSystem').onchange = stkRescopeSystem;
   function stkSchedFilter() {
