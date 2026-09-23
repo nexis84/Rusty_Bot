@@ -7,6 +7,12 @@ const $ = id => document.getElementById(id);
 const fmtISK = n => (n === null || n === undefined || isNaN(n)) ? '—' : Math.round(n).toLocaleString('en-US') + ' ISK';
 const fmtN = n => (n === null || n === undefined || isNaN(n)) ? '—' : Number(n).toLocaleString('en-US');
 const nameCache = new Map(), priceCache = new Map(), bpCache = new Map();
+// Batched name->ID lookups for deep-tree resolution. childBlueprint / childReaction
+// consult these first so the eager enricher can resolve a whole frontier with a
+// handful of /universe/ids/ POSTs instead of one per material. Value is
+// {id,name} or null (confirmed absent). Absent (undefined) means "not asked yet".
+const bpNameIdCache = new Map();
+const rxNameIdCache = new Map();
 
 // ---- CSV export (import is a future feature) ----
 function csvEsc(v) { const s = (v === null || v === undefined) ? '' : String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
@@ -534,16 +540,26 @@ async function blueprintData(typeId) {
   }
 }
 async function childBlueprint(materialTypeId, materialName) {
-  try {
-    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([materialName + ' Blueprint']) });
+  // Consult the batched cache first; on a miss do a single-name lookup. A
+  // network/parse failure propagates (caller retries) rather than being
+  // silently reported as "no blueprint".
+  const bname = materialName + ' Blueprint';
+  const key = bname.toLowerCase();
+  let hit = bpNameIdCache.get(key);
+  if (hit === undefined) {
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([bname]) });
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
-    const m = inv.find(e => e.name.toLowerCase() === (materialName + ' blueprint').toLowerCase());
-    if (!m) return null;
-    const b = await blueprintData(m.id); const mats = b.activities?.manufacturing?.materials;
-    const list = Array.isArray(mats) ? mats : (mats ? Object.values(mats) : null);
-    if (!list || !list.length) return null;
-    return { bpId: m.id, bpName: m.name, materials: list, products: b.activities.manufacturing.products };
-  } catch { return null; }
+    const m = inv.find(e => e.name.toLowerCase() === key);
+    hit = m ? { id: m.id, name: m.name } : null;
+    bpNameIdCache.set(key, hit);
+  }
+  if (!hit) return null;
+  const b = await blueprintData(hit.id);
+  const manuf = (b && b.activities && b.activities.manufacturing) || null;
+  if (!manuf || !manuf.materials) return null;
+  const list = Array.isArray(manuf.materials) ? manuf.materials : Object.values(manuf.materials);
+  if (!list || !list.length) return null;
+  return { bpId: hit.id, bpName: hit.name, materials: list, products: manuf.products || [] };
 }
 
 // ---- state ----
@@ -711,30 +727,42 @@ const reactCache = new Map();
 async function childReaction(materialTypeId, materialName) {
   const key = 'rx' + materialTypeId;
   if (reactCache.has(key)) return reactCache.get(key);
+  const rname = materialName + ' Reaction Formula';
+  const rkey = rname.toLowerCase();
+  let hit = rxNameIdCache.get(rkey);
+  if (hit === undefined) {
+    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([rname]) });
+    const inv = Array.isArray(r) ? r : (r.inventory_types || []);
+    const f = inv.find(e => e.name.toLowerCase() === rkey);
+    hit = f ? { id: f.id, name: f.name } : null;
+    rxNameIdCache.set(rkey, hit);
+  }
+  if (!hit) { reactCache.set(key, null); return null; }
   let out = null;
   try {
-    const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([materialName + ' Reaction Formula']) });
-    const inv = Array.isArray(r) ? r : (r.inventory_types || []);
-    const f = inv.find(e => e.name.toLowerCase() === (materialName + ' reaction formula').toLowerCase());
-    if (!f) { reactCache.set(key, null); return null; }
-    try {
-      const b = await fetchJSON('https://ref-data.everef.net/blueprints/' + f.id);
-      const rx = b.activities && (b.activities.reaction || b.activities.reactions);
-      const acts = Array.isArray(rx) ? rx[0] : rx;
-      if (acts && acts.materials) {
-        const mats = Object.values(acts.materials);
-        const prods = acts.products ? Object.values(acts.products) : [];
-        const mine = prods.find(p => p.type_id === materialTypeId) || prods[0];
-        if (mine) out = { formulaId: f.id, formulaName: f.name, reagents: mats, productQty: mine.quantity || 1, time: acts.time || 0, estimate: false };
-      }
-    } catch {}
-    if (!out) {
-      // Fuzzwork fallback: reaction inputs only, output qty unknown → estimate ×1
-      const fw = await fetchJSON('https://www.fuzzwork.co.uk/blueprint/api/blueprint.php?typeid=' + f.id);
-      const mats = fw.activityMaterials && fw.activityMaterials['11'];
-      if (mats && mats.length) out = { formulaId: f.id, formulaName: f.name, reagents: mats.map(m => ({ type_id: m.typeid || m.type_id, quantity: m.quantity })), productQty: 1, time: 0, estimate: true };
+    const b = await fetchJSON('https://ref-data.everef.net/blueprints/' + hit.id);
+    const rx = b.activities && (b.activities.reaction || b.activities.reactions);
+    const acts = Array.isArray(rx) ? rx[0] : rx;
+    if (acts && acts.materials) {
+      const mats = Object.values(acts.materials);
+      const prods = acts.products ? Object.values(acts.products) : [];
+      const mine = prods.find(p => p.type_id === materialTypeId) || prods[0];
+      if (mine) out = { formulaId: hit.id, formulaName: hit.name, reagents: mats, productQty: mine.quantity || 1, time: acts.time || 0, estimate: false };
     }
   } catch {}
+  if (!out) {
+    // Fuzzwork fallback: reaction inputs only, output qty unknown → estimate ×1
+    try {
+      const fw = await fetchJSON('https://www.fuzzwork.co.uk/blueprint/api/blueprint.php?typeid=' + hit.id);
+      const mats = fw.activityMaterials && fw.activityMaterials['11'];
+      if (mats && mats.length) out = { formulaId: hit.id, formulaName: hit.name, reagents: mats.map(m => ({ type_id: m.typeid || m.type_id, quantity: m.quantity })), productQty: 1, time: 0, estimate: true };
+    } catch {}
+  }
+  if (!out) {
+    // Formula exists but its materials could not be fetched — treat as a
+    // retryable failure rather than a confirmed "no formula".
+    throw new Error('Reaction data unavailable for ' + materialName);
+  }
   reactCache.set(key, out);
   return out;
 }
@@ -785,6 +813,24 @@ async function deepPriceUnits(node) {
     }
   } catch {}
 }
+// Local type name from the baked typeinfo (no network). Empty string on miss.
+function bvLocalTypeName(typeId) {
+  try {
+    const t = window.BV_TYPEINFO && window.BV_TYPEINFO.types && window.BV_TYPEINFO.types[String(+typeId)];
+    if (t && t.n) return t.n;
+  } catch {}
+  return '';
+}
+// Local product->recipe lookup from the baked SDE (no network). Returns
+// { kind:'bp'|'rx', q: productQty, m: [[typeId, qty], ...] } or null.
+function bvLocalRecipe(typeId) {
+  try {
+    const R = (typeof window !== 'undefined' && window.BV_RECIPES) || null;
+    const e = R && R[String(+typeId)];
+    if (e && Array.isArray(e) && e[2] && e[2].length) return { kind: e[0] === 1 ? 'rx' : 'bp', q: e[1] || 1, m: e[2] };
+  } catch {}
+  return null;
+}
 async function deepResolve(typeId, name, trail, forceRx) {
   const id = +typeId;
   if (!Number.isFinite(id) || id <= 0) return null;
@@ -792,26 +838,45 @@ async function deepResolve(typeId, name, trail, forceRx) {
   trail = trail || [];
   if (trail.indexOf(id) >= 0) return null; // cycle guard (A→B→A)
   if (deepCache.has(id)) return deepCache.get(id);
-  let node = null;
-  try {
-    const kid = await childBlueprint(id, name);
-    if (kid && kid.materials && kid.materials.length) {
-      const prodQty = (kid.productQty) || (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
-      node = { kind: 'bp', label: kid.bpName, productQty: prodQty || 1,
-        materials: kid.materials.map(m => ({ type_id: deepMatId(m), quantity: deepMatQty(m), name: m.name || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
+  const rxOn = !!forceRx || !((typeof S !== 'undefined') && S && S.reactionsOn === false);
+
+  // Local SDE recipe first: instant and complete for every manufacturable /
+  // reactable item, so expansion never waits on (or fails from) the network.
+  const local = bvLocalRecipe(id);
+  if (local) {
+    let node = null;
+    if (local.kind !== 'rx' || rxOn) {
+      const labelBase = bvLocalTypeName(id) || name || ('Type ' + id);
+      node = { kind: local.kind, label: labelBase + (local.kind === 'rx' ? ' Reaction Formula' : ' Blueprint'), productQty: local.q || 1,
+        materials: local.m.map(([mtid, mqty]) => ({ type_id: mtid, quantity: mqty, name: bvLocalTypeName(mtid) || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
       if (!node.materials.length) node = null;
     }
-  } catch {}
-  const rxOn = !!forceRx || !((typeof S !== 'undefined') && S && S.reactionsOn === false);
-  if (!node && rxOn) {
-    try {
-      const rx = await childReaction(id, name);
-      if (rx && rx.reagents && rx.reagents.length) {
-        node = { kind: 'rx', label: rx.formulaName, productQty: rx.productQty || 1,
-          materials: rx.reagents.map(r => ({ type_id: deepMatId(r), quantity: deepMatQty(r), name: r.name || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
-        if (!node.materials.length) node = null;
+    if (node) {
+      // Fill any names still missing from the larger typeName cache/network.
+      for (const m of node.materials) {
+        if (!m.name) { try { m.name = await typeName(m.type_id); } catch { m.name = 'Type ' + m.type_id; } }
       }
-    } catch {}
+    }
+    deepCache.set(id, node);
+    return node;
+  }
+
+  // Fallback: post-SDE / unknown types still resolve over the network.
+  let node = null;
+  const kid = await childBlueprint(id, name);
+  if (kid && kid.materials && kid.materials.length) {
+    const prodQty = (kid.productQty) || (kid.products && kid.products[0] && kid.products[0].quantity) || 1;
+    node = { kind: 'bp', label: kid.bpName, productQty: prodQty || 1,
+      materials: kid.materials.map(m => ({ type_id: deepMatId(m), quantity: deepMatQty(m), name: m.name || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
+    if (!node.materials.length) node = null;
+  }
+  if (!node && rxOn) {
+    const rx = await childReaction(id, name);
+    if (rx && rx.reagents && rx.reagents.length) {
+      node = { kind: 'rx', label: rx.formulaName, productQty: rx.productQty || 1,
+        materials: rx.reagents.map(r => ({ type_id: deepMatId(r), quantity: deepMatQty(r), name: r.name || null })).filter(m => Number.isFinite(m.type_id) && m.type_id > 0) };
+      if (!node.materials.length) node = null;
+    }
   }
   if (node) {
     // Fill display names now (mail + tree need names; pricing stays with the consumer).
@@ -973,7 +1038,9 @@ async function enrichChildren(runs) {
 // (live S.root or a pin), storing _deep nodes on material objects.
 // bpProgModel picks them up on every render (progressive fill); pins strip
 // _deep on save so localStorage stays lean (re-resolved per session).
-const BV_PROG_DEEP_MAX = 500;
+// Recipes resolve from the baked SDE (zero network), so this only guards
+// against a pathological runaway and never binds on a real build.
+const BV_PROG_DEEP_MAX = 20000;
 const progDeepActive = new Set(); // src objects currently enriching
 function progDeepMats(children) {
   const out = [];
@@ -2076,10 +2143,11 @@ function bpProgWrite(m) { try { localStorage.setItem(bpProgStoreKey(), JSON.stri
 // Recurses into background-resolved _deep nodes (depth 2+); depth-1 keys are
 // unchanged for existing ticks, and deep keys ('d'+ci+':'+trail) match the
 // Evemail expander exactly so ticks flow into mail.
-// Hard ceiling on expanded sub-material rows. A big build can exceed it, and
-// the tree then stops expanding partway - so the model flags `truncated` and the
-// panel says so rather than silently dead-ending.
-const BV_PROG_DEEP_ROWS = 1000;
+// Hard ceiling on expanded sub-material rows. Kept only as a browser-freeze
+// safety net; the cycle guard and depth bound already cap real builds far
+// below this, so a genuine build never hits it and never dead-ends.
+const BV_PROG_DEEP_ROWS = 50000;
+const BV_PROG_DEEP_DEPTH = 32;
 // One model build per render pass. renderBuildProgress() rebuilds the whole
 // deep tree, and it used to be rebuilt four times per paint (bpProgCounts,
 // bpProgOverall, the totals block and the render itself) which made large
@@ -2096,9 +2164,9 @@ function bpProgModel() {
   let deepRows = 0;
   let truncated = false;
   const pushDeep = (matTid, matFull, node, ancestors, depth, parentKey, ci) => {
-    if (!node || !node.materials || !node.materials.length || depth > 12) return;
+    if (!node || !node.materials || !node.materials.length || depth > BV_PROG_DEEP_DEPTH) return;
     if (deepRows >= BV_PROG_DEEP_ROWS) { truncated = true; return; }
-    if (ancestors.concat([+matTid]).length > 12) return;
+    if (ancestors.concat([+matTid]).length > BV_PROG_DEEP_DEPTH) return;
     const batches = deepBatches(matFull, node.productQty);
     for (const sm of node.materials) {
       const tid = deepMatId(sm);
@@ -2110,7 +2178,7 @@ function bpProgModel() {
       const key = progKey(ci, trail, depth, node.kind === 'rx');
       const sub = sm._deep;
       const pend = !sub && sm._deepState === 'pending';
-      const hasKids = !!(sub && sub.materials && sub.materials.length) || pend;
+      const hasKids = (depth < BV_PROG_DEEP_DEPTH) && (!!(sub && sub.materials && sub.materials.length) || pend);
       deepRows++;
       rows.push({ key, typeId: tid, name: sm.name || ('Type ' + tid), qty: full, unit: sm.unit || 0, depth, mode: deepModeFor(key, { hasBp: sub && sub.kind === 'bp', hasRx: sub && sub.kind === 'rx', mineable: isMineable(tid) }), ci, parent: parentKey,
         hasKids, pending: pend, path: trail.slice(1), maybe: !hasKids && !pend && !deepIsLeaf(tid) });
@@ -2479,7 +2547,7 @@ async function progDeepResolveOne(ci, path) {
       if (node && node.materials) { try { await deepPriceUnits(node); } catch {} }
       const got = !!(node && node.materials && node.materials.length);
       try { m._deep = got ? node : null; m._deepState = 'done'; } catch {}
-      try { if (got) progDeepNone.delete(tid); else progDeepNone.add(tid); } catch {}
+      try { if (got) progDeepNone.delete(tid); else if (!err) progDeepNone.add(tid); } catch {}
       if (got) { try { status(nm + ' — ' + node.materials.length + ' sub-material' + (node.materials.length === 1 ? '' : 's') + '.'); } catch {} }
       else if (err) fail(nm + ': ' + (err.message || err));
       else fail(nm + ' has no further sub-materials in the SDE (nothing to expand)');
