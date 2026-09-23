@@ -1229,7 +1229,7 @@ function calcRemoveItem(i) {
   // A fit also tracks inclusion in its own store, so Build Progress (and a
   // later re-send of the same fit) agree the item is gone.
   try { if (S.lastCalc && S.lastCalc.fit) { c.include = false; const ig = fitIgnRead(S.root.bpId); ig[c.type_id] = false; fitIgnWrite(S.root.bpId, ig); } } catch {}
-  S.root.children.splice(i, 1);
+  removeChildAt(S.root, i);
   try { S._deepModes = null; } catch {}
   try { calcExpanded.clear(); } catch {}
   S.bom = effLeafCost(1);
@@ -1242,6 +1242,7 @@ function calcRemoveItem(i) {
   try { renderBuildProgress(); } catch {}
   try { fitRefresh(); } catch {}
   status('Removed ' + name + ' from the list.');
+  try { if (S.lastCalc && S.lastCalc.fit) fitStatus('Removed ' + name + ' from the fit.'); } catch {}
 }
 function calcRestoreRemoved() {
   if (!S.root || !S.root.bpId) return;
@@ -1277,6 +1278,64 @@ function calcResetAll() {
   if ($('systemName')) $('systemName').value = 'Jita';
   try { renderBuildProgress(); } catch {}
   status('Cleared.');
+}
+// Removing a top-level row shifts every later child index by one, and tick
+// keys embed that index. Rebase saved ticks so the remaining rows keep the
+// ticks the user already set. 'bpx:' blueprint ticks carry no index, so the
+// pattern deliberately doesn't match them.
+function bpProgRebaseTicks(bpId, removedCi) {
+  try {
+    const store = 'bvBuildProg_' + bpId;
+    const m = JSON.parse(localStorage.getItem(store) || '{}');
+    if (!m || typeof m !== 'object') return;
+    const out = {};
+    let moved = 0;
+    for (const k of Object.keys(m)) {
+      const mt = k.match(/^([cgrd])(\d+):([\s\S]*)$/);
+      if (!mt) { out[k] = m[k]; continue; }
+      const ci = parseInt(mt[2], 10);
+      if (ci > removedCi) { out[mt[1] + (ci - 1) + ':' + mt[3]] = m[k]; moved++; }
+      else out[k] = m[k];
+    }
+    if (moved) localStorage.setItem(store, JSON.stringify(out));
+  } catch {}
+}
+// Splice a child out of a build root and rebase its saved ticks.
+function removeChildAt(src, ci) {
+  if (!src || !Array.isArray(src.children)) return null;
+  const c = src.children[ci];
+  if (!c) return null;
+  src.children.splice(ci, 1);
+  if (src.bpId) bpProgRebaseTicks(src.bpId, ci);
+  return c;
+}
+// Remove one item from the build Build Progress is tracking. When that build
+// is also live in the Calculator (a sent fit, or a pinned-then-edited
+// blueprint) the live list is kept in step so the two views can't diverge.
+function progRemoveItem(ci) {
+  const src = bpProgSource();
+  if (!src || !Array.isArray(src.children)) return;
+  const c = src.children[ci];
+  if (!c) return;
+  if (src === S.root) { calcRemoveItem(ci); return; }
+  const name = c.name || 'item';
+  if (S.root && S.root !== src && String(S.root.bpId) === String(src.bpId) && (S.root.children || [])[ci]) {
+    calcRemovedAdd(S.root.bpId, c.type_id);
+    S.root.children.splice(ci, 1);
+    try { S._deepModes = null; } catch {}
+    try { calcExpanded.clear(); } catch {}
+    S.bom = effLeafCost(1);
+    try { renderTree(S.runs || 1); } catch {}
+    try { renderBom(S.runs || 1); } catch {}
+    try { renderBuildList(S.runs || 1); } catch {}
+    try { if (S.lastCalc) renderSummary(S.lastCalc); } catch {}
+    try { fitRefresh(); } catch {}
+  }
+  removeChildAt(src, ci);
+  bpPinsSave();
+  try { bpProgLastSrc = null; } catch {}
+  renderBuildProgress();
+  status('Removed ' + name + ' from the build.');
 }
 function renderTree(runs) {
   const w = $('treeWrap'); if (!S.root) { w.innerHTML = ''; return; }
@@ -1981,7 +2040,7 @@ function renderBuildProgress() {
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
       + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgExpanded.has(top.key) ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (bpProgExpanded.has(top.key) ? 'up' : 'down') + '"></i></button>'
         : (top.maybe ? '<button class="mode-btn" data-prog-resolve="' + ci + ':" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
-      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '</span></div>'
+      + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '<button class="mode-btn tree-remove" data-prog-rm="' + ci + '" title="Remove ' + escapeHtml(top.name) + ' from this build"><i class="fas fa-xmark"></i></button></span></div>'
       + kidsHtml
       + '</div>';
   });
@@ -2007,6 +2066,8 @@ function renderBuildProgress() {
       bpProgRefreshHead();
     });
     wrap.addEventListener('click', e => {
+      const rm = e.target.closest('[data-prog-rm]');
+      if (rm) { progRemoveItem(+rm.dataset.progRm); return; }
       const ps = e.target.closest('[data-pinsel]');
       if (ps) {
         S.pinnedSel = ps.dataset.pinsel === 'live' ? 'live' : String(ps.dataset.pinsel);
@@ -5555,11 +5616,12 @@ async function fitRenderAll() {
         + '<td>' + bvIconImg(c.type_id) + ' ' + escapeHtml(c.name) + secPill + warnPill + '</td>'
         + '<td>' + fmtN(c.perRun) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(unit * c.perRun) + '</td>'
         + '<td><span class="mode-toggle">' + modes + '</span></td>'
-        + '<td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '</td></tr>';
+        + '<td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '<button class="mode-btn tree-remove" data-fit-rm="' + i + '" title="Remove ' + escapeHtml(c.name) + ' from the fit"><i class="fas fa-xmark"></i></button></td></tr>';
     }).join('');
     const meta = $('fitModMeta'); if (meta) meta.textContent = inc.length + ' / ' + kids.length + ' selected';
     mb.querySelectorAll('[data-fitinc]').forEach(b => b.onchange = () => fitSetInclude(+b.dataset.fitinc, b.checked));
     mb.querySelectorAll('[data-fitmode]').forEach(b => b.onclick = () => fitSetMode(+b.dataset.fitmode, b.dataset.fm));
+    mb.querySelectorAll('[data-fit-rm]').forEach(b => b.onclick = () => calcRemoveItem(+b.dataset.fitRm));
     const mp = $('fitModulesPanel'); if (mp) mp.style.display = '';
     const ap = $('fitActionsPanel'); if (ap) ap.style.display = '';
   }
