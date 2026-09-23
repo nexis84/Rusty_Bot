@@ -544,6 +544,8 @@ let pendingNeed = null;
 async function calculate(opts) {
   opts = opts || {};
   savePrefs();
+  // A blueprint calculation belongs in the Calculator view even if Fit Builder is open.
+  try { if ($('mainFit') && $('mainFit').style.display !== 'none') switchMainView('calc'); } catch {}
   const name = $('bpName').value.trim(); if (!name) { status('Enter a blueprint name.'); return; }
   let runs = Math.max(1, parseInt($('runs').value) || 1);
   const region = hub(), basis = $('basis').value;
@@ -829,6 +831,7 @@ async function enrichChildren(runs) {
   S.runs = runs;
   const rxOn = S.reactionsOn;
   for (const c of S.root.children) {
+    if (c.include === false) continue; // Fit Builder: excluded items aren't resolved
     if (!c.child && !c._tried) {
       // raw minerals, ice products and PI goods are never manufactured — don't waste lookups on them
       if (isMineable(c.type_id) || isPI(c.type_id)) { c._tried = true; continue; }
@@ -871,6 +874,20 @@ async function enrichChildren(runs) {
         renderTree(runs);
       }
     }
+    // Lookups finished: an item with neither a manufacturing blueprint nor a
+    // reaction formula can't be built or reacted, so a defaulted Build/React
+    // falls back to Buy. Explicit user choices are left alone.
+    try {
+      const hasBp = !!(c.child && c.child.materials && c.child.materials.length);
+      const hasRx = !!(c.reaction && c.reaction.reagents && c.reaction.reagents.length);
+      if ((c.mode === 'build' || c.mode === 'react') && !hasBp && !hasRx && !bvHasStoredTop(S.root.bpId, c.type_id)) {
+        c.mode = 'buy';
+        try { bvModesSave(); } catch {}
+        if (S.lastCalc && S.lastCalc.fit) { try { fitPersistModes(); } catch {} try { fitSchedule(); } catch {} }
+        bpProgRefreshPin();
+        renderTree(runs);
+      }
+    } catch {}
   }
   const nRx = S.root.children.filter(c => c.reaction).length;
   renderBom(runs);
@@ -901,6 +918,7 @@ function progDeepMats(children) {
 // tree, build list) only refresh when the enriched build is the live root.
 function progDeepRerender(live) {
   try { renderBuildProgress(); } catch {}
+  try { if (typeof fitSchedule === 'function') fitSchedule(); } catch {}
   if (!live) return;
   try { renderTree(S.runs || 1); } catch {}
   try {
@@ -1033,6 +1051,7 @@ function effLeafCost(runs) {
     if (!S.root || !S.root.children) return [];
     (S.root.children || []).forEach((c, ci) => {
       if (!c) return;
+      if (c.include === false) return; // Fit Builder: item excluded from the fit
       const need = c.perRun * runs;
       if (!(need > 0)) return;
       const u = ($('basis') && $('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0;
@@ -1071,6 +1090,8 @@ function bomCashSplit() {
 
 function renderSummary(s) {
   S.lastCalc = s;
+  try { fitCalcNoteRender(); } catch {}
+  if (s && s.fit) { const g = $('summaryGrid'); if (g) { g.style.display = 'grid'; g.innerHTML = fitSummaryHtml(); } return; }
   const g = $('summaryGrid'); g.style.display = 'grid';
   const brokName = (D.hubs.find(h => h.region === hub()) || {}).name || hub();
   let tracked = '';
@@ -1095,16 +1116,27 @@ function renderSummary(s) {
     '<div class="summary-card"><div class="k">Blueprint</div><div class="v" style="font-size:.85rem">' + s.bpName + '</div><div class="k">TE bonus ' + s.teBonus.toFixed(0) + '% · Industry ' + s.ind + '/' + s.adv + ' · ' + s.imp.name + '</div></div>' + tracked;
 }
 
-// ---- main content views (Calculator vs Build Progress) ----
+// ---- main content views (Calculator vs Build Progress vs Fit Builder) ----
 function switchMainView(v) {
-  const calc = v !== 'prog';
+  v = (v === 'prog' || v === 'fit') ? v : 'calc';
   try {
-    $('mainCalc').style.display = calc ? '' : 'none';
-    $('mainProg').style.display = calc ? 'none' : '';
-    document.querySelectorAll('[data-mainview]').forEach(b => b.classList.toggle('active', (b.dataset.mainview || 'calc') === (calc ? 'calc' : 'prog')));
-    if (!calc) renderBuildProgress();
-    if (!calc) { try { bpProgDeepEnrich(); } catch {} }
+    $('mainCalc').style.display = v === 'calc' ? '' : 'none';
+    $('mainProg').style.display = v === 'prog' ? '' : 'none';
+    if ($('mainFit')) $('mainFit').style.display = v === 'fit' ? '' : 'none';
+    document.querySelectorAll('[data-mainview]').forEach(b => b.classList.toggle('active', (b.dataset.mainview || 'calc') === v));
+    if (v === 'prog') { renderBuildProgress(); try { bpProgDeepEnrich(); } catch {} }
+    if (v === 'fit') { try { fitRenderAll(); } catch {} }
   } catch {}
+}
+// Jump the main content pane back to the top — used when loading a new build
+// so the user lands on the summary/tree rather than mid-list.
+function scrollContentTop() {
+  try {
+    const el = document.querySelector('.content-scroll');
+    if (el) el.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  } catch {
+    try { const el = document.querySelector('.content-scroll'); if (el) el.scrollTop = 0; } catch {}
+  }
 }
 // ---- drill-down navigation (breadcrumb trail) ----
 function renderCrumbs(current) {
@@ -1150,12 +1182,50 @@ function topModeButtons(c, i, rxBtn) {
   const buyBtn = '<button class="mode-btn ' + (c.mode === 'buy' ? 'on-buy' : '') + '" data-i="' + i + '" data-m="buy">Buy</button>';
   if (isMineable(c.type_id)) return buyBtn + '<button class="mode-btn ' + (c.mode === 'mine' ? 'on-mine' : '') + '" data-i="' + i + '" data-m="mine"><i class="fas fa-gem"></i> Mine it</button>';
   if (isPI(c.type_id)) return buyBtn + '<button class="mode-btn ' + (c.mode === 'extract' ? 'on-extract' : '') + '" data-i="' + i + '" data-m="extract"><i class="fas fa-globe"></i> Extract</button>';
-  return buyBtn + '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button>' + (rxBtn || '');
+  // No Build offered once the lookup has come back empty — you can't build
+  // what has no blueprint. Kept visible while the lookup is still pending.
+  let h = buyBtn;
+  try {
+    const hasBp = !!(c.child && c.child.materials && c.child.materials.length);
+    const pending = c.child === null && !c._tried;
+    if (hasBp || pending) h += '<button class="mode-btn ' + (c.mode === 'build' ? 'on-build' : '') + '" data-i="' + i + '" data-m="build">Build</button>';
+  } catch {}
+  return h + (rxBtn || '');
 }
 // Expand state for calculator breakdowns (tree + build list share it;
 // Build Progress keeps its own set so views don't fight). Calculator starts
 // COLLAPSED — rows expand on click (opposite default to Progress).
 const calcExpanded = new Set();
+// Wipe the live calculation and every panel that renders from it, returning the
+// Calculator to its empty state. Pinned builds (Build Progress) and the saved
+// fit paste are left alone — only the working calculation is cleared.
+function calcResetAll() {
+  S.root = null; S.nodes = new Map(); S.bom = []; S.product = null;
+  S.trackedPrice = null; S.own = {}; S.lastCalc = null; S.runs = 1;
+  S.fitEnriching = false;
+  S._deepModes = null; S._deepModesBp = null;
+  try { navStack.length = 0; } catch {}
+  try { calcExpanded.clear(); } catch {}
+  try { bpProgLastSrc = null; } catch {}
+  try { fitInCalculator = false; } catch {}
+  try { fitCalcNoteRender(); } catch {}
+  try { fitProgressHide(); } catch {}
+  const emptyRow = '<tr><td colspan="7" style="color:var(--text3)">No calculation yet.</td></tr>';
+  const set = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
+  const txt = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  const hide = (id) => { const el = $(id); if (el) el.style.display = 'none'; };
+  hide('summaryGrid'); hide('crumbBar'); hide('shoppingSummary');
+  set('treeWrap', ''); set('refineryWrap', ''); set('mineWrap', '');
+  set('bomBody', emptyRow); set('shoppingBody', emptyRow);
+  txt('bomMeta', ''); txt('bomTotals', ''); txt('shopMeta', ''); txt('shoppingTotals', '');
+  txt('buildMeta', ''); txt('buildTotals', '');
+  set('buildList', '<p class="hint">No calculation yet — calculate a blueprint or send a fit.</p>');
+  if ($('bpName')) $('bpName').value = '';
+  if ($('runs')) $('runs').value = 1;
+  if ($('systemName')) $('systemName').value = 'Jita';
+  try { renderBuildProgress(); } catch {}
+  status('Cleared.');
+}
 function renderTree(runs) {
   const w = $('treeWrap'); if (!S.root) { w.innerHTML = ''; return; }
   const piKids = S.root.children.filter(c => isPI(c.type_id));
@@ -1210,7 +1280,8 @@ function renderTree(runs) {
           + '<div class="rx-note">' + c.reaction.formulaName + ' · ×' + fmtN(c.reaction.productQty) + ' per run · ' + n + ' run' + (n === 1 ? '' : 's') + ' for ' + fmtN(c.perRun * runs) + ' needed</div>';
       }
     }
-    const nmHtml = c.child
+    const drillable = c.child && !(S.lastCalc && S.lastCalc.fit);
+    const nmHtml = drillable
       ? '<a class="drill nm" data-drill="' + i + '" title="Open full build for ' + c.child.bpName + '">' + c.name + ' × ' + fmtN(c.perRun * runs) + ' <i class="fas fa-chevron-right" style="font-size:.7em"></i></a>'
       : '<span class="nm">' + c.name + ' × ' + fmtN(c.perRun * runs) + '</span>';
     h += '<div class="tree-node ' + c.mode + '"><div class="row1 prow"><img src="https://images.evetech.net/types/' + c.type_id + '/icon?size=32" onerror="this.style.display=\'none\'">' + nmHtml + '<span class="row-tail"><span class="nums">' + fmtISK((($('basis').value === 'buy' ? c.unitBuy : c.unitSell) || 0)) + ' ea</span><span class="nums">' + m + rm + '</span><span class="mode-toggle">' + topModeButtons(c, i, rxBtn) + '</span>' + (hasBreakdown ? '<button class="mode-btn" data-tree-exp="' + topKey + '" title="' + (topOpen ? 'Collapse breakdown' : 'Expand breakdown') + '"><i class="fas fa-chevron-' + (topOpen ? 'up' : 'down') + '"></i></button>' : '') + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + piIcon(c.type_id) + mineIcon(c.type_id) + infoButton(c.type_id) + (isPI(c.type_id) ? '<span class="pill" style="border-color:#3fb950;color:#3fb950">' + piTier(c.type_id) + '</span>' : '') + '</span></div>' + rxKids + buildKids + '</div>';
@@ -1225,7 +1296,9 @@ function renderTree(runs) {
     // Per-row tweaks can still override afterwards.
     try { await bulkApplyToTop(c, idx, mode === 'buy' ? 'buy' : 'auto', mode); } catch {}
     try { bvModesSave(); } catch {}
+    try { if (S.lastCalc && S.lastCalc.fit) fitPersistModes(); } catch {}
     renderTree(runs); await renderBom(runs); await renderBuildList(runs); if (S.lastCalc) renderSummary(S.lastCalc);
+    try { bpProgRefreshPin(); } catch {}
     try { renderBuildProgress(); } catch {}
     // auto-update mining plan in the background when sourcing changes — do NOT switch tabs or steal focus
     try { planMining(undefined, { auto: true }); } catch {}
@@ -1300,10 +1373,12 @@ async function bulkSetModes(kind) {
       await bulkApplyToTop(c, ciOf.get(c), kind);
     }
     try { bvModesSave(); } catch {}
+    try { if (S.lastCalc && S.lastCalc.fit) fitPersistModes(); } catch {}
     try { renderTree(S.runs || 1); } catch {}
     try { await renderBom(S.runs || 1); } catch {}
     try { await renderBuildList(S.runs || 1); } catch {}
     try { if (S.lastCalc) renderSummary(S.lastCalc); } catch {}
+    try { bpProgRefreshPin(); } catch {}
     try { renderBuildProgress(); } catch {}
     try { planMining(undefined, { auto: true }); } catch {}
     status(kind === 'buy' ? 'Everything set to Buy — override any row as needed.' : 'Everything auto-sourced — override any row as needed.');
@@ -1636,8 +1711,8 @@ async function renderBuildList(runs) {
 // ---- Build Progress checklist: collapsible parts + completion ticks + export ----
 // One row per material (top-level) plus its sub-part rows (build raws /
 // reaction reagents). Ticks persist per blueprint in localStorage; collapse
-// state persists per render in bpProgCollapsed. Export reuses the same model.
-const bpProgCollapsed = new Set();
+// state persists per render in bpProgExpanded (starts collapsed). Export reuses the same model.
+const bpProgExpanded = new Set();
 let bpProgLastSrc = null;
 function bpProgStoreKey() { const src = bpProgSource(); return 'bvBuildProg_' + (src ? src.bpId : 'none'); }
 function bpProgRead() { try { const v = JSON.parse(localStorage.getItem(bpProgStoreKey()) || '{}'); return (v && typeof v === 'object') ? v : {}; } catch { return {}; } }
@@ -1676,6 +1751,7 @@ function bpProgModel() {
     }
   };
   src.children.forEach((c, ci) => {
+    if (!c || c.include === false) return; // Fit Builder: excluded item isn't part of the build
     const need = c.perRun * runs;
     const basis = ($('basis') && $('basis').value) || 'sell';
     const unit = basis === 'buy' ? c.unitBuy : c.unitSell;
@@ -1770,13 +1846,13 @@ function renderBuildProgress() {
   }
   const { rows, pinned, selPin } = bpProgModel();
   const ticked = bpProgRead();
-  // Default to fully expanded whenever the tracked view changes (blueprint,
+  // Default to fully COLLAPSED whenever the tracked view changes (blueprint,
   // part count, run count, or Live-vs-pin selection — re-sending the same
-  // blueprint with new runs counts as new); manual collapse choices persist
+  // blueprint with new runs counts as new); manual expand choices persist
   // only within that view.
   try {
     const srcKey = (selPin ? 'pin:' + selPin.bpId : 'live') + '|' + src.bpId + '|' + (src.children ? src.children.length : 0) + '|' + (src.runs || S.runs || 1);
-    if (bpProgLastSrc !== srcKey) { bpProgLastSrc = srcKey; bpProgCollapsed.clear(); }
+    if (bpProgLastSrc !== srcKey) { bpProgLastSrc = srcKey; bpProgExpanded.clear(); }
   } catch {}
   // Pin selector: Live + up to 5 pinned builds (persisted). Unpin via ×.
   const pins = S.pinnedBuilds || [];
@@ -1814,11 +1890,11 @@ function renderBuildProgress() {
     return kidsOfKey(parentKey).map(s => {
       const st = !!ticked[s.key];
       const kids = kidsOfKey(s.key);
-      const open = !bpProgCollapsed.has(s.key);
+      const open = bpProgExpanded.has(s.key);
       const kidsHtml = (s.pending && !kids.length)
         ? '<div class="kids"><div class="rx-row prow"><span class="nm" style="color:var(--text3)">resolving sub-materials…</span></div></div>'
         : (kids.length && open ? '<div class="kids">' + renderKids(s.key) + '</div>' : '');
-      return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty)
+      return '<div class="rx-row prow"' + (st ? ' style="opacity:.55"' : '') + '><label style="cursor:pointer;display:flex;align-items:center;gap:.5rem;flex-shrink:0" title="Mark collected"><input type="checkbox" data-prog="' + s.key + '"' + (st ? ' checked' : '') + '></label><span class="nm">' + bvIconImg(s.typeId) + s.name + ' × ' + fmtN(s.qty) + '</span>' + haveBlock(s.typeId, s.qty)
         + '<span class="row-tail">' + (s.unit ? '<span class="nums">' + fmtISK(s.unit) + ' ea</span>' : '') + '<span class="pill ' + s.mode + '">' + String(s.mode || 'buy').toUpperCase() + '</span>'
         + (s.hasKids ? '<button class="mode-btn" data-pexp="' + s.key + '" title="' + (open ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (open ? 'up' : 'down') + '"></i></button>'
           : (s.maybe ? '<button class="mode-btn" data-prog-resolve="' + s.ci + ':' + ((s.path || []).join('>')) + '" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
@@ -1838,14 +1914,14 @@ function renderBuildProgress() {
     const top = rows.find(r => r.key === 'c' + ci + ':' + c.type_id);
     if (!top) return;
     const t = !!ticked[top.key];
-    const kidsHtml = (top.hasKids && !bpProgCollapsed.has(top.key)) ? '<div class="kids">' + renderKids(top.key) + '</div>' : '';
+    const kidsHtml = (top.hasKids && bpProgExpanded.has(top.key)) ? '<div class="kids">' + renderKids(top.key) + '</div>' : '';
     h += '<div class="tree-node ' + c.mode + '"' + (t ? ' style="opacity:.55"' : '') + '><div class="row1 prow">'
       + '<label style="cursor:pointer;display:flex;align-items:center;flex-shrink:0" title="Mark collected/built"><input type="checkbox" data-prog="' + top.key + '"' + (t ? ' checked' : '') + '></label>'
-      + '<span class="nm">' + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
+      + '<span class="nm">' + bvIconImg(c.type_id) + top.name + ' × ' + fmtN(top.qty) + '</span>' + haveBlock(c.type_id, top.qty)
       + '<span class="row-tail">'
       + (top.unit ? '<span class="nums">' + fmtISK(top.unit) + ' ea</span>' : '')
       + '<span class="pill ' + c.mode + '">' + c.mode.toUpperCase() + '</span>'
-      + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgCollapsed.has(top.key) ? 'Expand' : 'Collapse') + '"><i class="fas fa-chevron-' + (bpProgCollapsed.has(top.key) ? 'down' : 'up') + '"></i></button>'
+      + (top.hasKids ? '<button class="mode-btn" data-pexp="' + top.key + '" title="' + (bpProgExpanded.has(top.key) ? 'Collapse' : 'Expand') + '"><i class="fas fa-chevron-' + (bpProgExpanded.has(top.key) ? 'up' : 'down') + '"></i></button>'
         : (top.maybe ? '<button class="mode-btn" data-prog-resolve="' + ci + ':" title="Resolve sub-materials"><i class="fas fa-chevron-down"></i></button>' : ''))
       + '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '</span></div>'
       + kidsHtml
@@ -1854,10 +1930,11 @@ function renderBuildProgress() {
   // root row on top (with overall progress bar pinned far-right, % only)
   const rk = 'root', rt = !!ticked[rk];
   const rruns = src.runs || S.runs || 1;
+  const rootIcon = (src === S.root && S.product) ? bvIconImg(S.product.type_id) : (src.productTypeId ? bvIconImg(src.productTypeId) : '');
   const ovDone = rows.filter(r => r.key !== 'root' && ticked[r.key]).length;
   const ovTotal = rows.filter(r => r.key !== 'root').length;
   const ovPct = ovTotal ? Math.round(ovDone / ovTotal * 100) : 0;
-  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1 prog-root"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm"><b>' + src.bpName + ' × ' + rruns + '</b></span><span class="row-tail prog-overall"><span class="pill ' + (src.mode === 'react' ? 'react' : 'build') + '">' + (src.mode === 'react' ? 'REACT' : 'BUILD') + '</span><span class="ref-track" title="' + ovDone + '/' + ovTotal + ' done"><span id="progOverallFill" class="ref-fill' + (ovTotal > 0 && ovDone === ovTotal ? ' complete' : '') + '" style="width:' + ovPct + '%"></span></span><span id="progOverallLabel" class="prog-pct">' + ovPct + '%</span></span></div></div>' + h;
+  h = '<div class="tree-node build"' + (rt ? ' style="opacity:.55"' : '') + '><div class="row1 prog-root"><label style="cursor:pointer;display:flex;align-items:center" title="Mark blueprint complete"><input type="checkbox" data-prog="' + rk + '"' + (rt ? ' checked' : '') + '></label><span class="nm">' + rootIcon + '<b>' + src.bpName + ' × ' + rruns + '</b></span><span class="row-tail prog-overall"><span class="pill ' + (src.mode === 'react' ? 'react' : 'build') + '">' + (src.mode === 'react' ? 'REACT' : 'BUILD') + '</span><span class="ref-track" title="' + ovDone + '/' + ovTotal + ' done"><span id="progOverallFill" class="ref-fill' + (ovTotal > 0 && ovDone === ovTotal ? ' complete' : '') + '" style="width:' + ovPct + '%"></span></span><span id="progOverallLabel" class="prog-pct">' + ovPct + '%</span></span></div></div>' + h;
   wrap.innerHTML = h;
   if (!wrap.dataset.bound) {
     wrap.dataset.bound = '1';
@@ -1893,7 +1970,7 @@ function renderBuildProgress() {
       const b = e.target.closest('[data-pexp]');
       if (b) {
         const k = b.dataset.pexp;
-        if (bpProgCollapsed.has(k)) bpProgCollapsed.delete(k); else bpProgCollapsed.add(k);
+        if (bpProgExpanded.has(k)) bpProgExpanded.delete(k); else bpProgExpanded.add(k);
         renderBuildProgress();
         return;
       }
@@ -1912,6 +1989,52 @@ function renderBuildProgress() {
     });
   }
   bpProgRefreshHead();
+  renderProgBlueprints();
+}
+
+// Blueprints required for whichever build Build Progress is currently tracking (live or
+// pinned). Re-rendered on every progress render so it grows as the background
+// deep resolver discovers nested recipes. "Acquired" ticks share the per-build
+// store under a 'bpx:' prefix so they never collide with material row keys.
+function bpProgBpKey(typeId) { return 'bpx:' + (+typeId || 0); }
+function progBpHead() {
+  const meta = $('progBpMeta');
+  if (!meta) return;
+  let rows = [];
+  try { rows = trackedBlueprintList(); } catch { rows = []; }
+  if (!rows.length) { meta.textContent = ''; return; }
+  const ticked = bpProgRead();
+  const have = rows.filter(b => ticked[bpProgBpKey(b.typeId)]).length;
+  meta.textContent = have + ' / ' + rows.length + ' acquired';
+}
+function renderProgBlueprints() {
+  const panel = $('progBpPanel'), list = $('progBpList'), meta = $('progBpMeta');
+  if (!panel || !list) return;
+  let rows = [];
+  try { rows = trackedBlueprintList(); } catch { rows = []; }
+  panel.style.display = rows.length ? '' : 'none';
+  if (!rows.length) { list.innerHTML = ''; if (meta) meta.textContent = ''; return; }
+  const ticked = bpProgRead();
+  list.innerHTML = rows.map(b => {
+    const key = bpProgBpKey(b.typeId);
+    const got = !!ticked[key];
+    return '<div class="rx-row' + (got ? ' bp-have' : '') + '">'
+      + '<label class="bp-check" title="I have this blueprint"><input type="checkbox" data-progbp="' + key + '"' + (got ? ' checked' : '') + '></label>'
+      + '<img src="https://images.evetech.net/types/' + b.typeId + '/icon?size=32" loading="lazy" onerror="this.style.display=\'none\'">'
+      + '<span class="nm">' + escapeHtml(b.name) + (b.kind === 'rx' ? ' <span class="pill react">FORMULA</span>' : ' <span class="pill">BP</span>') + '</span>'
+      + '<span class="row-tail"><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(b.typeId) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + infoButton(b.typeId) + '</span></div>';
+  }).join('');
+  list.querySelectorAll('[data-progbp]').forEach(box => {
+    box.onchange = () => {
+      const m = bpProgRead();
+      if (box.checked) m[box.dataset.progbp] = true; else delete m[box.dataset.progbp];
+      bpProgWrite(m);
+      const row = box.closest('.rx-row');
+      if (row) row.classList.toggle('bp-have', !!box.checked);
+      progBpHead();
+    };
+  });
+  progBpHead();
 }
 // Resolve a single row on demand (chevron click): bare top-level child or a
 // material at path. Busts null-caches so transient failures retry.
@@ -2528,12 +2651,27 @@ function bindHandoffs() {
     let withKids = [];
     try { withKids = bpProgModel().rows.filter(r => r.key !== 'root' && r.hasKids).map(r => r.key); } catch {}
     if (!withKids.length) return;
-    const anyOpen = withKids.some(k => !bpProgCollapsed.has(k));
-    if (anyOpen) withKids.forEach(k => bpProgCollapsed.add(k)); else withKids.forEach(k => bpProgCollapsed.delete(k));
+    const anyOpen = withKids.some(k => bpProgExpanded.has(k));
+    if (anyOpen) withKids.forEach(k => bpProgExpanded.delete(k)); else withKids.forEach(k => bpProgExpanded.add(k));
     renderBuildProgress();
     tpe.innerHTML = anyOpen ? '<i class="fas fa-expand"></i> Expand' : '<i class="fas fa-compress"></i> Collapse';
   };
   const clp = $('clearProgress'); if (clp) clp.onclick = () => { bpProgWrite({}); renderBuildProgress(); status('Progress ticks cleared.'); };
+  const cpb = $('copyProgBps'); if (cpb) cpb.onclick = async () => {
+    let rows = [];
+    try { rows = trackedBlueprintList(); } catch {}
+    if (!rows.length) { status('No blueprints resolved yet.'); return; }
+    try { await navigator.clipboard.writeText(rows.map(b => b.name).join('\n')); status('Blueprint list copied (' + rows.length + ').'); }
+    catch { status('Clipboard blocked.'); }
+  };
+  const xpb = $('clearProgBps'); if (xpb) xpb.onclick = () => {
+    const m = bpProgRead();
+    let n = 0;
+    for (const k of Object.keys(m)) if (String(k).startsWith('bpx:')) { delete m[k]; n++; }
+    bpProgWrite(m);
+    renderProgBlueprints();
+    status(n ? 'Cleared ' + n + ' blueprint tick' + (n === 1 ? '' : 's') + '.' : 'No blueprint ticks to clear.');
+  };
   const unp = $('unpinProgress'); if (unp) unp.onclick = async () => {
     S.pinnedSel = 'live'; bpPinsSave();
     unp.disabled = true;
@@ -2717,6 +2855,12 @@ async function bpApplyRow(btn) {
 // Shared by the sidebar + bottom-of-calculator Send buttons: recalculate,
 // pin the live build, and switch to Build Progress.
 async function sendCalcToBuild() {
+  // A fit is already the live root — just pin it, don't re-run a blueprint calc.
+  if (S.root && S.lastCalc && S.lastCalc.fit) {
+    if (bpProgPinCurrent()) switchMainView('prog');
+    else status('Nothing to send.');
+    return;
+  }
   const name = ($('bpName') && $('bpName').value || '').trim();
   if (!name) { status('Enter a blueprint name first.'); return; }
   await calculate();
@@ -2731,7 +2875,7 @@ function bpProgPinCurrent(silent) {
   if (!S.root || !S.root.children) return false;
   try {
     if (!Array.isArray(S.pinnedBuilds)) S.pinnedBuilds = [];
-    const snap = JSON.parse(JSON.stringify({ bpId: S.root.bpId, bpName: S.root.bpName, mode: S.root.mode, runs: S.runs || parseInt(($('runs') && $('runs').value) || 1), children: S.root.children }));
+    const snap = JSON.parse(JSON.stringify({ bpId: S.root.bpId, bpName: S.root.bpName, mode: S.root.mode, runs: S.runs || parseInt(($('runs') && $('runs').value) || 1), productTypeId: (S.product && S.product.type_id) || null, children: S.root.children }));
     const ix = S.pinnedBuilds.findIndex(p => String(p.bpId) === String(snap.bpId));
     if (ix >= 0) {
       // Re-send refreshes quantities; keep existing order, reselect it.
@@ -2764,6 +2908,10 @@ function bpProgRefreshPin() {
       const pc = (pin.children || []).find(x => x && x.type_id === c.type_id);
       if (!pc) continue;
       if (c.mode) pc.mode = c.mode;
+      // Fit Builder: mirror the include checkbox so unticking an item drops it
+      // from the pinned Build Progress too. Non-fit blueprints never set
+      // include, so their pins are left untouched.
+      if (c.include !== undefined) pc.include = c.include;
       if (c.child) pc.child = JSON.parse(JSON.stringify(c.child));
       if (c.reaction) pc.reaction = JSON.parse(JSON.stringify(c.reaction));
     }
@@ -4965,6 +5113,505 @@ function highlight(name, q) {
   return name.slice(0, i) + '<span class="hl">' + name.slice(i, i + q.length) + '</span>' + name.slice(i + q.length);
 }
 
+// ===================== Fit Builder =====================
+// Paste an EFT / EVE "Copy to Clipboard" fit -> resolve every item -> run the
+// whole fit through the existing calculation pipeline as a synthetic
+// multi-child root. Each row has an Include checkbox (part of the fit?) plus
+// the usual Buy/Build/Mine toggle (how to source it).
+const FIT_SAMPLE = [
+  '[Stormbringer, Crossed Beams]',
+  'Vorton Tuning System II',
+  'Vorton Tuning System II',
+  'Vorton Tuning System II',
+  '',
+  'Explosive Shield Hardener II',
+  'Multispectrum Shield Hardener II',
+  '10MN Afterburner II',
+  'Pithum C-Type Medium Shield Booster',
+  'Sensor Booster II',
+  'Republic Fleet Large Cap Battery',
+  '',
+  'Medium Vorton Projector II',
+  '',
+  'Medium Ancillary Current Router II',
+  'Medium Thermal Shield Reinforcer II',
+  'Medium Thermal Shield Reinforcer II',
+  '',
+  'Sanshas Standard M x1',
+  'StrikeSnipe Ultra M x3695',
+  'ElectroPunch Ultra M x859',
+  'Scan Resolution Script x1',
+  'Sanshas Microwave M x2',
+  'True Sansha Warp Disruptor x1',
+  'Fleeting Compact Stasis Webifier x1'
+].join('\n');
+
+function fitStatus(m) { const el = $('fitStatus'); if (el) el.textContent = m || ''; console.log('[BV-fit]', m); }
+function fitVisible() { try { return $('mainFit') && $('mainFit').style.display !== 'none'; } catch { return false; } }
+// Progress bar across the two blocking phases of an analysis — name
+// resolution and market pricing. Mirrors stkProgress's ETA maths, scoped here.
+let _fitProgStart = 0, _fitProgTimer = null;
+function fitProgress(frac, label) {
+  try {
+    if (_fitProgTimer) { clearTimeout(_fitProgTimer); _fitProgTimer = null; }
+    const wrap = $('fitProgWrap'), bar = $('fitProgBar'), lab = $('fitProgLabel');
+    if (!wrap || !bar) return;
+    const f = Math.min(1, Math.max(0, frac || 0));
+    if (!_fitProgStart) _fitProgStart = Date.now();
+    wrap.style.display = 'block';
+    bar.style.width = (f * 100).toFixed(1) + '%';
+    let eta = '';
+    const el = (Date.now() - _fitProgStart) / 1000;
+    if (f > 0.02 && f < 0.999 && el > 0.8) {
+      const rem = el / f * (1 - f);
+      eta = rem < 1 ? ' · <1s left' : ' · ~' + (rem < 60 ? Math.ceil(rem) + 's' : Math.floor(rem / 60) + 'm ' + Math.ceil(rem % 60) + 's') + ' left';
+    }
+    if (lab) lab.textContent = (label || 'Working…') + ' · ' + Math.round(f * 100) + '%' + eta;
+  } catch {}
+}
+function fitProgressDone(msg) {
+  try {
+    const wrap = $('fitProgWrap'), bar = $('fitProgBar'), lab = $('fitProgLabel');
+    if (bar) bar.style.width = '100%';
+    if (lab) lab.textContent = msg || 'Done.';
+    if (_fitProgTimer) clearTimeout(_fitProgTimer);
+    _fitProgTimer = setTimeout(() => {
+      _fitProgTimer = null;
+      try { if (wrap) wrap.style.display = 'none'; if (bar) bar.style.width = '0%'; } catch {}
+    }, 2500);
+  } catch {}
+  _fitProgStart = 0;
+}
+function fitProgressHide() {
+  if (_fitProgTimer) { clearTimeout(_fitProgTimer); _fitProgTimer = null; }
+  try {
+    const wrap = $('fitProgWrap'), bar = $('fitProgBar');
+    if (wrap) wrap.style.display = 'none';
+    if (bar) bar.style.width = '0%';
+  } catch {}
+  _fitProgStart = 0;
+}
+// True once the user has sent the fit to the Calculator (so background
+// refreshes know whether to keep the Calculator's copy in sync).
+let fitInCalculator = false;
+// Reminder that a loaded fit was also pushed to Build Progress. Only shown
+// while a fit is the live calculation in the Calculator.
+function fitCalcNoteRender() {
+  const el = $('fitCalcNote');
+  if (!el) return;
+  el.classList.toggle('hidden', !(fitInCalculator && S.lastCalc && S.lastCalc.fit));
+}
+// Load the current fit into the Calculator (tree / BOM / Build / Shopping).
+function fitLoadToCalculator() {
+  if (!(S.root && S.lastCalc && S.lastCalc.fit)) return false;
+  fitInCalculator = true;
+  try {
+    renderCrumbs(S.root.bpName);
+    renderTree(1);
+    renderBom(1);
+    renderSummary(S.lastCalc);
+    fitCalcNoteRender();
+  } catch {}
+  return true;
+}
+// Debounced re-render. Background deep enrichment keeps adding recipes, which
+// grows the "Blueprints needed" list, so refresh the Fit view as data lands.
+let _fitT = null;
+function fitSchedule() {
+  if (_fitT) return;
+  _fitT = setTimeout(() => { _fitT = null; try { if (fitVisible()) fitRenderAll(); } catch {} }, 400);
+}
+function fitIgnKey(bpId) { return 'bvFitIgnored_' + bpId; }
+function fitIgnRead(bpId) { try { return JSON.parse(localStorage.getItem(fitIgnKey(bpId)) || '{}') || {}; } catch { return {}; } }
+function fitIgnWrite(bpId, m) { try { localStorage.setItem(fitIgnKey(bpId), JSON.stringify(m || {})); } catch {} }
+// Fit sourcing modes are stored explicitly (including 'buy') because a fit's
+// default is Build — the shared bvModes store treats 'buy' as the implicit
+// default, so it can't represent a fit item the user switched to Buy.
+function fitModesKey(bpId) { return 'bvFitModes_' + bpId; }
+function fitModesRead(bpId) { try { return JSON.parse(localStorage.getItem(fitModesKey(bpId)) || '{}') || {}; } catch { return {}; } }
+function fitModesWrite(bpId, m) { try { localStorage.setItem(fitModesKey(bpId), JSON.stringify(m || {})); } catch {} }
+function fitPersistModes() {
+  try {
+    if (!S.root || !S.root.bpId || !S.root.children) return;
+    const m = {};
+    for (const c of S.root.children) { if (c && Number.isFinite(+c.type_id) && c.mode) m[c.type_id] = c.mode; }
+    fitModesWrite(S.root.bpId, m);
+  } catch {}
+}
+
+// Real SDE category wins (6 Ship, 8 Charge, 18 Drone); name heuristic otherwise.
+function fitSection(typeId, name) {
+  try {
+    const info = bvTypeInfoLocal(typeId);
+    if (info) {
+      if (info.c === 6) return 'hull';
+      if (info.c === 8) return 'charge';
+      if (info.c === 18) return 'drone';
+      return 'module';
+    }
+  } catch {}
+  return (window.BVFits && BVFits.classifyName) ? BVFits.classifyName(name) : 'module';
+}
+
+// Resolve a want-list of { name, qty } to type IDs: local index first, ESI
+// /universe/ids/ for the rest. Never guesses — unresolved names are reported.
+async function fitResolveNames(list, onProgress) {
+  const idx = (window.BVFits && BVFits.localIndex) ? BVFits.localIndex() : new Map();
+  const resolved = new Map();
+  const pending = [];
+  for (const n of list) {
+    const hit = idx.get(String(n.name).toLowerCase());
+    if (hit && hit.id) resolved.set(String(n.name).toLowerCase(), { id: hit.id, name: n.name });
+    else pending.push(n);
+  }
+  const total = Math.ceil(pending.length / 300);
+  let done = 0;
+  for (let i = 0; i < pending.length; i += 300) {
+    const chunk = pending.slice(i, i + 300);
+    try {
+      const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify(chunk.map(x => x.name)) });
+      const inv = Array.isArray(r) ? r : (r.inventory_types || []);
+      for (const e of inv) resolved.set(String(e.name).toLowerCase(), { id: e.id, name: e.name });
+    } catch {}
+    done++;
+    if (onProgress) { try { onProgress(done, total); } catch {} }
+  }
+  if (onProgress && !total) { try { onProgress(1, 1); } catch {} }
+  const missing = [];
+  for (const n of list) if (!resolved.has(String(n.name).toLowerCase())) missing.push(n.name);
+  return { resolved, missing };
+}
+
+async function calculateFit() {
+  const text = ($('fitPaste') && $('fitPaste').value) || '';
+  const fits = (window.BVFits && BVFits.parseEftFits) ? BVFits.parseEftFits(text) : [];
+  if (!fits.length) { fitProgressHide(); fitStatus('Nothing parsed — paste a fit whose first line is [Ship, Fit Name].'); return; }
+  const fit = fits[0];
+  if (fits.length > 1) fitStatus('Multiple fits found — analysing "' + fit.ship + '" only.');
+  const incHull = !$('fitIncHull') || $('fitIncHull').checked;
+  const incDrones = !$('fitIncDrones') || $('fitIncDrones').checked;
+  const incCharges = !$('fitIncCharges') || $('fitIncCharges').checked;
+  const defQty = Math.max(1, parseInt(($('fitChargeQty') && $('fitChargeQty').value) || 1, 10) || 1);
+
+  // Flatten -> aggregated want list (uses bv-fits flattenFit for consistency).
+  const list = (window.BVFits && BVFits.flattenFit) ? BVFits.flattenFit(fit, { hull: incHull, chargeQty: defQty }) : [];
+  if (!list.length) { fitProgressHide(); fitStatus('Fit has no items.'); return; }
+  fitProgress(0.04, 'Resolving ' + list.length + ' item' + (list.length === 1 ? '' : 's'));
+  const { resolved, missing } = await fitResolveNames(list, (done, total) => {
+    fitProgress(0.04 + 0.26 * (total ? done / total : 1), 'Resolving item names');
+  });
+
+  // Build the synthetic root, honouring the hull/drone/charge include options.
+  const kept = [], skipped = [];
+  for (const w of list) {
+    const r = resolved.get(String(w.name).toLowerCase());
+    if (!r) { skipped.push({ name: w.name, reason: 'not found' }); continue; }
+    const sec = fitSection(r.id, w.name);
+    if (sec === 'drone' && !incDrones) { skipped.push({ name: w.name, reason: 'drones off' }); continue; }
+    if (sec === 'charge' && !incCharges) { skipped.push({ name: w.name, reason: 'charges off' }); continue; }
+    kept.push({ type_id: r.id, name: r.name, qty: w.qty, section: sec });
+  }
+  if (!kept.length) { fitProgressHide(); fitStatus('No items resolved — check the paste.'); return; }
+
+  const shipWant = String(fit.ship || '').toLowerCase();
+  const ship = kept.find(c => c.section === 'hull' && c.name.toLowerCase() === shipWant) || kept.find(c => c.section === 'hull') || null;
+  const region = hub(), basis = $('basis').value;
+  S.reactionsOn = ($('reactions').value === 'on');
+  S.root = { bpId: 'fit-' + (ship ? ship.type_id : 'custom'), bpName: (fit.ship || 'Fit') + (fit.fitName ? ' — ' + fit.fitName : ''), mode: 'build', children: [] };
+  S.product = ship ? { type_id: ship.type_id, qty: 1, name: ship.name } : null;
+
+  const ign = fitIgnRead(S.root.bpId);
+  for (const c of kept) {
+    // Default every item to Build — the point of the Fit Builder is the build
+    // tree. Raw mineables / PI resolve to Mine / Extract; saved toggles override.
+    let mode = 'build';
+    try { if (isMineable(c.type_id)) mode = 'mine'; else if (isPI(c.type_id)) mode = 'extract'; } catch {}
+    S.root.children.push({
+      type_id: c.type_id, name: c.name, baseQty: c.qty, perRun: c.qty,
+      mode, child: null, reaction: null,
+      unitSell: null, unitBuy: null, childCost: null, section: c.section,
+      include: ign[c.type_id] !== false
+    });
+  }
+  // Restore saved Build/Buy/Mine toggles for this fit (children now exist).
+  let modesRestored = 0;
+  try {
+    const savedModes = fitModesRead(S.root.bpId);
+    for (const c of S.root.children) {
+      const m = savedModes[c.type_id];
+      if (m === 'buy' || m === 'build' || m === 'mine' || m === 'react' || m === 'extract') {
+        if (m === 'react' && !S.reactionsOn) continue;
+        if (m === 'mine') { try { if (!isMineable(c.type_id)) continue; } catch {} }
+        if (m === 'extract') { try { if (!isPI(c.type_id)) continue; } catch {} }
+        if (c.mode !== m) { c.mode = m; modesRestored++; }
+      }
+    }
+  } catch {}
+  fitProgress(0.32, 'Pricing ' + S.root.children.length + ' items (' + region + ')');
+  let buyAllSell = 0, buyAllBuy = 0, priced = 0;
+  for (const c of S.root.children) {
+    try { c.unitSell = await marketPrice(c.type_id, region, 'sell'); } catch {}
+    try { c.unitBuy = await marketPrice(c.type_id, region, 'buy'); } catch {}
+    if (c.unitSell == null) c.unitSell = c.unitBuy; if (c.unitBuy == null) c.unitBuy = c.unitSell;
+    const u = (basis === 'buy' ? c.unitBuy : c.unitSell) || 0;
+    buyAllSell += (c.unitSell || 0) * c.perRun;
+    buyAllBuy += (c.unitBuy || 0) * c.perRun;
+    priced++;
+    fitProgress(0.32 + 0.66 * (priced / Math.max(1, S.root.children.length)), 'Pricing ' + (c.name || ('Type ' + c.type_id)));
+  }
+  S.bom = effLeafCost(1);
+  const split = bomCashSplit();
+  let unitOut = null;
+  if (ship) { try { unitOut = await marketPrice(ship.type_id, region, 'sell'); } catch {} }
+  S.lastCalc = {
+    fit: true, bpName: S.root.bpName, bpId: S.root.bpId, runs: 1,
+    matCostSell: buyAllSell, matCostBuy: buyAllBuy, feePerRun: 0,
+    totalCost: split.cash, revenue: unitOut || 0, sellFees: 0, profit: 0, roi: 0,
+    unitOut, outQty: ship ? 1 : 0, teBonus: 0, imp: D.implants[0], ind: 0, adv: 0,
+    totalCash: split.cash, profitCash: 0, minedValue: (split.mined || 0) + (split.extracted || 0),
+    missing, skipped, hullTypeId: ship ? ship.type_id : null
+  };
+  S.fitEnriching = true;
+  fitInCalculator = false; // only load into the Calculator when the user sends it
+  await fitRenderAll();
+  fitProgressDone('Priced ' + S.root.children.length + ' item' + (S.root.children.length === 1 ? '' : 's'));
+  try { localStorage.setItem('bvFit', JSON.stringify({ text, ts: Date.now() })); } catch {}
+  try { pushLedger({ ts: Date.now(), bp: S.root.bpName, bpId: S.root.bpId, runs: 1, cost: Math.round(split.cash), revenue: Math.round(unitOut || 0), profit: 0, hub: region, fit: true }); } catch {}
+  fitStatus('Priced ' + S.root.children.length + ' item' + (S.root.children.length === 1 ? '' : 's')
+    + (missing.length ? ' · ' + missing.length + ' unresolved' : '')
+    + (modesRestored > 0 ? ' · ' + modesRestored + ' saved toggle' + (modesRestored === 1 ? '' : 's') + ' restored' : '')
+    + '. Resolving blueprints…');
+  // Background: resolve each included item's recipe (buildable rows flip to Build).
+  enrichChildren(1).then(finishFitEnrich).catch(finishFitEnrich);
+}
+
+function finishFitEnrich() {
+  S.fitEnriching = false;
+  const kids = (S.root && S.root.children) || [];
+  // An item with no recipe can't stay on Build/React.
+  for (const c of kids) {
+    if (!c) continue;
+    const hasBp = !!(c.child && c.child.materials && c.child.materials.length);
+    const hasRx = !!(c.reaction && c.reaction.reagents && c.reaction.reagents.length);
+    if (c.mode === 'build' && !hasBp) c.mode = (hasRx && S.reactionsOn !== false) ? 'react' : 'buy';
+    else if (c.mode === 'react' && !hasRx) c.mode = hasBp ? 'build' : 'buy';
+  }
+  try { bvModesSave(); } catch {}
+  try { fitPersistModes(); } catch {}
+  try { fitRefresh(); } catch {}
+  const built = kids.filter(c => c.include !== false && c.mode === 'build' && c.child && c.child.materials && c.child.materials.length).length;
+  const noBp = kids.filter(c => c.include !== false && !(c.child && c.child.materials && c.child.materials.length) && !(c.reaction && c.reaction.reagents && c.reaction.reagents.length) && !isMineable(c.type_id) && !isPI(c.type_id) && !(S.product && c.type_id === S.product.type_id)).length;
+  fitStatus('Done. ' + kids.length + ' item' + (kids.length === 1 ? '' : 's') + ' · ' + built + ' buildable' + (noBp ? ' · ' + noBp + ' buy-only' : '') + '. Tick what you want to send.');
+  // Fill the nested material breakdowns with the same deep resolver the
+  // Calculator uses (progressive; the fit view re-renders as data lands).
+  bpProgDeepEnrich(S.root).then(() => { try { if (fitVisible()) fitRenderAll(); } catch {} }).catch(() => {});
+}
+
+function fitCard(k, v, sub, cls) {
+  return '<div class="summary-card"><div class="k">' + escapeHtml(k) + '</div><div class="v' + (cls ? ' ' + cls : '') + '">' + v + '</div>' + (sub ? '<div class="k">' + sub + '</div>' : '') + '</div>';
+}
+// Summary cards for the current fit — shared by the Fit view and the
+// Calculator's summary grid (which the fit is loaded into).
+function fitSummaryHtml() {
+  if (!S.root || !S.root.children) return '';
+  const basis = ($('basis') && $('basis').value) || 'sell';
+  const kids = S.root.children;
+  const inc = kids.filter(c => c.include !== false);
+  const split = bomCashSplit();
+  let buyAll = 0;
+  for (const c of inc) buyAll += ((basis === 'buy' ? c.unitBuy : c.unitSell) || 0) * c.perRun;
+  const savings = buyAll - split.cash;
+  const hull = kids.find(c => c.section === 'hull');
+  const hubName = (D.hubs.find(h => h.region === hub()) || {}).name || hub();
+  return fitCard('Fit', escapeHtml(S.root.bpName), inc.length + ' / ' + kids.length + ' items included')
+    + fitCard('Buy all (market)', fmtISK(buyAll), inc.length + ' item' + (inc.length === 1 ? '' : 's') + ' @ ' + escapeHtml(hubName) + ' · ' + basis)
+    + fitCard('Build cost (raw cash)', fmtISK(split.cash), (S.bom || []).length + ' BOM lines' + (split.mined ? ' · excl. ' + fmtISK(split.mined) + ' mined' : '') + (split.extracted ? ' · excl. ' + fmtISK(split.extracted) + ' extracted' : ''))
+    + fitCard(savings >= 0 ? 'Saved by building' : 'Building costs more', fmtISK(Math.abs(savings)), 'vs buying everything', savings >= 0 ? 'green' : 'red')
+    + (hull ? fitCard('Hull', escapeHtml(hull.name), fmtISK(hull.unitSell || 0) + ' market') : '');
+}
+
+async function fitRenderAll() {
+  if (!S.root || !S.root.children) return;
+  if (!(S.lastCalc && S.lastCalc.fit)) return; // never paint a blueprint calc into the Fit view
+  const basis = ($('basis') && $('basis').value) || 'sell';
+  const kids = S.root.children;
+  const inc = kids.filter(c => c.include !== false);
+  S.bom = effLeafCost(1);
+  const split = bomCashSplit();
+  const hull = kids.find(c => c.section === 'hull');
+  const hubName = (D.hubs.find(h => h.region === hub()) || {}).name || hub();
+
+  const sum = $('fitSummary');
+  if (sum) {
+    sum.style.display = 'grid';
+    sum.innerHTML = fitSummaryHtml();
+  }
+
+  const warn = $('fitWarn');
+  if (warn) {
+    const noBp = S.fitEnriching ? [] : inc.filter(c => !(c.child && c.child.materials && c.child.materials.length) && !(c.reaction && c.reaction.reagents && c.reaction.reagents.length)
+      && !isMineable(c.type_id) && !isPI(c.type_id) && !(S.product && c.type_id === S.product.type_id));
+    const rows = [];
+    if ((S.lastCalc && S.lastCalc.missing || []).length) rows.push('<b>Unresolved names</b> (not evaluated): ' + S.lastCalc.missing.map(escapeHtml).join(', '));
+    if ((S.lastCalc && S.lastCalc.skipped || []).length) rows.push('<b>Skipped by options</b>: ' + S.lastCalc.skipped.map(s => escapeHtml(s.name) + ' (' + escapeHtml(s.reason) + ')').join(', '));
+    if (noBp.length) rows.push('<b>Buy-only</b> — no manufacturing blueprint found: ' + noBp.map(c => escapeHtml(c.name)).join(', '));
+    if (rows.length) { warn.style.display = ''; warn.innerHTML = '<h3><i class="fas fa-triangle-exclamation" style="color:#d29922"></i> Notes</h3>' + rows.map(r => '<p class="hint">' + r + '</p>').join(''); }
+    else { warn.style.display = 'none'; warn.innerHTML = ''; }
+  }
+
+  const mb = $('fitModBody');
+  if (mb) {
+    mb.innerHTML = kids.map((c, i) => {
+      const on = c.include !== false;
+      const recipe = !!(c.child && c.child.materials && c.child.materials.length);
+      const rxOn = !!(c.reaction && c.reaction.reagents && c.reaction.reagents.length && S.reactionsOn !== false);
+      const mine = isMineable(c.type_id), pi = isPI(c.type_id);
+      const pending = !c._tried;
+      const btn = (m, label) => '<button class="mode-btn' + (c.mode === m ? ' on-' + m : '') + '" data-fitmode="' + i + '" data-fm="' + m + '">' + label + '</button>';
+      let modes = btn('buy', 'Buy');
+      if (mine) modes = btn('buy', 'Buy') + btn('mine', '<i class="fas fa-gem"></i> Mine');
+      else if (pi) modes = btn('buy', 'Buy') + btn('extract', 'Extract');
+      else {
+        // Only offer Build/React once a recipe (or formula) actually exists —
+        // while the lookup is still pending both are shown, after an empty
+        // result neither is, so nothing unbuildable can be set to Build.
+        if (recipe || pending) modes += btn('build', 'Build');
+        if (rxOn) modes += btn('react', 'React');
+      }
+      const isHull = c.section === 'hull';
+      const warnPill = (S.fitEnriching || recipe || rxOn || mine || pi || isHull) ? '' : ' <span class="pill" title="No manufacturing blueprint — buy only">no BP</span>';
+      const secPill = (c.section && c.section !== 'module') ? ' <span class="pill">' + c.section.toUpperCase() + '</span>' : '';
+      const unit = (basis === 'buy' ? c.unitBuy : c.unitSell) || 0;
+      return '<tr' + (on ? '' : ' style="opacity:.45"') + '>'
+        + '<td style="text-align:center"><input type="checkbox" data-fitinc="' + i + '"' + (on ? ' checked' : '') + ' title="Include this item in the fit"></td>'
+        + '<td>' + bvIconImg(c.type_id) + ' ' + escapeHtml(c.name) + secPill + warnPill + '</td>'
+        + '<td>' + fmtN(c.perRun) + '</td><td>' + fmtISK(unit) + '</td><td>' + fmtISK(unit * c.perRun) + '</td>'
+        + '<td><span class="mode-toggle">' + modes + '</span></td>'
+        + '<td><a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(c.type_id) + '" title="Price check in Market Browser"><i class="fas fa-chart-line"></i></a>' + infoButton(c.type_id) + '</td></tr>';
+    }).join('');
+    const meta = $('fitModMeta'); if (meta) meta.textContent = inc.length + ' / ' + kids.length + ' selected';
+    mb.querySelectorAll('[data-fitinc]').forEach(b => b.onchange = () => fitSetInclude(+b.dataset.fitinc, b.checked));
+    mb.querySelectorAll('[data-fitmode]').forEach(b => b.onclick = () => fitSetMode(+b.dataset.fitmode, b.dataset.fm));
+    const mp = $('fitModulesPanel'); if (mp) mp.style.display = '';
+    const ap = $('fitActionsPanel'); if (ap) ap.style.display = '';
+  }
+}
+
+// Blueprints (and reaction formulas) needed for a build — walks every included
+// item's build/reaction tree and collects the recipe labels actually being
+// used. Works on any build root: the live calculation or a pinned snapshot.
+//
+// Listing rule: an entry appears only when we hold a real recipe for it AND the
+// user is actually sourcing that item in-house. Anything we couldn't resolve a
+// recipe for — raw minerals/PI, buy-only market items, names that failed to
+// resolve — is never listed, so the list can only ever over-promise missing
+// recipes, never invent one.
+function blueprintListFor(src) {
+  const out = new Map();
+  const rxAllowed = S.reactionsOn !== false;
+  const add = (name, typeId, kind) => { if (!name) return; const k = String(name).toLowerCase(); if (!out.has(k)) out.set(k, { name: String(name), typeId: typeId, kind: kind }); };
+  // The recipe kind we're allowed to list for a resolved deep node.
+  // Manufacturing always counts; a reaction formula only while Reactions is ON.
+  const recipeKind = node => {
+    if (!node || !node.materials || !node.materials.length) return null;
+    if (node.kind === 'bp') return 'bp';
+    if (node.kind === 'rx') return rxAllowed ? 'rx' : null;
+    return null;
+  };
+  const walk = (mats, ci, trail, depth, rx, parentFull, productQty) => {
+    const batches = deepBatches(parentFull, productQty);
+    for (const m of (mats || [])) {
+      const tid = deepMatId(m);
+      if (!Number.isFinite(tid) || tid <= 0) continue;
+      const qty = Math.max(0, Math.floor(deepMatQty(m) * batches));
+      if (!qty) continue;
+      const key = progKey(ci, trail.concat([tid]), depth, rx);
+      const sub = m._deep;
+      const kind = recipeKind(sub);
+      const info = { hasBp: kind === 'bp', hasRx: kind === 'rx', mineable: isMineable(tid) };
+      const eff = deepModeFor(key, info);
+      if (eff === 'build' && kind === 'bp') { add(sub.label, tid, 'bp'); walk(sub.materials, ci, trail.concat([tid]), depth + 1, false, qty, sub.productQty || 1); }
+      else if (eff === 'react' && kind === 'rx') { add(sub.label, tid, 'rx'); walk(sub.materials, ci, trail.concat([tid]), depth + 1, true, qty, sub.productQty || 1); }
+    }
+  };
+  const kids = (src && src.children) || [];
+  kids.forEach((c, ci) => {
+    if (!c || c.include === false) return;
+    // Raw / PI goods are sourced by mining or extraction, never by a blueprint.
+    if (isMineable(c.type_id) || isPI(c.type_id)) return;
+    const need = c.perRun;
+    if (c.mode === 'build') {
+      // Top-level children only ever carry a manufacturing recipe (they're set
+      // by childBlueprint, which returns null when there's no blueprint).
+      if (c.child && c.child.bpName && c.child.materials && c.child.materials.length) {
+        add(c.child.bpName, c.type_id, 'bp');
+        walk(c.child.materials, ci, [+c.type_id], 1, false, need, c.child.productQty || 1);
+      }
+    } else if (c.mode === 'react') {
+      const rx = c.reaction;
+      if (rxAllowed && rx && rx.reagents && rx.reagents.length && rx.formulaName) { add(rx.formulaName, c.type_id, 'rx'); walk(rx.reagents, ci, [+c.type_id], 1, true, need, rx.productQty || 1); }
+    }
+  });
+  return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+// Blueprints required for the build Build Progress is currently tracking.
+function trackedBlueprintList() {
+  try { return blueprintListFor(bpProgSource()); } catch { return []; }
+}
+
+function fitRefresh() {
+  if (!S.root || !S.root.children) return;
+  S.bom = effLeafCost(1);
+  try { fitRenderAll(); } catch {}
+  // Keep the Calculator's copy of the fit in sync (only once it's been sent).
+  try {
+    if (fitInCalculator && S.lastCalc && S.lastCalc.fit) {
+      renderCrumbs(S.root.bpName);
+      renderTree(1);
+      renderBom(1);
+      renderSummary(S.lastCalc);
+    }
+  } catch {}
+  try { fitCalcNoteRender(); } catch {}
+  // Mirror live sourcing + include changes into the pinned build so Build
+  // Progress always matches the fit even after it's been sent.
+  try { bpProgRefreshPin(); } catch {}
+  try { renderBuildProgress(); } catch {}
+}
+function fitSetInclude(i, val) {
+  const c = S.root && S.root.children[i]; if (!c) return;
+  c.include = !!val;
+  const ig = fitIgnRead(S.root.bpId);
+  if (c.include) delete ig[c.type_id]; else ig[c.type_id] = false;
+  fitIgnWrite(S.root.bpId, ig);
+  fitRefresh();
+  if (c.include && !c.child && !c._tried) enrichChildren(1).then(() => { if (fitVisible()) fitRefresh(); }).catch(() => {});
+}
+function fitSetMode(i, m) {
+  const c = S.root && S.root.children[i]; if (!c) return;
+  if (m === 'build' && !(c.child && c.child.materials && c.child.materials.length)) { fitStatus('No manufacturing blueprint for ' + c.name + ' — buy only.'); return; }
+  if (m === 'mine' && !isMineable(c.type_id)) return;
+  if (m === 'extract' && !isPI(c.type_id)) return;
+  if (m === 'react' && !(c.reaction && c.reaction.reagents && c.reaction.reagents.length && S.reactionsOn !== false)) return;
+  c.mode = m;
+  try { fitPersistModes(); } catch {}
+  fitRefresh();
+}
+function fitSetAllInclude(v) {
+  if (!S.root) return;
+  const ig = {};
+  S.root.children.forEach(c => { c.include = !!v; if (!v) ig[c.type_id] = false; });
+  fitIgnWrite(S.root.bpId, ig);
+  fitRefresh();
+  if (v) enrichChildren(1).then(() => { if (fitVisible()) fitRefresh(); }).catch(() => {});
+}
+function fitSetAllMode(m) {
+  if (!S.root) return;
+  S.root.children.forEach((c, i) => { if (c.include === false) return; if (m === 'build') { if (c.child && c.child.materials && c.child.materials.length) c.mode = 'build'; } else c.mode = m; });
+  try { fitPersistModes(); } catch {}
+  fitRefresh();
+}
+
 // ---- wire ----
 document.addEventListener('DOMContentLoaded', () => {
   try { bpPinsLoad(); } catch {}
@@ -4978,7 +5625,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const scbB = $('sendCalcToBuildBottom');
   if (scbB) scbB.onclick = () => sendCalcToBuild();
   $('bpName').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
-  $('resetBtn').onclick = () => { ['bpName', 'runs', 'systemName'].forEach(k => $(k).value = k === 'runs' ? 1 : k === 'systemName' ? 'Jita' : ''); status(''); };
+  $('resetBtn').onclick = () => calcResetAll();
   $('savePreset').onclick = () => { const n = prompt('Preset name:'); if (!n) return; const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const ids = ['hubSelect', 'me', 'te', 'indSkill', 'advSkill', 'implant', 'structure', 'rigs', 'jobTax', 'basis', 'reactions', 'scc', 'salesTax', 'broker', 'mfgIndex', 'tracked', 'refinePct', 'mineRate', 'mineShip']; pr[n] = Object.fromEntries(ids.map(k => [k, $(k) ? $(k).value : undefined])); localStorage.setItem('bvPresets', JSON.stringify(pr)); refreshPresets(pr); status('Preset saved.'); };
   $('preset').onchange = e => { const pr = JSON.parse(localStorage.getItem('bvPresets') || '{}'); const p = pr[e.target.value]; if (p) for (const [k, v] of Object.entries(p)) if ($(k)) $(k).value = v; };
   $('reactions').onchange = () => {
@@ -4986,6 +5633,8 @@ document.addEventListener('DOMContentLoaded', () => {
     S.reactionsOn = ($('reactions').value === 'on');
     if (!S.reactionsOn) S.root.children.forEach(c => { if (c.mode === 'react') c.mode = 'buy'; });
     renderTree(S.runs || 1); renderBom(S.runs || 1); if (S.lastCalc) renderSummary(S.lastCalc);
+    try { bpProgRefreshPin(); } catch {}
+    try { renderBuildProgress(); } catch {}
     if (S.reactionsOn) { status('Reactions ON — resolving formulas…'); enrichChildren(S.runs || 1); }
     else status('Reactions OFF — reaction materials priced from market.');
   };
@@ -4999,6 +5648,32 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
   $('bpRefresh').onclick = loadBlueprints; $('bpScan').onclick = scanProfit;
+  // ---- Fit Builder wiring ----
+  if ($('fitAnalyze')) $('fitAnalyze').onclick = calculateFit;
+  if ($('fitSample')) $('fitSample').onclick = () => { if ($('fitPaste')) $('fitPaste').value = FIT_SAMPLE; calculateFit(); };
+  if ($('fitClear')) $('fitClear').onclick = () => {
+    if ($('fitPaste')) $('fitPaste').value = '';
+    try { localStorage.removeItem('bvFit'); } catch {}
+    fitStatus('');
+    try { fitProgressHide(); } catch {}
+    ['fitSummary', 'fitWarn', 'fitModulesPanel', 'fitActionsPanel'].forEach(id => { const el = $(id); if (el) el.style.display = 'none'; });
+    try { calcResetAll(); } catch {}
+  };
+  if ($('fitPaste')) $('fitPaste').addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') calculateFit(); });
+  if ($('fitIncAll')) $('fitIncAll').onclick = () => fitSetAllInclude(true);
+  if ($('fitIncNone')) $('fitIncNone').onclick = () => fitSetAllInclude(false);
+  if ($('fitBuyAll')) $('fitBuyAll').onclick = () => fitSetAllMode('buy');
+  if ($('fitBuildAll')) $('fitBuildAll').onclick = () => fitSetAllMode('build');
+  if ($('fitSendBoth')) $('fitSendBoth').onclick = () => {
+    if (!(S.root && S.lastCalc && S.lastCalc.fit)) { fitStatus('Analyse a fit first.'); return; }
+    fitLoadToCalculator();
+    const pinned = bpProgPinCurrent(true);
+    switchMainView('calc');
+    scrollContentTop();
+    fitStatus(pinned ? 'Loaded into the Calculator and sent to Build Progress.' : 'Loaded into the Calculator — pin limit reached, unpin one in Build Progress to track it there.');
+  };
+  // Restore last pasted fit (no auto-analyse — prices stay fresh on demand).
+  try { const j = JSON.parse(localStorage.getItem('bvFit') || 'null'); if (j && j.text && $('fitPaste') && !$('fitPaste').value) $('fitPaste').value = j.text; } catch {}
   // Share links calculate automatically — on page load and when clicked from
   // the ledger (same-page hash change, no reload). Supports the new short
   // code (#<code>) and the legacy #bv=<base64> form.
@@ -5041,7 +5716,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restore last active sidebar tab + main view.
   function restoreUiState() {
     try { const tab = localStorage.getItem('bvActiveTab'); if (tab) { const b = document.querySelector('.tab-btn[data-tab="' + tab + '"]'); if (b && !b.classList.contains('active')) b.click(); } } catch {}
-    try { const v = localStorage.getItem('bvActiveView'); if (v === 'prog' || v === 'calc') switchMainView(v); } catch {}
+    try { const v = localStorage.getItem('bvActiveView'); if (v === 'prog' || v === 'calc' || v === 'fit') switchMainView(v); } catch {}
     try { const lb = document.querySelector('.tab-btn[data-tab="ledger"]'); if (lb && lb.classList.contains('active')) renderSavedList(); } catch {}
   }
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
