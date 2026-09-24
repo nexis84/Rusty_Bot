@@ -730,6 +730,11 @@ loginAudio.preload = 'auto';
 function playLoginSound(){
   try{ loginAudio.currentTime=0; const p=loginAudio.play(); if(p && p.catch) p.catch(()=>{}); }catch{}
 }
+let hiddenAt=0;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='hidden'){ hiddenAt=Date.now(); return; }
+  if(document.visibilityState==='visible' && Date.now()-hiddenAt>5000) playLoginSound();
+});
 const pingAudio = new Audio('Sounds/EVE%20Online%20-%20Notification%20Ping.mp3');
 pingAudio.preload = 'auto';
 function playHitPing(){
