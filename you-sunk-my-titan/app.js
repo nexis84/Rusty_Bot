@@ -67,7 +67,7 @@ function renderPilotBar(){
 }
 async function startPilotLogin(){
   try{
-    const res=await fetch(`${API_BASE}/auth/titan/login`);
+    const res=await fetch(`${API_BASE}/auth/eve/login?redirect=titan`);
     const data=await res.json();
     if(!data.url) throw new Error(data.error||'Login unavailable');
     location.href=data.url;
