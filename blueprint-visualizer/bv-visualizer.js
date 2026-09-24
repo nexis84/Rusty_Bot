@@ -5364,6 +5364,17 @@ async function loadInventory() {
   if (!window.BVAuth || !BVAuth.signedIn()) { if(box) box.innerHTML='<p class="hint">Sign in with SSO first (needs esi-assets.read_assets.v1 / read_corporation_assets.v1). Tokens without the new scope need a re-login.</p>'; return; }
   const allSystems = stkAllSystems();
   if (!stkSysId() && !allSystems) { if (st) st.textContent = 'Pick a build system first, or enable all-systems search.'; if (box) box.innerHTML = '<p class="hint">Type your build system above, pick it from the list, or enable <b>Search all personal systems</b>.</p>'; return; }
+  // Daily downtime (~12:00–12:15 UK): Tranquility + ESI are offline. Fail fast
+  // with a clear message instead of burning retries against a dead endpoint.
+  try {
+    if (window.BVAuth && BVAuth.isDowntime && BVAuth.isDowntime()) {
+      const msg = 'EVE daily downtime (12:00–12:15 UK) — ESI is offline. Try again after downtime.';
+      if (st) st.textContent = msg;
+      if (box) box.innerHTML = '<p class="hint">' + msg + ' Your last snapshot is untouched below.</p>';
+      stkProgressHide();
+      return;
+    }
+  } catch {}
   stkScanBusy = true;
   if (box) box.textContent = allSystems ? 'Scanning all personal systems…' : 'Scanning ' + stkSysIdName(stkSysId()) + '…';
   if (st) st.textContent = 'Fetching assets…';
@@ -5399,21 +5410,59 @@ async function loadInventory() {
     // assest test. A short page no longer ends the fetch — only the header
     // (or an empty/404 page) does. Returns { assets, pages }.
     let stkPagesFatched = 0;
+    const stkIsTransientAssetErr = e => {
+      if (!e) return false;
+      if (e.downtime) return false; // downtime fails fast — never retried
+      if (e.transient) return true;
+      const m = String((e && e.message) || e || '');
+      return /\b50[234]\b|\b502\b|\b503\b|\b504\b|network error|timed out|Failed to fetch|Load failed/i.test(m);
+    };
+    const stkIsDowntimeErr = e => {
+      if (e && e.downtime) return true;
+      try { if (window.BVAuth && BVAuth.isDowntime && BVAuth.isDowntime()) return true; } catch {}
+      const m = String((e && e.message) || e || '');
+      return /daily downtime/i.test(m);
+    };
     const fetchAssetPages = async (path, prog) => {
       const all = [];
       let totalPages = null, fetched = 0;
       for (let pg = 1; pg <= 100; pg++) {
         let chunk = null, pages = null;
-        try {
-          const res = await BVAuth.apiRaw(path + '&page=' + pg);
-          chunk = res.data; pages = res.pages;
-        } catch (e) {
-          // A 404 past the last page still carries the true X-Pages count.
-          if (e && e.pages) totalPages = e.pages;
-          // ESI can answer 404 for the first page after the last page.
-          // That is a normal pagination terminator, not a failed scan.
-          if (/\b404\b/.test(String((e && e.message) || ''))) break;
-          throw e;
+        // Per-page retry: ESI 504s the assets endpoint routinely for big
+        // hangars. BVAuth.apiRaw already retries gateway errors; this outer
+        // layer adds a few more attempts with longer backoff + UI feedback so
+        // one bad page never fails the whole scan.
+        const MAX_PAGE_RETRIES = 4;
+        let attempt = 0;
+        for (;;) {
+          try {
+            const res = await BVAuth.apiRaw(path + '&page=' + pg);
+            chunk = res.data; pages = res.pages;
+            break;
+          } catch (e) {
+            // A 404 past the last page still carries the true X-Pages count.
+            if (e && e.pages) totalPages = e.pages;
+            // ESI can answer 404 for the first page after the last page.
+            // That is a normal pagination terminator, not a failed scan.
+            if (/\b404\b/.test(String((e && e.message) || ''))) { chunk = []; break; }
+            // Daily downtime: never retry — surface the downtime message at once.
+            if (stkIsDowntimeErr(e)) throw (e && e.downtime ? e : new Error('EVE daily downtime (12:00–12:15 UK) — ESI is offline. Try again after downtime.'));
+            if (stkIsTransientAssetErr(e) && attempt < MAX_PAGE_RETRIES) {
+              attempt++;
+              const waitMs = Math.min(15000, 1500 * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 750);
+              try { if (prog) prog(Math.max(1, pg - 1), all.length, totalPages); } catch {}
+              try { if (st) st.textContent = 'ESI timed out on assets page ' + pg + ' — retrying (' + attempt + '/' + MAX_PAGE_RETRIES + ') in ' + Math.round(waitMs / 1000) + 's…'; } catch {}
+              await new Promise(r => setTimeout(r, waitMs));
+              continue;
+            }
+            // Still failing after retries: on page 1 with nothing fetched this
+            // is fatal; past page 1 keep what we have if ESI told us the page
+            // count and we already reached it, else fail with a helpful message.
+            if (stkIsTransientAssetErr(e)) {
+              throw new Error('ESI timed out serving assets page ' + pg + ' (' + (path.includes('/characters/') ? 'character' : 'corporation') + ' assets). Fetched ' + all.length + ' stacks so far — wait ~30s and hit Scan again.');
+            }
+            throw e;
+          }
         }
         if (pages) totalPages = pages;
         if (!Array.isArray(chunk) || !chunk.length) break;
@@ -5875,6 +5924,9 @@ function stkAutoRefreshReady() {
 async function stkAutoRefreshRun(reason) {
   try {
     if (!stkAutoRefreshReady() || document.hidden) return;
+    // Never auto-scan into downtime — ESI is offline, so silently skip and
+    // let the next tick (or a manual scan) pick up after 12:15 UK.
+    try { if (window.BVAuth && BVAuth.isDowntime && BVAuth.isDowntime()) return; } catch {}
     const who = stkSysIdName(stkSysId()) || 'all systems';
     try { const st = $('stkStatus'); if (st) st.textContent = 'Auto-refreshing ' + who + (reason ? ' (' + reason + ')' : '') + '…'; } catch {}
     await loadInventory();
