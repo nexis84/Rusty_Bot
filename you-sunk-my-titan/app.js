@@ -21,6 +21,7 @@ let shots=0, turns=0;
 let scanUsed=false, scanArmed=false;
 let doomAvailable=false, doomUsed=false, doomArmed=false, doomMode='row'; // row vs col
 let placementHorizontal=true;
+let hoverCell=null;
 let placementIndex=0;
 let placementShips=[]; // templates for current faction in order Titan->Dreadnought->Carrier->Battleship->Cruiser->Frigate
 let gameOver=false, playerWon=false;
@@ -140,12 +141,12 @@ function onCellHover(r,c,isEnemy,enter){
   if(isEnemy) return;
   if(turn!=='setup') return;
   clearHover();
-  if(!enter) return;
+  if(!enter){ hoverCell=null; return; }
   if(placementIndex>=placementShips.length) return;
+  hoverCell={r,c};
   const tpl=placementShips[placementIndex];
   const direct = canPlaceAt(playerBoard, tpl.size, r,c, placementHorizontal);
   const fallback = direct? null : canPlaceAt(playerBoard, tpl.size, r,c, !placementHorizontal);
-  const useHor = !!direct;
   const cells = direct || fallback;
   if(!cells){
     const el=getCellEl(playerBoardEl,r,c);
@@ -162,6 +163,12 @@ function onCellHover(r,c,isEnemy,enter){
     cells, size:tpl.size, hits:0, sunk:false
   };
   placeShipOverlay(playerBoardEl, ghost, 'sil-preview');
+}
+function refreshHover(){
+  if(turn!=='setup') return;
+  if(!hoverCell) return;
+  if(placementIndex>=placementShips.length) return;
+  onCellHover(hoverCell.r, hoverCell.c, false, true);
 }
 
 function placeFleetRandom(factionName){
@@ -606,6 +613,7 @@ function tryPlaceCurrentShip(r,c){
   playerShips.push({...tpl, cells, hits:0, sunk:false});
   placementIndex++;
   renderBoards(); renderFleets(); updatePlacementUI(); updateStatus();
+  refreshHover();
   if(placementIndex>=placementShips.length){
     flash('Fleet complete — press Start Battle', true);
   }
@@ -909,12 +917,13 @@ if(clearBtn) clearBtn.addEventListener('click',()=>{
 if(rotateBtn) rotateBtn.addEventListener('click',()=>{
   placementHorizontal=!placementHorizontal;
   updatePlacementUI();
+  refreshHover();
 });
 document.addEventListener('keydown', (e)=>{
   if(e.key.toLowerCase()==='r' && turn==='setup'){
     placementHorizontal=!placementHorizontal;
     updatePlacementUI();
-    clearHover();
+    refreshHover();
   }
 });
 startBtn.addEventListener('click', startBattle);
