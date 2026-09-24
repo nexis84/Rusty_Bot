@@ -1,7 +1,7 @@
 {
   "meta": {
     "build": 3539543,
-    "generatedAt": "2026-09-24T08:05:24.465Z",
+    "generatedAt": "2026-09-24T09:10:01.750Z",
     "grid": 10,
     "totalHP": 20
   },
@@ -18,7 +18,20 @@
         "icon": "https://images.evetech.net/types/11567/icon?size=64",
         "svg": "assets/svg/avatar.svg",
         "portrait": false,
-        "aspect": 3.014
+        "aspect": 2.241
+      },
+      {
+        "class": "Dreadnought",
+        "name": "Revelation",
+        "typeID": 19720,
+        "size": 6,
+        "groupID": 485,
+        "factionID": 500003,
+        "render": "https://images.evetech.net/types/19720/render?size=256",
+        "icon": "https://images.evetech.net/types/19720/icon?size=64",
+        "svg": "assets/svg/revelation.svg",
+        "portrait": false,
+        "aspect": 2.592
       },
       {
         "class": "Carrier",
@@ -35,16 +48,16 @@
       },
       {
         "class": "Battleship",
-        "name": "Abaddon",
-        "typeID": 24692,
+        "name": "Apocalypse",
+        "typeID": 642,
         "size": 4,
         "groupID": 27,
         "factionID": 500003,
-        "render": "https://images.evetech.net/types/24692/render?size=256",
-        "icon": "https://images.evetech.net/types/24692/icon?size=64",
-        "svg": "assets/svg/abaddon.svg",
-        "portrait": true,
-        "aspect": 0.224
+        "render": "https://images.evetech.net/types/642/render?size=256",
+        "icon": "https://images.evetech.net/types/642/icon?size=64",
+        "svg": "assets/svg/apocalypse.svg",
+        "portrait": false,
+        "aspect": 3.843
       },
       {
         "class": "Cruiser",
@@ -57,7 +70,7 @@
         "icon": "https://images.evetech.net/types/624/icon?size=64",
         "svg": "assets/svg/maller.svg",
         "portrait": false,
-        "aspect": 4.083
+        "aspect": 1.37
       },
       {
         "class": "Frigate",
@@ -70,7 +83,7 @@
         "icon": "https://images.evetech.net/types/589/icon?size=64",
         "svg": "assets/svg/executioner.svg",
         "portrait": false,
-        "aspect": 2.365
+        "aspect": 4.5
       }
     ],
     "Caldari": [
@@ -84,8 +97,21 @@
         "render": "https://images.evetech.net/types/3764/render?size=256",
         "icon": "https://images.evetech.net/types/3764/icon?size=64",
         "svg": "assets/svg/leviathan.svg",
-        "portrait": true,
-        "aspect": 0.816
+        "portrait": false,
+        "aspect": 5.093
+      },
+      {
+        "class": "Dreadnought",
+        "name": "Phoenix",
+        "typeID": 19726,
+        "size": 6,
+        "groupID": 485,
+        "factionID": 500001,
+        "render": "https://images.evetech.net/types/19726/render?size=256",
+        "icon": "https://images.evetech.net/types/19726/icon?size=64",
+        "svg": "assets/svg/phoenix.svg",
+        "portrait": false,
+        "aspect": 4.652
       },
       {
         "class": "Carrier",
@@ -98,20 +124,20 @@
         "icon": "https://images.evetech.net/types/23915/icon?size=64",
         "svg": "assets/svg/chimera.svg",
         "portrait": false,
-        "aspect": 3.021
+        "aspect": 5.669
       },
       {
         "class": "Battleship",
-        "name": "Rokh",
-        "typeID": 24688,
+        "name": "Raven",
+        "typeID": 638,
         "size": 4,
         "groupID": 27,
         "factionID": 500001,
-        "render": "https://images.evetech.net/types/24688/render?size=256",
-        "icon": "https://images.evetech.net/types/24688/icon?size=64",
-        "svg": "assets/svg/rokh.svg",
-        "portrait": true,
-        "aspect": 0.455
+        "render": "https://images.evetech.net/types/638/render?size=256",
+        "icon": "https://images.evetech.net/types/638/icon?size=64",
+        "svg": "assets/svg/raven.svg",
+        "portrait": false,
+        "aspect": 3.21
       },
       {
         "class": "Cruiser",
@@ -124,20 +150,20 @@
         "icon": "https://images.evetech.net/types/621/icon?size=64",
         "svg": "assets/svg/caracal.svg",
         "portrait": false,
-        "aspect": 4.255
+        "aspect": 2.933
       },
       {
         "class": "Frigate",
-        "name": "Merlin",
-        "typeID": 603,
+        "name": "Kestrel",
+        "typeID": 602,
         "size": 2,
         "groupID": 25,
         "factionID": 500001,
-        "render": "https://images.evetech.net/types/603/render?size=256",
-        "icon": "https://images.evetech.net/types/603/icon?size=64",
-        "svg": "assets/svg/merlin.svg",
+        "render": "https://images.evetech.net/types/602/render?size=256",
+        "icon": "https://images.evetech.net/types/602/icon?size=64",
+        "svg": "assets/svg/kestrel.svg",
         "portrait": false,
-        "aspect": 2.279
+        "aspect": 3.142
       }
     ],
     "Gallente": [
@@ -152,7 +178,20 @@
         "icon": "https://images.evetech.net/types/671/icon?size=64",
         "svg": "assets/svg/erebus.svg",
         "portrait": false,
-        "aspect": 2.768
+        "aspect": 3.089
+      },
+      {
+        "class": "Dreadnought",
+        "name": "Moros",
+        "typeID": 19724,
+        "size": 6,
+        "groupID": 485,
+        "factionID": 500004,
+        "render": "https://images.evetech.net/types/19724/render?size=256",
+        "icon": "https://images.evetech.net/types/19724/icon?size=64",
+        "svg": "assets/svg/moros.svg",
+        "portrait": false,
+        "aspect": 1.959
       },
       {
         "class": "Carrier",
@@ -165,7 +204,7 @@
         "icon": "https://images.evetech.net/types/23911/icon?size=64",
         "svg": "assets/svg/thanatos.svg",
         "portrait": false,
-        "aspect": 2.741
+        "aspect": 7.603
       },
       {
         "class": "Battleship",
@@ -178,7 +217,7 @@
         "icon": "https://images.evetech.net/types/641/icon?size=64",
         "svg": "assets/svg/megathron.svg",
         "portrait": false,
-        "aspect": 5.999
+        "aspect": 2.755
       },
       {
         "class": "Cruiser",
@@ -191,20 +230,20 @@
         "icon": "https://images.evetech.net/types/626/icon?size=64",
         "svg": "assets/svg/vexor.svg",
         "portrait": false,
-        "aspect": 1.884
+        "aspect": 1.186
       },
       {
         "class": "Frigate",
-        "name": "Incursus",
-        "typeID": 594,
+        "name": "Tristan",
+        "typeID": 593,
         "size": 2,
         "groupID": 25,
         "factionID": 500004,
-        "render": "https://images.evetech.net/types/594/render?size=256",
-        "icon": "https://images.evetech.net/types/594/icon?size=64",
-        "svg": "assets/svg/incursus.svg",
+        "render": "https://images.evetech.net/types/593/render?size=256",
+        "icon": "https://images.evetech.net/types/593/icon?size=64",
+        "svg": "assets/svg/tristan.svg",
         "portrait": true,
-        "aspect": 0.807
+        "aspect": 0.635
       }
     ],
     "Minmatar": [
@@ -219,7 +258,20 @@
         "icon": "https://images.evetech.net/types/23773/icon?size=64",
         "svg": "assets/svg/ragnarok.svg",
         "portrait": false,
-        "aspect": 3.778
+        "aspect": 5.916
+      },
+      {
+        "class": "Dreadnought",
+        "name": "Naglfar",
+        "typeID": 19722,
+        "size": 6,
+        "groupID": 485,
+        "factionID": 500002,
+        "render": "https://images.evetech.net/types/19722/render?size=256",
+        "icon": "https://images.evetech.net/types/19722/icon?size=64",
+        "svg": "assets/svg/naglfar.svg",
+        "portrait": true,
+        "aspect": 0.224
       },
       {
         "class": "Carrier",
@@ -232,20 +284,20 @@
         "icon": "https://images.evetech.net/types/24483/icon?size=64",
         "svg": "assets/svg/nidhoggur.svg",
         "portrait": false,
-        "aspect": 5.066
+        "aspect": 8.185
       },
       {
         "class": "Battleship",
-        "name": "Maelstrom",
-        "typeID": 24694,
+        "name": "Typhoon",
+        "typeID": 644,
         "size": 4,
         "groupID": 27,
         "factionID": 500002,
-        "render": "https://images.evetech.net/types/24694/render?size=256",
-        "icon": "https://images.evetech.net/types/24694/icon?size=64",
-        "svg": "assets/svg/maelstrom.svg",
+        "render": "https://images.evetech.net/types/644/render?size=256",
+        "icon": "https://images.evetech.net/types/644/icon?size=64",
+        "svg": "assets/svg/typhoon.svg",
         "portrait": false,
-        "aspect": 1.809
+        "aspect": 4.518
       },
       {
         "class": "Cruiser",
@@ -258,7 +310,7 @@
         "icon": "https://images.evetech.net/types/629/icon?size=64",
         "svg": "assets/svg/rupture.svg",
         "portrait": false,
-        "aspect": 4.747
+        "aspect": 1.286
       },
       {
         "class": "Frigate",
@@ -271,74 +323,7 @@
         "icon": "https://images.evetech.net/types/587/icon?size=64",
         "svg": "assets/svg/rifter.svg",
         "portrait": false,
-        "aspect": 4.984
-      }
-    ],
-    "Triglavian": [
-      {
-        "class": "Titan",
-        "name": "Zirnitra",
-        "typeID": 52907,
-        "size": 6,
-        "groupID": 485,
-        "factionID": 500026,
-        "render": "https://images.evetech.net/types/52907/render?size=256",
-        "icon": "https://images.evetech.net/types/52907/icon?size=64",
-        "svg": "assets/svg/zirnitra.svg",
-        "portrait": false,
-        "aspect": 4.9
-      },
-      {
-        "class": "Carrier",
-        "name": "Leshak",
-        "typeID": 47271,
-        "size": 5,
-        "groupID": 27,
-        "factionID": 500026,
-        "render": "https://images.evetech.net/types/47271/render?size=256",
-        "icon": "https://images.evetech.net/types/47271/icon?size=64",
-        "svg": "assets/svg/leshak.svg",
-        "portrait": false,
-        "aspect": 4.299
-      },
-      {
-        "class": "Battleship",
-        "name": "Drekavac",
-        "typeID": 49711,
-        "size": 4,
-        "groupID": 419,
-        "factionID": 500026,
-        "render": "https://images.evetech.net/types/49711/render?size=256",
-        "icon": "https://images.evetech.net/types/49711/icon?size=64",
-        "svg": "assets/svg/drekavac.svg",
-        "portrait": false,
-        "aspect": 1.378
-      },
-      {
-        "class": "Cruiser",
-        "name": "Vedmak",
-        "typeID": 47270,
-        "size": 3,
-        "groupID": 26,
-        "factionID": 500026,
-        "render": "https://images.evetech.net/types/47270/render?size=256",
-        "icon": "https://images.evetech.net/types/47270/icon?size=64",
-        "svg": "assets/svg/vedmak.svg",
-        "portrait": false,
-        "aspect": 2.611
-      },
-      {
-        "class": "Frigate",
-        "name": "Damavik",
-        "typeID": 47269,
-        "size": 2,
-        "groupID": 25,
-        "factionID": 500026,
-        "render": "https://images.evetech.net/types/47269/render?size=256",
-        "icon": "https://images.evetech.net/types/47269/icon?size=64",
-        "svg": "assets/svg/damavik.svg",
-        "portrait": true,
-        "aspect": 0.929
+        "aspect": 4.747
       }
     ]
   }

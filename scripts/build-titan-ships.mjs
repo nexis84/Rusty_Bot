@@ -8,15 +8,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SDE_DIR = path.resolve(__dirname, '../sde');
 const OUT = path.resolve(__dirname, '../you sunk my titan/ships.json');
 
-// Locked hull mapping 2026-09-02 — Triglavian added 2026-09-02 (Zirnitra proxy for Titan/Carrier where no native hull)
+// Locked hull mapping — one hull per class per race, classes verified against the SDE
 const FLEETS = {
-  Amarr:    { Titan:'Avatar',    Carrier:'Archon',   Battleship:'Abaddon',  Cruiser:'Maller',   Frigate:'Executioner' },
-  Caldari:  { Titan:'Leviathan', Carrier:'Chimera',  Battleship:'Rokh',      Cruiser:'Caracal',  Frigate:'Merlin' },
-  Gallente: { Titan:'Erebus',    Carrier:'Thanatos', Battleship:'Megathron', Cruiser:'Vexor',    Frigate:'Incursus' },
-  Minmatar: { Titan:'Ragnarok',  Carrier:'Nidhoggur',Battleship:'Maelstrom', Cruiser:'Rupture',  Frigate:'Rifter' },
-  Triglavian:{ Titan:'Zirnitra', Carrier:'Leshak',   Battleship:'Drekavac', Cruiser:'Vedmak',    Frigate:'Damavik' },
+  Amarr:    { Titan:'Avatar',      Dreadnought:'Revelation', Carrier:'Archon',    Battleship:'Apocalypse', Cruiser:'Maller',   Frigate:'Executioner' },
+  Caldari:  { Titan:'Leviathan',   Dreadnought:'Phoenix',    Carrier:'Chimera',   Battleship:'Raven',      Cruiser:'Caracal',  Frigate:'Kestrel' },
+  Gallente: { Titan:'Erebus',      Dreadnought:'Moros',      Carrier:'Thanatos',  Battleship:'Megathron',  Cruiser:'Vexor',    Frigate:'Tristan' },
+  Minmatar: { Titan:'Ragnarok',    Dreadnought:'Naglfar',    Carrier:'Nidhoggur', Battleship:'Typhoon',    Cruiser:'Rupture',  Frigate:'Rifter' },
 };
-const SIZES = { Titan:6, Carrier:5, Battleship:4, Cruiser:3, Frigate:2 };
+const SIZES = { Titan:6, Dreadnought:6, Carrier:5, Battleship:4, Cruiser:3, Frigate:2 };
 
 function en(o){ if(!o) return ''; if(typeof o==='string') return o.trim(); return (o.en||'').trim(); }
 
@@ -48,9 +47,7 @@ for(const [faction, roster] of Object.entries(FLEETS)){
   for(const [cls, name] of Object.entries(roster)){
     const t = byName.get(name);
     if(!t) throw new Error(`Hull not found in SDE: ${name}`);
-    const svgName = name.toLowerCase().replace(/\s+/g,'_').replace('maelstrom','maelstrom');
-    // maelstorm.svg is actually maelstorm in source (CCP typo), normalize
-    const svgFile = svgName === 'maelstrom' ? 'maelstrom.svg' : svgName + '.svg';
+    const svgFile = name.toLowerCase().replace(/\s+/g,'_') + '.svg';
     ships.push({
       class: cls,
       name,
