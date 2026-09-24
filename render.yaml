@@ -22,10 +22,6 @@ services:
         sync: false
       - key: EVE_BV_CLIENT_SECRET
         sync: false
-      - key: EVE_TITAN_CLIENT_ID
-        sync: false
-      - key: EVE_TITAN_CLIENT_SECRET
-        sync: false
       - key: FRONTEND_URL
         sync: false
 

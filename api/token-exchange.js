@@ -149,46 +149,6 @@ app.get('/api/auth/eve/callback', (req, res) => {
   res.redirect(redirectTarget + '?code=' + encodeURIComponent(code) + (state ? '&state=' + encodeURIComponent(state) : ''));
 });
 
-// You Sunk My Titan SSO login endpoint — uses the titan EVE app credentials
-app.get('/api/auth/titan/login', (req, res) => {
-  const clientId = process.env.EVE_TITAN_CLIENT_ID || '';
-  if (!clientId) {
-    return res.status(500).json({ error: 'SSO not configured on server' });
-  }
-  const state = crypto.randomBytes(16).toString('hex');
-  pendingStates.set(state, { created: Date.now() });
-  const frontendUrl = process.env.FRONTEND_URL || '';
-  const baseUrl = frontendUrl || 'https://api.rustybot.co.uk';
-  const redirectUri = baseUrl + '/api/auth/titan/callback';
-  const url = 'https://login.eveonline.com/v2/oauth/authorize/?' + new URLSearchParams({
-    response_type: 'code',
-    redirect_uri: redirectUri,
-    client_id: clientId,
-    scope: 'publicData',
-    state,
-  }).toString();
-  res.json({ state, url });
-});
-
-// Titan SSO callback relay — forwards the code back to the game page.
-app.get('/api/auth/titan/callback', (req, res) => {
-  const { code, state } = req.query;
-  const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
-  const baseUrl = frontendUrl || (req.get('origin') || '').replace(/\/$/, '');
-  const targetPage = '/you-sunk-my-titan/';
-  const redirectTarget = baseUrl + targetPage;
-
-  if (!code) {
-    return res.redirect(redirectTarget + '?error=no_code');
-  }
-
-  if (state && pendingStates.has(state)) {
-    pendingStates.delete(state);
-  }
-
-  res.redirect(redirectTarget + '?code=' + encodeURIComponent(code) + (state ? '&state=' + encodeURIComponent(state) : ''));
-});
-
 // Health check endpoint (before express.static to take priority)
 app.get('/', (req, res) => {
     res.json({ status: 'ok', service: 'RustyBot API', routes: 'mounted', env: process.env.NODE_ENV || 'not set' });
@@ -299,91 +259,6 @@ app.post('/api/token-exchange', tokenExchangeLimiter, async (req, res) => {
         console.error('Server error during token exchange:', error);
         return res.status(500).json({ 
             error: 'Internal server error during token exchange' 
-        });
-    }
-});
-
-// You Sunk My Titan token exchange — uses the titan EVE SSO app credentials
-app.post('/api/auth/titan/token-exchange', tokenExchangeLimiter, async (req, res) => {
-    const { code } = req.body;
-
-    if (!code) {
-        return res.status(400).json({
-            error: 'Missing required parameter: code'
-        });
-    }
-
-    try {
-        const clientId = process.env.EVE_TITAN_CLIENT_ID;
-        const clientSecret = process.env.EVE_TITAN_CLIENT_SECRET;
-        if (!clientId || !clientSecret) {
-            console.error('Titan token exchange blocked: EVE_TITAN_CLIENT_ID and EVE_TITAN_CLIENT_SECRET must be set in environment');
-            return res.status(500).json({ error: 'SSO not configured on server' });
-        }
-
-        // Exchange authorization code for access token
-        const tokenResponse = await fetchWithTimeout('https://login.eveonline.com/v2/oauth/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Basic ' + Buffer.from(
-                    clientId + ':' + clientSecret
-                ).toString('base64')
-            },
-            body: new URLSearchParams({
-                'grant_type': 'authorization_code',
-                'code': code
-            })
-        });
-
-        if (!tokenResponse.ok) {
-            const errorData = await tokenResponse.json().catch(() => ({}));
-            console.error('Titan token exchange error:', errorData);
-            return res.status(400).json({
-                error: errorData.error_description || 'Token exchange failed'
-            });
-        }
-
-        const tokenData = await tokenResponse.json();
-
-        // Verify the JWT signature against EVE's JWKS keys
-        const decodedJWT = await verifyJWT(tokenData.access_token);
-
-        if (!decodedJWT || !decodedJWT.sub) {
-            return res.status(500).json({ error: 'Invalid access token' });
-        }
-
-        // Extract character ID from the subject (format: CHARACTER:EVE:12345678)
-        const characterId = decodedJWT.sub.split(':').pop();
-
-        // Fetch character name from ESI (with timeout)
-        let characterName = 'Unknown';
-        try {
-            const characterResponse = await fetchWithTimeout(
-                `https://esi.evetech.net/latest/characters/${characterId}/?datasource=tranquility`
-            );
-            if (characterResponse.ok) {
-                const characterData = await characterResponse.json();
-                characterName = characterData.name;
-            } else {
-                console.error('Failed to fetch character name from ESI:', characterResponse.status);
-            }
-        } catch (e) {
-            console.error('ESI character fetch failed:', e.message);
-        }
-
-        return res.status(200).json({
-            access_token: tokenData.access_token,
-            refresh_token: tokenData.refresh_token,
-            expires_in: tokenData.expires_in,
-            character_id: characterId,
-            character_name: characterName
-        });
-
-    } catch (error) {
-        console.error('Server error during titan token exchange:', error);
-        return res.status(500).json({
-            error: 'Internal server error during token exchange'
         });
     }
 });
