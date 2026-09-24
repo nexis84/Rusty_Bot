@@ -89,6 +89,71 @@ async function handleSsoCallback(){
   finally{ history.replaceState({},'', location.pathname); }
 }
 
+// ---- Sound ----
+let audioCtx=null;
+function titanSoundOn(){
+  try{ return localStorage.getItem('titan_sound')!=='off'; }catch{ return true; }
+}
+function playTone(freq, dur, type){
+  try{
+    if(!titanSoundOn()) return;
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type||'sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+dur);
+  }catch{}
+}
+function playNoise(dur, filterFreq){
+  try{
+    if(!titanSoundOn()) return;
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    const len=Math.floor(audioCtx.sampleRate*dur);
+    const buf=audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+    const src=audioCtx.createBufferSource(); src.buffer=buf;
+    const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=filterFreq||800;
+    const g=audioCtx.createGain();
+    g.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+dur);
+    src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start();
+  }catch{}
+}
+function playSweep(from, to, dur, type){
+  try{
+    if(!titanSoundOn()) return;
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(from, audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(to, audioCtx.currentTime+dur);
+    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+dur);
+  }catch{}
+}
+function sfxPlace(){ playTone(440,0.09); }
+function sfxRotate(){ playTone(660,0.05,'square'); }
+function sfxShuffleUp(){ playSweep(300,700,0.18); }
+function sfxShuffleDown(){ playSweep(700,300,0.18); }
+function sfxClick(){ playTone(520,0.05); }
+function sfxFire(quiet){ playNoise(0.18, quiet?500:900); playTone(quiet?110:150,0.18,'triangle'); }
+function sfxHit(quiet){ playNoise(0.3, quiet?600:1000); playTone(quiet?90:120,0.3,'sawtooth'); }
+function sfxMiss(quiet){ playTone(quiet?180:220,0.15); }
+function sfxSunk(){ playNoise(0.6,500); playTone(160,0.5,'sawtooth'); setTimeout(()=>playTone(80,0.6,'sawtooth'),150); }
+function sfxScanArm(){ playSweep(500,900,0.12); }
+function sfxScan(){ playSweep(900,400,0.35); setTimeout(()=>playTone(1200,0.1),350); }
+function sfxDoomArm(){ playSweep(200,600,0.25,'sawtooth'); }
+function sfxDoom(){ playNoise(0.8,400); playSweep(100,1500,0.7,'sawtooth'); setTimeout(()=>playTone(60,0.8),100); }
+function sfxStart(){ playTone(392,0.1); setTimeout(()=>playTone(523,0.15),100); }
+function sfxWin(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,0.3),i*150)); }
+function sfxLose(){ playTone(220,0.4,'sawtooth'); setTimeout(()=>playTone(147,0.6,'sawtooth'),250); }
+
 // ---- Boards ----
 function emptyBoard(){ return Array.from({length:GRID},()=>Array(GRID).fill(0)); }
 function createElBoard(container, isEnemy){
@@ -218,6 +283,7 @@ function isSunk(ship, board){
 function markSunk(ship, board){
   for(const cl of ship.cells) board[cl.r][cl.c]=4;
   ship.sunk=true;
+  sfxSunk();
 }
 
 function allSunk(ships){ return ships.every(s=>s.sunk); }
@@ -589,6 +655,7 @@ function randomisePlayerFleet(){
   playerBoard = resP.board;
   playerShips = resP.ships;
   placementIndex = placementShips.length; // mark complete
+  sfxShuffleUp();
   renderBoards(); renderFleets(); updatePlacementUI(); updateStatus();
 }
 
@@ -597,6 +664,7 @@ function clearPlayerFleet(){
   playerShips = [];
   placementIndex=0;
   placementHorizontal=true;
+  sfxShuffleDown();
   renderBoards(); renderFleets(); updatePlacementUI(); updateStatus();
 }
 
@@ -612,6 +680,7 @@ function tryPlaceCurrentShip(r,c){
   for(const cl of cells) playerBoard[cl.r][cl.c]=1;
   playerShips.push({...tpl, cells, hits:0, sunk:false});
   placementIndex++;
+  sfxPlace();
   renderBoards(); renderFleets(); updatePlacementUI(); updateStatus();
   refreshHover();
   if(placementIndex>=placementShips.length){
@@ -628,6 +697,7 @@ function startBattle(){
     return;
   }
   turn='player'; turns=1;
+  sfxStart();
   updateStatus(); updatePlacementUI();
   flash('Battle started — your turn — fire at Space right', false);
 }
@@ -668,6 +738,7 @@ function onCellClick(r,c,isEnemyBoard){
     // toggle mode on second click? For now doomMode toggles via button long-press; here we use current doomMode
     const res = doomsdayAt(enemyBoard, enemyShips, r,c, doomMode);
     doomArmed=false; doomUsed=true;
+    sfxDoom();
     shots+=1;
     renderBoards(); renderFleets(); updateStatus();
     checkWin();
@@ -684,6 +755,7 @@ function onCellClick(r,c,isEnemyBoard){
     if(turn!=='player') return;
     const res = scanAt(enemyBoard, r,c);
     scanArmed=false; scanUsed=true;
+    sfxScan();
     // visual scan overlay for 1.5s
     for(const cl of res){
       const el=getCellEl(enemyBoardEl, cl.r, cl.c);
@@ -702,13 +774,16 @@ function onCellClick(r,c,isEnemyBoard){
   if(enemyBoard[r][c]===2||enemyBoard[r][c]===3||enemyBoard[r][c]===4) return;
 
   const res = fireAt(enemyBoard, enemyShips, r,c);
+  sfxFire(false);
   shots+=1;
   renderBoards(); renderFleets(); updateStatus();
   if(res.sunk){
     flash(`SUNK ${res.shipName} (${res.shipClass})!`, true);
   } else if(res.hit){
+    sfxHit(false);
     flash('HIT!', true);
   } else {
+    sfxMiss(false);
     flash('MISS', false);
   }
   checkWin();
@@ -727,6 +802,8 @@ function aiTurn(){
   if(!pick){ turn='player'; updateStatus(); return; }
   const [r,c]=pick;
   const res=fireAt(playerBoard, playerShips, r,c);
+  sfxFire(true);
+  if(res.hit && !res.sunk) sfxHit(true); else if(!res.hit) sfxMiss(true);
   renderBoards(); renderFleets();
   // after AI hit, check titan damage unlock
   const playerTitan = playerShips.find(s=>s.class==='Titan');
@@ -765,6 +842,7 @@ function flash(msg, good){
 
 function endGame(won){
   gameOver=true; playerWon=won; turn='over';
+  if(won) sfxWin(); else sfxLose();
   const sc=computeScore();
   $('goResult').textContent = won? `Victory — You sunk their ${enemyFaction} Titan!` : `Defeat — Your ${faction} Titan was sunk`;
   $('goShots').textContent=shots;
@@ -890,7 +968,7 @@ function wireHowto(){
 scanBtn.addEventListener('click',()=>{
   if(scanUsed||gameOver||turn!=='player') return;
   scanArmed=!scanArmed;
-  if(scanArmed) doomArmed=false;
+  if(scanArmed){ doomArmed=false; sfxScanArm(); }
   updateStatus();
   if(scanArmed) flash('Scan ARMED — pick center of 3×3', true);
 });
@@ -899,12 +977,20 @@ doomBtn.addEventListener('click',()=>{
   // toggle row/col mode on each click
   if(!doomArmed){
     doomArmed=true; scanArmed=false;
+    sfxDoomArm();
   } else {
     doomMode = doomMode==='row'? 'col':'row';
   }
   updateStatus();
   if(doomArmed) flash(`Doomsday ARMED — ${doomMode} — pick any cell`, true);
 });
+function syncSoundBtn(){
+  const btn=$('soundBtn');
+  if(!btn) return;
+  const on=titanSoundOn();
+  btn.textContent=on?'🔊 Sound On':'🔇 Sound Off';
+  btn.classList.toggle('muted',!on);
+}
 randomBtn.addEventListener('click',()=>{
   // randomise YOUR fleet only; keep setup state (enemy fleet already random)
   randomisePlayerFleet();
@@ -917,12 +1003,14 @@ if(clearBtn) clearBtn.addEventListener('click',()=>{
 if(rotateBtn) rotateBtn.addEventListener('click',()=>{
   placementHorizontal=!placementHorizontal;
   updatePlacementUI();
+  sfxRotate();
   refreshHover();
 });
 document.addEventListener('keydown', (e)=>{
   if(e.key.toLowerCase()==='r' && turn==='setup'){
     placementHorizontal=!placementHorizontal;
     updatePlacementUI();
+    sfxRotate();
     refreshHover();
   }
 });
@@ -972,6 +1060,13 @@ async function init(){
   renderFactionGrid();
   wireDiff();
   wireHowto();
+  syncSoundBtn();
+  const soundBtn=$('soundBtn');
+  if(soundBtn) soundBtn.addEventListener('click',()=>{
+    try{ localStorage.setItem('titan_sound', titanSoundOn()?'off':'on'); }catch{}
+    syncSoundBtn();
+    sfxClick();
+  });
   createElBoard(enemyBoardEl,true);
   createElBoard(playerBoardEl,false);
   newGame();

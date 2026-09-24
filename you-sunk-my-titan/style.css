@@ -65,6 +65,7 @@ body{
 .ctrl-btn.primary{background:linear-gradient(180deg,#f5e53b,var(--accent));color:#1a0e08;border-color:var(--accent)}
 .ctrl-btn.scan.active{background:rgba(232,217,0,.18);border-color:var(--accent);color:var(--accent)}
 .ctrl-btn.doom.ready{border-color:#ff5252;color:#ff5252}
+.sound-btn.muted{opacity:.55}
 .status-bar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;font-size:.88rem;margin:8px 0}
 .status-pill{background:var(--p1);border:1px solid var(--p2);border-radius:999px;padding:5px 12px;color:var(--dim)}
 .status-pill strong{color:var(--accent)}
