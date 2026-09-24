@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE by build_stats.py — do not edit by hand
-// SDE build: 3538132
+// SDE build: 3539543
 // Ships: 423
-// Generated: 2026-09-22
+// Generated: 2026-09-24
 
 var SHIPS = [
   {
