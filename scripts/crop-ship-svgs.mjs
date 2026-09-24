@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Crop eve-ships-svg silhouettes to their tight bounding box and tag orientation.
-// Reads SVGs from you sunk my titan/assets/svg, rewrites each viewBox (removing
+// Reads SVGs from you-sunk-my-titan/assets/svg, rewrites each viewBox (removing
 // the potrace whitespace padding), and patches ships.json with portrait/aspect.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const GAME_DIR = path.resolve(__dirname, '../you sunk my titan');
+const GAME_DIR = path.resolve(__dirname, '../you-sunk-my-titan');
 const SVG_DIR = path.join(GAME_DIR, 'assets', 'svg');
 const SHIPS_FILE = path.join(GAME_DIR, 'ships.json');
 

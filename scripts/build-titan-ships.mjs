@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SDE_DIR = path.resolve(__dirname, '../sde');
-const OUT = path.resolve(__dirname, '../you sunk my titan/ships.json');
+const OUT = path.resolve(__dirname, '../you-sunk-my-titan/ships.json');
 
 // Locked hull mapping — one hull per class per race, classes verified against the SDE
 const FLEETS = {
