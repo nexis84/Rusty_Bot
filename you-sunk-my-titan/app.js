@@ -85,6 +85,7 @@ async function handleSsoCallback(){
     if(!res.ok) throw new Error(data.error||'Token exchange failed');
     pilot={character_id:data.character_id, character_name:data.character_name, access_token:data.access_token, expires_at: Date.now()+(data.expires_in||1200)*1000-60000};
     savePilot();
+    playLoginSound();
   }catch(e){ console.error('[titan] SSO callback failed',e); }
   finally{ history.replaceState({},'', location.pathname); }
 }
@@ -707,6 +708,7 @@ function onCellClick(r,c,isEnemyBoard){
   if(res.sunk){
     flash(`SUNK ${res.shipName} (${res.shipClass})!`, true);
   } else if(res.hit){
+    playHitPing();
     flash('HIT!', true);
   } else {
     flash('MISS', false);
@@ -718,6 +720,21 @@ function onCellClick(r,c,isEnemyBoard){
   setTimeout(aiTurn, 450);
 }
 
+const armorAudio = new Audio('Sounds/EVE%20Online%20-%20Armor%20Warning.mp3');
+armorAudio.preload = 'auto';
+function playArmorWarning(){
+  try{ armorAudio.currentTime=0; const p=armorAudio.play(); if(p && p.catch) p.catch(()=>{}); }catch{}
+}
+const loginAudio = new Audio('Sounds/EVE%20Online%20-%20Login%20Connecting.mp3');
+loginAudio.preload = 'auto';
+function playLoginSound(){
+  try{ loginAudio.currentTime=0; const p=loginAudio.play(); if(p && p.catch) p.catch(()=>{}); }catch{}
+}
+const pingAudio = new Audio('Sounds/EVE%20Online%20-%20Notification%20Ping.mp3');
+pingAudio.preload = 'auto';
+function playHitPing(){
+  try{ pingAudio.currentTime=0; const p=pingAudio.play(); if(p && p.catch) p.catch(()=>{}); }catch{}
+}
 function aiTurn(){
   if(gameOver || turn!=='ai') return;
   let pick;
@@ -734,6 +751,13 @@ function aiTurn(){
     doomAvailable=true;
   }
   if(res.hit){
+    const hitShip = playerShips.find(s=> s.cells.some(cl=>cl.r===r&&cl.c===c));
+    if(res.sunk){
+      playArmorWarning();
+    } else if(hitShip){
+      if(hitShip.hits===1) playArmorWarning();
+      else if(!hitShip.halfWarned && hitShip.hits/hitShip.size>=0.5){ hitShip.halfWarned=true; playArmorWarning(); }
+    }
     aiNotifyHit(r,c,playerBoard);
     if(res.sunk) aiNotifySunk();
   }
