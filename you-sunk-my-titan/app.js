@@ -730,10 +730,23 @@ loginAudio.preload = 'auto';
 function playLoginSound(){
   try{ loginAudio.currentTime=0; const p=loginAudio.play(); if(p && p.catch) p.catch(()=>{}); }catch{}
 }
-let hiddenAt=0;
+function unlockAudio(){
+  for(const a of [armorAudio, loginAudio, pingAudio]){
+    try{
+      a.volume=0;
+      const p=a.play();
+      const restore=()=>{ try{ a.pause(); a.currentTime=0; a.volume=1; }catch{} };
+      if(p && p.then) p.then(restore).catch(()=>{ try{ a.volume=1; }catch{} });
+      else restore();
+    }catch{}
+  }
+  document.removeEventListener('pointerdown', unlockAudio);
+  document.removeEventListener('keydown', unlockAudio);
+}
+document.addEventListener('pointerdown', unlockAudio);
+document.addEventListener('keydown', unlockAudio);
 document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='hidden'){ hiddenAt=Date.now(); return; }
-  if(document.visibilityState==='visible' && Date.now()-hiddenAt>5000) playLoginSound();
+  if(document.visibilityState==='visible') playLoginSound();
 });
 const pingAudio = new Audio('Sounds/EVE%20Online%20-%20Notification%20Ping.mp3');
 pingAudio.preload = 'auto';
