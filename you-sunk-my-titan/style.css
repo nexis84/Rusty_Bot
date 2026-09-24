@@ -87,6 +87,9 @@ body{
 .cell.sunk{background:linear-gradient(180deg,#5a0808,#220808);color:#fff;border-color:#7a1a1a}
 .cell.sunk::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 60%,rgba(255,60,40,.25),transparent 70%);z-index:0}
 .cell img{width:70%;height:70%;object-fit:contain;pointer-events:none}
+.coord{display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:var(--dim);user-select:none;pointer-events:none}
+.row-lab{aspect-ratio:1}
+.col-lab{padding:2px 0}
 .cell.fog{filter:grayscale(1) brightness(.45);opacity:.55}
 @keyframes sunkPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
 .board.enemy .cell{cursor:crosshair}

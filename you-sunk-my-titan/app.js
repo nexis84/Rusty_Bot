@@ -92,8 +92,12 @@ async function handleSsoCallback(){
 function emptyBoard(){ return Array.from({length:GRID},()=>Array(GRID).fill(0)); }
 function createElBoard(container, isEnemy){
   container.innerHTML='';
-  container.style.setProperty('--cols', GRID);
+  container.style.setProperty('--cols', GRID+1);
   for(let r=0;r<GRID;r++){
+    const rowLab=document.createElement('div');
+    rowLab.className='coord row-lab';
+    rowLab.textContent=String.fromCharCode(65+r);
+    container.appendChild(rowLab);
     for(let c=0;c<GRID;c++){
       const cell=document.createElement('div');
       cell.className='cell';
@@ -103,6 +107,15 @@ function createElBoard(container, isEnemy){
       cell.addEventListener('mouseleave',()=>onCellHover(r,c,isEnemy,false));
       container.appendChild(cell);
     }
+  }
+  const corner=document.createElement('div');
+  corner.className='coord corner';
+  container.appendChild(corner);
+  for(let c=0;c<GRID;c++){
+    const colLab=document.createElement('div');
+    colLab.className='coord col-lab';
+    colLab.textContent=String(c+1);
+    container.appendChild(colLab);
   }
 }
 function getCellEl(container,r,c){ return container.querySelector(`[data-r='${r}'][data-c='${c}']`); }
