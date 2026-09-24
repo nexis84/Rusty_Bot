@@ -8,29 +8,38 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=9">
 <link rel="canonical" href="https://www.rustybot.co.uk/you%20sunk%20my%20titan/">
 <meta name="robots" content="index, follow">
 <link rel="icon" type="image/png" href="../rusty_bot.png">
 </head>
 <body>
-<div class="container">
+<header class="top-bar">
+  <div class="brand">
+    <a href="../" class="brand-link">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+      <h1 class="brand-name">You Sunk My <span class="accent">Titan</span></h1>
+    </a>
+  </div>
   <div class="breadcrumb">
     <span class="breadcrumb-item"><a href="../">Home</a></span>
     <span class="breadcrumb-item"><a href="./">You Sunk My Titan</a></span>
   </div>
-
+</header>
+<div class="container">
   <header class="tool-header">
-    <img src="../rusty_bot.png" alt="RustyBot" class="logo">
+    <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
     <h1>You Sunk My <span>Titan</span></h1>
-    <p class="subtitle">EVE Online battleship — 10×10, mono-faction fleets, vs AI only. Scan with your frigate, doomsday with your titan.</p>
+    <p class="subtitle">Eve Online Fleet Combat</p>
   </header>
 
-  <p class="howto">
+  <button id="howtoToggle" class="howto-toggle" type="button" aria-expanded="false" aria-controls="howto">How to play ▸</button>
+  <div id="howto" class="howto" hidden>
     Pick a <strong>faction</strong> and <strong>difficulty</strong>, then <strong>place your fleet</strong> on the left board — click to place each ship (R = rotate, Randomise for auto). Then fire at Space on the right.
+    Every fleet is one hull per class: <strong>Titan (6)</strong>, <strong>Dreadnought (6)</strong>, <strong>Carrier (5)</strong>, <strong>Battleship (4)</strong>, <strong>Cruiser (3)</strong>, <strong>Frigate (2)</strong>.
     <strong>Frigate (2)</strong> has a 1× 3×3 <strong>Tactical Scan</strong> (reveal, no damage).
     <strong>Titan (6)</strong> unlocks a 1× <strong>Doomsday</strong> full row/column strike after taking first damage.
-  </p>
+  </div>
 
   <div class="pilot-bar">
     <span id="pilotStatus" class="pilot-status">Playing as guest — scores won't save to leaderboard</span>
@@ -115,7 +124,7 @@
   </div>
 </div>
 
-<script src="app.js?v=6"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>
 

@@ -1,11 +1,12 @@
 // You Sunk My Titan — 10x10 mono-faction vs AI (Frigate 2 Scan, Titan 6 Doomsday) + SSO leaderboards
 const GRID = 10;
-const SIZES = { Titan:6, Carrier:5, Battleship:4, Cruiser:3, Frigate:2 };
+const SIZES = { Titan:6, Dreadnought:6, Carrier:5, Battleship:4, Cruiser:3, Frigate:2 };
 const DIFF_MULT = { easy:1.0, medium:1.5, hard:2.5 };
 const API_BASE = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:3000/api' : 'https://api.rustybot.co.uk/api';
 const AUTH_KEY='titan_auth';
 const LS_FACTION='titan_faction';
 const LS_DIFF='titan_diff';
+const LS_HOWTO='titan_howto';
 
 let shipsData=null;
 let faction='Amarr';
@@ -21,7 +22,7 @@ let scanUsed=false, scanArmed=false;
 let doomAvailable=false, doomUsed=false, doomArmed=false, doomMode='row'; // row vs col
 let placementHorizontal=true;
 let placementIndex=0;
-let placementShips=[]; // templates for current faction in order Titan->Frigate
+let placementShips=[]; // templates for current faction in order Titan->Dreadnought->Carrier->Battleship->Cruiser->Frigate
 let gameOver=false, playerWon=false;
 let lbSort='efficiency';
 
@@ -176,7 +177,7 @@ function placeFleetRandom(factionName){
         if(!ok){ ok=true; continue; }
         // place
         for(const cl of cells) board[cl.r][cl.c]=1;
-        ships.push({class:tpl.class, name:tpl.name, typeID:tpl.typeID, size:tpl.size, icon:tpl.icon, render:tpl.render, cells, hits:0, sunk:false});
+        ships.push({...tpl, cells, hits:0, sunk:false});
         placed=true; break;
       }
       if(!placed){ ok=false; break; }
@@ -378,8 +379,8 @@ function styleSilSlice(el, url, vert, idx, span){
     : (span>1 ? `${(idx/(span-1))*100}% 50%` : '50% 50%');
 }
 
-// Draw one ship as a single silhouette img sized so its long axis spans the ship's
-// cells (natural aspect preserved, centered on the footprint, may overlap neighbors).
+// Draw one ship as a single silhouette img fitted exactly inside its footprint's
+// bounding box, centred, with tall silhouettes rotated to lie along the long axis.
 function placeShipOverlay(boardEl, ship, cls){
   const first = getCellEl(boardEl, ship.cells[0].r, ship.cells[0].c);
   const last = getCellEl(boardEl, ship.cells[ship.cells.length-1].r, ship.cells[ship.cells.length-1].c);
@@ -396,45 +397,24 @@ function placeShipOverlay(boardEl, ship, cls){
     w: first.offsetWidth,
     h: last.offsetTop + last.offsetHeight - first.offsetTop
   };
-  const aspect = ship.aspect || 3;
-  const portrait = !!ship.portrait;
+  const span = hor ? rect.w : rect.h;
+  const cross = hor ? rect.h : rect.w;
+  const cx = rect.x + rect.w/2;
+  const cy = rect.y + rect.h/2;
+  const landscape = (ship.aspect || 3) >= 1;
+  const w = landscape ? span : cross;
+  const h = landscape ? cross : span;
+  const rotate = landscape ? !hor : hor;
   const img = document.createElement('img');
   img.src = ship.svg || ship.icon;
   img.alt = ship.name;
   img.className = 'ship-img ' + cls;
   img.loading = 'lazy';
-  let w, h;
-  if(!portrait){
-    if(hor){
-      w = rect.w; h = w/aspect;
-      img.style.left = (rect.x + (rect.w - w)/2) + 'px';
-      img.style.top  = (rect.y + (rect.h - h)/2) + 'px';
-      img.style.width  = w + 'px';
-      img.style.height = h + 'px';
-    } else {
-      w = rect.h; h = w/aspect;
-      img.style.width  = w + 'px';
-      img.style.height = h + 'px';
-      img.style.left = (rect.x + (rect.w - h)/2) + 'px';
-      img.style.top  = (rect.y + (rect.h - w)/2) + 'px';
-      img.style.transform = 'rotate(90deg)';
-    }
-  } else {
-    if(hor){
-      h = rect.w; w = h*aspect;
-      img.style.height = h + 'px';
-      img.style.width  = w + 'px';
-      img.style.left = (rect.x + (rect.w - h)/2) + 'px';
-      img.style.top  = (rect.y + (rect.h - w)/2) + 'px';
-      img.style.transform = 'rotate(-90deg)';
-    } else {
-      h = rect.h; w = h*aspect;
-      img.style.height = h + 'px';
-      img.style.width  = w + 'px';
-      img.style.left = (rect.x + (rect.w - w)/2) + 'px';
-      img.style.top  = (rect.y + (rect.h - h)/2) + 'px';
-    }
-  }
+  img.style.width = w + 'px';
+  img.style.height = h + 'px';
+  img.style.left = (cx - w/2) + 'px';
+  img.style.top = (cy - h/2) + 'px';
+  if(rotate) img.style.transform = 'rotate(90deg)';
   boardEl.appendChild(img);
 }
 
@@ -489,12 +469,10 @@ function renderBoards(){
     ship.cells.forEach(cl=> addSliceMarkers(getCellEl(playerBoardEl, cl.r, cl.c), playerBoard[cl.r][cl.c]));
   }
 
-  // ENEMY FLEET fog: hidden until ship has a hit; shown faint, full when sunk
+  // ENEMY FLEET fog: silhouettes stay hidden until sunk, hits reveal per-cell only
   if(turn!=='setup'){
     for(const ship of enemyShips){
-      if(ship.hits===0 && !ship.sunk) continue;
-      let cls = ship.sunk ? 'sil-sunk' : 'sil-enemy';
-      placeShipOverlay(enemyBoardEl, ship, cls);
+      if(ship.sunk) placeShipOverlay(enemyBoardEl, ship, 'sil-sunk');
       ship.cells.forEach(cl=> addSliceMarkers(getCellEl(enemyBoardEl, cl.r, cl.c), enemyBoard[cl.r][cl.c]));
     }
   }
@@ -549,7 +527,7 @@ function computeScore(){
 
 // ---- Game flow ----
 function pickRandomEnemyFaction(){
-  const keys = Object.keys(shipsData.factions); // includes Triglavian
+  const keys = Object.keys(shipsData.factions);
   let pick = keys[Math.floor(Math.random()*keys.length)];
   // ensure at least sometimes different from player for variety — 80% chance to re-roll if same
   if(pick===faction && keys.length>1 && Math.random()<0.8){
@@ -563,7 +541,7 @@ function initPlacementForFaction(){
   const roster = shipsData.factions[faction];
   if(!roster) return;
   // keep order Titan, Carrier, Battleship, Cruiser, Frigate for stable placement prompt
-  const order = ['Titan','Carrier','Battleship','Cruiser','Frigate'];
+  const order = ['Titan','Dreadnought','Carrier','Battleship','Cruiser','Frigate'];
   placementShips = order.map(cls=> roster.find(r=>r.class===cls)).filter(Boolean);
   placementIndex=0;
   placementHorizontal=true;
@@ -612,7 +590,7 @@ function tryPlaceCurrentShip(r,c){
   if(!cells) return false;
   // place
   for(const cl of cells) playerBoard[cl.r][cl.c]=1;
-  playerShips.push({class:tpl.class, name:tpl.name, typeID:tpl.typeID, size:tpl.size, icon:tpl.icon, render:tpl.render, cells, hits:0, sunk:false});
+  playerShips.push({...tpl, cells, hits:0, sunk:false});
   placementIndex++;
   renderBoards(); renderFleets(); updatePlacementUI(); updateStatus();
   if(placementIndex>=placementShips.length){
@@ -833,11 +811,10 @@ function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt
 // ---- Faction/Diff wiring ----
 function renderFactionGrid(){
   const entries=[
-    {key:'Amarr', sub:'Avatar · Archon · Abaddon · Maller · Executioner'},
-    {key:'Caldari', sub:'Leviathan · Chimera · Rokh · Caracal · Merlin'},
-    {key:'Gallente', sub:'Erebus · Thanatos · Megathron · Vexor · Incursus'},
-    {key:'Minmatar', sub:'Ragnarok · Nidhoggur · Maelstrom · Rupture · Rifter'},
-    {key:'Triglavian', sub:'Zirnitra · Leshak · Drekavac · Vedmak · Damavik'},
+    {key:'Amarr', sub:'Avatar · Revelation · Archon · Apocalypse · Maller · Executioner'},
+    {key:'Caldari', sub:'Leviathan · Phoenix · Chimera · Raven · Caracal · Kestrel'},
+    {key:'Gallente', sub:'Erebus · Moros · Thanatos · Megathron · Vexor · Tristan'},
+    {key:'Minmatar', sub:'Ragnarok · Naglfar · Nidhoggur · Typhoon · Rupture · Rifter'},
   ];
   factionGrid.innerHTML= entries.map(e=>`
     <button class="faction-btn ${faction===e.key?'active':''}" data-faction="${e.key}" type="button">
@@ -849,7 +826,7 @@ function renderFactionGrid(){
       faction=btn.dataset.faction;
       localStorage.setItem(LS_FACTION,faction);
       renderFactionGrid();
-      // reinit placement for new faction; enemy stays random Triglav-capable
+      // reinit placement for new faction; enemy stays random from the other races
       initPlacementForFaction();
       clearPlayerFleet();
       // re-roll enemy faction (random race) on faction change for surprise
@@ -868,6 +845,23 @@ function wireDiff(){
       diffRow.querySelectorAll('.diff-btn').forEach(b=> b.classList.toggle('active', b.dataset.diff===difficulty));
       updateStatus();
     });
+  });
+}
+
+function wireHowto(){
+  const btn = $('howtoToggle');
+  const panel = $('howto');
+  if(!btn || !panel) return;
+  const apply = open => {
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    btn.textContent = open ? 'How to play ▾' : 'How to play ▸';
+  };
+  apply(localStorage.getItem(LS_HOWTO) === 'open');
+  btn.addEventListener('click', ()=>{
+    const open = panel.hidden;
+    apply(open);
+    localStorage.setItem(LS_HOWTO, open ? 'open' : 'closed');
   });
 }
 
@@ -955,6 +949,7 @@ async function init(){
 
   renderFactionGrid();
   wireDiff();
+  wireHowto();
   createElBoard(enemyBoardEl,true);
   createElBoard(playerBoardEl,false);
   newGame();
