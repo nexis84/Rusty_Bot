@@ -881,12 +881,12 @@
     "race": "Caldari",
     "class": "Heavy Assault Cruiser",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
-      "bonus to kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "Can fit Assault Damage Controls",
+      "bonus to Light Missile, Heavy Missile and Heavy Assault Missile damage",
       "bonus to Heavy Assault Missile max velocity",
-      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
-      "bonus to Shield Booster amount"
+      "bonus to Shield Booster amount",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire"
     ]
   },
   {
@@ -1364,12 +1364,12 @@
     "race": "Gallente",
     "class": "Heavy Assault Cruiser",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
       "bonus to Medium Hybrid Turret damage",
       "bonus to Armor Repairer amount",
-      "bonus to Medium Hybrid Turret damage",
-      "bonus to Medium Hybrid Turret falloff"
+      "bonus to Medium Hybrid Turret falloff",
+      "bonus to Medium Hybrid Turret damage"
     ]
   },
   {
@@ -1528,10 +1528,10 @@
     "race": "Caldari",
     "class": "Heavy Assault Cruiser",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
-      "bonus to all shield resistances",
+      "Can fit Assault Damage Controls",
       "bonus to Medium Hybrid Turret optimal range",
+      "bonus to all shield resistances",
       "bonus to Medium Hybrid Turret tracking speed",
       "bonus to Medium Hybrid Turret damage"
     ]
@@ -2014,12 +2014,12 @@
     "race": "Caldari",
     "class": "Assault Frigate",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
-      "bonus to all shield resistances",
+      "Can fit Assault Damage Controls",
       "bonus to Small Hybrid Turret optimal range",
-      "bonus to Small Hybrid Turret damage",
-      "bonus to Small Hybrid Turret optimal range"
+      "bonus to all shield resistances",
+      "bonus to Small Hybrid Turret tracking speed",
+      "bonus to Small Hybrid Turret damage"
     ]
   },
   {
@@ -2027,12 +2027,12 @@
     "race": "Caldari",
     "class": "Assault Frigate",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
+      "bonus to Light Missile and Rocket damage",
       "bonus to Light Missile and Rocket Launcher rate of fire",
-      "bonus to kinetic Light Missile and Rocket damage",
-      "bonus to Shield Booster amount",
-      "bonus to Light Missile and Rocket max velocity"
+      "bonus to Light Missile and Rocket max velocity",
+      "bonus to Shield Booster amount"
     ]
   },
   {
@@ -2416,12 +2416,12 @@
     "race": "Gallente",
     "class": "Assault Frigate",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
       "bonus to Small Hybrid Turret damage",
-      "bonus to Drone hitpoints",
-      "bonus to Armor Repairer amount",
-      "bonus to Small Hybrid Turret optimal range"
+      "bonus to Drone hitpoints and tracking speed",
+      "bonus to Small Hybrid Turret optimal range",
+      "bonus to Armor Repairer amount"
     ]
   },
   {
@@ -4462,12 +4462,12 @@
     "race": "Amarr",
     "class": "Heavy Assault Cruiser",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
       "bonus to Heavy Missile and Heavy Assault Missile damage",
       "bonus to all armor resistances",
-      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire",
-      "bonus to Heavy Missile and Heavy Assault Missile max velocity"
+      "bonus to Heavy Missile and Heavy Assault Missile max velocity",
+      "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire"
     ]
   },
   {
@@ -5355,10 +5355,10 @@
     "race": "Amarr",
     "class": "Assault Frigate",
     "bonuses": [
-      "Can fit Assault Damage Controls",
       "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
+      "bonus to Light Missile and Rocket damage",
       "bonus to Light Missile and Rocket Launcher rate of fire",
-      "bonus to Rocket damage",
       "bonus to all armor resistances",
       "bonus to ship capacitor recharge rate"
     ]

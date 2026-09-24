@@ -1,5 +1,6 @@
 import json, sys
-p = r"C:\Users\nexis\Desktop\Rusty_Bot-main\ship-guess-game\data\ships.json"
+from pathlib import Path
+p = Path(__file__).resolve().parent / 'data' / 'ships.json'
 try:
     with open(p, 'r', encoding='utf-8') as f:
         json.load(f)

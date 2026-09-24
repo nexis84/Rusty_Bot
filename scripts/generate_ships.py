@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate ship-guess-game/data/ships.json from EVE Online SDE JSONL data.
+Generate classifiedhulls/data/ships.json from EVE Online SDE JSONL data.
 Extracts published ship types with class, race, and bonuses.
 """
 
@@ -11,7 +11,7 @@ from collections import defaultdict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SDE_DIR = BASE_DIR / "sde"
-OUTPUT_FILE = BASE_DIR / "ship-guess-game" / "data" / "ships.json"
+OUTPUT_FILE = BASE_DIR / "classifiedhulls" / "data" / "ships.json"
 
 
 def load_jsonl(filename):
@@ -39,7 +39,7 @@ def clean_bonus_text(text):
 
 
 def main():
-    print("=== Generating ships.json for ship guessing game ===\n")
+    print("=== Generating ships.json for Classified Hulls ===\n")
 
     # Load all required data files
     print("Loading SDE files...")
