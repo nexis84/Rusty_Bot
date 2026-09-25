@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const SDE_DIR = 'C:\\Users\\nexis\\AppData\\Local\\Temp\\opencode\\sde_extracted';
+const SDE_DIR = process.env.SDE_DIR || path.join(__dirname, '..', '..', 'sde');
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
 function loadJsonl(filename) {
