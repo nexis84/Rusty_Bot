@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23576
-// SDE build: 3542233
-// Generated: 2026-09-25 22:06:24 UTC
+// Total items: 23581
+// SDE build: 3552227
+// Generated: 2026-09-29 20:08:41 UTC
 
 const AllMarketItems = {
     // Ships
@@ -14302,7 +14302,7 @@ const AllMarketItems = {
             { id: 29473, name: "Medicinal Herbs" },
             { id: 40548, name: "Medium 'Astrahus' Citadel BPC Token" },
             { id: 85398, name: "Medium Mutaplasmid Residue" },
-            { id: 16042, name: "Medium Sized Sealed Cargo Containers" },
+            { id: 16042, name: "Medium Sized Sealed Cargo Container" },
             { id: 54825, name: "Medium Vorton Projector (old)" },
             { id: 7125, name: "Mega Afocal Laser I" },
             { id: 7085, name: "Mega Afocal Pulse Laser I" },
@@ -18261,6 +18261,7 @@ const AllMarketItems = {
             { id: 35080, name: "Crucifier Kador SKIN (365 Days)" },
             { id: 35077, name: "Crucifier Kador SKIN (7 Days)" },
             { id: 35079, name: "Crucifier Kador SKIN (90 Days)" },
+            { id: 97617, name: "Crucifier Medical Enforcement Taskforce SKIN" },
             { id: 62287, name: "Crucifier Navy Issue Abyssal Glory SKIN" },
             { id: 55338, name: "Crucifier Navy Issue Biosecurity Responders SKIN" },
             { id: 42761, name: "Crucifier Navy Issue Cold Iron SKIN" },
@@ -19185,6 +19186,7 @@ const AllMarketItems = {
             { id: 63435, name: "Griffin Halcyon Dawn SKIN" },
             { id: 48222, name: "Griffin Luminaire Zenith SKIN" },
             { id: 40581, name: "Griffin Matigu Seabeast SKIN" },
+            { id: 97618, name: "Griffin Medical Enforcement Taskforce SKIN" },
             { id: 59427, name: "Griffin Military Stockpile Captain SKIN" },
             { id: 62289, name: "Griffin Navy Issue Abyssal Glory SKIN" },
             { id: 55548, name: "Griffin Navy Issue Biosecurity Responders SKIN" },
@@ -20452,6 +20454,7 @@ const AllMarketItems = {
             { id: 35303, name: "Maulus Intaki Syndicate SKIN (90 Days)" },
             { id: 46386, name: "Maulus Kopis Edge SKIN" },
             { id: 77869, name: "Maulus Luminaire Rising SKIN" },
+            { id: 97619, name: "Maulus Medical Enforcement Taskforce SKIN" },
             { id: 62291, name: "Maulus Navy Issue Abyssal Glory SKIN" },
             { id: 55605, name: "Maulus Navy Issue Biosecurity Responders SKIN" },
             { id: 45886, name: "Maulus Navy Issue Exoplanets Hunter SKIN" },
@@ -21506,6 +21509,7 @@ const AllMarketItems = {
             { id: 91098, name: "Pioneer Consortium Issue Refined Resourcer SKIN" },
             { id: 91570, name: "Pioneer GalNet StreamCast Unit SKIN" },
             { id: 91627, name: "Pioneer Media Miasma SKIN" },
+            { id: 97621, name: "Pioneer Medical Enforcement Taskforce SKIN" },
             { id: 91193, name: "Pioneer Paydirt Prospector SKIN" },
             { id: 91097, name: "Pioneer Refined Resourcer SKIN" },
             { id: 79745, name: "Pontifex Aurora Universalis SKIN" },
@@ -23669,6 +23673,7 @@ const AllMarketItems = {
             { id: 35640, name: "Vigil Krusual SKIN (365 Days)" },
             { id: 35637, name: "Vigil Krusual SKIN (7 Days)" },
             { id: 35639, name: "Vigil Krusual SKIN (90 Days)" },
+            { id: 97620, name: "Vigil Medical Enforcement Taskforce SKIN" },
             { id: 93723, name: "Vigil Penumbral Shadows SKIN" },
             { id: 96159, name: "Vigil Shattered Paradigm SKIN" },
             { id: 52849, name: "Vigil Snowline Bladeracer SKIN" },
