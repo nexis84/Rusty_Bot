@@ -283,6 +283,13 @@ footer.legal a{color:var(--text2)}
 .welcome-top-btn{flex-shrink:0;background:transparent;border-color:rgba(232,217,0,.35);color:var(--accent)}
 .welcome-top-btn:hover{background:rgba(232,217,0,.1);color:#fff}
 .welcome-top-btn.active{background:var(--accent);border-color:var(--accent);color:#121212}
+/* Solid accent variant for the Welcome entry point in the View toolbar row.
+   Always yellow-on-black (not just while active) so it reads as the way back
+   to the landing page from anywhere. Declared after .toolbar-btn:hover so it
+   wins the equal-specificity hover rule. */
+.welcome-btn-solid{flex-shrink:0;background:var(--accent);border-color:var(--accent);color:#121212;font-weight:700;padding:.45rem .8rem;font-size:.78rem}
+.welcome-btn-solid:hover{background:#f5ea1f;border-color:#f5ea1f;color:#121212}
+.welcome-btn-solid.active{background:var(--accent);border-color:var(--accent);color:#121212}
 
 .welcome-dom{
   background-image:

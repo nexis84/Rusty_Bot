@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="icon" type="image/png" href="../rusty_bot.png">
-<link rel="stylesheet" href="bv-style.css?v=4">
+<link rel="stylesheet" href="bv-style.css?v=5">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-1EELB9VSCK');</script>
 </head>
@@ -184,12 +184,12 @@
 <main class="main-content">
   <div class="canvas-toolbar">
     <span><i class="fas fa-eye"></i> View:</span>
+    <button id="viewWelcomeToolbar" class="toolbar-btn welcome-btn-solid" title="Welcome &amp; Help"><i class="fas fa-compass"></i> Welcome</button>
     <div class="tabs" style="flex:1;max-width:560px">
       <button class="tab-btn active" data-mainview="calc"><i class="fas fa-calculator"></i> Calculator</button>
       <button class="tab-btn" data-mainview="prog"><i class="fas fa-tasks"></i> Build Progress</button>
       <button class="tab-btn" data-mainview="fit"><i class="fas fa-shield-halved"></i> Fit Builder</button>
     </div>
-    <button id="viewWelcomeToolbar" class="toolbar-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i> Welcome</button>
     <div class="legend"><span><span class="dot build"></span>Build</span><span><span class="dot buy"></span>Buy</span></div>
     <div class="btn-row tight" style="margin:0"><button id="bulkCollapseAll" class="mode-btn" title="Collapse every expanded sub-component, Build Progress tree, Build List groups, and the Bill of Materials">Collapse All</button><button id="bulkBuyAll" class="mode-btn" title="Set every material at every level to Buy">Buy All</button><button id="bulkBuildAll" class="mode-btn" title="Source everything in-house: Mine / React / Extract / Build by material type">Build All</button></div>
   </div>
