@@ -370,9 +370,17 @@ function init() {
     setupColonies();
     refreshColoniesAuthState();
     hideMarketData();
-    // Respect SSO return hash — don't clobber it with a default view
+    // Landing view, in priority order:
+    //  1. An SSO return hash / share link always wins — never clobber it.
+    //  2. Signed in — this visitor already knows the tool, so skip the tour
+    //     and go straight to Reference.
+    //  3. Logged out — Welcome is the landing view.
+    // This mirrors the Blueprint Visualizer's SSO gate so both tools behave
+    // the same way for the same visitor.
     if (window.location.hash && window.location.hash.length > 1) {
         restoreFromUrl();
+    } else if (window.piEsiAuth && piEsiAuth.isAuthenticated()) {
+        setViewMode('reference');
     } else {
         setViewMode('welcome');
     }

@@ -485,7 +485,7 @@
                                 <p class="welcome-support-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
                                 <div class="ko-fi-wrap">
                                     <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-                                    <script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303');kofiwidget2.draw();</script>
+                                    <script type='text/javascript'>if (typeof kofiwidget2 !== 'undefined') { kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303'); kofiwidget2.draw(); }</script>
                                 </div>
                             </div>
                         </section>
@@ -555,7 +555,7 @@
         // Bump PI_ASSET_VERSION to force clients to re-fetch scripts after a deploy.
         // (A Date.now() buster was previously used, which defeated caching and
         // re-downloaded the 4.5MB pi-systems.js on every session.)
-        window.PI_ASSET_VERSION = '81';
+        window.PI_ASSET_VERSION = '82';
 
         (function loadPiScripts() {
             function load(src, onok) {
