@@ -270,3 +270,117 @@ footer.legal a{color:var(--text2)}
 #progBpList .rx-row.bp-have .nm{text-decoration:line-through}
 /* Build Progress — item icons in row labels */
 #buildProgress .nm img{width:32px;height:32px;border-radius:3px;background:#111;vertical-align:middle;margin-right:.45rem}
+
+/* ===================================================================
+   Welcome / Help page — entry on first load, doubles as Help.
+   Ported from the PI Visualizer welcome page. Unlike PI (which overlays
+   a canvas), this app is DOM-only, so the welcome is a normal main pane
+   inside .content-scroll: no absolute positioning, no z-index.
+   CSS variables translated to this file's names:
+   --text-secondary -> --text2, --text-muted -> --text3,
+   --border-color -> --border, --bg-tertiary -> --panel2
+   =================================================================== */
+.welcome-top-btn{flex-shrink:0;background:transparent;border-color:rgba(232,217,0,.35);color:var(--accent)}
+.welcome-top-btn:hover{background:rgba(232,217,0,.1);color:#fff}
+.welcome-top-btn.active{background:var(--accent);border-color:var(--accent);color:#121212}
+
+.welcome-dom{
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(232,217,0,.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,140,61,.03) 0%, transparent 50%);
+}
+.welcome-inner{padding:20px 24px 28px;max-width:1100px;margin:0 auto;width:100%}
+
+.welcome-hero{
+  display:flex;align-items:center;gap:18px;padding:18px 20px;
+  background:linear-gradient(180deg,rgba(40,40,40,.98),rgba(25,25,25,.98));
+  border:1px solid var(--border);border-radius:12px;margin-bottom:18px;
+}
+.welcome-logo{width:64px;height:64px;border-radius:8px;flex-shrink:0;background:#1a1a1a;object-fit:contain}
+.welcome-hero-text h2{font-size:1.45rem;margin:0 0 4px;line-height:1.1}
+.welcome-subtitle{font-size:.9rem;color:var(--text2);margin-bottom:4px}
+.welcome-tagline{font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.welcome-cta-row{display:flex;gap:8px;flex-wrap:wrap}
+.welcome-cta{width:auto;padding:.5rem .9rem;font-size:.8rem;margin-top:0}
+
+/* Welcome-page SSO prompt banner */
+.welcome-sso{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  background:linear-gradient(180deg,rgba(40,40,40,.98),rgba(25,25,25,.98));
+  border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:8px;padding:14px 18px;margin-bottom:18px;
+}
+.welcome-sso-text{display:flex;align-items:center;gap:12px}
+.welcome-sso-text i{font-size:1.4rem;color:var(--accent)}
+.welcome-sso-text strong{display:block;color:var(--text);font-size:.95rem}
+.welcome-sso-text p{margin:2px 0 0;color:var(--text3);font-size:.8rem}
+.welcome-sso-btn{white-space:nowrap;width:auto;margin-top:0}
+
+.welcome-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+@media (max-width:900px){.welcome-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){
+  .welcome-grid{grid-template-columns:1fr}
+  .welcome-hero{flex-direction:column;text-align:center}
+  .welcome-cta-row{justify-content:center}
+}
+.welcome-card{
+  background:linear-gradient(180deg,rgba(40,40,40,.98),rgba(25,25,25,.98));
+  border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;
+  transition:border-color .15s,transform .15s,box-shadow .15s;
+  display:flex;flex-direction:column;gap:6px;
+}
+.welcome-card:hover{border-color:rgba(232,217,0,.35);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.welcome-card--muted{cursor:default;opacity:.95}
+.welcome-card--muted:hover{transform:none;box-shadow:none;border-color:var(--border)}
+.welcome-card-head{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.welcome-card-title{font-size:.92rem;font-weight:700;color:#fff}
+.welcome-card p{font-size:.74rem;color:var(--text2);line-height:1.4;flex:1}
+.welcome-card-link{font-size:.72rem;font-weight:600;color:var(--accent);margin-top:4px}
+
+.welcome-steps,.welcome-tips{
+  background:linear-gradient(180deg,rgba(40,40,40,.98),rgba(25,25,25,.98));
+  border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;
+}
+.welcome-steps h3,.welcome-tips h3{
+  font-size:.82rem;color:var(--accent);margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.welcome-steps ol{margin-left:18px;font-size:.76rem;color:var(--text2);line-height:1.5}
+.welcome-steps li{margin-bottom:4px}
+.welcome-tips ul{margin-left:18px;font-size:.74rem;color:var(--text2);line-height:1.5}
+.welcome-tips code,.welcome-seo code{
+  background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px;
+  font-size:.68rem;color:var(--text);
+}
+
+.welcome-foot{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px;font-size:.68rem;color:var(--muted);opacity:.9;
+}
+.welcome-foot-logo{width:20px;height:20px;border-radius:4px;opacity:.9}
+
+.welcome-seo{
+  margin-top:10px;padding:14px 16px;
+  background:linear-gradient(180deg,rgba(40,40,40,.98),rgba(25,25,25,.98));
+  border:1px solid var(--border);border-radius:8px;
+}
+.welcome-seo h2{font-size:.82rem;color:var(--text);margin-bottom:6px}
+.welcome-seo p{font-size:.74rem;color:var(--text2);line-height:1.5;margin-bottom:6px}
+.welcome-seo a{color:var(--accent);text-decoration:none}
+.welcome-seo a:hover{text-decoration:underline}
+
+.welcome-legal{
+  margin-top:12px;padding:12px 16px;border-top:1px solid var(--border);
+  font-size:.62rem;color:var(--muted);text-align:center;line-height:1.4;
+}
+.welcome-legal a{color:var(--text2);text-decoration:none}
+.welcome-legal a:hover{color:var(--accent)}
+
+/* Support RustyBot (Ko-fi) */
+.welcome-support{margin-top:14px;display:flex;justify-content:center}
+.welcome-support-card{background:transparent;border:1px solid var(--border);border-radius:8px;padding:14px 16px;width:100%;text-align:center}
+.welcome-support-icon{font-size:1.1rem;color:var(--accent);margin:0 auto 6px;display:flex;align-items:center;justify-content:center}
+.welcome-support-title{font-size:.82rem;font-weight:700;color:var(--text);letter-spacing:.04em;margin-bottom:4px}
+.welcome-support-desc{font-size:.72rem;color:var(--text2);max-width:420px;margin:0 auto 12px}
+.ko-fi-wrap{display:flex;justify-content:center}
+.ko-fi-wrap .kofi-button{font-family:'Titillium Web',sans-serif;font-size:.78rem;font-weight:700}

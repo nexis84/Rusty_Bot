@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="icon" type="image/png" href="../rusty_bot.png">
-<link rel="stylesheet" href="bv-style.css?v=2">
+<link rel="stylesheet" href="bv-style.css?v=3">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-1EELB9VSCK');</script>
 </head>
@@ -22,6 +22,7 @@
   <div class="breadcrumb"><span><a href="../">Home</a></span><span>›</span><span><a href="./">Blueprint Visualizer</a></span></div>
   <div class="logo-section"><img src="../rusty_bot.png" class="logo" alt="RustyBot"><h1>Blueprint <span class="accent">Visualizer</span></h1></div>
   <button id="ssoBtn" class="toolbar-btn"><i class="fas fa-sign-in-alt"></i> Sign in with SSO</button>
+  <button id="viewWelcome" class="toolbar-btn welcome-top-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i></button>
   <div class="region-selector"><label><i class="fas fa-map-marker-alt"></i> Market:</label><select id="hubSelect"></select></div>
 </header>
 <div class="main-container">
@@ -188,10 +189,148 @@
       <button class="tab-btn" data-mainview="prog"><i class="fas fa-tasks"></i> Build Progress</button>
       <button class="tab-btn" data-mainview="fit"><i class="fas fa-shield-halved"></i> Fit Builder</button>
     </div>
+    <button id="viewWelcomeToolbar" class="toolbar-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i> Welcome &amp; Help</button>
     <div class="legend"><span><span class="dot build"></span>Build</span><span><span class="dot buy"></span>Buy</span></div>
     <div class="btn-row tight" style="margin:0"><button id="bulkCollapseAll" class="mode-btn" title="Collapse every expanded sub-component, Build Progress tree, Build List groups, and the Bill of Materials">Collapse All</button><button id="bulkBuyAll" class="mode-btn" title="Set every material at every level to Buy">Buy All</button><button id="bulkBuildAll" class="mode-btn" title="Source everything in-house: Mine / React / Extract / Build by material type">Build All</button></div>
   </div>
   <div class="content-scroll">
+   <!-- Welcome / Help — entry page on first load, doubles as Help -->
+   <div id="mainWelcome" style="display:none">
+     <div class="welcome-dom">
+       <div class="welcome-inner">
+         <div class="welcome-hero">
+           <img src="../rusty_bot.png" alt="RustyBot Logo" class="welcome-logo">
+           <div class="welcome-hero-text">
+             <h2>Blueprint <span class="accent">Visualizer</span></h2>
+             <p class="welcome-subtitle">Cost, build and track every EVE Online industry job — all in one place.</p>
+             <p class="welcome-tagline">First time here? Start below. Returning? Jump straight to a tool from the sidebar — or use the cards.</p>
+             <div class="welcome-cta-row">
+               <button class="calc-btn welcome-cta" data-welcome-act="calc"><i class="fas fa-calculator"></i> Open Calculator</button>
+               <button class="calc-btn secondary welcome-cta" data-welcome-act="bps"><i class="fas fa-scroll"></i> My Blueprints</button>
+               <button class="calc-btn secondary welcome-cta" data-welcome-act="stk"><i class="fas fa-boxes"></i> Inventory</button>
+               <button class="calc-btn secondary welcome-cta" data-welcome-act="prog"><i class="fas fa-tasks"></i> Build Progress</button>
+               <button class="calc-btn secondary welcome-cta" data-welcome-act="inv"><i class="fas fa-flask"></i> Invention</button>
+             </div>
+           </div>
+         </div>
+
+         <div class="welcome-sso">
+           <div class="welcome-sso-text">
+             <i class="fas fa-user-lock"></i>
+             <div>
+               <strong>Unlock extended features</strong>
+               <p>Sign in with EVE SSO to load your industry skills, list your own blueprints, and pull your real assets from ESI.</p>
+             </div>
+           </div>
+           <button class="calc-btn welcome-sso-btn" id="welcomeSsoLogin"><i class="fas fa-sign-in-alt"></i> Sign in with SSO</button>
+         </div>
+
+         <div class="welcome-grid">
+           <div class="welcome-card" data-welcome-act="calc">
+             <div class="welcome-card-head"><i class="fas fa-calculator"></i> Calculator</div>
+             <div class="welcome-card-title">Build vs Buy Trees</div>
+             <p>Enter any blueprint and see the full manufacturing tree. Toggle every sub-component between Build and Buy, with ME/TE, structure, rigs, fees and live market pricing.</p>
+             <span class="welcome-card-link">Open Calculator <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="bps">
+             <div class="welcome-card-head"><i class="fas fa-scroll"></i> My Blueprints</div>
+             <div class="welcome-card-title">Your BPOs &amp; BPCs</div>
+             <p>Sign in with EVE SSO to list every Personal and Corp blueprint you own, then Scan profit to rank them at the current hub.</p>
+             <span class="welcome-card-link">Open My Blueprints <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="stk">
+             <div class="welcome-card-head"><i class="fas fa-boxes"></i> Inventory</div>
+             <div class="welcome-card-title">Assets &amp; Refinery</div>
+             <p>Scan a system's assets over ESI, filter to industrial, deduct what you already own from your shopping and build lists, and refine ore and PI at your yield.</p>
+             <span class="welcome-card-link">Open Inventory <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="prog">
+             <div class="welcome-card-head"><i class="fas fa-tasks"></i> Build Progress</div>
+             <div class="welcome-card-title">Tick Off a Build</div>
+             <p>Pin a build, tick materials off as you gather them, and watch what is left. Exports the remainder to multibuy or straight to Evemail.</p>
+             <span class="welcome-card-link">Open Build Progress <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="inv">
+             <div class="welcome-card-head"><i class="fas fa-flask"></i> Invention</div>
+             <div class="welcome-card-title">Tech &amp; Decryptors</div>
+             <p>Pick a T2 item and compare every decryptor — expected runs, ISK per successful blueprint and material cost, using your real invention chances.</p>
+             <span class="welcome-card-link">Open Invention <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="fit">
+             <div class="welcome-card-head"><i class="fas fa-shield-halved"></i> Fit Builder</div>
+             <div class="welcome-card-title">Paste an EVE Fit</div>
+             <p>Paste a fit straight from the fitting window, choose which parts to include, and send them to the Calculator and Build Progress in one click.</p>
+             <span class="welcome-card-link">Open Fit Builder <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="mine">
+             <div class="welcome-card-head"><i class="fas fa-gem"></i> Mining yield</div>
+             <div class="welcome-card-title">Ore &amp; Ice Plan</div>
+             <p>Mark materials to <b>Mine it</b> in the tree, then plan the yield for your ship or a custom rate across ore, ice and moon resources.</p>
+             <span class="welcome-card-link">Open Mining Plan <i class="fas fa-arrow-right"></i></span>
+           </div>
+           <div class="welcome-card" data-welcome-act="ledger">
+             <div class="welcome-card-head"><i class="fas fa-book"></i> Ledger</div>
+             <div class="welcome-card-title">Saved &amp; Shared</div>
+             <p>Every calculation is logged locally. Save a build, copy a shareable link, or export any list to CSV for Spreadsheet.</p>
+             <span class="welcome-card-link">Open Ledger <i class="fas fa-arrow-right"></i></span>
+           </div>
+         </div>
+
+         <div class="welcome-steps">
+           <h3><i class="fas fa-list-ol"></i> Getting Started — 3 steps</h3>
+           <ol>
+             <li><strong>New to industry?</strong> Open the <em>Calculator</em>, type a blueprint name (e.g. <code>Rifter Blueprint</code>), set runs and hit Calculate. The tree, Bill of Materials and every list build themselves.</li>
+             <li><strong>Already own blueprints?</strong> Use <em>My Blueprints</em> to pull your Personal and Corp BPOs and BPCs from ESI, then <em>Scan profit</em> to see which ones are worth running at your hub.</li>
+             <li><strong>Building for real?</strong> <em>Inventory</em> deducts what you already own so you only buy the shortfall, and <em>Build Progress</em> lets you tick items off as you gather them.</li>
+           </ol>
+         </div>
+
+         <div class="welcome-tips">
+           <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+           <ul>
+             <li>Click any node in the tree to drill into a sub-component; the breadcrumb trail takes you back out.</li>
+             <li>Build vs Buy can be changed at any level — the BOM, Build List and Shopping List all re-price instantly.</li>
+             <li><b>Buy All</b> / <b>Build All</b> set every material by type (Mine / React / Extract / Build) in one go.</li>
+             <li>Sync <b>Industry</b> and <b>Refining yield</b> from SSO instead of guessing your bonuses.</li>
+             <li>Share from the <em>Ledger</em> — the link carries the blueprint, inputs and Build/Buy sourcing, but never your inventory data.</li>
+             <li>Stuck on the maths? Paste a screenshot of your in-game window and OCR fills the name, ME, TE and runs for you.</li>
+           </ul>
+         </div>
+
+         <div class="welcome-foot">
+           <img src="../rusty_bot.png" alt="" class="welcome-foot-logo">
+           <span>RustyBot — Blueprint Visualizer · Data: EVE SDE &amp; ESI · Prices: ESI Market</span>
+         </div>
+
+         <!-- Support RustyBot (Ko-fi) -->
+         <section class="welcome-support" aria-label="Support RustyBot">
+           <div class="welcome-support-card">
+             <div class="welcome-support-icon"><i class="fa-solid fa-heart"></i></div>
+             <h2 class="welcome-support-title">Support RustyBot</h2>
+             <p class="welcome-support-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
+             <div class="ko-fi-wrap">
+               <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+               <script type='text/javascript'>if (typeof kofiwidget2 !== 'undefined') { kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303'); kofiwidget2.draw(); }</script>
+             </div>
+           </div>
+         </section>
+
+         <!-- SEO: crawlable static copy of the Welcome/Help (also credits data sources & noscript fallback) -->
+         <section class="welcome-seo" aria-label="About Blueprint Visualizer">
+           <h2>EVE Online Blueprint Visualizer — Manufacturing Costs, Build vs Buy &amp; Invention</h2>
+           <p>Free, no-signup EVE Online industry calculator. Enter any blueprint and get the complete <strong>Build vs Buy manufacturing tree</strong> down to raw materials, with exact quantities, volumes and per-level costs. Powered by the EVE SDE and live <strong>ESI</strong> market pricing across <strong>Jita (The Forge), Amarr (Domain), Dodixie, Rens, Hek</strong> and Manifest.</p>
+           <p><strong>Calculator</strong> models runs, material efficiency and time efficiency, structure and rig bonuses, job tax, SCC, sales tax, broker fees, manufacturing index and reaction costs — producing a Bill of Materials, a Build List and a Shopping List that all re-price when you flip a material between Build and Buy. <strong>My Blueprints</strong> lists your Personal and Corp BPOs and BPCs over ESI and ranks their profit at the selected hub.</p>
+           <p><strong>Invention</strong> resolves the T1 source and base chance for any T2 item, then compares every decryptor by expected runs, ISK per successful blueprint and material cost. <strong>Inventory</strong> scans a system's assets over ESI, filters to industrial, deducts what you own from the shopping and build lists, and drives the Refinery for ore, compressed ore, ice, moon, gas, minerals and PI at your refining yield. <strong>Build Progress</strong> tracks a pinned build with tick-off, multibuy and Evemail export. <strong>Fit Builder</strong> parses a pasted EVE fit and sends the selected parts to the Calculator.</p>
+           <p>Built by <a href="../">RustyBot</a> — EVE Online Partner. Open the <a href="../market/">Market Browser</a>, <a href="../bpc-calculator/">BPC Calculator</a> or <a href="../PI/">PI Visualizer</a> from the RustyBot suite. Questions? See Tips on this page or open Help from the Welcome button in the top bar at any time.</p>
+           <noscript><p><em>JavaScript is required for the interactive tree, market pricing and ESI sync. The blueprint and material data is still authoritative SDE.</em></p></noscript>
+         </section>
+
+         <footer class="welcome-legal">
+           EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank" rel="noopener">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.
+         </footer>
+       </div>
+     </div>
+   </div>
    <div id="mainCalc">
     <div class="hero-card" id="welcomeHero">
       <img src="../rusty_bot.png" alt="RustyBot">
@@ -347,8 +486,8 @@
     <script src="bv-typeinfo.js?v=2"></script>
     <script src="bv-esi-auth.js?v=9"></script>
     <script src="bv-fits.js?v=1"></script>
-    <script src="bv-visualizer.js?v=241"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V240</div>
+    <script src="bv-visualizer.js?v=242"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V241</div>
 <div id="toastWrap" aria-live="polite" aria-atomic="false"></div>
 </body>
 </html>

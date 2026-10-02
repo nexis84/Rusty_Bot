@@ -448,6 +448,34 @@ function init() {
     if (b.dataset.tab === 'ledger') { try { renderSavedList(); } catch {} }
   });
   document.querySelectorAll('[data-mainview]').forEach(b => b.onclick = () => { switchMainView(b.dataset.mainview); try { localStorage.setItem('bvActiveView', b.dataset.mainview); } catch {} });
+  // ---- Welcome / Help landing page ----
+  // Cards and hero CTAs carry data-welcome-act="<destination>". Each maps to the
+  // main pane to reveal plus the sidebar tab to activate, so a single click
+  // lands the user on the right screen with the right panel open.
+  const BV_WELCOME_TARGETS = {
+    calc:   ['calc', 'calc'],
+    bps:    ['calc', 'bps'],
+    stk:    ['calc', 'stk'],
+    prog:   ['prog', 'calc'],
+    inv:    ['calc', 'inv'],
+    fit:    ['fit', 'calc'],
+    mine:   ['calc', 'mine'],
+    ledger: ['calc', 'ledger'],
+  };
+  if ($('viewWelcome')) $('viewWelcome').onclick = () => switchMainView('welcome');
+  if ($('viewWelcomeToolbar')) $('viewWelcomeToolbar').onclick = () => switchMainView('welcome');
+  if ($('welcomeSsoLogin')) $('welcomeSsoLogin').onclick = async () => {
+    if (window.BVAuth && BVAuth.signedIn()) { if (confirm('Sign out?')) BVAuth.logout(); return; }
+    try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + e.message); }
+  };
+  document.querySelectorAll('[data-welcome-act]').forEach(el => el.onclick = () => {
+    const t = BV_WELCOME_TARGETS[el.dataset.welcomeAct];
+    if (!t) return;
+    switchMainView(t[0]);
+    const tab = document.querySelector('.tab-btn[data-tab="' + t[1] + '"]');
+    if (tab) tab.click();
+    try { scrollContentTop(); } catch {}
+  });
   // Resume preference toggle
   try { if ($('resumeLast')) $('resumeLast').checked = localStorage.getItem('bvResume') !== '0'; } catch {}
   updateSsoBtn(); renderLedger();
@@ -1265,14 +1293,17 @@ function renderSummary(s) {
     '<div class="summary-card"><div class="k">Blueprint</div><div class="v" style="font-size:.85rem">' + s.bpName + '</div><div class="k">TE bonus ' + s.teBonus.toFixed(0) + '% · Industry ' + s.ind + '/' + s.adv + ' · ' + s.imp.name + '</div></div>' + tracked;
 }
 
-// ---- main content views (Calculator vs Build Progress vs Fit Builder) ----
+// ---- main content views (Welcome vs Calculator vs Build Progress vs Fit Builder) ----
 function switchMainView(v) {
-  v = (v === 'prog' || v === 'fit') ? v : 'calc';
+  v = (v === 'prog' || v === 'fit' || v === 'welcome') ? v : 'calc';
   try {
     $('mainCalc').style.display = v === 'calc' ? '' : 'none';
     $('mainProg').style.display = v === 'prog' ? '' : 'none';
     if ($('mainFit')) $('mainFit').style.display = v === 'fit' ? '' : 'none';
+    if ($('mainWelcome')) $('mainWelcome').style.display = v === 'welcome' ? '' : 'none';
     document.querySelectorAll('[data-mainview]').forEach(b => b.classList.toggle('active', (b.dataset.mainview || 'calc') === v));
+    // The Welcome buttons sit outside the view-tab group, so they carry their own active state.
+    ['viewWelcome', 'viewWelcomeToolbar'].forEach(id => { const el = $(id); if (el) el.classList.toggle('active', v === 'welcome'); });
     if (v === 'prog') { renderBuildProgress(); try { bpProgDeepEnrich(); } catch {} }
     if (v === 'fit') { try { fitRenderAll(); } catch {} }
   } catch {}
@@ -6665,6 +6696,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
   try { const fromHash = calcFromHash(); if (!fromHash) resumeLast(); } catch {}
   try { restoreUiState(); } catch {}
+  // Welcome is the landing view on every load, mirroring the PI Visualizer.
+  // A share link (#bv= or a short code) is the exception: it calculates
+  // immediately, so it must stay on the Calculator. Placed after
+  // restoreUiState() so the saved main view cannot override it.
+  try { if (!hasShareHash()) switchMainView('welcome'); } catch {}
   // ---- Inventory: saved build systems + 20-minute auto-refresh ----
   try { renderStkSavedSystems(); } catch {}
   if ($('stkAutoRefresh')) {
