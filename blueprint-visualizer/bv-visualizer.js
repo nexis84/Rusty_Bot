@@ -466,7 +466,7 @@ function init() {
   if ($('viewWelcomeToolbar')) $('viewWelcomeToolbar').onclick = () => switchMainView('welcome');
   if ($('welcomeSsoLogin')) $('welcomeSsoLogin').onclick = async () => {
     if (window.BVAuth && BVAuth.signedIn()) { if (confirm('Sign out?')) BVAuth.logout(); return; }
-    try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + e.message); }
+    try { await BVAuth.login(); } catch (e) { toast('SSO unavailable: ' + e.message, 'error'); }
   };
   document.querySelectorAll('[data-welcome-act]').forEach(el => el.onclick = () => {
     const t = BV_WELCOME_TARGETS[el.dataset.welcomeAct];
@@ -3898,7 +3898,7 @@ async function syncLocal(id) {
   const e = localSavesRead().find(x => x && x.id === id); if (!e || !e.state) { status('Save not found.'); return; }
   if (!(window.BVAuth && BVAuth.signedIn())) {
     status('Sign in to sync…');
-    try { await BVAuth.login(); } catch (er) { status('SSO unavailable: ' + (er && er.message ? er.message : er)); }
+    try { await BVAuth.login(); } catch (er) { toast('SSO unavailable: ' + (er && er.message ? er.message : er), 'error'); }
     return;
   }
   status('Syncing…');
@@ -4538,7 +4538,10 @@ let _stkFilterTimer = null;
 const STK_MAX_DISPLAY = 2500;
 let stkFilters = [];
 let stkTreeMode = false;
-try { stkFilters = JSON.parse(localStorage.getItem('bvStkFilters') || '[]'); if (!Array.isArray(stkFilters)) stkFilters = []; } catch { stkFilters = []; }
+// The JeveAssets filter-manager UI was removed in bcd1c68, so no control can add
+// or clear these any more. Drop any set left by an older build rather than
+// silently narrowing the asset list with no way for the user to undo it.
+try { localStorage.removeItem('bvStkFilters'); localStorage.removeItem('bvStkFilterSets'); } catch {}
 try { stkTreeMode = localStorage.getItem('bvStkTreeMode') === '1'; } catch {}
 function stkFlag() { try { return ($('stkFlag') && $('stkFlag').value) || 'All'; } catch { return 'All'; } }
 function stkIndustrialOnly() { try { return !!($('stkIndustrialOnly') && $('stkIndustrialOnly').checked); } catch { return false; } }
@@ -4779,7 +4782,7 @@ function stkSnapshotClear() { S.inventorySnapshots = {}; try { localStorage.remo
 // manual structure mappings, from storage AND memory so the next scan starts
 // completely fresh. Deliberately keeps UI prefs (bvPrefs), list filters and
 // page sizes.
-const BV_SCAN_CACHE_KEYS = ['bvStructNames', 'bvStructDenied', 'bvStaSys', 'bvInventorySnapshot', 'bvOres2', 'bvStructOverrides'];
+const BV_SCAN_CACHE_KEYS = ['bvStructNames', 'bvStructDenied', 'bvStaSys', 'bvInventorySnapshot', 'bvOres2', 'bvStructOverrides', 'bvStkFilters', 'bvStkFilterSets'];
 function stkResetAllCaches() {
   try { for (const k of BV_SCAN_CACHE_KEYS) localStorage.removeItem(k); } catch {}
   try { oreCache.clear(); } catch {}
@@ -6617,7 +6620,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (confirm('Sign out?')) BVAuth.logout();
       return;
     }
-    try { await BVAuth.login(); } catch (e) { status('SSO unavailable: ' + e.message); }
+    try { await BVAuth.login(); } catch (e) { toast('SSO unavailable: ' + e.message, 'error'); }
   };
   $('shot').onchange = e => ocrFile(e.target.files[0]);
   $('pasteShot').onclick = async () => { try { const items = await navigator.clipboard.read(); for (const it of items) { const t = it.types.find(t => t.startsWith('image/')); if (t) { ocrFile(await it.getType(t)); return; } } status('No image in clipboard.'); } catch { status('Clipboard blocked — use file picker.'); } };
