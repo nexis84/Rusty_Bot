@@ -6696,11 +6696,16 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('hashchange', () => { try { calcFromHash(); } catch {} });
   try { const fromHash = calcFromHash(); if (!fromHash) resumeLast(); } catch {}
   try { restoreUiState(); } catch {}
-  // Welcome is the landing view on every load, mirroring the PI Visualizer.
-  // A share link (#bv= or a short code) is the exception: it calculates
-  // immediately, so it must stay on the Calculator. Placed after
-  // restoreUiState() so the saved main view cannot override it.
-  try { if (!hasShareHash()) switchMainView('welcome'); } catch {}
+  // Welcome is the landing view for anyone not signed in with EVE SSO, so a
+  // first-time visitor gets the tour instead of an empty calculator. A signed-in
+  // user already knows the tool, so their saved main view (restoreUiState above)
+  // stands. A share link (#bv= or a short code) always wins — it calculates
+  // immediately and must stay on the Calculator.
+  //
+  // Note resumeLast() above has already run either way, so the user's last
+  // calculation is loaded and waiting behind whichever view we land on; nothing
+  // is lost when the welcome page is shown.
+  try { if (!hasShareHash() && !(window.BVAuth && BVAuth.signedIn())) switchMainView('welcome'); } catch {}
   // ---- Inventory: saved build systems + 20-minute auto-refresh ----
   try { renderStkSavedSystems(); } catch {}
   if ($('stkAutoRefresh')) {

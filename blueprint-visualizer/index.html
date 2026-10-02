@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="icon" type="image/png" href="../rusty_bot.png">
-<link rel="stylesheet" href="bv-style.css?v=3">
+<link rel="stylesheet" href="bv-style.css?v=4">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-1EELB9VSCK');</script>
 </head>
@@ -22,8 +22,8 @@
   <div class="breadcrumb"><span><a href="../">Home</a></span><span>›</span><span><a href="./">Blueprint Visualizer</a></span></div>
   <div class="logo-section"><img src="../rusty_bot.png" class="logo" alt="RustyBot"><h1>Blueprint <span class="accent">Visualizer</span></h1></div>
   <button id="ssoBtn" class="toolbar-btn"><i class="fas fa-sign-in-alt"></i> Sign in with SSO</button>
-  <button id="viewWelcome" class="toolbar-btn welcome-top-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i></button>
   <div class="region-selector"><label><i class="fas fa-map-marker-alt"></i> Market:</label><select id="hubSelect"></select></div>
+  <button id="viewWelcome" class="toolbar-btn welcome-top-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i> Welcome</button>
 </header>
 <div class="main-container">
 <aside class="sidebar">
@@ -189,7 +189,7 @@
       <button class="tab-btn" data-mainview="prog"><i class="fas fa-tasks"></i> Build Progress</button>
       <button class="tab-btn" data-mainview="fit"><i class="fas fa-shield-halved"></i> Fit Builder</button>
     </div>
-    <button id="viewWelcomeToolbar" class="toolbar-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i> Welcome &amp; Help</button>
+    <button id="viewWelcomeToolbar" class="toolbar-btn" title="Welcome &amp; Help"><i class="fas fa-compass"></i> Welcome</button>
     <div class="legend"><span><span class="dot build"></span>Build</span><span><span class="dot buy"></span>Buy</span></div>
     <div class="btn-row tight" style="margin:0"><button id="bulkCollapseAll" class="mode-btn" title="Collapse every expanded sub-component, Build Progress tree, Build List groups, and the Bill of Materials">Collapse All</button><button id="bulkBuyAll" class="mode-btn" title="Set every material at every level to Buy">Buy All</button><button id="bulkBuildAll" class="mode-btn" title="Source everything in-house: Mine / React / Extract / Build by material type">Build All</button></div>
   </div>
@@ -486,8 +486,8 @@
     <script src="bv-typeinfo.js?v=2"></script>
     <script src="bv-esi-auth.js?v=9"></script>
     <script src="bv-fits.js?v=1"></script>
-    <script src="bv-visualizer.js?v=242"></script>
-<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V241</div>
+    <script src="bv-visualizer.js?v=243"></script>
+<div id="bvVersion" style="position:fixed;bottom:6px;left:8px;font-size:.72rem;color:var(--text3);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:2px 6px;z-index:999;opacity:.9">V242</div>
 <div id="toastWrap" aria-live="polite" aria-atomic="false"></div>
 </body>
 </html>
