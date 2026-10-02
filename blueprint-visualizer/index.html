@@ -7,6 +7,14 @@
 <meta name="description" content="RustyBot Blueprint Visualizer — full Build/Buy manufacturing tree, structures, rigs, fees, live market pricing, My Blueprints SSO, invention and ledger.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.rustybot.co.uk/blueprint-visualizer/">
+<!-- Absolute base so every relative asset resolves against the tool directory
+     whether or not the URL carries a trailing slash. Render serves
+     /blueprint-visualizer (no slash) with a 200 instead of redirecting, so
+     without this the browser resolves bv-style.css and bv-visualizer.js to
+     /bv-style.css and /bv-visualizer.js — both 404 — and the page renders
+     unstyled with no JS. Matches appraisal/, PI/, top-trumps/ and
+     you-sunk-my-titan/. Must stay above the first relative URL reference. -->
+<base href="/blueprint-visualizer/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
