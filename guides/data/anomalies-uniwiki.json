@@ -392539,12 +392539,135 @@
       }
     ]
   },
-  "Trap": {
-    "page": "Trap",
-    "info": {},
+  "Trap%3F": {
+    "page": "Trap%3F",
+    "info": {
+      "Type": "Expedition",
+      "Rating": "Unrated",
+      "Found in": "1-3 high, 4 low",
+      "Max ship size": "Destroyer",
+      "Faction": "Guristas",
+      "Best damage to deal": "Kin Th",
+      "Damage to resist": "Kin Th",
+      "Sig. strength": "Escalates from Gurista Lookout"
+    },
     "description": "",
-    "sections": {},
-    "npcTables": []
+    "sections": {
+      "1st location": "Warpin\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  3-4 x Frigate  Pithi Destructor/Demolisher/...  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  0-1 x Commander Frigate  Dread Guristas Despoiler  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  3-4 x Destroyer  Pithior Anarchist/Nihilist  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\npocket\nEntering the pocket is second possible escalation trigger. There is nothing noteworthy in the pocket.\n\n\n\nEscalation message:\n\n\nArriving at the designated rendezvous point there is nothing. Nothing at all. But all of a sudden your radio crackles once more; it is another call from seemingly the same Gurista ship announcing another location this time, adding that he is on a hot pursuit chasing some hapless industrial ships.",
+      "pocket": "Entering the pocket is second possible escalation trigger. There is nothing noteworthy in the pocket.",
+      "2nd location": "Warpin\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  3-4 x Frigate  Pithi Destructor/Demolisher/...  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  0-1 x Commander Frigate  Dread Guristas Despoiler  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  3-4 x Destroyer  Pithior Anarchist/Nihilist  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\npocket\nEntering the pocket is second possible escalation trigger. There is nothing noteworthy in the pocket.\n\n\n\nEscalation message:\n\n\nAgain there is nothing to be seen at the location and you are starting to think you are being pulled into some sort of a trap. A feeling that only grows stronger when for the third time you receive a transmission from the Gurista announcing that \"the ambush is ready\" and you must hurry to a given location in order for it to succeed.",
+      "3rd location": "Warpin\n\n\n\n\n\n\nWD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  3-4 x Elite Frigate  Dire Pithi Destructor/Plunderer/...  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  0-1 x Commander Frigate  Dread Guristas Despoiler  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  3-4 x Destroyer  Pithior Anarchist/Nihilist  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\npocket\nEntering the pocket is second possible escalation trigger. There is nothing noteworthy in the pocket.\n\n\n\nEscalation message:\n\n\nAs soon as you arrive, you receive a distress call from a pilot identifying himself as a freight pilot under attack. His co-ordinates are included in the transmission.",
+      "4th location": "WD\n\nEWAR\n\nL\n\n\n\n\n  \n \n\n  4-6 x Frigate  Pithi Demolisher/Destructor  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  2 x Frigate  Pithi Despoiler/Saboteur  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Overseer Frigate  Dread Pithi Terminator  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Cruiser  Pithum Ascriber/Silencer  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n  \n \n\n  1 x Sentry  Gursitas Statis Tower  \n \n\n  \n \n\n    \n \n\n   \n \n\n \n\n\n\n\n\n\n\nEscalation completion message:\n\n\nIt was as you thought; the whole thing was a trap. You can't believe that anyone would be so gullible to fly right into that one. Unless of course they were fully aware of it and only showed up to destroy the assailants. What is exactly which you did...",
+      "Loot": "Item Name\n\nEst. Value\n\nDrops from\n\nNote\n\n\nPithi A-Type Small Shield Booster\n\n~150 M ISK\n\nDread Pithi Terminator\n\nLooted on 2024-05-10"
+    },
+    "npcTables": [
+      {
+        "type": "desc",
+        "text": "Without you noticing, a small group of the Gurista ships slipped away at the beginning of the fight. Luckily your radar systems have picked up a trace leading to their location."
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "",
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "3-4 x Frigate Pithi Destructor/Demolisher/..."
+          ],
+          [
+            "0-1 x Commander Frigate Dread Guristas Despoiler [trigger:Escalation trigger] [ewar:Target Jammer] [note:Can drop faction modules, BPCs or implants]"
+          ],
+          [
+            "3-4 x Destroyer Pithior Anarchist/Nihilist"
+          ]
+        ]
+      },
+      {
+        "type": "desc",
+        "text": "Arriving at the designated rendezvous point there is nothing. Nothing at all. But all of a sudden your radio crackles once more; it is another call from seemingly the same Gurista ship announcing another location this time, adding that he is on a hot pursuit chasing some hapless industrial ships."
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "",
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "3-4 x Frigate Pithi Destructor/Demolisher/..."
+          ],
+          [
+            "0-1 x Commander Frigate Dread Guristas Despoiler [trigger:Escalation trigger] [ewar:Target Jammer] [note:Can drop faction modules, BPCs or implants]"
+          ],
+          [
+            "3-4 x Destroyer Pithior Anarchist/Nihilist"
+          ]
+        ]
+      },
+      {
+        "type": "desc",
+        "text": "Again there is nothing to be seen at the location and you are starting to think you are being pulled into some sort of a trap. A feeling that only grows stronger when for the third time you receive a transmission from the Gurista announcing that \"the ambush is ready\" and you must hurry to a given location in order for it to succeed."
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "",
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "3-4 x Elite Frigate Dire Pithi Destructor/Plunderer/..."
+          ],
+          [
+            "0-1 x Commander Frigate Dread Guristas Despoiler [trigger:Escalation trigger] [ewar:Target Jammer] [note:Can drop faction modules, BPCs or implants]"
+          ],
+          [
+            "3-4 x Destroyer Pithior Anarchist/Nihilist"
+          ]
+        ]
+      },
+      {
+        "type": "desc",
+        "text": "As soon as you arrive, you receive a distress call from a pilot identifying himself as a freight pilot under attack. His co-ordinates are included in the transmission."
+      },
+      {
+        "type": "table",
+        "rows": [
+          [
+            "",
+            "WD",
+            "EWAR",
+            "L"
+          ],
+          [
+            "4-6 x Frigate Pithi Demolisher/Destructor"
+          ],
+          [
+            "2 x Frigate Pithi Despoiler/Saboteur [ewar:Target Jammer]"
+          ],
+          [
+            "1 x Overseer Frigate Dread Pithi Terminator [ewar:Target Jammer] [note:Can drop faction frigate modules or Pith A-type modules]"
+          ],
+          [
+            "1 x Cruiser Pithum Ascriber/Silencer"
+          ],
+          [
+            "1 x Sentry Gursitas Statis Tower [ewar:Stasis Webifier]"
+          ]
+        ]
+      },
+      {
+        "type": "desc",
+        "text": "It was as you thought; the whole thing was a trap. You can't believe that anyone would be so gullible to fly right into that one. Unless of course they were fully aware of it and only showed up to destroy the assailants. What is exactly which you did..."
+      }
+    ]
   },
   "The_Drone_Roulette": {
     "page": "The_Drone_Roulette",

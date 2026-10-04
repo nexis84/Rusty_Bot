@@ -3233,8 +3233,8 @@
     },
     "page": "Gurista_Lookout",
     "escalation": {
-      "name": "Trap",
-      "page": "Trap"
+      "name": "Trap?",
+      "page": "Trap%3F"
     },
     "variant": "Normal",
     "anomalyType": null,
@@ -5550,7 +5550,7 @@
     "anomalySubtype": "expedition"
   },
   {
-    "name": "Trap",
+    "name": "Trap?",
     "faction": "Guristas Pirates",
     "tier": 0,
     "level": null,
@@ -5559,7 +5559,7 @@
       "low": true,
       "null": false
     },
-    "page": "Trap",
+    "page": "Trap%3F",
     "escalation": null,
     "variant": "Normal",
     "anomalyType": null,
