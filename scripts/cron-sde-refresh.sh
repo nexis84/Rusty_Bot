@@ -20,6 +20,7 @@ node "$ROOT/scripts/validate-pi-data.js"
 
 # Rebuild the Blueprint Visualizer type-info index from the refreshed SDE.
 node "$ROOT/scripts/build-bv-typeinfo.mjs" || true
+node "$ROOT/scripts/build-bv-materials.mjs" || true
 
 # bump PI_ASSET_VERSION if files changed
 if ! git -C "$ROOT" diff --quiet -- PI/pi-data.js PI/pi-systems.js PI/pi-jumps.js PI/pi-planets.js 2>/dev/null; then
