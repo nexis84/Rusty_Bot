@@ -62,6 +62,22 @@
     ]
   },
   {
+    "name": "Akoman",
+    "race": "Amarr",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "Energy Nosferatu fitted to this ship will drain targeted ship's capacitor regardless of your own capacitor level",
+      "bonus to Large Energy Turret damage",
+      "reduction in Large Energy Turret powergrid requirement",
+      "reduction in Large Energy Turret CPU requirement",
+      "reduction in Large Energy Turret activation cost",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "bonus to Stasis Webifier range"
+    ]
+  },
+  {
     "name": "Algos",
     "race": "Gallente",
     "class": "Destroyer",

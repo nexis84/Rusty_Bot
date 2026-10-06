@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-29",
-  "sdeBuild": "3552227",
+  "generated": "2026-10-06",
+  "sdeBuild": "3579973",
   "stats": {
     "hp": {
       "name": "Structure HP",
@@ -7254,6 +7254,23 @@
       "maxTargetRange": 305000.0,
       "maxLockedTargets": 14.0,
       "basePrice": 4199400000.0
+    },
+    "95741": {
+      "hp": 2500.0,
+      "armorHP": 2700.0,
+      "shieldCapacity": 2000.0,
+      "maxVelocity": 220.0,
+      "capacitorCapacity": 3500.0,
+      "mass": 14760000.0,
+      "agility": 0.47,
+      "capacity": 500.0,
+      "droneCapacity": 0.0,
+      "scanResolution": 230.0,
+      "warpSpeedMultiplier": 3.5,
+      "signatureRadius": 210.0,
+      "maxTargetRange": 70000.0,
+      "maxLockedTargets": 7.0,
+      "basePrice": 52500000.0
     }
   }
 }

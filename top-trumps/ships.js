@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE by build_stats.py — do not edit by hand
-// SDE build: 3552227
-// Ships: 423
-// Generated: 2026-09-29
+// SDE build: 3579973
+// Ships: 424
+// Generated: 2026-10-06
 
 var SHIPS = [
   {
@@ -2541,5 +2541,11 @@ var SHIPS = [
     "name": "Ymir",
     "class": "Command Carrier",
     "race": "Minmatar"
+  },
+  {
+    "id": 95741,
+    "name": "Akoman",
+    "class": "Attack Battlecruiser",
+    "race": "Amarr"
   }
 ];

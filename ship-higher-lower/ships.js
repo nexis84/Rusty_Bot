@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE
-// Ships: 423
-// Generated: 2026-09-29
+// Ships: 424
+// Generated: 2026-10-06
 
 const SHIPS = [
   {
@@ -25,6 +25,12 @@ const SHIPS = [
     "id": 23919,
     "name": "Aeon",
     "class": "Supercarrier",
+    "race": "Amarr"
+  },
+  {
+    "id": 95741,
+    "name": "Akoman",
+    "class": "Attack Battlecruiser",
     "race": "Amarr"
   },
   {
