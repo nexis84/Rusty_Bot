@@ -164,6 +164,51 @@ function bvTypeInfoLocal(id) {
 function bvInfoName(map, id) {
   try { return (window.BV_TYPEINFO && window.BV_TYPEINFO[map] && window.BV_TYPEINFO[map][String(id)]) || ''; } catch { return ''; }
 }
+// Lowercased-name -> [{id, name, cat}] index built once from the baked SDE
+// (bv-typeinfo.js). Lets name resolution work for brand-new items the moment a
+// new SDE build ships, without waiting for ESI's /universe/ids/ to catch up.
+let _bvNameIdx = null;
+function bvLocalIndex() {
+  if (_bvNameIdx) return _bvNameIdx;
+  _bvNameIdx = new Map();
+  try {
+    const T = (window.BV_TYPEINFO && window.BV_TYPEINFO.types) || {};
+    for (const id in T) {
+      const t = T[id];
+      if (!t || !t.n) continue;
+      const k = String(t.n).toLowerCase();
+      const rec = { id: +id, name: t.n, cat: t.c };
+      const arr = _bvNameIdx.get(k);
+      if (arr) arr.push(rec); else _bvNameIdx.set(k, [rec]);
+    }
+  } catch {}
+  return _bvNameIdx;
+}
+function bvLocalTypeByName(name) {
+  const arr = bvLocalIndex().get(String(name || '').trim().toLowerCase());
+  return (arr && arr.length) ? arr[0] : null;
+}
+// Exact local lookup for a typed blueprint name. Split into blueprints and
+// reaction formulas (both live in the SDE Blueprint category).
+function bvLocalBlueprintResolve(base, cands) {
+  const bps = [], rxs = [];
+  for (const c of cands) {
+    const hit = bvLocalTypeByName(c);
+    if (!hit) continue;
+    if (/reaction formula$/i.test(hit.name)) { if (!rxs.some(x => x.id === hit.id)) rxs.push(hit); }
+    else if (/blueprint$/i.test(hit.name)) { if (!bps.some(x => x.id === hit.id)) bps.push(hit); }
+  }
+  if (bps.length === 1) return { blueprint: { id: bps[0].id, name: bps[0].name } };
+  if (bps.length > 1) {
+    const exact = bps.find(e => e.name.toLowerCase() === base.toLowerCase()) || bps.find(e => e.name.toLowerCase() === (base + ' blueprint').toLowerCase());
+    if (exact) return { blueprint: { id: exact.id, name: exact.name } };
+  }
+  if (!bps.length && rxs.length) {
+    const exact = rxs.find(e => e.name.toLowerCase() === base.toLowerCase()) || rxs.find(e => e.name.toLowerCase() === (base + ' reaction formula').toLowerCase()) || rxs[0];
+    return { formula: { id: exact.id, name: exact.name, formula: true } };
+  }
+  return {};
+}
 // Resolve a normalised info record: local SDE → Everef → ESI → minimal.
 async function typeInfo(id) {
   const key = +id;
@@ -503,6 +548,14 @@ async function resolveBlueprint(name) {
     if (inv2.length === 1) return inv2[0];
   }
   if (bp.length > 1) { const exact = bp.find(e => e.name.toLowerCase() === base.toLowerCase()) || bp.find(e => e.name.toLowerCase() === (base + ' blueprint').toLowerCase()); if (exact) return exact; }
+  // Local-first fallback: the baked SDE already contains brand-new items while
+  // ESI /universe/ids/ can lag behind a fresh build (e.g. a just-published ship
+  // and its blueprint). Resolve from bv-typeinfo.js before giving up.
+  if (!bp.length) {
+    const local = bvLocalBlueprintResolve(base, cands);
+    if (local.blueprint) return local.blueprint;
+    if (local.formula) return local.formula;
+  }
   if (!bp.length) {
     // Fall through to Reaction Formulas (e.g. "Reinforced Carbon Fiber
     // Reaction Formula") — resolved as first-class calculations, not errors.
@@ -579,6 +632,10 @@ async function childBlueprint(materialTypeId, materialName) {
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
     const m = inv.find(e => e.name.toLowerCase() === key);
     hit = m ? { id: m.id, name: m.name } : null;
+    if (!hit) {
+      const local = bvLocalTypeByName(bname);
+      if (local && /blueprint$/i.test(local.name)) hit = { id: local.id, name: local.name };
+    }
     bpNameIdCache.set(key, hit);
   }
   if (!hit) return null;
@@ -763,6 +820,10 @@ async function childReaction(materialTypeId, materialName) {
     const inv = Array.isArray(r) ? r : (r.inventory_types || []);
     const f = inv.find(e => e.name.toLowerCase() === rkey);
     hit = f ? { id: f.id, name: f.name } : null;
+    if (!hit) {
+      const local = bvLocalTypeByName(rname);
+      if (local && /reaction formula$/i.test(local.name)) hit = { id: local.id, name: local.name };
+    }
     rxNameIdCache.set(rkey, hit);
   }
   if (!hit) { reactCache.set(key, null); return null; }
@@ -3732,7 +3793,8 @@ async function invCompare() {
   const out = $('invOut'); out.textContent = 'Resolving ' + q + '…';
   try {
     const r = await fetchJSON(ESI + '/universe/ids/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Compatibility-Date': '2026-08-18' }, body: JSON.stringify([q]) });
-    const inv = Array.isArray(r) ? r : (r.inventory_types || []);
+    let inv = Array.isArray(r) ? r : (r.inventory_types || []);
+    if (!inv.length) { const local = bvLocalTypeByName(q); if (local) inv = [{ id: local.id, name: local.name }]; }
     if (!inv.length) { out.textContent = 'Not found.'; return; }
     const t2 = inv[0]; const target = Math.max(1, parseInt($('invTarget').value) || 5);
     const rows = D.decryptors.map(d => {
