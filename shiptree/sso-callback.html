@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Signing in… - Rusty Ship Tree</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
+<style>
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #121212; color: #e0e0e0;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .card { text-align: center; }
+  .card img { width: 48px; height: 48px; border-radius: 4px; margin-bottom: 14px; }
+  .card h1 { font-size: 1.1rem; font-weight: 600; margin: 0 0 6px; }
+  .card h1 span { color: #e8d900; }
+  .card p { margin: 0; color: #aaa; font-size: .85rem; }
+  .card a { color: #e8d900; }
+</style>
+</head>
+<body>
+<div class="card">
+  <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot">
+  <h1>Rusty<span>Ship Tree</span></h1>
+  <p id="msg">Completing sign-in…</p>
+</div>
+
+<script src="./esi.js"></script>
+<script>
+(async () => {
+  const msg = document.getElementById('msg');
+  const result = await EVE_SSO.handleCallback();
+  if (result.ok) {
+    msg.textContent = `Signed in as ${result.character?.name || 'your pilot'} — loading the tree…`;
+    location.replace('./');
+  } else {
+    msg.innerHTML = `${result.message}<br><br><a href="./">Back to the ship tree</a>`;
+  }
+})();
+</script>
+</body>
+</html>

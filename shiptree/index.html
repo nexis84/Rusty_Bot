@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rusty Ship Tree - RustyBot</title>
+<meta name="description" content="Browse every EVE Online hull by faction and class, see the skills each one needs, what an Alpha clone can fly, and the estimated Jita price. Free browser tool, no login needed.">
+<link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
+<link rel="canonical" href="https://www.rustybot.co.uk/shiptree/">
+<meta name="robots" content="index, follow">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <img class="logo" src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo">
+    <div class="brand-text">
+      <div class="breadcrumb">
+        <span class="breadcrumb-item"><a href="https://www.rustybot.co.uk/">Home</a></span>
+        <span class="breadcrumb-item"><a href="./">Ship Tree</a></span>
+      </div>
+      <h1>Rusty<span class="accent">Ship Tree</span><small id="buildinfo">loading…</small></h1>
+    </div>
+  </div>
+
+  <div class="fld">
+    <input id="q" type="text" placeholder="search hull or skill   ( / )" autocomplete="off" spellcheck="false">
+    <div id="hits"></div>
+  </div>
+
+  <div class="tools">
+    <div id="authBox" class="auth"></div>
+    <div class="chips" id="rowFilter">
+      <button data-rows="all" class="on">all</button>
+      <button data-rows="combat">combat</button>
+      <button data-rows="industry">industry</button>
+    </div>
+    <button id="keyBtn" class="chip" title="faction key — jump to a lane">key</button>
+    <button id="skillsBtn" class="chip on" title="show / hide the skills panel">skills</button>
+    <button id="flyable" class="chip">flyable only</button>
+    <button id="alphaBtn" class="chip" title="hide Omega-only hulls">alpha only</button>
+    <button id="attribBtn" class="chip">attributes</button>
+    <div class="zoomer">
+      <button id="zin" title="zoom in">+</button>
+      <button id="zout" title="zoom out">&#8722;</button>
+      <button id="zfit" title="fit to screen">&#8862;</button>
+    </div>
+  </div>
+</header>
+
+<div id="main">
+  <aside id="skillsPanel" class="side"></aside>
+
+  <div id="stage">
+    <svg id="canvas" aria-label="ship tree">
+      <defs>
+        <!-- lit backdrop so dark hull silhouettes still read on the dark UI -->
+        <radialGradient id="tileGlow" cx="50%" cy="42%" r="72%">
+          <stop offset="0%" stop-color="#33445f" />
+          <stop offset="55%" stop-color="#1c2637" />
+          <stop offset="100%" stop-color="#0f141d" />
+        </radialGradient>
+      </defs>
+      <g id="world"></g>
+    </svg>
+    <div id="empty" hidden>nothing matches those filters</div>
+    <div id="mini" title="overview — click or drag to move"><svg id="minimap"></svg></div>
+  </div>
+
+  <aside id="panel" class="side hidden"></aside>
+</div>
+
+<footer id="status"></footer>
+
+<div id="attribPop" class="pop hidden">
+  <h3>Training attributes</h3>
+  <label>primary <input id="attrP" type="number" min="1" max="50" value="17"></label>
+  <label style="margin-top:6px">secondary <input id="attrS" type="number" min="1" max="50" value="17"></label>
+  <div class="note" id="attrNote"></div>
+  <button class="ghost reset" id="attrReset">reset levels</button>
+</div>
+
+<div id="keyPop" class="pop hidden">
+  <h3>Faction key <span class="pop-hint">click to jump</span></h3>
+  <div id="keyGrid"></div>
+</div>
+
+<script src="esi.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
