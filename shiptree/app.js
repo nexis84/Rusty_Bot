@@ -61,6 +61,7 @@ const state = {
   esiChar: null,                    // { id, name } when signed in with EVE
   esiQueue: [],                     // character's skill queue
   skillLane: null,                  // lane whose skill tree is in the left panel
+  panelTab: store.get('st.panelTab', 'overview'),  // which right-panel pane is open
   showSkills: true,                 // left skills panel visible
   focusLocked: false,               // explicit lane choice wins until you scroll
   hover: null,                      // 's<id>' | 'k<id>'
@@ -825,39 +826,101 @@ function queueHTML(need) {
   return `<div class="sect">your training queue</div><div class="skill-tree">${rows}</div>`;
 }
 
-/* -------------------------------------------------------------- masteries */
+/* ------------------------------------------------------ hull details (lazy) */
 
-/* Mastery profiles live in a second file (mastery.json) that is fetched after
-   first paint - they are 58% of the payload and are only needed once a hull is
-   open. Until it lands, MASTERY is null and every helper below returns null,
-   which is exactly what masteryHTML() and the tooltip already treat as "no
-   mastery to show". Nothing else needs to know about the split. */
-let MASTERY = null;
-const masteryProfile = ship => (MASTERY && ship.mastery != null ? MASTERY.profiles?.[ship.mastery] : null);
-const masterySkillName = id => MASTERY?.skills?.[id] ?? `skill ${id}`;
+/* Mastery profiles and ship bonuses live in a second file (details.json) that is
+   fetched after first paint - together they are the bulk of the payload and are
+   only needed once a hull is open. Until it lands, DETAILS is null and every
+   helper below returns null/'', which is exactly what masteryHTML(), the tooltip
+   and the Bonuses tab already treat as "nothing to show here". Nothing else
+   needs to know about the split. */
+let DETAILS = null;
 
-/** Fetch the mastery profiles, checking they belong to the shiptree.json we loaded.
- *  Hulls reference profiles by position, so a stale mastery.json paired with a
- *  fresh shiptree.json would show the WRONG mastery levels rather than none - on
- *  a mismatch we bust the cache and ask again. */
-async function loadMastery() {
-  const want = DATA.meta.masteryHash;
-  const url = `data/${DATA.meta.masteryFile || 'mastery.json'}`;
+const masteryProfile = ship =>
+  (DETAILS && ship.mastery != null ? DETAILS.masteryProfiles?.[ship.mastery] : null);
+const masterySkillName = id => DETAILS?.masterySkills?.[id] ?? skillById.get(id)?.name ?? `skill ${id}`;
+
+/** { role: [line], ship: [{skill, lines}] } for a hull, or null before load. */
+function bonusProfile(ship) {
+  if (!DETAILS) return null;
+  const idx = DETAILS.shipBonus?.[ship.id];
+  if (!idx) return null;
+  return {
+    role: DETAILS.bonusRoleSets?.[idx[0]] ?? [],
+    ship: DETAILS.bonusShipSets?.[idx[1]] ?? [],
+  };
+}
+
+/** Fetch the lazy file, checking it belongs to the shiptree.json we loaded.
+ *  Hulls reference profiles and bonus sets by position, so a stale details.json
+ *  paired with a fresh shiptree.json would show the WRONG mastery levels and the
+ *  WRONG bonuses rather than none - on a mismatch we bust the cache and ask
+ *  again. */
+async function loadDetails() {
+  const want = DATA.meta.detailsHash;
+  const url = `data/${DATA.meta.detailsFile || 'details.json'}`;
   let res = await fetch(url);
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
   let body = await res.json();
-  if (want && body?.meta?.masteryHash !== want) {
+  if (want && body?.meta?.detailsHash !== want) {
     res = await fetch(`${url}?v=${want}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
     body = await res.json();
   }
-  if (want && body?.meta?.masteryHash !== want) {
-    throw new Error('mastery data does not match this build');
+  if (want && body?.meta?.detailsHash !== want) {
+    throw new Error('details data does not match this build');
   }
   return body;
 }
 
 /** Highest mastery level (0-5) the current skill levels satisfy. */
+/* ---------------------------------------------------------- ship bonuses */
+
+/* A bonus line is { v, u, t } from the SDE: value, unit symbol ('%', '+', 'x',
+   'm'), text. Many lines carry no value at all - "Can fit a Doomsday module" -
+   so the number is optional and never assumed. */
+function bonusHTML(b) {
+  let n = '';
+  if (b.v != null) {
+    const neg = b.v < 0;
+    const mag = Math.abs(b.v);
+    const body = Number.isInteger(mag) ? mag : +mag.toFixed(2);
+    if (b.u === 'x') n = `${neg ? '&minus;' : ''}&times;${body}`;
+    else n = `${neg ? '&minus;' : '+'}${body}${b.u && b.u !== '+' ? esc(b.u) : ''}`;
+  }
+  return `<div class="bonus-line">`
+    + `${n ? `<span class="bn">${n}</span>` : '<span class="bn none"></span>'}`
+    + `<span class="bt">${esc(b.t)}</span></div>`;
+}
+
+/** The Bonuses tab: what the hull does on its own, then what its skills add. */
+function bonusesHTML(ship) {
+  if (!DETAILS) return `<div class="hint">bonuses still loading&hellip;</div>`;
+  const prof = bonusProfile(ship);
+  const role = prof?.role ?? [];
+  const groups = prof?.ship ?? [];
+  if (!role.length && !groups.length) {
+    return `<div class="hint">no bonuses recorded for ${esc(ship.name)} in the static data.</div>`;
+  }
+  const shipBlocks = groups.map(g => {
+    const raw = g.skill != null ? (skillById.get(g.skill)?.name ?? masterySkillName(g.skill)) : null;
+    const known = raw && !/^skill \d+$/.test(raw);
+    return `<div class="bonus-group">`
+      + (known ? `<div class="bonus-src"><b>${esc(raw)}</b><small>per level</small></div>` : '')
+      + g.lines.map(bonusHTML).join('')
+      + `</div>`;
+  }).join('');
+  const skills = new Set(groups.map(g => g.skill).filter(s => s != null));
+  // Both headings are the SDE's own array names. `roleBonuses` is NOT reliably
+  // "what the hull does without any skill" - the Ibis keeps its Caldari Frigate
+  // turret/missile/ECM bonuses in there - so we do not editorialise either one.
+  return `
+    ${role.length ? `<div class="sect">role bonuses (${role.length})</div>
+      <div class="bonus-list">${role.map(bonusHTML).join('')}</div>` : ''}
+    ${groups.length ? `<div class="sect">ship bonuses &mdash; ${groups.reduce((a, g) => a + g.lines.length, 0)} from ${
+      skills.size > 1 ? `${skills.size} skills` : 'one skill'}</div>${shipBlocks}` : ''}`;
+}
+
 function masteryLevel(ship) {
   const prof = masteryProfile(ship);
   if (!prof) return null;
@@ -946,6 +1009,14 @@ function positionTip(ev) {
 
 /* ------------------------------------------------------------------- panel */
 
+/* The right panel's panes. The chosen tab survives hull changes and reloads -
+   you usually open a few ships in a row to compare the same thing. */
+const PANEL_TABS = [
+  { id: 'overview', label: 'overview', title: 'picture, mastery, price and links' },
+  { id: 'stats', label: 'stats', title: 'fitting, navigation, tank and hold' },
+  { id: 'bonuses', label: 'bonuses', title: 'role bonuses, and ship bonuses per skill' },
+];
+
 function renderPanel(ship) {
   const panel = $('panel');
   const wasHidden = panel.classList.contains('hidden');
@@ -961,7 +1032,11 @@ function renderPanel(ship) {
   const lane = laneById.get(ship.lane);
   const row = rowById.get(ship.row);
   const gate = ship.gate ? skillById.get(ship.gate) : null;
+  if (!PANEL_TABS.some(t => t.id === state.panelTab)) state.panelTab = 'overview';
 
+  // Every pane is rendered up front and the tabs only toggle visibility, so
+  // moving between them is free and the price fetch (which writes #priceBox) is
+  // never restarted by a tab click.
   panel.innerHTML = `
     <div class="panel-head">
       <div class="kicker">${esc(lane?.short ?? '')} &middot; ${esc(row?.name ?? '')}</div>
@@ -969,7 +1044,12 @@ function renderPanel(ship) {
       <div class="sub">${esc(ship.tier || 'hull')} &middot; ${ship.volume.toLocaleString()} m&sup3;${gate ? ` &middot; gated by ${esc(gate.name)}` : ''}</div>
       <button id="panelClose" title="close">&#10005;</button>
     </div>
+    <div class="panel-tabs" role="tablist">
+      ${PANEL_TABS.map(t => `<button class="panel-tab${t.id === state.panelTab ? ' on' : ''}" role="tab"
+        data-tab="${t.id}" aria-selected="${t.id === state.panelTab}" title="${esc(t.title)}">${esc(t.label)}</button>`).join('')}
+    </div>
     <div class="panel-body">
+      <div class="pane" data-pane="overview">
       <div class="ship-hero">
         <img src="${IMG}/${ship.id}/render?size=256" alt="${esc(ship.name)}">
         <div class="chips-row">
@@ -979,7 +1059,6 @@ function renderPanel(ship) {
         </div>
       </div>
       ${masteryHTML(ship)}
-      ${statGrid(ship)}
       <div class="sect">estimated market price</div>
       <div class="statgrid" id="priceBox"><div class="stat"><span>price</span><b class="dim">fetching…</b></div></div>
       <div class="sect">links</div>
@@ -989,14 +1068,41 @@ function renderPanel(ship) {
         ${ship.bp ? `<a href="${bpVisualizerHref(ship.bp)}" target="_blank" rel="noopener" title="Open ${esc(ship.bp)} in the Blueprint Visualizer">blueprint \u2197</a>` : ''}
       </div>
       <div class="note-dim">Skills, levels and training time for this hull are in the panel on the left.</div>
+      </div>
+      <div class="pane" data-pane="stats" hidden>${statGrid(ship)}</div>
+      <div class="pane" data-pane="bonuses" hidden>${bonusesHTML(ship)}</div>
     </div>
     <div class="panel-logo">${factionLogoHTML(ship.lane)}</div>`;
 
   fillPrice(ship.id);
+  syncPanelTabs();
 
   $('panelClose').onclick = () => { clearSelection(); };
+  panel.querySelectorAll('.panel-tab').forEach(el => {
+    el.onclick = () => {
+      if (state.panelTab === el.dataset.tab) return;
+      state.panelTab = el.dataset.tab;
+      store.set('st.panelTab', state.panelTab);
+      syncPanelTabs();
+    };
+  });
   panel.querySelectorAll('.req .lvl').forEach(el => {
     el.onclick = () => { cycleSkill(Number(el.dataset.skill)); };
+  });
+}
+
+/** Show the active pane. Pure class/attribute work - no re-render, so the
+ *  already-fetched price and the already-built bonuses are never recomputed. */
+function syncPanelTabs() {
+  const panel = $('panel');
+  if (!panel) return;
+  panel.querySelectorAll('.panel-tab').forEach(el => {
+    const on = el.dataset.tab === state.panelTab;
+    el.classList.toggle('on', on);
+    el.setAttribute('aria-selected', String(on));
+  });
+  panel.querySelectorAll('.pane').forEach(p => {
+    p.hidden = p.dataset.pane !== state.panelTab;
   });
 }
 
@@ -1745,15 +1851,15 @@ async function init() {
   focusTopLane();
   if (pilot) applyEsiSkills(false);
 
-  // Mastery is the bigger half of the data and nothing on screen needs it yet,
-  // so it goes in the background. The canvas never shows mastery, so only an
-  // already-open hull has to be redrawn when it lands.
-  loadMastery()
+  // Mastery and bonuses are the bigger half of the data and nothing on screen
+  // needs them yet, so they go in the background. The canvas never uses either,
+  // so only an already-open hull has to be redrawn when they land.
+  loadDetails()
     .then(body => {
-      MASTERY = body;
-      if (state.selected) renderPanel(DATA.ships.find(s => s.id === state.selected));
+      DETAILS = body;
+      if (state.selected) renderPanel(shipById.get(state.selected));
     })
-    .catch(e => debug('mastery not loaded:', e.message));
+    .catch(e => debug('details not loaded:', e.message));
 
   if (url.ship) {
     const id = Number(url.ship);
