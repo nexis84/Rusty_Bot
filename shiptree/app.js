@@ -1063,10 +1063,17 @@ function wireView() {
   svg.addEventListener('pointercancel', end);
   svg.addEventListener('click', () => { $('hits').classList.remove('open'); });
 
+  // Wheel scrolls the list (like any page); ctrl/⌘+wheel still zooms.
   svg.addEventListener('wheel', e => {
     e.preventDefault();
     const r = svg.getBoundingClientRect();
-    zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.15 : 1 / 1.15);
+    if (e.ctrlKey || e.metaKey) {
+      zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+      return;
+    }
+    const per = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? $('stage').clientHeight : 1;
+    view.y -= e.deltaY * per;
+    applyView();                       // applyView clamps at the first/last section
   }, { passive: false });
 
   $('zin').onclick = () => zoomAt($('stage').clientWidth / 2, $('stage').clientHeight / 2, 1.3);
@@ -1093,7 +1100,7 @@ function renderStatus() {
     + `<i class="dot warn"></i>partial `
     + `<i class="dot bad"></i>can't fly`
     + `</span>`
-    + `<span style="margin-left:auto">\u03A9 = Omega clone only &middot; click a lane header for its skill tree</span>`;
+    + `<span style="margin-left:auto">scroll to move &middot; ctrl+scroll to zoom &middot; \u03A9 = Omega only</span>`;
 }
 
 /* ------------------------------------------------------------------- url */
