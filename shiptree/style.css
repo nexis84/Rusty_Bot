@@ -94,6 +94,9 @@ input { user-select: text; -webkit-user-select: text; }
 .chip { border: 1px solid var(--line); border-radius: 5px; }
 .chips button:hover, .chip:hover { color: var(--text); }
 .chips button.on, .chip.on { background: var(--accent-dim); color: var(--accent); }
+/* a chip whose data is not available yet (e.g. mastery V before skills load) */
+.chips button:disabled, .chip:disabled { opacity: .45; cursor: not-allowed; }
+.chips button:disabled:hover, .chip:disabled:hover { color: var(--dim); }
 .zoomer { display: flex; gap: 4px; }
 .zoomer button {
   background: var(--panel-2); border: 1px solid var(--line); color: var(--dim);

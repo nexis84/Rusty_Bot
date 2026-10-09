@@ -63,6 +63,7 @@ const state = {
   rows: 'all',                      // all | combat | industry
   flyableOnly: false,
   noFlyOnly: false,                 // only hulls you cannot fly yet
+  noMasteryV: false,                // only hulls not yet brought to Mastery V
   alphaOnly: false,                 // show only Alpha-flyable hulls
   levels: store.get('st.levels', {}),   // skill id -> your level (0..5)
   primary: store.get('st.p', 17),
@@ -289,6 +290,7 @@ function visibleShips() {
   return DATA.ships.filter(s => state.lanes.has(s.lane) && rowAllowed(s.row)
     && (!state.flyableOnly || isFlyable(s))
     && (!state.noFlyOnly || !isFlyable(s))
+    && (!state.noMasteryV || missingMasteryV(s))
     && (!state.alphaOnly || s.alpha));
 }
 
@@ -376,6 +378,7 @@ const world = $('world');
 
 function render() {
   const t0 = DEBUG ? performance.now() : 0;
+  syncMasteryChip();               // may drop the mastery filter if levels went away
   layout = computeLayout();
   world.textContent = '';
   shipWorld.clear();
@@ -541,7 +544,7 @@ function applyHighlight() {
  *  flyable / can't-fly filters select on levels, and the unknown/fly/partial/no
  *  colours all depend on whether we know any levels at all. */
 function paintSkillTiles(skillId, knownBefore) {
-  if (!levelsKnown() || !knownBefore || state.flyableOnly || state.noFlyOnly) {
+  if (!levelsKnown() || !knownBefore || state.flyableOnly || state.noFlyOnly || state.noMasteryV) {
     render();                                    // tile membership or every colour changes
     return;
   }
@@ -953,6 +956,16 @@ function masteryLevel(ship) {
     if (prof[L - 1].every(([id, lvl]) => yourLevel(id) >= lvl)) return L;
   }
   return 0;
+}
+
+/** The "not mastery V" filter can only ask a meaningful question once we know the
+ *  pilot's levels *and* the lazily fetched mastery profiles have landed. */
+const masteryReady = () => levelsKnown() && !!DETAILS;
+
+/** True when the hull has a mastery profile and the pilot has not met all of V. */
+function missingMasteryV(ship) {
+  const lvl = masteryLevel(ship);
+  return lvl != null && lvl < 5;
 }
 
 /** Skills still missing for a given mastery level. */
@@ -1892,6 +1905,7 @@ function syncURL() {
   set('rows', state.rows === 'all' ? '' : state.rows);
   set('fly', state.flyableOnly ? '1' : '');
   set('nofly', state.noFlyOnly ? '1' : '');
+  set('nmv', state.noMasteryV ? '1' : '');
   set('alpha', state.alphaOnly ? '1' : '');
   set('p', state.primary === 17 ? '' : state.primary);
   set('s', state.secondary === 17 ? '' : state.secondary);
@@ -1907,6 +1921,7 @@ function readURL() {
   if (['combat', 'industry'].includes(rows)) state.rows = rows;
   if (p.get('fly')) state.flyableOnly = true;
   if (p.get('nofly')) state.noFlyOnly = true;
+  if (p.get('nmv')) state.noMasteryV = true;
   if (p.get('alpha')) state.alphaOnly = true;
   if (p.get('hideskills')) state.showSkills = false;
   if (p.get('p')) state.primary = Number(p.get('p')) || 17;
@@ -1916,6 +1931,21 @@ function readURL() {
 }
 
 /* --------------------------------------------------------------- filters */
+
+/** Keep the "not mastery V" chip honest: it is only usable once we know levels
+ *  and the mastery profiles have loaded, and it silently drops out otherwise. */
+function syncMasteryChip() {
+  const chip = $('masteryV');
+  if (!chip) return;
+  if (state.noMasteryV && !levelsKnown()) state.noMasteryV = false;
+  const ready = masteryReady();
+  chip.disabled = !ready;
+  chip.classList.toggle('on', state.noMasteryV);
+  chip.title = !levelsKnown()
+    ? 'needs your skills — sign in with EVE, or set some skill levels'
+    : !DETAILS ? 'mastery data still loading…'
+      : 'only hulls you have not yet reached Mastery V with';
+}
 
 function wireFilters() {
   $('rowFilter').querySelectorAll('button').forEach(b => {
@@ -1952,6 +1982,15 @@ function wireFilters() {
     state.alphaOnly = !state.alphaOnly;
     alphaBtn.classList.toggle('on', state.alphaOnly);
     render(); applyView(); syncURL();       // keep the current zoom
+  };
+
+  const masteryBtn = $('masteryV');
+  syncMasteryChip();
+  masteryBtn.onclick = () => {
+    if (masteryBtn.disabled) return;
+    state.noMasteryV = !state.noMasteryV;
+    syncMasteryChip();
+    render(); applyView(); syncURL();
   };
 
   // collapse / expand every faction section
@@ -2138,11 +2177,14 @@ async function init() {
   if (pilot) applyEsiSkills(false);
 
   // Mastery and bonuses are the bigger half of the data and nothing on screen
-  // needs them yet, so they go in the background. The canvas never uses either,
-  // so only an already-open hull has to be redrawn when they land.
+  // needs them yet, so they go in the background. The canvas never uses bonuses,
+  // so only an already-open hull (or an active mastery filter) has to be redrawn
+  // when they land.
   loadDetails()
     .then(body => {
       DETAILS = body;
+      syncMasteryChip();                 // mastery profiles just became usable
+      if (state.noMasteryV) { render(); applyView(); }
       if (state.selected) renderPanel(shipById.get(state.selected));
     })
     .catch(e => debug('details not loaded:', e.message));
