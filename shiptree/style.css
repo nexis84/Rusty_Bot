@@ -149,11 +149,14 @@ input { user-select: text; -webkit-user-select: text; }
 .ship.fly .tile-accent { fill: var(--ok); }
 .ship.partial .tile-accent { fill: var(--warn); }
 .ship.no .tile-accent { fill: var(--bad); }
-.ship.selected .tile-box { stroke: var(--accent); stroke-width: 2.5; }
+/* hover / selection show as a bar under the tile, not a box around it */
+.tile-mark { fill: var(--accent); opacity: 0; }
+.ship.lit .tile-mark { opacity: .7; }
+.ship.selected .tile-mark { opacity: 1; }
 .ship.match .tile-box { stroke: #f5e53b; stroke-width: 2; }
 
 /* hovering a hull or a skill row lights the matching hulls — no connector lines */
-.ship.lit .tile-box { stroke: var(--accent); stroke-width: 2; }
+
 
 /* skills side panel */
 .hint {
