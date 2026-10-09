@@ -675,6 +675,19 @@ function factionLogoHTML(laneId, size = 64) {
   return `<span class="panel-emblem" style="background:${lane.color}">${esc(initials(lane.short))}</span>`;
 }
 
+/** Deep link that pre-fills the Blueprint Visualizer with this hull's blueprint.
+ *  BV reads `#bv=` + base64(JSON) and expects the blueprint *name*. */
+function bpVisualizerHref(bpName) {
+  const payload = { bp: bpName, runs: 1 };
+  let hash = '';
+  try {
+    hash = btoa(JSON.stringify(payload));
+  } catch {
+    hash = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  }
+  return `https://www.rustybot.co.uk/blueprint-visualizer/#bv=${hash}`;
+}
+
 /* ------------------------------------------------------------------- panel */
 
 function renderPanel(ship) {
@@ -715,8 +728,8 @@ function renderPanel(ship) {
       <div class="sect">links</div>
       <div class="links">
         <a href="https://zkillboard.com/ship/${ship.id}/" target="_blank" rel="noopener">zKill</a>
-        <a href="https://wiki.eveuniversity.org/index.php?search=${encodeURIComponent(ship.name)}" target="_blank" rel="noopener">Uni wiki</a>
         <a href="https://www.rustybot.co.uk/market/?type=${ship.id}&region=${PRICE_REGION}" target="_blank" rel="noopener" title="RustyBot market — Jita">market</a>
+        ${ship.bp ? `<a href="${bpVisualizerHref(ship.bp)}" target="_blank" rel="noopener" title="Open ${esc(ship.bp)} in the Blueprint Visualizer">blueprint \u2197</a>` : ''}
       </div>
       <div class="note-dim">Skills, levels and training time for this hull are in the panel on the left.</div>
     </div>
