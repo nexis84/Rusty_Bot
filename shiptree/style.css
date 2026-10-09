@@ -301,6 +301,7 @@ input { user-select: text; -webkit-user-select: text; }
 .verdict.ok { border-color: rgba(63,185,80,.5); color: var(--ok); }
 .verdict.next { border-color: rgba(216,161,58,.5); color: var(--warn); }
 .verdict.no { border-color: rgba(224,82,79,.5); color: var(--bad); }
+.verdict.unknown { border-color: #444; color: var(--dim); }
 .verdict.omega { border-color: rgba(224,164,92,.5); color: #e0a45c; }
 /* omega-only marker on hull tiles */
 .omega-pill { fill: rgba(224, 164, 92, .16); stroke: rgba(224, 164, 92, .55); stroke-width: 1; }
@@ -399,6 +400,13 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
 .pilot-btn:hover { color: var(--accent); background: var(--bg); }
 .skill-row .lvl.locked { cursor: default; border-color: var(--line); color: var(--ok); }
 .skill-row .lvl.locked.have { background: rgba(76, 175, 80, .12); }
+/* the skill ESI is training at this instant */
+.skill-row .lvl.locked.training {
+  border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-dim);
+}
+.skill-row.queue .nm { color: #c4c4c4; }
+.skill-row.queue.now .nm { color: #f0f0f0; }
 .train-row {
   display: flex; align-items: center; gap: 8px;
   padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 12.5px;

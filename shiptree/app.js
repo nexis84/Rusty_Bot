@@ -35,6 +35,11 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
+/* ?debug=1 logs timings to the console. There are no tests around this file, so
+   it is the only way to check a perf claim without guessing. */
+const DEBUG = new URL(location.href).searchParams.has('debug');
+const debug = (...a) => { if (DEBUG) console.log('[shiptree]', ...a); };
+
 let buildInfoText = '';
 const setBuildInfo = text => {
   buildInfoText = text;
@@ -65,14 +70,34 @@ const state = {
 
 let DATA = null;
 let skillById = new Map();
+let shipById = new Map();
 let laneById = new Map();
 let rowById = new Map();
 let hullSkills = new Set();
+let shipsBySkill = new Map();       // skill id -> [ship ids] that require it
+let hullChildren = new Map();       // skill id -> [hull skill ids] requiring it
 let factionLogos = null;             // Set of lane ids that have a real logo file
 let layout = null;                  // last computed layout
 let view = { x: 0, y: 0, k: 1 };    // world transform
 let matches = [];
 const shipWorld = new Map();        // ship id -> {x,y} tile centre in world space
+
+/* Rendered-node caches. Every one of these was a querySelector over ~360 tiles on
+   each hover, click or scroll event; they are rebuilt by render() and nowhere
+   else, so anything that reaches for a node must go through them. */
+const tileNodes = [];               // every hull tile <g>, in render order
+const tileById = new Map();         // ship id -> tile <g>
+const bandNodes = [];               // every band <g>, parallel to layout.bands
+const bandByLane = new Map();       // lane id -> band <g>
+
+/* Stage size, cached: reading clientWidth/clientHeight forces layout, and the
+   view maths did it on every wheel tick and pointermove. invalidate() is called
+   on resize and on every animation frame while a panel is sliding. */
+let stageBox = { w: 0, h: 0 };
+function measureStage() {
+  const st = $('stage');
+  stageBox = { w: st.clientWidth, h: st.clientHeight };
+}
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -89,7 +114,6 @@ const svgEl = (tag, attrs = {}, parent) => {
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
 const roman = n => ROMAN[n] ?? String(n);
 
-// SP needed to train a skill to `level` from scratch, and between two levels.
 // SP needed to train a skill to `level` from scratch, and between two levels.
 // Level 0 must be 0 SP, not level 1's cost - otherwise untrained requirements
 // report no training time at all.
@@ -127,17 +151,42 @@ function wrapName(name, maxChars = 14) {
 
 const shipClass = s => `ship ${(s.tier || '').toLowerCase().replace(/[^a-z0-9]/g, '') || 'other'}`;
 
-/* Real text measurement for row-packing maths — canvas measureText plus the
-   1.4px letter-spacing CSS adds, which measureText knows nothing about. */
+/* Real text measurement for row-packing maths. Canvas measureText knows nothing
+   about letter-spacing or text-transform, and the label rule carries both - so
+   derive the font from a live probe of .row-label instead of restating it here.
+   Hard-coded constants drifted once already: they named a font the page never
+   loads, a bolder weight than it renders at, and skipped the uppercase. */
 const measCtx = document.createElement('canvas').getContext('2d');
-const textWidth = (s, px = 9.5, weight = 700) => {
-  measCtx.font = `${weight} ${px}px 'Titillium Web', 'Segoe UI', sans-serif`;
-  return measCtx.measureText(s).width + s.length * 1.4;
+let labelMetrics = null;
+function rowLabelMetrics() {
+  if (labelMetrics) return labelMetrics;
+  const cs = getComputedStyle(document.documentElement);
+  const probe = document.createElementNS(NS, 'text');
+  probe.setAttribute('class', 'row-label');
+  probe.textContent = 'M';
+  world.appendChild(probe);
+  const s = getComputedStyle(probe);
+  labelMetrics = {
+    font: `${s.fontWeight} ${s.fontSize} / normal ${s.fontFamily || cs.fontFamily}`,
+    spacing: parseFloat(s.letterSpacing) || 0,
+    upper: s.textTransform === 'uppercase',
+  };
+  probe.remove();
+  return labelMetrics;
+}
+const textWidth = (str) => {
+  const m = rowLabelMetrics();
+  const s = m.upper ? str.toUpperCase() : str;
+  measCtx.font = m.font;
+  return measCtx.measureText(s).width + s.length * m.spacing;
 };
 
 /* ------------------------------------------------------------- fleet status */
 
 const yourLevel = id => state.levels[id] || 0;
+
+/** Do we know any skill levels at all - from EVE, or from the level chips? */
+const levelsKnown = () => !!state.esiChar || Object.keys(state.levels).length > 0;
 
 function isFlyable(ship) {
   return ship.prereqs.every(p => yourLevel(p.skill) >= p.level);
@@ -154,23 +203,59 @@ function gaps(ship) {
  *    no      - nothing trained toward it                   (red)
  *    unknown - we have no skill data at all                (neutral) */
 function shipStatus(ship) {
-  const known = !!state.esiChar || Object.keys(state.levels).length > 0;
-  if (!known) return 'unknown';
+  if (!levelsKnown()) return 'unknown';
   const miss = gaps(ship);
   if (!miss.length) return 'fly';
   return ship.prereqs.some(p => yourLevel(p.skill) > 0) ? 'partial' : 'no';
 }
 
+/** Verdict for the focused-hull panel: can you fly it, or are you one skill short?
+ *  Kept separate from shipStatus() because that one drives the tile colour classes,
+ *  which know nothing about "how many" skills are missing.
+ *    fly     - every requirement met                        (green)
+ *    next    - exactly one requirement missing              (amber)
+ *    no      - two or more requirements missing             (red)
+ *    unknown - we have no skill data at all                 (neutral) */
+function shipVerdict(ship) {
+  if (!levelsKnown()) return 'unknown';
+  const miss = gaps(ship);
+  if (!miss.length) return 'fly';
+  return miss.length === 1 ? 'next' : 'no';
+}
+
 /* ------------------------------------------------ hull-skill graph utilities */
 
+/** Reverse indexes, built once. Hulls reference skill profiles by id and the
+ *  highlight walk needs "what does this skill gate", which used to be a rescan of
+ *  all 137 skills on every mousemove. */
+function buildIndexes() {
+  shipById = new Map(DATA.ships.map(s => [s.id, s]));
+  shipsBySkill = new Map();
+  for (const s of DATA.ships) {
+    for (const p of s.prereqs) {
+      if (!shipsBySkill.has(p.skill)) shipsBySkill.set(p.skill, []);
+      shipsBySkill.get(p.skill).push(s.id);
+    }
+  }
+  hullChildren = new Map();
+  for (const s of DATA.skills) {
+    if (!s.hull) continue;
+    for (const p of s.req) {
+      if (!hullChildren.has(p.skill)) hullChildren.set(p.skill, []);
+      hullChildren.get(p.skill).push(s.id);
+    }
+  }
+}
+
+/** Hull skills downstream of `id`, via the precomputed reverse index. */
 function descendantsOf(id) {
   const out = new Set();
   const stack = [id];
   while (stack.length) {
-    const cur = stack.pop();
-    for (const s of DATA.skills) {
-      if (out.has(s.id) || !hullSkills.has(s.id)) continue;
-      if (s.req.some(p => p.skill === cur)) { out.add(s.id); stack.push(s.id); }
+    for (const child of hullChildren.get(stack.pop()) ?? []) {
+      if (out.has(child)) continue;
+      out.add(child);
+      stack.push(child);
     }
   }
   return out;
@@ -275,9 +360,15 @@ function computeLayout() {
 const world = $('world');
 
 function render() {
+  const t0 = DEBUG ? performance.now() : 0;
   layout = computeLayout();
   world.textContent = '';
   shipWorld.clear();
+  tileNodes.length = 0;
+  tileById.clear();
+  bandNodes.length = 0;
+  bandByLane.clear();
+  litKey = '\u0000';              // fresh nodes carry no .lit, so force a repaint
 
   const visible = visibleShips();
   if (!visible.length) {
@@ -290,6 +381,8 @@ function render() {
   for (const band of layout.bands) {
     /* ---- band frame ---- */
     const g = svgEl('g', { class: `band${band.collapsed ? ' collapsed' : ''}`, 'data-lane': band.lane.id }, world);
+    bandNodes.push(g);
+    bandByLane.set(band.lane.id, g);
     const bandW = layout.width - G.padX;
     svgEl('rect', { class: 'band-bg', x: 0, y: band.y, width: bandW, height: band.h, rx: 6 }, g);
     // header strip: rounded on top only, tinted with the faction colour
@@ -334,6 +427,8 @@ function render() {
           class: `${shipClass(s)} ${shipStatus(s)}${state.selected === s.id ? ' selected' : ''}`,
           'data-key': `s${s.id}`, transform: `translate(${t.x} ${t.y})`,
         }, g);
+        tileNodes.push(tg);
+        tileById.set(s.id, tg);
         svgEl('rect', { class: 'tile-box', width: G.tileW, height: G.tileH, rx: 4 }, tg);
         svgEl('rect', { class: 'tile-accent', x: 0, y: 0, width: 5, height: G.tileH, rx: 2.5 }, tg);
         // selection / hover marker: a bar under the tile rather than a box around it
@@ -354,7 +449,7 @@ function render() {
           }), nameEls[0]);
         });
         for (const n of nameEls) tg.appendChild(n);
-        // (the native <title> was removed here: the 2s hover card replaces it)
+        // no native <title> on the tile itself: it would fight the hover card
         if (!s.alpha) {
           const why = s.omegaWhy;
           svgEl('rect', { class: 'omega-pill', x: G.tileW - 17, y: 4, width: 13, height: 13, rx: 3 }, tg);
@@ -378,6 +473,7 @@ function render() {
   markFocusedBand(focusedLaneId());
   applyHighlight();
   renderStatus();
+  debug(`render: ${visible.length} tiles, ${(performance.now() - t0).toFixed(1)}ms`);
 }
 
 /** Fold / unfold a faction section (kept in localStorage). */
@@ -412,32 +508,55 @@ function litSetFor(key) {
   return lit;
 }
 
+let litKey = '\u0000';              // the set currently painted, to skip no-op repaints
 function applyHighlight() {
   const key = state.hover || (state.selected ? `s${state.selected}` : null);
+  if (key === litKey) return;
+  litKey = key;
   const lit = key ? litSetFor(key) : null;
-  world.querySelectorAll('[data-key]').forEach(n => {
+  for (const n of tileNodes) {
     n.classList.toggle('lit', !!lit && lit.has(n.dataset.key));
-  });
+  }
 }
 
 /* ------------------------------------------------------------- interaction */
 
+/** Recolour just the tiles whose requirements involve `skillId`.
+ *  Falls back to a full render only when the tile set itself can change - the
+ *  flyable / can't-fly filters select on levels, and the unknown/fly/partial/no
+ *  colours all depend on whether we know any levels at all. */
+function paintSkillTiles(skillId, knownBefore) {
+  if (!levelsKnown() || !knownBefore || state.flyableOnly || state.noFlyOnly) {
+    render();                                    // tile membership or every colour changes
+    return;
+  }
+  for (const shipId of shipsBySkill.get(skillId) ?? []) {
+    const node = tileById.get(shipId);          // absent = filtered out of view
+    if (!node) continue;
+    node.classList.remove('fly', 'partial', 'no', 'unknown');
+    node.classList.add(shipStatus(shipById.get(shipId)));
+  }
+}
+
 function cycleSkill(id) {
   const cur = yourLevel(id);
+  const knownBefore = levelsKnown();
   state.levels[id] = cur >= 5 ? 0 : cur + 1;
   store.set('st.levels', state.levels);
-  render();                                    // hull tiles recolour
-  renderSkillsPanel();                         // keep the level chips honest
-  if (state.selected) renderPanel(DATA.ships.find(s => s.id === state.selected));
+  paintSkillTiles(id, knownBefore);             // hull tiles recolour
+  renderStatus();                               // the "flyable at your levels" tally
+  renderSkillsPanel();                          // keep the level chips honest
+  if (state.selected) renderPanel(shipById.get(state.selected));
 }
 
 function selectShip(id, pan) {
   state.selected = id;
-  const ship = DATA.ships.find(s => s.id === id);
-  world.querySelectorAll('.ship').forEach(n => n.classList.toggle('selected', n.dataset.key === `s${id}`));
+  const ship = shipById.get(id);
+  const key = `s${id}`;
+  for (const n of tileNodes) n.classList.toggle('selected', n.dataset.key === key);
   applyHighlight();
-  renderPanel(ship);                       // open the panel first: it shrinks the
-  // the left panel follows the hull: show its faction's tree, mark its needs,
+  renderPanel(ship);                       // open the info panel first: it narrows the stage
+  // the skills panel follows the hull: show its faction's tree, mark its needs,
   // and bring its gating skill into view
   if (ship && state.showSkills) {
     state.skillLane = ship.lane;
@@ -458,7 +577,7 @@ function selectShip(id, pan) {
 function clearSelection() {
   if (state.selected == null) return;
   state.selected = null;
-  world.querySelectorAll('.ship.selected').forEach(n => n.classList.remove('selected'));
+  for (const n of tileNodes) n.classList.remove('selected');
   applyHighlight();
   renderPanel(null);
   renderSkillsPanel();
@@ -468,9 +587,8 @@ function clearSelection() {
 
 /** Centre the view vertically on a world point (horizontal is locked). */
 function focusWorld(x, y, minK = 0.75) {
-  const st = $('stage');
   view.k = Math.min(maxK(), Math.max(view.k, minK));   // never zoom further out
-  view.y = st.clientHeight / 2 - y * view.k;
+  view.y = stageBox.h / 2 - y * view.k;
   applyView();
 }
 
@@ -685,10 +803,59 @@ function bpVisualizerHref(bpName) {
   return `https://www.rustybot.co.uk/blueprint-visualizer/#bv=${hash}`;
 }
 
+/* --------------------------------------------------------------- ESI queue */
+
+/** The pilot's queued skills, soonest first (ESI puts the training one at 0). */
+const trainingNow = () => (state.esiQueue ?? []).find(q => q.queue_position === 0) ?? null;
+
+/** Queue block for the focused hull: what they are training, and what it buys. */
+function queueHTML(need) {
+  const q = state.esiQueue ?? [];
+  if (!q.length) return '';
+  const rows = q.slice(0, 4).map((item, i) => {
+    const sk = skillById.get(item.skill_id);
+    const wanted = need.has(item.skill_id);
+    return `<div class="skill-row queue${i === 0 ? ' now' : ''}${wanted ? ' needed' : ''}" data-skill="${item.skill_id}">
+      <span class="lvl locked">${i === 0 ? '&#9654;' : roman(i + 1)}</span>
+      <span class="nm">${esc(sk?.name ?? `skill ${item.skill_id}`)}<small>${
+        i === 0 ? 'training now' : `queued ${i + 1}`} &rarr; ${roman(item.level)
+      }${wanted ? ' &middot; needed for this hull' : ''}</small></span>
+    </div>`;
+  }).join('');
+  return `<div class="sect">your training queue</div><div class="skill-tree">${rows}</div>`;
+}
+
 /* -------------------------------------------------------------- masteries */
 
-const masteryProfile = ship => (ship.mastery != null ? DATA.masteryProfiles?.[ship.mastery] : null);
-const masterySkillName = id => DATA.masterySkills?.[id] ?? `skill ${id}`;
+/* Mastery profiles live in a second file (mastery.json) that is fetched after
+   first paint - they are 58% of the payload and are only needed once a hull is
+   open. Until it lands, MASTERY is null and every helper below returns null,
+   which is exactly what masteryHTML() and the tooltip already treat as "no
+   mastery to show". Nothing else needs to know about the split. */
+let MASTERY = null;
+const masteryProfile = ship => (MASTERY && ship.mastery != null ? MASTERY.profiles?.[ship.mastery] : null);
+const masterySkillName = id => MASTERY?.skills?.[id] ?? `skill ${id}`;
+
+/** Fetch the mastery profiles, checking they belong to the shiptree.json we loaded.
+ *  Hulls reference profiles by position, so a stale mastery.json paired with a
+ *  fresh shiptree.json would show the WRONG mastery levels rather than none - on
+ *  a mismatch we bust the cache and ask again. */
+async function loadMastery() {
+  const want = DATA.meta.masteryHash;
+  const url = `data/${DATA.meta.masteryFile || 'mastery.json'}`;
+  let res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  let body = await res.json();
+  if (want && body?.meta?.masteryHash !== want) {
+    res = await fetch(`${url}?v=${want}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+    body = await res.json();
+  }
+  if (want && body?.meta?.masteryHash !== want) {
+    throw new Error('mastery data does not match this build');
+  }
+  return body;
+}
 
 /** Highest mastery level (0-5) the current skill levels satisfy. */
 function masteryLevel(ship) {
@@ -710,8 +877,7 @@ function masteryGap(ship, level) {
 }
 
 function masteryHTML(ship) {
-  const known = !!state.esiChar || Object.keys(state.levels).length > 0;
-  if (!known || !masteryProfile(ship)) return '';
+  if (!levelsKnown() || !masteryProfile(ship)) return '';
   const lvl = masteryLevel(ship);
   const next = Math.min(5, lvl + 1);
   const gap = lvl >= 5 ? [] : masteryGap(ship, next);
@@ -726,7 +892,7 @@ function masteryHTML(ship) {
 
 /* ---------------------------------------------------------------- tooltip */
 
-let tipTimer = null, tipShipId = null;
+let tipTimer = null, tipShipId = null, tipSize = { w: 0, h: 0 };
 
 function clearTip() {
   clearTimeout(tipTimer);
@@ -749,7 +915,7 @@ function showTip(ship, ev) {
   const row = rowById.get(ship.row);
   const lvl = masteryLevel(ship);
   const status = shipStatus(ship);
-  const known = !!state.esiChar || Object.keys(state.levels).length > 0;
+  const known = levelsKnown();
   tip.innerHTML = `
     <img src="${IMG}/${ship.id}/render?size=128" alt="">
     <div class="tip-body">
@@ -762,6 +928,9 @@ function showTip(ship, ev) {
       <div class="tip-needs">needs: ${ship.prereqs.map(p => `${esc(p.name)} ${roman(p.level)}`).join(', ') || '—'}</div>
     </div>`;
   tip.classList.remove('hidden');
+  // measure once here: positionTip runs on every mousemove, and reading
+  // offsetWidth there forces a synchronous layout against the styles just written
+  tipSize = { w: tip.offsetWidth, h: tip.offsetHeight };
   positionTip(ev);
 }
 
@@ -769,8 +938,8 @@ function positionTip(ev) {
   const tip = $('tip');
   if (tip.classList.contains('hidden') || !ev) return;
   const st = $('stage').getBoundingClientRect();
-  const x = Math.max(8, Math.min(ev.clientX - st.left + 18, st.width - tip.offsetWidth - 8));
-  const y = Math.max(8, Math.min(ev.clientY - st.top + 18, st.height - tip.offsetHeight - 8));
+  const x = Math.max(8, Math.min(ev.clientX - st.left + 18, st.width - tipSize.w - 8));
+  const y = Math.max(8, Math.min(ev.clientY - st.top + 18, st.height - tipSize.h - 8));
   tip.style.left = `${x}px`;
   tip.style.top = `${y}px`;
 }
@@ -899,11 +1068,11 @@ function laneSkillTree(laneId, ship) {
   return { tree: out, support: [...support.entries()].sort((a, b) => skillById.get(a[0]).name.localeCompare(skillById.get(b[0]).name)), focused: !!ship };
 }
 
-function openSkills(laneId, scrollToSkill) {
+function openSkills(laneId, scrollToSkill, flash = false) {
   state.skillLane = laneId;
   state.focusLocked = true;              // explicit choice: hold it until you scroll
   renderSkillsPanel();
-  if (scrollToSkill) scrollSkillIntoView(scrollToSkill);
+  if (scrollToSkill) scrollSkillIntoView(scrollToSkill, flash);
   syncURL();
 }
 
@@ -916,9 +1085,14 @@ function renderSkillsPanel() {
   if (wasHidden !== panel.classList.contains('hidden')) animateView();
   if (!state.showSkills) return;
 
-  const { tree, support, focused } = laneSkillTree(lane.id, state.selected ? DATA.ships.find(s => s.id === state.selected && s.lane === lane.id) : null);
+  // The selected hull only drives this panel while its own lane is on show.
+  // Clicking a lane header explicitly asks for that lane, so the hull keeps its
+  // canvas highlight but hands the left panel back to the whole faction tree -
+  // otherwise its `needs IV` markers would be painted on an unrelated lane.
+  const sel = state.selected ? DATA.ships.find(s => s.id === state.selected) : null;
+  const selected = sel && sel.lane === lane.id ? sel : null;
+  const { tree, support, focused } = laneSkillTree(lane.id, selected);
   // skills the currently selected hull needs, and at what level
-  const selected = state.selected ? DATA.ships.find(s => s.id === state.selected) : null;
   const need = new Map();
   if (selected) for (const p of selected.prereqs) need.set(p.skill, p.level);
 
@@ -933,8 +1107,9 @@ function renderSkillsPanel() {
       req !== undefined ? `needs ${roman(req)}${met ? ' ✓' : ''}` : null,
     ].filter(Boolean).join(' · ');
     // signed in: the levels are the pilot's real ones, so the chips are read-only
+    const training = trainingNow();
     const chip = state.esiChar
-      ? `<span class="lvl locked${you ? ' have' : ''}" title="from your EVE character">${roman(you) || '0'}</span>`
+      ? `<span class="lvl locked${you ? ' have' : ''}${training?.skill_id === node.id ? ' training' : ''}" title="${training?.skill_id === node.id ? 'training this right now' : 'from your EVE character'}">${roman(you) || '0'}</span>`
       : `<span class="lvl${you ? ' have' : ''}" data-skill="${node.id}" title="click to set your level">${roman(you) || '0'}</span>`;
     return `<div class="skill-row${isSupport ? ' support' : ''}${req !== undefined ? ' needed' : ''}"
       data-skill="${node.id}"${isSupport ? '' : ` style="--indent:${node.depth * 13}px"`}>
@@ -954,7 +1129,7 @@ function renderSkillsPanel() {
   if (focused) {
     const rate = spm();
     const miss = gaps(selected);
-    const status = shipStatus(selected);
+    const status = shipVerdict(selected);
     const totalSp = selected.prereqs.reduce((a, p) => a + spBetween(skillById.get(p.skill)?.rank, yourLevel(p.skill), p.level), 0);
     // what is left to train, in the order it must be trained (prerequisites first)
     const todo = selected.prereqs
@@ -985,13 +1160,16 @@ function renderSkillsPanel() {
     const v = status === 'fly'
       ? `<div class="verdict ok">&#10003; flyable now — every requirement is met.</div>`
       : status === 'next'
-        ? `<div class="verdict next">&#9651; one skill short — <b>${esc(miss[0].name)}</b> ${roman(yourLevel(miss[0].skill)) || '—'} &rarr; ${roman(miss[0].level)}</div>`
-        : `<div class="verdict no">&#10007; ${miss.length} skills missing — ${esc(miss.slice(0, 2).map(m => m.name).join(', '))}${miss.length > 2 ? ', …' : ''}</div>`;
+        ? `<div class="verdict next">&#9651; one skill short — <b>${esc(miss[0].name)}</b> ${roman(yourLevel(miss[0].skill)) || '0'} &rarr; ${roman(miss[0].level)}</div>`
+        : status === 'unknown'
+          ? `<div class="verdict unknown">&#9673; not checked — sign in with EVE, or click a level below, to see if you can fly it.</div>`
+          : `<div class="verdict no">&#10007; ${miss.length} skills missing — ${esc(miss.slice(0, 2).map(m => m.name).join(', '))}${miss.length > 2 ? ', …' : ''}</div>`;
     verdictBlock = `${v}${omega}
       ${trainBlock}
+      ${queueHTML(need)}
       <div class="sect">skillbook cost (Jita)</div>
       <div class="statgrid" id="bookBox"><div class="stat"><span>skillbooks</span><b class="dim">fetching…</b></div></div>
-      <div class="sect">training queue from your levels</div>
+      <div class="sect">total from your current levels</div>
       <div class="req"><span class="nm"><b>${totalSp.toLocaleString()} SP</b><small>${fmtMinutes(totalSp / rate)} at ${rate} SP/min (${state.primary}/${state.secondary})</small></span></div>`;
   }
 
@@ -1034,9 +1212,15 @@ function renderSkillsPanel() {
   }
 }
 
-function scrollSkillIntoView(skillId) {
+/** Bring a skill row into view. `flash` marks it briefly - used when a search
+ *  lands on a skill, where that row is the answer the user was looking for. */
+function scrollSkillIntoView(skillId, flash = false) {
   const el = $('skillsPanel').querySelector(`.skill-row[data-skill="${skillId}"]`);
-  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if (!el) return;
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if (!flash) return;
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 1600);
 }
 
 /* --------------------------------------------------------------- search */
@@ -1079,32 +1263,25 @@ function pickMatch(i) {
   else {
     // a skill: open the skill tree of the first lane that uses it, and light it
     const lane = DATA.ships.find(s => s.prereqs.some(p => p.skill === m.id))?.lane;
-    if (lane) { openSkills(lane, m.id); setHover(`k${m.id}`); }
+    if (lane) { openSkills(lane, m.id, true); setHover(`k${m.id}`); }
   }
   $('hits').classList.remove('open');
-}
-
-/** Briefly highlight a skill row in the skills panel (search landing). */
-function flashSkillRow(skillId) {
-  const row = $('skillsPanel').querySelector(`.skill-row[data-skill="${skillId}"]`);
-  if (!row) return;
-  row.classList.add('flash');
-  row.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  setTimeout(() => row.classList.remove('flash'), 1600);
 }
 
 /** Deep link ?skill=<id>: open the owning lane's tree and mark the skill. */
 function pickMatchSkillOnly(skillId) {
   const lane = DATA.ships.find(s => s.prereqs.some(p => p.skill === skillId))?.lane;
   if (!lane) return;
-  openSkills(lane, skillId);
+  openSkills(lane, skillId, true);
 }
 
 function markMatches() {
-  world.querySelectorAll('.ship').forEach(n => n.classList.remove('match'));
+  for (const n of tileNodes) n.classList.remove('match');
   if (!state.query) return;
-  const ids = new Set(DATA.ships.filter(s => s.name.toLowerCase().includes(state.query)).map(s => s.id));
-  for (const id of ids) world.querySelector(`[data-key="s${id}"]`)?.classList.add('match');
+  for (const s of DATA.ships) {
+    if (!s.name.toLowerCase().includes(state.query)) continue;
+    tileById.get(s.id)?.classList.add('match');
+  }
 }
 
 /* ------------------------------------------------------------------- view */
@@ -1113,23 +1290,21 @@ function markMatches() {
    content is always centred and only vertical movement is possible. Zoom is
    capped at "full width fits", which keeps the whole band visible at any zoom. */
 function maxK() {
-  const st = $('stage');
-  return layout ? st.clientWidth / layout.width : 1;
+  return layout ? stageBox.w / layout.width : 1;
 }
 
 function lockView() {
   if (!layout) return;
-  const st = $('stage');
   view.k = Math.min(view.k, maxK());
-  view.x = Math.round((st.clientWidth - layout.width * view.k) / 2);
+  view.x = Math.round((stageBox.w - layout.width * view.k) / 2);
   // Clamp vertically too: the canvas must not be draggable past its first or
   // last band. When it all fits, centre it instead.
   const contentH = layout.height * view.k;
   const margin = 16;
-  if (contentH <= st.clientHeight - margin * 2) {
-    view.y = Math.round((st.clientHeight - contentH) / 2);
+  if (contentH <= stageBox.h - margin * 2) {
+    view.y = Math.round((stageBox.h - contentH) / 2);
   } else {
-    view.y = Math.round(Math.min(margin, Math.max(st.clientHeight - margin - contentH, view.y)));
+    view.y = Math.round(Math.min(margin, Math.max(stageBox.h - margin - contentH, view.y)));
   }
 }
 
@@ -1150,6 +1325,7 @@ function applyViewOnly() {
 function animateView(duration = 340) {
   const t0 = performance.now();
   const step = () => {
+    measureStage();                    // the panel is changing the stage's width
     applyViewOnly();
     if (performance.now() - t0 < duration) requestAnimationFrame(step);
     else applyView();
@@ -1162,8 +1338,7 @@ function animateView(duration = 340) {
 /** The lane whose band sits at the middle of the viewport. */
 function focusedLaneId() {
   if (!layout || !layout.bands.length) return null;
-  const st = $('stage');
-  const worldY = (-view.y + st.clientHeight / 2) / view.k;
+  const worldY = (-view.y + stageBox.h / 2) / view.k;
   let best = null, bestDist = Infinity;
   for (const band of layout.bands) {
     const inside = worldY >= band.y && worldY <= band.y + band.h;
@@ -1189,9 +1364,9 @@ function syncFocusedLane() {
 }
 
 function markFocusedBand(id) {
-  world.querySelectorAll('.band').forEach(b => {
+  for (const b of bandNodes) {
     b.classList.toggle('focused', id != null && Number(b.dataset.lane) === id);
-  });
+  }
 }
 
 
@@ -1206,8 +1381,7 @@ function zoomAt(cx, cy, factor) {
 }
 
 function fitToScreen() {
-  const st = $('stage');
-  const w = st.clientWidth, h = st.clientHeight;
+  const w = stageBox.w, h = stageBox.h;
   const k = Math.min((w - 30) / layout.width, (h - 30) / layout.height);
   view.k = Math.max(0.06, k);
   view.x = (w - layout.width * view.k) / 2;
@@ -1281,13 +1455,13 @@ function wireView() {
       zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
       return;
     }
-    const per = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? $('stage').clientHeight : 1;
+    const per = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stageBox.h : 1;
     view.y -= e.deltaY * per;
     applyView();                       // applyView clamps at the first/last section
   }, { passive: false });
 
-  $('zin').onclick = () => zoomAt($('stage').clientWidth / 2, $('stage').clientHeight / 2, 1.3);
-  $('zout').onclick = () => zoomAt($('stage').clientWidth / 2, $('stage').clientHeight / 2, 1 / 1.3);
+  $('zin').onclick = () => zoomAt(stageBox.w / 2, stageBox.h / 2, 1.3);
+  $('zout').onclick = () => zoomAt(stageBox.w / 2, stageBox.h / 2, 1 / 1.3);
   $('zfit').onclick = fitToScreen;
 }
 
@@ -1518,16 +1692,15 @@ function jumpToLane(laneId) {
   }
   const band = layout.bands.find(b => b.lane.id === laneId);
   if (!band) return;
-  const st = $('stage');
   view.k = Math.min(maxK(), Math.max(view.k, 0.6));
   // Centre a band that fits the viewport, so the viewport centre lands inside it
   // (that is what decides the focused lane); top-align one taller than the view.
   const bandScreenH = band.h * view.k;
-  const top = bandScreenH < st.clientHeight * 0.8 ? (st.clientHeight - bandScreenH) / 2 : 74;
+  const top = bandScreenH < stageBox.h * 0.8 ? (stageBox.h - bandScreenH) / 2 : 74;
   view.y = top - band.y * view.k;
   applyView();                             // also re-focuses the skills panel
 
-  const el = world.querySelector(`.band[data-lane="${laneId}"]`);
+  const el = bandByLane.get(laneId);
   if (el) {
     el.classList.add('flash');
     setTimeout(() => el.classList.remove('flash'), 1400);
@@ -1542,12 +1715,16 @@ function jumpToLane(laneId) {
 async function init() {
   const res = await fetch('data/shiptree.json');
   if (!res.ok) throw new Error(`data/shiptree.json: HTTP ${res.status}`);
+  const t0 = performance.now();
   DATA = await res.json();
+  debug(`shiptree.json parsed in ${(performance.now() - t0).toFixed(1)}ms`);
 
   skillById = new Map(DATA.skills.map(s => [s.id, s]));
   laneById = new Map(DATA.lanes.map(l => [l.id, l]));
   rowById = new Map(DATA.rows.map(r => [r.id, r]));
   hullSkills = new Set(DATA.skills.filter(s => s.hull).map(s => s.id));
+  buildIndexes();
+  measureStage();
   state.lanes = new Set(DATA.lanes.map(l => l.id));
 
   buildInfoText = `SDE build ${DATA.meta.sdeBuild ?? '?'} · ${DATA.meta.counts.ships} hulls · ${DATA.meta.counts.skills} skills`;
@@ -1568,6 +1745,16 @@ async function init() {
   focusTopLane();
   if (pilot) applyEsiSkills(false);
 
+  // Mastery is the bigger half of the data and nothing on screen needs it yet,
+  // so it goes in the background. The canvas never shows mastery, so only an
+  // already-open hull has to be redrawn when it lands.
+  loadMastery()
+    .then(body => {
+      MASTERY = body;
+      if (state.selected) renderPanel(DATA.ships.find(s => s.id === state.selected));
+    })
+    .catch(e => debug('mastery not loaded:', e.message));
+
   if (url.ship) {
     const id = Number(url.ship);
     if (DATA.ships.some(s => s.id === id)) selectShip(id, true);
@@ -1575,7 +1762,7 @@ async function init() {
   if (url.skills && laneById.has(Number(url.skills))) openSkills(Number(url.skills));
   if (url.skill) pickMatchSkillOnly(Number(url.skill));
 
-  window.addEventListener('resize', () => applyView());
+  window.addEventListener('resize', () => { measureStage(); applyView(); });
   window.addEventListener('error', e => { if (String(e.message).includes('shiptree')) setBuildInfo('data missing - run build-shiptree.mjs'); });
 }
 
