@@ -1054,9 +1054,12 @@ function renderPanel(ship) {
   // never restarted by a tab click.
   panel.innerHTML = `
     <div class="panel-head">
-      <div class="kicker">${esc(lane?.short ?? '')} &middot; ${esc(row?.name ?? '')}</div>
-      <h2>${esc(ship.name)}</h2>
-      <div class="sub">${esc(ship.tier || 'hull')} &middot; ${ship.volume.toLocaleString()} m&sup3;${gate ? ` &middot; gated by ${esc(gate.name)}` : ''}</div>
+      <img class="head-img" src="${IMG}/${ship.id}/render?size=128" alt="${esc(ship.name)}">
+      <div class="head-txt">
+        <div class="kicker">${esc(lane?.short ?? '')} &middot; ${esc(row?.name ?? '')}</div>
+        <h2>${esc(ship.name)}</h2>
+        <div class="sub">${esc(ship.tier || 'hull')} &middot; ${ship.volume.toLocaleString()} m&sup3;${gate ? ` &middot; gated by ${esc(gate.name)}` : ''}</div>
+      </div>
       <button id="panelClose" title="close">&#10005;</button>
     </div>
     <div class="panel-tabs" role="tablist">
@@ -1065,13 +1068,10 @@ function renderPanel(ship) {
     </div>
     <div class="panel-body">
       <div class="pane" data-pane="overview">
-      <div class="ship-hero">
-        <img src="${IMG}/${ship.id}/render?size=256" alt="${esc(ship.name)}">
-        <div class="chips-row">
-          <span class="tag tier ${shipClass(ship).split(' ')[1] || ''}">${esc(ship.tier || 'hull')}</span>
-          <span class="tag ${ship.alpha ? 'alpha' : 'omega'}" title="${ship.alpha ? 'flyable on an Alpha clone' : 'needs an Omega clone'}">${ship.alpha ? 'Alpha' : '\u03A9 Omega only'}</span>
-          ${(ship.tags ?? []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
-        </div>
+      <div class="chips-row">
+        <span class="tag tier ${shipClass(ship).split(' ')[1] || ''}">${esc(ship.tier || 'hull')}</span>
+        <span class="tag ${ship.alpha ? 'alpha' : 'omega'}" title="${ship.alpha ? 'flyable on an Alpha clone' : 'needs an Omega clone'}">${ship.alpha ? 'Alpha' : '\u03A9 Omega only'}</span>
+        ${(ship.tags ?? []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
       </div>
       ${masteryHTML(ship)}
       <div class="sect">estimated market price</div>

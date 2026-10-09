@@ -306,6 +306,17 @@ input { user-select: text; -webkit-user-select: text; }
   border-bottom: 1px solid var(--line-strong);
   background: var(--panel-2);
 }
+/* The hull picture lives in the head, not in a pane, so it stays put while the
+   overview/stats/bonuses tabs switch underneath it. Scoped to #panel: the left
+   skills panel shares .panel-head but has no picture, and its kicker/title/sub
+   must stay stacked rather than laid out in a row. */
+#panel .panel-head { display: flex; gap: 11px; align-items: center; }
+#panel .panel-head .head-txt { flex: 1; min-width: 0; }
+.panel-head .head-img {
+  flex: none; width: 68px; height: 68px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: radial-gradient(circle at 50% 40%, #2a3340, #14181f);
+}
 .panel-head .kicker {
   font-size: 9.5px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--accent);
 }
@@ -318,11 +329,6 @@ input { user-select: text; -webkit-user-select: text; }
 }
 #panelClose:hover { color: var(--accent); border-color: var(--accent); }
 .panel-body { padding: 12px 14px 20px; display: flex; flex-direction: column; gap: 14px; }
-.ship-hero { display: flex; gap: 12px; align-items: center; }
-.ship-hero img {
-  width: 96px; height: 96px; border: 1px solid var(--line); border-radius: 6px;
-  background: radial-gradient(circle at 50% 40%, #242424, #121212);
-}
 .chips-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .tag {
   font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase;
