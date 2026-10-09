@@ -44,6 +44,7 @@ const state = {
   primary: store.get('st.p', 17),
   secondary: store.get('st.s', 17),
   selected: null,                   // ship id
+  collapsed: new Set(store.get('st.collapsed', [])),   // folded faction sections
   esiChar: null,                    // { id, name } when signed in with EVE
   esiQueue: [],                     // character's skill queue
   skillLane: null,                  // lane whose skill tree is in the left panel
@@ -59,6 +60,7 @@ let skillById = new Map();
 let laneById = new Map();
 let rowById = new Map();
 let hullSkills = new Set();
+let factionLogos = null;             // Set of lane ids that have a real logo file
 let layout = null;                  // last computed layout
 let view = { x: 0, y: 0, k: 1 };    // world transform
 let matches = [];
@@ -138,10 +140,17 @@ function gaps(ship) {
   miss.sort((a, b) => (a.level - yourLevel(a.skill)) - (b.level - yourLevel(b.skill)));
   return miss;
 }
+/** Flyability of a hull against the levels we know:
+ *    fly     - every requirement met                      (green)
+ *    partial - some progress toward it, but not there yet  (orange)
+ *    no      - nothing trained toward it                   (red)
+ *    unknown - we have no skill data at all                (neutral) */
 function shipStatus(ship) {
+  const known = !!state.esiChar || Object.keys(state.levels).length > 0;
+  if (!known) return 'unknown';
   const miss = gaps(ship);
   if (!miss.length) return 'fly';
-  return miss.length === 1 && miss[0].level - yourLevel(miss[0].skill) <= 3 ? 'next' : 'far';
+  return ship.prereqs.some(p => yourLevel(p.skill) > 0) ? 'partial' : 'no';
 }
 
 /* ------------------------------------------------ hull-skill graph utilities */
@@ -189,6 +198,14 @@ function computeLayout() {
   for (const lane of DATA.lanes) {
     const laneShips = byLane.get(lane.id);
     if (!laneShips || !laneShips.length) continue;
+
+    // a collapsed section keeps its header but draws no rows
+    if (state.collapsed.has(lane.id)) {
+      const bandH = G.bandHead + 10;
+      bands.push({ lane, y, h: bandH, rows: [], rowsH: 0, ships: laneShips.length, collapsed: true });
+      y += bandH + G.bandPad;
+      continue;
+    }
 
     /* ---- hull-class rows: label + a line of hull tiles, packed ---- */
     const rowsMap = new Map();
@@ -256,17 +273,14 @@ function render() {
   const visible = visibleShips();
   if (!visible.length) {
     $('empty').hidden = false;
-    mmView = null;
-    $('minimap').textContent = '';
     renderStatus();
     return;
   }
   $('empty').hidden = true;
-  renderMinimap();
 
   for (const band of layout.bands) {
     /* ---- band frame ---- */
-    const g = svgEl('g', { class: 'band', 'data-lane': band.lane.id }, world);
+    const g = svgEl('g', { class: `band${band.collapsed ? ' collapsed' : ''}`, 'data-lane': band.lane.id }, world);
     const bandW = layout.width - G.padX;
     svgEl('rect', { class: 'band-bg', x: 0, y: band.y, width: bandW, height: band.h, rx: 6 }, g);
     // header strip: rounded on top only, tinted with the faction colour
@@ -278,12 +292,27 @@ function render() {
     const headHit = svgEl('rect', { x: 0, y: band.y, width: bandW, height: G.bandHead, fill: 'transparent', style: 'cursor:pointer' }, g);
     svgEl('title', { text: `click for the ${band.lane.short} skill tree` }, headHit);
     headHit.addEventListener('click', ev => { ev.stopPropagation(); if (!clickSuppressed()) openSkills(band.lane.id); });
-    // small collapse control at the right end of the header
-    const collapse = svgEl('g', { class: 'lane-toggle', transform: `translate(${bandW - 26} ${band.y + 8})`, style: 'cursor:pointer' }, g);
-    svgEl('rect', { width: 18, height: 18, rx: 4, fill: 'none', stroke: '#3a4356' }, collapse);
-    svgEl('text', { x: 9, y: 13, 'text-anchor': 'middle', fill: '#8b93a7', 'font-size': 13, text: '\u2212' }, collapse);
-    svgEl('title', { text: `hide the ${band.lane.short} lane` }, collapse);
-    collapse.addEventListener('click', ev => { ev.stopPropagation(); if (!clickSuppressed()) toggleLane(band.lane.id); });
+
+    // collapse control: folds the lane down to its header
+    const isCollapsed = state.collapsed.has(band.lane.id);
+    const chev = svgEl('g', {
+      class: 'lane-toggle', transform: `translate(${bandW - 28} ${band.y + 10})`, style: 'cursor:pointer',
+    }, g);
+    svgEl('rect', { class: 'lane-toggle-box', width: 20, height: 20, rx: 4 }, chev);
+    svgEl('text', {
+      class: 'lane-toggle-glyph', x: 10, y: 14.5, 'text-anchor': 'middle',
+      text: isCollapsed ? '\u25B8' : '\u25BE',
+    }, chev);
+    svgEl('title', { text: `${isCollapsed ? 'expand' : 'collapse'} the ${band.lane.short} section` }, chev);
+    chev.addEventListener('click', ev => { ev.stopPropagation(); if (!clickSuppressed()) toggleCollapsed(band.lane.id); });
+
+    if (isCollapsed) {
+      svgEl('text', {
+        class: 'band-collapsed-note', x: bandW - 44, y: band.y + 24, 'text-anchor': 'end',
+        text: `${band.ships} hulls hidden`,
+      }, g);
+      continue;                                    // no rows to draw
+    }
 
     /* ---- hull-class rows ---- */
     for (const row of band.rows) {
@@ -345,18 +374,14 @@ function render() {
   renderStatus();
 }
 
-/** Show/hide a whole faction lane (band header click). */
-function toggleLane(id) {
-  if (state.lanes.has(id)) {
-    if (state.lanes.size === 1) return;          // never hide the last lane
-    state.lanes.delete(id);
-  } else {
-    state.lanes.add(id);
-  }
+/** Fold / unfold a faction section (kept in localStorage). */
+function toggleCollapsed(id) {
+  if (state.collapsed.has(id)) state.collapsed.delete(id);
+  else state.collapsed.add(id);
+  store.set('st.collapsed', [...state.collapsed]);
   render();
-  fitToScreen();
   syncKey();
-  syncURL();
+  applyView();
 }
 
 /* --------------------------------------------------------------- highlight */
@@ -577,6 +602,17 @@ async function applyEsiSkills(announce) {
   }
 }
 
+/** Faction mark for a panel footer: the real logo if we have one, else the
+ *  house emblem (colour + initials). */
+function factionLogoHTML(laneId, size = 64) {
+  const lane = laneById.get(laneId);
+  if (!lane) return '';
+  if (factionLogos && factionLogos.has(laneId)) {
+    return `<img src="img/factions/${laneId}.png" alt="" style="width:${size}px;height:${size}px">`;
+  }
+  return `<span class="panel-emblem" style="background:${lane.color}">${esc(initials(lane.short))}</span>`;
+}
+
 /* ------------------------------------------------------------------- panel */
 
 function renderPanel(ship) {
@@ -614,7 +650,8 @@ function renderPanel(ship) {
         <a href="https://www.rustybot.co.uk/market/?type=${ship.id}&region=${PRICE_REGION}" target="_blank" rel="noopener" title="RustyBot market — Jita">market</a>
       </div>
       <div class="note-dim">Skills, levels and training time for this hull are in the panel on the left.</div>
-    </div>`;
+    </div>
+    <div class="panel-logo">${factionLogoHTML(ship.lane)}</div>`;
 
   fillPrice(ship.id);
 
@@ -800,7 +837,8 @@ function renderSkillsPanel() {
       <div class="sect">${focused ? 'skills this hull needs' : 'hull skills'}</div>
       <div class="skill-tree">${rows}</div>
       ${supportRows ? `<div class="sect">support skills</div><div class="skill-tree">${supportRows}</div>` : ''}
-    </div>`;
+    </div>
+    <div class="panel-logo">${factionLogoHTML(lane.id)}</div>`;
 
   panel.querySelectorAll('.lvl').forEach(el => {
     if (el.classList.contains('locked')) return;      // ESI levels: not editable
@@ -901,12 +939,20 @@ function lockView() {
   const st = $('stage');
   view.k = Math.min(view.k, maxK());
   view.x = Math.round((st.clientWidth - layout.width * view.k) / 2);
+  // Clamp vertically too: the canvas must not be draggable past its first or
+  // last band. When it all fits, centre it instead.
+  const contentH = layout.height * view.k;
+  const margin = 16;
+  if (contentH <= st.clientHeight - margin * 2) {
+    view.y = Math.round((st.clientHeight - contentH) / 2);
+  } else {
+    view.y = Math.round(Math.min(margin, Math.max(st.clientHeight - margin - contentH, view.y)));
+  }
 }
 
 function applyView() {
   lockView();
   world.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.k})`);
-  updateMinimap();
   syncFocusedLane();
 }
 
@@ -944,59 +990,6 @@ function markFocusedBand(id) {
   });
 }
 
-/* ----------------------------------------------------------------- minimap */
-
-let mmView = null;
-
-function renderMinimap() {
-  const mm = $('minimap');
-  mm.textContent = '';
-  mm.setAttribute('viewBox', `0 0 ${layout.width} ${layout.height}`);
-  mm.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  for (const band of layout.bands) {
-    svgEl('rect', {
-      x: 0, y: band.y, width: layout.width - G.padX, height: band.h,
-      fill: band.lane.color, 'fill-opacity': .16,
-      stroke: band.lane.color, 'stroke-opacity': .55, 'stroke-width': 3,
-      'vector-effect': 'non-scaling-stroke',
-    }, mm);
-    for (const row of band.rows) {
-      for (const t of row.tiles) {
-        svgEl('circle', {
-          class: `mm-dot ${shipStatus(t.ship)}`, cx: t.x + G.tileW / 2, cy: t.y + G.tileH / 2, r: 13,
-        }, mm);
-      }
-    }
-  }
-  mmView = svgEl('rect', {
-    class: 'mm-view', x: 0, y: 0, width: 10, height: 10,
-    'stroke-width': 2, 'vector-effect': 'non-scaling-stroke',
-  }, mm);
-  updateMinimap();
-
-  mm.onpointerdown = e => { mmJump(e); mm.setPointerCapture(e.pointerId); };
-  mm.onpointermove = e => { if (e.buttons) mmJump(e); };
-}
-
-function updateMinimap() {
-  if (!mmView || !layout) return;
-  const st = $('stage');
-  const w = st.clientWidth / view.k, h = st.clientHeight / view.k;
-  mmView.setAttribute('x', -view.x / view.k);
-  mmView.setAttribute('y', -view.y / view.k);
-  mmView.setAttribute('width', w);
-  mmView.setAttribute('height', h);
-}
-
-function mmJump(e) {
-  const mm = $('minimap');
-  const r = mm.getBoundingClientRect();
-  const k = Math.min(r.width / layout.width, r.height / layout.height);
-  const wy = (e.clientY - r.top - (r.height - layout.height * k) / 2) / k;
-  view.y = $('stage').clientHeight / 2 - wy * view.k;   // vertical only
-  state.focusLocked = false;
-  applyView();
-}
 
 function zoomAt(cx, cy, factor) {
   // cx is ignored on purpose: horizontal position is locked to centre
@@ -1015,6 +1008,15 @@ function fitToScreen() {
   view.k = Math.max(0.06, k);
   view.x = (w - layout.width * view.k) / 2;
   view.y = (h - layout.height * view.k) / 2;
+  applyView();
+}
+
+/** Opening view: zoomed all the way in on the top lane (Caldari). */
+function focusTopLane() {
+  const band = layout.bands[0];
+  if (!band) { fitToScreen(); return; }
+  view.k = maxK();                       // maximum zoom = a band exactly fills the width
+  view.y = 16 - band.y * view.k;         // first band's header at the top
   applyView();
 }
 
@@ -1084,6 +1086,11 @@ function renderStatus() {
     + `<span><b>${shown}</b> shown</span>`
     + `<span><b>${fly}</b> flyable at your levels</span>`
     + `<span>${state.primary}/${state.secondary} &rarr; <b>${spm()}</b> SP/min</span>`
+    + `<span class="legend">`
+    + `<i class="dot ok"></i>flyable `
+    + `<i class="dot warn"></i>partial `
+    + `<i class="dot bad"></i>can't fly`
+    + `</span>`
     + `<span style="margin-left:auto">\u03A9 = Omega clone only &middot; click a lane header for its skill tree</span>`;
 }
 
@@ -1216,6 +1223,16 @@ const initials = name => {
   return (words.length === 1 ? words[0].slice(0, 2) : words[0][0] + words[1][0]).toUpperCase();
 };
 
+/** Optional real faction logos: img/factions/manifest.json lists lane ids. */
+async function loadFactionLogos() {
+  try {
+    const r = await fetch('img/factions/manifest.json', { cache: 'no-cache' });
+    if (!r.ok) return;
+    const list = await r.json();
+    if (Array.isArray(list) && list.length) factionLogos = new Set(list.map(Number));
+  } catch { /* no logos shipped - house emblems are used */ }
+}
+
 function buildKey() {
   const grid = $('keyGrid');
   grid.innerHTML = DATA.lanes.map(l => `
@@ -1235,14 +1252,15 @@ function buildKey() {
 /** Dim key entries whose lane is currently hidden. */
 function syncKey() {
   $('keyGrid').querySelectorAll('.key-item').forEach(el => {
-    el.classList.toggle('off', !state.lanes.has(Number(el.dataset.lane)));
+    el.classList.toggle('off', state.collapsed.has(Number(el.dataset.lane)));
   });
 }
 
 /** Take the view to a faction's band and flash it so you can see where you landed. */
 function jumpToLane(laneId) {
-  if (!state.lanes.has(laneId)) {          // hidden lane: show it again first
-    state.lanes.add(laneId);
+  if (state.collapsed.has(laneId)) {       // folded section: open it so you can see it
+    state.collapsed.delete(laneId);
+    store.set('st.collapsed', [...state.collapsed]);
     render();
     syncKey();
   }
@@ -1290,11 +1308,12 @@ async function init() {
   // up already coloured by the pilot's real skills
   const pilot = EVE_SSO.character();
   if (pilot) state.esiChar = pilot;
+  await loadFactionLogos();
   state.skillLane = state.skillLane ?? DATA.lanes[0].id;   // left panel starts on a lane
   renderAuth();
   render();
   renderSkillsPanel();
-  fitToScreen();
+  focusTopLane();
   if (pilot) applyEsiSkills(false);
 
   if (url.ship) {
