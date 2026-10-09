@@ -46,6 +46,7 @@ const state = {
   lanes: new Set(),                 // visible lane ids
   rows: 'all',                      // all | combat | industry
   flyableOnly: false,
+  noFlyOnly: false,                 // only hulls you cannot fly yet
   alphaOnly: false,                 // show only Alpha-flyable hulls
   levels: store.get('st.levels', {}),   // skill id -> your level (0..5)
   primary: store.get('st.p', 17),
@@ -187,6 +188,7 @@ function rowAllowed(rowId) {
 function visibleShips() {
   return DATA.ships.filter(s => state.lanes.has(s.lane) && rowAllowed(s.row)
     && (!state.flyableOnly || isFlyable(s))
+    && (!state.noFlyOnly || !isFlyable(s))
     && (!state.alphaOnly || s.alpha));
 }
 
@@ -1323,6 +1325,7 @@ function syncURL() {
   set('hideskills', state.showSkills ? '' : '1');
   set('rows', state.rows === 'all' ? '' : state.rows);
   set('fly', state.flyableOnly ? '1' : '');
+  set('nofly', state.noFlyOnly ? '1' : '');
   set('alpha', state.alphaOnly ? '1' : '');
   set('p', state.primary === 17 ? '' : state.primary);
   set('s', state.secondary === 17 ? '' : state.secondary);
@@ -1337,6 +1340,7 @@ function readURL() {
   const rows = p.get('rows');
   if (['combat', 'industry'].includes(rows)) state.rows = rows;
   if (p.get('fly')) state.flyableOnly = true;
+  if (p.get('nofly')) state.noFlyOnly = true;
   if (p.get('alpha')) state.alphaOnly = true;
   if (p.get('hideskills')) state.showSkills = false;
   if (p.get('p')) state.primary = Number(p.get('p')) || 17;
@@ -1353,15 +1357,27 @@ function wireFilters() {
       $('rowFilter').querySelectorAll('button').forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       state.rows = b.dataset.rows;
-      render(); fitToScreen(); syncURL();
+      render(); applyView(); syncURL();     // keep the current zoom, just re-clamp
     };
   });
   const fly = $('flyable');
-  fly.classList.toggle('on', state.flyableOnly);
+  const noFly = $('noFly');
+  const setFlyChips = () => {
+    fly.classList.toggle('on', state.flyableOnly);
+    noFly.classList.toggle('on', state.noFlyOnly);
+  };
+  setFlyChips();
   fly.onclick = () => {
     state.flyableOnly = !state.flyableOnly;
-    fly.classList.toggle('on', state.flyableOnly);
-    render(); syncURL();
+    if (state.flyableOnly) state.noFlyOnly = false;      // mutually exclusive
+    setFlyChips();
+    render(); applyView(); syncURL();
+  };
+  noFly.onclick = () => {
+    state.noFlyOnly = !state.noFlyOnly;
+    if (state.noFlyOnly) state.flyableOnly = false;
+    setFlyChips();
+    render(); applyView(); syncURL();
   };
 
   const alphaBtn = $('alphaBtn');
@@ -1369,7 +1385,7 @@ function wireFilters() {
   alphaBtn.onclick = () => {
     state.alphaOnly = !state.alphaOnly;
     alphaBtn.classList.toggle('on', state.alphaOnly);
-    render(); fitToScreen(); syncURL();
+    render(); applyView(); syncURL();       // keep the current zoom
   };
 
   // collapse / expand every faction section
