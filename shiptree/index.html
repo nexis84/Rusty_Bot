@@ -20,7 +20,7 @@
         <span class="breadcrumb-item"><a href="https://www.rustybot.co.uk/">Home</a></span>
         <span class="breadcrumb-item"><a href="./">Ship Tree</a></span>
       </div>
-      <h1>Rusty<span class="accent">Ship Tree</span><small id="buildinfo">loading…</small></h1>
+      <h1>Rusty<span class="accent">Ship Tree</span></h1>
     </div>
   </div>
 
@@ -36,7 +36,7 @@
       <button data-rows="combat">combat</button>
       <button data-rows="industry">industry</button>
     </div>
-    <button id="keyBtn" class="chip" title="faction key — jump to a lane">key</button>
+    <button id="keyBtn" class="chip" title="faction key — jump to a lane, fold sections">key</button>
     <button id="skillsBtn" class="chip on" title="show / hide the skills panel">skills</button>
     <button id="flyable" class="chip">flyable only</button>
     <button id="alphaBtn" class="chip" title="hide Omega-only hulls">alpha only</button>
@@ -82,6 +82,10 @@
 
 <div id="keyPop" class="pop hidden">
   <h3>Faction key <span class="pop-hint">click to jump</span></h3>
+  <div class="key-actions">
+    <button id="expandAll" class="ghost">expand all</button>
+    <button id="collapseAll" class="ghost">collapse all</button>
+  </div>
   <div id="keyGrid"></div>
 </div>
 

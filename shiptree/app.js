@@ -35,6 +35,13 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
 };
+let buildInfoText = '';
+const setBuildInfo = text => {
+  buildInfoText = text;
+  const el = $('buildinfo');
+  if (el) el.textContent = text;
+};
+
 const state = {
   lanes: new Set(),                 // visible lane ids
   rows: 'all',                      // all | combat | industry
@@ -450,12 +457,54 @@ function selectShip(id, pan) {
   syncURL();
 }
 
+/** Drop the current hull selection: hides the info panel, clears the selection
+ *  bar and puts the skills panel back on the whole faction tree. */
+function clearSelection() {
+  if (state.selected == null) return;
+  state.selected = null;
+  world.querySelectorAll('.ship.selected').forEach(n => n.classList.remove('selected'));
+  applyHighlight();
+  renderPanel(null);
+  renderSkillsPanel();
+  syncURL();
+}
+
 /** Centre the view vertically on a world point (horizontal is locked). */
 function focusWorld(x, y, minK = 0.75) {
   const st = $('stage');
   view.k = Math.min(maxK(), Math.max(view.k, minK));   // never zoom further out
   view.y = st.clientHeight / 2 - y * view.k;
   applyView();
+}
+
+/* ------------------------------------------------------- skillbook cost */
+
+/** Price the skillbooks for a hull: the ones you still need, and all of them.
+ *  A skill and its skillbook are the same type in modern EVE, so the skill id
+ *  is the market type id. */
+async function fillBookCost(boxId, neededIds, allIds) {
+  const box = $(boxId);
+  if (!box) return;
+  const ids = [...new Set([...allIds, ...neededIds])];
+  const prices = await loadPrices(ids);
+  if ($(boxId) !== box) return;                     // panel moved on
+  const byId = new Map(ids.map((id, i) => [id, prices[i]]));
+  const sum = list => list.reduce((a, id) => a + (byId.get(id)?.sell ?? byId.get(id)?.buy ?? 0), 0);
+  const priced = list => list.filter(id => byId.get(id)).length;
+  const needCost = sum(neededIds);
+  const allCost = sum(allIds);
+  if (!allCost && !needCost) {
+    box.innerHTML = `<div class="stat"><span>skillbooks</span><b class="dim">price unavailable offline</b></div>`;
+    return;
+  }
+  box.innerHTML =
+    (neededIds.length
+      ? `<div class="stat"><span>to buy (${neededIds.length} book${neededIds.length > 1 ? 's' : ''})</span><b class="isk">${isk(needCost)} ISK</b></div>`
+      : '')
+    + `<div class="stat"><span>all requirements (${allIds.length})</span><b>${isk(allCost)} ISK</b></div>`
+    + (priced(ids) < ids.length
+      ? `<div class="stat"><span>unpriced</span><b class="dim">${ids.length - priced(ids)} of ${ids.length}</b></div>`
+      : '');
 }
 
 /* ------------------------------------------------------------ formatting */
@@ -520,23 +569,34 @@ function statGrid(ship) {
 const PRICE_REGION = 10000002;                     // Jita
 const priceCache = new Map();                      // typeID -> Promise<price|null>
 
-function fetchPrice(typeId) {
-  if (!priceCache.has(typeId)) {
-    priceCache.set(typeId, (async () => {
+const priceFrom = row => {
+  if (!row) return null;
+  const sell = Number(row.sell?.percentile || row.sell?.min || 0) || null;
+  const buy = Number(row.buy?.percentile || row.buy?.max || 0) || null;
+  if (!sell && !buy) return null;
+  return { sell, buy, sellVolume: Number(row.sell?.volume || 0), buyVolume: Number(row.buy?.volume || 0) };
+};
+
+/** Prices for many types in one request (Fuzzwork accepts a comma list). */
+async function loadPrices(ids) {
+  const missing = [...new Set(ids)].filter(id => !priceCache.has(id));
+  if (missing.length) {
+    const batch = (async () => {
       try {
-        const r = await fetch(`https://market.fuzzwork.co.uk/aggregates/?region=${PRICE_REGION}&types=${typeId}`);
+        const r = await fetch(`https://market.fuzzwork.co.uk/aggregates/?region=${PRICE_REGION}&types=${missing.join(',')}`);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const row = (await r.json())[String(typeId)];
-        if (!row) return null;
-        const sell = Number(row.sell?.percentile || row.sell?.min || 0) || null;
-        const buy = Number(row.buy?.percentile || row.buy?.max || 0) || null;
-        if (!sell && !buy) return null;
-        return { sell, buy, sellVolume: Number(row.sell?.volume || 0), buyVolume: Number(row.buy?.volume || 0) };
+        return await r.json();
       } catch {
-        return null;                                // offline / rate limited: just hide it
+        return null;                                // offline / rate limited
       }
-    })());
+    })();
+    for (const id of missing) priceCache.set(id, batch.then(j => priceFrom(j?.[String(id)])));
   }
+  return Promise.all(ids.map(id => priceCache.get(id)));
+}
+
+function fetchPrice(typeId) {
+  if (!priceCache.has(typeId)) loadPrices([typeId]);
   return priceCache.get(typeId);
 }
 
@@ -560,7 +620,7 @@ function renderAuth() {
   const c = state.esiChar;
   if (!c) {
     box.innerHTML = `<button id="ssoLogin" class="chip auth-btn" title="Sign in with EVE to use your real skills">
-      <span class="dot"></span>Login with EVE</button>`;
+      <span class="dot"></span>login</button>`;
     $('ssoLogin').onclick = () => EVE_SSO.login();
     return;
   }
@@ -597,10 +657,10 @@ async function applyEsiSkills(announce) {
     render();
     renderSkillsPanel();
     if (state.selected) renderPanel(DATA.ships.find(s => s.id === state.selected));
-    if (announce) $('buildinfo').textContent = `skills synced — ${levels.size} trained`;
+    if (announce) setBuildInfo(`skills synced — ${levels.size} trained`);
   } catch (e) {
     if (/not signed in|session expired/.test(e.message)) setEsiCharacter(null);
-    else $('buildinfo').textContent = `skill sync failed: ${e.message}`;
+    else setBuildInfo(`skill sync failed: ${e.message}`);
   }
 }
 
@@ -657,7 +717,7 @@ function renderPanel(ship) {
 
   fillPrice(ship.id);
 
-  $('panelClose').onclick = () => { state.selected = null; render(); selectShip(null); applyView(); };
+  $('panelClose').onclick = () => { clearSelection(); applyView(); };
   panel.querySelectorAll('.req .lvl').forEach(el => {
     el.onclick = () => { cycleSkill(Number(el.dataset.skill)); };
   });
@@ -819,6 +879,8 @@ function renderSkillsPanel() {
         : `<div class="verdict no">&#10007; ${miss.length} skills missing — ${esc(miss.slice(0, 2).map(m => m.name).join(', '))}${miss.length > 2 ? ', …' : ''}</div>`;
     verdictBlock = `${v}${omega}
       ${trainBlock}
+      <div class="sect">skillbook cost (Jita)</div>
+      <div class="statgrid" id="bookBox"><div class="stat"><span>skillbooks</span><b class="dim">fetching…</b></div></div>
       <div class="sect">training queue from your levels</div>
       <div class="req"><span class="nm"><b>${totalSp.toLocaleString()} SP</b><small>${fmtMinutes(totalSp / rate)} at ${rate} SP/min (${state.primary}/${state.secondary})</small></span></div>`;
   }
@@ -851,6 +913,15 @@ function renderSkillsPanel() {
     el.addEventListener('mousemove', () => setHover(`k${Number(el.dataset.skill)}`));
     el.addEventListener('mouseleave', () => setHover(null));
   });
+
+  // price the skillbooks for the focused hull (one batched request)
+  if (focused && selected) {
+    fillBookCost(
+      'bookBox',
+      selected.prereqs.filter(p => yourLevel(p.skill) < p.level).map(p => p.skill),
+      selected.prereqs.map(p => p.skill),
+    );
+  }
 }
 
 function scrollSkillIntoView(skillId) {
@@ -1061,7 +1132,14 @@ function wireView() {
   };
   svg.addEventListener('pointerup', end);
   svg.addEventListener('pointercancel', end);
-  svg.addEventListener('click', () => { $('hits').classList.remove('open'); });
+  svg.addEventListener('click', () => {
+    $('hits').classList.remove('open');
+    // a click on empty canvas clears the selection (but not the click that ends a pan)
+    if (!clickSuppressed() && state.selected != null) {
+      clearSelection();
+      applyView();                     // the info panel just closed: re-centre
+    }
+  });
 
   // Wheel scrolls the list (like any page); ctrl/⌘+wheel still zooms.
   svg.addEventListener('wheel', e => {
@@ -1090,7 +1168,8 @@ const clickSuppressed = () => Date.now() < suppressClickUntil;
 function renderStatus() {
   const shown = visibleShips().length;
   const fly = DATA.ships.filter(s => isFlyable(s)).length;
-  $('status').innerHTML = `<span><b>${DATA.meta.counts.ships}</b> hulls</span>`
+  $('status').innerHTML = `<span id="buildinfo">${esc(buildInfoText)}</span>`
+    + `<span><b>${DATA.meta.counts.ships}</b> hulls</span>`
     + `<span><b>${layout ? layout.bands.length : DATA.lanes.length}</b> lanes</span>`
     + `<span><b>${shown}</b> shown</span>`
     + `<span><b>${fly}</b> flyable at your levels</span>`
@@ -1161,6 +1240,18 @@ function wireFilters() {
     state.alphaOnly = !state.alphaOnly;
     alphaBtn.classList.toggle('on', state.alphaOnly);
     render(); fitToScreen(); syncURL();
+  };
+
+  // collapse / expand every faction section
+  $('collapseAll').onclick = () => {
+    state.collapsed = new Set(DATA.lanes.map(l => l.id));
+    store.set('st.collapsed', [...state.collapsed]);
+    render(); syncKey(); applyView();
+  };
+  $('expandAll').onclick = () => {
+    state.collapsed = new Set();
+    store.set('st.collapsed', []);
+    render(); syncKey(); applyView();
   };
 
   const skillsBtn = $('skillsBtn');
@@ -1307,7 +1398,7 @@ async function init() {
   hullSkills = new Set(DATA.skills.filter(s => s.hull).map(s => s.id));
   state.lanes = new Set(DATA.lanes.map(l => l.id));
 
-  $('buildinfo').textContent = `SDE build ${DATA.meta.sdeBuild ?? '?'} · ${DATA.meta.counts.ships} hulls · ${DATA.meta.counts.skills} skills`;
+  buildInfoText = `SDE build ${DATA.meta.sdeBuild ?? '?'} · ${DATA.meta.counts.ships} hulls · ${DATA.meta.counts.skills} skills`;
 
   const url = readURL();
   wireView();
@@ -1333,11 +1424,11 @@ async function init() {
   if (url.skill) pickMatchSkillOnly(Number(url.skill));
 
   window.addEventListener('resize', () => applyView());
-  window.addEventListener('error', e => { if (String(e.message).includes('shiptree')) $('buildinfo').textContent = 'data missing — run build-shiptree.mjs'; });
+  window.addEventListener('error', e => { if (String(e.message).includes('shiptree')) setBuildInfo('data missing - run build-shiptree.mjs'); });
 }
 
 init().catch(err => {
-  $('buildinfo').textContent = `failed to load: ${err.message}`;
+  setBuildInfo(`failed to load: ${err.message}`);
   console.error(err);
 });
 

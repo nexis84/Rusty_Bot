@@ -421,3 +421,17 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
 #status .legend .dot.ok { background: var(--ok); }
 #status .legend .dot.warn { background: var(--warn); }
 #status .legend .dot.bad { background: var(--bad); }
+
+/* themed scrollbars (Firefox + WebKit/Blink) so they match the panels */
+* { scrollbar-color: #3a3a3a var(--panel); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb {
+  background: #3a3a3a; border-radius: 6px; border: 2px solid var(--panel);
+}
+::-webkit-scrollbar-thumb:hover { background: #4d4d4d; }
+::-webkit-scrollbar-corner { background: var(--panel); }
+
+/* collapse / expand all, inside the faction key popover */
+.key-actions { display: flex; gap: 6px; margin-bottom: 9px; }
+.key-actions .ghost { flex: 1; text-align: center; }
