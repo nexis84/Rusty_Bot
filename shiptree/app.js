@@ -40,6 +40,17 @@ const store = {
 const DEBUG = new URL(location.href).searchParams.has('debug');
 const debug = (...a) => { if (DEBUG) console.log('[shiptree]', ...a); };
 
+/* The pilot's ESI training queue: the list of queued skills in the left panel,
+   and the marker on the chip of the skill being trained right now. Both are
+   wired up and verified working, but nothing on the page acts on them yet, so
+   for now they only take up space in a panel the user reads to compare hulls.
+   Flip this to true to bring both back - it gates the extra ESI request, the
+   queue block and the chip marker, and nothing else. queueHTML() and
+   trainingNow() stay defined either way.
+   Note the chip only lights when the skill being trained is one the focused
+   hull actually needs, which is why the marker can look absent at a glance. */
+const SHOW_TRAINING_QUEUE = false;
+
 let buildInfoText = '';
 const setBuildInfo = text => {
   buildInfoText = text;
@@ -766,7 +777,11 @@ function setEsiCharacter(c) {
 /** Pull the character's trained levels and drive the whole tree from them. */
 async function applyEsiSkills(announce) {
   try {
-    const [levels, queue] = await Promise.all([EVE_SSO.fetchSkills(), EVE_SSO.fetchQueue()]);
+    // the queue is only fetched while something actually shows it
+    const [levels, queue] = await Promise.all([
+      EVE_SSO.fetchSkills(),
+      SHOW_TRAINING_QUEUE ? EVE_SSO.fetchQueue() : Promise.resolve([]),
+    ]);
     state.levels = Object.fromEntries([...levels.entries()].map(([id, lvl]) => [id, lvl]));
     state.esiQueue = queue;
     renderAuth();
@@ -1213,7 +1228,7 @@ function renderSkillsPanel() {
       req !== undefined ? `needs ${roman(req)}${met ? ' ✓' : ''}` : null,
     ].filter(Boolean).join(' · ');
     // signed in: the levels are the pilot's real ones, so the chips are read-only
-    const training = trainingNow();
+    const training = SHOW_TRAINING_QUEUE ? trainingNow() : null;
     const chip = state.esiChar
       ? `<span class="lvl locked${you ? ' have' : ''}${training?.skill_id === node.id ? ' training' : ''}" title="${training?.skill_id === node.id ? 'training this right now' : 'from your EVE character'}">${roman(you) || '0'}</span>`
       : `<span class="lvl${you ? ' have' : ''}" data-skill="${node.id}" title="click to set your level">${roman(you) || '0'}</span>`;
@@ -1272,7 +1287,7 @@ function renderSkillsPanel() {
           : `<div class="verdict no">&#10007; ${miss.length} skills missing — ${esc(miss.slice(0, 2).map(m => m.name).join(', '))}${miss.length > 2 ? ', …' : ''}</div>`;
     verdictBlock = `${v}${omega}
       ${trainBlock}
-      ${queueHTML(need)}
+      ${SHOW_TRAINING_QUEUE ? queueHTML(need) : ''}
       <div class="sect">skillbook cost (Jita)</div>
       <div class="statgrid" id="bookBox"><div class="stat"><span>skillbooks</span><b class="dim">fetching…</b></div></div>
       <div class="sect">total from your current levels</div>
