@@ -441,3 +441,6 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
 /* collapse / expand all, inside the faction key popover */
 .key-actions { display: flex; gap: 6px; margin-bottom: 9px; }
 .key-actions .ghost { flex: 1; text-align: center; }
+
+/* real faction logos in the key grid */
+.key-logo { width: 26px; height: 26px; object-fit: contain; flex: none; }

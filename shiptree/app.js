@@ -1378,14 +1378,20 @@ async function loadFactionLogos() {
 
 function buildKey() {
   const grid = $('keyGrid');
-  grid.innerHTML = DATA.lanes.map(l => `
+  grid.innerHTML = DATA.lanes.map(l => {
+    // real faction logo when we have one, house emblem otherwise
+    const mark = (factionLogos && factionLogos.has(l.id))
+      ? `<img class="key-logo" src="img/factions/${l.id}.png" alt="">`
+      : `<span class="key-emblem" style="background:${l.color}">${esc(initials(l.short))}</span>`;
+    return `
     <button class="key-item" data-lane="${l.id}" title="${esc(l.name)} — ${l.count} hulls">
-      <span class="key-emblem" style="background:${l.color}">${esc(initials(l.short))}</span>
+      ${mark}
       <span class="key-txt">
         <span class="key-name">${esc(l.short)}</span>
         <span class="key-count">${l.count} hulls</span>
       </span>
-    </button>`).join('');
+    </button>`;
+  }).join('');
   grid.querySelectorAll('.key-item').forEach(el => {
     el.onclick = () => { jumpToLane(Number(el.dataset.lane)); $('keyPop').classList.add('hidden'); };
   });
@@ -1446,12 +1452,12 @@ async function init() {
   const url = readURL();
   wireView();
   wireFilters();
-  buildKey();
   // pick up an existing EVE session before the first render, so the tree comes
   // up already coloured by the pilot's real skills
   const pilot = EVE_SSO.character();
   if (pilot) state.esiChar = pilot;
-  await loadFactionLogos();
+  await loadFactionLogos();                                // before buildKey: real logos
+  buildKey();
   state.skillLane = state.skillLane ?? DATA.lanes[0].id;   // left panel starts on a lane
   renderAuth();
   render();
