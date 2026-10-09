@@ -25,8 +25,10 @@
   </div>
 
   <div class="fld">
-    <input id="q" type="text" placeholder="search hull or skill   ( / )" autocomplete="off" spellcheck="false">
-    <div id="hits"></div>
+    <input id="q" type="text" placeholder="search hull or skill   ( / )" autocomplete="off" spellcheck="false"
+      role="combobox" aria-label="search hull or skill" aria-autocomplete="list"
+      aria-expanded="false" aria-controls="hits">
+    <div id="hits" role="listbox" aria-label="search results"></div>
   </div>
 
   <div class="tools">
@@ -55,7 +57,7 @@
   <aside id="skillsPanel" class="side"></aside>
 
   <div id="stage">
-    <svg id="canvas" aria-label="ship tree">
+    <svg id="canvas" role="group" aria-label="ship tree">
       <defs>
         <!-- lit backdrop so dark hull silhouettes still read on the dark UI -->
         <radialGradient id="tileGlow" cx="50%" cy="42%" r="72%">
@@ -71,9 +73,13 @@
   </div>
 
   <aside id="panel" class="side hidden"></aside>
+  <div id="scrim" hidden aria-hidden="true"></div>
 </div>
 
+<div id="errorBox" class="error-box" role="alert" hidden></div>
+
 <footer id="status"></footer>
+<div id="live" class="sr-only" aria-live="polite"></div>
 
 <div id="attribPop" class="pop hidden">
   <h3>Training attributes</h3>

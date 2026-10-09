@@ -31,6 +31,9 @@ body {
 }
 /* inputs still need to be usable */
 input { user-select: text; -webkit-user-select: text; }
+/* keyboard focus is visible everywhere (mouse clicks stay outline-free) */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg :focus-visible { outline: none; }        /* SVG outline is unreliable; tiles use .tile-mark */
 
 /* ---------------------------------------------------------------- top bar */
 
@@ -115,6 +118,28 @@ input { user-select: text; -webkit-user-select: text; }
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   color: var(--dim); font-size: 13px; letter-spacing: 1px; pointer-events: none;
 }
+/* a hard failure (data missing/corrupt) gets a readable card, not the status line */
+.error-box[hidden] { display: none; }
+.error-box {
+  position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; text-align: center;
+  background: var(--bg); color: var(--text); padding: 24px;
+}
+.error-box h2 { font-size: 15px; letter-spacing: .5px; color: var(--bad); }
+.error-box p { font-size: 12.5px; color: var(--dim); max-width: 460px; line-height: 1.5; }
+.error-box code { color: var(--accent); font-size: 12px; }
+/* screen-reader-only announcements (live region) */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* mobile drawer backdrop */
+#scrim[hidden] { display: none; }
+#scrim {
+  position: absolute; inset: 0; z-index: 14; background: rgba(0,0,0,.5);
+  border: 0; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+#scrim.show { opacity: 1; pointer-events: auto; cursor: pointer; }
 
 
 /* lane band */
@@ -205,6 +230,7 @@ input { user-select: text; -webkit-user-select: text; }
 .lane-toggle rect { stroke-opacity: .8; }
 .lane-toggle:hover rect { stroke: var(--accent); }
 .lane-toggle:hover text { fill: var(--accent); }
+.lane-toggle:focus-visible rect, .lane-toggle:focus rect { stroke: var(--accent); stroke-width: 2; }
 
 /* ---------------------------------------------------------------- panel */
 
@@ -651,3 +677,49 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
 .tip-line.no { color: var(--bad); }
 .tip-line.omega { color: #e0a45c; }
 .tip-needs { font-size: 10.5px; color: var(--dim); margin-top: 4px; }
+
+/* keyboard focus on a hull tile mirrors the hover/selected marker */
+.ship:focus { outline: none; }
+.ship:focus-visible .tile-mark, .ship:focus .tile-mark { opacity: 1; }
+.ship:focus-visible .tile-box, .ship:focus .tile-box { stroke: var(--accent); stroke-width: 2; }
+
+/* keep the search input's options semantics invisible to layout */
+#hits[role="listbox"] { list-style: none; }
+
+/* -------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------- small screens */
+/* Under 900px the two side panels become slide-over drawers and the header
+   wraps. The canvas stays the whole stage behind them. */
+@media (max-width: 900px) {
+  #topbar { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+  .fld { order: 3; width: 100%; }
+  #q { width: 100%; }
+  .tools { margin-left: 0; width: 100%; }
+  #status { flex-wrap: wrap; gap: 10px; row-gap: 2px; }
+  #status > span:last-child { margin-left: 0 !important; width: 100%; }
+
+  #main { position: relative; }
+  #skillsPanel, #panel {
+    position: absolute; top: 0; bottom: 0; z-index: 16;
+    width: min(86vw, 340px);
+    box-shadow: 0 0 40px rgba(0,0,0,.6);
+    transition: transform .26s cubic-bezier(.4, 0, .2, 1), opacity .2s ease;
+  }
+  #skillsPanel { left: 0; border-right: 1px solid var(--line-strong); transform: translateX(-102%); }
+  #panel { right: 0; border-left: 1px solid var(--line-strong); transform: translateX(102%); }
+  #skillsPanel:not(.hidden), #panel:not(.hidden) { transform: none; }
+  /* width:0 from the desktop rule would collapse a drawer, so keep its width */
+  #skillsPanel.hidden, #panel.hidden { width: min(86vw, 340px); opacity: 1; pointer-events: none; }
+  #skillsPanel .panel-head, #skillsPanel .panel-logo, #skillsPanel .panel-body,
+  #panel .panel-head, #panel .panel-foot, #panel .panel-body, #panel .panel-tabs { width: auto; }
+}

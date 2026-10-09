@@ -40,6 +40,13 @@ const store = {
 const DEBUG = new URL(location.href).searchParams.has('debug');
 const debug = (...a) => { if (DEBUG) console.log('[shiptree]', ...a); };
 
+/* Respect the OS "reduce motion" setting in JS too - CSS alone cannot stop the
+   rAF width tween or smooth scrollIntoView. */
+const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* The drawer/layout switch lives at this width in style.css; JS follows it. */
+const MOBILE_Q = matchMedia('(max-width: 900px)');
+const isMobile = () => MOBILE_Q.matches;
+
 /* The pilot's ESI training queue: the list of queued skills in the left panel,
    and the marker on the chip of the skill being trained right now. Both are
    wired up and verified working, but nothing on the page acts on them yet, so
@@ -57,6 +64,17 @@ const setBuildInfo = text => {
   const el = $('buildinfo');
   if (el) el.textContent = text;
 };
+
+/** Surface a hard failure (missing or corrupt data) as a centred card instead of
+ *  a whisper in the status line nobody looks at. */
+function showError(title, detail) {
+  const box = $('errorBox');
+  if (!box) return;
+  box.innerHTML = `<h2>${esc(title)}</h2>`
+    + `<p>${esc(detail)}</p>`
+    + `<p>If this is a fresh checkout, run <code>node build-shiptree.mjs</code> first.</p>`;
+  box.classList.remove('hidden');
+}
 
 const state = {
   lanes: new Set(),                 // visible lane ids
@@ -103,6 +121,8 @@ const shipWorld = new Map();        // ship id -> {x,y} tile centre in world spa
    else, so anything that reaches for a node must go through them. */
 const tileNodes = [];               // every hull tile <g>, in render order
 const tileById = new Map();         // ship id -> tile <g>
+let focusTileId = null;             // tile that owns the roving tabindex (keyboard nav)
+let keyboardNav = false;            // true while the user is driving the grid by keyboard
 const bandNodes = [];               // every band <g>, parallel to layout.bands
 const bandByLane = new Map();       // lane id -> band <g>
 
@@ -237,6 +257,21 @@ function shipVerdict(ship) {
   const miss = gaps(ship);
   if (!miss.length) return 'fly';
   return miss.length === 1 ? 'next' : 'no';
+}
+
+/** Screen-reader label for a hull tile: name, class, fly state, mastery, Omega. */
+function tileAriaLabel(ship) {
+  const st = shipStatus(ship);
+  const status = st === 'fly' ? 'flyable' : st === 'partial' ? 'part trained'
+    : st === 'no' ? 'cannot fly' : 'not checked';
+  const lvl = masteryLevel(ship);
+  return [
+    ship.name,
+    rowById.get(ship.row)?.name,
+    status,
+    levelsKnown() && lvl != null ? `mastery ${lvl === 0 ? 'none' : roman(lvl)}` : null,
+    ship.alpha ? null : 'Omega only',
+  ].filter(Boolean).join(', ');
 }
 
 /* ------------------------------------------------ hull-skill graph utilities */
@@ -379,6 +414,7 @@ const world = $('world');
 function render() {
   const t0 = DEBUG ? performance.now() : 0;
   syncMasteryChip();               // may drop the mastery filter if levels went away
+  const hadTileFocus = !!(document.activeElement?.dataset?.key?.startsWith('s'));
   layout = computeLayout();
   world.textContent = '';
   shipWorld.clear();
@@ -417,6 +453,8 @@ function render() {
     const isCollapsed = state.collapsed.has(band.lane.id);
     const chev = svgEl('g', {
       class: 'lane-toggle', transform: `translate(${bandW - 28} ${band.y + 10})`, style: 'cursor:pointer',
+      role: 'button', tabindex: '0',
+      'aria-label': `${isCollapsed ? 'expand' : 'collapse'} the ${band.lane.short} section`,
     }, g);
     svgEl('rect', { class: 'lane-toggle-box', width: 20, height: 20, rx: 4 }, chev);
     svgEl('text', {
@@ -425,6 +463,9 @@ function render() {
     }, chev);
     svgEl('title', { text: `${isCollapsed ? 'expand' : 'collapse'} the ${band.lane.short} section` }, chev);
     chev.addEventListener('click', ev => { ev.stopPropagation(); if (!clickSuppressed()) toggleCollapsed(band.lane.id); });
+    chev.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.stopPropagation(); ev.preventDefault(); toggleCollapsed(band.lane.id); }
+    });
 
     if (isCollapsed) {
       svgEl('text', {
@@ -444,6 +485,8 @@ function render() {
         const tg = svgEl('g', {
           class: `${shipClass(s)} ${shipStatus(s)}${state.selected === s.id ? ' selected' : ''}`,
           'data-key': `s${s.id}`, transform: `translate(${t.x} ${t.y})`,
+          role: 'button', 'aria-label': tileAriaLabel(s),
+          tabindex: s.id === focusTileId ? 0 : -1,
         }, g);
         tileNodes.push(tg);
         tileById.set(s.id, tg);
@@ -486,6 +529,15 @@ function render() {
     }
 
     band.el = g;
+  }
+
+  // exactly one tile carries the roving tabindex; keep keyboard focus across a
+  // rebuild (filters, level changes) so it does not fall back to the body
+  if (tileNodes.length) {
+    const node = (focusTileId != null && tileById.get(focusTileId)) || tileNodes[0];
+    node.setAttribute('tabindex', '0');
+    focusTileId = Number(node.dataset.key.slice(1));
+    if (hadTileFocus) node.focus({ preventScroll: true });
   }
 
   markFocusedBand(focusedLaneId());
@@ -570,6 +622,7 @@ function cycleSkill(id) {
 function selectShip(id, pan) {
   state.selected = id;
   const ship = shipById.get(id);
+  ensureDetails().catch(() => {});        // the panel needs bonuses/mastery
   const asCompare = takeCompare(id);
   const key = `s${id}`;
   for (const n of tileNodes) n.classList.toggle('selected', n.dataset.key === key);
@@ -901,7 +954,37 @@ async function loadDetails() {
   return body;
 }
 
-/** Highest mastery level (0-5) the current skill levels satisfy. */
+/* details.json is fetched once, on demand - a hull being opened, the mastery
+   filter, a bonus search, or an idle warm. The promise is cached so those
+   triggers share one request. */
+let detailsPromise = null;
+function ensureDetails() {
+  if (!detailsPromise) {
+    detailsPromise = loadDetails()
+      .then(body => {
+        DETAILS = body;
+        buildSearchIndex();                 // bonus text is searchable now
+        syncMasteryChip();                  // mastery profiles just became usable
+        if (state.noMasteryV) { render(); applyView(); }
+        if (state.selected) renderPanel(shipById.get(state.selected));
+        return body;
+      })
+      .catch(e => {
+        debug('details not loaded:', e.message);
+        if (state.noMasteryV) showError('mastery data failed to load', e.message);
+        throw e;                            // callers decide whether it matters
+      });
+  }
+  return detailsPromise;
+}
+
+/** Warm the lazy file when the browser is idle, without blocking first paint. */
+function scheduleDetailsWarm() {
+  const warm = () => ensureDetails().catch(() => {});
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(warm, { timeout: 2500 });
+  else setTimeout(warm, 300);
+}
+
 /* ---------------------------------------------------------- ship bonuses */
 
 /* A bonus line is { v, u, t } from the SDE: value, unit symbol ('%', '+', 'x',
@@ -1004,6 +1087,7 @@ function clearTip() {
 
 /** Hovering a hull for 2s pops a card with its picture and the basics. */
 function scheduleTip(ship, ev) {
+  ensureDetails().catch(() => {});         // so the mastery line can show in time
   if (tipShipId === ship.id) { positionTip(ev); return; }   // already pending/shown
   clearTip();
   tipShipId = ship.id;
@@ -1061,12 +1145,16 @@ function renderPanel(ship) {
   const wasHidden = panel.classList.contains('hidden');
   if (!ship) {
     panel.classList.add('hidden');
+    panel.inert = true;                              // keep hidden panes out of tab order
     setTimeout(() => { if (panel.classList.contains('hidden')) panel.innerHTML = ''; }, 300);
     if (!wasHidden) animateView();
+    syncScrim();
     return;
   }
   panel.classList.remove('hidden');
+  panel.inert = false;
   if (wasHidden) animateView();
+  syncScrim();
 
   const lane = laneById.get(ship.lane);
   const row = rowById.get(ship.row);
@@ -1398,8 +1486,10 @@ function renderSkillsPanel() {
   const panel = $('skillsPanel');
   const wasHidden = panel.classList.contains('hidden');
   const lane = laneById.get(state.skillLane);
-  if (!lane) { panel.classList.add('hidden'); panel.innerHTML = ''; return; }
+  if (!lane) { panel.classList.add('hidden'); panel.inert = true; panel.innerHTML = ''; syncScrim(); return; }
   panel.classList.toggle('hidden', !state.showSkills);
+  panel.inert = !state.showSkills;
+  syncScrim();
   if (wasHidden !== panel.classList.contains('hidden')) animateView();
   if (!state.showSkills) return;
 
@@ -1428,7 +1518,7 @@ function renderSkillsPanel() {
     const training = SHOW_TRAINING_QUEUE ? trainingNow() : null;
     const chip = state.esiChar
       ? `<span class="lvl locked${you ? ' have' : ''}${training?.skill_id === node.id ? ' training' : ''}" title="${training?.skill_id === node.id ? 'training this right now' : 'from your EVE character'}">${roman(you) || '0'}</span>`
-      : `<span class="lvl${you ? ' have' : ''}" data-skill="${node.id}" title="click to set your level">${roman(you) || '0'}</span>`;
+      : `<span class="lvl${you ? ' have' : ''}" data-skill="${node.id}" role="button" tabindex="0" aria-label="set ${esc(sk.name)} level, now ${roman(you) || '0'}" title="click to set your level">${roman(you) || '0'}</span>`;
     return `<div class="skill-row${isSupport ? ' support' : ''}${req !== undefined ? ' needed' : ''}"
       data-skill="${node.id}"${isSupport ? '' : ` style="--indent:${node.depth * 13}px"`}>
       ${chip}
@@ -1512,7 +1602,13 @@ function renderSkillsPanel() {
 
   panel.querySelectorAll('.lvl').forEach(el => {
     if (el.classList.contains('locked')) return;      // ESI levels: not editable
-    el.onclick = () => cycleSkill(Number(el.dataset.skill));
+    const sid = Number(el.dataset.skill);
+    el.onclick = () => cycleSkill(sid);
+    el.onkeydown = e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cycleSkill(sid); }
+    };
+    el.addEventListener('focus', () => setHover(`k${sid}`));
+    el.addEventListener('blur', () => setHover(null));
   });
   // hovering a skill lights the hulls it gates, so the panels and canvas stay linked
   panel.querySelectorAll('.skill-row').forEach(el => {
@@ -1535,7 +1631,7 @@ function renderSkillsPanel() {
 function scrollSkillIntoView(skillId, flash = false) {
   const el = $('skillsPanel').querySelector(`.skill-row[data-skill="${skillId}"]`);
   if (!el) return;
-  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  el.scrollIntoView({ block: 'center', behavior: REDUCE_MOTION ? 'auto' : 'smooth' });
   if (!flash) return;
   el.classList.add('flash');
   setTimeout(() => el.classList.remove('flash'), 1600);
@@ -1557,36 +1653,50 @@ function bonusLinesOf(ship) {
   return out;
 }
 
+/* A lowercase index of everything searchable, built once when the hull data
+   loads and rebuilt when the bonus text arrives. Keystrokes then scan plain
+   strings instead of rebuilding bonus lines for all 361 hulls. */
+let searchIndex = [];
+function buildSearchIndex() {
+  searchIndex = DATA.ships.map(s => {
+    const cls = rowById.get(s.row)?.name ?? '';
+    const roles = (s.tags ?? []).filter(t => ROLE_VOCAB.includes(t));
+    return {
+      id: s.id, lane: s.lane, name: s.name,
+      nameL: s.name.toLowerCase(), cls, clsL: cls.toLowerCase(),
+      roles, rolesL: roles.join(' ').toLowerCase(),
+      bonuses: DETAILS ? bonusLinesOf(s) : [],
+    };
+  });
+}
+
 const ROLE_VOCAB = ['Attack', 'Combat', 'Disruption', 'Support', 'Hauling',
   'Resource Harvesting', 'Exploration', 'Tackling'];
 
 function runSearch(q) {
   state.query = q.trim().toLowerCase();
   if (!state.query) { matches = []; renderHits(); applyHighlight(); return; }
+  ensureDetails().catch(() => {});        // make bonus text searchable once it lands
   const needle = state.query;
 
   const ships = [];
   const bonuses = [];
-  for (const s of DATA.ships) {
-    if (!state.lanes.has(s.lane)) continue;
+  for (const e of searchIndex) {
+    if (!state.lanes.has(e.lane)) continue;
     let why = null;
-    if (s.name.toLowerCase().includes(needle)) why = laneById.get(s.lane)?.short ?? '';
+    if (e.nameL.includes(needle)) why = laneById.get(e.lane)?.short ?? '';
+    else if (e.clsL.includes(needle)) why = e.cls;
     else {
-      const cls = rowById.get(s.row)?.name ?? '';
-      if (cls.toLowerCase().includes(needle)) why = cls;
-      else {
-        const role = (s.tags ?? []).find(t => ROLE_VOCAB.includes(t) && t.toLowerCase().includes(needle));
-        if (role) why = role;
-      }
+      const role = e.roles.find(t => t.toLowerCase().includes(needle));
+      if (role) why = role;
     }
-    if (why) ships.push({ kind: 'ship', id: s.id, name: s.name, sub: why });
-    // bonus text lives in the lazy file; skip it until that lands rather than
-    // failing - name/class/role matches still work
+    if (why) ships.push({ kind: 'ship', id: e.id, name: e.name, sub: why });
+    // bonus text only exists once the lazy file has landed
     if (DETAILS && !why) {
-      const hit = bonusLinesOf(s).find(b => b.text.toLowerCase().includes(needle));
+      const hit = e.bonuses.find(b => b.text.toLowerCase().includes(needle));
       if (hit) {
         bonuses.push({
-          kind: 'bonus', id: s.id, name: s.name,
+          kind: 'bonus', id: e.id, name: e.name,
           sub: hit.section === 'role' ? 'role bonus' : (hit.skill || 'ship bonus'),
           line: hit.text,
         });
@@ -1610,8 +1720,16 @@ function runSearch(q) {
 
 function renderHits() {
   const box = $('hits');
-  if (!matches.length) { box.classList.remove('open'); box.innerHTML = ''; return; }
+  const input = $('q');
+  if (!matches.length) {
+    box.classList.remove('open');
+    box.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    return;
+  }
   box.classList.add('open');
+  input.setAttribute('aria-expanded', 'true');
   const GROUPS = [
     ['Hulls', 'ship'], ['Bonuses', 'bonus'], ['Skills', 'skill'],
   ];
@@ -1620,7 +1738,7 @@ function renderHits() {
   for (const [label, kind] of GROUPS) {
     const rows = matches.filter(m => m.kind === kind);
     if (!rows.length) continue;
-    html += `<div class="hit-group">${label}<span>${rows.length}</span></div>`;
+    html += `<div class="hit-group" role="presentation">${label}<span>${rows.length}</span></div>`;
     for (const m of rows) {
       const on = i === state.matchIndex;
       const icon = kind === 'skill'
@@ -1629,11 +1747,14 @@ function renderHits() {
       const why = kind === 'bonus'
         ? `<span class="why">${esc(trunc(m.line, 40))}</span>`
         : `<span class="kind">${esc(m.sub ?? m.kind)}</span>`;
-      html += `<div class="hit${on ? ' on' : ''}" data-i="${i}">${icon}<span>${esc(m.name)}</span>${why}</div>`;
+      html += `<div class="hit${on ? ' on' : ''}" id="hit-${i}" role="option" aria-selected="${on}" data-i="${i}">${icon}<span>${esc(m.name)}</span>${why}</div>`;
       i++;
     }
   }
   box.innerHTML = html;
+  const active = box.querySelector('.hit.on');
+  if (active) input.setAttribute('aria-activedescendant', active.id);
+  else input.removeAttribute('aria-activedescendant');
   box.querySelectorAll('.hit').forEach(el => {
     el.onclick = () => pickMatch(Number(el.dataset.i));
   });
@@ -1669,7 +1790,7 @@ function flashBonusLine(text) {
     .find(n => n.textContent.replace(/\s+/g, ' ').toLowerCase().includes(needle.slice(0, 30)));
   if (!row) return;
   row.classList.add('flash');
-  row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  row.scrollIntoView({ block: 'center', behavior: REDUCE_MOTION ? 'auto' : 'smooth' });
   setTimeout(() => row.classList.remove('flash'), 1800);
 }
 
@@ -1728,6 +1849,7 @@ function applyViewOnly() {
 /** A panel is animating its width: follow it frame by frame so the canvas
  *  re-centres smoothly instead of jumping when the panel finishes. */
 function animateView(duration = 340) {
+  if (REDUCE_MOTION) { measureStage(); applyView(); return; }   // no width tween
   const t0 = performance.now();
   const step = () => {
     measureStage();                    // the panel is changing the stage's width
@@ -1811,14 +1933,38 @@ function wireView() {
   svg.addEventListener('selectstart', e => e.preventDefault());
 
   let drag = null;
+  const pts = new Map();                 // active pointers, for pinch-zoom
+  let pinch = null;
+  const pair = () => {
+    const [a, b] = [...pts.values()];
+    return { dist: Math.hypot(a.x - b.x, a.y - b.y), midY: (a.y + b.y) / 2 };
+  };
 
   // Pointer capture is taken only once the pointer actually moves: capturing on
   // pointerdown would retarget the following `click` to the svg and swallow
   // every tile / skill-plate click.
   svg.addEventListener('pointerdown', e => {
+    keyboardNav = false;                 // any pointer use means we are not keyboard-driving
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size >= 2) {                 // second finger: switch from pan to pinch-zoom
+      drag = null;
+      pinch = pair();
+      clearTip();
+      return;
+    }
     drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, id: e.pointerId, moved: false };
   });
   svg.addEventListener('pointermove', e => {
+    if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pts.size >= 2) {        // two-finger pinch: zoom about the midpoint
+      const now = pair();
+      if (pinch.dist > 0) {
+        const r = svg.getBoundingClientRect();
+        zoomAt(0, now.midY - r.top, now.dist / pinch.dist);
+      }
+      pinch = now;
+      return;
+    }
     if (!drag || e.pointerId !== drag.id) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved) {
@@ -1833,6 +1979,8 @@ function wireView() {
     applyView();
   });
   const end = e => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = null;
     if (!drag || (e.pointerId !== undefined && e.pointerId !== drag.id)) return;
     if (drag.moved) {
       suppressClickUntil = Date.now() + 250;         // a pan must not select
@@ -1870,6 +2018,91 @@ function wireView() {
   $('zfit').onclick = fitToScreen;
 }
 
+/* ------------------------------------------------------- tile keyboard nav */
+
+const tileIdOf = node => Number(node.dataset.key.slice(1));
+
+/** Next/previous tile in render order (left/right). */
+function stepTile(id, dir) {
+  const i = tileNodes.findIndex(n => n.dataset.key === `s${id}`);
+  if (i < 0) return null;
+  const n = tileNodes[i + dir];
+  return n ? tileIdOf(n) : null;
+}
+
+/** Nearest tile above/below, favouring vertical alignment (up/down). */
+function nearestTile(id, dir) {
+  const from = shipWorld.get(id);
+  if (!from) return null;
+  let best = null, bestScore = Infinity;
+  for (const n of tileNodes) {
+    const sid = tileIdOf(n);
+    if (sid === id) continue;
+    const p = shipWorld.get(sid);
+    if (!p) continue;
+    const dy = p.y - from.y;
+    if (dir < 0 ? dy > -1 : dy < 1) continue;
+    const score = Math.abs(dy) * 5 + Math.abs(p.x - from.x);
+    if (score < bestScore) { bestScore = score; best = sid; }
+  }
+  return best;
+}
+
+function focusTile(id) {
+  const node = tileById.get(id);
+  if (!node) return;
+  node.focus({ preventScroll: true });
+  const p = shipWorld.get(id);
+  if (p) focusWorld(p.x, p.y);
+}
+
+/** Roving-tabindex keyboard control for the hull grid. */
+function wireTileKeyboard() {
+  const svg = $('canvas');
+
+  // any keypress means keyboard driving, so Tab focus shows the hover card too
+  document.addEventListener('keydown', () => { keyboardNav = true; }, true);
+
+  svg.addEventListener('focusin', e => {
+    const g = e.target.closest?.('.ship');
+    if (!g) return;
+    const id = tileIdOf(g);
+    if (focusTileId !== id) {
+      tileById.get(focusTileId)?.setAttribute('tabindex', '-1');
+      focusTileId = id;
+      g.setAttribute('tabindex', '0');
+    }
+    setHover(`s${id}`);
+    const ship = shipById.get(id);
+    if (keyboardNav && ship) {
+      const r = g.getBoundingClientRect();
+      showTip(ship, { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 });
+    }
+  });
+
+  svg.addEventListener('focusout', () => { setHover(null); clearTip(); });
+
+  svg.addEventListener('keydown', e => {
+    const g = e.target.closest?.('.ship');
+    if (!g) return;
+    keyboardNav = true;
+    const id = tileIdOf(g);
+    let next = null;
+    switch (e.key) {
+      case 'ArrowLeft':  next = stepTile(id, -1); break;
+      case 'ArrowRight': next = stepTile(id, 1); break;
+      case 'ArrowUp':    next = nearestTile(id, -1); break;
+      case 'ArrowDown':  next = nearestTile(id, 1); break;
+      case 'Home':       next = tileNodes[0] && tileIdOf(tileNodes[0]); break;
+      case 'End':        next = tileNodes.length && tileIdOf(tileNodes[tileNodes.length - 1]); break;
+      case 'Enter': case ' ': e.preventDefault(); selectShip(id, true); return;
+      default: return;
+    }
+    e.preventDefault();
+    if (next != null) focusTile(next);
+  });
+}
+
 let suppressClickUntil = 0;
 /** True right after a pan, so the click that ends a drag selects nothing. */
 const clickSuppressed = () => Date.now() < suppressClickUntil;
@@ -1891,6 +2124,8 @@ function renderStatus() {
     + `<i class="dot bad"></i>can't fly`
     + `</span>`
     + `<span style="margin-left:auto">scroll to move &middot; ctrl+scroll to zoom &middot; \u03A9 = Omega only</span>`;
+  const live = $('live');
+  if (live) live.textContent = `${shown} hulls shown, ${fly} flyable at your levels`;
 }
 
 /* ------------------------------------------------------------------- url */
@@ -1927,7 +2162,7 @@ function readURL() {
   if (p.get('p')) state.primary = Number(p.get('p')) || 17;
   if (p.get('s')) state.secondary = Number(p.get('s')) || 17;
   const lanes = p.get('lanes');
-  return { ship: p.get('ship'), skill: p.get('skill'), skills: p.get('skills') };
+  return { ship: p.get('ship'), skill: p.get('skill'), skills: p.get('skills'), hideSkills: p.has('hideskills') };
 }
 
 /* --------------------------------------------------------------- filters */
@@ -1945,6 +2180,17 @@ function syncMasteryChip() {
     ? 'needs your skills — sign in with EVE, or set some skill levels'
     : !DETAILS ? 'mastery data still loading…'
       : 'only hulls you have not yet reached Mastery V with';
+}
+
+/** On phones the side panels are drawers over the canvas; dim the canvas behind
+ *  whichever one is open and offer a tap-to-close backdrop. */
+function syncScrim() {
+  const scrim = $('scrim');
+  if (!scrim) return;
+  const open = isMobile()
+    && (!$('panel').classList.contains('hidden') || !$('skillsPanel').classList.contains('hidden'));
+  scrim.hidden = !open;
+  scrim.classList.toggle('show', open);
 }
 
 function wireFilters() {
@@ -2062,6 +2308,17 @@ function wireFilters() {
   $('attrP').oninput = () => { state.primary = clampAttr($('attrP').value); store.set('st.p', state.primary); attribNote(); render(); syncURL(); };
   $('attrS').oninput = () => { state.secondary = clampAttr($('attrS').value); store.set('st.s', state.secondary); attribNote(); render(); syncURL(); };
   $('attrReset').onclick = () => { state.levels = {}; store.set('st.levels', {}); render(); };
+
+  // mobile drawer backdrop: tap outside to close whichever drawer is open
+  $('scrim').onclick = () => {
+    if (!$('panel').classList.contains('hidden')) clearSelection();
+    else if (state.showSkills) {
+      state.showSkills = false;
+      $('skillsBtn').classList.remove('on');
+      renderSkillsPanel();
+      syncURL();
+    }
+  };
 }
 
 const clampAttr = v => Math.max(1, Math.min(50, Number(v) || 17));
@@ -2155,13 +2412,18 @@ async function init() {
   rowById = new Map(DATA.rows.map(r => [r.id, r]));
   hullSkills = new Set(DATA.skills.filter(s => s.hull).map(s => s.id));
   buildIndexes();
+  buildSearchIndex();
   measureStage();
   state.lanes = new Set(DATA.lanes.map(l => l.id));
 
   buildInfoText = `SDE build ${DATA.meta.sdeBuild ?? '?'} · ${DATA.meta.counts.ships} hulls · ${DATA.meta.counts.skills} skills`;
 
   const url = readURL();
+  // On phones the skills drawer starts closed (unless the URL explicitly asked
+  // for it open) so the canvas has the screen.
+  if (isMobile() && !url.hideSkills) state.showSkills = false;
   wireView();
+  wireTileKeyboard();
   wireFilters();
   // pick up an existing EVE session before the first render, so the tree comes
   // up already coloured by the pilot's real skills
@@ -2173,21 +2435,13 @@ async function init() {
   renderAuth();
   render();
   renderSkillsPanel();
-  focusTopLane();
+  if (isMobile()) fitToScreen(); else focusTopLane();
   if (pilot) applyEsiSkills(false);
 
   // Mastery and bonuses are the bigger half of the data and nothing on screen
-  // needs them yet, so they go in the background. The canvas never uses bonuses,
-  // so only an already-open hull (or an active mastery filter) has to be redrawn
-  // when they land.
-  loadDetails()
-    .then(body => {
-      DETAILS = body;
-      syncMasteryChip();                 // mastery profiles just became usable
-      if (state.noMasteryV) { render(); applyView(); }
-      if (state.selected) renderPanel(shipById.get(state.selected));
-    })
-    .catch(e => debug('details not loaded:', e.message));
+  // needs them yet, so they load on idle / first use rather than blocking the
+  // first paint. When they land only an open hull or the mastery filter redraws.
+  scheduleDetailsWarm();
 
   if (url.ship) {
     const id = Number(url.ship);
@@ -2196,13 +2450,13 @@ async function init() {
   if (url.skills && laneById.has(Number(url.skills))) openSkills(Number(url.skills));
   if (url.skill) pickMatchSkillOnly(Number(url.skill));
 
-  window.addEventListener('resize', () => { measureStage(); applyView(); });
+  window.addEventListener('resize', () => { measureStage(); applyView(); syncScrim(); });
   window.addEventListener('error', e => { if (String(e.message).includes('shiptree')) setBuildInfo('data missing - run build-shiptree.mjs'); });
 }
 
 init().catch(err => {
-  setBuildInfo(`failed to load: ${err.message}`);
   console.error(err);
+  showError('could not load the ship tree', err.message);
 });
 
 })();
