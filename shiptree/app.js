@@ -451,9 +451,8 @@ function selectShip(id, pan) {
   if (pan && shipWorld.has(id)) {          // stage, so centre afterwards
     const p = shipWorld.get(id);
     focusWorld(p.x, p.y);
-  } else {
-    applyView();                           // opening the panel changed the stage width
   }
+  // otherwise renderPanel() has already started the slide, which re-centres for us
   syncURL();
 }
 
@@ -466,6 +465,7 @@ function clearSelection() {
   applyHighlight();
   renderPanel(null);
   renderSkillsPanel();
+  syncFocusedLane();          // hand the left panel back to whatever you scroll to
   syncURL();
 }
 
@@ -679,8 +679,15 @@ function factionLogoHTML(laneId, size = 64) {
 
 function renderPanel(ship) {
   const panel = $('panel');
-  if (!ship) { panel.classList.add('hidden'); panel.innerHTML = ''; return; }
+  const wasHidden = panel.classList.contains('hidden');
+  if (!ship) {
+    panel.classList.add('hidden');
+    setTimeout(() => { if (panel.classList.contains('hidden')) panel.innerHTML = ''; }, 300);
+    if (!wasHidden) animateView();
+    return;
+  }
   panel.classList.remove('hidden');
+  if (wasHidden) animateView();
 
   const lane = laneById.get(ship.lane);
   const row = rowById.get(ship.row);
@@ -717,7 +724,7 @@ function renderPanel(ship) {
 
   fillPrice(ship.id);
 
-  $('panelClose').onclick = () => { clearSelection(); applyView(); };
+  $('panelClose').onclick = () => { clearSelection(); };
   panel.querySelectorAll('.req .lvl').forEach(el => {
     el.onclick = () => { cycleSkill(Number(el.dataset.skill)); };
   });
@@ -801,9 +808,11 @@ function openSkills(laneId, scrollToSkill) {
 
 function renderSkillsPanel() {
   const panel = $('skillsPanel');
+  const wasHidden = panel.classList.contains('hidden');
   const lane = laneById.get(state.skillLane);
   if (!lane) { panel.classList.add('hidden'); panel.innerHTML = ''; return; }
   panel.classList.toggle('hidden', !state.showSkills);
+  if (wasHidden !== panel.classList.contains('hidden')) animateView();
   if (!state.showSkills) return;
 
   const { tree, support, focused } = laneSkillTree(lane.id, state.selected ? DATA.ships.find(s => s.id === state.selected && s.lane === lane.id) : null);
@@ -1029,6 +1038,24 @@ function applyView() {
   syncFocusedLane();
 }
 
+/** Same, minus the focus bookkeeping: cheap enough to run every animation frame. */
+function applyViewOnly() {
+  lockView();
+  world.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.k})`);
+}
+
+/** A panel is animating its width: follow it frame by frame so the canvas
+ *  re-centres smoothly instead of jumping when the panel finishes. */
+function animateView(duration = 340) {
+  const t0 = performance.now();
+  const step = () => {
+    applyViewOnly();
+    if (performance.now() - t0 < duration) requestAnimationFrame(step);
+    else applyView();
+  };
+  requestAnimationFrame(step);
+}
+
 /* ------------------------------------------------------- scroll-driven focus */
 
 /** The lane whose band sits at the middle of the viewport. */
@@ -1050,11 +1077,14 @@ function focusedLaneId() {
 function syncFocusedLane() {
   const id = focusedLaneId();
   if (id == null) return;
-  if (!state.focusLocked && state.showSkills && state.skillLane !== id) {
+  // An explicit choice holds until you let go of it: a selected hull keeps its
+  // faction's tree on screen while you scroll; clicking off hands it back.
+  const held = state.selected != null || state.focusLocked;
+  if (!held && state.showSkills && state.skillLane !== id) {
     state.skillLane = id;
     renderSkillsPanel();                 // note: no syncURL - scrolling is not a route
   }
-  markFocusedBand(state.showSkills && state.focusLocked ? state.skillLane : id);
+  markFocusedBand(state.showSkills && held ? state.skillLane : id);
 }
 
 function markFocusedBand(id) {
@@ -1137,7 +1167,7 @@ function wireView() {
     // a click on empty canvas clears the selection (but not the click that ends a pan)
     if (!clickSuppressed() && state.selected != null) {
       clearSelection();
-      applyView();                     // the info panel just closed: re-centre
+      // renderPanel(null) animates the slide
     }
   });
 
@@ -1260,7 +1290,7 @@ function wireFilters() {
     state.showSkills = !state.showSkills;
     skillsBtn.classList.toggle('on', state.showSkills);
     renderSkillsPanel();
-    applyView();                 // the stage got wider/narrower: re-centre + re-clamp
+    // renderSkillsPanel() animates the slide
     syncURL();
   };
 
@@ -1275,7 +1305,7 @@ function wireFilters() {
 
   document.addEventListener('keydown', e => {
     if (e.key === '/' && document.activeElement !== q) { e.preventDefault(); q.focus(); q.select(); }
-    if (e.key === 'Escape') { setHover(null); state.selected = null; render(); $('panel').classList.add('hidden'); }
+    if (e.key === 'Escape') { setHover(null); clearSelection(); }
   });
 
   // attributes popover

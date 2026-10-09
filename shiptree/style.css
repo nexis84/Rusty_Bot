@@ -209,8 +209,12 @@ input { user-select: text; -webkit-user-select: text; }
   flex: none; width: 340px; background: var(--panel);
   border-left: 1px solid var(--line);
   display: flex; flex-direction: column; overflow: hidden;
+  transition: width .26s cubic-bezier(.4, 0, .2, 1), opacity .2s ease;
 }
-#panel.hidden { display: none; }
+/* the panel slides out by animating its width to 0 (display:none can't animate) */
+#panel.hidden { width: 0; border-left-width: 0; opacity: 0; pointer-events: none; }
+/* fixed content width so nothing reflows while the panel slides */
+#panel .panel-head, #panel .panel-body, #panel .panel-logo { width: 340px; flex: none; }
 /* the body scrolls; the head and the faction logo footer stay put */
 #panel .panel-head, #skillsPanel .panel-head { position: sticky; top: 0; z-index: 2; }
 #panel .panel-body, #skillsPanel .panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
@@ -230,8 +234,10 @@ input { user-select: text; -webkit-user-select: text; }
   flex: none; width: 300px; background: var(--panel);
   border-right: 1px solid var(--line);
   display: flex; flex-direction: column; overflow: hidden;
+  transition: width .26s cubic-bezier(.4, 0, .2, 1), opacity .2s ease;
 }
-#skillsPanel.hidden { display: none; }
+#skillsPanel.hidden { width: 0; border-right-width: 0; opacity: 0; pointer-events: none; }
+#skillsPanel .panel-head, #skillsPanel .panel-body, #skillsPanel .panel-logo { width: 300px; flex: none; }
 #skillsPanel .panel-head { border-bottom: 1px solid var(--line); }
 #skillsPanel .panel-body { padding: 12px 12px 20px; display: flex; flex-direction: column; gap: 12px; }
 .panel-head {
