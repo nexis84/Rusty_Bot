@@ -326,7 +326,7 @@ function render() {
           'data-key': `s${s.id}`, transform: `translate(${t.x} ${t.y})`,
         }, g);
         svgEl('rect', { class: 'tile-box', width: G.tileW, height: G.tileH, rx: 4 }, tg);
-        svgEl('rect', { class: 'tile-accent', x: 0, y: 0, width: 3, height: G.tileH, rx: 1.5 }, tg);
+        svgEl('rect', { class: 'tile-accent', x: 0, y: 0, width: 5, height: G.tileH, rx: 2.5 }, tg);
         svgEl('rect', { class: 'tile-plate', x: 6, y: 2, width: 54, height: 54, rx: 3 }, tg);
         const nameEls = wrapName(s.name).map((line, i) =>
           svgEl('text', { class: 'tile-name', x: G.tileW / 2, y: 66 + i * 9, 'text-anchor': 'middle', text: line }));

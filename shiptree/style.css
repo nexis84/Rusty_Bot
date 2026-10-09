@@ -144,12 +144,13 @@ input { user-select: text; -webkit-user-select: text; }
 .ship.t3 .tile-accent { fill: #8a5fb0; }
 .ship.storyline .tile-accent { fill: #b06a3a; }
 .ship.premium .tile-accent, .ship.limited .tile-accent { fill: #b04a6a; }
-/* flyability: green = can fly, orange = partial progress, red = nothing yet.
-   The left stripe stays tier-coloured (T1/T2/Faction/T3) so both read at once. */
-.ship.fly .tile-box { stroke: var(--ok); stroke-width: 2; fill: rgba(76, 175, 80, .09); }
-.ship.partial .tile-box { stroke: var(--warn); stroke-width: 2; }
-.ship.no .tile-box { stroke: var(--bad); stroke-width: 1.6; stroke-opacity: .85; }
-.ship.selected .tile-box { stroke: var(--accent); stroke-width: 3; }
+/* flyability is the left bar: green = can fly, orange = partial, red = can't.
+   The box border stays neutral so the tiles keep their shape, and selection is gold. */
+.ship.fly .tile-accent { fill: var(--ok); }
+.ship.partial .tile-accent { fill: var(--warn); }
+.ship.no .tile-accent { fill: var(--bad); }
+.ship.fly .tile-box { fill: rgba(76, 175, 80, .07); }
+.ship.selected .tile-box { stroke: var(--accent); stroke-width: 2.5; }
 .ship.match .tile-box { stroke: #f5e53b; stroke-width: 2; }
 
 /* hovering a hull or a skill row lights the matching hulls — no connector lines */
