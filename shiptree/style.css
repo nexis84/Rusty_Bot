@@ -144,12 +144,11 @@ input { user-select: text; -webkit-user-select: text; }
 .ship.t3 .tile-accent { fill: #8a5fb0; }
 .ship.storyline .tile-accent { fill: #b06a3a; }
 .ship.premium .tile-accent, .ship.limited .tile-accent { fill: #b04a6a; }
-/* flyability is the left bar: green = can fly, orange = partial, red = can't.
-   The box border stays neutral so the tiles keep their shape, and selection is gold. */
+/* Flyability is ONLY the left bar: green = can fly, orange = partial, red = can't.
+   The tile box keeps its neutral border, and selection is still gold. */
 .ship.fly .tile-accent { fill: var(--ok); }
 .ship.partial .tile-accent { fill: var(--warn); }
 .ship.no .tile-accent { fill: var(--bad); }
-.ship.fly .tile-box { fill: rgba(76, 175, 80, .07); }
 .ship.selected .tile-box { stroke: var(--accent); stroke-width: 2.5; }
 .ship.match .tile-box { stroke: #f5e53b; stroke-width: 2; }
 
