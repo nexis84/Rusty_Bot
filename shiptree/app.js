@@ -73,6 +73,9 @@ const state = {
   esiQueue: [],                     // character's skill queue
   skillLane: null,                  // lane whose skill tree is in the left panel
   panelTab: store.get('st.panelTab', 'overview'),  // which right-panel pane is open
+  loreOpen: false,                 // hull description expanded?
+  compare: null,                   // ship id pinned as the second compare column
+  awaitCompare: false,             // next hull click fills the compare column
   showSkills: true,                 // left skills panel visible
   focusLocked: false,               // explicit lane choice wins until you scroll
   hover: null,                      // 's<id>' | 'k<id>'
@@ -564,8 +567,15 @@ function cycleSkill(id) {
 function selectShip(id, pan) {
   state.selected = id;
   const ship = shipById.get(id);
+  const asCompare = takeCompare(id);
   const key = `s${id}`;
   for (const n of tileNodes) n.classList.toggle('selected', n.dataset.key === key);
+  if (asCompare) {
+    // B is the hull just clicked; the skills panel stays on the lane tree
+    renderPanel(ship);
+    syncURL();
+    return;
+  }
   applyHighlight();
   renderPanel(ship);                       // open the info panel first: it narrows the stage
   // the skills panel follows the hull: show its faction's tree, mark its needs,
@@ -1027,9 +1037,10 @@ function positionTip(ev) {
 /* The right panel's panes. The chosen tab survives hull changes and reloads -
    you usually open a few ships in a row to compare the same thing. */
 const PANEL_TABS = [
-  { id: 'overview', label: 'overview', title: 'picture, mastery, price and links' },
+  { id: 'overview', label: 'overview', title: 'picture, description, mastery, price and base price' },
   { id: 'stats', label: 'stats', title: 'fitting, navigation, tank and hold' },
-  { id: 'bonuses', label: 'bonuses', title: 'role bonuses, and ship bonuses per skill' },
+  { id: 'bonuses', label: 'bonuses', title: 'role bonuses and hull bonuses per skill' },
+  { id: 'compare', label: 'compare', title: 'pin two hulls and diff them' },
 ];
 
 function renderPanel(ship) {
@@ -1060,6 +1071,7 @@ function renderPanel(ship) {
         <h2>${esc(ship.name)}</h2>
         <div class="sub">${esc(ship.tier || 'hull')} &middot; ${ship.volume.toLocaleString()} m&sup3;${gate ? ` &middot; gated by ${esc(gate.name)}` : ''}</div>
       </div>
+      <button id="panelCompare" data-compare title="pin this hull, then pick another to compare"${state.awaitCompare ? ' class="armed"' : ''}>&#8646;</button>
       <button id="panelClose" title="close">&#10005;</button>
     </div>
     <div class="panel-tabs" role="tablist">
@@ -1073,26 +1085,42 @@ function renderPanel(ship) {
         <span class="tag ${ship.alpha ? 'alpha' : 'omega'}" title="${ship.alpha ? 'flyable on an Alpha clone' : 'needs an Omega clone'}">${ship.alpha ? 'Alpha' : '\u03A9 Omega only'}</span>
         ${(ship.tags ?? []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
       </div>
+      ${loreHTML(ship)}
       ${masteryHTML(ship)}
       <div class="sect">estimated market price</div>
       <div class="statgrid" id="priceBox"><div class="stat"><span>price</span><b class="dim">fetching…</b></div></div>
-      <div class="sect">links</div>
+      ${ship.basePrice ? `<div class="stat" title="CCP's reference price for this hull - not a market price, and unrelated to the Jita figures above."><span>base price <i>CCP</i></span><b class="dim">${isk(ship.basePrice)} ISK</b></div>` : ''}
+      <div class="note-dim">Skills, levels and training time for this hull are in the panel on the left.</div>
+      </div>
+      <div class="pane" data-pane="stats" hidden>${statGrid(ship)}</div>
+      <div class="pane" data-pane="bonuses" hidden>${bonusesHTML(ship)}</div>
+      <div class="pane" data-pane="compare" hidden>${
+        compareHTML(state.compare != null ? shipById.get(state.compare) : null, ship)
+      }</div>
+    </div>
+    <div class="panel-foot">
       <div class="links">
         <a href="https://zkillboard.com/ship/${ship.id}/" target="_blank" rel="noopener">zKill</a>
         <a href="https://www.rustybot.co.uk/market/?type=${ship.id}&region=${PRICE_REGION}" target="_blank" rel="noopener" title="RustyBot market — Jita">market</a>
         ${ship.bp ? `<a href="${bpVisualizerHref(ship.bp)}" target="_blank" rel="noopener" title="Open ${esc(ship.bp)} in the Blueprint Visualizer">blueprint \u2197</a>` : ''}
       </div>
-      <div class="note-dim">Skills, levels and training time for this hull are in the panel on the left.</div>
-      </div>
-      <div class="pane" data-pane="stats" hidden>${statGrid(ship)}</div>
-      <div class="pane" data-pane="bonuses" hidden>${bonusesHTML(ship)}</div>
-    </div>
-    <div class="panel-logo">${factionLogoHTML(ship.lane)}</div>`;
+      <div class="panel-logo">${factionLogoHTML(ship.lane)}</div>
+    </div>`;
 
   fillPrice(ship.id);
   syncPanelTabs();
 
   $('panelClose').onclick = () => { clearSelection(); };
+  panel.querySelector('[data-lore]')?.addEventListener('click', () => {
+    state.loreOpen = !state.loreOpen;
+    renderPanel(ship);
+  });
+  panel.querySelector('[data-compare]')?.addEventListener('click', () => startCompare());
+  panel.querySelector('[data-compare-clear]')?.addEventListener('click', () => {
+    state.compare = null;
+    state.awaitCompare = false;
+    renderPanel(shipById.get(state.selected));
+  });
   panel.querySelectorAll('.panel-tab').forEach(el => {
     el.onclick = () => {
       if (state.panelTab === el.dataset.tab) return;
@@ -1104,6 +1132,162 @@ function renderPanel(ship) {
   panel.querySelectorAll('.req .lvl').forEach(el => {
     el.onclick = () => { cycleSkill(Number(el.dataset.skill)); };
   });
+}
+
+/* ---------------------------------------------------------------- compare */
+
+/* Which way is "better" for each stat. Most things reward more; mass, signature
+   radius, agility and the cpu budget are costs, so those rows are marked 'down'.
+   Anything without a dir is shown but never judged. */
+const CMP_ROWS = [
+  ['identity', [
+    ['tier', s => s.tier || '—'],
+    ['class', s => rowById.get(s.row)?.name ?? '—'],
+    ['faction', s => laneById.get(s.lane)?.short ?? '—'],
+    ['clone state', s => (s.alpha ? 'Alpha' : 'Ω Omega')],
+    ['volume', s => `${num(s.volume)} m³`, 'up'],
+    ['mass', s => tonnes(s.mass), 'down'],
+  ]],
+  ['fitting', [
+    ['high / med / low', s => slotLine(s)],
+    ['rig slots', s => s.stats?.rig ?? '—', 'up'],
+    ['cpu / powergrid', s => (s.stats?.cpu == null && s.stats?.pg == null ? '—' : `${num(s.stats?.cpu ?? 0)} tf · ${num(s.stats?.pg ?? 0)} MW`), 'down'],
+    ['hardpoints', s => hardpointLine(s)],
+  ]],
+  ['navigation', [
+    ['max velocity', s => stat(s, 'velocity', ' m/s'), 'up'],
+    ['warp speed', s => stat(s, 'warp', ' AU/s'), 'up'],
+    ['agility', s => stat(s, 'agility', ''), 'down'],
+    ['signature radius', s => stat(s, 'sig', ' m'), 'down'],
+    ['scan resolution', s => stat(s, 'scanRes', ' mm'), 'up'],
+  ]],
+  ['tank', [
+    ['shield', s => stat(s, 'shield', ''), 'up'],
+    ['armor', s => stat(s, 'armor', ''), 'up'],
+    ['structure', s => stat(s, 'hull', ''), 'up'],
+    ['capacitor', s => (s.stats?.cap == null ? '—' : `${num(s.stats.cap)} GJ`), 'up'],
+  ]],
+  ['hold', [
+    ['cargo capacity', s => `${num(s.capacity)} m³`, 'up'],
+    ['drone bay / bandwidth', s => droneLine(s)],
+    ['mass', s => tonnes(s.mass), 'down'],
+  ]],
+];
+
+const stat = (s, key, unit) => (s.stats?.[key] == null ? '—' : `${num(s.stats[key])}${unit}`);
+const slotLine = s => {
+  const st = s.stats ?? {};
+  if ([st.high, st.med, st.low].every(v => v == null)) return '—';
+  return `${st.high ?? 0} / ${st.med ?? 0} / ${st.low ?? 0}`;
+};
+const hardpointLine = s => {
+  const st = s.stats ?? {};
+  if (!st.turrets && !st.launchers) return '—';
+  return `${st.turrets ?? 0} turret${st.turrets === 1 ? '' : 's'} · ${st.launchers ?? 0} launcher${st.launchers === 1 ? '' : 's'}`;
+};
+const droneLine = s => {
+  const st = s.stats ?? {};
+  if (!st.droneBay && !st.droneBandwidth) return '—';
+  return `${num(st.droneBay ?? 0)} m³ · ${num(st.droneBandwidth ?? 0)} Mbit/s`;
+};
+
+/** Numeric value behind a row, for deciding which column wins. Volume and mass
+ *  live on the ship record, not in stats[] - an earlier version only special-cased
+ *  them for labels containing a space, so 'volume' and 'mass' silently never won.
+ *  Composite rows (slots, hardpoints) deliberately return null: there is no single
+ *  number to compare. */
+function cmpValue(ship, key) {
+  if (key === 'volume') return ship.volume;
+  if (key === 'mass') return ship.mass;
+  if (key === 'cpu / powergrid') return ship.stats?.cpu ?? null;
+  const raw = ship.stats?.[key];
+  return typeof raw === 'number' ? raw : null;
+}
+
+/** Pin the open hull and wait for the user to pick the other one. */
+function startCompare() {
+  if (state.selected == null) return;
+  state.compare = state.selected;
+  state.awaitCompare = true;
+  setBuildInfo('compare armed — click another hull on the canvas');
+  renderPanel(shipById.get(state.selected));
+}
+
+/** True when a hull click should be treated as picking the compare column.
+ *  A stays pinned (the hull you armed on), the clicked hull becomes B. */
+function takeCompare(id) {
+  if (!state.awaitCompare || id == null || id === state.compare) return false;
+  state.awaitCompare = false;
+  state.panelTab = 'compare';
+  store.set('st.panelTab', 'compare');
+  setBuildInfo(`comparing against ${shipById.get(state.compare)?.name ?? ''}`);
+  return true;
+}
+
+function compareHTML(a, b) {
+  if (!a) return `<div class="hint">pin a hull with the &#8646; button, then pick a second hull to compare against.</div>`;
+  if (!b) return `<div class="hint">pinned <b>${esc(a.name)}</b> — now click another hull on the canvas.</div>`;
+
+  const head = (s, tag) => `<div class="cmp-head">
+      <img src="${IMG}/${s.id}/render?size=128" alt="">
+      <b>${tag}</b><span>${esc(s.name)}</span>
+    </div>`;
+
+  const groups = CMP_ROWS.map(([title, rows]) => {
+    const body = rows.map(([label, get, dir]) => {
+      const va = get(a);
+      const vb = get(b);
+      let better = '';
+      if (dir) {
+        const na = cmpValue(a, label);
+        const nb = cmpValue(b, label);
+        // `dir` is the only source of truth: 'down' means lower wins
+        if (na != null && nb != null && na !== nb) better = (dir === 'down' ? na < nb : na > nb) ? 'a' : 'b';
+      }
+      return `<div class="cmp-row">
+        <span class="ck">${esc(label)}</span>
+        <span class="cv${better === 'a' ? ' win' : ''}">${esc(va)}</span>
+        <span class="cv${better === 'b' ? ' win' : ''}">${esc(vb)}</span>
+      </div>`;
+    }).join('');
+    return `<div class="sect">${esc(title)}</div>${body}`;
+  }).join('');
+
+  // skills: what each hull needs that the other does not
+  const need = s => new Map(s.prereqs.map(p => [p.skill, p.level]));
+  const na = need(a);
+  const nb = need(b);
+  const onlyA = [...na].filter(([k]) => !nb.has(k));
+  const onlyB = [...nb].filter(([k]) => !na.has(k));
+  const shared = [...na].filter(([k]) => nb.has(k));
+  const skName = id => skillById.get(id)?.name ?? `skill ${id}`;
+  const list = (entries, cls) => entries.length
+    ? entries.map(([id, lvl]) => `<div class="cmp-sk ${cls}"><span>${esc(skName(id))}</span><b>${roman(lvl)}</b></div>`).join('')
+    : `<div class="cmp-sk none">—</div>`;
+
+  return `${head(a, 'A')}${head(b, 'B')}
+    ${groups}
+    <div class="sect">skills only A needs</div>${list(onlyA, 'a')}
+    <div class="sect">skills only B needs</div>${list(onlyB, 'b')}
+    <div class="sect">shared</div>${list(shared, '')}
+    <button class="ghost cmp-clear" data-compare-clear>clear comparison</button>`;
+}
+
+/* ---------------------------------------------------------- hull flavour text */
+
+/* Lore arrives in the lazy file. CCP's markup has already been reduced to
+   <i>/</i> and newlines by the builder; we escape it again and re-allow only
+   those two, so a malformed description cannot inject markup. */
+function loreHTML(ship) {
+  const raw = DETAILS?.descriptions?.[ship.id];
+  if (!raw) return '';
+  const safe = esc(raw).replace(/&lt;(\/?)i&gt;/g, '<$1i>');
+  const paras = safe.split(/\n\n+/).filter(Boolean)
+    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+  const long = raw.length > 240;
+  return `<div class="sect">ship description</div>
+    <div class="lore${long && !state.loreOpen ? ' clamped' : ''}">${paras}</div>
+    ${long ? `<button class="lore-toggle" data-lore>${state.loreOpen ? 'less' : 'more'}</button>` : ''}`;
 }
 
 /** Show the active pane. Pure class/attribute work - no re-render, so the
@@ -1346,18 +1530,66 @@ function scrollSkillIntoView(skillId, flash = false) {
 
 /* --------------------------------------------------------------- search */
 
+/* Every bonus line for a hull, flattened with the section it came from, so a
+   search hit can say which list it matched and later flash the exact line. */
+function bonusLinesOf(ship) {
+  const prof = bonusProfile(ship);
+  if (!prof) return [];
+  const out = [];
+  for (const b of prof.role) out.push({ text: b.t, section: 'role' });
+  for (const g of prof.ship) {
+    const label = g.skill != null ? (skillById.get(g.skill)?.name ?? '') : '';
+    for (const b of g.lines) out.push({ text: b.t, section: 'ship', skill: label });
+  }
+  return out;
+}
+
+const ROLE_VOCAB = ['Attack', 'Combat', 'Disruption', 'Support', 'Hauling',
+  'Resource Harvesting', 'Exploration', 'Tackling'];
+
 function runSearch(q) {
   state.query = q.trim().toLowerCase();
   if (!state.query) { matches = []; renderHits(); applyHighlight(); return; }
-  const ships = DATA.ships
-    .filter(s => state.lanes.has(s.lane) && s.name.toLowerCase().includes(state.query))
-    .slice(0, 25)
-    .map(s => ({ kind: 'ship', id: s.id, name: s.name, sub: laneById.get(s.lane)?.short }));
+  const needle = state.query;
+
+  const ships = [];
+  const bonuses = [];
+  for (const s of DATA.ships) {
+    if (!state.lanes.has(s.lane)) continue;
+    let why = null;
+    if (s.name.toLowerCase().includes(needle)) why = laneById.get(s.lane)?.short ?? '';
+    else {
+      const cls = rowById.get(s.row)?.name ?? '';
+      if (cls.toLowerCase().includes(needle)) why = cls;
+      else {
+        const role = (s.tags ?? []).find(t => ROLE_VOCAB.includes(t) && t.toLowerCase().includes(needle));
+        if (role) why = role;
+      }
+    }
+    if (why) ships.push({ kind: 'ship', id: s.id, name: s.name, sub: why });
+    // bonus text lives in the lazy file; skip it until that lands rather than
+    // failing - name/class/role matches still work
+    if (DETAILS && !why) {
+      const hit = bonusLinesOf(s).find(b => b.text.toLowerCase().includes(needle));
+      if (hit) {
+        bonuses.push({
+          kind: 'bonus', id: s.id, name: s.name,
+          sub: hit.section === 'role' ? 'role bonus' : (hit.skill || 'ship bonus'),
+          line: hit.text,
+        });
+      }
+    }
+  }
   const skills = DATA.skills
-    .filter(s => s.name.toLowerCase().includes(state.query))
+    .filter(s => s.name.toLowerCase().includes(needle))
     .slice(0, 10)
     .map(s => ({ kind: 'skill', id: s.id, name: s.name, sub: `rank ${s.rank ?? '?'}` }));
-  matches = [...ships, ...skills];
+
+  matches = [
+    ...ships.slice(0, 25),
+    ...bonuses.slice(0, 12),
+    ...skills,
+  ];
   state.matchIndex = 0;
   renderHits();
   markMatches();
@@ -1367,11 +1599,28 @@ function renderHits() {
   const box = $('hits');
   if (!matches.length) { box.classList.remove('open'); box.innerHTML = ''; return; }
   box.classList.add('open');
-  box.innerHTML = matches.map((m, i) => `
-    <div class="hit${i === state.matchIndex ? ' on' : ''}" data-i="${i}">
-      ${m.kind === 'ship' ? `<img src="${IMG}/${m.id}/icon?size=64" alt="">` : '<span style="width:26px;text-align:center;color:var(--accent)">&#9873;</span>'}
-      <span>${esc(m.name)}</span><span class="kind">${esc(m.sub ?? m.kind)}</span>
-    </div>`).join('');
+  const GROUPS = [
+    ['Hulls', 'ship'], ['Bonuses', 'bonus'], ['Skills', 'skill'],
+  ];
+  let i = 0;
+  let html = '';
+  for (const [label, kind] of GROUPS) {
+    const rows = matches.filter(m => m.kind === kind);
+    if (!rows.length) continue;
+    html += `<div class="hit-group">${label}<span>${rows.length}</span></div>`;
+    for (const m of rows) {
+      const on = i === state.matchIndex;
+      const icon = kind === 'skill'
+        ? '<span style="width:26px;text-align:center;color:var(--accent)">&#9873;</span>'
+        : `<img src="${IMG}/${m.id}/icon?size=64" alt="">`;
+      const why = kind === 'bonus'
+        ? `<span class="why">${esc(trunc(m.line, 40))}</span>`
+        : `<span class="kind">${esc(m.sub ?? m.kind)}</span>`;
+      html += `<div class="hit${on ? ' on' : ''}" data-i="${i}">${icon}<span>${esc(m.name)}</span>${why}</div>`;
+      i++;
+    }
+  }
+  box.innerHTML = html;
   box.querySelectorAll('.hit').forEach(el => {
     el.onclick = () => pickMatch(Number(el.dataset.i));
   });
@@ -1381,12 +1630,34 @@ function pickMatch(i) {
   const m = matches[i];
   if (!m) return;
   if (m.kind === 'ship') { selectShip(m.id, true); }
-  else {
+  else if (m.kind === 'bonus') {
+    // a bonus hit opens the hull on the Bonuses tab and flashes the line that
+    // matched, so the search term is visibly answered
+    selectShip(m.id, true);
+    state.panelTab = 'bonuses';
+    store.set('st.panelTab', 'bonuses');
+    renderPanel(shipById.get(m.id));
+    flashBonusLine(m.line);
+  } else {
     // a skill: open the skill tree of the first lane that uses it, and light it
     const lane = DATA.ships.find(s => s.prereqs.some(p => p.skill === m.id))?.lane;
     if (lane) { openSkills(lane, m.id, true); setHover(`k${m.id}`); }
   }
   $('hits').classList.remove('open');
+}
+
+/** Flash the bonus line whose text matches, once the Bonuses pane is visible. */
+function flashBonusLine(text) {
+  if (!text) return;
+  const pane = $('panel')?.querySelector('.pane[data-pane="bonuses"]');
+  if (!pane) return;
+  const needle = text.toLowerCase();
+  const row = [...pane.querySelectorAll('.bonus-line')]
+    .find(n => n.textContent.replace(/\s+/g, ' ').toLowerCase().includes(needle.slice(0, 30)));
+  if (!row) return;
+  row.classList.add('flash');
+  row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  setTimeout(() => row.classList.remove('flash'), 1800);
 }
 
 /** Deep link ?skill=<id>: open the owning lane's tree and mark the skill. */

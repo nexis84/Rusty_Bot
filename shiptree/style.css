@@ -216,11 +216,20 @@ input { user-select: text; -webkit-user-select: text; }
 /* fixed content width so nothing reflows while the panel slides */
 /* fixed content width so nothing reflows while the panel slides; the body keeps
    its flex sizing so it is the part that scrolls */
-#panel .panel-head, #panel .panel-logo { width: 340px; flex: none; }
+#panel .panel-head, #panel .panel-foot { width: 340px; flex: none; }
 #panel .panel-body { width: 340px; }
-/* the body scrolls; the head and the faction logo footer stay put */
+/* the head, tabs and foot stay put; only the body scrolls between them */
 #panel .panel-head, #skillsPanel .panel-head { position: sticky; top: 0; z-index: 2; }
 #panel .panel-body, #skillsPanel .panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+/* right-panel footer: the per-hull links sit left of the faction logo, outside
+   every pane, so they survive a tab switch */
+#panel .panel-foot {
+  width: 340px; flex: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 7px 12px 8px; border-top: 1px solid var(--line);
+}
+#panel .panel-foot .links { flex: 1; min-width: 0; }
+#panel .panel-foot .panel-logo { padding: 0; border: none; flex: none; }
 .panel-logo {
   flex: none; display: flex; justify-content: flex-end; align-items: flex-end;
   padding: 4px 12px 10px; border-top: 1px solid var(--line);
@@ -260,6 +269,89 @@ input { user-select: text; -webkit-user-select: text; }
 }
 .panel-tab:focus-visible { outline: 1px solid var(--accent); outline-offset: -2px; }
 .pane[hidden] { display: none; }
+
+/* ---------------------------------------------------------- hull description */
+
+.lore { font-size: 12px; line-height: 1.55; color: #b9b9b9; }
+.lore p { margin-bottom: 8px; }
+.lore p:last-child { margin-bottom: 0; }
+.lore i { color: #d6d6d6; }
+.lore.clamped {
+  display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.lore-toggle {
+  align-self: flex-start; margin-top: -6px;
+  background: transparent; border: none; color: var(--accent);
+  font: inherit; font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; padding: 2px 0;
+}
+.lore-toggle:hover { color: var(--accent-hover); }
+#panel .stat i { color: var(--dim); font-style: normal; letter-spacing: 1px; }
+
+/* ----------------------------------------------------------------- compare */
+
+#panelCompare {
+  position: absolute; top: 10px; right: 42px;
+  background: transparent; border: 1px solid var(--line); color: var(--dim);
+  border-radius: 5px; width: 24px; height: 24px; cursor: pointer; font: inherit;
+}
+#panelCompare:hover { color: var(--accent); border-color: var(--accent); }
+#panelCompare.armed {
+  color: var(--accent); border-color: var(--accent); background: var(--accent-dim);
+  animation: cmpPulse 1.1s ease-in-out infinite;
+}
+@keyframes cmpPulse { 50% { background: rgba(232, 217, 0, .3); } }
+@media (prefers-reduced-motion: reduce) { #panelCompare.armed { animation: none; } }
+
+.cmp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.cmp-head img {
+  width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 5px;
+  background: radial-gradient(circle at 50% 40%, #2a3340, #14181f);
+}
+.cmp-head b {
+  flex: none; width: 14px; height: 14px; line-height: 14px; text-align: center;
+  font-size: 9px; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px;
+}
+.cmp-head span { font-size: 13px; font-weight: 600; }
+.cmp-row {
+  display: grid; grid-template-columns: 1fr 74px 74px; gap: 4px;
+  padding: 2px 0; font-size: 11px; align-items: baseline;
+}
+.cmp-row .ck { color: var(--dim); }
+.cmp-row .cv { text-align: right; font-variant-numeric: tabular-nums; }
+.cmp-row .cv.win { color: var(--accent); font-weight: 700; }
+.cmp-sk {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 3px 0 3px 8px; border-left: 2px solid var(--line-strong);
+  font-size: 12px; color: #cfcfcf;
+}
+.cmp-sk b { color: var(--accent); font-size: 11px; }
+.cmp-sk.a { border-left-color: #4a6b96; }
+.cmp-sk.b { border-left-color: #4a6b96; }
+.cmp-sk.none { color: var(--dim); border-left-color: transparent; }
+.cmp-clear {
+  align-self: flex-start; margin-top: 6px;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--dim); background: transparent; border: 1px solid var(--line);
+  border-radius: 4px; padding: 4px 8px; cursor: pointer;
+}
+.cmp-clear:hover { color: var(--accent); border-color: var(--accent); }
+.bonus-line.flash { background: var(--accent-dim); border-left-color: var(--accent); }
+
+/* -------------------------------------------------------- grouped search hits */
+
+.hit-group {
+  display: flex; justify-content: space-between;
+  padding: 5px 10px 3px; color: var(--accent);
+  font-size: 9px; letter-spacing: 1.6px; text-transform: uppercase;
+}
+.hit-group span { color: var(--dim); }
+.hit .why {
+  margin-left: auto; max-width: 46%; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+  color: var(--dim); font-size: 10px;
+}
 
 /* ----------------------------------------------------------------- bonuses */
 
