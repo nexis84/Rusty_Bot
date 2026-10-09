@@ -352,12 +352,7 @@ function render() {
           }), nameEls[0]);
         });
         for (const n of nameEls) tg.appendChild(n);
-        svgEl('title', {
-          text: `${s.name} — ${rowById.get(s.row)?.name ?? ''}, ${laneById.get(s.lane)?.short ?? ''}`
-            + (s.tier ? ` (${s.tier})` : '')
-            + (s.alpha ? '' : '\nΩ Omega clone only')
-            + `\nneeds: ${s.prereqs.map(p => `${p.name} ${roman(p.level)}`).join(', ')}`,
-        }, tg);
+        // (the native <title> was removed here: the 2s hover card replaces it)
         if (!s.alpha) {
           const why = s.omegaWhy;
           svgEl('rect', { class: 'omega-pill', x: G.tileW - 17, y: 4, width: 13, height: 13, rx: 3 }, tg);
@@ -370,8 +365,8 @@ function render() {
           }, badge);
         }
         tg.addEventListener('click', ev => { ev.stopPropagation(); if (!clickSuppressed()) selectShip(s.id, false); });
-        tg.addEventListener('mousemove', () => setHover(`s${s.id}`));
-        tg.addEventListener('mouseleave', () => setHover(null));
+        tg.addEventListener('mousemove', ev => { setHover(`s${s.id}`); scheduleTip(s, ev); });
+        tg.addEventListener('mouseleave', () => { setHover(null); clearTip(); });
       }
     }
 
@@ -688,6 +683,96 @@ function bpVisualizerHref(bpName) {
   return `https://www.rustybot.co.uk/blueprint-visualizer/#bv=${hash}`;
 }
 
+/* -------------------------------------------------------------- masteries */
+
+const masteryProfile = ship => (ship.mastery != null ? DATA.masteryProfiles?.[ship.mastery] : null);
+const masterySkillName = id => DATA.masterySkills?.[id] ?? `skill ${id}`;
+
+/** Highest mastery level (0-5) the current skill levels satisfy. */
+function masteryLevel(ship) {
+  const prof = masteryProfile(ship);
+  if (!prof) return null;
+  for (let L = 5; L >= 1; L--) {
+    if (prof[L - 1].every(([id, lvl]) => yourLevel(id) >= lvl)) return L;
+  }
+  return 0;
+}
+
+/** Skills still missing for a given mastery level. */
+function masteryGap(ship, level) {
+  const prof = masteryProfile(ship);
+  if (!prof || level < 1 || level > 5) return [];
+  return prof[level - 1]
+    .filter(([id, lvl]) => yourLevel(id) < lvl)
+    .map(([id, lvl]) => ({ id, name: masterySkillName(id), need: lvl, you: yourLevel(id) }));
+}
+
+function masteryHTML(ship) {
+  const known = !!state.esiChar || Object.keys(state.levels).length > 0;
+  if (!known || !masteryProfile(ship)) return '';
+  const lvl = masteryLevel(ship);
+  const next = Math.min(5, lvl + 1);
+  const gap = lvl >= 5 ? [] : masteryGap(ship, next);
+  const badge = lvl === 0 ? '—' : roman(lvl);
+  const text = lvl >= 5
+    ? 'complete — every grade met.'
+    : `${gap.length} skill${gap.length === 1 ? '' : 's'} from <b>${roman(next)}</b>`
+      + (gap.length ? `<small>${gap.slice(0, 4).map(g => `${esc(g.name)} ${roman(g.need)}`).join(', ')}${gap.length > 4 ? `, +${gap.length - 4} more` : ''}</small>` : '');
+  return `<div class="sect">mastery</div>
+    <div class="mastery"><span class="m-badge">${badge}</span><span class="m-text">${text}</span></div>`;
+}
+
+/* ---------------------------------------------------------------- tooltip */
+
+let tipTimer = null, tipShipId = null;
+
+function clearTip() {
+  clearTimeout(tipTimer);
+  tipTimer = null;
+  tipShipId = null;
+  $('tip').classList.add('hidden');
+}
+
+/** Hovering a hull for 2s pops a card with its picture and the basics. */
+function scheduleTip(ship, ev) {
+  if (tipShipId === ship.id) { positionTip(ev); return; }   // already pending/shown
+  clearTip();
+  tipShipId = ship.id;
+  tipTimer = setTimeout(() => showTip(ship, ev), 2000);
+}
+
+function showTip(ship, ev) {
+  const tip = $('tip');
+  const lane = laneById.get(ship.lane);
+  const row = rowById.get(ship.row);
+  const lvl = masteryLevel(ship);
+  const status = shipStatus(ship);
+  const known = !!state.esiChar || Object.keys(state.levels).length > 0;
+  tip.innerHTML = `
+    <img src="${IMG}/${ship.id}/render?size=128" alt="">
+    <div class="tip-body">
+      <div class="tip-name">${esc(ship.name)}</div>
+      <div class="tip-sub">${esc(lane?.short ?? '')} &middot; ${esc(row?.name ?? '')}${ship.tier ? ` &middot; ${esc(ship.tier)}` : ''}</div>
+      <div class="tip-tags">${(ship.tags ?? []).slice(0, 4).map(t => `<span>${esc(t)}</span>`).join('')}</div>
+      ${known && lvl != null ? `<div class="tip-line">mastery ${lvl === 0 ? '—' : roman(lvl)}</div>` : ''}
+      ${known ? `<div class="tip-line ${status}">${status === 'fly' ? 'you can fly it' : status === 'partial' ? 'part trained' : 'not trained'}</div>` : ''}
+      ${!ship.alpha ? '<div class="tip-line omega">\u03A9 omega only</div>' : ''}
+      <div class="tip-needs">needs: ${ship.prereqs.map(p => `${esc(p.name)} ${roman(p.level)}`).join(', ') || '—'}</div>
+    </div>`;
+  tip.classList.remove('hidden');
+  positionTip(ev);
+}
+
+function positionTip(ev) {
+  const tip = $('tip');
+  if (tip.classList.contains('hidden') || !ev) return;
+  const st = $('stage').getBoundingClientRect();
+  const x = Math.max(8, Math.min(ev.clientX - st.left + 18, st.width - tip.offsetWidth - 8));
+  const y = Math.max(8, Math.min(ev.clientY - st.top + 18, st.height - tip.offsetHeight - 8));
+  tip.style.left = `${x}px`;
+  tip.style.top = `${y}px`;
+}
+
 /* ------------------------------------------------------------------- panel */
 
 function renderPanel(ship) {
@@ -722,6 +807,7 @@ function renderPanel(ship) {
           ${(ship.tags ?? []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}
         </div>
       </div>
+      ${masteryHTML(ship)}
       ${statGrid(ship)}
       <div class="sect">estimated market price</div>
       <div class="statgrid" id="priceBox"><div class="stat"><span>price</span><b class="dim">fetching…</b></div></div>
@@ -1158,6 +1244,7 @@ function wireView() {
       if (Math.abs(dx) + Math.abs(dy) <= 4) return;   // still a click
       drag.moved = true;
       state.focusLocked = false;                      // scrolling hands focus back
+      clearTip();
       try { svg.setPointerCapture(e.pointerId); } catch { /* already gone */ }
       svg.classList.add('dragging');
     }

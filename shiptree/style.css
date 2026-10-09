@@ -444,3 +444,40 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
 
 /* real faction logos in the key grid */
 .key-logo { width: 26px; height: 26px; object-fit: contain; flex: none; }
+
+/* mastery line in the ship panel */
+.mastery { display: flex; align-items: center; gap: 10px; }
+.m-badge {
+  flex: none; min-width: 40px; text-align: center;
+  font-weight: 700; font-size: 15px; color: var(--accent);
+  border: 1px solid var(--line-strong); border-radius: 5px; padding: 3px 8px;
+}
+.m-text { flex: 1; font-size: 12.5px; }
+.m-text small { display: block; color: var(--dim); font-size: 10.5px; }
+
+/* 2-second hover card */
+.tip {
+  position: absolute; z-index: 30; display: flex; gap: 10px;
+  width: 300px; padding: 9px; pointer-events: none;
+  background: rgba(20, 20, 20, .97); border: 1px solid var(--line-strong);
+  border-radius: 8px; box-shadow: 0 12px 34px rgba(0, 0, 0, .6);
+}
+.tip.hidden { display: none; }
+.tip img {
+  width: 92px; height: 92px; flex: none; border-radius: 5px;
+  background: radial-gradient(circle at 50% 42%, #33445f, #0f141d);
+}
+.tip-body { min-width: 0; }
+.tip-name { font-size: 14px; font-weight: 600; }
+.tip-sub { font-size: 10.5px; color: var(--dim); margin-bottom: 4px; }
+.tip-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 5px; }
+.tip-tags span {
+  font-size: 9px; letter-spacing: .6px; text-transform: uppercase;
+  color: var(--dim); border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px;
+}
+.tip-line { font-size: 11px; color: var(--dim); }
+.tip-line.fly { color: var(--ok); }
+.tip-line.partial { color: var(--warn); }
+.tip-line.no { color: var(--bad); }
+.tip-line.omega { color: #e0a45c; }
+.tip-needs { font-size: 10.5px; color: var(--dim); margin-top: 4px; }
