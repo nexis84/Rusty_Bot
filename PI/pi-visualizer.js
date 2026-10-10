@@ -10,6 +10,7 @@ const DEFAULT_REGION = '10000002'; // Jita/The Forge
 const AppState = {
     canvasOffset: { x: 0, y: 0 },
     zoom: 1,
+    uiScale: 1, // whole-interface scale (DOM + canvas); persisted to localStorage
     viewMode: 'welcome', // 'welcome', 'reference', 'system', 'chain', 'planets', 'colonies', 'finder'
     refSubview: 'materials', // 'materials' | 'planets' - sub-view inside the Reference canvas
     marketPrices: {},
@@ -116,6 +117,7 @@ const elements = {
     zoomIn: document.getElementById('zoomIn'),
     zoomOut: document.getElementById('zoomOut'),
     zoomLevel: document.getElementById('zoomLevel'),
+    uiScaleSelect: document.getElementById('uiScaleSelect'),
     fitView: document.getElementById('fitView'),
     topSsoBtn: document.getElementById('topSsoBtn'),
     welcomeSso: document.getElementById('welcomeSso'),
@@ -360,6 +362,8 @@ function renderPlanetsNeeded(productId) {
 // ---------- Initialize ----------
 function init() {
     console.log('init() called');
+    // Restore the saved whole-interface scale before the canvas measures itself.
+    AppState.uiScale = readSavedUiScale();
     populateProductDropdowns();
     setupCanvas();
     setupEventListeners();
@@ -402,6 +406,14 @@ function init() {
     if (!elements.colonySkillBanner) elements.colonySkillBanner = document.getElementById('colonySkillBanner');
     if (!elements.colonyIdleFilter) elements.colonyIdleFilter = document.getElementById('colonyIdleFilter');
     if (!elements.colonyFilterCount) elements.colonyFilterCount = document.getElementById('colonyFilterCount');
+    // UI scale: late-bind in case the select wasn't present at script load, then
+    // sync the control + root variables to the restored value.
+    if (!elements.uiScaleSelect) elements.uiScaleSelect = document.getElementById('uiScaleSelect');
+    if (elements.uiScaleSelect && !elements.uiScaleSelect._uiScaleBound) {
+        elements.uiScaleSelect._uiScaleBound = true;
+        elements.uiScaleSelect.addEventListener('change', () => applyUiScale(parseFloat(elements.uiScaleSelect.value), true));
+    }
+    applyUiScale(AppState.uiScale, false);
     console.log('Init complete');
     // Reflect SSO / product state on the Chain "Send to Finder" button
     toggleChainSendToFinder();
@@ -450,14 +462,26 @@ function setupCanvas() {
 function resizeCanvas() {
     const container = canvas.parentElement;
     const dpr = window.devicePixelRatio || 1;
-    AppState.cssW = container.clientWidth;
-    AppState.cssH = container.clientHeight;
-    canvas.width = Math.round(AppState.cssW * dpr);
-    canvas.height = Math.round(AppState.cssH * dpr);
-    canvas.style.width = AppState.cssW + 'px';
-    canvas.style.height = AppState.cssH + 'px';
-    // Draw in CSS pixels; the backing store is dpr-scaled for sharp HiDPI output.
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const scale = AppState.uiScale || 1;
+    const realW = container.clientWidth;
+    const realH = container.clientHeight;
+    // Keep the DOM overlay views (welcome/finder/colonies) clearing the toolbar,
+    // whose height grows/wraps with the UI scale.
+    const tb = (document && document.querySelector) ? document.querySelector('.canvas-toolbar') : null;
+    if (tb && tb.offsetHeight) {
+        document.documentElement.style.setProperty('--pi-toolbar-h', tb.offsetHeight + 'px');
+    }
+    // Drawing happens in "logical" CSS pixels that are uiScale× smaller than the
+    // element; the transform blows them back up to fill it. Everything drawn
+    // (fonts, boxes, spacing, line widths) therefore scales uniformly, while the
+    // backing store stays 1:1 with physical device pixels so text stays sharp.
+    AppState.cssW = realW / scale;
+    AppState.cssH = realH / scale;
+    canvas.width = Math.round(realW * dpr);
+    canvas.height = Math.round(realH * dpr);
+    canvas.style.width = realW + 'px';
+    canvas.style.height = realH + 'px';
+    ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
     draw();
 }
 
@@ -609,6 +633,12 @@ function setupEventListeners() {
     elements.zoomIn.addEventListener('click', () => setZoom(AppState.zoom * 1.2));
     elements.zoomOut.addEventListener('click', () => setZoom(AppState.zoom * 0.8));
     elements.fitView.addEventListener('click', fitView);
+
+    // Whole-interface scale (persisted)
+    if (elements.uiScaleSelect && !elements.uiScaleSelect._uiScaleBound) {
+        elements.uiScaleSelect._uiScaleBound = true;
+        elements.uiScaleSelect.addEventListener('change', () => applyUiScale(parseFloat(elements.uiScaleSelect.value), true));
+    }
 
     // List views scroll with the keyboard too
     window.addEventListener('keydown', (e) => {
@@ -4828,9 +4858,11 @@ function clampListScroll() {
 // Coordinate transforms
 function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
+    const scale = AppState.uiScale || 1;
+    // Divide out the UI scale so pointer coords share the canvas's logical space.
     return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: (e.clientX - rect.left) / scale,
+        y: (e.clientY - rect.top) / scale
     };
 }
 
@@ -4871,6 +4903,31 @@ function zoomAt(newZoom, anchor) {
 
 function setZoom(zoom) {
     zoomAt(zoom, { x: AppState.cssW / 2, y: AppState.cssH / 2 });
+}
+
+// ---------- UI Scale ----------
+const PI_UI_SCALE_KEY = 'pi_ui_scale';
+function readSavedUiScale() {
+    try {
+        const v = parseFloat(localStorage.getItem(PI_UI_SCALE_KEY));
+        return (v >= 0.5 && v <= 3) ? v : 1;
+    } catch (e) { return 1; }
+}
+// Scales the whole interface: DOM via root font-size (all sizes are rem-based)
+// and the canvas via AppState.uiScale (see resizeCanvas). Persists to localStorage.
+function applyUiScale(scale, persist) {
+    scale = Math.max(0.5, Math.min(3, Number(scale) || 1));
+    AppState.uiScale = scale;
+    const root = document.documentElement;
+    if (root) {
+        root.style.setProperty('--ui-scale', String(scale));
+        root.style.fontSize = (16 * scale) + 'px';
+    }
+    if (elements.uiScaleSelect) elements.uiScaleSelect.value = String(scale);
+    if (persist) { try { localStorage.setItem(PI_UI_SCALE_KEY, String(scale)); } catch (e) { /* ignore */ } }
+    // The sidebar/layout just changed size, so re-measure the canvas before redrawing.
+    if (typeof resizeCanvas === 'function' && canvas && canvas.parentElement) resizeCanvas();
+    else draw();
 }
 
 function setViewMode(mode) {
