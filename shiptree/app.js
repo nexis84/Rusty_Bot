@@ -93,6 +93,7 @@ const state = {
   esiQueue: [],                     // character's skill queue
   skillLane: null,                  // lane whose skill tree is in the left panel
   panelTab: store.get('st.panelTab', 'overview'),  // which right-panel pane is open
+  planMode: store.get('st.planMode', 'fly'),       // skill-plan target: 'fly' | 1..5
   loreOpen: false,                 // hull description expanded?
   compare: null,                   // ship id pinned as the second compare column
   awaitCompare: false,             // next hull click fills the compare column
@@ -714,33 +715,76 @@ const isk = n => {
 const secs = ms => `${num(ms / 1000)} s`;
 const tonnes = kg => `${num(kg / 1000)} t`;
 
+/** Align time in seconds: -ln(0.25) x mass/1e6 x inertia modifier. */
+const alignTime = (mass, agility) => (mass && agility ? Math.log(4) * (mass / 1e6) * agility : null);
+
+/** Hull stats with the pilot's trained levels folded in. The builder emits the
+ *  passive skill -> stat modifiers (CPU Management +5%/level, ...) as PostPercent
+ *  entries; each is applied multiplicatively, the way the client stacks them.
+ *  Returns null when we know no levels, or the lazy modifier table has not
+ *  arrived, so the stats tab simply falls back to the base numbers. */
+function appliedStats(ship) {
+  const base = ship.stats ?? {};
+  const mods = DETAILS?.skillMods;
+  if (!mods?.length || !levelsKnown()) return null;
+  const out = { ...base };
+  let touched = false;
+  for (const m of mods) {
+    const lvl = yourLevel(m.skill);
+    if (!lvl || out[m.attr] == null) continue;
+    out[m.attr] *= 1 + (m.per * lvl) / 100;
+    touched = true;
+  }
+  return touched ? out : null;
+}
+
 /** Grid of hull stats, grouped the way the fitting window thinks. */
 function statGrid(ship) {
   const st = ship.stats ?? {};
+  const eff = appliedStats(ship);
   const row = (label, value) => (value == null ? '' : `<div class="stat"><span>${label}</span><b>${value}</b></div>`);
+  /* A base stat, then " -> yours" when a trained skill changes it. */
+  const yours = (key, fmt) => {
+    const b = st[key];
+    if (b == null) return null;
+    const a = eff?.[key];
+    if (a == null || Math.abs(a - b) < 1e-6) return fmt(b);
+    return `${fmt(b)} <i class="arrow">&rarr;</i> <b class="yours">${fmt(a)}</b>`;
+  };
   const slots = [st.high, st.med, st.low].every(v => v == null) ? null : `${st.high ?? 0} / ${st.med ?? 0} / ${st.low ?? 0}`;
   const weapons = [st.turrets, st.launchers].some(v => v) ? `${st.turrets ?? 0} turret${st.turrets === 1 ? '' : 's'} · ${st.launchers ?? 0} launcher${st.launchers === 1 ? '' : 's'}` : null;
   const drones = [st.droneBay, st.droneBandwidth].some(v => v) ? `${num(st.droneBay ?? 0)} m³ · ${num(st.droneBandwidth ?? 0)} Mbit/s` : null;
-  const cap = st.cap == null ? null : `${num(st.cap)} GJ${st.capRecharge ? ` · ${secs(st.capRecharge)}` : ''}`;
+  const int = v => num(Math.round(v));
+  const cpuPg = (st.cpu == null && st.pg == null) ? null : `${yours('cpu', int) ?? 0} tf · ${yours('pg', int) ?? 0} MW`;
+  const cap = st.cap == null ? null : `${yours('cap', int)} GJ${st.capRecharge ? ` · ${yours('capRecharge', secs)}` : ''}`;
+  const at = () => {
+    const b = alignTime(ship.mass, st.agility);
+    if (b == null) return null;
+    const a = eff ? alignTime(ship.mass, eff.agility) : null;
+    const fmt = v => `${v.toFixed(2)} s`;
+    return (a != null && Math.abs(a - b) > 1e-3) ? `${fmt(b)} <i class="arrow">&rarr;</i> <b class="yours">${fmt(a)}</b>` : fmt(b);
+  };
 
   const groups = [
     ['fitting', [
       row('high / med / low', slots),
       row('rig slots', st.rig == null ? null : num(st.rig)),
-      row('cpu / powergrid', (st.cpu == null && st.pg == null) ? null : `${num(st.cpu ?? 0)} tf · ${num(st.pg ?? 0)} MW`),
+      row('cpu / powergrid', cpuPg),
       row('hardpoints', weapons),
     ]],
     ['navigation', [
-      row('max velocity', st.velocity == null ? null : `${num(st.velocity)} m/s`),
+      row('max velocity', yours('velocity', v => `${num(v)} m/s`)),
       row('warp speed', st.warp == null ? null : `${num(st.warp)} AU/s`),
-      row('agility', st.agility == null ? null : num(st.agility)),
+      row('agility', yours('agility', num)),
+      row('align time', at()),
       row('signature radius', st.sig == null ? null : `${num(st.sig)} m`),
-      row('scan resolution', st.scanRes == null ? null : `${num(st.scanRes)} mm`),
+      row('scan resolution', yours('scanRes', v => `${int(v)} mm`)),
+      row('targeting range', yours('maxTargetRange', v => `${int(v)} m`)),
     ]],
     ['tank', [
-      row('shield', st.shield == null ? null : num(st.shield)),
-      row('armor', st.armor == null ? null : num(st.armor)),
-      row('structure', st.hull == null ? null : num(st.hull)),
+      row('shield', yours('shield', int)),
+      row('armor', yours('armor', int)),
+      row('structure', yours('hull', int)),
       row('capacitor', cap),
     ]],
     ['hold', [
@@ -755,7 +799,7 @@ function statGrid(ship) {
       const body = rows.filter(Boolean).join('');
       return body ? `<div class="sect">${title}</div><div class="statgrid">${body}</div>` : '';
     })
-    .join('');
+    .join('') + (eff ? `<div class="note-dim">values after <i class="arrow">&rarr;</i> include your trained skills</div>` : '');
 }
 
 /* ---------------------------------------------------------------- prices */
@@ -1138,6 +1182,7 @@ const PANEL_TABS = [
   { id: 'overview', label: 'overview', title: 'picture, description, mastery, price and base price' },
   { id: 'stats', label: 'stats', title: 'fitting, navigation, tank and hold' },
   { id: 'bonuses', label: 'bonuses', title: 'role bonuses and hull bonuses per skill' },
+  { id: 'plan', label: 'plan', title: 'a trainable skill plan, exportable to the game' },
   { id: 'compare', label: 'compare', title: 'pin two hulls and diff them' },
 ];
 
@@ -1196,6 +1241,7 @@ function renderPanel(ship) {
       </div>
       <div class="pane" data-pane="stats" hidden>${statGrid(ship)}</div>
       <div class="pane" data-pane="bonuses" hidden>${bonusesHTML(ship)}</div>
+      <div class="pane" data-pane="plan" hidden>${planHTML(ship)}</div>
       <div class="pane" data-pane="compare" hidden>${
         compareHTML(state.compare != null ? shipById.get(state.compare) : null, ship)
       }</div>
@@ -1229,10 +1275,40 @@ function renderPanel(ship) {
       state.panelTab = el.dataset.tab;
       store.set('st.panelTab', state.panelTab);
       syncPanelTabs();
+      syncURL();
     };
   });
   panel.querySelectorAll('.req .lvl').forEach(el => {
     el.onclick = () => { cycleSkill(Number(el.dataset.skill)); };
+  });
+
+  // skill plan: target selector, and clipboard / download / share exports
+  panel.querySelectorAll('.plan-mode').forEach(el => {
+    el.onclick = () => {
+      if (el.disabled) return;
+      state.planMode = el.dataset.plan === 'fly' ? 'fly' : Number(el.dataset.plan);
+      store.set('st.planMode', state.planMode);
+      renderPanel(ship);
+      syncURL();
+    };
+  });
+  $('planCopy')?.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    const ok = await copyText(planText(ship, state.planMode));
+    btn.textContent = ok ? 'copied \u2713' : 'copy failed';
+    setTimeout(() => { btn.textContent = 'copy for EVE'; }, 1600);
+  });
+  $('planDownload')?.addEventListener('click', () => {
+    downloadText(`${ship.name.replace(/[^\w.-]+/g, '_')}-plan.txt`, planText(ship, state.planMode));
+  });
+  $('planShare')?.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    const u = new URL(location.href);
+    u.searchParams.set('ship', String(ship.id));
+    u.searchParams.set('plan', String(state.planMode));
+    const ok = await copyText(u.toString());
+    btn.textContent = ok ? 'link copied \u2713' : 'copy failed';
+    setTimeout(() => { btn.textContent = 'share'; }, 1600);
   });
 }
 
@@ -1260,6 +1336,7 @@ const CMP_ROWS = [
     ['max velocity', s => stat(s, 'velocity', ' m/s'), 'up'],
     ['warp speed', s => stat(s, 'warp', ' AU/s'), 'up'],
     ['agility', s => stat(s, 'agility', ''), 'down'],
+    ['align time', s => { const t = alignTime(s.mass, s.stats?.agility); return t == null ? '—' : `${t.toFixed(2)} s`; }, 'down'],
     ['signature radius', s => stat(s, 'sig', ' m'), 'down'],
     ['scan resolution', s => stat(s, 'scanRes', ' mm'), 'up'],
   ]],
@@ -1301,6 +1378,7 @@ const droneLine = s => {
 function cmpValue(ship, key) {
   if (key === 'volume') return ship.volume;
   if (key === 'mass') return ship.mass;
+  if (key === 'align time') return alignTime(ship.mass, ship.stats?.agility) ?? null;
   if (key === 'cpu / powergrid') return ship.stats?.cpu ?? null;
   const raw = ship.stats?.[key];
   return typeof raw === 'number' ? raw : null;
@@ -1373,6 +1451,147 @@ function compareHTML(a, b) {
     <div class="sect">skills only B needs</div>${list(onlyB, 'b')}
     <div class="sect">shared</div>${list(shared, '')}
     <button class="ghost cmp-clear" data-compare-clear>clear comparison</button>`;
+}
+
+/* ------------------------------------------------------------- skill plan */
+
+const PLAN_MODES = [
+  { id: 'fly', label: 'fly it' },
+  { id: 1, label: 'I' }, { id: 2, label: 'II' }, { id: 3, label: 'III' },
+  { id: 4, label: 'IV' }, { id: 5, label: 'V' },
+];
+
+/** Target skill -> level map: the minimum to fly the hull, or a mastery grade,
+ *  closed over prerequisites so the result can actually be trained in order. */
+function planTargets(ship, mode) {
+  const need = new Map();
+  const add = (id, lvl) => need.set(id, Math.max(need.get(id) ?? 0, lvl));
+  if (mode === 'fly') {
+    for (const p of ship.prereqs) add(p.skill, p.level);
+  } else {
+    const prof = masteryProfile(ship);
+    if (!prof) return null;
+    for (const [id, lvl] of prof[mode - 1]) add(id, lvl);
+  }
+  const stack = [...need.keys()];
+  while (stack.length) {
+    const sk = skillById.get(stack.pop());
+    for (const r of sk?.req ?? []) {
+      if (r.level > (need.get(r.skill) ?? 0)) { need.set(r.skill, r.level); stack.push(r.skill); }
+    }
+  }
+  return need;
+}
+
+/** Ordered plan steps. Prerequisites come first (Kahn over the prerequisite
+ *  edges), tie-broken by depth then rank so cheap roots finish early. SP and
+ *  time start from the pilot's own level when we know it. */
+function buildPlan(ship, mode) {
+  const need = planTargets(ship, mode);
+  if (!need) return null;
+  const ids = new Set(need.keys());
+  const deps = new Map();
+  for (const id of ids) {
+    deps.set(id, (skillById.get(id)?.req ?? []).map(r => r.skill).filter(p => ids.has(p)));
+  }
+  const depthOf = id => skillById.get(id)?.depth ?? 0;
+  const rankOf = id => skillById.get(id)?.rank || 1;
+  const nameOf = id => skillById.get(id)?.name ?? masterySkillName(id);
+  const remaining = new Set(ids);
+  const steps = [];
+  while (remaining.size) {
+    let pick = null;
+    for (const id of remaining) {
+      if (!deps.get(id).every(p => !remaining.has(p))) continue;
+      if (pick == null
+        || depthOf(id) < depthOf(pick)
+        || (depthOf(id) === depthOf(pick) && rankOf(id) < rankOf(pick))) pick = id;
+    }
+    if (pick == null) pick = remaining.values().next().value;   // cycle guard
+    remaining.delete(pick);
+    const level = need.get(pick);
+    const you = yourLevel(pick);
+    const sp = spBetween(rankOf(pick), you, level);
+    steps.push({ id: pick, name: nameOf(pick), level, you, rank: rankOf(pick), sp, minutes: sp / spm() });
+  }
+  return steps;
+}
+
+/** The plan as EVE's clipboard import expects it: one "Skill Name Level" per
+ *  line. When we know the pilot's levels, only the still-missing steps go in. */
+function planText(ship, mode) {
+  const steps = buildPlan(ship, mode) ?? [];
+  const rows = levelsKnown() ? steps.filter(s => s.you < s.level) : steps;
+  return rows.map(s => `${s.name} ${s.level}`).join('\n');
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return true; }
+  } catch { /* fall through to the textarea trick */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch { return false; }
+}
+
+function downloadText(name, text) {
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function planHTML(ship) {
+  const mode = state.planMode;
+  const masteryLoaded = !!masteryProfile(ship);
+  const known = levelsKnown();
+  const selector = PLAN_MODES.map(m => {
+    const on = String(m.id) === String(mode);
+    const off = m.id !== 'fly' && !masteryLoaded;
+    return `<button class="plan-mode${on ? ' on' : ''}" data-plan="${m.id}"${off ? ' disabled' : ''}
+      title="${m.id === 'fly' ? 'the minimum skills to undock this hull' : `everything for Mastery ${m.label}`}">${m.label}</button>`;
+  }).join('');
+
+  if (mode !== 'fly' && !masteryLoaded) {
+    return `<div class="plan-modes" role="group" aria-label="plan target">${selector}</div>
+      <div class="note-dim">Mastery data is still loading — the plan will appear in a moment.</div>`;
+  }
+
+  const steps = buildPlan(ship, mode) ?? [];
+  const rows = known ? steps.filter(s => s.you < s.level) : steps;
+  const done = steps.length - rows.length;
+  const totalSP = rows.reduce((a, s) => a + s.sp, 0);
+  const label = mode === 'fly' ? 'to fly it' : `for Mastery ${roman(mode)}`;
+
+  const head = `<div class="plan-modes" role="group" aria-label="plan target">${selector}</div>
+    <div class="plan-summary">${rows.length
+      ? `${rows.length} skill${rows.length === 1 ? '' : 's'} ${label} &middot; <b>${num(Math.round(totalSP))} SP</b> &middot; <b>${fmtMinutes(totalSP / spm())}</b>${done ? ` <span class="dim">(${done} already trained)</span>` : ''}${known ? '' : ' <span class="dim">from scratch</span>'}`
+      : `nothing left to train ${label}.`}</div>`;
+
+  if (!rows.length) return head;
+
+  const list = rows.map(s => `<div class="skill-row plan-row" data-skill="${s.id}">
+      <span class="lvl locked${s.you ? ' have' : ''}">${roman(s.you) || '0'}</span>
+      <span class="nm">${esc(s.name)}<small>${s.you ? `from ${roman(s.you)} &rarr; ` : ''}${roman(s.level)} &middot; ${num(Math.round(s.sp))} SP &middot; ${fmtMinutes(s.minutes)}</small></span>
+    </div>`).join('');
+
+  return `${head}
+    <div class="plan-actions">
+      <button class="ghost" id="planCopy">copy for EVE</button>
+      <button class="ghost" id="planDownload">.txt</button>
+      <button class="ghost" id="planShare">share</button>
+    </div>
+    <div class="skill-tree plan-tree">${list}</div>
+    <div class="note-dim">In EVE: <b>Character Sheet &rarr; Skill Plans &rarr; Import</b>, then paste. The clipboard holds one skill per line. A plan over 150 skills is longer than the training queue.</div>`;
 }
 
 /* ---------------------------------------------------------- hull flavour text */
@@ -2137,6 +2356,7 @@ function syncURL() {
   const set = (k, v) => (v ? p.set(k, v) : p.delete(k));
   set('ship', state.selected ?? '');
   set('skills', state.skillLane ?? '');
+  set('plan', state.panelTab === 'plan' ? String(state.planMode) : '');
   set('hideskills', state.showSkills ? '' : '1');
   set('rows', state.rows === 'all' ? '' : state.rows);
   set('fly', state.flyableOnly ? '1' : '');
@@ -2162,6 +2382,12 @@ function readURL() {
   if (p.get('hideskills')) state.showSkills = false;
   if (p.get('p')) state.primary = Number(p.get('p')) || 17;
   if (p.get('s')) state.secondary = Number(p.get('s')) || 17;
+  // a shared plan link opens the hull on the plan tab, at the shared target
+  const plan = p.get('plan');
+  if (plan) {
+    state.panelTab = 'plan';
+    state.planMode = plan === 'fly' ? 'fly' : Math.min(5, Math.max(1, Number(plan) || 5));
+  }
   const lanes = p.get('lanes');
   return { ship: p.get('ship'), skill: p.get('skill'), skills: p.get('skills'), hideSkills: p.has('hideskills') };
 }

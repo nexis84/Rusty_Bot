@@ -222,11 +222,36 @@ svg :focus-visible { outline: none; }        /* SVG outline is unreliable; tiles
 .stat b { color: var(--text); font-weight: 600; }
 .stat b.isk { color: var(--accent); }
 .stat b.dim { color: var(--dim); font-weight: 400; }
+.stat i.arrow { color: var(--dim); font-style: normal; }
+.stat b.yours { color: var(--accent); }
 .note-dim { font-size: 11px; color: var(--dim); line-height: 1.45; }
 /* a skill the selected hull actually needs */
 .skill-row.needed { background: rgba(200, 164, 90, .07); box-shadow: inset 2px 0 0 var(--accent); }
 .skill-row.needed .nm { color: #f0f0f0; }
 .skill-row.needed .nm small { color: var(--accent); }
+
+/* skill plan pane: target selector, totals, export buttons, ordered steps */
+.plan-modes { display: flex; gap: 2px; margin-bottom: 10px; }
+.plan-mode {
+  flex: 1; padding: 5px 3px 4px;
+  font: inherit; font-size: 9.5px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; text-align: center;
+  color: var(--dim); background: var(--panel-2);
+  border: 1px solid var(--line); cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.plan-mode:first-child { border-radius: 3px 0 0 3px; }
+.plan-mode:last-child { border-radius: 0 3px 3px 0; }
+.plan-mode:hover:not(:disabled) { color: var(--text); }
+.plan-mode.on { color: var(--accent); background: var(--accent-dim); border-color: var(--line-strong); }
+.plan-mode:disabled { opacity: .4; cursor: default; }
+.plan-summary { font-size: 12px; color: var(--text); margin-bottom: 9px; line-height: 1.4; }
+.plan-summary b { color: var(--accent); }
+.plan-summary .dim { color: var(--dim); }
+.plan-actions { display: flex; gap: 6px; margin-bottom: 12px; }
+.plan-actions .ghost { flex: 1; }
+.plan-row .lvl { color: var(--dim); }
+.plan-row .lvl.have { color: var(--ok); }
 .lane-toggle rect { stroke-opacity: .8; }
 .lane-toggle:hover rect { stroke: var(--accent); }
 .lane-toggle:hover text { fill: var(--accent); }
