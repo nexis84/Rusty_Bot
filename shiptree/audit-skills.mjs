@@ -31,11 +31,16 @@ const laneById = new Map(DATA.lanes.map(l => [l.id, l]));
 const problems = [];
 const note = (kind, msg) => problems.push(`[${kind}] ${msg}`);
 
+// Special hulls (CCP leaves them out of its own ship tree) are allowed to have
+// no prerequisites at all - shuttles, the Zephyr, the Genolution capsule. They
+// also have no entry in shipTreeGroups, so the cross-check below skips them.
+const specialIds = new Set(DATA.ships.filter(s => s.special).map(s => s.id));
+
 /* ---- 1. internal consistency ---- */
 
 for (const ship of DATA.ships) {
   const ps = ship.prereqs ?? [];
-  if (!ps.length) note('no-prereqs', `${ship.name} (${ship.id}) has no prerequisites`);
+  if (!ps.length && !specialIds.has(ship.id)) note('no-prereqs', `${ship.name} (${ship.id}) has no prerequisites`);
   if (ps.length > 3) note('too-many', `${ship.name} has ${ps.length} prerequisites`);
   const seen = new Set();
   for (const p of ps) {
@@ -74,10 +79,14 @@ const nameOf = id => skillById.get(id)?.name ?? `skill ${id}`;
 const cmp = (a, b) => a.localeCompare(b);
 const keyOf = list => list.map(p => `${p.skill}:${p.level}`).sort(cmp).join(',');
 
-let compared = 0, unmatchedGroup = 0;
+let compared = 0, unmatchedGroup = 0, specialSkipped = 0;
 for (const ship of DATA.ships) {
   const group = treeGroups.get(ship.row);
-  if (!group) { unmatchedGroup++; continue; }
+  if (!group) {
+    if (specialIds.has(ship.id)) specialSkipped++;
+    else unmatchedGroup++;
+    continue;
+  }
   const entry = (group.preReqSkills ?? []).find(e => e._key === ship.lane);
   if (!entry) { note('no-tree-entry', `${ship.name}: no preReqSkills entry for lane ${ship.lane} in group ${ship.row}`); continue; }
 
@@ -100,7 +109,7 @@ for (const ship of DATA.ships) {
 
 console.log(`hulls audited        ${DATA.ships.length}`);
 console.log(`skills in list       ${DATA.skills.length}`);
-console.log(`compared to CCP tree ${compared} (${unmatchedGroup} without a tree group)`);
+console.log(`compared to CCP tree ${compared} (${unmatchedGroup} without a tree group, ${specialSkipped} special)`);
 console.log(`fourth-skill hits    ${extraHits}`);
 console.log('');
 if (!problems.length) {
