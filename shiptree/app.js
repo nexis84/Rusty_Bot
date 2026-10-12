@@ -738,18 +738,51 @@ function appliedStats(ship) {
   return touched ? out : null;
 }
 
+/** The trained skills that scale a stat, each with its total effect at the
+ *  pilot's level (per × level, a signed percent). Trained-only: an untrained
+ *  skill is not what produced the current value. */
+function statModSources(key) {
+  const mods = DETAILS?.skillMods;
+  if (!mods?.length) return [];
+  const out = [];
+  for (const m of mods) {
+    if (m.attr !== key) continue;
+    const lvl = yourLevel(m.skill);
+    if (!lvl) continue;
+    out.push({ name: skillById.get(m.skill)?.name ?? masterySkillName(m.skill), level: lvl, total: m.per * lvl });
+  }
+  return out;
+}
+
+/** Tooltip for a stat's yellow value, e.g. "CPU Management V: +25%". */
+function statModTip(key, prefix = '') {
+  const src = statModSources(key);
+  if (!src.length) return '';
+  const body = src
+    .map(s => `${s.name} ${roman(s.level)}: ${s.total >= 0 ? '+' : '\u2212'}${Math.abs(s.total)}%`)
+    .join(' · ');
+  return prefix ? `${prefix} \u2014 ${body}` : body;
+}
+
+/** Ready-made title attribute for a yellow stat value (empty when none). */
+function statModTitle(key, prefix) {
+  const t = statModTip(key, prefix);
+  return t ? ` title="${esc(t)}"` : '';
+}
+
 /** Grid of hull stats, grouped the way the fitting window thinks. */
 function statGrid(ship) {
   const st = ship.stats ?? {};
   const eff = appliedStats(ship);
   const row = (label, value) => (value == null ? '' : `<div class="stat"><span>${label}</span><b>${value}</b></div>`);
-  /* A base stat, then " -> yours" when a trained skill changes it. */
+  /* A base stat, then " -> yours" when a trained skill changes it; the yellow
+     value carries a tooltip naming the trained skills behind it. */
   const yours = (key, fmt) => {
     const b = st[key];
     if (b == null) return null;
     const a = eff?.[key];
     if (a == null || Math.abs(a - b) < 1e-6) return fmt(b);
-    return `${fmt(b)} <i class="arrow">&rarr;</i> <b class="yours">${fmt(a)}</b>`;
+    return `${fmt(b)} <i class="arrow">&rarr;</i> <b class="yours"${statModTitle(key)}>${fmt(a)}</b>`;
   };
   const slots = [st.high, st.med, st.low].every(v => v == null) ? null : `${st.high ?? 0} / ${st.med ?? 0} / ${st.low ?? 0}`;
   const weapons = [st.turrets, st.launchers].some(v => v) ? `${st.turrets ?? 0} turret${st.turrets === 1 ? '' : 's'} · ${st.launchers ?? 0} launcher${st.launchers === 1 ? '' : 's'}` : null;
@@ -762,7 +795,10 @@ function statGrid(ship) {
     if (b == null) return null;
     const a = eff ? alignTime(ship.mass, eff.agility) : null;
     const fmt = v => `${v.toFixed(2)} s`;
-    return (a != null && Math.abs(a - b) > 1e-3) ? `${fmt(b)} <i class="arrow">&rarr;</i> <b class="yours">${fmt(a)}</b>` : fmt(b);
+    // align time is driven by agility, so the tooltip names the agility skills
+    return (a != null && Math.abs(a - b) > 1e-3)
+      ? `${fmt(b)} <i class="arrow">&rarr;</i> <b class="yours"${statModTitle('agility', 'agility')}>${fmt(a)}</b>`
+      : fmt(b);
   };
 
   const groups = [

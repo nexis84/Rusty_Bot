@@ -223,7 +223,7 @@ svg :focus-visible { outline: none; }        /* SVG outline is unreliable; tiles
 .stat b.isk { color: var(--accent); }
 .stat b.dim { color: var(--dim); font-weight: 400; }
 .stat i.arrow { color: var(--dim); font-style: normal; }
-.stat b.yours { color: var(--accent); }
+.stat b.yours { color: var(--accent); cursor: help; }
 .note-dim { font-size: 11px; color: var(--dim); line-height: 1.45; }
 /* a skill the selected hull actually needs */
 .skill-row.needed { background: rgba(200, 164, 90, .07); box-shadow: inset 2px 0 0 var(--accent); }
