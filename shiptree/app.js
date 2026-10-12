@@ -950,7 +950,7 @@ function factionLogoHTML(laneId, size = 64) {
   if (factionLogos && factionLogos.has(laneId)) {
     return `<img src="img/factions/${laneId}.png" alt="" style="width:${size}px;height:${size}px">`;
   }
-  return `<span class="panel-emblem" style="background:${lane.color}">${esc(initials(lane.short))}</span>`;
+  return `<span class="panel-emblem" style="background:${lane.color}">${emblemInner(lane)}</span>`;
 }
 
 /** Deep link that pre-fills the Blueprint Visualizer with this hull's blueprint.
@@ -1166,13 +1166,13 @@ function clearTip() {
   $('tip').classList.add('hidden');
 }
 
-/** Hovering a hull for 2s pops a card with its picture and the basics. */
+/** Hovering a hull for 1.5s pops a card with its picture and the basics. */
 function scheduleTip(ship, ev) {
   ensureDetails().catch(() => {});         // so the mastery line can show in time
   if (tipShipId === ship.id) { positionTip(ev); return; }   // already pending/shown
   clearTip();
   tipShipId = ship.id;
-  tipTimer = setTimeout(() => showTip(ship, ev), 2000);
+  tipTimer = setTimeout(() => showTip(ship, ev), 1500);
 }
 
 function showTip(ship, ev) {
@@ -2594,6 +2594,13 @@ const initials = name => {
   return (words.length === 1 ? words[0].slice(0, 2) : words[0][0] + words[1][0]).toUpperCase();
 };
 
+/** The synthetic "Special" lane has no faction logo of its own — mark it with a
+ *  star instead of the "SP" initials fallback. */
+const SPECIAL_LANE_ID = 599999;
+const emblemInner = lane => (lane && (lane.id === SPECIAL_LANE_ID || /^special$/i.test(lane.short || '')))
+  ? '<span class="emblem-star" aria-hidden="true">\u2605</span>'
+  : esc(initials(lane && lane.short));
+
 /** Optional real faction logos: img/factions/manifest.json lists lane ids. */
 async function loadFactionLogos() {
   try {
@@ -2610,7 +2617,7 @@ function buildKey() {
     // real faction logo when we have one, house emblem otherwise
     const mark = (factionLogos && factionLogos.has(l.id))
       ? `<img class="key-logo" src="img/factions/${l.id}.png" alt="">`
-      : `<span class="key-emblem" style="background:${l.color}">${esc(initials(l.short))}</span>`;
+      : `<span class="key-emblem" style="background:${l.color}">${emblemInner(l)}</span>`;
     return `
     <button class="key-item" data-lane="${l.id}" title="${esc(l.name)} — ${l.count} hulls">
       ${mark}

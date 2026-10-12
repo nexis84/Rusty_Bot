@@ -294,6 +294,7 @@ svg :focus-visible { outline: none; }        /* SVG outline is unreliable; tiles
   font-weight: 700; font-size: 22px; color: #121212; opacity: .4;
   clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%);
 }
+.emblem-star { font-size: 1.4em; line-height: 1; }
 
 /* ------------------------------------------------------- right-panel tabs */
 
