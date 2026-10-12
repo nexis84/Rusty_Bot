@@ -20,6 +20,7 @@
 <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
 <meta name="robots" content="index, follow">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
@@ -43,6 +44,7 @@
   </div>
 
   <div class="tools">
+    <button id="welcomeBtn" class="chip" title="Welcome &amp; help"><i class="fas fa-compass"></i> welcome</button>
     <div id="authBox" class="auth"></div>
     <div class="chips" id="rowFilter">
       <button data-rows="all" class="on">all</button>
@@ -109,7 +111,137 @@
   <div id="keyGrid"></div>
 </div>
 
+<!-- Welcome / Help — entry page on first load, doubles as Help -->
+<div id="welcomeDom" class="welcome-dom hidden">
+  <div class="welcome-inner">
+
+    <div class="welcome-hero">
+      <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="welcome-logo">
+      <div class="welcome-hero-text">
+        <h2>Rusty<span class="accent">Ship Tree</span></h2>
+        <p class="welcome-subtitle">Every EVE Online hull, the skills it needs, and the Jita price &mdash; all on one canvas.</p>
+        <p class="welcome-tagline">First time here? Start below. Returning? Jump straight in &mdash; or reopen this page any time from the <strong>welcome</strong> button in the top bar.</p>
+        <div class="welcome-cta-row">
+          <button class="welcome-cta" data-welcome-act="explore"><i class="fas fa-sitemap"></i> Explore the Tree</button>
+          <button class="welcome-cta secondary" data-welcome-act="search"><i class="fas fa-search"></i> Find a Hull</button>
+          <button class="welcome-cta secondary" data-welcome-act="combat"><i class="fas fa-crosshairs"></i> Combat Hulls</button>
+          <button class="welcome-cta secondary" data-welcome-act="industry"><i class="fas fa-industry"></i> Industry Hulls</button>
+          <button class="welcome-cta secondary" data-welcome-act="key"><i class="fas fa-list"></i> Faction Key</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome-sso" id="welcomeSso">
+      <div class="welcome-sso-text">
+        <i class="fas fa-user-lock"></i>
+        <div>
+          <strong>Unlock your skills</strong>
+          <p>Sign in with EVE SSO and the tree colours itself against your real trained skills &mdash; see what you can fly right now and what to train next.</p>
+        </div>
+      </div>
+      <button class="welcome-cta" id="welcomeSsoLogin"><i class="fas fa-right-to-bracket"></i> Sign in with SSO</button>
+    </div>
+
+    <div class="welcome-grid">
+      <div class="welcome-card" data-welcome-act="search">
+        <div class="welcome-card-head"><i class="fas fa-search"></i> Search</div>
+        <div class="welcome-card-title">Find any hull or skill</div>
+        <p>Type a ship, a skill or a faction. Hit <kbd>/</kbd> from anywhere to jump to the search box.</p>
+        <span class="welcome-card-link">Open Search <i class="fas fa-arrow-right"></i></span>
+      </div>
+      <div class="welcome-card" data-welcome-act="key">
+        <div class="welcome-card-head"><i class="fas fa-list"></i> Faction Lanes</div>
+        <div class="welcome-card-title">Browse by faction &amp; class</div>
+        <p>Every faction is a lane; hull classes are rows. The <strong>key</strong> button jumps between factions and folds sections.</p>
+        <span class="welcome-card-link">Open Faction Key <i class="fas fa-arrow-right"></i></span>
+      </div>
+      <div class="welcome-card" data-welcome-act="flyable">
+        <div class="welcome-card-head"><i class="fas fa-filter"></i> Filters</div>
+        <div class="welcome-card-title">Narrow to what matters</div>
+        <p>Combat or industry, Alpha-flyable, what you <strong>can't fly</strong> yet, or hulls not yet at Mastery V.</p>
+        <span class="welcome-card-link">Show Flyable Hulls <i class="fas fa-arrow-right"></i></span>
+      </div>
+      <div class="welcome-card" data-welcome-act="skills">
+        <div class="welcome-card-head"><i class="fas fa-graduation-cap"></i> Skills</div>
+        <div class="welcome-card-title">Prerequisites &amp; training plan</div>
+        <p>Click a hull and the left panel lists every required skill, its level and a step-by-step training plan.</p>
+        <span class="welcome-card-link">Toggle Skills Panel <i class="fas fa-arrow-right"></i></span>
+      </div>
+      <div class="welcome-card" data-welcome-act="explore">
+        <div class="welcome-card-head"><i class="fas fa-scale-balanced"></i> Plan &amp; Compare</div>
+        <div class="welcome-card-title">Choose your next ship</div>
+        <p>Copy, download or share a training plan, and pin a second hull to compare stats side by side.</p>
+        <span class="welcome-card-link">Explore Hulls <i class="fas fa-arrow-right"></i></span>
+      </div>
+      <div class="welcome-card" data-welcome-act="sso">
+        <div class="welcome-card-head"><i class="fas fa-user-lock"></i> EVE SSO</div>
+        <div class="welcome-card-title">Colour by your real skills</div>
+        <p>Sign in and the tree marks what you can fly now, what's part-trained and what you can't fly yet.</p>
+        <span class="welcome-card-link">Sign in with SSO <i class="fas fa-arrow-right"></i></span>
+      </div>
+      <div class="welcome-card welcome-card--muted">
+        <div class="welcome-card-head"><i class="fas fa-tag"></i> Live Prices</div>
+        <div class="welcome-card-title">Estimated Jita price</div>
+        <p>Each hull shows an estimated Jita price, refreshed from live market data when you open it.</p>
+        <span class="welcome-card-link">Shown on each hull <i class="fas fa-arrow-up"></i></span>
+      </div>
+    </div>
+
+    <div class="welcome-steps">
+      <h3><i class="fas fa-list-ol"></i> Getting Started &mdash; 3 steps</h3>
+      <ol>
+        <li><strong>New to EVE?</strong> Start with the <em>Combat</em> or <em>Industry</em> filter, then wander the faction lanes. Click any hull for stats, bonuses and mastery.</li>
+        <li><strong>Chasing a ship?</strong> Use <em>Search</em>, open the hull, and read the <em>Skills</em> panel for the exact prerequisites and training order.</li>
+        <li><strong>Already flying?</strong> <em>Sign in with EVE SSO</em> &mdash; the tree highlights what you can undock now and what's still left to train.</li>
+      </ol>
+    </div>
+
+    <div class="welcome-tips">
+      <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+      <ul>
+        <li>Press <kbd>/</kbd> to search, <kbd>Esc</kbd> to clear. Arrow keys step between hulls once you've selected one.</li>
+        <li>Drag the canvas to pan, scroll to zoom, and use <strong>+</strong> / <strong>&minus;</strong> / <strong>&#8862;</strong> to zoom or fit to screen.</li>
+        <li>Click a hull then <em>Compare</em> to pin a second column &mdash; ideal for picking your next ship.</li>
+        <li>Set your <strong>attributes</strong> to sharpen the training-time estimates.</li>
+        <li>Planning the build too? Open the <em>Blueprint Visualizer</em> right from a hull's panel.</li>
+      </ul>
+    </div>
+
+    <div class="welcome-foot">
+      <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="" class="welcome-foot-logo">
+      <span>RustyBot &mdash; Ship Tree &middot; Data: EVE SDE &amp; ESI &middot; Prices: ESI Market</span>
+    </div>
+
+    <section class="welcome-support" aria-label="Support RustyBot">
+      <div class="welcome-support-card">
+        <div class="welcome-support-icon"><i class="fas fa-heart"></i></div>
+        <h2 class="welcome-support-title">Support RustyBot</h2>
+        <p class="welcome-support-desc">If you would like to support us you can do that via Ko-fi. All support is welcomed and very appreciated!</p>
+        <div class="ko-fi-wrap">
+          <script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+          <script type='text/javascript'>if (typeof kofiwidget2 !== 'undefined') { kofiwidget2.init('Support me on Ko-fi', '#f573f1', 'X8X71LW303'); kofiwidget2.draw(); }</script>
+        </div>
+      </div>
+    </section>
+
+    <section class="welcome-seo" aria-label="About the EVE Online Ship Tree">
+      <h2>EVE Online Ship Tree &mdash; Hulls, Skills &amp; Jita Prices</h2>
+      <p>Free, no-signup EVE Online ship tree. Browse every published hull &mdash; frigates to titans, Tech I to faction and pirate &mdash; organised into faction lanes and hull-class rows. Each hull shows the skills it requires, Alpha-clone access, mastery levels, bonuses and an estimated <strong>Jita</strong> price.</p>
+      <p>Use <strong>Search</strong> for any hull or skill, or filter to <strong>combat</strong> and <strong>industry</strong> hulls, <strong>Alpha</strong>-flyable ships, what you <strong>can't fly</strong> yet, or hulls not yet at <strong>Mastery V</strong>. The <strong>skills panel</strong> explains every prerequisite and builds a training plan, and the <strong>compare</strong> view lines two hulls up side by side.</p>
+      <p><strong>Sign in with EVE SSO</strong> to colour the whole tree against your real trained skills and see at a glance what you can undock right now.</p>
+      <p>Built by <a href="https://www.rustybot.co.uk/">RustyBot</a> &mdash; EVE Online Partner. Explore the <a href="https://www.rustybot.co.uk/blueprint-visualizer/">Blueprint Visualizer</a>, <a href="https://www.rustybot.co.uk/market/">Market Browser</a> or <a href="https://www.rustybot.co.uk/gatecheck/">Gate Check</a>.</p>
+      <noscript><p><em>JavaScript is required for the interactive canvas, training plans and live prices.</em></p></noscript>
+    </section>
+
+    <footer class="welcome-legal">
+      EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank" rel="noopener">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.
+    </footer>
+
+  </div>
+</div>
+
 <script src="esi.js"></script>
 <script src="app.js"></script>
+<script src="welcome.js"></script>
 </body>
 </html>
