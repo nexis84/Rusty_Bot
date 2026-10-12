@@ -80,4 +80,16 @@
     <loc>https://www.rustybot.co.uk/you-sunk-my-titan/</loc>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://www.rustybot.co.uk/classifiedhulls/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.rustybot.co.uk/shiptree/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.rustybot.co.uk/Rustybot%20Giveaway%20guides/open_a_draw.html</loc>
+    <priority>0.5</priority>
+  </url>
 </urlset>
