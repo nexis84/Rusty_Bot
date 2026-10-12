@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total items: 23721
-// SDE build: 3586130
-// Generated: 2026-10-07 22:28:05 UTC
+// SDE build: 3607705
+// Generated: 2026-10-12 12:18:19 UTC
 
 const AllMarketItems = {
     // Ships
@@ -2706,7 +2706,7 @@ const AllMarketItems = {
             { id: 20452, name: "Hexa 2500mm Repeating Cannon I" },
             { id: 37306, name: "Hexa 2500mm Repeating Cannon II" },
             { id: 37544, name: "Highstroke Scoped Guidance Disruptor" },
-            { id: 97711, name: "Horm’s Capital Energy Neutralizer" },
+            { id: 97711, name: "Horm's Capital Energy Neutralizer" },
             { id: 6041, name: "Hostile Target Acquisition I" },
             { id: 25565, name: "Hypnos Compact Signal Distortion Amplifier I" },
             { id: 19927, name: "Hypnos Scoped Magnetometric ECM" },
@@ -3865,7 +3865,7 @@ const AllMarketItems = {
             { id: 84988, name: "Ryhad's Modified Medium Remote Armor Repairer" },
             { id: 25861, name: "Salvager I" },
             { id: 30836, name: "Salvager II" },
-            { id: 97710, name: "Sarikusa’s Capital Energy Nosferatu" },
+            { id: 97710, name: "Sarikusa's Capital Energy Nosferatu" },
             { id: 40360, name: "Satyr I" },
             { id: 40555, name: "Satyr II" },
             { id: 33176, name: "Scan Acquisition Array I" },
@@ -4787,7 +4787,7 @@ const AllMarketItems = {
             { id: 52238, name: "Zorya's Heavy Entropic Disintegrator" },
             { id: 52236, name: "Zorya's Light Entropic Disintegrator" },
             { id: 52240, name: "Zorya's Supratidal Entropic Disintegrator" },
-            { id: 97712, name: "Zorya’s Ultratidal Entropic Disintegrator" },
+            { id: 97712, name: "Zorya's Ultratidal Entropic Disintegrator" },
             { id: 88263, name: "‘Tyrannos’ Armor Command Burst" },
             { id: 88261, name: "‘Vigilant’ Shield Command Burst" },
         ]
@@ -26042,7 +26042,7 @@ const AllMarketItems = {
             { id: 90885, name: "Historic SOE SKINs Crate" },
             { id: 90739, name: "Historic Yoiul Festival SKIN Crate" },
             { id: 90740, name: "Historic Yoiul Festival SKINR Crate" },
-            { id: 97720, name: "Horm’s Capital Energy Neutralizer Blueprint Crate" },
+            { id: 97720, name: "Horm's Capital Energy Neutralizer Blueprint Crate" },
             { id: 47058, name: "How to Retire Your Starbase" },
             { id: 33575, name: "Hull Tanking, Elite" },
             { id: 63677, name: "Hunt Booster Crate" },
@@ -26247,7 +26247,7 @@ const AllMarketItems = {
             { id: 49650, name: "Sani Sabik Murder Security Tapes" },
             { id: 49648, name: "Sani Sabik Sermon" },
             { id: 37878, name: "Sansha Claws Fairytale Book" },
-            { id: 97719, name: "Sarikusa’s Capital Energy Nosferatu Blueprint Crate" },
+            { id: 97719, name: "Sarikusa's Capital Energy Nosferatu Blueprint Crate" },
             { id: 54164, name: "Sarpati Reserve Brandy" },
             { id: 44210, name: "Scale Model Of [RFS] Mah'tu Rea" },
             { id: 62046, name: "Scale Model of a Blue Box" },
@@ -26377,7 +26377,7 @@ const AllMarketItems = {
             { id: 57168, name: "Yoiul Stormchasers T-Shirt and Pants Crate" },
             { id: 74387, name: "Yoiul's Ascent Firework Crate" },
             { id: 57152, name: "Zakura Bazei Firework Crate" },
-            { id: 97721, name: "Zorya’s Ultratidal Entropic Disintegrator Blueprint Crate" },
+            { id: 97721, name: "Zorya's Ultratidal Entropic Disintegrator Blueprint Crate" },
         ]
     },
 
