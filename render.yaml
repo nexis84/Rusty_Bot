@@ -33,6 +33,9 @@ services:
     buildCommand: ""
     staticPublishPath: .
     routes:
+      - type: redirect
+        source: /giveaway.html
+        destination: /giveaway
       - type: rewrite
         source: /*
         destination: /index.html
