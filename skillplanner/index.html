@@ -32,6 +32,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
   <meta name="robots" content="index, follow">
+  <style>
+    .seo-faq { max-width: 760px; margin: 2rem auto; color: #b9b9b9; font-size: 0.95rem; line-height: 1.7; }
+    .seo-faq h2 { color: #fff; font-size: 1.25rem; margin: 0 0 0.6rem; }
+    .seo-faq h3 { color: #e8d900; font-size: 1rem; margin: 1.25rem 0 0.3rem; }
+    .seo-faq p { margin: 0.4rem 0; }
+    .seo-faq a { color: #e8d900; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Is Rusty Skill Planner free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — the planner is free to use in your browser. You can plan skills without an account; signing in with EVE SSO loads your character's real skills and attributes." } },
+      { "@type": "Question", "name": "Does the planner add prerequisite skills?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — when you add a skill, its prerequisite skills are added to the training queue automatically in the right order, with estimated training times." } },
+      { "@type": "Question", "name": "Can it calculate skill injectors?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — the built-in injector calculator shows how many skill injectors you'd need between two SP totals and what they'd cost." } }
+    ]
+  }
+  </script>
 </head>
 <body>
     <div class="app">
@@ -597,6 +615,19 @@
 
             <!-- Message Area -->
             <div id="messageArea" class="message-area hidden"></div>
+
+            <section class="seo-faq" aria-label="About the Rusty Skill Planner">
+              <h2>About Rusty Skill Planner — free EVE Online skill planning</h2>
+              <p>Rusty Skill Planner is a free browser tool for planning EVE Online skill training. Search any skill in the game and build a training queue — the planner automatically adds prerequisites, orders the plan and estimates how long each step will take based on your character's attributes.</p>
+              <p>Sign in with EVE SSO to load your real character skills and see what's left to train, or plan manually without an account. The built-in injector calculator works out how many skill injectors you'd need to bridge an SP gap, and what that would cost.</p>
+              <h3>Is Rusty Skill Planner free?</h3>
+              <p>Yes — free in your browser. No account is needed to plan; EVE SSO sign-in simply tailors the plan to your character.</p>
+              <h3>Does it include prerequisites?</h3>
+              <p>Yes — when you add a skill, its prerequisite skills are added to the queue automatically in training order.</p>
+              <h3>Can it calculate skill injectors?</h3>
+              <p>Yes — enter your current SP, target SP and an injector price to see how many injectors you need and the ISK cost.</p>
+              <p>More free EVE tools from RustyBot: <a href="../shiptree/">Ship Tree</a> · <a href="../blueprint-visualizer/">Blueprint Visualizer</a> · <a href="../market/">Market Browser</a> · <a href="../PI/">PI Visualizer</a></p>
+            </section>
 
             <footer class="main-footer">
                 <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>

@@ -34,6 +34,40 @@
   <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
   <link rel="canonical" href="https://www.rustybot.co.uk/the-isk-is-right/">
   <meta name="robots" content="index, follow">
+  <style>
+    .seo-faq { max-width: 720px; margin: 2.5rem auto 0; color: #b9b9b9; font-size: 0.95rem; line-height: 1.7; text-align: left; }
+    .seo-faq h2 { color: #fff; font-size: 1.25rem; margin: 0 0 0.6rem; }
+    .seo-faq h3 { color: #e8d900; font-size: 1rem; margin: 1.25rem 0 0.3rem; }
+    .seo-faq p { margin: 0.4rem 0; }
+    .seo-faq a { color: #e8d900; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "The ISK is Right!",
+    "url": "https://www.rustybot.co.uk/the-isk-is-right/",
+    "description": "Free EVE Online ship price guessing game. Pick which ship costs more at Jita prices.",
+    "applicationCategory": "Game",
+    "operatingSystem": "Web",
+    "genre": ["Quiz", "Trivia"],
+    "inLanguage": "en",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+    "author": { "@type": "Organization", "name": "RustyBot", "url": "https://www.rustybot.co.uk/" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How do you play The ISK is Right!?", "acceptedAnswer": { "@type": "Answer", "text": "Each round shows two EVE Online ships — guess which one costs more at Jita market prices. Correct picks extend your streak and grow your ISK reward; wrong picks cost a life." } },
+      { "@type": "Question", "name": "Are the ship prices real?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — prices come live from EVE Online's ESI market data for Jita (The Forge), so the game tracks the real player-run economy." } },
+      { "@type": "Question", "name": "What happens when I run out of lives?", "acceptedAnswer": { "@type": "Answer", "text": "You can buy extra lives using the ISK rewards you've earned, or start a fresh run." } },
+      { "@type": "Question", "name": "Do I need an EVE account to play?", "acceptedAnswer": { "@type": "Answer", "text": "No — the game is free and playable by anyone in a modern browser, with no login required." } }
+    ]
+  }
+  </script>
 </head>
 <body>
   <header class="top-bar">
@@ -79,6 +113,19 @@
     <div id="feedback" class="feedback"></div>
 
     <div id="guess-buttons" class="guess-buttons"></div>
+
+    <section class="seo-faq" aria-label="About The ISK is Right">
+      <h2>About The ISK is Right! — the free EVE Online price game</h2>
+      <p>The ISK is Right! is a free price-guessing game for EVE Online. Every round shows you two ships and you decide which one costs more at Jita's market. Pick right to keep your streak alive and grow your ISK reward; pick wrong and you lose a life — you can even buy lives back with the ISK you've earned.</p>
+      <p>Prices are fetched live from EVE Online's ESI market data for Jita (The Forge), so the game is always in step with the real player-run economy. It's a great way to sharpen your market knowledge of hull prices, from frigates to titans.</p>
+      <h3>Are the prices real?</h3>
+      <p>Yes — game prices come directly from ESI's Jita market data, the same source that powers our <a href="../market/">EVE Online market browser</a>.</p>
+      <h3>What happens when I run out of lives?</h3>
+      <p>You can buy extra lives using the ISK rewards you've collected, or start a fresh run.</p>
+      <h3>Do I need an EVE account?</h3>
+      <p>No — the game is playable by anyone in a modern browser, free and without login.</p>
+      <p>More free EVE tools from RustyBot: <a href="../shiptree/">Ship Tree</a> · <a href="../top-trumps/">EVE Top Trumps</a> · <a href="../classifiedhulls/">Classified Hulls</a> · <a href="../appraisal/">Item Appraisal</a></p>
+    </section>
 
     <div class="footer-bar">
       <span>Prices from Jita • The Forge</span>
