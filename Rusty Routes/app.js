@@ -624,6 +624,79 @@ async function refreshRRAuth() {
     }
 }
 
+// Smart push: keep only the waypoints needed so the game client's own routing
+// between them reproduces the planned route. The client flies its own path
+// between waypoints, so a planned system only needs to be a waypoint when the
+// client route would otherwise deviate from the plan.
+// Returns an array of system ids (anchors, origin first) or null when the
+// result can't be trusted/shorter (caller falls back to the full chain).
+async function buildSmartAnchors(systems, flag) {
+    if (!Array.isArray(systems) || systems.length < 2) return null;
+    const ids  = systems.map(s => s.id);
+    const last = ids.length - 1;
+    const anchors = [ids[0]];
+
+    const MAX_CALLS   = 80;
+    const MAX_ANCHORS = 40;
+    let calls = 0;
+
+    let i = 0;
+    while (i < last) {
+        if (++calls > MAX_CALLS || anchors.length > MAX_ANCHORS) return null;
+
+        let route;
+        try {
+            route = await getRoute(ids[i], ids[last], flag);
+        } catch {
+            return null;
+        }
+        if (!Array.isArray(route) || route.length < 2) return null;
+
+        // Length of the common prefix between the client's route to the
+        // destination and the planned tail systems[i..last].
+        const tail = last - i + 1;
+        let common = 1;
+        while (common < route.length && common < tail && route[common] === ids[i + common]) common++;
+
+        if (common === route.length && common === tail) {
+            // Client routing already reproduces the whole remaining plan.
+            anchors.push(ids[last]);
+            break;
+        }
+
+        // Diverges (or the plan skips systems the client would fly through).
+        // Anchor at the last planned system that matched — never the current
+        // anchor itself, so every round makes progress.
+        let ci = i + Math.max(common - 1, 1);
+        if (ci > last) ci = last;
+
+        // Verify the leg to the candidate reproduces the planned prefix;
+        // step back one system at a time until it does. The floor (i + 1)
+        // is accepted as-is — a full-chain push flies the same step there.
+        while (ci > i + 1) {
+            if (++calls > MAX_CALLS) return null;
+            let leg;
+            try {
+                leg = await getRoute(ids[i], ids[ci], flag);
+            } catch {
+                return null;
+            }
+            if (Array.isArray(leg) && leg.length === ci - i + 1 &&
+                leg.every((v, k) => v === ids[i + k])) break;
+            ci--;
+        }
+
+        if (ids[ci] === anchors[anchors.length - 1]) return null; // no progress
+        anchors.push(ids[ci]);
+        i = ci;
+    }
+
+    if (anchors[anchors.length - 1] !== ids[last]) anchors.push(ids[last]);
+    // Only worth it when strictly fewer waypoints than the full chain.
+    if (anchors.length >= ids.length) return null;
+    return anchors;
+}
+
 async function pushRouteToEve(r) {
     const btn = document.querySelector(`button[data-act="push"][data-id="${r.id}"]`);
     const originalHtml = btn?.innerHTML;
@@ -636,13 +709,21 @@ async function pushRouteToEve(r) {
             if (!ok) throw new Error('Session expired — please log in again.');
         }
 
-        // Push mode: 'full' = every saved system as waypoints (origin -> ... -> dest),
-        // 'dest' = only the final system as the destination (EVE auto-routes from
-        // your current location).
-        const mode = document.getElementById('pushMode')?.value || 'full';
-        const sysIds = mode === 'dest'
-            ? [r.systems[r.systems.length - 1].id]
-            : r.systems.map(s => s.id);
+        // Push mode: 'smart' = fewest waypoints that still force the planned
+        // path (client routing verified between anchors), 'full' = every saved
+        // system as a waypoint (origin -> ... -> dest), 'dest' = only the final
+        // system as the destination (EVE auto-routes from your current location).
+        const mode = document.getElementById('pushMode')?.value || 'smart';
+        let sysIds;
+        if (mode === 'dest') {
+            sysIds = [r.systems[r.systems.length - 1].id];
+        } else if (mode === 'smart') {
+            if (btn) btn.innerHTML = '<span class="spinner"></span> Routing…';
+            sysIds = await buildSmartAnchors(r.systems, r.flag);
+            if (!sysIds || !sysIds.length) sysIds = r.systems.map(s => s.id); // fall back to full chain
+        } else {
+            sysIds = r.systems.map(s => s.id);
+        }
 
         const doPush = () => fetch(`${RR_API}/waypoints/push`, {
             method: 'POST',
