@@ -78,8 +78,13 @@ async function getStargate(id) {
 }
 
 async function getRoute(originId, destId, flag) {
-    const data = await esiGet(`/route/${originId}/${destId}/?flag=${flag}`);
-    return data || [];
+    try {
+        const data = await esiGet(`/route/${originId}/${destId}/?flag=${flag}`);
+        return data || [];
+    } catch (e) {
+        if (String(e.message).includes('ESI 404')) return []; // ESI returns 404 when no route exists
+        throw e;
+    }
 }
 
 // ── zKillboard ───────────────────────────────────────────────────────────────
@@ -190,39 +195,70 @@ function killClass(hazard) {
     return 'k0';
 }
 
-// ── System database (generated from SDE — gate-reachable systems only) ───────
+// ── System database (generated from SDE — grouped by accessibility) ──────────
 
-// [{id, name, sec, key}] — key is the lowercase name used for searching
-let systemList = [];
+// Systems reachable by gate + sections that exist in-game but have no
+// stargate route. The sections are listed separately so they don't get
+// mixed into normal searches.
+const AC_SECTIONS = [
+    { id: 'pochven',  label: 'Pochven',  note: 'filament entry only — no gate route' },
+    { id: 'exordium', label: 'Exordium', note: 'restricted region — no gate route' },
+];
+
+const AC_LIMIT = 500;
+
+// [{id, name, sec, key}] grouped per section; 'main' is the stargate network
+let systemGroups = { main: [] };
 
 function loadSystemDatabase() {
     if (typeof GATECHECK_SYSTEMS === 'undefined' || !Array.isArray(GATECHECK_SYSTEMS)) {
         console.warn('gatecheck/systems.js did not load — the system dropdown is empty, but typed names still resolve via ESI.');
         return;
     }
-    systemList = GATECHECK_SYSTEMS.map(s => ({ id: s.id, name: s.name, sec: s.sec, key: s.name.toLowerCase() }));
-    // Pre-populate the ESI name→id cache so typed system names resolve instantly
-    for (const s of systemList) cache.ids.set(s.key, s.id);
+    systemGroups = { main: [] };
+    for (const section of AC_SECTIONS) systemGroups[section.id] = [];
+
+    for (const s of GATECHECK_SYSTEMS) {
+        const entry = { id: s.id, name: s.name, sec: s.sec, key: s.name.toLowerCase() };
+        (systemGroups[s.group] || systemGroups.main).push(entry);
+        // Pre-populate the ESI name→id cache so typed system names resolve instantly
+        cache.ids.set(entry.key, entry.id);
+    }
 }
 
-const AC_LIMIT = 500;
-
-// Search: name prefix first, then word start, then substring anywhere.
-// Returns { items, total } where total counts all matches (items are capped).
-function filterSystems(query) {
-    const q = query.trim().toLowerCase();
-    if (!systemList.length) return { items: [], total: 0 };
-    if (!q) return { items: systemList.slice(0, AC_LIMIT), total: systemList.length };
+// Search one group: name prefix first, then word start, then substring anywhere.
+function searchGroup(list, q, limit) {
+    if (!q) return { items: list.slice(0, limit), total: list.length };
 
     const byPrefix = [], byWord = [], bySubstring = [];
-    for (const s of systemList) {
+    for (const s of list) {
         if (!s.key.includes(q)) continue;
         if (s.key.startsWith(q)) byPrefix.push(s);
         else if (s.key.includes(' ' + q)) byWord.push(s);
         else bySubstring.push(s);
     }
     const total = byPrefix.length + byWord.length + bySubstring.length;
-    return { items: byPrefix.concat(byWord, bySubstring).slice(0, AC_LIMIT), total };
+    return { items: byPrefix.concat(byWord, bySubstring).slice(0, limit), total };
+}
+
+// Returns { main: {items,total}, sections: [{id,label,note,items,total}], total, shown }
+function filterSystems(query) {
+    const q = query.trim().toLowerCase();
+
+    const main = searchGroup(systemGroups.main, q, AC_LIMIT);
+    const sections = AC_SECTIONS
+        .map(section => {
+            const { items, total } = searchGroup(systemGroups[section.id] || [], q, AC_LIMIT);
+            return { ...section, items, total };
+        })
+        .filter(section => section.items.length || !q); // when searching, hide sections with no matches
+
+    return {
+        main,
+        sections,
+        total: main.total + sections.reduce((n, s) => n + s.total, 0),
+        shown: main.items.length + sections.reduce((n, s) => n + s.items.length, 0),
+    };
 }
 
 // ── Location comboboxes ──────────────────────────────────────────────────────
@@ -249,24 +285,23 @@ function setupAutocomplete(inputId) {
     });
 
     input.addEventListener('keydown', e => {
-        const items  = box.querySelectorAll('.ac-item');
+        const items  = Array.from(box.querySelectorAll('.ac-item'));
         const active = box.querySelector('.ac-item.active');
+        const idx    = active ? items.indexOf(active) : -1;
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             if (box.style.display !== 'block') { open(); return; }
-            const next = active ? active.nextElementSibling : items[0];
-            if (next && next.classList.contains('ac-item')) {
-                active?.classList.remove('active');
-                next.classList.add('active');
-                next.scrollIntoView({ block: 'nearest' });
-            }
+            if (!items.length) return;
+            const next = idx < 0 ? 0 : Math.min(idx + 1, items.length - 1);
+            active?.classList.remove('active');
+            items[next].classList.add('active');
+            items[next].scrollIntoView({ block: 'nearest' });
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            const prev = active?.previousElementSibling;
-            if (prev && prev.classList.contains('ac-item')) {
+            if (idx > 0) {
                 active.classList.remove('active');
-                prev.classList.add('active');
-                prev.scrollIntoView({ block: 'nearest' });
+                items[idx - 1].classList.add('active');
+                items[idx - 1].scrollIntoView({ block: 'nearest' });
             }
         } else if (e.key === 'Enter' && active) {
             e.stopPropagation();
@@ -299,45 +334,57 @@ function highlightMatch(name, q) {
         + escapeHtml(name.slice(idx + q.length));
 }
 
+function makeItem(system, ql, input, box) {
+    const item = document.createElement('div');
+    item.className = 'ac-item';
+    item.dataset.name = system.name;
+    item.dataset.id = system.id;
+    item.innerHTML = `<span class="ac-name">${highlightMatch(system.name, ql)}</span>`
+        + `<span class="ac-sec ${secClass(system.sec)}">${secLabel(system.sec)}</span>`;
+    item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        pickSystem(input, box, system);
+    });
+    return item;
+}
+
 function showSuggestions(query, input, box) {
     const q  = query.trim();
     const ql = q.toLowerCase();
 
-    if (!systemList.length) {
+    if (!systemGroups.main.length) {
         box.innerHTML = '<div class="ac-empty">System list unavailable — you can still type a name and hit Check.</div>';
         box.style.display = 'block';
         return;
     }
 
-    const { items, total } = filterSystems(q);
+    const { main, sections, total, shown } = filterSystems(q);
     box.innerHTML = '';
 
-    if (!items.length) {
+    if (!shown) {
         box.innerHTML = `<div class="ac-empty">No systems match “${escapeHtml(q)}”</div>`;
         box.style.display = 'block';
         return;
     }
 
     const frag = document.createDocumentFragment();
-    for (const s of items) {
-        const item = document.createElement('div');
-        item.className = 'ac-item';
-        item.dataset.name = s.name;
-        item.dataset.id = s.id;
-        item.innerHTML = `<span class="ac-name">${highlightMatch(s.name, ql)}</span>`
-            + `<span class="ac-sec ${secClass(s.sec)}">${secLabel(s.sec)}</span>`;
-        item.addEventListener('mousedown', e => {
-            e.preventDefault();
-            pickSystem(input, box, s);
-        });
-        frag.appendChild(item);
+    for (const s of main.items) frag.appendChild(makeItem(s, ql, input, box));
+
+    for (const section of sections) {
+        if (!section.items.length) continue;
+        const head = document.createElement('div');
+        head.className = 'ac-section';
+        head.innerHTML = `<span class="ac-section-label">${section.label}</span>`
+            + `<span class="ac-section-note">${section.note}</span>`;
+        frag.appendChild(head);
+        for (const s of section.items) frag.appendChild(makeItem(s, ql, input, box));
     }
     box.appendChild(frag);
 
     const hint = document.createElement('div');
     hint.className = 'ac-hint';
-    hint.textContent = total > items.length
-        ? `Showing ${items.length} of ${total.toLocaleString()} systems — keep typing to narrow`
+    hint.textContent = shown < total
+        ? `Showing ${shown} of ${total.toLocaleString()} systems — keep typing to narrow`
         : `${total.toLocaleString()} system${total === 1 ? '' : 's'}`;
     box.appendChild(hint);
 

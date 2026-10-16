@@ -504,6 +504,34 @@ footer a { color: var(--accent-color); text-decoration: none; }
 .ac-sec.ls { background: rgba(255,193,7,0.15);  color: var(--mod); }
 .ac-sec.ns { background: rgba(244,67,54,0.15);  color: var(--high); }
 
+.ac-section {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--secondary-color);
+    border-top: 1px solid #3a3a3a;
+    border-bottom: 1px solid var(--secondary-color);
+    z-index: 1;
+}
+.ac-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-subtle);
+}
+.ac-section-note {
+    font-size: 10px;
+    color: #777;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .ac-hint {
     position: sticky;
     bottom: 0;
