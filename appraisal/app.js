@@ -185,6 +185,17 @@ function parseLine(line) {
         return null;
     }
 
+    // 0.5) EFT fitting header: "[ShipType, Fitting Name]" — appraise the hull,
+    //    ditch the fitting name ("[Astarte, Vivid Dream]" -> Astarte). Empty-slot
+    //    placeholder rows from third-party exports are ignored, never guessed.
+    const hdr = text.match(/^\[([^\[\]]+)\]$/);
+    if (hdr) {
+        const ship = hdr[1].split(',')[0].trim();
+        if (ship && !/^empty\b/i.test(ship)) return { name: ship, qty: 1 };
+        parseStats.ignored++;
+        return null;
+    }
+
     // 1) "qty x Name"  e.g. "25 x Tritanium"
     let m = text.match(/^([\d.,\s\u00a0]+)\s*[xX\u00d7]\s*(.+)$/);
     if (m) {
