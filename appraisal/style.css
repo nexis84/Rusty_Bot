@@ -423,6 +423,19 @@ body {
     opacity: 0.8;
 }
 
+/* Price view: hide the opposite price columns (Buy only / Sell only) */
+.results-table.filter-buy th:nth-child(4), .results-table.filter-buy td:nth-child(4),
+.results-table.filter-buy th:nth-child(5), .results-table.filter-buy td:nth-child(5),
+.results-table.filter-buy th:nth-child(7), .results-table.filter-buy td:nth-child(7) {
+    display: none;
+}
+
+.results-table.filter-sell th:nth-child(3), .results-table.filter-sell td:nth-child(3),
+.results-table.filter-sell th:nth-child(5), .results-table.filter-sell td:nth-child(5),
+.results-table.filter-sell th:nth-child(6), .results-table.filter-sell td:nth-child(6) {
+    display: none;
+}
+
 .rate-control {
     display: flex;
     align-items: center;
@@ -980,5 +993,9 @@ body {
     }
     .results-table {
         min-width: 760px;
+    }
+    .results-table.filter-buy,
+    .results-table.filter-sell {
+        min-width: 520px;
     }
 }

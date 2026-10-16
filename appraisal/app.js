@@ -409,7 +409,7 @@ async function mapPool(items, limit, fn, onProgress) {
 
 // ---- Rendering / sorting state ----
 let sortState = { col: 'buyTotal', dir: 'desc' };
-let priceFilter = 'all'; // 'all' | 'buy' | 'sell' — hide rows lacking buy/sell orders
+let priceView = 'all'; // 'all' | 'buy' | 'sell' — which price columns the table shows
 
 function rowValue(row, col) {
     switch (col) {
@@ -457,29 +457,40 @@ function updateSortIndicators() {
     });
 }
 
-// ---- Show filter: items with/without buy or sell orders ----
-function getFilteredRows() {
-    const rows = window.__appraisalRows || [];
-    if (priceFilter === 'buy') return rows.filter(r => r.buy !== null);
-    if (priceFilter === 'sell') return rows.filter(r => r.sell !== null);
-    return rows;
-}
+// ---- Buy only / Sell only views: hide the opposite price columns ----
+const HIDDEN_SORT_COLS = {
+    buy: ['sell', 'split', 'sellTotal'],   // sort columns hidden by "Buy only"
+    sell: ['buy', 'split', 'buyTotal']     // sort columns hidden by "Sell only"
+};
 
-function applyPriceFilterUI() {
+function applyPriceViewUI() {
     document.querySelectorAll('#priceFilterToggle .price-filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === priceFilter);
+        btn.classList.toggle('active', btn.dataset.filter === priceView);
     });
+    const table = document.getElementById('resultsTable');
+    if (table) {
+        table.classList.toggle('filter-buy', priceView === 'buy');
+        table.classList.toggle('filter-sell', priceView === 'sell');
+    }
 }
 
-function setPriceFilter(filter) {
-    if (!['all', 'buy', 'sell'].includes(filter)) return;
-    priceFilter = filter;
-    applyPriceFilterUI();
-    updateRateDisplay(); // refreshes summary cards, grand total and table
+function setPriceView(view) {
+    if (!['all', 'buy', 'sell'].includes(view)) return;
+    priceView = view;
+    // If the current sort column is hidden in the new view, fall back to its own total
+    if ((HIDDEN_SORT_COLS[view] || []).includes(sortState.col)) {
+        sortState = { col: view === 'sell' ? 'sellTotal' : 'buyTotal', dir: 'desc' };
+    }
+    applyPriceViewUI();
+    renderTable();
+}
+
+function visibleColCount() {
+    return priceView === 'all' ? 7 : 4;
 }
 
 function renderTable() {
-    const rows = getFilteredRows();
+    const rows = window.__appraisalRows || [];
     const region = window.__appraisalRegion;
     const prices = window.__appraisalPrices || {};
     const showHubTags = region === 'all';
@@ -512,20 +523,16 @@ function renderTable() {
             </tr>`;
     }).join('');
 
+    const colCount = visibleColCount();
     if (sorted.length === 0) {
-        const emptyMsg = priceFilter === 'buy' ? 'No items with buy orders.'
-            : priceFilter === 'sell' ? 'No items with sell orders.'
-            : 'No items to display.';
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${emptyMsg}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${colCount}" class="empty-state">No items to display.</td></tr>`;
     }
 
-    // Item count card reflects the active filter
+    // Item count card
     const allRows = window.__appraisalRows || [];
     const pricedRows = allRows.filter(r => r.buy !== null || r.sell !== null).length;
-    el('lineCount').textContent = fmtInt(sorted.length);
-    el('itemCountNote').textContent = priceFilter === 'all'
-        ? `${pricedRows} of ${allRows.length} items priced`
-        : `${sorted.length} of ${allRows.length} items shown`;
+    el('lineCount').textContent = fmtInt(allRows.length);
+    el('itemCountNote').textContent = `${pricedRows} of ${allRows.length} items priced`;
 
     const mode = getActiveValueMode();
     const modeLabels = { buy: 'Buy', split: 'Split', sell: 'Sell' };
@@ -535,7 +542,7 @@ function renderTable() {
     const foot = el('resultsFoot');
     foot.innerHTML = `
         <tr>
-            <td class="total-label" colspan="6">Grand Total (${modeLabels[mode] || 'Buy'}${rateLabel})</td>
+            <td class="total-label" colspan="${colCount - 1}">Grand Total (${modeLabels[mode] || 'Buy'}${rateLabel})</td>
             <td class="num active">${fmt(activeTotal)}</td>
         </tr>`;
 
@@ -564,21 +571,14 @@ function setRate(rate) {
 }
 
 function adjustedTotals() {
-    // Totals follow the active show filter so the cards always match the table
-    const rows = getFilteredRows();
-    let buyTotal = 0, sellTotal = 0, splitTotal = 0;
-    for (const r of rows) {
-        if (r.buy !== null) buyTotal += r.rowBuy;
-        if (r.sell !== null) sellTotal += r.rowSell;
-        if (r.split !== null) splitTotal += r.rowSplit;
-    }
+    const totals = window.__appraisalTotals || { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
     const rate = getRate();
     const mult = rate / 100;
     return {
         rate,
-        buy: buyTotal * mult,
-        sell: sellTotal * mult,
-        split: splitTotal * mult
+        buy: (totals.buyTotal || 0) * mult,
+        sell: (totals.sellTotal || 0) * mult,
+        split: (totals.splitTotal || 0) * mult
     };
 }
 
@@ -654,7 +654,7 @@ function renderResults(items, prices, unmatched, region, hubName) {
     sortState = { col: defaultCol, dir: 'desc' };
 
     // Summary cards (values adjusted for rate inside updateRateDisplay);
-    // item counts are refreshed by renderTable so they track the show filter
+    // item counts are refreshed by renderTable
     el('splitNote').textContent = (buyTotal > 0 && sellTotal > 0) ? 'Midpoint between buy and sell' : 'Midpoint of available prices';
 
     // Hub note
@@ -850,8 +850,8 @@ function clearAppraisal() {
     window.__appraisalTotals = { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
     window.__appraisalUnmatched = [];
 
-    priceFilter = 'all';
-    applyPriceFilterUI();
+    priceView = 'all';
+    applyPriceViewUI();
 
     el('resultsBody').innerHTML = '';
     el('resultsFoot').innerHTML = '';
@@ -1105,9 +1105,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Show filter (all / buy only / sell only) — defaults to all
+    // Price view filter (all / buy only / sell only) — defaults to all
     document.querySelectorAll('#priceFilterToggle .price-filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => setPriceFilter(btn.dataset.filter));
+        btn.addEventListener('click', () => setPriceView(btn.dataset.filter));
     });
 
     // Sortable headers

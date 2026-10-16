@@ -24,7 +24,7 @@
     <meta name="twitter:description" content="Instant ISK appraisal across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback % rates, shareable links, no login.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <base href="/appraisal/">
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -201,15 +201,15 @@
 
             <p id="resultsHubNote" class="results-hub-note"></p>
 
-            <!-- Show filter -->
+            <!-- Price view filter -->
             <div class="price-filter-row">
                 <span class="price-filter-label"><i class="fas fa-filter"></i> Show:</span>
                 <div class="price-filter" id="priceFilterToggle">
-                    <button class="price-filter-btn active" data-filter="all">All items</button>
-                    <button class="price-filter-btn" data-filter="buy">Buy orders only</button>
-                    <button class="price-filter-btn" data-filter="sell">Sell orders only</button>
+                    <button class="price-filter-btn active" data-filter="all">All</button>
+                    <button class="price-filter-btn" data-filter="buy">Buy only</button>
+                    <button class="price-filter-btn" data-filter="sell">Sell only</button>
                 </div>
-                <span class="price-filter-note">Hides items with no buy or no sell orders from the table and totals</span>
+                <span class="price-filter-note">Buy only / Sell only hide the opposite price columns</span>
             </div>
 
             <!-- Total Summary -->
@@ -330,6 +330,6 @@
 </script>
 
 <script src="../market/items_database.js"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
