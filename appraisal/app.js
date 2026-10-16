@@ -409,6 +409,7 @@ async function mapPool(items, limit, fn, onProgress) {
 
 // ---- Rendering / sorting state ----
 let sortState = { col: 'buyTotal', dir: 'desc' };
+let priceFilter = 'all'; // 'all' | 'buy' | 'sell' — hide rows lacking buy/sell orders
 
 function rowValue(row, col) {
     switch (col) {
@@ -456,8 +457,29 @@ function updateSortIndicators() {
     });
 }
 
-function renderTable() {
+// ---- Show filter: items with/without buy or sell orders ----
+function getFilteredRows() {
     const rows = window.__appraisalRows || [];
+    if (priceFilter === 'buy') return rows.filter(r => r.buy !== null);
+    if (priceFilter === 'sell') return rows.filter(r => r.sell !== null);
+    return rows;
+}
+
+function applyPriceFilterUI() {
+    document.querySelectorAll('#priceFilterToggle .price-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === priceFilter);
+    });
+}
+
+function setPriceFilter(filter) {
+    if (!['all', 'buy', 'sell'].includes(filter)) return;
+    priceFilter = filter;
+    applyPriceFilterUI();
+    updateRateDisplay(); // refreshes summary cards, grand total and table
+}
+
+function renderTable() {
+    const rows = getFilteredRows();
     const region = window.__appraisalRegion;
     const prices = window.__appraisalPrices || {};
     const showHubTags = region === 'all';
@@ -491,8 +513,19 @@ function renderTable() {
     }).join('');
 
     if (sorted.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No items to display.</td></tr>`;
+        const emptyMsg = priceFilter === 'buy' ? 'No items with buy orders.'
+            : priceFilter === 'sell' ? 'No items with sell orders.'
+            : 'No items to display.';
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${emptyMsg}</td></tr>`;
     }
+
+    // Item count card reflects the active filter
+    const allRows = window.__appraisalRows || [];
+    const pricedRows = allRows.filter(r => r.buy !== null || r.sell !== null).length;
+    el('lineCount').textContent = fmtInt(sorted.length);
+    el('itemCountNote').textContent = priceFilter === 'all'
+        ? `${pricedRows} of ${allRows.length} items priced`
+        : `${sorted.length} of ${allRows.length} items shown`;
 
     const mode = getActiveValueMode();
     const modeLabels = { buy: 'Buy', split: 'Split', sell: 'Sell' };
@@ -531,14 +564,21 @@ function setRate(rate) {
 }
 
 function adjustedTotals() {
-    const totals = window.__appraisalTotals || { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
+    // Totals follow the active show filter so the cards always match the table
+    const rows = getFilteredRows();
+    let buyTotal = 0, sellTotal = 0, splitTotal = 0;
+    for (const r of rows) {
+        if (r.buy !== null) buyTotal += r.rowBuy;
+        if (r.sell !== null) sellTotal += r.rowSell;
+        if (r.split !== null) splitTotal += r.rowSplit;
+    }
     const rate = getRate();
     const mult = rate / 100;
     return {
         rate,
-        buy: (totals.buyTotal || 0) * mult,
-        sell: (totals.sellTotal || 0) * mult,
-        split: (totals.splitTotal || 0) * mult
+        buy: buyTotal * mult,
+        sell: sellTotal * mult,
+        split: splitTotal * mult
     };
 }
 
@@ -565,7 +605,6 @@ function renderResults(items, prices, unmatched, region, hubName) {
     // Build rows
     const rows = [];
     let buyTotal = 0, sellTotal = 0;
-    let pricedRows = 0;
 
     for (const item of items) {
         const price = prices[item.id] || {};
@@ -577,7 +616,6 @@ function renderResults(items, prices, unmatched, region, hubName) {
         const rowSplit = split !== null ? item.qty * split : 0;
         if (buy !== null) buyTotal += rowBuy;
         if (sell !== null) sellTotal += rowSell;
-        if (buy !== null || sell !== null) pricedRows++;
 
         let regionParam;
         if (region === 'all') {
@@ -615,9 +653,8 @@ function renderResults(items, prices, unmatched, region, hubName) {
     const defaultCol = mode === 'buy' ? 'buyTotal' : (mode === 'sell' ? 'sellTotal' : 'splitTotal');
     sortState = { col: defaultCol, dir: 'desc' };
 
-    // Summary cards (values adjusted for rate inside updateRateDisplay)
-    el('lineCount').textContent = fmtInt(items.length);
-    el('itemCountNote').textContent = `${pricedRows} of ${items.length} items priced`;
+    // Summary cards (values adjusted for rate inside updateRateDisplay);
+    // item counts are refreshed by renderTable so they track the show filter
     el('splitNote').textContent = (buyTotal > 0 && sellTotal > 0) ? 'Midpoint between buy and sell' : 'Midpoint of available prices';
 
     // Hub note
@@ -812,6 +849,9 @@ function clearAppraisal() {
     window.__appraisalRegion = null;
     window.__appraisalTotals = { buyTotal: 0, sellTotal: 0, splitTotal: 0 };
     window.__appraisalUnmatched = [];
+
+    priceFilter = 'all';
+    applyPriceFilterUI();
 
     el('resultsBody').innerHTML = '';
     el('resultsFoot').innerHTML = '';
@@ -1063,6 +1103,11 @@ document.addEventListener('DOMContentLoaded', () => {
             setRate(btn.dataset.rate);
             updateRateDisplay();
         });
+    });
+
+    // Show filter (all / buy only / sell only) — defaults to all
+    document.querySelectorAll('#priceFilterToggle .price-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => setPriceFilter(btn.dataset.filter));
     });
 
     // Sortable headers

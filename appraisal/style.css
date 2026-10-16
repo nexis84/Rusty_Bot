@@ -370,6 +370,59 @@ body {
     font-weight: 600;
 }
 
+/* Show filter (all / buy only / sell only) */
+.price-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.price-filter-label {
+    color: var(--text-muted);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.price-filter {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.price-filter-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.price-filter-btn:hover {
+    color: var(--text);
+}
+
+.price-filter-btn.active {
+    background: var(--accent);
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.price-filter-note {
+    color: var(--text-muted);
+    font-size: 12px;
+    opacity: 0.8;
+}
+
 .rate-control {
     display: flex;
     align-items: center;
