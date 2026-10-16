@@ -40,6 +40,13 @@ async function resolveSystemName(name) {
     return id;
 }
 
+// Prefer the ID of a system picked from the dropdown; fall back to name lookup
+async function resolveInputSystem(inputId, value) {
+    const picked = pickedSystem[inputId];
+    if (picked && picked.name.toLowerCase() === value.toLowerCase()) return picked.id;
+    return resolveSystemName(value);
+}
+
 async function batchNames(ids) {
     const missing = ids.filter(id => !cache.names.has(id));
     if (missing.length) {
@@ -183,127 +190,87 @@ function killClass(hazard) {
     return 'k0';
 }
 
-// ── System name database (Fuzzwork CSV) ──────────────────────────────────────
+// ── System database (generated from SDE — gate-reachable systems only) ───────
 
-// Sorted array of system names (lowercase) for prefix search
-let systemNames = []; // [{name, id}, ...]
-let systemsLoaded = false;
+// [{id, name, sec, key}] — key is the lowercase name used for searching
+let systemList = [];
 
-async function loadSystemDatabase() {
-    if (systemsLoaded) return;
-
-    // Try sessionStorage cache first
-    const cached = sessionStorage.getItem('fuzzwork_systems');
-    if (cached) {
-        try {
-            const parsed = JSON.parse(cached);
-            systemNames = parsed;
-            // Pre-populate cache.ids
-            for (const s of systemNames) cache.ids.set(s.name.toLowerCase(), s.id);
-            systemsLoaded = true;
-            return;
-        } catch { /* fall through to fetch */ }
+function loadSystemDatabase() {
+    if (typeof GATECHECK_SYSTEMS === 'undefined' || !Array.isArray(GATECHECK_SYSTEMS)) {
+        console.warn('gatecheck/systems.js did not load — the system dropdown is empty, but typed names still resolve via ESI.');
+        return;
     }
-
-    try {
-        const csvUrl = 'https://www.fuzzwork.co.uk/dump/latest/mapSolarSystems.csv';
-        let text;
-        try {
-            const r = await fetch(csvUrl);
-            if (!r.ok) throw new Error('direct fetch failed');
-            text = await r.text();
-        } catch {
-            // Fallback: CORS proxy
-            const r = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(csvUrl)}`);
-            if (!r.ok) throw new Error('proxy fetch failed');
-            text = await r.text();
-        }
-
-        const lines = text.split('\n');
-        // Header: solarSystemID is col index 2, solarSystemName is col index 3
-        // (0-indexed after splitting by comma)
-        // Actual columns vary — find by header row
-        const header = lines[0].split(',');
-        const idIdx   = header.findIndex(h => h.trim() === 'solarSystemID');
-        const nameIdx = header.findIndex(h => h.trim() === 'solarSystemName');
-
-        const result = [];
-        for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(',');
-            if (cols.length <= Math.max(idIdx, nameIdx)) continue;
-            const id   = parseInt(cols[idIdx]);
-            const name = cols[nameIdx]?.trim();
-            if (!name || isNaN(id)) continue;
-            result.push({ name, id });
-        }
-
-        // Sort alphabetically for binary search
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        systemNames = result;
-
-        // Pre-populate cache.ids
-        for (const s of systemNames) cache.ids.set(s.name.toLowerCase(), s.id);
-
-        // Cache in sessionStorage (compress by storing only what we need)
-        try { sessionStorage.setItem('fuzzwork_systems', JSON.stringify(result)); } catch { /* quota */ }
-        systemsLoaded = true;
-    } catch (e) {
-        console.warn('Could not load system database:', e.message);
-        // Fall back gracefully — autocomplete just won't work
-    }
+    systemList = GATECHECK_SYSTEMS.map(s => ({ id: s.id, name: s.name, sec: s.sec, key: s.name.toLowerCase() }));
+    // Pre-populate the ESI name→id cache so typed system names resolve instantly
+    for (const s of systemList) cache.ids.set(s.key, s.id);
 }
 
-function searchSystems(query, limit = 8) {
-    if (!systemNames.length) return [];
-    const q = query.toLowerCase();
+const AC_LIMIT = 500;
 
-    // Binary search for first match with this prefix
-    let lo = 0, hi = systemNames.length - 1, start = -1;
-    while (lo <= hi) {
-        const mid = (lo + hi) >> 1;
-        if (systemNames[mid].name.toLowerCase() >= q) { start = mid; hi = mid - 1; }
-        else lo = mid + 1;
-    }
-    if (start === -1) return [];
+// Search: name prefix first, then word start, then substring anywhere.
+// Returns { items, total } where total counts all matches (items are capped).
+function filterSystems(query) {
+    const q = query.trim().toLowerCase();
+    if (!systemList.length) return { items: [], total: 0 };
+    if (!q) return { items: systemList.slice(0, AC_LIMIT), total: systemList.length };
 
-    const results = [];
-    for (let i = start; i < systemNames.length && results.length < limit; i++) {
-        if (!systemNames[i].name.toLowerCase().startsWith(q)) break;
-        results.push(systemNames[i]);
+    const byPrefix = [], byWord = [], bySubstring = [];
+    for (const s of systemList) {
+        if (!s.key.includes(q)) continue;
+        if (s.key.startsWith(q)) byPrefix.push(s);
+        else if (s.key.includes(' ' + q)) byWord.push(s);
+        else bySubstring.push(s);
     }
-    return results;
+    const total = byPrefix.length + byWord.length + bySubstring.length;
+    return { items: byPrefix.concat(byWord, bySubstring).slice(0, AC_LIMIT), total };
 }
 
-// ── Autocomplete ─────────────────────────────────────────────────────────────
+// ── Location comboboxes ──────────────────────────────────────────────────────
 
 let acTimer = null;
+
+// System picked from the dropdown per input — lets us skip the ESI name lookup
+const pickedSystem = { origin: null, destination: null };
 
 function setupAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     const box   = document.getElementById(`${inputId}-ac`);
 
-    input.addEventListener('input', () => {
+    const open = () => {
         clearTimeout(acTimer);
-        const q = input.value.trim();
-        if (q.length < 2) { box.style.display = 'none'; return; }
-        acTimer = setTimeout(() => showSuggestions(q, input, box), 120);
+        acTimer = setTimeout(() => showSuggestions(input.value, input, box), 80);
+    };
+
+    input.addEventListener('focus', open);
+    input.addEventListener('click', open);
+    input.addEventListener('input', () => {
+        pickedSystem[inputId] = null; // typing invalidates a previous pick
+        open();
     });
 
     input.addEventListener('keydown', e => {
-        const items = box.querySelectorAll('.ac-item');
+        const items  = box.querySelectorAll('.ac-item');
         const active = box.querySelector('.ac-item.active');
         if (e.key === 'ArrowDown') {
             e.preventDefault();
+            if (box.style.display !== 'block') { open(); return; }
             const next = active ? active.nextElementSibling : items[0];
-            if (next) { active?.classList.remove('active'); next.classList.add('active'); }
+            if (next && next.classList.contains('ac-item')) {
+                active?.classList.remove('active');
+                next.classList.add('active');
+                next.scrollIntoView({ block: 'nearest' });
+            }
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             const prev = active?.previousElementSibling;
-            if (prev) { active.classList.remove('active'); prev.classList.add('active'); }
+            if (prev && prev.classList.contains('ac-item')) {
+                active.classList.remove('active');
+                prev.classList.add('active');
+                prev.scrollIntoView({ block: 'nearest' });
+            }
         } else if (e.key === 'Enter' && active) {
             e.stopPropagation();
-            input.value = active.dataset.name;
-            box.style.display = 'none';
+            pickSystem(input, box, { id: Number(active.dataset.id), name: active.dataset.name });
         } else if (e.key === 'Escape') {
             box.style.display = 'none';
         }
@@ -314,27 +281,68 @@ function setupAutocomplete(inputId) {
     });
 }
 
-function showSuggestions(query, input, box) {
-    const matches = searchSystems(query);
-    if (!matches.length) { box.style.display = 'none'; return; }
+function pickSystem(input, box, system) {
+    input.value = system.name;
+    pickedSystem[input.id] = system;
+    box.style.display = 'none';
+}
 
+const escapeHtml = str => str.replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+function highlightMatch(name, q) {
+    const idx = q ? name.toLowerCase().indexOf(q) : -1;
+    if (idx < 0) return escapeHtml(name);
+    return escapeHtml(name.slice(0, idx))
+        + `<span class="ac-match">${escapeHtml(name.slice(idx, idx + q.length))}</span>`
+        + escapeHtml(name.slice(idx + q.length));
+}
+
+function showSuggestions(query, input, box) {
+    const q  = query.trim();
+    const ql = q.toLowerCase();
+
+    if (!systemList.length) {
+        box.innerHTML = '<div class="ac-empty">System list unavailable — you can still type a name and hit Check.</div>';
+        box.style.display = 'block';
+        return;
+    }
+
+    const { items, total } = filterSystems(q);
     box.innerHTML = '';
-    for (const s of matches) {
+
+    if (!items.length) {
+        box.innerHTML = `<div class="ac-empty">No systems match “${escapeHtml(q)}”</div>`;
+        box.style.display = 'block';
+        return;
+    }
+
+    const frag = document.createDocumentFragment();
+    for (const s of items) {
         const item = document.createElement('div');
         item.className = 'ac-item';
         item.dataset.name = s.name;
-        // Highlight the matching prefix
-        const prefix = s.name.slice(0, query.length);
-        const rest   = s.name.slice(query.length);
-        item.innerHTML = `<span class="ac-match">${prefix}</span>${rest}`;
+        item.dataset.id = s.id;
+        item.innerHTML = `<span class="ac-name">${highlightMatch(s.name, ql)}</span>`
+            + `<span class="ac-sec ${secClass(s.sec)}">${secLabel(s.sec)}</span>`;
         item.addEventListener('mousedown', e => {
             e.preventDefault();
-            input.value = s.name;
-            box.style.display = 'none';
+            pickSystem(input, box, s);
         });
-        box.appendChild(item);
+        frag.appendChild(item);
     }
+    box.appendChild(frag);
+
+    const hint = document.createElement('div');
+    hint.className = 'ac-hint';
+    hint.textContent = total > items.length
+        ? `Showing ${items.length} of ${total.toLocaleString()} systems — keep typing to narrow`
+        : `${total.toLocaleString()} system${total === 1 ? '' : 's'}`;
+    box.appendChild(hint);
+
     box.style.display = 'block';
+    box.scrollTop = 0;
 }
 
 // ── EVE time ─────────────────────────────────────────────────────────────────
@@ -452,10 +460,10 @@ async function runGatecheck() {
 
     setLoading(true);
     try {
-        // Resolve names
+        // Use the ID of systems picked from the dropdown, otherwise resolve typed names
         const [originId, destId] = await Promise.all([
-            resolveSystemName(origin),
-            resolveSystemName(dest)
+            resolveInputSystem('origin', origin),
+            resolveInputSystem('destination', dest)
         ]);
         if (!originId) { showError(`System not found: "${origin}"`); return; }
         if (!destId)   { showError(`System not found: "${dest}"`);   return; }
@@ -515,12 +523,12 @@ async function runGatecheck() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadSystemDatabase();
     setupAutocomplete('origin');
     setupAutocomplete('destination');
-    // Start loading system database in background — ready by the time user types
-    loadSystemDatabase();
 });
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && document.activeElement.tagName !== 'INPUT') runGatecheck();
+    const tag = document.activeElement?.tagName;
+    if (e.key === 'Enter' && !['INPUT', 'BUTTON', 'SELECT', 'TEXTAREA'].includes(tag)) runGatecheck();
 });

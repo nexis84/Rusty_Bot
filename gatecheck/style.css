@@ -460,25 +460,64 @@ footer a { color: var(--accent-color); text-decoration: none; }
     border: 1px solid var(--accent-color);
     border-radius: 5px;
     z-index: 100;
-    max-height: 220px;
+    max-height: 280px;
     overflow-y: auto;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.5);
 }
 
 .ac-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
     padding: 8px 12px;
     cursor: pointer;
     font-size: 14px;
     color: var(--text-color);
     border-bottom: 1px solid var(--secondary-color);
 }
-.ac-item:last-child { border-bottom: none; }
+.ac-item:last-of-type { border-bottom: none; }
 .ac-item:hover, .ac-item.active {
     background: var(--secondary-color);
     color: var(--accent-color);
 }
+.ac-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .ac-match {
     color: var(--accent-color);
     font-weight: 700;
+}
+
+.ac-sec {
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 38px;
+    text-align: center;
+    padding: 1px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.ac-sec.hs { background: rgba(76,175,80,0.15);  color: var(--safe); }
+.ac-sec.ls { background: rgba(255,193,7,0.15);  color: var(--mod); }
+.ac-sec.ns { background: rgba(244,67,54,0.15);  color: var(--high); }
+
+.ac-hint {
+    position: sticky;
+    bottom: 0;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--text-subtle);
+    background: var(--secondary-color);
+    border-top: 1px solid #3a3a3a;
+}
+
+.ac-empty {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text-subtle);
 }
 
 /* ── Gate names ─────────────────────────────────────────────────────────── */
