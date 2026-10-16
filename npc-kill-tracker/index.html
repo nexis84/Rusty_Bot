@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Rusty NPC Tracker — EVE Online NPC Kill, Bounty &amp; ISK/Hour Tracker | RustyBot</title>
+    <meta name="description" content="Free EVE Online ratting tracker. Reads your local game logs to track every NPC kill, bounty, system and ESS-adjusted ISK per hour — live. No login, nothing uploaded.">
+    <meta name="keywords" content="EVE Online, ratting tracker, NPC bounty tracker, ISK per hour, ESS, bounty prizes, eve online ratting, rustybot, rusty npc tracker">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0f1420">
+    <link rel="canonical" href="https://www.rustybot.co.uk/npc-kill-tracker/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="RustyBot">
+    <meta property="og:url" content="https://www.rustybot.co.uk/npc-kill-tracker/">
+    <meta property="og:title" content="Rusty NPC Tracker — EVE Online NPC Kill &amp; Bounty Tracker">
+    <meta property="og:description" content="Track every NPC you kill, its bounty, the system and your ISK/hour — live from your EVE game logs. ESS-aware. No login, nothing uploaded.">
+    <meta property="og:image" content="https://www.rustybot.co.uk/rusty_bot.png">
+    <meta property="og:image:alt" content="RustyBot logo">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Rusty NPC Tracker — EVE Online NPC Kill &amp; Bounty Tracker">
+    <meta name="twitter:description" content="Live ratting tracker: NPC kills, bounties, systems, ESS-adjusted ISK/hour from your local EVE logs.">
+    <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
+    <link rel="stylesheet" href="style.css?v=1">
+    <link rel="icon" type="image/png" href="../rusty_bot.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-1EELB9VSCK');
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Rusty NPC Tracker - RustyBot EVE Online NPC Kill & Bounty Tracker",
+      "url": "https://www.rustybot.co.uk/npc-kill-tracker/",
+      "description": "Free EVE Online ratting tracker that reads your local game logs to track NPC kills, bounty payouts, systems and ESS-adjusted ISK per hour, live.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "ISK"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "RustyBot"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does the Rusty NPC Tracker know which NPCs I kill?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "EVE Online writes a game log to your Documents folder while you play, including a bounty line for every NPC you destroy. Click “Connect EVE logs” once — the tracker opens the folder picker at Documents, finds EVE\\logs\\Gamelogs by itself and remembers it for future visits. Log lines are read locally in your browser and never uploaded, and each kill is attributed to the NPC type and solar system you were in."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are my logs or data uploaded anywhere?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Everything is parsed locally in your browser. Your game logs never leave your computer and there is no login, no account and no server involved."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is ESS taken into account?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "In sovereign nullsec, the Encounter Surveillance System retains 40% of every bounty in the Main Bank, so the tracker shows your immediate 60% payout and tracks the 40% bank share separately. You can override the rate per system, use a custom rate, include an optional corp tax and choose whether the bank payout counts towards totals."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How accurate are the NPC names on each kill?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The tracker matches the paid bounty against the official EVE static data (2,800+ NPC types) and cross-references the NPCs you were fighting in the seconds before each kill. Where a bounty value is shared by several NPCs it shows its best guess — one click assigns the correct NPC, and you can apply that fix to every matching kill in the session."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I analyse past ratting sessions?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Drag any number of old game logs onto the tool to import them. Session history, all-time totals, average ISK per hour and per-NPC breakdowns are stored locally in your browser and can be exported to CSV or JSON."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RustyBot", "item": "https://www.rustybot.co.uk/" },
+        { "@type": "ListItem", "position": 2, "name": "Rusty NPC Tracker - EVE Online NPC Kill & Bounty Tracker", "item": "https://www.rustybot.co.uk/npc-kill-tracker/" }
+      ]
+    }
+    </script>
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand">
+        <a href="../" class="brand-link">
+            <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+            <h1 class="brand-name">Rusty<span class="accent">NPC Tracker</span></h1>
+        </a>
+    </div>
+    <div class="breadcrumb">
+        <span class="breadcrumb-item"><a href="../">Home</a></span>
+        <span class="breadcrumb-item"><a href="./">RustyNPC Tracker</a></span>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="content-wrapper">
+        <!-- Hero -->
+        <section class="hero-section">
+            <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
+            <h2>Rusty<span class="accent">NPC Tracker</span></h2>
+            <p>Track every NPC you kill, its bounty, the system you killed it in and your real ISK/hour — live from your EVE game logs. ESS-aware, no login, nothing uploaded.</p>
+        </section>
+
+        <!-- Connect & Settings -->
+        <section class="panel">
+            <h3><i class="fas fa-plug"></i> Connect your logs</h3>
+            <div class="connect-grid">
+                <div>
+                    <div class="connect-actions">
+                        <button id="connectBtn" class="btn primary" title="One click — opens at Documents and finds EVE\logs\Gamelogs for you"><i class="fas fa-folder-open"></i> Connect EVE logs</button>
+                        <button id="reconnectBtn" class="btn hidden"><i class="fas fa-rotate"></i> Reconnect <span id="reconnectName"></span></button>
+                        <button id="pauseBtn" class="btn hidden"><i class="fas fa-pause"></i> Pause</button>
+                    </div>
+                    <div class="status-line">
+                        <span id="liveDot" class="live-dot"></span>
+                        <span id="connectStatus">Not connected — click Connect EVE logs once. It opens at Documents, finds EVE\logs\Gamelogs by itself and remembers it for next time. Nothing is ever uploaded.</span>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept=".txt" class="hidden">
+                    <div id="dropZone" class="drop-zone" style="margin-top:14px;">
+                        <i class="fas fa-file-arrow-down"></i>
+                        Drop game logs here to analyse (or click to pick files) — including old sessions
+                    </div>
+                    <details class="paste-wrap">
+                        <summary style="cursor:pointer;font-size:12px;color:var(--text-muted);margin-top:10px;">Paste log text instead</summary>
+                        <textarea id="pasteText" spellcheck="false" placeholder="[ 2026.10.14 23:27:03 ] (bounty) ...300,000 ISK added to next bounty payout&#10;[ 2026.10.14 23:21:53 ] (None) Jumping from Amarr to Sarum Prime"></textarea>
+                        <div style="margin-top:8px;"><button id="pasteBtn" class="btn small"><i class="fas fa-wand-magic-sparkles"></i> Analyse pasted text</button></div>
+                    </details>
+                </div>
+                <div>
+                    <div class="settings-grid">
+                        <div class="field">
+                            <label for="essMode"><i class="fas fa-vault"></i> ESS handling</label>
+                            <select id="essMode">
+                                <option value="auto" selected>Auto (by system security)</option>
+                                <option value="custom">Custom rate everywhere</option>
+                                <option value="off">Ignore ESS (gross = net)</option>
+                            </select>
+                            <span class="hint">Nullsec: gross shown in log, 40% to ESS main bank, 60% immediate.</span>
+                        </div>
+                        <div class="field">
+                            <label for="essCustom"><i class="fas fa-sliders"></i> Custom ESS rate %</label>
+                            <input type="number" id="essCustom" min="0" max="100" step="1" value="40">
+                            <span class="hint">Used when ESS handling is “Custom rate”.</span>
+                        </div>
+                        <div class="field">
+                            <label for="essNull"><i class="fas fa-percent"></i> Nullsec bank rate %</label>
+                            <input type="number" id="essNull" min="0" max="100" step="1" value="40">
+                            <span class="hint">Auto mode rate for systems with security below 0.0.</span>
+                        </div>
+                        <div class="field">
+                            <label for="taxPct"><i class="fas fa-building"></i> Corp tax %</label>
+                            <input type="number" id="taxPct" min="0" max="100" step="1" value="0">
+                            <span class="hint">Optional corp tax on bounty income.</span>
+                        </div>
+                        <div class="check-row">
+                            <input type="checkbox" id="incBank">
+                            <label for="incBank" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text-secondary);">Count ESS bank payout in totals</label>
+                        </div>
+                        <div class="check-row">
+                            <input type="checkbox" id="useContext" checked>
+                            <label for="useContext" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text-secondary);">Use combat lines to identify NPCs</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Session selector -->
+        <div class="session-select-row hidden" id="sessionSelectRow">
+            <label for="sessionSelect"><i class="fas fa-eye"></i> Viewing</label>
+            <select id="sessionSelect"></select>
+            <span id="sessionSelectMeta" class="hint" style="font-size:12px;color:var(--text-muted);"></span>
+        </div>
+
+        <!-- Summary -->
+        <section class="summary-grid" id="summaryGrid">
+            <div class="summary-card net">
+                <div class="summary-header"><i class="fas fa-sack-dollar"></i> Net ISK (ESS-adjusted)</div>
+                <div class="summary-value" id="svNet">—</div>
+                <div class="summary-note" id="ntNet">Connect or import logs to begin</div>
+            </div>
+            <div class="summary-card kills">
+                <div class="summary-header"><i class="fas fa-skull"></i> NPC kills</div>
+                <div class="summary-value" id="svKills">—</div>
+                <div class="summary-note" id="ntKills"></div>
+            </div>
+            <div class="summary-card rate">
+                <div class="summary-header"><i class="fas fa-gauge-high"></i> ISK / hour</div>
+                <div class="summary-value" id="svRate">—</div>
+                <div class="summary-note" id="ntRate"></div>
+            </div>
+            <div class="summary-card time">
+                <div class="summary-header"><i class="fas fa-clock"></i> Session time</div>
+                <div class="summary-value" id="svTime">—</div>
+                <div class="summary-note" id="ntTime"></div>
+            </div>
+            <div class="summary-card gross">
+                <div class="summary-header"><i class="fas fa-coins"></i> Gross bounty</div>
+                <div class="summary-value" id="svGross">—</div>
+                <div class="summary-note" id="ntGross"></div>
+            </div>
+            <div class="summary-card bank">
+                <div class="summary-header"><i class="fas fa-vault"></i> ESS bank share</div>
+                <div class="summary-value" id="svBank">—</div>
+                <div class="summary-note" id="ntBank"></div>
+            </div>
+        </section>
+
+        <!-- Chart -->
+        <section class="chart-wrap">
+            <h3><i class="fas fa-chart-line"></i> Cumulative ISK <span id="chartTitle" style="font-weight:400;font-size:12px;color:var(--text-muted);"></span></h3>
+            <svg id="chartSvg" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
+        </section>
+
+        <!-- Live feed -->
+        <section class="table-container">
+            <div class="table-title">
+                <span><i class="fas fa-crosshairs"></i> Recent kills <span class="count" id="feedCount"></span></span>
+            </div>
+            <div class="feed-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:86px;">Time (EVE)</th>
+                            <th>NPC</th>
+                            <th style="width:150px;">System</th>
+                            <th class="num" style="width:110px;">ISK</th>
+                            <th style="width:130px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedBody"></tbody>
+                </table>
+                <div id="feedEmpty" class="empty-note"><i class="fas fa-satellite-dish"></i>No kills tracked yet — connect your logs or drop an old game log above.</div>
+            </div>
+        </section>
+
+        <!-- By NPC -->
+        <section class="table-container">
+            <div class="table-title">
+                <span><i class="fas fa-dragon"></i> Kills by NPC <span class="count" id="npcCount"></span></span>
+            </div>
+            <table class="data-table" id="npcTable">
+                <thead>
+                    <tr>
+                        <th data-sort="name">NPC <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="faction">Faction <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="qty">Kills <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="unit">Unit bounty <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="gross">Gross <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="net">Net <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="share">% of net <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="conf">Confidence <i class="fas fa-sort sort-ind"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="npcBody"></tbody>
+            </table>
+            <div id="npcEmpty" class="empty-note hidden"><i class="fas fa-dragon"></i>No NPC data yet.</div>
+        </section>
+
+        <!-- By system -->
+        <section class="table-container">
+            <div class="table-title">
+                <span><i class="fas fa-map-location-dot"></i> Kills by system <span class="count" id="sysCount"></span></span>
+            </div>
+            <table class="data-table" id="sysTable">
+                <thead>
+                    <tr>
+                        <th data-sort="name">System <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="region">Region <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="kills">Kills <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="gross">Gross <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="net">Net <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="ess">ESS % <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="bank">Bank share <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="rate">ISK / hr <i class="fas fa-sort sort-ind"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="sysBody"></tbody>
+            </table>
+            <div id="sysEmpty" class="empty-note hidden"><i class="fas fa-map-location-dot"></i>No system data yet.</div>
+        </section>
+
+        <!-- History -->
+        <section class="table-container" style="padding-bottom:14px;">
+            <div class="table-title">
+                <span><i class="fas fa-clock-rotate-left"></i> Session history (stored locally)</span>
+            </div>
+            <div style="padding: 14px 16px 0;">
+                <div class="action-row">
+                    <button id="btnImportRecent" class="btn"><i class="fas fa-file-import"></i> Import last 10 logs from connected folder</button>
+                    <button id="btnExportCsv" class="btn"><i class="fas fa-file-csv"></i> Export current view (CSV)</button>
+                    <button id="btnExportJson" class="btn"><i class="fas fa-file-code"></i> Export all data (JSON)</button>
+                    <button id="btnClearAll" class="btn danger"><i class="fas fa-trash-can"></i> Clear all sessions</button>
+                </div>
+                <div class="summary-grid" style="margin-bottom:14px;">
+                    <div class="summary-card kills">
+                        <div class="summary-header"><i class="fas fa-skull"></i> All-time kills</div>
+                        <div class="summary-value" id="atKills">—</div>
+                    </div>
+                    <div class="summary-card net">
+                        <div class="summary-header"><i class="fas fa-sack-dollar"></i> All-time net ISK</div>
+                        <div class="summary-value" id="atNet">—</div>
+                    </div>
+                    <div class="summary-card time">
+                        <div class="summary-header"><i class="fas fa-clock"></i> Total time tracked</div>
+                        <div class="summary-value" id="atTime">—</div>
+                    </div>
+                    <div class="summary-card rate">
+                        <div class="summary-header"><i class="fas fa-list"></i> Sessions</div>
+                        <div class="summary-value" id="atSessions">—</div>
+                    </div>
+                </div>
+            </div>
+            <table class="data-table" id="histTable">
+                <thead>
+                    <tr>
+                        <th data-sort="date">Started (EVE) <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="char">Character <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="file">Log file <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="dur">Duration <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="kills">Kills <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="net">Net ISK <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="rate">ISK / hr <i class="fas fa-sort sort-ind"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="histBody"></tbody>
+            </table>
+            <div id="histEmpty" class="empty-note"><i class="fas fa-clock-rotate-left"></i>No sessions yet. Imported logs will appear here.</div>
+        </section>
+
+        <!-- SEO Content -->
+        <section class="seo-content">
+            <h2>Rusty NPC Tracker — EVE Online ratting &amp; bounty tracker</h2>
+            <p>Every time you destroy an NPC in EVE Online the client writes a bounty line into your local game log. Rusty NPC Tracker connects to that log — no login, no ESI, nothing uploaded — and turns it into a live ratting dashboard: <strong>which NPC you killed</strong>, its <strong>bounty</strong>, the <strong>system</strong> it happened in, and your <strong>ISK per hour</strong> in real time.</p>
+            <p>The NPC database is generated straight from CCP's official static data export (2,800+ bounty NPCs across New Eden), and kill locations are tracked from the jump and undock lines in the same log. Amount adjustments from <strong>ESS</strong> (Encounter Surveillance System), system bounty modifiers and event payout scalings are matched automatically, and you can fine-tune everything.</p>
+            <p>Bounty amounts are only part of the picture — where several NPC types share a bounty, the tracker cross-references the NPCs you were actually fighting seconds before each kill for a confident match, and anything still ambiguous is one click to fix (optionally applied to every matching kill in the session).</p>
+            <p>Old sessions can be imported by dropping any number of game logs onto the page — perfect for comparing anomalies, systems or fits over weeks of ratting. All history is stored locally in your browser and can be exported to CSV or JSON.</p>
+            <p>Looking for more RustyBot tools? Try the <a href="../appraisal/">EVE Online Item Appraisal</a>, browse the <a href="../market/">Market Browser</a>, check gate camps with <a href="../gatecheck/">GateCheck</a>, or head back to the <a href="../">RustyBot homepage</a>.</p>
+        </section>
+
+        <footer class="main-footer">
+            <p class="footer-nav"><a href="../">Home</a> · <a href="../market/">Market Browser</a> · <a href="../appraisal/">Item Appraisal</a> · <a href="../gatecheck/">GateCheck</a> · <a href="../guides/">Guides</a> · <a href="./">NPC Tracker</a></p>
+            <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
+            <p class="data-source">NPC bounty data from the EVE Static Data Export · kills read from your local game logs (never uploaded)</p>
+            <p class="eve-time-display"><i class="far fa-clock"></i> EVE Time: <span id="eveClock">--:--:--</span></p>
+        </footer>
+    </div>
+</main>
+
+<div id="messageArea" class="message-area hidden"></div>
+
+<script src="data/npc-data.js"></script>
+<script src="tracker.js"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
