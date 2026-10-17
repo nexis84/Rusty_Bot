@@ -9,7 +9,6 @@
     --accent-dim: rgba(232, 217, 0, 0.25);
     --accent-hover: #f5e53b;
     --danger: #e05555;
-    --high: #c97b5a;
     --green: #6fbf73;
     --safe: #6fbf73;
     --moderate: #e8a93b;
@@ -415,9 +414,10 @@ header.top-bar {
 }
 
 .chip:hover { border-color: var(--accent-dim); }
-.chip.high { border-color: var(--high); }
-.chip.low  { border-color: rgba(111, 191, 115, 0.4); }
-.chip.null { border-color: var(--accent-dim); }
+.chip.high    { border-color: rgba(111, 191, 115, 0.4); }
+.chip.low     { border-color: rgba(224, 138, 85, 0.4); }
+.chip.null    { border-color: rgba(224, 85, 85, 0.4); }
+.chip.unknown { border-color: rgba(136, 136, 136, 0.4); }
 
 .chip .sec-dot {
     width: 8px;
@@ -425,9 +425,10 @@ header.top-bar {
     border-radius: 50%;
     display: inline-block;
 }
-.chip.high .sec-dot { background: #e05555; }
-.chip.low  .sec-dot { background: #6fbf73; }
-.chip.null .sec-dot { background: #888; }
+.chip.high    .sec-dot { background: #6fbf73; }
+.chip.low     .sec-dot { background: #e08a55; }
+.chip.null    .sec-dot { background: #e05555; }
+.chip.unknown .sec-dot { background: #888; }
 
 .chip-arrow {
     color: var(--dim);

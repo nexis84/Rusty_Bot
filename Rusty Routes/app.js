@@ -154,12 +154,12 @@ async function getSystemSec(id) {
     }
     try {
         const data = await esiGet(`/universe/systems/${id}/`);
-        const sec = data?.security_status ?? 0;
+        const sec = data?.security_status ?? null;
         const cur = idCache.get(id) || { id, name: `#${id}`, sec: null };
         idCache.set(id, { ...cur, sec });
         return sec;
     } catch {
-        return 0;
+        return null;
     }
 }
 
@@ -334,10 +334,10 @@ async function startLogin() {
 // ── Render: route chain ───────────────────────────────────────
 
 function secClass(sec) {
-    if (sec == null) return 'null';
-    if (sec >= 0.5)  return 'high';
-    if (sec >  0.0)  return 'low';
-    return 'null';
+    if (sec == null) return 'unknown';   // grey  — lookup failed / not resolved
+    if (sec >= 0.5)  return 'high';      // green — high-sec
+    if (sec >  0.0)  return 'low';       // orange — low-sec
+    return 'null';                       // red   — null-sec
 }
 
 function renderChain(systems) {
@@ -356,7 +356,7 @@ function renderChain(systems) {
         }
         const c = document.createElement('span');
         c.className = `chip ${secClass(sys.sec)}`;
-        c.title = sys.sec != null ? `Sec ${sys.sec.toFixed(2)}` : '';
+        c.title = sys.sec != null ? `Sec ${sys.sec.toFixed(2)}` : 'Sec unknown';
         c.innerHTML = `<span class="sec-dot"></span>${escapeHtml(sys.name || `#${sys.id}`)}`;
         chain.appendChild(c);
     });
@@ -531,7 +531,7 @@ async function doPlan() {
         await Promise.all(systems.map(s => getSystemSec(s.id)));
 
         // Refetch with updated sec
-        const enriched = systems.map(s => ({ ...s, sec: idCache.get(s.id)?.sec ?? 0 }));
+        const enriched = systems.map(s => ({ ...s, sec: idCache.get(s.id)?.sec ?? null }));
         state.current = {
             origin: enriched[0],
             dest:   enriched[enriched.length - 1],
