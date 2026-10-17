@@ -17,6 +17,7 @@ const state = {
     auth:  null,   // { access_token, refresh_token, character_id, character_name, expires_at }
     current: null, // last planned route (for save)
     saved:   [],   // loaded from localStorage
+    waypoints: [], // manual via systems [{ id, name }]
 };
 
 // ── ESI helpers ────────────────────────────────────────────────
@@ -365,6 +366,66 @@ function renderChain(systems) {
     document.getElementById('resultSection').classList.remove('hidden');
 }
 
+// ── Waypoint chips ────────────────────────────────────────────
+
+function renderWaypointChips() {
+    const box = document.getElementById('waypointChips');
+    if (!box) return;
+    box.innerHTML = state.waypoints.map(w =>
+        `<span class="wp-chip">${escapeHtml(w.name)}` +
+        `<button class="wp-x" data-id="${w.id}" title="Remove">&times;</button></span>`
+    ).join('');
+    box.querySelectorAll('.wp-x').forEach(btn => {
+        btn.addEventListener('click', () => removeWaypoint(+btn.dataset.id));
+    });
+}
+
+function addWaypoint(sys) {
+    if (!sys || sys.id == null) return;
+    if (state.waypoints.some(w => w.id === sys.id)) return;
+    state.waypoints.push({ id: sys.id, name: sys.name || `#${sys.id}` });
+    renderWaypointChips();
+}
+
+function removeWaypoint(id) {
+    state.waypoints = state.waypoints.filter(w => w.id !== id);
+    renderWaypointChips();
+}
+
+function wireWaypointInput() {
+    const input = document.getElementById('waypointInput');
+    if (!input) return;
+
+    const showErr = (msg) => {
+        const err = document.getElementById('planError');
+        if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+    };
+
+    // Enter on free text — resolve the typed name and add it.
+    const commit = async () => {
+        const raw = input.value.trim();
+        if (!raw) return;
+        try {
+            const sys = await resolveSystemFull(raw);
+            if (!sys) throw new Error(`Could not resolve waypoint: ${raw}`);
+            addWaypoint(sys);
+            input.value = '';
+            input.focus();
+        } catch (e) {
+            showErr(e.message);
+        }
+    };
+
+    attachAutocomplete(input, 'waypoint-ac', (sys) => {
+        addWaypoint(sys);
+        input.value = '';
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    });
+}
+
 // ── Render: saved routes ──────────────────────────────────────
 
 function renderSaved() {
@@ -446,6 +507,17 @@ async function doParseAndFill() {
         const destDisplay    = destResolved?.resolvedAs   || parsed.dest   || '?';
         if (parsed.origin) document.getElementById('origin').value      = originDisplay;
         if (parsed.dest)   document.getElementById('destination').value = destDisplay;
+
+        // Populate waypoint chips from the parsed route (EVE's own via-systems),
+        // deduped by id and skipping the endpoints.
+        state.waypoints = parsed.waypoints
+            .map(name => {
+                const hit = resolved.find(r => r.input === name);
+                return hit ? { id: hit.id, name: hit.resolvedAs || name } : null;
+            })
+            .filter(Boolean)
+            .filter((w, i, arr) => arr.findIndex(x => x.id === w.id) === i);
+        renderWaypointChips();
         status.className = 'parse-status ok';
         status.textContent =
             `Loaded ${parsed.raw.length} systems · From ${originDisplay} → ${destDisplay}`;
@@ -512,7 +584,22 @@ async function doPlan() {
         if (!destFull)   throw new Error(`Could not resolve destination: ${toRaw}`);
         if (originFull.id === destFull.id) throw new Error('Origin and destination are the same system.');
 
-        const ids = await getRoute(originFull.id, destFull.id, pref);
+        // Build the ordered stop list: origin -> manual waypoints -> dest.
+        // Drop stop-to-stop duplicates so a waypoint equal to an endpoint
+        // (or a repeated waypoint) doesn't create a zero-length leg.
+        const rawStops = [originFull, ...state.waypoints, destFull];
+        const stops = rawStops.filter((s, i) => i === 0 || s.id !== rawStops[i - 1].id);
+
+        // Route each leg and stitch into one chain, dropping the duplicated
+        // boundary system between consecutive legs.
+        let ids = [];
+        for (let i = 0; i < stops.length - 1; i++) {
+            const leg = await getRoute(stops[i].id, stops[i + 1].id, pref);
+            if (!Array.isArray(leg) || !leg.length) {
+                throw new Error(`No route found: ${stops[i].name} \u2192 ${stops[i + 1].name}`);
+            }
+            ids = ids.concat(i === 0 ? leg : leg.slice(1));
+        }
 
         // Filter avoided
         let filteredIds = ids;
@@ -538,6 +625,7 @@ async function doPlan() {
             flag:   pref,
             systems: enriched,
             avoid,
+            waypoints: state.waypoints.map(w => ({ ...w })),
         };
         renderChain(enriched);
         updateSaveBtnState();
@@ -565,6 +653,7 @@ function doSave() {
         flag:   state.current.flag,
         systems: state.current.systems,
         avoid:   state.current.avoid,
+        waypoints: state.current.waypoints || [],
         createdAt: Date.now(),
     };
     state.saved.unshift(r);
@@ -578,7 +667,9 @@ function handleSavedAction(act, id) {
     const r = state.saved.find(x => x.id === id);
     if (!r) return;
     if (act === 'recall') {
-        state.current = { origin: r.origin, dest: r.dest, flag: r.flag, systems: r.systems, avoid: r.avoid || [] };
+        state.current = { origin: r.origin, dest: r.dest, flag: r.flag, systems: r.systems, avoid: r.avoid || [], waypoints: r.waypoints || [] };
+        state.waypoints = (r.waypoints || []).map(w => ({ ...w }));
+        renderWaypointChips();
         document.getElementById('origin').value      = r.origin?.name || '';
         document.getElementById('destination').value = r.dest?.name   || '';
         document.getElementById('preference').value  = r.flag || 'shortest';
@@ -886,6 +977,8 @@ function init() {
 
     attachAutocomplete(document.getElementById('origin'), 'origin-ac');
     attachAutocomplete(document.getElementById('destination'), 'destination-ac');
+    wireWaypointInput();
+    renderWaypointChips();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

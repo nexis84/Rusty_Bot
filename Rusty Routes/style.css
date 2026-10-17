@@ -331,6 +331,46 @@ header.top-bar {
 
 .avoid-field { margin-top: 12px; }
 
+/* Waypoint chip editor */
+.wp-field { margin-top: 12px; }
+
+.wp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.wp-chips:empty { display: none; }
+
+.wp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    padding: 4px 6px 4px 10px;
+    font-size: 0.85rem;
+    color: var(--text);
+}
+
+.wp-chip .wp-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+.wp-chip .wp-x:hover { color: var(--danger); background: rgba(224, 85, 85, 0.12); }
+
 /* Autocomplete */
 .ac-wrap { position: relative; }
 .ac-box {
@@ -575,6 +615,20 @@ footer {
 }
 
 footer a { color: var(--accent); }
+
+/* Build tag — fixed bottom-left. Keep the version in sync with the ?v= query
+   on style.css / app.js so a glance confirms the deploy has landed. */
+.build-tag {
+    position: fixed;
+    left: 12px;
+    bottom: 10px;
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--dim);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 50;
+}
 
 /* ── Mobile ─────────────────────────────────────────── */
 @media (max-width: 600px) {
