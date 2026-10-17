@@ -470,6 +470,9 @@ header.top-bar {
 .chip.null    .sec-dot { background: #e05555; }
 .chip.unknown .sec-dot { background: #888; }
 
+.chip.station { border-color: var(--accent-dim); }
+.chip.station i { color: var(--accent); }
+
 .chip-arrow {
     color: var(--dim);
     font-size: 0.78rem;

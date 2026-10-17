@@ -149,6 +149,45 @@ async function resolveSystemFull(name) {
     return null;
 }
 
+function normName(s) {
+    return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// Resolve a station name to its id, restricted to the given solar system.
+// Uses the system's station list + /universe/names/ (reliable for stations;
+// /universe/ids/ is not). Returns { id, name } or null.
+async function resolveStationInSystem(systemId, stationName) {
+    const want = normName(stationName);
+    if (!want || systemId == null) return null;
+    try {
+        const sys = await esiGet(`/universe/systems/${systemId}/`);
+        const ids = sys?.stations || [];
+        if (!ids.length) return null;
+        const data = await esiPost('/universe/names/', ids);
+        const hit = (data || []).find(d => normName(d.name) === want);
+        return hit ? { id: hit.id, name: hit.name } : null;
+    } catch {
+        return null;
+    }
+}
+
+// The station-name segment of an EVE route line ("Station / System / Region"),
+// or null when the line has no station (the segment is just the system name).
+function stationCandidate(raw, systemId) {
+    if (!raw || !raw.includes(' / ')) return null;
+    const first = raw.split(' / ')[0].trim();
+    if (!first) return null;
+    const sysName = systemId != null ? idCache.get(systemId)?.name : null;
+    if (sysName && normName(first) === normName(sysName)) return null;
+    return first;
+}
+
+async function stationFromRaw(raw, systemId) {
+    const name = stationCandidate(raw, systemId);
+    if (!name || systemId == null) return null;
+    return resolveStationInSystem(systemId, name);
+}
+
 async function getSystemSec(id) {
     if (idCache.has(id) && idCache.get(id).sec !== null) {
         return idCache.get(id).sec;
@@ -177,11 +216,13 @@ async function getRoute(originId, destId, flag) {
 // Also tolerates: "A > B > C", "A, B, C", "A\nB\nC"
 
 function parsePastedRoute(text) {
-    if (!text) return { origin: null, dest: null, waypoints: [], raw: [] };
+    if (!text) return { origin: null, dest: null, originRaw: null, destRaw: null, waypoints: [], raw: [] };
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
     let origin = null;
     let dest   = null;
+    let originRaw = null;
+    let destRaw   = null;
     const waypoints = [];
     const raw = [];
 
@@ -190,13 +231,13 @@ function parsePastedRoute(text) {
         const mCur = line.match(/^Current\s+location\s*[:\-]\s*(.+)$/i);
         if (mCur) {
             const name = cleanSystemName(mCur[1]);
-            origin = name; raw.push(name); continue;
+            origin = name; originRaw = mCur[1]; raw.push(name); continue;
         }
         // Numbered destination: 1. Name (stuff) - Region / Constellation
         const mNum = line.match(/^\d+[\.\)]\s*(.+)$/);
         if (mNum) {
             const name = cleanSystemName(mNum[1]);
-            dest = name; raw.push(name); continue;
+            dest = name; destRaw = mNum[1]; raw.push(name); continue;
         }
         // Bullet
         if (/^[•·\-\*]\s+/.test(line)) {
@@ -221,7 +262,7 @@ function parsePastedRoute(text) {
     if (!dest   && raw.length) dest   = raw[raw.length - 1];
     // Remove origin/dest from middle waypoint list
     const mid = raw.slice(1, -1);
-    return { origin, dest, waypoints: mid, raw };
+    return { origin, dest, originRaw, destRaw, waypoints: mid, raw };
 }
 
 const ROMAN_RE = /^(I{1,3}|IV|V|VI{1,3}|IX|X|XI{1,3}|XIV|XV|XVI{1,3}|XIX|XX)$/i;
@@ -361,6 +402,21 @@ function renderChain(systems) {
         c.innerHTML = `<span class="sec-dot"></span>${escapeHtml(sys.name || `#${sys.id}`)}`;
         chain.appendChild(c);
     });
+
+    // Destination station (if the route ends at one).
+    const station = state.current?.destStation;
+    if (station) {
+        const a = document.createElement('span');
+        a.className = 'chip-arrow';
+        a.textContent = '›';
+        chain.appendChild(a);
+        const s = document.createElement('span');
+        s.className = 'chip station';
+        s.title = 'Destination station';
+        s.innerHTML = `<i class="fa-solid fa-location-dot"></i>${escapeHtml(station.name || `#${station.id}`)}`;
+        chain.appendChild(s);
+    }
+
     document.getElementById('routeCount').textContent =
         `(${systems.length - 1} jumps)`;
     document.getElementById('resultSection').classList.remove('hidden');
@@ -518,12 +574,30 @@ async function doParseAndFill() {
             .filter(Boolean)
             .filter((w, i, arr) => arr.findIndex(x => x.id === w.id) === i);
         renderWaypointChips();
+
+        // Load the imported route VERBATIM — use the pasted systems in order and
+        // do NOT re-route through ESI, so the plan preference can't change it.
+        const importedIds = parsed.raw
+            .map(n => resolved.find(r => r.input === n)?.id)
+            .filter(id => id != null);
+
+        // Destination station, if the paste named one (and it isn't just the system).
+        const destSystemId = destResolved?.id ?? null;
+        let station = null;
+        let stationWarn = '';
+        if (stationCandidate(parsed.destRaw, destSystemId)) {
+            station = await stationFromRaw(parsed.destRaw, destSystemId);
+            if (!station) stationWarn = ' · destination station not recognised — route ends on the system';
+        }
+
         status.className = 'parse-status ok';
         status.textContent =
-            `Loaded ${parsed.raw.length} systems · From ${originDisplay} → ${destDisplay}`;
+            `Loaded ${parsed.raw.length} systems · From ${originDisplay} → ${destDisplay}${stationWarn}`;
 
-        // Auto-plan if both ends resolved
-        if (parsed.origin && parsed.dest) doPlan();
+        if (importedIds.length >= 2) {
+            const pref = document.getElementById('preference').value;
+            await finalizeRoute(importedIds, { pref, station });
+        }
     } catch (e) {
         status.className = 'parse-status err';
         status.textContent = `Resolve failed: ${e.message}`;
@@ -550,6 +624,27 @@ async function doPasteFromClipboard() {
         status.className = 'parse-status err';
         status.textContent = `Clipboard access denied — paste with Ctrl+V instead. (${e.message})`;
     }
+}
+
+// Shared tail for both fresh plans and verbatim imports: enrich, attach
+// security status, store as the current route, and render.
+async function finalizeRoute(ids, { pref = 'shortest', station = null, avoid = [] } = {}) {
+    const systems = await enrichSystems(ids);
+    // fetch sec in parallel (cheap, ~8 requests for 25 systems)
+    await Promise.all(systems.map(s => getSystemSec(s.id)));
+
+    const enriched = systems.map(s => ({ ...s, sec: idCache.get(s.id)?.sec ?? null }));
+    state.current = {
+        origin: enriched[0],
+        dest:   enriched[enriched.length - 1],
+        flag:   pref,
+        systems: enriched,
+        avoid,
+        waypoints: state.waypoints.map(w => ({ ...w })),
+        destStation: station || null,
+    };
+    renderChain(enriched);
+    updateSaveBtnState();
 }
 
 async function doPlan() {
@@ -584,6 +679,10 @@ async function doPlan() {
         if (!destFull)   throw new Error(`Could not resolve destination: ${toRaw}`);
         if (originFull.id === destFull.id) throw new Error('Origin and destination are the same system.');
 
+        // Destination station, if the "To" field names one (e.g. a pasted
+        // "Station / System / Region" string).
+        const destStation = await stationFromRaw(toRaw, destFull.id);
+
         // Build the ordered stop list: origin -> manual waypoints -> dest.
         // Drop stop-to-stop duplicates so a waypoint equal to an endpoint
         // (or a repeated waypoint) doesn't create a zero-length leg.
@@ -612,23 +711,7 @@ async function doPlan() {
             filteredIds = ids.filter(id => !avoidSet.has(id));
         }
 
-        // Enrich with names + sec
-        const systems = await enrichSystems(filteredIds);
-        // fetch sec in parallel (cheap, ~8 requests for 25 systems)
-        await Promise.all(systems.map(s => getSystemSec(s.id)));
-
-        // Refetch with updated sec
-        const enriched = systems.map(s => ({ ...s, sec: idCache.get(s.id)?.sec ?? null }));
-        state.current = {
-            origin: enriched[0],
-            dest:   enriched[enriched.length - 1],
-            flag:   pref,
-            systems: enriched,
-            avoid,
-            waypoints: state.waypoints.map(w => ({ ...w })),
-        };
-        renderChain(enriched);
-        updateSaveBtnState();
+        await finalizeRoute(filteredIds, { pref, station: destStation, avoid });
     } catch (e) {
         errBox.textContent = e.message;
         errBox.classList.remove('hidden');
@@ -654,6 +737,7 @@ function doSave() {
         systems: state.current.systems,
         avoid:   state.current.avoid,
         waypoints: state.current.waypoints || [],
+        destStation: state.current.destStation || null,
         createdAt: Date.now(),
     };
     state.saved.unshift(r);
@@ -667,7 +751,7 @@ function handleSavedAction(act, id) {
     const r = state.saved.find(x => x.id === id);
     if (!r) return;
     if (act === 'recall') {
-        state.current = { origin: r.origin, dest: r.dest, flag: r.flag, systems: r.systems, avoid: r.avoid || [], waypoints: r.waypoints || [] };
+        state.current = { origin: r.origin, dest: r.dest, flag: r.flag, systems: r.systems, avoid: r.avoid || [], waypoints: r.waypoints || [], destStation: r.destStation || null };
         state.waypoints = (r.waypoints || []).map(w => ({ ...w }));
         renderWaypointChips();
         document.getElementById('origin').value      = r.origin?.name || '';
@@ -814,6 +898,12 @@ async function pushRouteToEve(r) {
             if (!sysIds || !sysIds.length) sysIds = r.systems.map(s => s.id); // fall back to full chain
         } else {
             sysIds = r.systems.map(s => s.id);
+        }
+
+        // End on the destination station when the route has one, so EVE's
+        // autopilot destination is the station rather than just the system.
+        if (r.destStation?.id != null && sysIds.length) {
+            sysIds = sysIds.slice(0, -1).concat(r.destStation.id);
         }
 
         const doPush = () => fetch(`${RR_API}/waypoints/push`, {
