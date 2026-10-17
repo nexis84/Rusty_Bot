@@ -948,6 +948,7 @@ function attachAutocomplete(input, boxId, onPick) {
     let items = [];
 
     function close() {
+        clearTimeout(timer);
         box.classList.remove('open');
         box.innerHTML = '';
         items = []; active = -1;
@@ -964,10 +965,11 @@ function attachAutocomplete(input, boxId, onPick) {
         box.querySelectorAll('.ac-item').forEach(el => {
             el.addEventListener('mousedown', (e) => {
                 e.preventDefault();
-                const i = +el.dataset.i;
-                input.value = items[i].name;
+                const picked = items[+el.dataset.i];
+                if (!picked) { close(); return; }
+                input.value = picked.name;
                 close();
-                if (onPick) onPick(items[i]);
+                if (onPick) onPick(picked);
             });
         });
     }
@@ -988,7 +990,11 @@ function attachAutocomplete(input, boxId, onPick) {
         if (!box.classList.contains('open')) return;
         if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(items.length - 1, active + 1); update(); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(0, active - 1); update(); }
-        else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); input.value = items[active].name; close(); if (onPick) onPick(items[active]); }
+        else if (e.key === 'Enter' && active >= 0) {
+            e.preventDefault();
+            const picked = items[active];
+            if (picked) { input.value = picked.name; close(); if (onPick) onPick(picked); }
+        }
         else if (e.key === 'Escape') close();
         function update() {
             box.querySelectorAll('.ac-item').forEach((el, i) =>
