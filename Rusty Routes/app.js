@@ -17,7 +17,8 @@ const state = {
     auth:  null,   // { access_token, refresh_token, character_id, character_name, expires_at }
     current: null, // last planned route (for save)
     saved:   [],   // loaded from localStorage
-    waypoints: [], // manual via systems [{ id, name }]
+    waypoints: [],     // manual via systems [{ id, name }]
+    avoidSystems: [],  // systems to route around [{ id, name }]
 };
 
 // ── ESI helpers ────────────────────────────────────────────────
@@ -447,8 +448,9 @@ function secClass(sec) {
     return 'null';                       // red   — null-sec
 }
 
-function renderChain(systems) {
+function renderChain(systems, avoidIds) {
     const chain = document.getElementById('routeChain');
+    const avoidSet = new Set(avoidIds || []);
     chain.innerHTML = '';
     if (!systems?.length) {
         chain.textContent = 'No systems to display.';
@@ -461,9 +463,10 @@ function renderChain(systems) {
             a.textContent = '›';
             chain.appendChild(a);
         }
+        const avoided = avoidSet.has(sys.id);
         const c = document.createElement('span');
-        c.className = `chip ${secClass(sys.sec)}`;
-        c.title = sys.sec != null ? `Sec ${sys.sec.toFixed(2)}` : 'Sec unknown';
+        c.className = `chip ${secClass(sys.sec)}${avoided ? ' avoided' : ''}`;
+        c.title = (sys.sec != null ? `Sec ${sys.sec.toFixed(2)}` : 'Sec unknown') + (avoided ? ' · avoided' : '');
         c.innerHTML = `<span class="sec-dot"></span>${escapeHtml(sys.name || `#${sys.id}`)}`;
         chain.appendChild(c);
     });
@@ -487,18 +490,47 @@ function renderChain(systems) {
     document.getElementById('resultSection').classList.remove('hidden');
 }
 
-// ── Waypoint chips ────────────────────────────────────────────
+// ── Waypoint + avoid chips ────────────────────────────────────
+
+function showPlanError(msg) {
+    const err = document.getElementById('planError');
+    if (err) { err.textContent = msg; err.classList.remove('hidden'); }
+}
+
+// Shared chip-editor wiring used by both the waypoint and avoid inputs.
+function wireChipInput(inputId, acId, addFn, label) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    attachAutocomplete(input, acId, (sys) => { addFn(sys); input.value = ''; });
+    input.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const raw = input.value.trim();
+        if (!raw) return;
+        try {
+            const sys = await resolveSystemFull(raw);
+            if (!sys) throw new Error(`Could not resolve ${label}: ${raw}`);
+            addFn(sys);
+            input.value = '';
+            input.focus();
+        } catch (err) {
+            showPlanError(err.message);
+        }
+    });
+}
 
 function renderWaypointChips() {
     const box = document.getElementById('waypointChips');
     if (!box) return;
     box.innerHTML = state.waypoints.map(w =>
         `<span class="wp-chip">${escapeHtml(w.name)}` +
+        `<button class="wp-avoid" data-id="${w.id}" title="Avoid this system instead">&#8856;</button>` +
         `<button class="wp-x" data-id="${w.id}" title="Remove">&times;</button></span>`
     ).join('');
-    box.querySelectorAll('.wp-x').forEach(btn => {
-        btn.addEventListener('click', () => removeWaypoint(+btn.dataset.id));
-    });
+    box.querySelectorAll('.wp-x').forEach(btn =>
+        btn.addEventListener('click', () => removeWaypoint(+btn.dataset.id)));
+    box.querySelectorAll('.wp-avoid').forEach(btn =>
+        btn.addEventListener('click', () => avoidWaypoint(+btn.dataset.id)));
 }
 
 function addWaypoint(sys) {
@@ -513,38 +545,70 @@ function removeWaypoint(id) {
     renderWaypointChips();
 }
 
+// Move a waypoint to the avoid list (remove it as a via, route around it).
+function avoidWaypoint(id) {
+    const w = state.waypoints.find(x => x.id === id);
+    removeWaypoint(id);
+    if (w) addAvoid(w);
+}
+
 function wireWaypointInput() {
-    const input = document.getElementById('waypointInput');
-    if (!input) return;
+    wireChipInput('waypointInput', 'waypoint-ac', addWaypoint, 'waypoint');
+}
 
-    const showErr = (msg) => {
-        const err = document.getElementById('planError');
-        if (err) { err.textContent = msg; err.classList.remove('hidden'); }
-    };
+// ── Avoid chips ───────────────────────────────────────────────
 
-    // Enter on free text — resolve the typed name and add it.
-    const commit = async () => {
-        const raw = input.value.trim();
-        if (!raw) return;
-        try {
-            const sys = await resolveSystemFull(raw);
-            if (!sys) throw new Error(`Could not resolve waypoint: ${raw}`);
-            addWaypoint(sys);
-            input.value = '';
-            input.focus();
-        } catch (e) {
-            showErr(e.message);
-        }
-    };
+function renderAvoidChips() {
+    const box = document.getElementById('avoidChips');
+    if (!box) return;
+    box.innerHTML = state.avoidSystems.map(a =>
+        `<span class="wp-chip avoid-chip">${escapeHtml(a.name)}` +
+        `<button class="wp-x" data-id="${a.id}" title="Remove">&times;</button></span>`
+    ).join('');
+    box.querySelectorAll('.wp-x').forEach(btn =>
+        btn.addEventListener('click', () => removeAvoid(+btn.dataset.id)));
+}
 
-    attachAutocomplete(input, 'waypoint-ac', (sys) => {
-        addWaypoint(sys);
-        input.value = '';
-    });
+function addAvoid(sys) {
+    if (!sys || sys.id == null) return;
+    if (state.avoidSystems.some(a => a.id === sys.id)) return;
+    state.avoidSystems.push({ id: sys.id, name: sys.name || `#${sys.id}` });
+    renderAvoidChips();
+}
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); commit(); }
-    });
+function removeAvoid(id) {
+    state.avoidSystems = state.avoidSystems.filter(a => a.id !== id);
+    renderAvoidChips();
+}
+
+function wireAvoidInput() {
+    wireChipInput('avoidInput', 'avoid-ac', addAvoid, 'system');
+}
+
+// Reset the whole planner: inputs, chips, and the rendered route.
+function clearAll() {
+    state.waypoints = [];
+    state.avoidSystems = [];
+    state.current = null;
+
+    for (const id of ['origin', 'destination', 'waypointInput', 'avoidInput', 'pasteBox', 'saveName', 'saveTag']) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    }
+    const status = document.getElementById('parseStatus');
+    if (status) status.textContent = '';
+    const err = document.getElementById('planError');
+    if (err) err.classList.add('hidden');
+
+    renderWaypointChips();
+    renderAvoidChips();
+
+    const chain = document.getElementById('routeChain');
+    if (chain) chain.innerHTML = '';
+    const count = document.getElementById('routeCount');
+    if (count) count.textContent = '';
+    document.getElementById('resultSection').classList.add('hidden');
+    updateSaveBtnState();
 }
 
 // ── Render: saved routes ──────────────────────────────────────
@@ -693,7 +757,7 @@ async function doPasteFromClipboard() {
 
 // Shared tail for both fresh plans and verbatim imports: enrich, attach
 // security status, store as the current route, and render.
-async function finalizeRoute(ids, { pref = 'shortest', station = null, avoid = [] } = {}) {
+async function finalizeRoute(ids, { pref = 'shortest', station = null, avoidSystems = [] } = {}) {
     const systems = await enrichSystems(ids);
     // fetch sec in parallel (cheap, ~8 requests for 25 systems)
     await Promise.all(systems.map(s => getSystemSec(s.id)));
@@ -704,11 +768,12 @@ async function finalizeRoute(ids, { pref = 'shortest', station = null, avoid = [
         dest:   enriched[enriched.length - 1],
         flag:   pref,
         systems: enriched,
-        avoid,
+        avoidSystems: avoidSystems.map(a => ({ ...a })),
+        avoidIds: avoidSystems.map(a => a.id),
         waypoints: state.waypoints.map(w => ({ ...w })),
         destStation: station || null,
     };
-    renderChain(enriched);
+    renderChain(enriched, state.current.avoidIds);
     updateSaveBtnState();
 }
 
@@ -719,8 +784,6 @@ async function doPlan() {
     const fromRaw = document.getElementById('origin').value.trim();
     const toRaw   = document.getElementById('destination').value.trim();
     const pref    = document.getElementById('preference').value;
-    const avoid   = document.getElementById('avoid').value
-        .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
     if (!fromRaw || !toRaw) {
         errBox.textContent = 'Both From and To are required.';
@@ -764,18 +827,9 @@ async function doPlan() {
             ids = ids.concat(i === 0 ? leg : leg.slice(1));
         }
 
-        // Filter avoided
-        let filteredIds = ids;
-        if (avoid.length) {
-            const avoidSet = new Set();
-            for (const name of avoid) {
-                const r = await resolveSystemFull(name).catch(() => null);
-                if (r) avoidSet.add(r.id);
-            }
-            filteredIds = ids.filter(id => !avoidSet.has(id));
-        }
-
-        await finalizeRoute(filteredIds, { pref, station: destStation, avoid });
+        // Avoided systems are kept in the chain for display (struck through)
+        // but excluded at push time so EVE routes around them.
+        await finalizeRoute(ids, { pref, station: destStation, avoidSystems: state.avoidSystems });
     } catch (e) {
         errBox.textContent = e.message;
         errBox.classList.remove('hidden');
@@ -799,7 +853,8 @@ function doSave() {
         dest:   state.current.dest,
         flag:   state.current.flag,
         systems: state.current.systems,
-        avoid:   state.current.avoid,
+        avoidSystems: state.current.avoidSystems || [],
+        avoidIds: state.current.avoidIds || [],
         waypoints: state.current.waypoints || [],
         destStation: state.current.destStation || null,
         createdAt: Date.now(),
@@ -815,13 +870,16 @@ function handleSavedAction(act, id) {
     const r = state.saved.find(x => x.id === id);
     if (!r) return;
     if (act === 'recall') {
-        state.current = { origin: r.origin, dest: r.dest, flag: r.flag, systems: r.systems, avoid: r.avoid || [], waypoints: r.waypoints || [], destStation: r.destStation || null };
+        const avoidSystems = (r.avoidSystems || []).map(a => ({ ...a }));
+        state.current = { origin: r.origin, dest: r.dest, flag: r.flag, systems: r.systems, avoidSystems, avoidIds: avoidSystems.map(a => a.id), waypoints: r.waypoints || [], destStation: r.destStation || null };
         state.waypoints = (r.waypoints || []).map(w => ({ ...w }));
+        state.avoidSystems = avoidSystems;
         renderWaypointChips();
+        renderAvoidChips();
         document.getElementById('origin').value      = r.origin?.name || '';
         document.getElementById('destination').value = r.dest?.name   || '';
         document.getElementById('preference').value  = r.flag || 'shortest';
-        renderChain(r.systems || []);
+        renderChain(r.systems || [], state.current.avoidIds);
         document.getElementById('saveName').value = r.name;
         document.getElementById('saveTag').value  = r.tag || '';
         updateSaveBtnState();
@@ -953,15 +1011,18 @@ async function pushRouteToEve(r) {
         // system as a waypoint (origin -> ... -> dest), 'dest' = only the final
         // system as the destination (EVE auto-routes from your current location).
         const mode = document.getElementById('pushMode')?.value || 'smart';
+        // Drop avoided systems so EVE routes around them.
+        const avoidSet = new Set(r.avoidIds || []);
+        const routeSystems = (r.systems || []).filter(s => !avoidSet.has(s.id));
         let sysIds;
         if (mode === 'dest') {
-            sysIds = [r.systems[r.systems.length - 1].id];
+            sysIds = [routeSystems[routeSystems.length - 1].id];
         } else if (mode === 'smart') {
             if (btn) btn.innerHTML = '<span class="spinner"></span> Routing…';
-            sysIds = await buildSmartAnchors(r.systems, r.flag);
-            if (!sysIds || !sysIds.length) sysIds = r.systems.map(s => s.id); // fall back to full chain
+            sysIds = await buildSmartAnchors(routeSystems, r.flag);
+            if (!sysIds || !sysIds.length) sysIds = routeSystems.map(s => s.id); // fall back to full chain
         } else {
-            sysIds = r.systems.map(s => s.id);
+            sysIds = routeSystems.map(s => s.id);
         }
 
         // End on the destination station/structure when the route has one, so
@@ -972,7 +1033,7 @@ async function pushRouteToEve(r) {
             if (btn) btn.innerHTML = '<span class="spinner"></span> Resolving structure…';
             const found = await resolveStructureByName(
                 r.destStation.name,
-                r.systems?.[r.systems.length - 1]?.id,
+                routeSystems[routeSystems.length - 1]?.id,
             );
             if (found) {
                 destId = found.id;
@@ -1155,11 +1216,14 @@ function init() {
     document.getElementById('loadPlannerBtn').addEventListener('click', doParseAndFill);
     document.getElementById('planBtn').addEventListener('click', doPlan);
     document.getElementById('saveBtn').addEventListener('click', doSave);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
 
     attachAutocomplete(document.getElementById('origin'), 'origin-ac');
     attachAutocomplete(document.getElementById('destination'), 'destination-ac');
     wireWaypointInput();
+    wireAvoidInput();
     renderWaypointChips();
+    renderAvoidChips();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

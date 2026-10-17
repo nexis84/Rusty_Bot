@@ -371,6 +371,27 @@ header.top-bar {
 }
 .wp-chip .wp-x:hover { color: var(--danger); background: rgba(224, 85, 85, 0.12); }
 
+.wp-chip .wp-avoid {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+}
+.wp-chip .wp-avoid:hover { color: var(--accent); background: var(--accent-dim); }
+
+/* Avoid chips (danger tint) */
+.avoid-chip { border-color: rgba(224, 85, 85, 0.45); }
+.avoid-chip .wp-x:hover { color: var(--danger); }
+
 /* Autocomplete */
 .ac-wrap { position: relative; }
 .ac-box {
@@ -472,6 +493,14 @@ header.top-bar {
 
 .chip.station { border-color: var(--accent-dim); }
 .chip.station i { color: var(--accent); }
+
+/* Avoided systems on the route chain (kept for display, skipped on push) */
+.chip.avoided {
+    text-decoration: line-through;
+    opacity: 0.55;
+    border-color: rgba(224, 85, 85, 0.5);
+}
+.chip.avoided .sec-dot { background: #e05555; }
 
 .chip-arrow {
     color: var(--dim);
