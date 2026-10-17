@@ -171,21 +171,86 @@ async function resolveStationInSystem(systemId, stationName) {
     }
 }
 
-// The station-name segment of an EVE route line ("Station / System / Region"),
-// or null when the line has no station (the segment is just the system name).
-function stationCandidate(raw, systemId) {
-    if (!raw || !raw.includes(' / ')) return null;
-    const first = raw.split(' / ')[0].trim();
-    if (!first) return null;
-    const sysName = systemId != null ? idCache.get(systemId)?.name : null;
-    if (sysName && normName(first) === normName(sysName)) return null;
-    return first;
+// Possible location names on an EVE route destination line. Handles both
+// "Location / System / Region" and "System - Location(Type)" shapes.
+function locationCandidates(raw) {
+    if (!raw) return [];
+    const stripType = s => s.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    const out = [];
+    if (raw.includes(' / ')) {
+        const first = stripType(raw.split(' / ')[0]);
+        if (first) out.push(first);
+    }
+    const dash = raw.indexOf(' - ');
+    if (dash >= 0) {
+        const loc = stripType(raw.slice(dash + 3));
+        if (loc) out.push(loc);
+    }
+    const whole = stripType(raw);
+    if (whole) out.push(whole);
+    return [...new Set(out)];
 }
 
-async function stationFromRaw(raw, systemId) {
-    const name = stationCandidate(raw, systemId);
-    if (!name || systemId == null) return null;
-    return resolveStationInSystem(systemId, name);
+// A trailing "(Keepstar)" / "(Astrahus)" style tag marks a player structure.
+function structureTypeTag(raw) {
+    const m = (raw || '').match(/\(([^)]+)\)\s*$/);
+    return m ? m[1].trim() : null;
+}
+
+// Detect the destination location on a route line. NPC stations resolve to an
+// id immediately; player structures are stored by name (their id is resolved
+// at push time via the authenticated character search). Returns
+// { id, name, kind, type } or null.
+async function detectDestination(raw, systemId) {
+    if (!raw) return null;
+    const sysName = systemId != null ? idCache.get(systemId)?.name : null;
+    const candidates = locationCandidates(raw)
+        .filter(c => c && (!sysName || normName(c) !== normName(sysName)));
+
+    // Prefer an NPC station we can resolve right away.
+    for (const c of candidates) {
+        const st = await resolveStationInSystem(systemId, c);
+        if (st) return { id: st.id, name: st.name, kind: 'station' };
+    }
+
+    // Otherwise a player structure (identified by its trailing "(Type)" tag).
+    const type = structureTypeTag(raw);
+    if (type) {
+        const name = candidates.find(c => !c.includes(' - ')) || candidates[0];
+        if (name) return { id: null, name, kind: 'structure', type };
+    }
+    return null;
+}
+
+// Resolve a player-structure name to its id via the authenticated character
+// search (scope esi-search.search_structures.v1). Only finds structures the
+// logged-in character can dock at. Returns { id, name } or null.
+async function resolveStructureByName(name, systemId) {
+    if (!name || !state.auth?.access_token || !state.auth?.character_id) return null;
+    const key = normName(name);
+    const headers = {
+        'Authorization': 'Bearer ' + state.auth.access_token,
+        'User-Agent': UA,
+        'X-Compatibility-Date': COMPAT_DATE,
+    };
+    try {
+        const url = `${ESI}/characters/${state.auth.character_id}/search/?` +
+            new URLSearchParams({ categories: 'structure', search: name, strict: 'false', datasource: 'tranquility' });
+        const r = await fetch(url, { headers });
+        if (!r.ok) return null;
+        const ids = (await r.json())?.structure || [];
+        for (const id of ids) {
+            const sr = await fetch(`${ESI}/universe/structures/${id}/?datasource=tranquility`, { headers });
+            if (!sr.ok) continue;
+            const d = await sr.json();
+            if (normName(d.name) !== key) continue;
+            if (systemId != null && d.solar_system_id != null && d.solar_system_id !== systemId) continue;
+            return { id, name: d.name };
+        }
+        return null;
+    } catch {
+        return null;
+    }
 }
 
 async function getSystemSec(id) {
@@ -412,7 +477,7 @@ function renderChain(systems) {
         chain.appendChild(a);
         const s = document.createElement('span');
         s.className = 'chip station';
-        s.title = 'Destination station';
+        s.title = station.kind === 'structure' ? 'Destination structure' : 'Destination station';
         s.innerHTML = `<i class="fa-solid fa-location-dot"></i>${escapeHtml(station.name || `#${station.id}`)}`;
         chain.appendChild(s);
     }
@@ -581,14 +646,14 @@ async function doParseAndFill() {
             .map(n => resolved.find(r => r.input === n)?.id)
             .filter(id => id != null);
 
-        // Destination station, if the paste named one (and it isn't just the system).
+        // Destination location (station or player structure), if the paste named one.
         const destSystemId = destResolved?.id ?? null;
-        let station = null;
+        const station = await detectDestination(parsed.destRaw, destSystemId);
+        const destSysName = destSystemId != null ? idCache.get(destSystemId)?.name : null;
+        const hadLocation = locationCandidates(parsed.destRaw)
+            .some(c => c && (!destSysName || normName(c) !== normName(destSysName)));
         let stationWarn = '';
-        if (stationCandidate(parsed.destRaw, destSystemId)) {
-            station = await stationFromRaw(parsed.destRaw, destSystemId);
-            if (!station) stationWarn = ' · destination station not recognised — route ends on the system';
-        }
+        if (hadLocation && !station) stationWarn = ' · destination location not recognised — route ends on the system';
 
         status.className = 'parse-status ok';
         status.textContent =
@@ -679,9 +744,8 @@ async function doPlan() {
         if (!destFull)   throw new Error(`Could not resolve destination: ${toRaw}`);
         if (originFull.id === destFull.id) throw new Error('Origin and destination are the same system.');
 
-        // Destination station, if the "To" field names one (e.g. a pasted
-        // "Station / System / Region" string).
-        const destStation = await stationFromRaw(toRaw, destFull.id);
+        // Destination location, if the "To" field names a station/structure.
+        const destStation = await detectDestination(toRaw, destFull.id);
 
         // Build the ordered stop list: origin -> manual waypoints -> dest.
         // Drop stop-to-stop duplicates so a waypoint equal to an endpoint
@@ -900,10 +964,25 @@ async function pushRouteToEve(r) {
             sysIds = r.systems.map(s => s.id);
         }
 
-        // End on the destination station when the route has one, so EVE's
-        // autopilot destination is the station rather than just the system.
-        if (r.destStation?.id != null && sysIds.length) {
-            sysIds = sysIds.slice(0, -1).concat(r.destStation.id);
+        // End on the destination station/structure when the route has one, so
+        // EVE's autopilot destination is the location rather than just the system.
+        let destId = r.destStation?.id ?? null;
+        let destUnresolved = false;
+        if (destId == null && r.destStation?.kind === 'structure' && r.destStation.name) {
+            if (btn) btn.innerHTML = '<span class="spinner"></span> Resolving structure…';
+            const found = await resolveStructureByName(
+                r.destStation.name,
+                r.systems?.[r.systems.length - 1]?.id,
+            );
+            if (found) {
+                destId = found.id;
+                r.destStation = { ...r.destStation, id: found.id, name: found.name };
+            } else {
+                destUnresolved = true;
+            }
+        }
+        if (destId != null && sysIds.length) {
+            sysIds = sysIds.slice(0, -1).concat(destId);
         }
 
         const doPush = () => fetch(`${RR_API}/waypoints/push`, {
@@ -929,6 +1008,12 @@ async function pushRouteToEve(r) {
             throw new Error(data.error || `HTTP ${res.status}`);
         }
         if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> Pushed ${data.pushed}`;
+        if (destUnresolved) {
+            setTimeout(() => alert(
+                `Route pushed, but the destination structure "${r.destStation?.name}" could not be resolved, so the route ends on the system.\n\n` +
+                'Log in with EVE and make sure your character can dock there, then push again.'
+            ), 100);
+        }
         setTimeout(() => { if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; } }, 2500);
     } catch (e) {
         if (btn) {
