@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rusty Light — Free OBS Giveaway Tool for Twitch &amp; Kick | RustyBot</title>
-    <meta name="description" content="Run free browser-based giveaways for Twitch and Kick with a transparent OBS overlay, chat entries, EVE Online ESI winner cards and 90-second winner confirmation. No install.">
+    <title>Rusty Light — Free OBS Giveaways &amp; Alerts for Twitch &amp; Kick | RustyBot</title>
+    <meta name="description" content="Run free browser-based giveaways and Twitch/Kick alert overlays for OBS. Chat entries, EVE ESI winner cards, plus follows, subs, gift subs, Bits and KICKs alerts. No install.">
     <link rel="stylesheet" href="../Style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,8 +21,8 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="RustyBot">
     <meta property="og:url" content="https://www.rustybot.co.uk/light/">
-    <meta property="og:title" content="Rusty Light — Free OBS Giveaway Tool for Twitch &amp; Kick">
-    <meta property="og:description" content="Browser giveaways built for OBS. Twitch + Kick chat entries, a transparent overlay, EVE ESI winner cards and 90-second confirmation. Free, no install.">
+    <meta property="og:title" content="Rusty Light — Free OBS Giveaways &amp; Alerts for Twitch &amp; Kick">
+    <meta property="og:description" content="Browser giveaways and Twitch/Kick alert overlays built for OBS. Chat entries, winner cards, plus live follow, sub, gift, Bits and KICKs alerts. Free, no install.">
     <meta property="og:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <meta property="og:image:alt" content="RustyBot logo">
     <meta name="twitter:card" content="summary_large_image">
@@ -197,6 +197,18 @@
         .note { font-size: 0.78rem; color: var(--dim); margin-top: 10px; line-height: 1.6; }
         .note code { color: var(--accent); }
 
+        .alerts-preview {
+            max-width: 560px;
+            margin: 0 auto;
+            aspect-ratio: 16 / 9;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: #0a0e14;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+        }
+        .alerts-preview iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; }
+
         .faq { display: flex; flex-direction: column; gap: 8px; }
         .faq details { border: 1px solid var(--border); border-radius: 5px; background: var(--panel); overflow: hidden; }
         .faq summary { cursor: pointer; list-style: none; padding: 13px 16px; font-weight: 600; color: var(--text); font-size: 0.9rem; display: flex; justify-content: space-between; gap: 10px; }
@@ -231,7 +243,7 @@
       "applicationCategory": "GameApplication",
       "operatingSystem": "Web",
       "url": "https://www.rustybot.co.uk/light/",
-      "description": "Free browser-based giveaway tool for Twitch and Kick with a transparent OBS overlay, chat entries, EVE Online ESI winner cards and 90-second winner confirmation.",
+      "description": "Free browser-based giveaway and alert tool for Twitch and Kick with transparent OBS overlays, chat entries, EVE Online ESI winner cards, 90-second winner confirmation and live follow, sub, Bits and KICKs alerts.",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
       "publisher": { "@type": "Organization", "name": "RustyBot", "url": "https://www.rustybot.co.uk/" }
     }
@@ -254,8 +266,8 @@
     <div class="hero-wrap">
         <header class="hero">
             <img src="../rusty_bot.png" alt="Rusty Light" class="hero-logo">
-            <h1>Browser giveaways.<br><span>Built for OBS.</span></h1>
-            <p class="subtitle">Create a free giveaway room, collect entries from Twitch and Kick chat, pick a winner and show a transparent OBS overlay. No install, no accounts, no plugin.</p>
+            <h1>Giveaways and alerts.<br><span>Built for OBS.</span></h1>
+            <p class="subtitle">Create one free room with giveaways, alerts, or both. Collect chat entries and draw a winner, or show follows, subs, gift subs, Bits and KICKs in a transparent OBS overlay. No install, no accounts, no plugin.</p>
             <div class="hero-actions">
                 <a class="btn primary" href="https://light.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-solid fa-bolt"></i> Launch Rusty Light</a>
                 <a class="btn ghost" href="#preview"><i class="fa-solid fa-eye"></i> See the overlay</a>
@@ -265,6 +277,7 @@
                 <span class="chip twitch"><span class="dot"></span> Twitch chat</span>
                 <span class="chip kick"><span class="dot"></span> Kick chat</span>
                 <span class="chip"><span class="dot"></span> EVE ESI winner cards</span>
+                <span class="chip"><span class="dot"></span> Twitch + Kick alerts</span>
                 <span class="chip"><span class="dot"></span> Free</span>
             </div>
             <div class="hero-rule"></div>
@@ -274,6 +287,7 @@
     <div class="nav-wrap">
         <nav class="quick-nav">
             <a href="#preview">Preview</a>
+            <a href="#alerts">Alerts</a>
             <a href="#features">Features</a>
             <a href="#how">How it works</a>
             <a href="#obs">OBS setup</a>
@@ -314,6 +328,34 @@
             </div>
             <div style="text-align:center; margin-top:12px;">
                 <a class="btn ghost small" href="https://light.rustybot.co.uk/demo" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Open demo in a new tab</a>
+            </div>
+        </section>
+
+        <section class="section" id="alerts">
+            <div class="section-header">
+                <i class="fa-solid fa-bell"></i>
+                <h2>Twitch + Kick alerts</h2>
+                <span class="line"></span>
+                <span class="chip" style="font-size:0.65rem;">NEW</span>
+            </div>
+            <p class="section-sub">Tick <b>Alerts</b> when you create a room and you get a second transparent OBS source for follows, new subs, resubs, gift subs, Twitch Bits and Kick KICKs. It runs server-side, so alerts keep working even when the control panel is closed.</p>
+            <div class="obs-panel">
+                <div>
+                    <ul class="checklist">
+                        <li><i class="fa-solid fa-check"></i><span>One overlay for <b>Twitch and Kick</b> events.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>Alerts queue automatically with an optional sound and a clean on-screen card.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>Toggle alert types and set minimum Bits / KICKs thresholds.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>No bot account or moderator permission needed for the overlay.</span></li>
+                    </ul>
+                    <div class="hero-actions" style="justify-content:flex-start; margin-top:18px;">
+                        <a class="btn primary" href="https://light.rustybot.co.uk/#create" target="_blank" rel="noopener"><i class="fa-solid fa-bell"></i> Create a room with alerts</a>
+                        <a class="btn ghost" href="https://light.rustybot.co.uk/alerts/demo" target="_blank" rel="noopener"><i class="fa-solid fa-play"></i> Open alert demo</a>
+                    </div>
+                    <p class="note">Add the alert URL as a Browser Source at <b>1920 × 1080</b> and tick <b>Allow Transparency</b>. Twitch asks once for read-only follower, subscription and Bits access.</p>
+                </div>
+                <div class="alerts-preview">
+                    <iframe src="https://light.rustybot.co.uk/alerts/demo" title="Rusty Light alert overlay demo" loading="lazy" allow="autoplay"></iframe>
+                </div>
             </div>
         </section>
 
@@ -451,8 +493,16 @@
                     <div class="answer">Yes. In the control panel, set the timer seconds and click <b style="color:var(--text)">Start Timer</b>. The overlay shows a "Giveaway ends in" countdown; <b style="color:var(--text)">End Timer</b> stops it.</div>
                 </details>
                 <details>
+                    <summary>Do alerts need a bot account?</summary>
+                    <div class="answer">No. The alert overlay uses Twitch EventSub and Kick's event webhooks, authorised by your own channel. The RustyBot chat account is only used for giveaway announcements.</div>
+                </details>
+                <details>
+                    <summary>Does the alert control panel need to stay open?</summary>
+                    <div class="answer">No. Once the overlay is created and the channels are connected, alerts run on the Rusty Light server. OBS only needs the alert overlay URL.</div>
+                </details>
+                <details>
                     <summary>How long does a room last?</summary>
-                    <div class="answer">Rooms expire after 12 hours of inactivity. You can close a room early from the control panel.</div>
+                    <div class="answer">Giveaway-only rooms expire after 12 hours of inactivity. Rooms with alerts enabled stay live until you delete them. You can delete a room from its control panel at any time.</div>
                 </details>
                 <details>
                     <summary>Can I use my own bot account?</summary>
