@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-10-22",
+    "title": "Rusty Light — Browser Giveaways for OBS",
+    "raw": "**WHAT'S NEW**\n\n**Rusty Light**\n- A new browser-based giveaway tool for Twitch and Kick.\n- Create a room, add the transparent 320x720 OBS Browser Source, and collect entries with `!join`.\n- 90-second winner confirmation, EVE ESI winner cards, sounds and a full control panel.\n- Launch page: https://www.rustybot.co.uk/light/\n- Tool: https://light.rustybot.co.uk/\n\n**Under the hood**\n- Small Node service on Oracle with per-room state, WebSocket sync, Twitch IRC and Kick realtime chat.\n- No tokens in the browser; shared RustyBot Twitch/Kick auth stays on the server."
+  },
+  {
     "date": "2026-09-07",
     "title": "Site Maintenance",
     "raw": "all systems nominal"
