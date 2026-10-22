@@ -172,6 +172,18 @@
             background: rgba(232, 217, 0, 0.06);
         }
 
+        .quick-nav .nav-disabled {
+            color: var(--dim);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 5px 14px;
+            border-radius: 3px;
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -686,7 +698,7 @@
     <div class="nav-wrap">
         <nav class="quick-nav">
             <a href="#giveaway">Giveaway</a>
-            <a href="light/">Rusty Light</a>
+            <span class="nav-disabled">Rusty Light</span>
             <a href="#tools">Tools</a>
             <a href="blueprint-visualizer/">Blueprint Visualizer</a>
             <a href="#games">Games</a>
@@ -716,12 +728,12 @@
                     <p>For Twitch and Kick Streamers</p>
                     <span class="card-cta">Use RustyBot</span>
                 </a>
-                <a href="light/" class="card">
+                <div class="card card-soon">
                     <div class="card-icon"><i class="fa-solid fa-bolt"></i></div>
                     <h3>Rusty Light</h3>
                     <p>Browser Giveaway for OBS</p>
-                    <span class="card-cta">Launch Tool</span>
-                </a>
+                    <span class="card-cta">Coming Soon</span>
+                </div>
                 <a href="discord" class="card">
                     <div class="card-icon"><i class="fa-brands fa-discord"></i></div>
                     <h3>Discord Bot</h3>
