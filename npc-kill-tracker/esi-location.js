@@ -1,8 +1,15 @@
 /* ============================================================================
  * Optional EVE SSO for Rusty NPC Tracker — authorization code + PKCE.
  *
- * Only scope: esi-location.read_location.v1
- * Only API call: GET /characters/{id}/location/
+ * Only scopes:
+ *   esi-location.read_location.v1
+ *   esi-location.read_ship_type.v1
+ *   esi-location.read_online.v1
+ *
+ * Only API calls:
+ *   GET /characters/{id}/location/
+ *   GET /characters/{id}/ship/
+ *   GET /characters/{id}/online/
  *
  * The tracker is a public client: no secret is shipped. EVE's token endpoint
  * supports CORS, so the code exchange happens in the browser.
@@ -13,7 +20,11 @@ window.RNPC_ESI = (() => {
     const cfg = window.RNPC_ESI_CONFIG || {};
     const CLIENT_ID = String(cfg.clientId || '').trim();
     const CONFIGURED = !!CLIENT_ID && CLIENT_ID !== 'YOUR_CLIENT_ID';
-    const SCOPES = ['esi-location.read_location.v1'];
+    const SCOPES = [
+        'esi-location.read_location.v1',
+        'esi-location.read_ship_type.v1',
+        'esi-location.read_online.v1',
+    ];
     const PROD_CALLBACK = 'https://www.rustybot.co.uk/npc-kill-tracker/sso-callback.html';
     const AUTHORIZE_URL = 'https://login.eveonline.com/v2/oauth/authorize';
     const TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
@@ -219,6 +230,20 @@ window.RNPC_ESI = (() => {
         return esi(`/characters/${c.id}/location/?datasource=tranquility`);
     }
 
+    /** Current ship: ship_type_id, ship_item_id, ship_name. */
+    async function getShip() {
+        const c = character();
+        if (!c) throw new Error('not signed in');
+        return esi(`/characters/${c.id}/ship/?datasource=tranquility`);
+    }
+
+    /** Online state + login statistics. */
+    async function getOnline() {
+        const c = character();
+        if (!c) throw new Error('not signed in');
+        return esi(`/characters/${c.id}/online/?datasource=tranquility`);
+    }
+
     return {
         configured: CONFIGURED,
         CLIENT_ID,
@@ -232,6 +257,8 @@ window.RNPC_ESI = (() => {
         tokens,
         ensureFresh,
         getLocation,
+        getShip,
+        getOnline,
         portraitUrl: (id, size = 64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`,
     };
 })();

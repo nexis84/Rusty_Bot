@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Rusty NPC Tracker — EVE Online NPC Kill, Bounty &amp; ISK/Hour Tracker | RustyBot</title>
-    <meta name="description" content="Free EVE Online ratting tracker. Reads your local game logs to track every NPC kill, bounty, system and ESS-adjusted ISK per hour — live. No login required; optional read-only ESI location.">
+    <meta name="description" content="Free EVE Online ratting tracker. Reads your local game logs to track every NPC kill, bounty, system and ESS-adjusted ISK per hour — live. No login required; optional read-only ESI location, ship and online status.">
     <meta name="keywords" content="EVE Online, ratting tracker, NPC bounty tracker, ISK per hour, ESS, bounty prizes, eve online ratting, rustybot, rusty npc tracker">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0f1420">
@@ -16,14 +16,14 @@
     <meta property="og:site_name" content="RustyBot">
     <meta property="og:url" content="https://www.rustybot.co.uk/npc-kill-tracker/">
     <meta property="og:title" content="Rusty NPC Tracker — EVE Online NPC Kill &amp; Bounty Tracker">
-    <meta property="og:description" content="Track every NPC you kill, its bounty, the system and your ISK/hour — live from your EVE game logs. ESS-aware. No login required; optional read-only ESI location.">
+    <meta property="og:description" content="Track every NPC you kill, its bounty, the system and your ISK/hour — live from your EVE game logs. ESS-aware. No login required; optional read-only ESI location, ship and online status.">
     <meta property="og:image" content="https://www.rustybot.co.uk/rusty_bot.png">
     <meta property="og:image:alt" content="RustyBot logo">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Rusty NPC Tracker — EVE Online NPC Kill &amp; Bounty Tracker">
-    <meta name="twitter:description" content="Live ratting tracker: NPC kills, bounties, systems, ESS-adjusted ISK/hour from your local EVE logs. Optional read-only ESI location.">
+    <meta name="twitter:description" content="Live ratting tracker: NPC kills, bounties, systems, ESS-adjusted ISK/hour from your local EVE logs. Optional read-only ESI location, ship and online status.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
     <link rel="icon" type="image/png" href="../rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -40,7 +40,7 @@
       "@type": "WebApplication",
       "name": "Rusty NPC Tracker - RustyBot EVE Online NPC Kill & Bounty Tracker",
       "url": "https://www.rustybot.co.uk/npc-kill-tracker/",
-      "description": "Free EVE Online ratting tracker that reads your local game logs to track NPC kills, bounty payouts, systems and ESS-adjusted ISK per hour, live. Optional read-only ESI location.",
+      "description": "Free EVE Online ratting tracker that reads your local game logs to track NPC kills, bounty payouts, systems and ESS-adjusted ISK per hour, live. Optional read-only ESI location, ship and online status.",
       "applicationCategory": "GameApplication",
       "operatingSystem": "All",
       "browserRequirements": "Requires JavaScript",
@@ -73,7 +73,7 @@
           "name": "Are my logs or data uploaded anywhere?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. Everything is parsed locally in your browser. Your game logs never leave your computer and no account or server is needed. Optionally, you can link an EVE character with read-only location access so kills are tagged with your current system even when the log has no jump line; only that location lookup goes to CCP's ESI."
+            "text": "No. Everything is parsed locally in your browser. Your game logs never leave your computer and no account or server is needed. Optionally, you can link an EVE character with read-only location, ship and online access so kills are tagged with your current system even when the log has no jump line; only those lookups go to CCP's ESI."
           }
         },
         {
@@ -134,7 +134,7 @@
         <section class="hero-section">
             <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
             <h2>Rusty<span class="accent">NPC Tracker</span></h2>
-            <p>Track every NPC you kill, its bounty, the system you killed it in and your real ISK/hour — live from your EVE game logs. ESS-aware, no login required. Optional read-only ESI location keeps systems accurate even when the log has no jump line.</p>
+            <p>Track every NPC you kill, its bounty, the system you killed it in and your real ISK/hour — live from your EVE game logs. ESS-aware, no login required. Optional read-only ESI location, ship and online status keep the tracker accurate even when the log has no jump line.</p>
         </section>
 
         <!-- Connect & Settings -->
@@ -159,7 +159,7 @@
                         <button id="esiUnlinkBtn" class="btn small hidden" type="button">
                             <i class="fas fa-link-slash"></i> Unlink
                         </button>
-                        <span id="esiStatus" class="esi-status">Optional: link a character so kills get a system even when the log has no jump/undock line. Read-only location access; logs are still never uploaded.</span>
+                        <span id="esiStatus" class="esi-status">Optional: link a character for read-only location, current ship and online status. Logs are still never uploaded.</span>
                     </div>
                     <input type="file" id="fileInput" multiple accept=".txt" class="hidden">
                     <div id="dropZone" class="drop-zone" style="margin-top:14px;">
@@ -378,7 +378,7 @@
         <!-- SEO Content -->
         <section class="seo-content">
             <h2>Rusty NPC Tracker — EVE Online ratting &amp; bounty tracker</h2>
-            <p>Every time you destroy an NPC in EVE Online the client writes a bounty line into your local game log. Rusty NPC Tracker connects to that log — no login required, and an optional read-only ESI location link fills in the system when your log has no jump or undock line — and turns it into a live ratting dashboard: <strong>which NPC you killed</strong>, its <strong>bounty</strong>, the <strong>system</strong> it happened in, and your <strong>ISK per hour</strong> in real time.</p>
+            <p>Every time you destroy an NPC in EVE Online the client writes a bounty line into your local game log. Rusty NPC Tracker connects to that log — no login required, and an optional read-only ESI link fills in the system when your log has no jump or undock line, plus shows your current ship and online status — and turns it into a live ratting dashboard: <strong>which NPC you killed</strong>, its <strong>bounty</strong>, the <strong>system</strong> it happened in, and your <strong>ISK per hour</strong> in real time.</p>
             <p>The NPC database is generated straight from CCP's official static data export (2,800+ bounty NPCs across New Eden), and kill locations are tracked from the jump and undock lines in the same log. Amount adjustments from <strong>ESS</strong> (Encounter Surveillance System), system bounty modifiers and event payout scalings are matched automatically, and you can fine-tune everything.</p>
             <p>Bounty amounts are only part of the picture — where several NPC types share a bounty, the tracker cross-references the NPCs you were actually fighting seconds before each kill for a confident match, and anything still ambiguous is one click to fix (optionally applied to every matching kill in the session).</p>
             <p>Old sessions can be imported by dropping any number of game logs onto the page — perfect for comparing anomalies, systems or fits over weeks of ratting. All history is stored locally in your browser and can be exported to CSV or JSON.</p>
@@ -396,10 +396,10 @@
 
 <div id="messageArea" class="message-area hidden"></div>
 
-<script src="esi-config.js"></script>
-<script src="esi-location.js"></script>
+<script src="esi-config.js?v=2"></script>
+<script src="esi-location.js?v=2"></script>
 <script src="data/npc-data.js"></script>
 <script src="tracker.js?v=2"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

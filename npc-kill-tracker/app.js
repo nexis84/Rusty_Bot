@@ -67,6 +67,13 @@
     let esiPollBusy = false;
     let esiSystemId = null;
     let esiSystemName = null;
+    let esiShipName = null;
+    let esiShipTypeId = null;
+    let esiOnline = null;
+    let esiLastLogin = null;
+    let esiLastLogout = null;
+    let esiLoginCount = null;
+    let esiNeedsRelink = false;
     let esiLastError = null;
 
     const sortState = {
@@ -729,24 +736,41 @@
         const char = esiCharacter();
         if (dom.esiLinkBtn) dom.esiLinkBtn.classList.toggle('hidden', !configured || !!char);
         if (dom.esiUnlinkBtn) dom.esiUnlinkBtn.classList.toggle('hidden', !char);
-        if (dom.esiDot) dom.esiDot.className = 'esi-dot' + (esiLastError ? ' err' : (char ? ' on' : ''));
+        if (dom.esiDot) {
+            let dot = 'esi-dot';
+            if (esiLastError) dot += ' err';
+            else if (char && esiOnline === false) dot += ' off';
+            else if (char) dot += ' on';
+            dom.esiDot.className = dot;
+        }
         if (!dom.esiStatus) return;
 
         if (!configured) {
-            dom.esiStatus.textContent = 'Optional ESI location is not configured yet.';
+            dom.esiStatus.textContent = 'Optional ESI status is not configured yet.';
+            dom.esiStatus.title = '';
             return;
         }
         if (!char) {
-            dom.esiStatus.textContent = 'Optional: link a character so kills get a system even when the log has no jump/undock line. Read-only location access.';
+            dom.esiStatus.textContent = 'Optional: link a character for read-only location, current ship and online status.';
+            dom.esiStatus.title = '';
             return;
         }
-        if (esiLastError) {
-            dom.esiStatus.textContent = 'Linked as ' + char.name + ' — ' + esiLastError;
-            return;
-        }
-        dom.esiStatus.innerHTML = 'Linked as <b>' + esc(char.name) + '</b>' +
-            (esiSystemName ? ' · Current system: <b>' + esc(esiSystemName) + '</b>' : ' · locating…') +
-            ' — fills systems only when the log has no jump/undock line.';
+
+        const bits = ['Linked as <b>' + esc(char.name) + '</b>'];
+        if (esiSystemName) bits.push('System: <b>' + esc(esiSystemName) + '</b>');
+        if (esiShipName) bits.push('Ship: <b>' + esc(esiShipName) + '</b>');
+        if (esiOnline === true) bits.push('<b>Online</b>');
+        else if (esiOnline === false) bits.push('Offline');
+        if (esiNeedsRelink) bits.push('<span class="warn">re-link to enable ship/online</span>');
+        if (esiLastError) bits.push('<span class="err">' + esc(esiLastError) + '</span>');
+        dom.esiStatus.innerHTML = bits.join(' · ') + ' — fills systems only when the log has no jump/undock line.';
+
+        const detail = [];
+        if (esiShipTypeId) detail.push('Ship type ID: ' + esiShipTypeId);
+        if (esiLastLogin) detail.push('Last login: ' + T.fmtDateTime(Date.parse(esiLastLogin)));
+        if (esiLastLogout) detail.push('Last logout: ' + T.fmtDateTime(Date.parse(esiLastLogout)));
+        if (esiLoginCount != null) detail.push('Total logins: ' + esiLoginCount);
+        dom.esiStatus.title = detail.join('\n');
     }
 
     async function linkEsi() {
@@ -765,6 +789,13 @@
         stopEsiPolling();
         esiSystemId = null;
         esiSystemName = null;
+        esiShipName = null;
+        esiShipTypeId = null;
+        esiOnline = null;
+        esiLastLogin = null;
+        esiLastLogout = null;
+        esiLoginCount = null;
+        esiNeedsRelink = false;
         esiLastError = null;
         updateEsiUI();
         toast('EVE character unlinked', '', 2500);
@@ -775,32 +806,82 @@
         return info ? info.name : null;
     }
 
-    async function pollEsiLocation() {
+    function esiErrorText(reason) {
+        return (reason && reason.message) ? reason.message : 'ESI request failed';
+    }
+    function esiIsForbidden(reason) { return /HTTP 403/i.test(esiErrorText(reason)); }
+    function esiIsAuthError(text) { return /session expired|not signed in|HTTP 401/i.test(text); }
+
+    async function pollEsiStatus() {
         if (esiPollBusy || !esiConfigured() || !esiCharacter() || document.hidden) return;
         esiPollBusy = true;
         try {
-            const loc = await esiModule().getLocation();
-            if (!loc || loc.solar_system_id == null) throw new Error('ESI did not return a solar system');
-            esiSystemId = Number(loc.solar_system_id);
-            esiSystemName = esiSystemNameFor(loc.solar_system_id) || ('System ' + loc.solar_system_id);
-            esiLastError = null;
-            updateEsiUI();
+            const m = esiModule();
+            const call = (name) => (typeof m[name] === 'function')
+                ? m[name]()
+                : Promise.reject(new Error(name + ' is not available — refresh the page'));
+            const [locR, shipR, onlineR] = await Promise.allSettled([
+                call('getLocation'), call('getShip'), call('getOnline'),
+            ]);
 
-            let touched = false;
-            watched.forEach((w) => {
-                const s = sessionsById[w.sessionId];
-                if (s && applyEsiFallback(s)) touched = true;
-            });
-            if (touched) { invalidateAllStats(); scheduleRender(true); }
-        } catch (err) {
-            esiLastError = (err && err.message) ? err.message : 'location lookup failed';
-            if (/session expired|not signed in|401/i.test(esiLastError)) {
-                const m = esiModule();
-                if (m) m.logout();
+            const errors = [];
+            let authExpired = false;
+
+            if (locR.status === 'fulfilled' && locR.value && locR.value.solar_system_id != null) {
+                esiSystemId = Number(locR.value.solar_system_id);
+                esiSystemName = esiSystemNameFor(locR.value.solar_system_id) || ('System ' + locR.value.solar_system_id);
+            } else {
+                const msg = locR.status === 'rejected' ? esiErrorText(locR.reason) : 'ESI did not return a solar system';
+                errors.push('location: ' + msg);
+                if (esiIsAuthError(msg)) authExpired = true;
+            }
+
+            if (shipR.status === 'fulfilled' && shipR.value) {
+                esiShipName = shipR.value.ship_name || (shipR.value.ship_type_id ? 'Ship ' + shipR.value.ship_type_id : null);
+                esiShipTypeId = shipR.value.ship_type_id || null;
+            } else {
+                const msg = shipR.status === 'rejected' ? esiErrorText(shipR.reason) : 'no ship data';
+                if (esiIsForbidden(shipR.reason)) esiNeedsRelink = true;
+                else errors.push('ship: ' + msg);
+                if (esiIsAuthError(msg)) authExpired = true;
+            }
+
+            if (onlineR.status === 'fulfilled' && onlineR.value) {
+                esiOnline = !!onlineR.value.online;
+                esiLastLogin = onlineR.value.last_login || null;
+                esiLastLogout = onlineR.value.last_logout || null;
+                esiLoginCount = (onlineR.value.logins != null) ? onlineR.value.logins : null;
+            } else {
+                const msg = onlineR.status === 'rejected' ? esiErrorText(onlineR.reason) : 'no online data';
+                if (esiIsForbidden(onlineR.reason)) esiNeedsRelink = true;
+                else errors.push('online: ' + msg);
+                if (esiIsAuthError(msg)) authExpired = true;
+            }
+
+            if (shipR.status === 'fulfilled' && onlineR.status === 'fulfilled') esiNeedsRelink = false;
+            esiLastError = errors.length ? errors.join('; ') : null;
+
+            if (authExpired) {
+                const mod = esiModule();
+                if (mod) mod.logout();
                 stopEsiPolling();
                 esiSystemName = null;
+                esiShipName = null;
+                esiShipTypeId = null;
+                esiOnline = null;
+                esiNeedsRelink = false;
             }
+
             updateEsiUI();
+
+            if (!authExpired) {
+                let touched = false;
+                watched.forEach((w) => {
+                    const s = sessionsById[w.sessionId];
+                    if (s && applyEsiFallback(s)) touched = true;
+                });
+                if (touched) { invalidateAllStats(); scheduleRender(true); }
+            }
         } finally {
             esiPollBusy = false;
         }
@@ -808,8 +889,8 @@
 
     function startEsiPolling() {
         if (esiPollTimer || !esiConfigured() || !esiCharacter()) return;
-        pollEsiLocation();
-        esiPollTimer = setInterval(pollEsiLocation, 10000);
+        pollEsiStatus();
+        esiPollTimer = setInterval(pollEsiStatus, 10000);
         updateEsiUI();
     }
 
