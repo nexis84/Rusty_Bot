@@ -62,6 +62,13 @@
     let popover = null;
     let messageTimer = null;
 
+    // Optional ESI location (read-only).
+    let esiPollTimer = null;
+    let esiPollBusy = false;
+    let esiSystemId = null;
+    let esiSystemName = null;
+    let esiLastError = null;
+
     const sortState = {
         npc: { key: 'net', dir: -1 },
         sys: { key: 'net', dir: -1 },
@@ -80,6 +87,7 @@
     const dom = {
         connectBtn: $('connectBtn'), reconnectBtn: $('reconnectBtn'), reconnectName: $('reconnectName'),
         pauseBtn: $('pauseBtn'), liveDot: $('liveDot'), connectStatus: $('connectStatus'),
+        esiDot: $('esiDot'), esiLinkBtn: $('esiLinkBtn'), esiUnlinkBtn: $('esiUnlinkBtn'), esiStatus: $('esiStatus'),
         fileInput: $('fileInput'), dropZone: $('dropZone'), pasteText: $('pasteText'), pasteBtn: $('pasteBtn'),
         essMode: $('essMode'), essCustom: $('essCustom'), essNull: $('essNull'),
         taxPct: $('taxPct'), incBank: $('incBank'), useContext: $('useContext'),
@@ -628,6 +636,7 @@
         s.end = lastEventT(s) || s.start || 0;
         s.updated = Date.now();
         applyOverrides(s);
+        applyEsiFallback(s);
         saveSessionSoon(s);
         invalidateAllStats();
         if (followLiveSession || activeViewId === 'all' || activeViewId === lastLiveId) activeViewId = id;
@@ -650,7 +659,8 @@
         if (!s) return w;
         let added = 0;
         for (const ev of res.events) { s.events.push(ev); added++; }
-        if (added || res.jumps.length) {
+        const esiFilled = added ? applyEsiToEvents(res.events) : 0;
+        if (added || res.jumps.length || esiFilled) {
             s.end = lastEventT(s) || s.end;
             s.updated = Date.now();
             applyOverrides(s);
@@ -701,6 +711,136 @@
             dom.pauseBtn.classList.toggle('hidden', !dirHandle);
             dom.pauseBtn.innerHTML = userPaused ? '<i class="fas fa-play"></i> Resume' : '<i class="fas fa-pause"></i> Pause';
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Optional ESI location (read-only)
+    // ------------------------------------------------------------------
+
+    function esiModule() { return window.RNPC_ESI || null; }
+    function esiConfigured() { const m = esiModule(); return !!(m && m.configured); }
+    function esiCharacter() {
+        const m = esiModule();
+        return m && m.configured ? m.character() : null;
+    }
+
+    function updateEsiUI() {
+        const configured = esiConfigured();
+        const char = esiCharacter();
+        if (dom.esiLinkBtn) dom.esiLinkBtn.classList.toggle('hidden', !configured || !!char);
+        if (dom.esiUnlinkBtn) dom.esiUnlinkBtn.classList.toggle('hidden', !char);
+        if (dom.esiDot) dom.esiDot.className = 'esi-dot' + (esiLastError ? ' err' : (char ? ' on' : ''));
+        if (!dom.esiStatus) return;
+
+        if (!configured) {
+            dom.esiStatus.textContent = 'Optional ESI location is not configured yet.';
+            return;
+        }
+        if (!char) {
+            dom.esiStatus.textContent = 'Optional: link a character so kills get a system even when the log has no jump/undock line. Read-only location access.';
+            return;
+        }
+        if (esiLastError) {
+            dom.esiStatus.textContent = 'Linked as ' + char.name + ' — ' + esiLastError;
+            return;
+        }
+        dom.esiStatus.innerHTML = 'Linked as <b>' + esc(char.name) + '</b>' +
+            (esiSystemName ? ' · Current system: <b>' + esc(esiSystemName) + '</b>' : ' · locating…') +
+            ' — fills systems only when the log has no jump/undock line.';
+    }
+
+    async function linkEsi() {
+        const m = esiModule();
+        if (!m || !m.configured) { toast('The ESI app is not configured yet.', 'error'); return; }
+        try {
+            await m.login();
+        } catch (err) {
+            toast(err && err.message ? err.message : 'Could not start EVE login', 'error', 6000);
+        }
+    }
+
+    function unlinkEsi() {
+        const m = esiModule();
+        if (m) m.logout();
+        stopEsiPolling();
+        esiSystemId = null;
+        esiSystemName = null;
+        esiLastError = null;
+        updateEsiUI();
+        toast('EVE character unlinked', '', 2500);
+    }
+
+    function esiSystemNameFor(id) {
+        const info = indexes.systemsById ? indexes.systemsById.get(Number(id)) : null;
+        return info ? info.name : null;
+    }
+
+    async function pollEsiLocation() {
+        if (esiPollBusy || !esiConfigured() || !esiCharacter() || document.hidden) return;
+        esiPollBusy = true;
+        try {
+            const loc = await esiModule().getLocation();
+            if (!loc || loc.solar_system_id == null) throw new Error('ESI did not return a solar system');
+            esiSystemId = Number(loc.solar_system_id);
+            esiSystemName = esiSystemNameFor(loc.solar_system_id) || ('System ' + loc.solar_system_id);
+            esiLastError = null;
+            updateEsiUI();
+
+            let touched = false;
+            watched.forEach((w) => {
+                const s = sessionsById[w.sessionId];
+                if (s && applyEsiFallback(s)) touched = true;
+            });
+            if (touched) { invalidateAllStats(); scheduleRender(true); }
+        } catch (err) {
+            esiLastError = (err && err.message) ? err.message : 'location lookup failed';
+            if (/session expired|not signed in|401/i.test(esiLastError)) {
+                const m = esiModule();
+                if (m) m.logout();
+                stopEsiPolling();
+                esiSystemName = null;
+            }
+            updateEsiUI();
+        } finally {
+            esiPollBusy = false;
+        }
+    }
+
+    function startEsiPolling() {
+        if (esiPollTimer || !esiConfigured() || !esiCharacter()) return;
+        pollEsiLocation();
+        esiPollTimer = setInterval(pollEsiLocation, 10000);
+        updateEsiUI();
+    }
+
+    function stopEsiPolling() {
+        if (esiPollTimer) { clearInterval(esiPollTimer); esiPollTimer = null; }
+        updateEsiUI();
+    }
+
+    /**
+     * Stamp a batch of newly appended events with the current ESI system.
+     * Used for live events only; historical imports keep their log-derived data.
+     */
+    function applyEsiToEvents(events) {
+        if (!esiSystemName) return 0;
+        let changed = 0;
+        for (const ev of events) {
+            if (!ev.sys) { ev.sys = esiSystemName; changed++; }
+        }
+        return changed;
+    }
+
+    /**
+     * Only guess when the log gave us no system at all. If the log contains any
+     * jump/undock system, those lines are authoritative; null gaps stay manual.
+     */
+    function applyEsiFallback(session) {
+        if (!session || !session.live || !esiSystemName) return false;
+        if (!session.events.length || session.events.some((ev) => !!ev.sys)) return false;
+        const changed = applyEsiToEvents(session.events);
+        if (changed) saveSessionSoon(session);
+        return changed > 0;
     }
 
     // ------------------------------------------------------------------
@@ -1518,6 +1658,8 @@
             });
         }
         if (dom.pauseBtn) dom.pauseBtn.addEventListener('click', () => setUserPaused(!userPaused));
+        if (dom.esiLinkBtn) dom.esiLinkBtn.addEventListener('click', linkEsi);
+        if (dom.esiUnlinkBtn) dom.esiUnlinkBtn.addEventListener('click', unlinkEsi);
         if (dom.fileInput) dom.fileInput.addEventListener('change', () => {
             handleFiles(dom.fileInput.files);
             dom.fileInput.value = '';
@@ -1596,9 +1738,16 @@
         bindSorting(dom.histTable, 'hist', renderHistory);
 
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) stopPolling();
-            else if (dirHandle && !userPaused) { startPolling(); pollOnce(); }
+            if (document.hidden) {
+                flushSaves();
+                stopPolling();
+                stopEsiPolling();
+            } else {
+                if (dirHandle && !userPaused) { startPolling(); pollOnce(); }
+                if (esiCharacter()) startEsiPolling();
+            }
         });
+        window.addEventListener('pagehide', flushSaves);
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePopover(); });
         document.addEventListener('mousedown', (e) => {
             if (!popover) return;
@@ -1660,6 +1809,8 @@
         } catch (err) {
             console.warn('local storage unavailable:', err);
         }
+        updateEsiUI();
+        if (esiCharacter()) startEsiPolling();
         scheduleRender(true);
 
         try {

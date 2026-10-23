@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23721
-// SDE build: 3607705
-// Generated: 2026-10-12 12:18:19 UTC
+// Total items: 23722
+// SDE build: 3646012
+// Generated: 2026-10-23 22:16:35 UTC
 
 const AllMarketItems = {
     // Ships
@@ -16898,6 +16898,7 @@ const AllMarketItems = {
             { id: 34903, name: "Aeon Sarum SKIN (90 Days)" },
             { id: 48366, name: "Aeon Star Captain SKIN" },
             { id: 58798, name: "Aeon Ultraviolence Vortex SKIN" },
+            { id: 98268, name: "Akoman Sanguinary Savant SKIN" },
             { id: 53140, name: "Algos Abyssal Firestorm SKIN" },
             { id: 81014, name: "Algos Arkombine Arisen SKIN" },
             { id: 79726, name: "Algos Aurora Universalis SKIN" },

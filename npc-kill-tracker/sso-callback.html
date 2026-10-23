@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Signing in… - Rusty NPC Tracker</title>
+    <link rel="icon" type="image/png" href="../rusty_bot.png">
+    <style>
+        :root { --bg: #121212; --accent: #ff8c3d; --accent2: #e8d900; --text: #e6eef6; --muted: #9aa6b2; --border: rgba(255,255,255,.08); }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(900px 300px at 110% 0%, rgba(255,140,61,.08), transparent 50%), var(--bg);
+            color: var(--text); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+        .card {
+            width: min(520px, calc(100vw - 32px)); padding: 28px 30px; text-align: center;
+            background: var(--panel, #061022); border: 1px solid var(--border); border-radius: 12px;
+        }
+        img { width: 54px; height: 54px; border-radius: 6px; margin-bottom: 12px; }
+        h1 { margin: 0 0 8px; font-size: 1.25rem; letter-spacing: .02em; }
+        h1 span { color: var(--accent2); }
+        p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.55; }
+        a { color: var(--accent); }
+        .err { color: #ff9b9b; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <img src="../rusty_bot.png" alt="RustyBot">
+    <h1>Rusty<span>NPC Tracker</span></h1>
+    <p id="msg">Completing EVE sign-in…</p>
+</div>
+
+<script src="esi-config.js"></script>
+<script src="esi-location.js"></script>
+<script>
+(async () => {
+    const msg = document.getElementById('msg');
+    const result = await window.RNPC_ESI.handleCallback();
+    if (result.ok) {
+        msg.textContent = `Signed in as ${result.character?.name || 'your pilot'} — returning to the tracker…`;
+        location.replace('./');
+    } else {
+        msg.innerHTML = `<span class="err">${result.message}</span><br><br><a href="./">Back to the NPC Tracker</a>`;
+    }
+})();
+</script>
+</body>
+</html>

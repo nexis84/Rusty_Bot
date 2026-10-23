@@ -1,4 +1,4 @@
-// Auto-generated from SDE (build 3607705, 2026-10-12) by scripts/build-bv-blueprints.mjs — DO NOT EDIT.
+// Auto-generated from SDE (build 3646012, 2026-10-23) by scripts/build-bv-blueprints.mjs — DO NOT EDIT.
 // BV_BLUEPRINTS: manufacturing recipes, blueprintTypeID -> {m:[[typeId,qty]],p:[[typeId,qty]],t:time}.
 // BV_RECIPES: product->recipe, productTypeID -> [kind, productQty, [[matTypeId,qty],...]] (kind 0=manufacturing, 1=reaction).
 // Both cover every blueprint with zero network; rebuild after SDE refresh.

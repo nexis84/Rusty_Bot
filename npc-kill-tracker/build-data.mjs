@@ -157,7 +157,7 @@ function log(...a) { console.log(...a); }
         const sec = typeof j.securityStatus === 'number' ? Math.round(j.securityStatus * 100) / 100 : 0;
         const regionID = j.regionID || 0;
         wantedRegions.add(regionID);
-        systems.push([name, sec, regionID]);
+        systems.push([name, sec, regionID, j._key]);
     });
     const regionNames = new Map();
     await eachLine('mapRegions.jsonl', (line) => {
@@ -191,17 +191,18 @@ function log(...a) { console.log(...a); }
     const groupsOut = {};
     for (const [id, name] of groupNames) groupsOut[id] = name;
 
-    // system: [name, sec, regionIdx]
+    // system: [name, sec, regionIdx, systemId]
     const regionIndex = new Map();
     const regionsOut = [];
     for (const [id, name] of [...regionNames.entries()].sort((a, b) => a[0] - b[0])) {
         regionIndex.set(id, regionsOut.length);
         regionsOut.push(name || 'Unknown');
     }
-    const systemsOut = systems.map(([name, sec, regionID]) => [
+    const systemsOut = systems.map(([name, sec, regionID, systemId]) => [
         name,
         sec,
         regionIndex.has(regionID) ? regionIndex.get(regionID) : -1,
+        systemId,
     ]);
     systemsOut.sort((a, b) => a[0].localeCompare(b[0]));
 

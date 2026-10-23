@@ -196,10 +196,13 @@
         }
         byBounty.forEach(function (list, key) { bountyIndex.set(key, list); });
         var systems = new Map();
+        var systemsById = new Map();
         for (var s = 0; s < data.systems.length; s++) {
             var sy = data.systems[s];
             var region = (sy[2] >= 0 && data.regions[sy[2]]) ? data.regions[sy[2]] : '';
-            systems.set(sy[0].toLowerCase(), { name: sy[0], sec: sy[1], region: region });
+            var sysInfo = { name: sy[0], sec: sy[1], region: region };
+            systems.set(sy[0].toLowerCase(), sysInfo);
+            if (sy[3] != null) systemsById.set(Number(sy[3]), sysInfo);
         }
         return {
             data: data,
@@ -209,6 +212,7 @@
             bountyIndex: bountyIndex,
             byBounty: byBounty,
             systems: systems,
+            systemsById: systemsById,
             scaleCache: new Map(), // amount -> [[ratIdx, mult], ...]
         };
     }
