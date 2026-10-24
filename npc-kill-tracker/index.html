@@ -23,7 +23,7 @@
     <meta name="twitter:title" content="Rusty NPC Tracker — EVE Online NPC Kill &amp; Bounty Tracker">
     <meta name="twitter:description" content="Live ratting tracker: NPC kills, bounties, incoming/outgoing DPS, systems, ESS-adjusted ISK/hour from your local EVE logs. Optional read-only ESI location, ship and online status.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=6">
     <link rel="icon" type="image/png" href="../rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -266,6 +266,21 @@
                 <div class="summary-value" id="svBank">—</div>
                 <div class="summary-note" id="ntBank"></div>
             </div>
+            <div class="summary-card drone" data-layout-id="sum-drone" id="sumDrone">
+                <div class="summary-header" title="Last NPC your drones were ordered to attack (from the 'Drones engaging' notify lines)"><i class="fas fa-crosshairs"></i> Drone target</div>
+                <div class="summary-value" id="svDrone">—</div>
+                <div class="summary-note" id="ntDrone">no drone engagement lines yet</div>
+            </div>
+            <div class="summary-card threat" data-layout-id="sum-threat" id="sumThreat">
+                <div class="summary-header" title="Warp scramble/disruption, ECM and energy neutralizer lines involving you"><i class="fas fa-shield-halved"></i> Threat / EWAR</div>
+                <div class="summary-value" id="svThreat">—</div>
+                <div class="summary-note" id="ntThreat">tackle, ECM and cap warfare on you</div>
+            </div>
+            <div class="summary-card site" data-layout-id="sum-site" id="sumSite">
+                <div class="summary-header" title="Sites are inferred from kill clusters; EVE does not log a site-complete line"><i class="fas fa-layer-group"></i> Site status</div>
+                <div class="summary-value" id="svSite">—</div>
+                <div class="summary-note" id="ntSite">inferred from kill clusters</div>
+            </div>
         </section>
 
         <!-- Chart -->
@@ -342,6 +357,52 @@
             <div id="sysEmpty" class="empty-note hidden"><i class="fas fa-map-location-dot"></i>No system data yet.</div>
         </section>
 
+        <!-- Inferred sites -->
+        <section class="table-container" data-layout-id="sites">
+            <div class="table-title">
+                <span><i class="fas fa-layer-group"></i> Inferred sites <span class="count" id="sitesCount"></span></span>
+            </div>
+            <table class="data-table" id="sitesTable">
+                <thead>
+                    <tr>
+                        <th class="num" data-sort="index"># <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="start">Started (EVE) <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="dur">Duration <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="system">System <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="kills">Kills <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="net" title="ESS-adjusted bounty for kills in this site">Net ISK <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="rate" title="Net ISK ÷ time between the first and last kill in this site">ISK / hr <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="dps" title="Outgoing damage ÷ time between the first and last kill in this site">Avg DPS <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="status" title="Inferred from kill clusters, jumps and salvage lines — EVE logs no site-complete line">Status <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="salvage" title="Successful salvage lines within 5 minutes of the last kill">Salvage <i class="fas fa-sort sort-ind"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="sitesBody"></tbody>
+            </table>
+            <div id="sitesEmpty" class="empty-note hidden"><i class="fas fa-layer-group"></i>No sites inferred yet — sites are grouped from kill clusters, not logged directly.</div>
+        </section>
+
+        <!-- Tackle & EWAR -->
+        <section class="table-container" data-layout-id="threat">
+            <div class="table-title">
+                <span><i class="fas fa-shield-halved"></i> Tackle &amp; EWAR <span class="count" id="threatCount"></span></span>
+            </div>
+            <table class="data-table" id="threatTable">
+                <thead>
+                    <tr>
+                        <th data-sort="type">Type <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="source">Source <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="detail">Detail <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="hits">Hits <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="lastT">Last seen (EVE) <i class="fas fa-sort sort-ind"></i></th>
+                        <th data-sort="stateRank">State <i class="fas fa-sort sort-ind"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="threatBody"></tbody>
+            </table>
+            <div id="threatEmpty" class="empty-note hidden"><i class="fas fa-shield-halved"></i>No tackle, ECM or neutralizer lines in this view.</div>
+        </section>
+
         <!-- History -->
         <section class="table-container" data-layout-id="history" style="padding-bottom:14px;">
             <div class="table-title">
@@ -395,6 +456,7 @@
         <section class="seo-content">
             <h2>Rusty NPC Tracker — EVE Online ratting &amp; bounty tracker</h2>
             <p>Every time you destroy an NPC in EVE Online the client writes a bounty line into your local game log. Rusty NPC Tracker connects to that log — no login required, and an optional read-only ESI link fills in the system when your log has no jump or undock line, plus shows your current ship and online status — and turns it into a live ratting dashboard: <strong>which NPC you killed</strong>, its <strong>bounty</strong>, the <strong>system</strong> it happened in, live <strong>incoming/outgoing DPS</strong> from the combat lines, and your <strong>ISK per hour</strong> in real time.</p>
+            <p>The same combat lines also provide situational awareness: the <strong>NPC your drones are currently engaging</strong>, <strong>warp scramble/disruption</strong> tackle with warp-core points, incoming <strong>ECM jams</strong> and <strong>energy neutralizer</strong> pressure. <strong>Site status</strong> (active, cleared, salvaged or left) is inferred from kill clusters and jumps — EVE does not log an explicit site-complete line.</p>
             <p>The NPC database is generated straight from CCP's official static data export (2,800+ bounty NPCs across New Eden), and kill locations are tracked from the jump and undock lines in the same log. Amount adjustments from <strong>ESS</strong> (Encounter Surveillance System), system bounty modifiers and event payout scalings are matched automatically, and you can fine-tune everything.</p>
             <p><strong>ISK per hour = net ISK ÷ session time</strong> — the rate you actually earned. Bounties pay out in 20-minute ticks at :07/:27/:47 UTC (three per hour); each session's note shows the paid-tick details, the last three ticks' pace, and the countdown to the next payout, so you can see both the real rate and the recent tick pace.</p>
             <p>Bounty amounts are only part of the picture — where several NPC types share a bounty, the tracker cross-references the NPCs you were actually fighting seconds before each kill for a confident match, and anything still ambiguous is one click to fix (optionally applied to every matching kill in the session).</p>
@@ -416,7 +478,7 @@
 <script src="esi-config.js?v=2"></script>
 <script src="esi-location.js?v=2"></script>
 <script src="data/npc-data.js"></script>
-<script src="tracker.js?v=5"></script>
-<script src="app.js?v=7"></script>
+<script src="tracker.js?v=6"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

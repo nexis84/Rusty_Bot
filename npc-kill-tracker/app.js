@@ -84,11 +84,15 @@
         npc: { key: 'net', dir: -1 },
         sys: { key: 'net', dir: -1 },
         hist: { key: 'date', dir: -1 },
+        sites: { key: 'start', dir: -1 },
+        threat: { key: 'lastT', dir: -1 },
     };
     const NUMERIC_SORT = {
         npc: new Set(['qty', 'unit', 'gross', 'net', 'share', 'conf']),
         sys: new Set(['kills', 'gross', 'net', 'ess', 'bank', 'rate']),
         hist: new Set(['date', 'dur', 'kills', 'net', 'rate']),
+        sites: new Set(['index', 'start', 'dur', 'kills', 'net', 'rate', 'dps', 'salvage']),
+        threat: new Set(['hits', 'lastT', 'stateRank']),
     };
 
     // ------------------------------------------------------------------
@@ -108,6 +112,11 @@
         svDpsIn: $('svDpsIn'), ntDpsIn: $('ntDpsIn'), svDpsOut: $('svDpsOut'), ntDpsOut: $('ntDpsOut'),
         svRate: $('svRate'), ntRate: $('ntRate'), svTime: $('svTime'), ntTime: $('ntTime'),
         svGross: $('svGross'), ntGross: $('ntGross'), svBank: $('svBank'), ntBank: $('ntBank'),
+        sumDrone: $('sumDrone'), svDrone: $('svDrone'), ntDrone: $('ntDrone'),
+        sumThreat: $('sumThreat'), svThreat: $('svThreat'), ntThreat: $('ntThreat'),
+        sumSite: $('sumSite'), svSite: $('svSite'), ntSite: $('ntSite'),
+        sitesTable: $('sitesTable'), sitesBody: $('sitesBody'), sitesCount: $('sitesCount'), sitesEmpty: $('sitesEmpty'),
+        threatTable: $('threatTable'), threatBody: $('threatBody'), threatCount: $('threatCount'), threatEmpty: $('threatEmpty'),
         chartSvg: $('chartSvg'), chartTitle: $('chartTitle'),
         feedBody: $('feedBody'), feedCount: $('feedCount'), feedEmpty: $('feedEmpty'),
         npcTable: $('npcTable'), npcBody: $('npcBody'), npcCount: $('npcCount'), npcEmpty: $('npcEmpty'),
@@ -148,6 +157,12 @@
         const d = new Date(ms);
         return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate()) +
             ' ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes());
+    }
+
+    function fmtClock(ms) {
+        if (!ms) return '—';
+        const d = new Date(ms);
+        return pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes()) + ':' + pad2(d.getUTCSeconds());
     }
 
     function fmtISKcard(n) {
@@ -271,6 +286,12 @@
             events: [],
             damage: [],
             misses: [],
+            drones: [],
+            tackle: [],
+            jams: [],
+            neuts: [],
+            salvage: [],
+            jumps: [],
             logEnd: 0,
             amountOverrides: {},
             eventFixes: {},
@@ -298,7 +319,15 @@
     function flushSaves() {
         const list = Object.keys(pendingSaves).map((k) => pendingSaves[k]);
         pendingSaves = Object.create(null);
-        list.forEach((s) => { idbPut('sessions', s).catch((e) => console.warn('session save failed', e)); });
+        list.forEach((s) => {
+            // Caches are rebuilt on load; don't store derived intel/stats.
+            const row = Object.assign({}, s);
+            delete row._stats;
+            delete row._statsKey;
+            delete row._intel;
+            delete row._intelKey;
+            idbPut('sessions', row).catch((e) => console.warn('session save failed', e));
+        });
     }
 
     function suppressFile(name) {
@@ -394,6 +423,12 @@
         s.events = res.events;
         s.damage = res.damage || [];
         s.misses = res.misses || [];
+        s.drones = res.drones || [];
+        s.tackle = res.tackle || [];
+        s.jams = res.jams || [];
+        s.neuts = res.neuts || [];
+        s.salvage = res.salvage || [];
+        s.jumps = res.jumps || [];
         s.logEnd = res.lastTs || (parser.lastTs || 0);
         s.source = source;
         s.live = isWatchedSession(id);
@@ -689,6 +724,12 @@
         s.events = res.events;
         s.damage = res.damage || [];
         s.misses = res.misses || [];
+        s.drones = res.drones || [];
+        s.tackle = res.tackle || [];
+        s.jams = res.jams || [];
+        s.neuts = res.neuts || [];
+        s.salvage = res.salvage || [];
+        s.jumps = res.jumps || [];
         s.logEnd = res.lastTs || (parser.lastTs || 0);
         s.source = 'live';
         s.live = true;
@@ -718,10 +759,10 @@
         if (!s) return w;
         let added = 0;
         for (const ev of res.events) { s.events.push(ev); added++; }
-        if (!Array.isArray(s.damage)) s.damage = [];
-        if (!Array.isArray(s.misses)) s.misses = [];
-        for (const d of (res.damage || [])) { s.damage.push(d); added++; }
-        for (const m of (res.misses || [])) { s.misses.push(m); added++; }
+        for (const key of ['damage', 'misses', 'drones', 'tackle', 'jams', 'neuts', 'salvage', 'jumps']) {
+            if (!Array.isArray(s[key])) s[key] = [];
+            for (const row of (res[key] || [])) { s[key].push(row); added++; }
+        }
         if (res.lastTs && res.lastTs > (s.logEnd || 0)) s.logEnd = res.lastTs;
         const esiFilled = added ? applyEsiToEvents(res.events) : 0;
         if (added || res.jumps.length || esiFilled) {
@@ -1281,25 +1322,71 @@
         return s._stats;
     }
 
+    // Cached intel (drone targets / EWAR / inferred sites). Include the new
+    // arrays because a tackle or salvage line can arrive without a kill.
+    function sessionIntel(s) {
+        if (!s) return null;
+        const liveBucket = s.live ? Math.floor(Date.now() / 10000) : 0;
+        const key = [
+            s.events.length, (s.damage || []).length, (s.drones || []).length,
+            (s.tackle || []).length, (s.jams || []).length, (s.neuts || []).length,
+            (s.salvage || []).length, (s.jumps || []).length, s.logEnd || 0,
+            essSignature(), liveBucket,
+        ].join('|');
+        if (s._intel && s._intelKey === key) return s._intel;
+        s._intel = T.computeIntel(s, indexes, trackerEss(), Date.now());
+        s._intelKey = key;
+        return s._intel;
+    }
+
     function computeAllStats() {
         if (!allStatsDirty && allStatsCache) return allStatsCache;
         const now = Date.now();
         const events = [];
         const damage = [];
         const misses = [];
+        const drones = [];
+        const tackle = [];
+        const jams = [];
+        const neuts = [];
+        const salvage = [];
+        const jumps = [];
         const eventSession = new Map();
         let spanMs = 0;
         let tickNet = 0, tickGross = 0, completedTicks = 0;
-        for (const s of sessions) {
+        let end = 0;
+        // Intel assumes chronological arrays (site grouping + activity windows),
+        // so aggregate sessions oldest-first regardless of import order.
+        const ordered = sessions.slice().sort((a, b) => (a.start || a.updated || 0) - (b.start || b.updated || 0));
+        for (const s of ordered) {
             for (const ev of s.events) { events.push(ev); eventSession.set(ev, s); }
             for (const d of (s.damage || [])) damage.push(d);
             for (const m of (s.misses || [])) misses.push(m);
+            for (const d of (s.drones || [])) drones.push(d);
+            for (const t of (s.tackle || [])) tackle.push(t);
+            for (const j of (s.jams || [])) jams.push(j);
+            for (const n of (s.neuts || [])) neuts.push(n);
+            for (const v of (s.salvage || [])) salvage.push(v);
+            for (const j of (s.jumps || [])) jumps.push(j);
+            if ((s.logEnd || 0) > end) end = s.logEnd || 0;
             spanMs += sessionSpanMs(s, now);
             const ss = sessionStats(s);
             tickNet += ss.tickNet || 0;
             tickGross += ss.tickGross || 0;
             completedTicks += ss.completedTicks || 0;
         }
+        // Two clients can log at the same time, so merged arrays are not
+        // guaranteed to be globally chronological. Normalise them once.
+        const byT = (a, b) => (a.t || 0) - (b.t || 0);
+        events.sort(byT);
+        damage.sort(byT);
+        misses.sort(byT);
+        drones.sort(byT);
+        tackle.sort(byT);
+        jams.sort(byT);
+        neuts.sort(byT);
+        salvage.sort(byT);
+        jumps.sort(byT);
         const st = T.computeStats({ events: events, start: null, live: false }, indexes, trackerEss(), now);
         st.spanMs = spanMs;
         // Headline rate across all sessions: total net/gross ÷ total tracked time.
@@ -1321,15 +1408,33 @@
         st._damage = damage;
         st._misses = misses;
         st._eventSession = eventSession;
+        st._intelSession = {
+            events: events, damage: damage, drones: drones, tackle: tackle,
+            jams: jams, neuts: neuts, salvage: salvage, jumps: jumps,
+            start: null, end: end, logEnd: end, live: sessions.some((s) => s.live),
+        };
+        st._intel = T.computeIntel(st._intelSession, indexes, trackerEss(), now);
+        st._intelLiveBucket = Math.floor(now / 10000);
         allStatsCache = st;
         allStatsDirty = false;
         return st;
+    }
+
+    // The all-sessions intel snapshot must keep decaying while a session is live,
+    // even when no new log line arrives (tackle/ECM holds and site quiet time).
+    function refreshAllIntelIfLive(st) {
+        if (!st || !st._intelSession || !sessions.some((s) => s.live)) return;
+        const bucket = Math.floor(Date.now() / 10000);
+        if (st._intelLiveBucket === bucket) return;
+        st._intel = T.computeIntel(st._intelSession, indexes, trackerEss(), Date.now());
+        st._intelLiveBucket = bucket;
     }
 
     function getActiveView() {
         if (activeViewId === 'all' || !sessionsById[activeViewId]) {
             activeViewId = 'all';
             const st = computeAllStats();
+            refreshAllIntelIfLive(st);
             return { id: 'all', session: null, events: st._events, stats: st, all: true };
         }
         const s = sessionsById[activeViewId];
@@ -1360,6 +1465,8 @@
         renderFeed(currentView);
         renderNpcTable(currentView);
         renderSysTable(currentView);
+        renderSitesTable(currentView);
+        renderThreatTable(currentView);
         renderHistory();
         renderAllTime();
     }
@@ -1412,6 +1519,149 @@
         if (dom.ntGross) dom.ntGross.textContent = 'exact ' + T.fmtISK(st.gross) + ' ISK from the logs';
         if (dom.svBank) dom.svBank.textContent = fmtISKcard(st.bank);
         if (dom.ntBank) dom.ntBank.textContent = bankNote(st, ess);
+        renderIntelCards(view.all ? st._intel : sessionIntel(view.session), view);
+    }
+
+    function siteStatusLabel(status) {
+        return {
+            active: 'Active',
+            quiet: 'Quiet',
+            cleared: 'Cleared',
+            salvaged: 'Salvaged',
+            left: 'Left',
+            ended: 'Log ended',
+        }[status] || 'Unknown';
+    }
+
+    function siteStatusTitle(status) {
+        return {
+            active: 'Kills within the last 90 seconds',
+            quiet: 'No kills for 90+ seconds — session is still live',
+            cleared: 'No kills for 90+ seconds after the last activity — likely cleared',
+            salvaged: 'Successful salvage lines after the last kill',
+            left: 'Jumped out after the last kill',
+            ended: 'The log ended within 90 seconds of the last activity',
+        }[status] || '';
+    }
+
+    function siteStatusChip(status) {
+        const cls = { active: 'ok', quiet: 'warn', cleared: 'info', salvaged: 'adj', left: '', ended: 'warn' }[status] || '';
+        return '<span class="chip ' + cls + '" title="' + esc(siteStatusTitle(status)) + '">' + siteStatusLabel(status) + '</span>';
+    }
+
+    function renderIntelCards(intel, view) {
+        if (!intel) return;
+        const now = intel.ref || Date.now();
+
+        // Drone target
+        const drone = intel.drone || {};
+        const lastDrone = drone.last || null;
+        const droneActive = !!(lastDrone && now - lastDrone.last <= 30000);
+        if (dom.sumDrone) {
+            dom.sumDrone.classList.toggle('state-ok', droneActive);
+        }
+        if (dom.svDrone) {
+            dom.svDrone.textContent = lastDrone ? shortName(lastDrone.target) : '—';
+            dom.svDrone.title = lastDrone ? lastDrone.target : '';
+        }
+        if (dom.ntDrone) {
+            if (!lastDrone) {
+                dom.ntDrone.textContent = 'no "Drones engaging" lines in this view';
+            } else {
+                const bits = [];
+                if (intel.live) {
+                    bits.push(droneActive ? 'last order just now' : 'last order ' + T.fmtDuration(now - lastDrone.last) + ' ago');
+                } else {
+                    bits.push('last order ' + fmtClock(lastDrone.last) + ' EVE');
+                }
+                bits.push((drone.count || 0) + ' drone engagement' + ((drone.count || 0) === 1 ? '' : 's'));
+                const top = drone.weapons && drone.weapons[0];
+                if (top) bits.push('top damage ' + top.weapon + ' ' + Math.round(top.share) + '%');
+                dom.ntDrone.textContent = bits.join(' · ');
+            }
+        }
+
+        // Threat / EWAR
+        const th = intel.threat || {};
+        const tk = th.tackle || { active: false, names: [], points: 0, total: 0, holds: 0, outgoing: 0 };
+        const jm = th.jam || { active: false, count: 0, outgoing: 0, source: null };
+        const nt = th.neut || { active: false, total: 0, rate: 0, count: 0, outgoing: 0, sources: [] };
+        const states = [];
+        if (tk.active) states.push('Tackled');
+        if (jm.active) states.push('Jammed');
+        if (nt.active) states.push('Neutted');
+        const hasThreatData = !!(tk.total || jm.count || nt.count);
+        if (dom.sumThreat) {
+            dom.sumThreat.classList.toggle('state-danger', !!(tk.active || jm.active));
+            dom.sumThreat.classList.toggle('state-warn', !tk.active && !jm.active && nt.active);
+            dom.sumThreat.classList.toggle('state-ok', !states.length && hasThreatData);
+        }
+        if (dom.svThreat) {
+            dom.svThreat.textContent = tk.active ? 'Tackled'
+                : (jm.active ? 'Jammed'
+                : (nt.active ? 'Neutted' : (hasThreatData ? 'Clear' : '—')));
+        }
+        if (dom.ntThreat) {
+            const bits = [];
+            if (tk.active && tk.names && tk.names.length) {
+                bits.push(tk.names.slice(0, 2).map((n) =>
+                    n.name + ' (' + (n.kind === 'scramble' ? 'scram' : 'disrupt') + ')').join(', '));
+            }
+            if (tk.active) bits.push(tk.points + ' warp point' + (tk.points === 1 ? '' : 's'));
+            if (jm.active) bits.push('jammed by ' + (jm.source || 'unknown'));
+            if (nt.active) bits.push(nt.rate.toFixed(1) + ' GJ/s drained');
+            if (!states.length) {
+                if (hasThreatData) {
+                    const parts = [];
+                    if (tk.total) parts.push(tk.total + ' tackle line' + (tk.total === 1 ? '' : 's') + ' (' + tk.holds + ' hold' + (tk.holds === 1 ? '' : 's') + ')');
+                    if (jm.count) parts.push(jm.count + ' ECM');
+                    if (nt.count) parts.push(T.fmtInt(nt.total) + ' GJ neut');
+                    bits.push(parts.join(' · '));
+                } else {
+                    bits.push('no tackle / ECM / neut lines in this view');
+                }
+            }
+            if (tk.outgoing || jm.outgoing || nt.outgoing) {
+                const out = [];
+                if (tk.outgoing) out.push(tk.outgoing + ' tackle');
+                if (jm.outgoing) out.push(jm.outgoing + ' ECM');
+                if (nt.outgoing) out.push(T.fmtInt(nt.outgoing) + ' GJ');
+                bits.push('out: ' + out.join(' · '));
+            }
+            dom.ntThreat.textContent = bits.join(' · ');
+        }
+
+        // Site status
+        const sites = intel.sites || [];
+        const lastSite = sites.length ? sites[sites.length - 1] : null;
+        if (dom.sumSite) {
+            dom.sumSite.classList.toggle('state-ok', !!lastSite && (lastSite.status === 'active' || lastSite.status === 'salvaged' || lastSite.status === 'cleared'));
+            dom.sumSite.classList.toggle('state-warn', !!lastSite && (lastSite.status === 'quiet' || lastSite.status === 'ended'));
+        }
+        if (dom.svSite) {
+            if (!lastSite) dom.svSite.textContent = '—';
+            else if (view && view.all) dom.svSite.textContent = sites.length + (sites.length === 1 ? ' site' : ' sites');
+            else dom.svSite.textContent = siteStatusLabel(lastSite.status);
+        }
+        if (dom.ntSite) {
+            if (!lastSite) {
+                dom.ntSite.textContent = 'no kill clusters in this view';
+            } else {
+                const bits = [];
+                if (view && view.all) {
+                    bits.push('latest: ' + siteStatusLabel(lastSite.status));
+                } else {
+                    bits.push('#' + lastSite.index);
+                }
+                bits.push(lastSite.system || 'unknown system');
+                bits.push(lastSite.kills + ' kill' + (lastSite.kills === 1 ? '' : 's'));
+                bits.push(T.fmtDuration(lastSite.durationMs));
+                bits.push('quiet ' + T.fmtDuration(lastSite.quietMs));
+                if (lastSite.net) bits.push(fmtISKcard(lastSite.net));
+                if (lastSite.salvageCount) bits.push(lastSite.salvageCount + ' salvaged');
+                dom.ntSite.textContent = bits.join(' · ');
+            }
+        }
     }
 
     function fmtDps(n) {
@@ -1741,6 +1991,140 @@
         if (dom.sysCount) dom.sysCount.textContent = '· ' + st.bySystem.length + ' systems';
         if (dom.sysEmpty) dom.sysEmpty.classList.toggle('hidden', rows.length > 0);
         updateSortInds(dom.sysTable, sortState.sys);
+    }
+
+    // ---------------------- Inferred sites ----------------------
+
+    function siteRowHtml(r) {
+        const rate = r.rate != null ? T.fmtISK(r.rate) : '—';
+        const dps = r.dps != null ? Math.round(r.dps).toLocaleString('en-US') : '—';
+        return '<tr' + (r.status === 'active' ? ' class="site-live"' : '') + '>' +
+            '<td class="num">' + r.index + '</td>' +
+            '<td class="mono">' + fmtDate(r.start) + '</td>' +
+            '<td class="num">' + T.fmtDuration(r.dur) + '</td>' +
+            '<td>' + (r.system ? systemCellHtml(r.system) : '<span style="color:var(--text-muted);">Unknown</span>') + '</td>' +
+            '<td class="num">' + r.kills + '</td>' +
+            '<td class="num">' + T.fmtISK(r.net) + '</td>' +
+            '<td class="num">' + rate + '</td>' +
+            '<td class="num">' + dps + '</td>' +
+            '<td>' + siteStatusChip(r.status) + '</td>' +
+            '<td class="num">' + (r.salvage || '—') + '</td>' +
+            '</tr>';
+    }
+
+    function renderSitesTable(view) {
+        if (!dom.sitesBody) return;
+        const intel = view.all ? view.stats._intel : sessionIntel(view.session);
+        const sites = (intel && intel.sites) || [];
+        const rows = sites.map((s) => ({
+            index: s.index,
+            start: s.start,
+            dur: s.durationMs,
+            system: s.system || '',
+            kills: s.kills,
+            net: s.net,
+            rate: s.iskPerHour,
+            dps: s.dpsOut,
+            status: s.status,
+            salvage: s.salvageCount,
+            html: siteRowHtml({
+                index: s.index, start: s.start, dur: s.durationMs, system: s.system,
+                kills: s.kills, net: s.net, rate: s.iskPerHour, dps: s.dpsOut,
+                status: s.status, salvage: s.salvageCount,
+            }),
+        }));
+        rows.sort(rowComparator(sortState.sites));
+        dom.sitesBody.innerHTML = rows.map((r) => r.html).join('');
+        if (dom.sitesCount) {
+            dom.sitesCount.textContent = rows.length
+                ? '· ' + rows.length + ' site' + (rows.length === 1 ? '' : 's') + ' inferred from kill clusters'
+                : '';
+        }
+        if (dom.sitesEmpty) dom.sitesEmpty.classList.toggle('hidden', rows.length > 0);
+        updateSortInds(dom.sitesTable, sortState.sites);
+    }
+
+    // ---------------------- Tackle & EWAR ----------------------
+
+    function threatRowHtml(r) {
+        return '<tr>' +
+            '<td>' + r.typeChip + '</td>' +
+            '<td title="' + esc(r.source) + '">' + esc(r.source || 'Unknown') + '</td>' +
+            '<td>' + r.detail + '</td>' +
+            '<td class="num">' + r.hits + '</td>' +
+            '<td class="mono">' + fmtDate(r.lastT) + '</td>' +
+            '<td>' + r.stateChip + '</td>' +
+            '</tr>';
+    }
+
+    function renderThreatTable(view) {
+        if (!dom.threatBody) return;
+        const intel = view.all ? view.stats._intel : sessionIntel(view.session);
+        if (!intel) return;
+        const th = intel.threat || {};
+        const tk = th.tackle || { sources: [] };
+        const jm = th.jam || { sources: [] };
+        const nt = th.neut || { sources: [] };
+        const rows = [];
+
+        (tk.sources || []).forEach((src) => {
+            const active = !!src.active;
+            rows.push({
+                type: 'Tackle',
+                typeRank: 0,
+                source: src.name,
+                detail: (src.kind === 'scramble' ? 'Warp scramble' : 'Warp disruption') + ' · ' + src.points + ' point' + (src.points === 1 ? '' : 's'),
+                hits: src.count,
+                lastT: src.last,
+                stateRank: active ? 1 : 0,
+                typeChip: '<span class="chip err">Tackle</span>',
+                stateChip: active ? '<span class="chip err">active</span>' : '<span class="chip">expired</span>',
+                html: '',
+            });
+        });
+        (jm.sources || []).forEach((src) => {
+            const active = !!src.active;
+            rows.push({
+                type: 'ECM',
+                typeRank: 1,
+                source: src.name,
+                detail: src.module ? esc(src.module) : 'ECM jam',
+                hits: src.count,
+                lastT: src.last,
+                stateRank: active ? 1 : 0,
+                typeChip: '<span class="chip warn">ECM</span>',
+                stateChip: active ? '<span class="chip err">jammed</span>' : '<span class="chip">ended</span>',
+                html: '',
+            });
+        });
+        (nt.sources || []).forEach((src) => {
+            const active = !!src.active;
+            rows.push({
+                type: 'Neut',
+                typeRank: 2,
+                source: src.name,
+                detail: T.fmtInt(src.gj) + ' GJ' + (src.rate > 0 ? ' · ' + src.rate.toFixed(1) + ' GJ/s now' : ''),
+                hits: src.hits,
+                lastT: src.last,
+                stateRank: active ? 1 : 0,
+                typeChip: '<span class="chip info">Neut</span>',
+                stateChip: active ? '<span class="chip warn">draining</span>' : '<span class="chip">ended</span>',
+                html: '',
+            });
+        });
+
+        rows.sort(rowComparator(sortState.threat));
+        const shown = rows.slice(0, 150);
+        shown.forEach((r) => { r.html = threatRowHtml(r); });
+        dom.threatBody.innerHTML = shown.map((r) => r.html).join('');
+        if (dom.threatCount) {
+            dom.threatCount.textContent = rows.length
+                ? '· ' + rows.length + ' source' + (rows.length === 1 ? '' : 's') +
+                    (rows.length > shown.length ? ' · showing ' + shown.length : '')
+                : '';
+        }
+        if (dom.threatEmpty) dom.threatEmpty.classList.toggle('hidden', rows.length > 0);
+        updateSortInds(dom.threatTable, sortState.threat);
     }
 
     // ---------------------- History ----------------------
@@ -2250,6 +2634,8 @@
 
         bindSorting(dom.npcTable, 'npc', () => { renderNpcTable(currentView || getActiveView()); });
         bindSorting(dom.sysTable, 'sys', () => { renderSysTable(currentView || getActiveView()); });
+        bindSorting(dom.sitesTable, 'sites', () => { renderSitesTable(currentView || getActiveView()); });
+        bindSorting(dom.threatTable, 'threat', () => { renderThreatTable(currentView || getActiveView()); });
         bindSorting(dom.histTable, 'hist', renderHistory);
 
         document.addEventListener('visibilitychange', () => {
@@ -2323,6 +2709,12 @@
                 events: s.events || [],
                 damage: s.damage || [],
                 misses: s.misses || [],
+                drones: s.drones || [],
+                tackle: s.tackle || [],
+                jams: s.jams || [],
+                neuts: s.neuts || [],
+                salvage: s.salvage || [],
+                jumps: s.jumps || [],
                 logEnd: s.logEnd || 0,
                 amountOverrides: s.amountOverrides || {},
                 eventFixes: s.eventFixes || {},

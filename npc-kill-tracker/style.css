@@ -480,6 +480,22 @@ body.layout-drag-active * {
 .summary-card.dps-out { border-left: 4px solid var(--success); }
 .summary-card.time { border-left: 4px solid var(--secondary-hover); }
 .summary-card.bank { border-left: 4px solid var(--warning); }
+.summary-card.drone { border-left: 4px solid #4dc7ec; }
+.summary-card.threat { border-left: 4px solid var(--warning); }
+.summary-card.site { border-left: 4px solid var(--info); }
+
+.summary-card.drone .summary-header i { color: #4dc7ec; }
+.summary-card.drone .summary-value { font-size: 16px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.summary-card.threat .summary-header i { color: var(--warning); }
+.summary-card.site .summary-header i { color: var(--info); }
+
+/* Derived-state accents override the card's base left border. */
+.summary-card.state-ok { border-left-color: var(--success); }
+.summary-card.state-warn { border-left-color: var(--warning); }
+.summary-card.state-danger { border-left-color: var(--danger); }
+.summary-card.state-danger .summary-value { color: #ff8a80; }
+.summary-card.state-warn .summary-value { color: var(--warning); }
+.summary-card.state-ok .summary-value { color: var(--success); }
 
 .summary-card.dps-in .summary-header i { color: var(--danger); }
 .summary-card.dps-out .summary-header i { color: var(--success); }
@@ -591,6 +607,7 @@ table.data-table {
 
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover td { background: var(--secondary-color); color: var(--text); }
+.data-table tbody tr.site-live td { background: rgba(76, 175, 80, 0.06); }
 
 .npc-cell { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 500; }
 

@@ -28,6 +28,11 @@
     var LISTENER_RE = /^\s*Listener:\s*(.+?)\s*$/;
     var SESSION_RE = /^\s*Session Started:\s*(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s*$/;
     var DRONES_RE = /\]\s*\(\w+\)\s*Drones engaging (.+?)\.?\s*$/i;
+    var TACKLE_LINE_RE = /^Warp (scramble|disruption) attempt from (.+?) to (.+)$/i;
+    var JAM_IN_RE = /^You're jammed by (.+)$/i;
+    var JAM_OUT_RE = /^(.+?) - jammed - (.+)$/i;
+    var NEUT_LINE_RE = /^(-?[\d,.]+) GJ energy (neutralized|drained)(?: to)? (.+)$/i;
+    var SALVAGE_LINE_RE = /^You successfully salvage from the (.+?)\.?$/i;
     var COMBAT_NAME_RE = /<font size=10>(to|from)<\/font>\s*<b><color=0x[0-9a-fA-F]+>([^<]+)<\/b>/;
     var LOCALIZED_RE = /<localized[^>]*>/g;
     var TAG_RE = /<[^>]+>/g;
@@ -46,6 +51,15 @@
     var EVIDENCE_MAX = 8;             // names kept per kill event
     var EVIDENCE_KEEP_MS = 90000;     // prune nameless old evidence
 
+    // Intel heuristics. EVE never logs "point released" or "site cleared", so
+    // these are the hold windows / silence thresholds used to infer state.
+    var TACKLE_HOLD_MS = 60000;       // same convention as the Helper overlay
+    var JAM_HOLD_MS = 30000;          // ECM jam cycle + reaction time
+    var NEUT_ACTIVE_MS = 15000;       // NPC neut cycle is ~8s
+    var SITE_GAP_MS = 180000;         // kill gap that starts a new inferred site
+    var SITE_CLEAR_MS = 90000;        // silence that implies the site is clear
+    var SALVAGE_WINDOW_MS = 300000;   // salvage after the last kill = strong clear signal
+
     function parseTs(y, mo, d, h, mi, s) {
         return Date.UTC(+y, +mo - 1, +d, +h, +mi, +s);
     }
@@ -61,6 +75,25 @@
         var bracket = s.indexOf('[');
         if (bracket > 0) s = s.slice(0, bracket).trim(); // strip [CORP (Ship)] suffixes
         return s;
+    }
+
+    function plainText(line) {
+        return String(line)
+            .replace(TAG_RE, ' ')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .replace(/^\[\s*[\d.]+\s+[\d:]+\s*\]\s*\(\w+\)\s*/, ''); // drop timestamp/channel
+    }
+
+    function cleanIntelName(name) {
+        return String(name == null ? '' : name)
+            .replace(/\s+-\s*$/, '') // player rows carry a trailing " -"
+            .replace(/!+$/, '')
+            .trim();
     }
 
     function parseAmount(raw) {
@@ -161,6 +194,13 @@
         this.pending = [];        // events with unknown system (backfilled on first system info)
         this.damage = [];         // cumulative hits: {t,a,dir,pilot,ship,weapon,verb}
         this.misses = [];         // cumulative misses: {t,dir,pilot,ship,weapon}
+        this.drones = [];         // drone target changes: {t,target}
+        this.tackle = [];         // scram/disrupt: {t,kind,from,to,dir,name,points}
+        this.jams = [];           // ECM: {t,dir,source,module}
+        this.neuts = [];          // cap warfare: {t,a,kind,target,source,dir}
+        this.salvage = [];        // successful salvage: {t,wreck}
+        this.jumps = [];          // system changes: {t,from,to}
+        this._lastDrone = null;   // de-dupe one line per drone per second
         this.lastTs = null;       // latest timestamp seen in any log line
     }
 
@@ -179,6 +219,11 @@
         var jumps = [];
         var damage = [];
         var misses = [];
+        var drones = [];
+        var tackle = [];
+        var jams = [];
+        var neuts = [];
+        var salvage = [];
         var text = this.buffer + chunk;
         var lines = text.split('\n');
         this.buffer = lines.pop(); // keep incomplete tail
@@ -187,12 +232,16 @@
             var line = lines[i];
             if (line.charAt(line.length - 1) === '\r') line = line.slice(0, -1);
             if (!line) continue;
-            this._line(line, events, jumps, damage, misses);
+            this._line(line, events, jumps, damage, misses, drones, tackle, jams, neuts, salvage);
         }
-        return { events: events, jumps: jumps, damage: damage, misses: misses, lastTs: this.lastTs };
+        return {
+            events: events, jumps: jumps, damage: damage, misses: misses,
+            drones: drones, tackle: tackle, jams: jams, neuts: neuts, salvage: salvage,
+            lastTs: this.lastTs,
+        };
     };
 
-    LogParser.prototype._line = function (line, events, jumps, damage, misses) {
+    LogParser.prototype._line = function (line, events, jumps, damage, misses, drones, tackle, jams, neuts, salvage) {
         // Header lines (no timestamp)
         if (this.char === null) {
             var lm = LISTENER_RE.exec(line);
@@ -234,15 +283,122 @@
             // Kills logged before the first jump happened in the jump's origin system.
             this._setSystem(jm[1].trim());
             this.system = jm[2].trim();
-            jumps.push({ t: ts, from: jm[1].trim(), to: this.system });
+            var jump = { t: ts, from: jm[1].trim(), to: this.system };
+            jumps.push(jump);
+            this.jumps.push(jump);
             return;
         }
         var um = UNDOCK_RE.exec(line);
-        if (um) { this._setSystem(um[2].trim()); jumps.push({ t: ts, from: null, to: this.system }); return; }
+        if (um) {
+            this._setSystem(um[2].trim());
+            var undock = { t: ts, from: null, to: this.system };
+            jumps.push(undock);
+            this.jumps.push(undock);
+            return;
+        }
 
-        // NPC activity evidence (drone engagements, damage lines)
+        // Drone target changes. The client writes one line per drone, so keep
+        // one line per target per second — enough to follow target switches.
         var dm = DRONES_RE.exec(line);
-        if (dm) { this._noteEvidence(cleanName(dm[1]), ts); return; }
+        if (dm) {
+            var droneTarget = cleanName(dm[1]);
+            this._noteEvidence(droneTarget, ts);
+            if (!this._lastDrone || this._lastDrone.target !== droneTarget || this._lastDrone.t !== ts) {
+                var de = { t: ts, target: droneTarget };
+                drones.push(de);
+                this.drones.push(de);
+                this._lastDrone = de;
+            }
+            return;
+        }
+
+        // Tackle / ECM / cap warfare. Colour tags split the words, so parse the
+        // de-tagged text rather than the raw line.
+        if (line.indexOf('Warp scramble attempt') !== -1 ||
+            line.indexOf('Warp disruption attempt') !== -1 ||
+            line.indexOf('energy neutralized') !== -1 ||
+            line.indexOf('energy drained') !== -1 ||
+            line.indexOf('jammed') !== -1) {
+            var intelMsg = plainText(line);
+
+            var tm = TACKLE_LINE_RE.exec(intelMsg);
+            if (tm) {
+                var fromName = cleanIntelName(tm[2]);
+                var toName = cleanIntelName(tm[3]);
+                var tdir = /^you$/i.test(toName) ? 'in' : (/^you$/i.test(fromName) ? 'out' : 'other');
+                var tackler = tdir === 'out' ? toName : fromName;
+                var tKind = tm[1].toLowerCase() === 'scramble' ? 'scramble' : 'disruption';
+                var te = {
+                    t: ts, kind: tKind, from: fromName, to: toName, dir: tdir,
+                    name: tackler, points: tKind === 'scramble' ? 2 : 1,
+                };
+                tackle.push(te);
+                this.tackle.push(te);
+                return;
+            }
+
+            var nm = NEUT_LINE_RE.exec(intelMsg);
+            if (nm) {
+                var neutAmt = parseAmount(nm[1]);
+                if (neutAmt === null || neutAmt === 0) return;
+                var rest = nm[3].trim();
+                var target = rest;
+                var source = '';
+                var cut = rest.lastIndexOf(' - ');
+                if (cut > 0) {
+                    target = rest.slice(0, cut).trim();
+                    source = rest.slice(cut + 3).trim().replace(/^-\s*/, '');
+                }
+                target = cleanIntelName(target);
+                source = cleanIntelName(source);
+                // Incoming NPC neuts repeat the NPC name in both slots; your own
+                // neuts show the module name as the source.
+                var ndir = (source && source.toLowerCase() === target.toLowerCase()) ? 'in' : (source ? 'out' : 'in');
+                var ne = {
+                    t: ts, a: Math.abs(neutAmt), kind: nm[2].toLowerCase(),
+                    target: target, source: source, dir: ndir,
+                };
+                neuts.push(ne);
+                this.neuts.push(ne);
+                return;
+            }
+
+            var ji = JAM_IN_RE.exec(intelMsg);
+            if (ji) {
+                // "You're jammed by <ship> <corp> <pilot> - - <module>"
+                var jamParts = ji[1].split(' - ');
+                var jamSource = jamParts[0].trim();
+                var jamModule = jamParts.length > 1
+                    ? jamParts.slice(1).join(' - ').replace(/^-\s*/, '').trim()
+                    : '';
+                var je = {
+                    t: ts, dir: 'in',
+                    source: cleanIntelName(jamSource),
+                    module: cleanIntelName(jamModule),
+                };
+                jams.push(je);
+                this.jams.push(je);
+                return;
+            }
+            var jo = JAM_OUT_RE.exec(intelMsg);
+            if (jo) {
+                var joe = { t: ts, dir: 'out', source: cleanIntelName(jo[1]), module: cleanIntelName(jo[2]) };
+                jams.push(joe);
+                this.jams.push(joe);
+                return;
+            }
+        }
+
+        // Successful salvage is the strongest "site is clear" marker in the log.
+        if (line.indexOf('You successfully salvage from') !== -1) {
+            var sv = SALVAGE_LINE_RE.exec(plainText(line));
+            if (sv) {
+                var se = { t: ts, wreck: cleanIntelName(sv[1]) };
+                salvage.push(se);
+                this.salvage.push(se);
+                return;
+            }
+        }
 
         var dmg = parseCombatLine(line, ts);
         if (dmg) {
@@ -804,6 +960,350 @@
     }
 
     // ------------------------------------------------------------------
+    // Intel: drone targets, tackle / EWAR, and inferred sites
+    // ------------------------------------------------------------------
+
+    /**
+     * Derive the human-readable intel that the log supports:
+     *   - which target the drones were last sent to (and per-weapon damage)
+     *   - tackle / ECM / cap-warfare state with hold windows
+     *   - "sites" inferred from kill clusters (EVE has no site-complete line)
+     *
+     * session: { events, damage, drones, tackle, jams, neuts, salvage, jumps, start, end, live }
+     */
+    function computeIntel(session, indexes, rawEssSettings, nowMs) {
+        var ess = normalizeEssSettings(rawEssSettings);
+        var now = nowMs || Date.now();
+        var live = !!(session && session.live);
+        var drones = (session && session.drones) || [];
+        var tackle = (session && session.tackle) || [];
+        var jams = (session && session.jams) || [];
+        var neuts = (session && session.neuts) || [];
+        var salvage = (session && session.salvage) || [];
+        var damage = (session && session.damage) || [];
+        var events = (session && session.events) || [];
+        var jumps = (session && session.jumps) || [];
+
+        // Last combat activity. Saved sessions use this as their "current" clock,
+        // so a scramble two hours before the log closed is not shown as active.
+        var sessionLastActivity = 0;
+        if (events.length) sessionLastActivity = Math.max(sessionLastActivity, events[events.length - 1].t);
+        if (damage.length) sessionLastActivity = Math.max(sessionLastActivity, damage[damage.length - 1].t);
+        if (drones.length) sessionLastActivity = Math.max(sessionLastActivity, drones[drones.length - 1].t);
+        if (tackle.length) sessionLastActivity = Math.max(sessionLastActivity, tackle[tackle.length - 1].t);
+        if (jams.length) sessionLastActivity = Math.max(sessionLastActivity, jams[jams.length - 1].t);
+        if (neuts.length) sessionLastActivity = Math.max(sessionLastActivity, neuts[neuts.length - 1].t);
+
+        var ref = live ? now : (sessionLastActivity || (session && (session.end || session.logEnd)) || now);
+        var sessionEnd = live ? now : Math.max(
+            (session && session.end) || 0,
+            (session && session.logEnd) || 0,
+            sessionLastActivity,
+            (events.length ? events[events.length - 1].t : 0)
+        );
+
+        // ---- drone target history ----
+        var engagements = [];
+        for (var di = 0; di < drones.length; di++) {
+            var d = drones[di];
+            var cur = engagements[engagements.length - 1];
+            // One engagement = same target, no gap longer than 30s.
+            if (!cur || cur.target !== d.target || d.t - cur.last > 30000) {
+                engagements.push({ target: d.target, start: d.t, last: d.t, lines: 1 });
+            } else {
+                cur.last = d.t;
+                cur.lines++;
+            }
+        }
+        var droneLast = engagements.length ? engagements[engagements.length - 1] : null;
+        var droneRecent = droneLast ? (ref - droneLast.last <= 300000) : false;
+
+        // Damaged-by-weapon split. Drone damage appears under the drone's own
+        // type name, so this doubles as a per-drone-type share.
+        var weaponMap = new Map();
+        var totalOut = 0;
+        for (var wi = 0; wi < damage.length; wi++) {
+            var hit = damage[wi];
+            if (hit.dir !== 'out') continue;
+            totalOut += hit.a;
+            var wn = hit.weapon || '(unknown)';
+            var w = weaponMap.get(wn);
+            if (!w) { w = { weapon: wn, damage: 0, hits: 0 }; weaponMap.set(wn, w); }
+            w.damage += hit.a;
+            w.hits++;
+        }
+        var weapons = [];
+        weaponMap.forEach(function (v) {
+            v.share = totalOut > 0 ? (v.damage / totalOut) * 100 : 0;
+            weapons.push(v);
+        });
+        weapons.sort(function (a, b) { return b.damage - a.damage; });
+        weapons = weapons.slice(0, 8);
+
+        // ---- tackle ----
+        var inTackle = [];
+        var outTackle = 0;
+        for (var ti = 0; ti < tackle.length; ti++) {
+            if (tackle[ti].dir === 'in') inTackle.push(tackle[ti]);
+            else if (tackle[ti].dir === 'out') outTackle++;
+        }
+        var lastTackle = inTackle.length ? inTackle[inTackle.length - 1] : null;
+        var tackleActive = lastTackle ? (ref - lastTackle.t <= TACKLE_HOLD_MS) : false;
+        var tackleNames = [];
+        var tacklePoints = 0;
+        if (tackleActive) {
+            var tackleCut = lastTackle.t - TACKLE_HOLD_MS;
+            var nameMap = new Map();
+            for (var tj = inTackle.length - 1; tj >= 0; tj--) {
+                var te = inTackle[tj];
+                if (te.t < tackleCut) break;
+                var tk = te.name + '|' + te.kind;
+                if (!nameMap.has(tk)) {
+                    nameMap.set(tk, { name: te.name, kind: te.kind, points: te.points, last: te.t });
+                    tacklePoints += te.points;
+                }
+            }
+            nameMap.forEach(function (v) { tackleNames.push(v); });
+            tackleNames.sort(function (a, b) { return b.last - a.last; });
+        }
+        var tackleHolds = 0;
+        for (var th = 0; th < inTackle.length; th++) {
+            if (th === 0 || inTackle[th].t - inTackle[th - 1].t > TACKLE_HOLD_MS) tackleHolds++;
+        }
+
+        // Every distinct tackler in the session, newest first, for the detail table.
+        var tackleSourceMap = new Map();
+        for (var tsrc = 0; tsrc < inTackle.length; tsrc++) {
+            var trow = inTackle[tsrc];
+            var tkey = trow.name + '|' + trow.kind;
+            var trec = tackleSourceMap.get(tkey);
+            if (!trec) {
+                trec = { name: trow.name, kind: trow.kind, points: trow.points, count: 0, last: 0 };
+                tackleSourceMap.set(tkey, trec);
+            }
+            trec.count++;
+            trec.points = Math.max(trec.points, trow.points);
+            trec.last = Math.max(trec.last, trow.t);
+        }
+        var tackleList = [];
+        tackleSourceMap.forEach(function (v) {
+            v.active = (ref - v.last <= TACKLE_HOLD_MS);
+            tackleList.push(v);
+        });
+        tackleList.sort(function (a, b) { return b.last - a.last; });
+
+        // ---- ECM ----
+        var inJams = [];
+        var outJams = 0;
+        for (var j1 = 0; j1 < jams.length; j1++) {
+            if (jams[j1].dir === 'in') inJams.push(jams[j1]);
+            else if (jams[j1].dir === 'out') outJams++;
+        }
+        var lastJam = inJams.length ? inJams[inJams.length - 1] : null;
+        var jamActive = lastJam ? (ref - lastJam.t <= JAM_HOLD_MS) : false;
+        var jamMap = new Map();
+        for (var j2 = 0; j2 < inJams.length; j2++) {
+            var jn = inJams[j2].source || 'unknown';
+            var jr = jamMap.get(jn);
+            if (!jr) { jr = { name: jn, count: 0, last: 0, module: '' }; jamMap.set(jn, jr); }
+            jr.count++;
+            jr.last = Math.max(jr.last, inJams[j2].t);
+            if (inJams[j2].module) jr.module = inJams[j2].module;
+        }
+        var jamList = [];
+        jamMap.forEach(function (v) {
+            v.active = (ref - v.last <= JAM_HOLD_MS);
+            jamList.push(v);
+        });
+        jamList.sort(function (a, b) { return b.last - a.last; });
+
+        // ---- cap warfare ----
+        var inNeuts = [];
+        var outNeutTotal = 0;
+        for (var n1 = 0; n1 < neuts.length; n1++) {
+            if (neuts[n1].dir === 'in') inNeuts.push(neuts[n1]);
+            else outNeutTotal += neuts[n1].a;
+        }
+        var lastNeut = inNeuts.length ? inNeuts[inNeuts.length - 1] : null;
+        var neutActive = lastNeut ? (ref - lastNeut.t <= NEUT_ACTIVE_MS) : false;
+        var neutMap = new Map();
+        var neutTotal = 0;
+        var neutRecent = 0;
+        var neutCut = ref - 10000;
+        for (var n2 = 0; n2 < inNeuts.length; n2++) {
+            var ne = inNeuts[n2];
+            neutTotal += ne.a;
+            if (ne.t >= neutCut) neutRecent += ne.a;
+            var nk = ne.source || ne.target || 'unknown';
+            var nr = neutMap.get(nk);
+            if (!nr) { nr = { name: nk, gj: 0, hits: 0, last: 0, recent: 0 }; neutMap.set(nk, nr); }
+            nr.gj += ne.a;
+            nr.hits++;
+            nr.last = Math.max(nr.last, ne.t);
+            if (ne.t >= neutCut) nr.recent += ne.a;
+        }
+        var neutList = [];
+        neutMap.forEach(function (v) {
+            v.active = (ref - v.last <= NEUT_ACTIVE_MS);
+            v.rate = v.recent / 10;
+            neutList.push(v);
+        });
+        neutList.sort(function (a, b) { return b.gj - a.gj; });
+
+        // ---- inferred sites ----
+        var sites = [];
+        if (events.length) {
+            var groups = [];
+            var group = null;
+            for (var ei = 0; ei < events.length; ei++) {
+                var ev = events[ei];
+                if (!group || ev.t - group.end > SITE_GAP_MS || (ev.sys && group.sys && ev.sys !== group.sys)) {
+                    group = { start: ev.t, end: ev.t, sys: ev.sys || null, events: [] };
+                    groups.push(group);
+                }
+                group.events.push(ev);
+                group.end = ev.t;
+                if (!group.sys && ev.sys) group.sys = ev.sys;
+            }
+
+            var dmgIdx = 0;
+            var droneIdx = 0;
+            for (var si = 0; si < groups.length; si++) {
+                var site = groups[si];
+                var next = groups[si + 1];
+                var nextStart = next ? next.start : Infinity;
+
+                while (dmgIdx < damage.length && damage[dmgIdx].t < site.start) dmgIdx++;
+                var dEnd = dmgIdx;
+                var lastActivity = site.end;
+                var dpsOut = 0;
+                // Only a short tail after the last bounty belongs to this site.
+                // Everything up to the next site's first kill is usually that
+                // site's pre-bounty damage, which must not extend this one.
+                var activityEnd = Math.min(nextStart, site.end + 15000);
+                while (dEnd < damage.length && damage[dEnd].t < activityEnd) {
+                    var dh = damage[dEnd];
+                    if (dh.dir === 'out') dpsOut += dh.a;
+                    if (dh.t > lastActivity) lastActivity = dh.t;
+                    dEnd++;
+                }
+                while (droneIdx < drones.length && drones[droneIdx].t < site.start) droneIdx++;
+                var drEnd = droneIdx;
+                while (drEnd < drones.length && drones[drEnd].t < activityEnd) {
+                    if (drones[drEnd].t > lastActivity) lastActivity = drones[drEnd].t;
+                    drEnd++;
+                }
+
+                var isLast = si === groups.length - 1;
+                var quietRef = next ? nextStart : (live ? now : sessionEnd);
+                var quietMs = Math.max(0, quietRef - lastActivity);
+
+                var gross = 0, net = 0, bank = 0;
+                for (var gi = 0; gi < site.events.length; gi++) {
+                    var gev = site.events[gi];
+                    var essInfo = essRateFor(gev.sys, ess, indexes.systems);
+                    var essAmt = gev.a * (essInfo.rate / 100);
+                    var tax = ess.taxPct / 100;
+                    var bankAmt = essAmt * (1 - tax);
+                    var netAmt = (gev.a - essAmt) * (1 - tax);
+                    if (ess.includesBank) netAmt += bankAmt;
+                    gross += gev.a;
+                    net += netAmt;
+                    bank += bankAmt;
+                }
+
+                var durationMs = Math.max(0, site.end - site.start);
+                var iskPerHour = durationMs >= 60000 ? net / (durationMs / 3600000) : null;
+                var siteDps = durationMs > 0 ? dpsOut / (durationMs / 1000) : null;
+
+                var salvCount = 0;
+                for (var sv = 0; sv < salvage.length; sv++) {
+                    var sal = salvage[sv];
+                    if (sal.t >= site.end - 5000 && sal.t <= Math.min(nextStart, site.end + SALVAGE_WINDOW_MS)) salvCount++;
+                }
+
+                var jumpAfter = false;
+                for (var jp = 0; jp < jumps.length; jp++) {
+                    if (jumps[jp].t > lastActivity && jumps[jp].t <= quietRef) { jumpAfter = true; break; }
+                }
+                if (next && site.sys && next.sys && site.sys !== next.sys) jumpAfter = true;
+
+                var status;
+                if (salvCount) status = 'salvaged';
+                else if (jumpAfter) status = 'left';
+                else if (live && isLast) status = quietMs <= SITE_CLEAR_MS ? 'active' : 'quiet';
+                else if (quietMs >= SITE_CLEAR_MS) status = 'cleared';
+                else status = 'ended';
+
+                sites.push({
+                    index: si + 1,
+                    start: site.start,
+                    end: site.end,
+                    lastActivity: lastActivity,
+                    quietMs: quietMs,
+                    status: status,
+                    system: site.sys,
+                    kills: site.events.length,
+                    gross: gross,
+                    net: net,
+                    bank: bank,
+                    durationMs: durationMs,
+                    iskPerHour: iskPerHour,
+                    dpsOut: siteDps,
+                    salvageCount: salvCount,
+                    jumpAfter: jumpAfter,
+                });
+            }
+        }
+
+        return {
+            now: now,
+            ref: ref,
+            live: live,
+            lastActivity: sessionLastActivity,
+            drone: {
+                last: droneLast,
+                recent: droneRecent,
+                count: engagements.length,
+                engagements: engagements.slice(-8).reverse(),
+                weapons: weapons,
+                totalOut: totalOut,
+            },
+            threat: {
+                tackle: {
+                    active: tackleActive,
+                    last: lastTackle ? lastTackle.t : null,
+                    names: tackleNames,
+                    points: tacklePoints,
+                    holds: tackleHolds,
+                    total: inTackle.length,
+                    outgoing: outTackle,
+                    sources: tackleList,
+                },
+                jam: {
+                    active: jamActive,
+                    last: lastJam ? lastJam.t : null,
+                    source: lastJam ? lastJam.source : null,
+                    count: inJams.length,
+                    outgoing: outJams,
+                    sources: jamList,
+                },
+                neut: {
+                    active: neutActive,
+                    last: lastNeut ? lastNeut.t : null,
+                    total: neutTotal,
+                    rate: neutRecent / 10,
+                    count: inNeuts.length,
+                    outgoing: outNeutTotal,
+                    sources: neutList.slice(0, 8),
+                },
+            },
+            sites: sites,
+            salvageCount: salvage.length,
+        };
+    }
+
+    // ------------------------------------------------------------------
     // Formatting helpers (shared with UI)
     // ------------------------------------------------------------------
 
@@ -861,6 +1361,7 @@
         resolveEvent: resolveEvent,
         computeStats: computeStats,
         computeDps: computeDps,
+        computeIntel: computeIntel,
         normalizeEssSettings: normalizeEssSettings,
         essRateFor: essRateFor,
         ratName: ratName,
