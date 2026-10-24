@@ -76,6 +76,10 @@
     let esiNeedsRelink = false;
     let esiLastError = null;
 
+    // Dashboard layout (order + collapsed state), persisted locally.
+    const LAYOUT_KEY = 'rnpct_layout_v1';
+    const layoutState = { order: {}, collapsed: {} };
+
     const sortState = {
         npc: { key: 'net', dir: -1 },
         sys: { key: 'net', dir: -1 },
@@ -95,6 +99,7 @@
         connectBtn: $('connectBtn'), reconnectBtn: $('reconnectBtn'), reconnectName: $('reconnectName'),
         pauseBtn: $('pauseBtn'), liveDot: $('liveDot'), connectStatus: $('connectStatus'),
         esiDot: $('esiDot'), esiLinkBtn: $('esiLinkBtn'), esiUnlinkBtn: $('esiUnlinkBtn'), esiStatus: $('esiStatus'),
+        resetLayoutBtn: $('resetLayoutBtn'),
         fileInput: $('fileInput'), dropZone: $('dropZone'), pasteText: $('pasteText'), pasteBtn: $('pasteBtn'),
         essMode: $('essMode'), essCustom: $('essCustom'), essNull: $('essNull'),
         taxPct: $('taxPct'), incBank: $('incBank'), useContext: $('useContext'),
@@ -933,6 +938,263 @@
         const changed = applyEsiToEvents(session.events);
         if (changed) saveSessionSoon(session);
         return changed > 0;
+    }
+
+    // ------------------------------------------------------------------
+    // Dashboard layout: collapse + drag-to-reorder
+    // ------------------------------------------------------------------
+
+    function layoutId(el) { return el ? (el.getAttribute('data-layout-id') || '') : ''; }
+    function layoutParentKey(parent) { return (parent && parent.id) ? parent.id : ''; }
+
+    function loadLayout() {
+        try {
+            const raw = localStorage.getItem(LAYOUT_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+                layoutState.order = (parsed.order && typeof parsed.order === 'object') ? parsed.order : {};
+                layoutState.collapsed = (parsed.collapsed && typeof parsed.collapsed === 'object') ? parsed.collapsed : {};
+            }
+        } catch (e) { /* ignore corrupted layout */ }
+    }
+
+    function saveLayout() {
+        try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(layoutState)); } catch (e) { /* private mode */ }
+    }
+
+    function layoutHeaderFor(el) {
+        if (el.classList.contains('summary-card')) return el.querySelector('.summary-header');
+        const children = Array.from(el.children);
+        for (const child of children) {
+            if (child.tagName === 'H3' || child.classList.contains('table-title')) return child;
+        }
+        return null;
+    }
+
+    function wrapLayoutBody(el, header) {
+        if (Array.from(el.children).some((c) => c.classList.contains('layout-body'))) return;
+        const body = document.createElement('div');
+        body.className = 'layout-body';
+        Array.from(el.children).forEach((child) => {
+            if (child !== header) body.appendChild(child);
+        });
+        el.appendChild(body);
+    }
+
+    function addLayoutTools(el, header) {
+        if (header.querySelector('.layout-tools')) return;
+        const tools = document.createElement('span');
+        tools.className = 'layout-tools';
+
+        const grip = document.createElement('button');
+        grip.type = 'button';
+        grip.className = 'layout-btn layout-grip';
+        grip.title = 'Drag to move';
+        grip.setAttribute('aria-label', 'Move');
+        grip.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+
+        const collapse = document.createElement('button');
+        collapse.type = 'button';
+        collapse.className = 'layout-btn layout-collapse';
+        collapse.title = 'Minimise';
+        collapse.setAttribute('aria-label', 'Minimise');
+        collapse.innerHTML = '<i class="fas fa-chevron-up"></i>';
+
+        tools.appendChild(grip);
+        tools.appendChild(collapse);
+        header.appendChild(tools);
+
+        grip.addEventListener('pointerdown', (e) => startLayoutDrag(e, el));
+        collapse.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleLayoutCollapse(el);
+        });
+    }
+
+    function setLayoutCollapsed(el, collapsed) {
+        el.classList.toggle('layout-collapsed', !!collapsed);
+        const btn = el.querySelector('.layout-collapse');
+        if (btn) {
+            btn.innerHTML = collapsed
+                ? '<i class="fas fa-chevron-down"></i>'
+                : '<i class="fas fa-chevron-up"></i>';
+            btn.title = collapsed ? 'Expand' : 'Minimise';
+            btn.setAttribute('aria-label', collapsed ? 'Expand' : 'Minimise');
+        }
+    }
+
+    function toggleLayoutCollapse(el) {
+        const collapsed = !el.classList.contains('layout-collapsed');
+        setLayoutCollapsed(el, collapsed);
+        const id = layoutId(el);
+        if (id) {
+            layoutState.collapsed[id] = collapsed;
+            saveLayout();
+        }
+    }
+
+    function saveLayoutOrder(parent) {
+        const key = layoutParentKey(parent);
+        if (!key) return;
+        layoutState.order[key] = Array.from(parent.children)
+            .filter((c) => c.hasAttribute('data-layout-id'))
+            .map((c) => c.getAttribute('data-layout-id'));
+        saveLayout();
+    }
+
+    function reorderLayout(parent, savedIds) {
+        const children = Array.from(parent.children);
+        const items = children.filter((c) => c.hasAttribute('data-layout-id'));
+        if (!items.length) return;
+        const map = new Map(items.map((el) => [el.getAttribute('data-layout-id'), el]));
+        const ordered = [];
+        (savedIds || []).forEach((id) => {
+            const el = map.get(id);
+            if (el && ordered.indexOf(el) === -1) ordered.push(el);
+        });
+        items.forEach((el) => { if (ordered.indexOf(el) === -1) ordered.push(el); });
+
+        const layoutSet = new Set(items);
+        const result = children.map((c) => (layoutSet.has(c) ? null : c));
+        let next = 0;
+        for (let i = 0; i < result.length; i++) {
+            if (result[i] === null) result[i] = ordered[next++];
+        }
+        if (result.some((c) => !c)) return;
+        parent.append(...result);
+    }
+
+    function applySavedLayout() {
+        const parents = new Set();
+        document.querySelectorAll('[data-layout-id]').forEach((el) => {
+            if (el.parentElement) parents.add(el.parentElement);
+        });
+        parents.forEach((parent) => {
+            const key = layoutParentKey(parent);
+            const saved = key ? layoutState.order[key] : null;
+            if (Array.isArray(saved) && saved.length) reorderLayout(parent, saved);
+        });
+    }
+
+    function setupLayout() {
+        const items = Array.from(document.querySelectorAll('[data-layout-id]'));
+        items.forEach((el) => {
+            if (el.getAttribute('data-layout-built') === '1') return;
+            el.setAttribute('data-layout-built', '1');
+            el.classList.add('layout-item');
+            const header = layoutHeaderFor(el);
+            if (!header) return;
+            addLayoutTools(el, header);
+            wrapLayoutBody(el, header);
+            setLayoutCollapsed(el, !!(layoutId(el) && layoutState.collapsed[layoutId(el)]));
+        });
+        applySavedLayout();
+    }
+
+    function startLayoutDrag(e, el) {
+        if (!el || !el.parentElement) return;
+        if (document.body.classList.contains('layout-drag-active')) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const parent = el.parentElement;
+        const rect = el.getBoundingClientRect();
+        const placeholder = document.createElement('div');
+        placeholder.className = 'layout-placeholder';
+        placeholder.style.width = rect.width + 'px';
+        placeholder.style.height = rect.height + 'px';
+        parent.insertBefore(placeholder, el);
+
+        const prevStyle = {};
+        ['position', 'left', 'top', 'width', 'height', 'margin', 'zIndex',
+            'pointerEvents', 'boxSizing', 'transition'].forEach((key) => {
+            prevStyle[key] = el.style[key];
+        });
+
+        el.classList.add('layout-dragging');
+        el.style.position = 'fixed';
+        el.style.left = rect.left + 'px';
+        el.style.top = rect.top + 'px';
+        el.style.width = rect.width + 'px';
+        el.style.height = rect.height + 'px';
+        el.style.margin = '0';
+        el.style.zIndex = '9999';
+        el.style.pointerEvents = 'none';
+        el.style.boxSizing = 'border-box';
+        el.style.transition = 'none';
+        document.body.classList.add('layout-drag-active');
+
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        const isGrid = parent.classList.contains('summary-grid');
+        const siblings = () => Array.from(parent.children).filter((c) => (
+            c !== el && c !== placeholder && c.hasAttribute('data-layout-id')
+        ));
+
+        const move = (ev) => {
+            if (ev.cancelable) ev.preventDefault();
+            el.style.left = (ev.clientX - offsetX) + 'px';
+            el.style.top = (ev.clientY - offsetY) + 'px';
+
+            const sibs = siblings();
+            let placed = false;
+            if (isGrid) {
+                let best = null;
+                let bestDist = Infinity;
+                for (const sib of sibs) {
+                    const r = sib.getBoundingClientRect();
+                    const dx = ev.clientX - (r.left + r.width / 2);
+                    const dy = ev.clientY - (r.top + r.height / 2);
+                    const dist = dx * dx + dy * dy;
+                    if (dist < bestDist) { bestDist = dist; best = { sib, r }; }
+                }
+                if (best) {
+                    const r = best.r;
+                    let before;
+                    if (ev.clientY < r.top + r.height / 2) before = true;
+                    else if (ev.clientY > r.top + r.height / 2) before = false;
+                    else before = ev.clientX < r.left + r.width / 2;
+                    parent.insertBefore(placeholder, before ? best.sib : best.sib.nextSibling);
+                    placed = true;
+                }
+            } else {
+                for (const sib of sibs) {
+                    const r = sib.getBoundingClientRect();
+                    if (ev.clientY < r.top + r.height / 2) {
+                        parent.insertBefore(placeholder, sib);
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed && sibs.length) {
+                    parent.insertBefore(placeholder, sibs[sibs.length - 1].nextSibling);
+                    placed = true;
+                }
+            }
+            if (!placed) parent.appendChild(placeholder);
+
+            if (ev.clientY < 70) window.scrollBy(0, -14);
+            else if (ev.clientY > window.innerHeight - 70) window.scrollBy(0, 14);
+        };
+
+        const end = () => {
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', end);
+            document.removeEventListener('pointercancel', end);
+            document.body.classList.remove('layout-drag-active');
+            el.classList.remove('layout-dragging');
+            Object.keys(prevStyle).forEach((key) => { el.style[key] = prevStyle[key]; });
+            if (placeholder.parentNode) placeholder.replaceWith(el);
+            else parent.appendChild(el);
+            saveLayoutOrder(parent);
+        };
+
+        document.addEventListener('pointermove', move, { passive: false });
+        document.addEventListener('pointerup', end);
+        document.addEventListener('pointercancel', end);
     }
 
     // ------------------------------------------------------------------
@@ -1793,6 +2055,10 @@
         if (dom.pauseBtn) dom.pauseBtn.addEventListener('click', () => setUserPaused(!userPaused));
         if (dom.esiLinkBtn) dom.esiLinkBtn.addEventListener('click', linkEsi);
         if (dom.esiUnlinkBtn) dom.esiUnlinkBtn.addEventListener('click', unlinkEsi);
+        if (dom.resetLayoutBtn) dom.resetLayoutBtn.addEventListener('click', () => {
+            try { localStorage.removeItem(LAYOUT_KEY); } catch (e) { /* ignore */ }
+            location.reload();
+        });
         if (dom.fileInput) dom.fileInput.addEventListener('change', () => {
             handleFiles(dom.fileInput.files);
             dom.fileInput.value = '';
@@ -1977,5 +2243,7 @@
         } catch (err) { /* ignore */ }
     }
 
+    loadLayout();
+    setupLayout();
     boot();
 })();

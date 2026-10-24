@@ -23,7 +23,7 @@
     <meta name="twitter:title" content="Rusty NPC Tracker — EVE Online NPC Kill &amp; Bounty Tracker">
     <meta name="twitter:description" content="Live ratting tracker: NPC kills, bounties, incoming/outgoing DPS, systems, ESS-adjusted ISK/hour from your local EVE logs. Optional read-only ESI location, ship and online status.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/rusty_bot.png">
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
     <link rel="icon" type="image/png" href="../rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -129,7 +129,7 @@
 </header>
 
 <main class="main-content">
-    <div class="content-wrapper">
+    <div class="content-wrapper" id="contentWrapper">
         <!-- Hero -->
         <section class="hero-section">
             <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
@@ -138,7 +138,7 @@
         </section>
 
         <!-- Connect & Settings -->
-        <section class="panel">
+        <section class="panel" data-layout-id="connect">
             <h3><i class="fas fa-plug"></i> Connect your logs</h3>
             <div class="connect-grid">
                 <div>
@@ -160,6 +160,12 @@
                             <i class="fas fa-link-slash"></i> Unlink
                         </button>
                         <span id="esiStatus" class="esi-status">Optional: link a character for read-only location, current ship and online status. Logs are still never uploaded.</span>
+                    </div>
+                    <div class="layout-help-row">
+                        <button id="resetLayoutBtn" class="btn small" type="button" title="Restore the original card and section order">
+                            <i class="fas fa-arrows-rotate"></i> Reset layout
+                        </button>
+                        <span class="hint">Drag the grip on any card or section to move it; use the chevron to minimise it.</span>
                     </div>
                     <input type="file" id="fileInput" multiple accept=".txt" class="hidden">
                     <div id="dropZone" class="drop-zone" style="margin-top:14px;">
@@ -220,42 +226,42 @@
 
         <!-- Summary -->
         <section class="summary-grid" id="summaryGrid">
-            <div class="summary-card net">
+            <div class="summary-card net" data-layout-id="sum-net">
                 <div class="summary-header"><i class="fas fa-sack-dollar"></i> Net ISK (ESS-adjusted)</div>
                 <div class="summary-value" id="svNet">—</div>
                 <div class="summary-note" id="ntNet">Connect or import logs to begin</div>
             </div>
-            <div class="summary-card kills">
+            <div class="summary-card kills" data-layout-id="sum-kills">
                 <div class="summary-header"><i class="fas fa-skull"></i> NPC kills</div>
                 <div class="summary-value" id="svKills">—</div>
                 <div class="summary-note" id="ntKills"></div>
             </div>
-            <div class="summary-card dps-in">
+            <div class="summary-card dps-in" data-layout-id="sum-dps-in">
                 <div class="summary-header"><i class="fas fa-arrow-down-long"></i> Incoming DPS</div>
                 <div class="summary-value" id="svDpsIn">—</div>
                 <div class="summary-note" id="ntDpsIn">damage taken from the combat log</div>
             </div>
-            <div class="summary-card dps-out">
+            <div class="summary-card dps-out" data-layout-id="sum-dps-out">
                 <div class="summary-header"><i class="fas fa-arrow-up-long"></i> Outgoing DPS</div>
                 <div class="summary-value" id="svDpsOut">—</div>
                 <div class="summary-note" id="ntDpsOut">damage dealt to NPCs</div>
             </div>
-            <div class="summary-card rate">
+            <div class="summary-card rate" data-layout-id="sum-rate">
                 <div class="summary-header"><i class="fas fa-gauge-high"></i> ISK / hour</div>
                 <div class="summary-value" id="svRate">—</div>
                 <div class="summary-note" id="ntRate"></div>
             </div>
-            <div class="summary-card time">
+            <div class="summary-card time" data-layout-id="sum-time">
                 <div class="summary-header"><i class="fas fa-clock"></i> Session time</div>
                 <div class="summary-value" id="svTime">—</div>
                 <div class="summary-note" id="ntTime"></div>
             </div>
-            <div class="summary-card gross">
+            <div class="summary-card gross" data-layout-id="sum-gross">
                 <div class="summary-header"><i class="fas fa-coins"></i> Gross bounty</div>
                 <div class="summary-value" id="svGross">—</div>
                 <div class="summary-note" id="ntGross"></div>
             </div>
-            <div class="summary-card bank">
+            <div class="summary-card bank" data-layout-id="sum-bank">
                 <div class="summary-header"><i class="fas fa-vault"></i> ESS bank share</div>
                 <div class="summary-value" id="svBank">—</div>
                 <div class="summary-note" id="ntBank"></div>
@@ -263,13 +269,13 @@
         </section>
 
         <!-- Chart -->
-        <section class="chart-wrap">
+        <section class="chart-wrap" data-layout-id="chart">
             <h3><i class="fas fa-chart-line"></i> Cumulative ISK <span id="chartTitle" style="font-weight:400;font-size:12px;color:var(--text-muted);"></span></h3>
             <svg id="chartSvg" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
         </section>
 
         <!-- Live feed -->
-        <section class="table-container">
+        <section class="table-container" data-layout-id="feed">
             <div class="table-title">
                 <span><i class="fas fa-crosshairs"></i> Recent kills <span class="count" id="feedCount"></span></span>
             </div>
@@ -291,7 +297,7 @@
         </section>
 
         <!-- By NPC -->
-        <section class="table-container">
+        <section class="table-container" data-layout-id="npc">
             <div class="table-title">
                 <span><i class="fas fa-dragon"></i> Kills by NPC <span class="count" id="npcCount"></span></span>
             </div>
@@ -314,7 +320,7 @@
         </section>
 
         <!-- By system -->
-        <section class="table-container">
+        <section class="table-container" data-layout-id="sys">
             <div class="table-title">
                 <span><i class="fas fa-map-location-dot"></i> Kills by system <span class="count" id="sysCount"></span></span>
             </div>
@@ -337,7 +343,7 @@
         </section>
 
         <!-- History -->
-        <section class="table-container" style="padding-bottom:14px;">
+        <section class="table-container" data-layout-id="history" style="padding-bottom:14px;">
             <div class="table-title">
                 <span><i class="fas fa-clock-rotate-left"></i> Session history (stored locally)</span>
             </div>
@@ -348,20 +354,20 @@
                     <button id="btnExportJson" class="btn"><i class="fas fa-file-code"></i> Export all data (JSON)</button>
                     <button id="btnClearAll" class="btn danger"><i class="fas fa-trash-can"></i> Clear all sessions</button>
                 </div>
-                <div class="summary-grid" style="margin-bottom:14px;">
-                    <div class="summary-card kills">
+                <div class="summary-grid" id="allTimeGrid" style="margin-bottom:14px;">
+                    <div class="summary-card kills" data-layout-id="at-kills">
                         <div class="summary-header"><i class="fas fa-skull"></i> All-time kills</div>
                         <div class="summary-value" id="atKills">—</div>
                     </div>
-                    <div class="summary-card net">
+                    <div class="summary-card net" data-layout-id="at-net">
                         <div class="summary-header"><i class="fas fa-sack-dollar"></i> All-time net ISK</div>
                         <div class="summary-value" id="atNet">—</div>
                     </div>
-                    <div class="summary-card time">
+                    <div class="summary-card time" data-layout-id="at-time">
                         <div class="summary-header"><i class="fas fa-clock"></i> Total time tracked</div>
                         <div class="summary-value" id="atTime">—</div>
                     </div>
-                    <div class="summary-card rate">
+                    <div class="summary-card rate" data-layout-id="at-sessions">
                         <div class="summary-header"><i class="fas fa-list"></i> Sessions</div>
                         <div class="summary-value" id="atSessions">—</div>
                     </div>
@@ -410,6 +416,6 @@
 <script src="esi-location.js?v=2"></script>
 <script src="data/npc-data.js"></script>
 <script src="tracker.js?v=3"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
