@@ -237,14 +237,14 @@
                 <div class="summary-note" id="ntKills"></div>
             </div>
             <div class="summary-card dps-in" data-layout-id="sum-dps-in">
-                <div class="summary-header"><i class="fas fa-arrow-down-long"></i> Incoming DPS</div>
+                <div class="summary-header" title="Applied damage taken after resists, from the combat-log hit lines. Live = last 10 seconds. Combat avg = total damage ÷ time between hits, excluding gaps longer than 3 minutes; isolated hits use a first-to-last span average. Peak = best 10-second window."><i class="fas fa-arrow-down-long"></i> Incoming DPS</div>
                 <div class="summary-value" id="svDpsIn">—</div>
-                <div class="summary-note" id="ntDpsIn">damage taken from the combat log</div>
+                <div class="summary-note" id="ntDpsIn">applied damage taken from the combat log</div>
             </div>
             <div class="summary-card dps-out" data-layout-id="sum-dps-out">
-                <div class="summary-header"><i class="fas fa-arrow-up-long"></i> Outgoing DPS</div>
+                <div class="summary-header" title="Applied damage dealt by your ship, drones and smartbombs, from the combat-log hit lines. Live = last 10 seconds. Combat avg = total damage ÷ time between hits, excluding gaps longer than 3 minutes; isolated hits use a first-to-last span average. Peak = best 10-second window."><i class="fas fa-arrow-up-long"></i> Outgoing DPS</div>
                 <div class="summary-value" id="svDpsOut">—</div>
-                <div class="summary-note" id="ntDpsOut">damage dealt to NPCs</div>
+                <div class="summary-note" id="ntDpsOut">damage dealt by your ship, drones and smartbombs</div>
             </div>
             <div class="summary-card rate" data-layout-id="sum-rate">
                 <div class="summary-header" title="Net ISK earned ÷ session time. Bounties pay out in 20-minute ticks at :07/:27/:47 UTC; the note below shows tick details and the next payout."><i class="fas fa-gauge-high"></i> ISK / hour</div>
@@ -478,7 +478,7 @@
 <script src="esi-config.js?v=2"></script>
 <script src="esi-location.js?v=2"></script>
 <script src="data/npc-data.js"></script>
-<script src="tracker.js?v=6"></script>
-<script src="app.js?v=8"></script>
+<script src="tracker.js?v=7"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

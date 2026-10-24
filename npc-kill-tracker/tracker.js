@@ -890,26 +890,7 @@
         // fighting instead of being diluted by idle hours.
         var COMBAT_GAP_MS = 180000;
         var combatInMs = 0, combatOutMs = 0, prevIn = null, prevOut = null;
-        for (var g = 0; g < sorted.length; g++) {
-            if (sorted[g].dir === 'in') {
-                if (prevIn !== null) {
-                    var gapIn = sorted[g].t - prevIn;
-                    if (gapIn <= COMBAT_GAP_MS) combatInMs += gapIn;
-                }
-                prevIn = sorted[g].t;
-            } else {
-                if (prevOut !== null) {
-                    var gapOut = sorted[g].t - prevOut;
-                    if (gapOut <= COMBAT_GAP_MS) combatOutMs += gapOut;
-                }
-                prevOut = sorted[g].t;
-            }
-        }
-        // Fall back to the first-hit-to-last-hit span when hits are too sparse
-        // to establish any combat-time window (no two hits within 3 minutes).
-        var combatInSec = combatInMs > 0 ? combatInMs / 1000 : Math.max(1, activeMs / 1000);
-        var combatOutSec = combatOutMs > 0 ? combatOutMs / 1000 : Math.max(1, activeMs / 1000);
-
+        var firstInT = null, lastInT = null, firstOutT = null, lastOutT = null;
         var liveCut = end - 10000;
         var cut60 = end - 60000;
         var inLive = 0, outLive = 0, in60 = 0, out60 = 0;
@@ -918,10 +899,46 @@
         for (var i = 0; i < sorted.length; i++) {
             var e = sorted[i];
             var isIn = e.dir === 'in';
-            if (isIn) { totalIn += e.a; hitsIn++; } else { totalOut += e.a; hitsOut++; }
-            if (e.t >= liveCut) { if (isIn) inLive += e.a; else outLive += e.a; }
-            if (e.t >= cut60) { if (isIn) in60 += e.a; else out60 += e.a; }
+            if (isIn) {
+                totalIn += e.a;
+                hitsIn++;
+                if (firstInT === null) firstInT = e.t;
+                lastInT = e.t;
+                if (prevIn !== null) {
+                    var gapIn = e.t - prevIn;
+                    if (gapIn <= COMBAT_GAP_MS) combatInMs += gapIn;
+                }
+                prevIn = e.t;
+                if (e.t >= liveCut) inLive += e.a;
+                if (e.t >= cut60) in60 += e.a;
+            } else {
+                totalOut += e.a;
+                hitsOut++;
+                if (firstOutT === null) firstOutT = e.t;
+                lastOutT = e.t;
+                if (prevOut !== null) {
+                    var gapOut = e.t - prevOut;
+                    if (gapOut <= COMBAT_GAP_MS) combatOutMs += gapOut;
+                }
+                prevOut = e.t;
+                if (e.t >= liveCut) outLive += e.a;
+                if (e.t >= cut60) out60 += e.a;
+            }
         }
+
+        // The average basis is the sum of fight gaps when there is a sustained
+        // fight. If every hit is isolated (no two within 3 minutes), fall back
+        // to the first-to-last-hit span and label that basis as a span average.
+        // A single hit, or several hits inside one second, has no measurable
+        // duration: return null instead of inventing a 1-second denominator.
+        var activeInMs = (firstInT !== null && lastInT !== null) ? Math.max(0, lastInT - firstInT) : 0;
+        var activeOutMs = (firstOutT !== null && lastOutT !== null) ? Math.max(0, lastOutT - firstOutT) : 0;
+        var basisInMs = combatInMs > 0 ? combatInMs : activeInMs;
+        var basisOutMs = combatOutMs > 0 ? combatOutMs : activeOutMs;
+        var basisInKind = combatInMs > 0 ? 'combat' : (activeInMs > 0 ? 'span' : null);
+        var basisOutKind = combatOutMs > 0 ? 'combat' : (activeOutMs > 0 ? 'span' : null);
+        var avgInDps = basisInMs > 0 ? totalIn / (basisInMs / 1000) : null;
+        var avgOutDps = basisOutMs > 0 ? totalOut / (basisOutMs / 1000) : null;
 
         // Peak 10-second window (two-pointer; sorted by timestamp).
         var p = 0, sumIn = 0, sumOut = 0, peakIn = 0, peakOut = 0;
@@ -947,7 +964,13 @@
         return {
             live: { inDps: inLive / 10, outDps: outLive / 10 },
             avg60: { inDps: in60 / 60, outDps: out60 / 60 },
-            avg: { inDps: totalIn / combatInSec, outDps: totalOut / combatOutSec },
+            avg: { inDps: avgInDps, outDps: avgOutDps },
+            avgBasis: {
+                inMs: basisInMs || null,
+                outMs: basisOutMs || null,
+                inKind: basisInKind,
+                outKind: basisOutKind,
+            },
             peak: { inDps: peakIn / 10, outDps: peakOut / 10 },
             totals: { in: totalIn, out: totalOut },
             hits: { in: hitsIn, out: hitsOut },
@@ -955,6 +978,7 @@
             hitRate: { inPct: rate(hitsIn, missIn), outPct: rate(hitsOut, missOut) },
             spanMs: spanMs,
             activeMs: activeMs,
+            active: { inMs: activeInMs, outMs: activeOutMs },
             combat: { inMs: combatInMs, outMs: combatOutMs },
         };
     }
@@ -1181,9 +1205,13 @@
                 // Everything up to the next site's first kill is usually that
                 // site's pre-bounty damage, which must not extend this one.
                 var activityEnd = Math.min(nextStart, site.end + 15000);
+                // The table's DPS is explicitly first-to-last-kill, so exclude
+                // the 15 s tail from its numerator even though the tail still
+                // counts as activity for quiet/left detection.
+                var damageEnd = Math.min(nextStart, site.end);
                 while (dEnd < damage.length && damage[dEnd].t < activityEnd) {
                     var dh = damage[dEnd];
-                    if (dh.dir === 'out') dpsOut += dh.a;
+                    if (dh.dir === 'out' && dh.t <= damageEnd) dpsOut += dh.a;
                     if (dh.t > lastActivity) lastActivity = dh.t;
                     dEnd++;
                 }

@@ -1666,7 +1666,18 @@
 
     function fmtDps(n) {
         if (n == null || isNaN(n)) return '—';
+        if (n !== 0 && Math.abs(n) < 100) return n.toFixed(1);
         return Math.round(n).toLocaleString('en-US');
+    }
+
+    function fmtDpsBasis(ms) {
+        if (ms == null || isNaN(ms)) return '—';
+        const total = Math.round(ms / 1000);
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+        if (h) return h + 'h ' + m + 'm ' + s + 's';
+        return m + 'm ' + pad2(s) + 's';
     }
 
     function dpsNote(dir, dps, live) {
@@ -1677,9 +1688,17 @@
         const avg = isIn ? dps.avg.inDps : dps.avg.outDps;
         const peak = isIn ? dps.peak.inDps : dps.peak.outDps;
         const rate = isIn ? dps.hitRate.inPct : dps.hitRate.outPct;
+        const basis = dps.avgBasis || {};
+        const basisMs = isIn ? basis.inMs : basis.outMs;
+        const basisKind = isIn ? basis.inKind : basis.outKind;
         const parts = [];
         if (live) parts.push('live 10s');
-        parts.push('combat avg ' + fmtDps(avg));
+        if (avg != null) {
+            parts.push((basisKind === 'span' ? 'span avg ' : 'combat avg ') + fmtDps(avg) +
+                (basisMs ? ' over ' + fmtDpsBasis(basisMs) : ''));
+        } else {
+            parts.push('avg n/a (no timed fight)');
+        }
         if (live) parts.push('60s avg ' + fmtDps(avg60));
         parts.push('peak 10s ' + fmtDps(peak));
         parts.push('total ' + T.fmtInt(total));
