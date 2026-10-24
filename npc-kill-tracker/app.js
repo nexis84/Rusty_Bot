@@ -525,7 +525,7 @@
         dirHandle = resolved.handle;
         try { await idbPut('kv', dirHandle, 'gamelogsDir'); } catch (err) { /* non-fatal */ }
         hideReconnect();
-        dom.connectBtn.classList.add('hidden');
+        updateConnectButton();
         dom.pauseBtn.classList.remove('hidden');
         userPaused = false;
         followLiveSession = true;
@@ -578,48 +578,85 @@
         return out;
     }
 
+    function markSessionEnded(id) {
+        const s = sessionsById[id];
+        if (s && s.live) {
+            s.live = false;
+            s.end = Math.max(s.end || 0, lastEventT(s) || 0, s.logEnd || 0);
+            saveSessionSoon(s);
+            invalidateAllStats();
+            scheduleRender();
+        }
+    }
+
+    function isMissingFileError(err) {
+        if (!err) return false;
+        return err.name === 'NotFoundError' ||
+            err.code === 8 ||
+            /could not be found|not found|no such file|has been removed|file.*removed/i.test(String(err.message || err));
+    }
+
     async function pollOnce() {
         if (!dirHandle || pollBusy || userPaused) return;
         pollBusy = true;
         try {
             const logs = await listLogs();
+            const available = new Set(logs.map((l) => l.name));
+
+            // Any watched file that vanished was deleted/rotated. End its session
+            // instead of leaving a stale handle that breaks every later poll.
+            watched.forEach((w) => {
+                if (!available.has(w.name)) markSessionEnded(w.sessionId);
+            });
+            watched = watched.filter((w) => available.has(w.name));
+
             if (!logs.length) {
-                setStatus('Connected to "' + dirHandle.name + '" — no .txt logs found. Start EVE with logging enabled.');
+                watched = [];
+                updateTailStatus();
+                setStatus('Connected to "' + dirHandle.name + '" — waiting for a new game log. Start EVE with logging enabled.');
                 return;
             }
+
             const targets = [logs[0]];
             watched.forEach((w) => {
-                if (targets.length < 3 && !targets.some((t) => t.name === w.name)) targets.push({ name: w.name, handle: w.handle });
+                if (targets.length >= 3) return;
+                const entry = logs.find((l) => l.name === w.name);
+                if (entry && !targets.some((t) => t.name === w.name)) targets.push(entry);
             });
+
             const next = [];
             for (const t of targets) {
                 if (suppressedFiles[t.name]) continue;
                 let w = watched.find((x) => x.name === t.name);
-                if (!w) {
-                    w = await startLiveSession(t.name, t.handle);
-                } else {
-                    w = (await readAppended(w)) || w;
+                try {
+                    if (!w) w = await startLiveSession(t.name, t.handle);
+                    else w = (await readAppended(w)) || w;
+                    if (w) next.push(w);
+                } catch (err) {
+                    if (isMissingFileError(err)) {
+                        if (w) markSessionEnded(w.sessionId);
+                        continue;
+                    }
+                    throw err;
                 }
-                if (w) next.push(w);
             }
+
             const prevIds = new Set(watched.map((w) => w.sessionId));
             watched = next;
             const currIds = new Set(watched.map((w) => w.sessionId));
             prevIds.forEach((id) => {
-                if (!currIds.has(id)) {
-                    const s = sessionsById[id];
-                    if (s && s.live) {
-                        s.live = false;
-                        s.end = lastEventT(s) || s.end;
-                        saveSessionSoon(s);
-                        invalidateAllStats();
-                    }
-                }
+                if (!currIds.has(id)) markSessionEnded(id);
             });
             updateTailStatus();
         } catch (err) {
             console.warn('log poll failed', err);
-            setStatus('Log read error: ' + (err && err.message ? err.message : err));
+            if (isMissingFileError(err) || err.name === 'NotAllowedError') {
+                setStatus('Connected folder is no longer available — click Reconnect.');
+                showReconnect(dirHandle ? dirHandle.name : '');
+                stopPolling();
+            } else {
+                setStatus('Log read error: ' + (err && err.message ? err.message : err));
+            }
         } finally {
             pollBusy = false;
             updateLiveUI();
@@ -629,7 +666,7 @@
     function updateTailStatus() {
         if (!dirHandle || userPaused) return;
         if (!watched.length) {
-            setStatus('Connected to "' + dirHandle.name + '" — waiting for a game log…');
+            setStatus('Connected to "' + dirHandle.name + '" — waiting for a new game log…');
             return;
         }
         const newest = watched[0];
@@ -728,6 +765,18 @@
 
     function hideReconnect() {
         if (dom.reconnectBtn) dom.reconnectBtn.classList.add('hidden');
+    }
+
+    function updateConnectButton() {
+        if (!dom.connectBtn) return;
+        dom.connectBtn.classList.remove('hidden');
+        if (dirHandle) {
+            dom.connectBtn.innerHTML = '<i class="fas fa-folder-tree"></i> Change logs folder';
+            dom.connectBtn.title = 'Pick a different EVE Gamelogs folder';
+        } else {
+            dom.connectBtn.innerHTML = '<i class="fas fa-folder-open"></i> Connect EVE logs';
+            dom.connectBtn.title = 'One click — opens at Documents and finds EVE\\logs\\Gamelogs for you';
+        }
     }
 
     function updateLiveUI() {
@@ -2078,23 +2127,43 @@
         if (dom.connectBtn) dom.connectBtn.addEventListener('click', connectFolder);
         if (dom.reconnectBtn) {
             dom.reconnectBtn.addEventListener('click', async () => {
-                if (!dirHandle) return;
+                if (!dirHandle) {
+                    updateConnectButton();
+                    toast('Pick the EVE Gamelogs folder again.', '', 3500);
+                    return;
+                }
                 try {
                     let perm = 'prompt';
                     if (dirHandle.queryPermission) perm = await dirHandle.queryPermission({ mode: 'read' });
                     if (perm !== 'granted' && dirHandle.requestPermission) perm = await dirHandle.requestPermission({ mode: 'read' });
-                    if (perm !== 'granted') { toast('Permission for "' + dirHandle.name + '" was denied', 'error'); return; }
+                    if (perm !== 'granted') {
+                        updateConnectButton();
+                        toast('Permission for "' + dirHandle.name + '" was denied — click "Change logs folder" to pick it again.', 'error', 7000);
+                        return;
+                    }
                 } catch (err) {
-                    toast('Could not re-open the folder — connect it again.', 'error');
+                    updateConnectButton();
+                    showReconnect(dirHandle.name);
+                    toast('Could not re-open the folder — click "Change logs folder" to pick it again.', 'error', 7000);
                     return;
                 }
-                const resolved = await resolveGamelogsDir(dirHandle);
-                if (resolved.found) {
-                    dirHandle = resolved.handle;
-                    try { await idbPut('kv', dirHandle, 'gamelogsDir'); } catch (err) { /* non-fatal */ }
+                let resolved;
+                try {
+                    resolved = await resolveGamelogsDir(dirHandle);
+                } catch (err) {
+                    resolved = { found: false };
                 }
+                if (!resolved.found) {
+                    showReconnect(dirHandle.name);
+                    updateConnectButton();
+                    setStatus('No EVE logs found in "' + dirHandle.name + '" — click "Change logs folder" and pick Documents or Gamelogs.');
+                    toast('No EVE logs found — click "Change logs folder" and pick Documents or your Gamelogs folder.', 'error', 8000);
+                    return;
+                }
+                dirHandle = resolved.handle;
+                try { await idbPut('kv', dirHandle, 'gamelogsDir'); } catch (err) { /* non-fatal */ }
                 hideReconnect();
-                dom.connectBtn.classList.add('hidden');
+                updateConnectButton();
                 userPaused = false;
                 followLiveSession = true;
                 await startWatching();
@@ -2281,12 +2350,13 @@
                 let perm = 'prompt';
                 try { if (handle.queryPermission) perm = await handle.queryPermission({ mode: 'read' }); } catch (e) { /* ignore */ }
                 if (perm === 'granted') {
-                    dom.connectBtn.classList.add('hidden');
+                    updateConnectButton();
                     dom.pauseBtn.classList.remove('hidden');
                     followLiveSession = true;
                     await startWatching();
                 } else {
                     showReconnect(handle.name);
+                    updateConnectButton();
                 }
             }
         } catch (err) { /* ignore */ }
