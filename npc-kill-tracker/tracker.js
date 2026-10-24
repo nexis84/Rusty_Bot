@@ -441,9 +441,22 @@
         useContext: true,
     };
 
-    // Bounty payouts are batched: the timer starts on the first accrual and pays
-    // everything accrued 20 minutes later, then waits for the next accrual.
+    // Bounty payouts are batched on a fixed 20-minute schedule at :07/:27/:47
+    // UTC (confirmed against in-game wallet pings). 3 ticks = 1 hour. The real
+    // close is a few seconds after the minute: :07:07 matches the observed
+    // 02:27:03 accrual being included in the 02:27 payout.
     var BOUNTY_TICK_MS = 20 * 60 * 1000;
+    var BOUNTY_TICK_OFFSET_MS = (7 * 60 + 7) * 1000;
+
+    function bountyTickEnd(t) {
+        var d = new Date(t);
+        var dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0);
+        var elapsed = t - dayStart;
+        var end = dayStart + BOUNTY_TICK_OFFSET_MS +
+            Math.ceil((elapsed - BOUNTY_TICK_OFFSET_MS) / BOUNTY_TICK_MS) * BOUNTY_TICK_MS;
+        if (end <= t) end += BOUNTY_TICK_MS;
+        return end;
+    }
 
     function normalizeEssSettings(settings) {
         var out = {};
@@ -493,8 +506,7 @@
         var byNpc = new Map();     // key: rat idx or 'u:<amount>'
         var bySystem = new Map();  // key: system name or '' (unknown)
         var timeline = [];
-        var tickBuckets = [];
-        var activeTick = null;
+        var tickMap = new Map();
         var grossTotal = 0, netTotal = 0, bankTotal = 0, taxTotal = 0, essTotal = 0;
         var resolved = 0, guessed = 0, unknown = 0, manual = 0;
         var cumNet = 0;
@@ -555,25 +567,27 @@
             sys.essRate = Math.max(sys.essRate, essInfo.rate);
             if (sys.essSource !== essInfo.source && essInfo.rate > 0) sys.essSource = essInfo.source;
 
-            // Bounty tick buckets: the first accrual starts the 20-minute payout
-            // timer; an accrual at/after the tick end starts the next tick.
-            if (!activeTick || ev.t >= activeTick.end) {
-                activeTick = {
-                    start: ev.t,
-                    end: ev.t + BOUNTY_TICK_MS,
+            // Fixed 20-minute bounty ticks at :07/:27/:47 UTC. The wallet pays
+            // each tick as a lump sum after it closes.
+            var tickEnd = bountyTickEnd(ev.t);
+            var tickBucket = tickMap.get(tickEnd);
+            if (!tickBucket) {
+                tickBucket = {
+                    start: tickEnd - BOUNTY_TICK_MS,
+                    end: tickEnd,
                     gross: 0, net: 0, bank: 0, kills: 0,
                     bySystem: new Map(),
                 };
-                tickBuckets.push(activeTick);
+                tickMap.set(tickEnd, tickBucket);
             }
-            activeTick.gross += gross;
-            activeTick.net += net;
-            activeTick.bank += bank;
-            activeTick.kills++;
-            var tickSys = activeTick.bySystem.get(sysKey);
+            tickBucket.gross += gross;
+            tickBucket.net += net;
+            tickBucket.bank += bank;
+            tickBucket.kills++;
+            var tickSys = tickBucket.bySystem.get(sysKey);
             if (!tickSys) {
                 tickSys = { net: 0, gross: 0, kills: 0 };
-                activeTick.bySystem.set(sysKey, tickSys);
+                tickBucket.bySystem.set(sysKey, tickSys);
             }
             tickSys.net += net;
             tickSys.gross += gross;
@@ -582,9 +596,7 @@
             timeline.push({ t: ev.t, cum: cumNet });
         }
 
-        // Only completed 20-minute payouts count towards ISK/hour. A tick that is
-        // still open (fewer than 20 minutes old) is shown separately, never mixed
-        // into the hourly rate.
+        var tickBuckets = Array.from(tickMap.values()).sort(function (a, b) { return a.end - b.end; });
         var completedTicks = [];
         var currentTick = null;
         for (var bt = 0; bt < tickBuckets.length; bt++) {
@@ -592,6 +604,20 @@
             bucket.complete = bucket.end <= tickNow;
             if (bucket.complete) completedTicks.push(bucket);
             else currentTick = bucket;
+        }
+        // A live session always has a current tick, even if no bounty has
+        // accrued in it yet, so the UI can show the countdown to the next payout.
+        if (session.live) {
+            var liveTickEnd = bountyTickEnd(tickNow);
+            if (!tickMap.has(liveTickEnd)) {
+                currentTick = {
+                    start: liveTickEnd - BOUNTY_TICK_MS,
+                    end: liveTickEnd,
+                    gross: 0, net: 0, bank: 0, kills: 0,
+                    complete: false,
+                    bySystem: new Map(),
+                };
+            }
         }
 
         var tickNet = 0, tickGross = 0;
