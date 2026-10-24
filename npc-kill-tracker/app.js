@@ -1302,12 +1302,17 @@
         }
         const st = T.computeStats({ events: events, start: null, live: false }, indexes, trackerEss(), now);
         st.spanMs = spanMs;
+        // Headline rate across all sessions: total net/gross ÷ total tracked time.
+        const spanHours = spanMs / 3600000;
+        if (spanHours > 0) {
+            st.iskPerHour = st.net / spanHours;
+            st.grossPerHour = st.gross / spanHours;
+        }
         st.completedTicks = completedTicks;
         st.tickNet = tickNet;
         st.tickGross = tickGross;
         st.avgTickNet = completedTicks ? tickNet / completedTicks : null;
-        st.iskPerHour = completedTicks ? (tickNet / completedTicks) * 3 : null;
-        st.grossPerHour = completedTicks ? (tickGross / completedTicks) * 3 : null;
+        st.tickPerHour = completedTicks ? (tickNet / completedTicks) * 3 : null;
         st.last3Ticks = 0;
         st.last3Net = 0;
         st.last3PerHour = null;
@@ -1393,9 +1398,9 @@
         if (dom.ntNet) dom.ntNet.textContent = netNote(st, ess);
         if (dom.svKills) dom.svKills.textContent = st.kills.toLocaleString('en-US');
         if (dom.ntKills) dom.ntKills.textContent = killsNote(st);
-        if (dom.svDpsIn) dom.svDpsIn.textContent = fmtDps(live ? dps.live.inDps : dps.peak.inDps);
+        if (dom.svDpsIn) dom.svDpsIn.textContent = fmtDps(live ? dps.live.inDps : dps.avg.inDps);
         if (dom.ntDpsIn) dom.ntDpsIn.textContent = dpsNote('in', dps, live);
-        if (dom.svDpsOut) dom.svDpsOut.textContent = fmtDps(live ? dps.live.outDps : dps.peak.outDps);
+        if (dom.svDpsOut) dom.svDpsOut.textContent = fmtDps(live ? dps.live.outDps : dps.avg.outDps);
         if (dom.ntDpsOut) dom.ntDpsOut.textContent = dpsNote('out', dps, live);
         if (dom.svRate) dom.svRate.textContent = st.iskPerHour != null ? fmtISKcard(st.iskPerHour) : '—';
         if (dom.ntRate) dom.ntRate.textContent = rateNote(st, live);
@@ -1423,14 +1428,10 @@
         const peak = isIn ? dps.peak.inDps : dps.peak.outDps;
         const rate = isIn ? dps.hitRate.inPct : dps.hitRate.outPct;
         const parts = [];
-        if (live) {
-            parts.push('live 10s');
-            parts.push('60s avg ' + fmtDps(avg60));
-            parts.push('peak ' + fmtDps(peak));
-        } else {
-            parts.push('peak 10s');
-            parts.push('active avg ' + fmtDps(avg));
-        }
+        if (live) parts.push('live 10s');
+        parts.push('combat avg ' + fmtDps(avg));
+        if (live) parts.push('60s avg ' + fmtDps(avg60));
+        parts.push('peak 10s ' + fmtDps(peak));
         parts.push('total ' + T.fmtInt(total));
         if (rate != null) parts.push('hit ' + Math.round(rate) + '%');
         return parts.join(' · ');
@@ -1447,28 +1448,26 @@
     }
 
     function rateNote(st, live) {
-        const tickMin = st.tickMs ? Math.round(st.tickMs / 60000) : 20;
-        if (!st.completedTicks) {
-            const bits = ['waiting for first full ' + tickMin + '-min tick'];
-            if (st.currentTick) {
-                bits.push((live ? 'current ' : 'partial tick ') + T.fmtISK(st.currentTick.net, true) + ' ISK');
-                if (live) bits.push(T.fmtDuration(st.currentTick.remainingMs) + ' left');
-                else bits.push('not counted');
-            }
-            return bits.join(' · ');
+        const bits = [];
+        if (st.iskPerHour == null) {
+            bits.push('needs a bit more session time');
+        } else {
+            bits.push('net ÷ session time');
+            if (st.grossPerHour != null) bits.push('gross ' + T.fmtISK(st.grossPerHour, true) + '/h');
         }
-        const avg = st.tickNet / st.completedTicks;
-        const bits = [
-            tickMin + 'm ticks · 3/hr',
-            st.completedTicks + ' full tick' + (st.completedTicks === 1 ? '' : 's'),
-            'avg ' + T.fmtISK(avg, true) + '/tick',
-        ];
-        if (st.completedTicks >= 3 && st.last3PerHour != null) {
-            bits.push('last 3 ticks: ' + T.fmtISK(st.last3PerHour, true) + '/h');
+        if (st.completedTicks) {
+            bits.push(st.completedTicks + ' paid tick' + (st.completedTicks === 1 ? '' : 's'));
+            if (st.completedTicks >= 3 && st.last3PerHour != null) {
+                bits.push('last 3 ticks ' + T.fmtISK(st.last3PerHour, true) + '/h');
+            }
         }
         if (st.currentTick) {
-            bits.push((live ? 'current ' : 'partial tick ') + T.fmtISK(st.currentTick.net, true) +
-                (live ? ' · ' + T.fmtDuration(st.currentTick.remainingMs) + ' left' : ' · not counted'));
+            if (live) {
+                bits.push('next payout in ' + T.fmtDuration(st.currentTick.remainingMs) +
+                    ' · ' + T.fmtISK(st.currentTick.net, true) + ' ISK pending');
+            } else {
+                bits.push('final tick ' + T.fmtISK(st.currentTick.net, true) + ' ISK not counted');
+            }
         }
         return bits.join(' · ');
     }
@@ -1703,8 +1702,8 @@
         }
         const rateStr = r.rate >= 0 ? T.fmtISK(r.rate) : '—';
         const rateTitle = r.rate >= 0
-            ? 'ISK/hour from completed 20-minute bounty ticks'
-            : 'Waiting for a complete 20-minute bounty tick';
+            ? 'ISK/hour = net ISK earned in this system ÷ session time'
+            : 'No completed kill in this system yet';
         return '<tr>' +
             '<td>' + name + '</td>' +
             '<td>' + esc(r.region || '—') + '</td>' +
@@ -1722,7 +1721,7 @@
         const st = view.stats;
         const rows = st.bySystem.map((sy) => {
             const info = sy.name ? indexes.systems.get(sy.name.toLowerCase()) : null;
-            const rate = sy.tickRate;
+            const rate = sy.rate;
             return {
                 name: sy.name ? sy.name.toLowerCase() : '\uffff',
                 region: info ? info.region : '',
@@ -1749,8 +1748,8 @@
     function histRowHtml(r) {
         const rateStr = r.rate >= 0 ? T.fmtISK(r.rate) : '—';
         const rateTitle = r.rate >= 0
-            ? 'ISK/hour from completed 20-minute bounty ticks'
-            : 'Waiting for a complete 20-minute bounty tick';
+            ? 'ISK/hour = net ISK ÷ session time'
+            : 'Session too short for a rate yet';
         return '<tr' + (r.id === activeViewId ? ' style="box-shadow: inset 2px 0 0 var(--accent);"' : '') + '>' +
             '<td class="mono">' + fmtDate(r.date) + (r.live ? ' <span class="chip ok">live</span>' : '') + '</td>' +
             '<td>' + esc(r.char) + '</td>' +

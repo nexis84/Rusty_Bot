@@ -247,7 +247,7 @@
                 <div class="summary-note" id="ntDpsOut">damage dealt to NPCs</div>
             </div>
             <div class="summary-card rate" data-layout-id="sum-rate">
-                <div class="summary-header" title="Bounties pay out in 20-minute ticks at :07/:27/:47 UTC (3 per hour). ISK/hour uses completed ticks only; the current partial tick is shown separately."><i class="fas fa-gauge-high"></i> ISK / hour (ticks)</div>
+                <div class="summary-header" title="Net ISK earned ÷ session time. Bounties pay out in 20-minute ticks at :07/:27/:47 UTC; the note below shows tick details and the next payout."><i class="fas fa-gauge-high"></i> ISK / hour</div>
                 <div class="summary-value" id="svRate">—</div>
                 <div class="summary-note" id="ntRate"></div>
             </div>
@@ -334,7 +334,7 @@
                         <th class="num" data-sort="net">Net <i class="fas fa-sort sort-ind"></i></th>
                         <th class="num" data-sort="ess">ESS % <i class="fas fa-sort sort-ind"></i></th>
                         <th class="num" data-sort="bank">Bank share <i class="fas fa-sort sort-ind"></i></th>
-                        <th class="num" data-sort="rate">ISK / hr (ticks) <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="rate">ISK / hr <i class="fas fa-sort sort-ind"></i></th>
                     </tr>
                 </thead>
                 <tbody id="sysBody"></tbody>
@@ -382,7 +382,7 @@
                         <th class="num" data-sort="dur">Duration <i class="fas fa-sort sort-ind"></i></th>
                         <th class="num" data-sort="kills">Kills <i class="fas fa-sort sort-ind"></i></th>
                         <th class="num" data-sort="net">Net ISK <i class="fas fa-sort sort-ind"></i></th>
-                        <th class="num" data-sort="rate">ISK / hr (ticks) <i class="fas fa-sort sort-ind"></i></th>
+                        <th class="num" data-sort="rate">ISK / hr <i class="fas fa-sort sort-ind"></i></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -396,7 +396,7 @@
             <h2>Rusty NPC Tracker — EVE Online ratting &amp; bounty tracker</h2>
             <p>Every time you destroy an NPC in EVE Online the client writes a bounty line into your local game log. Rusty NPC Tracker connects to that log — no login required, and an optional read-only ESI link fills in the system when your log has no jump or undock line, plus shows your current ship and online status — and turns it into a live ratting dashboard: <strong>which NPC you killed</strong>, its <strong>bounty</strong>, the <strong>system</strong> it happened in, live <strong>incoming/outgoing DPS</strong> from the combat lines, and your <strong>ISK per hour</strong> in real time.</p>
             <p>The NPC database is generated straight from CCP's official static data export (2,800+ bounty NPCs across New Eden), and kill locations are tracked from the jump and undock lines in the same log. Amount adjustments from <strong>ESS</strong> (Encounter Surveillance System), system bounty modifiers and event payout scalings are matched automatically, and you can fine-tune everything.</p>
-            <p><strong>ISK per hour is tick-based:</strong> bounties pay out in 20-minute ticks at :07/:27/:47 UTC (three per hour), so the rate uses completed ticks only. The current partial tick is shown separately and is never mixed into the hourly figure.</p>
+            <p><strong>ISK per hour = net ISK ÷ session time</strong> — the rate you actually earned. Bounties pay out in 20-minute ticks at :07/:27/:47 UTC (three per hour); each session's note shows the paid-tick details, the last three ticks' pace, and the countdown to the next payout, so you can see both the real rate and the recent tick pace.</p>
             <p>Bounty amounts are only part of the picture — where several NPC types share a bounty, the tracker cross-references the NPCs you were actually fighting seconds before each kill for a confident match, and anything still ambiguous is one click to fix (optionally applied to every matching kill in the session).</p>
             <p>Old sessions can be imported by dropping any number of game logs onto the page — perfect for comparing anomalies, systems or fits over weeks of ratting. All history is stored locally in your browser and can be exported to CSV or JSON.</p>
             <p>Looking for more RustyBot tools? Try the <a href="../appraisal/">EVE Online Item Appraisal</a>, browse the <a href="../market/">Market Browser</a>, check gate camps with <a href="../gatecheck/">GateCheck</a>, or head back to the <a href="../">RustyBot homepage</a>.</p>

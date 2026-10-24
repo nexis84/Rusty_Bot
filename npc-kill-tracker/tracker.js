@@ -629,26 +629,21 @@
         var last3Net = 0;
         for (var l3 = 0; l3 < last3.length; l3++) last3Net += last3[l3].net;
         var avgTickNet = completedTicks.length ? tickNet / completedTicks.length : null;
-        var iskPerHour = completedTicks.length ? (tickNet / completedTicks.length) * 3 : null;
-        var grossPerHour = completedTicks.length ? (tickGross / completedTicks.length) * 3 : null;
         var last3PerHour = last3.length ? (last3Net / last3.length) * 3 : null;
 
-        // Per-system tick rates: average net per completed tick in which that
-        // system had kills, scaled to three ticks per hour.
-        var sysTickNet = new Map();
-        var sysTickCount = new Map();
-        for (var stc = 0; stc < completedTicks.length; stc++) {
-            completedTicks[stc].bySystem.forEach(function (v, key) {
-                sysTickNet.set(key, (sysTickNet.get(key) || 0) + v.net);
-                sysTickCount.set(key, (sysTickCount.get(key) || 0) + 1);
-            });
-        }
-        bySystem.forEach(function (v, key) {
-            var n = sysTickNet.get(key) || 0;
-            var c = sysTickCount.get(key) || 0;
-            v.tickNet = n;
-            v.tickTicks = c;
-            v.tickRate = c ? (n / c) * 3 : null;
+        // Headline rate: ISK actually earned per hour of session time.
+        // The old "average per completed tick x 3" only averaged ticks that
+        // contained kills, so for bursty ratting (kills in a few ticks, empty
+        // ticks in between) it overstated the real rate several-fold.
+        var spanHours = spanMs / 3600000;
+        var iskPerHour = spanHours > 0 ? netTotal / spanHours : null;
+        var grossPerHour = spanHours > 0 ? grossTotal / spanHours : null;
+        // Kept for the explanatory note only (avg net per paid tick x 3).
+        var tickPerHour = completedTicks.length ? (tickNet / completedTicks.length) * 3 : null;
+
+        // Per-system rate: net ISK earned in that system / session time.
+        bySystem.forEach(function (v) {
+            v.rate = spanHours > 0 ? v.net / spanHours : null;
         });
 
         // Downsample timeline to ~150 points for drawing
@@ -697,6 +692,7 @@
             } : null,
             iskPerHour: iskPerHour,
             grossPerHour: grossPerHour,
+            tickPerHour: tickPerHour,
             resolved: resolved,
             guessed: guessed,
             unknown: unknown,
@@ -730,7 +726,33 @@
         else end = Math.max((session && session.end) || 0, lastT || 0, start);
         var spanMs = spanOverride != null ? spanOverride : Math.max(0, end - start);
         var activeMs = (firstT != null && lastT != null) ? Math.max(0, lastT - firstT) : 0;
-        var activeSec = Math.max(1, activeMs / 1000);
+
+        // "Combat" time per direction: inter-hit silences longer than
+        // COMBAT_GAP_MS are out-of-combat breaks (site travel, docking,
+        // downtime between ratting bursts) and are excluded, so the session
+        // average matches what an in-game damage meter would show while
+        // fighting instead of being diluted by idle hours.
+        var COMBAT_GAP_MS = 180000;
+        var combatInMs = 0, combatOutMs = 0, prevIn = null, prevOut = null;
+        for (var g = 0; g < sorted.length; g++) {
+            if (sorted[g].dir === 'in') {
+                if (prevIn !== null) {
+                    var gapIn = sorted[g].t - prevIn;
+                    if (gapIn <= COMBAT_GAP_MS) combatInMs += gapIn;
+                }
+                prevIn = sorted[g].t;
+            } else {
+                if (prevOut !== null) {
+                    var gapOut = sorted[g].t - prevOut;
+                    if (gapOut <= COMBAT_GAP_MS) combatOutMs += gapOut;
+                }
+                prevOut = sorted[g].t;
+            }
+        }
+        // Fall back to the first-hit-to-last-hit span when hits are too sparse
+        // to establish any combat-time window (no two hits within 3 minutes).
+        var combatInSec = combatInMs > 0 ? combatInMs / 1000 : Math.max(1, activeMs / 1000);
+        var combatOutSec = combatOutMs > 0 ? combatOutMs / 1000 : Math.max(1, activeMs / 1000);
 
         var liveCut = end - 10000;
         var cut60 = end - 60000;
@@ -769,7 +791,7 @@
         return {
             live: { inDps: inLive / 10, outDps: outLive / 10 },
             avg60: { inDps: in60 / 60, outDps: out60 / 60 },
-            avg: { inDps: totalIn / activeSec, outDps: totalOut / activeSec },
+            avg: { inDps: totalIn / combatInSec, outDps: totalOut / combatOutSec },
             peak: { inDps: peakIn / 10, outDps: peakOut / 10 },
             totals: { in: totalIn, out: totalOut },
             hits: { in: hitsIn, out: hitsOut },
@@ -777,6 +799,7 @@
             hitRate: { inPct: rate(hitsIn, missIn), outPct: rate(hitsOut, missOut) },
             spanMs: spanMs,
             activeMs: activeMs,
+            combat: { inMs: combatInMs, outMs: combatOutMs },
         };
     }
 
