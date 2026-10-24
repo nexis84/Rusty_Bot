@@ -100,6 +100,7 @@
         taxPct: $('taxPct'), incBank: $('incBank'), useContext: $('useContext'),
         sessionSelectRow: $('sessionSelectRow'), sessionSelect: $('sessionSelect'), sessionSelectMeta: $('sessionSelectMeta'),
         svNet: $('svNet'), ntNet: $('ntNet'), svKills: $('svKills'), ntKills: $('ntKills'),
+        svDpsIn: $('svDpsIn'), ntDpsIn: $('ntDpsIn'), svDpsOut: $('svDpsOut'), ntDpsOut: $('ntDpsOut'),
         svRate: $('svRate'), ntRate: $('ntRate'), svTime: $('svTime'), ntTime: $('ntTime'),
         svGross: $('svGross'), ntGross: $('ntGross'), svBank: $('svBank'), ntBank: $('ntBank'),
         chartSvg: $('chartSvg'), chartTitle: $('chartTitle'),
@@ -263,6 +264,8 @@
             source: source || 'file',
             live: false,
             events: [],
+            damage: [],
+            misses: [],
             amountOverrides: {},
             eventFixes: {},
         };
@@ -383,6 +386,8 @@
         s.char = char;
         if (parser.sessionStart) s.start = parser.sessionStart;
         s.events = res.events;
+        s.damage = res.damage || [];
+        s.misses = res.misses || [];
         s.source = source;
         s.live = isWatchedSession(id);
         s.end = lastEventT(s) || s.start || 0;
@@ -638,6 +643,8 @@
         s.char = char;
         if (parser.sessionStart) s.start = parser.sessionStart;
         s.events = res.events;
+        s.damage = res.damage || [];
+        s.misses = res.misses || [];
         s.source = 'live';
         s.live = true;
         s.end = lastEventT(s) || s.start || 0;
@@ -666,6 +673,10 @@
         if (!s) return w;
         let added = 0;
         for (const ev of res.events) { s.events.push(ev); added++; }
+        if (!Array.isArray(s.damage)) s.damage = [];
+        if (!Array.isArray(s.misses)) s.misses = [];
+        for (const d of (res.damage || [])) { s.damage.push(d); added++; }
+        for (const m of (res.misses || [])) { s.misses.push(m); added++; }
         const esiFilled = added ? applyEsiToEvents(res.events) : 0;
         if (added || res.jumps.length || esiFilled) {
             s.end = lastEventT(s) || s.end;
@@ -959,10 +970,14 @@
         if (!allStatsDirty && allStatsCache) return allStatsCache;
         const now = Date.now();
         const events = [];
+        const damage = [];
+        const misses = [];
         const eventSession = new Map();
         let spanMs = 0;
         for (const s of sessions) {
             for (const ev of s.events) { events.push(ev); eventSession.set(ev, s); }
+            for (const d of (s.damage || [])) damage.push(d);
+            for (const m of (s.misses || [])) misses.push(m);
             spanMs += sessionSpanMs(s, now);
         }
         const st = T.computeStats({ events: events, start: null, live: false }, indexes, trackerEss(), now);
@@ -970,6 +985,8 @@
         st.iskPerHour = spanMs > 60000 ? st.net / (spanMs / 3600000) : null;
         st.grossPerHour = spanMs > 60000 ? st.gross / (spanMs / 3600000) : null;
         st._events = events;
+        st._damage = damage;
+        st._misses = misses;
         st._eventSession = eventSession;
         allStatsCache = st;
         allStatsDirty = false;
@@ -1040,10 +1057,18 @@
     function renderSummary(view) {
         const st = view.stats;
         const ess = st.essSettings || trackerEss();
+        const dps = view.all
+            ? T.computeDps({ damage: st._damage || [], misses: st._misses || [], start: null, live: false }, Date.now(), st.spanMs)
+            : T.computeDps(view.session, Date.now());
+        const live = !!(view.session && view.session.live);
         if (dom.svNet) dom.svNet.textContent = fmtISKcard(st.net);
         if (dom.ntNet) dom.ntNet.textContent = netNote(st, ess);
         if (dom.svKills) dom.svKills.textContent = st.kills.toLocaleString('en-US');
         if (dom.ntKills) dom.ntKills.textContent = killsNote(st);
+        if (dom.svDpsIn) dom.svDpsIn.textContent = fmtDps(live ? dps.live.inDps : dps.peak.inDps);
+        if (dom.ntDpsIn) dom.ntDpsIn.textContent = dpsNote('in', dps, live);
+        if (dom.svDpsOut) dom.svDpsOut.textContent = fmtDps(live ? dps.live.outDps : dps.peak.outDps);
+        if (dom.ntDpsOut) dom.ntDpsOut.textContent = dpsNote('out', dps, live);
         if (dom.svRate) dom.svRate.textContent = st.iskPerHour != null ? fmtISKcard(st.iskPerHour) : '—';
         if (dom.ntRate) dom.ntRate.textContent = st.iskPerHour != null
             ? ('gross ' + T.fmtISK(st.grossPerHour || 0, true) + '/h · over ' + T.fmtDuration(st.spanMs))
@@ -1056,6 +1081,33 @@
         if (dom.ntGross) dom.ntGross.textContent = 'exact ' + T.fmtISK(st.gross) + ' ISK from the logs';
         if (dom.svBank) dom.svBank.textContent = fmtISKcard(st.bank);
         if (dom.ntBank) dom.ntBank.textContent = bankNote(st, ess);
+    }
+
+    function fmtDps(n) {
+        if (n == null || isNaN(n)) return '—';
+        return Math.round(n).toLocaleString('en-US');
+    }
+
+    function dpsNote(dir, dps, live) {
+        const isIn = dir === 'in';
+        const total = isIn ? dps.totals.in : dps.totals.out;
+        if (!total) return 'no ' + (isIn ? 'incoming' : 'outgoing') + ' damage lines in this view';
+        const avg60 = isIn ? dps.avg60.inDps : dps.avg60.outDps;
+        const avg = isIn ? dps.avg.inDps : dps.avg.outDps;
+        const peak = isIn ? dps.peak.inDps : dps.peak.outDps;
+        const rate = isIn ? dps.hitRate.inPct : dps.hitRate.outPct;
+        const parts = [];
+        if (live) {
+            parts.push('live 10s');
+            parts.push('60s avg ' + fmtDps(avg60));
+            parts.push('peak ' + fmtDps(peak));
+        } else {
+            parts.push('peak 10s');
+            parts.push('active avg ' + fmtDps(avg));
+        }
+        parts.push('total ' + T.fmtInt(total));
+        if (rate != null) parts.push('hit ' + Math.round(rate) + '%');
+        return parts.join(' · ');
     }
 
     function netNote(st, ess) {
@@ -1846,6 +1898,17 @@
         };
         tick();
         setInterval(tick, 1000);
+        // DPS is time-windowed: refresh the summary cards once a second while a
+        // live session is active so they decay between log writes.
+        setInterval(() => {
+            if (!currentView) return;
+            const live = currentView.session
+                ? currentView.session.live
+                : sessions.some((s) => s.live);
+            if (!live) return;
+            currentView = getActiveView();
+            renderSummary(currentView);
+        }, 1000);
     }
 
     // ------------------------------------------------------------------
@@ -1876,6 +1939,8 @@
                 source: s.source || 'file',
                 live: false,
                 events: s.events || [],
+                damage: s.damage || [],
+                misses: s.misses || [],
                 amountOverrides: s.amountOverrides || {},
                 eventFixes: s.eventFixes || {},
             }));

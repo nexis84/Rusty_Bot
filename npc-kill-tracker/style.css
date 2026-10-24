@@ -407,8 +407,15 @@ body {
 .summary-card.gross { border-left: 4px solid var(--info); }
 .summary-card.rate { border-left: 4px solid var(--success); }
 .summary-card.kills { border-left: 4px solid var(--accent); }
+.summary-card.dps-in { border-left: 4px solid var(--danger); }
+.summary-card.dps-out { border-left: 4px solid var(--success); }
 .summary-card.time { border-left: 4px solid var(--secondary-hover); }
 .summary-card.bank { border-left: 4px solid var(--warning); }
+
+.summary-card.dps-in .summary-header i { color: var(--danger); }
+.summary-card.dps-out .summary-header i { color: var(--success); }
+.summary-card.dps-in .summary-value { color: #ff8a80; }
+.summary-card.dps-out .summary-value { color: #81c784; }
 
 .summary-header {
     display: flex;

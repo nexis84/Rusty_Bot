@@ -32,6 +32,16 @@
     var LOCALIZED_RE = /<localized[^>]*>/g;
     var TAG_RE = /<[^>]+>/g;
 
+    // Combat damage parsing (same shapes as Helper overlay/main/line-parser.js).
+    var DAMAGE_RE = /<b>([\d,.]+)<\/b>\s*<color=0x[0-9a-f]+><font size=\d+>(to|from)<\/font>/i;
+    var SOURCE_RE = /<b><color=0x[0-9a-f]+>([^<]+)<\/b>/i;
+    var WEAPON_RE = / - (?:(.+?) - )?(Smashes|Penetrates|Hits|Grazes|Glances Off|Wrecks|Misses|Deflects|Absorbs)\s*(?:<\/font>)?\s*$/i;
+    var MISS_YOU_RE = /\] \(combat\) (.+?) misses you( completely)?/i;
+    var PLAIN_OUT_HIT_RE = /\] \(combat\) Your (.+?) hits (.+?),\s*doing\s+([\d,.]+)\s+damage/i;
+    var PLAIN_OUT_MISS_RE = /\] \(combat\) Your (.+?) misses (.+?)( completely)?\s*(?:-?\s*<\/font>)?\s*$/i;
+    var PLAIN_IN_HIT_RE = /\] \(combat\) (.+?) (?:aims well at you, inflicting|hits you, (?:doing|inflicting))\s+([\d,.]+)\s+damage/i;
+    var REMOTE_REPAIR_RE = /remote\s+(armor|shield|hull|capacitor)/i;
+
     var EVIDENCE_WINDOW_MS = 45000;   // NPC activity considered "recent" for a kill
     var EVIDENCE_MAX = 8;             // names kept per kill event
     var EVIDENCE_KEEP_MS = 90000;     // prune nameless old evidence
@@ -53,6 +63,91 @@
         return s;
     }
 
+    function parseAmount(raw) {
+        var n = parseFloat(String(raw).replace(/,/g, ''));
+        if (!isFinite(n)) return null;
+        return Math.round(n);
+    }
+
+    function splitPilotShip(raw) {
+        var s = String(raw).trim();
+        var shipM = s.match(/\(([^()]+)\)\s*$/);
+        var ship = shipM ? shipM[1].trim() : '';
+        var pilot = s.replace(/\s*\([^()]*\)\s*$/, '').replace(/\s*\[[^\]]*\]\s*/g, ' ').trim() || s;
+        return { pilot: pilot, ship: ship };
+    }
+
+    function parseCombatSource(line) {
+        var m = SOURCE_RE.exec(line);
+        if (!m) return { pilot: 'Unknown', ship: '' };
+        var inner = m[1].trim();
+        var shipM = inner.match(/\(([^()]+)\)\s*$/);
+        var ship = shipM ? shipM[1].trim() : '';
+        var pilot = inner.replace(/\s*\([^()]*\)\s*$/, '').replace(/\s*\[[^\]]*\]\s*/g, ' ').trim() || inner;
+        return { pilot: pilot, ship: ship };
+    }
+
+    /**
+     * Parse one (combat) line into a damage hit or a miss.
+     * Returns { ts, amount?, dir, pilot, ship, weapon, verb } / { ts, miss, dir, pilot, ship, weapon }.
+     * Remote repair is deliberately ignored — it is not damage.
+     */
+    function parseCombatLine(line, ts) {
+        if (!line || line.indexOf('(combat)') === -1) return null;
+        if (REMOTE_REPAIR_RE.test(line)) return null;
+
+        var plainOut = PLAIN_OUT_HIT_RE.exec(line);
+        if (plainOut) {
+            var pOut = parseAmount(plainOut[3]);
+            if (pOut === null) return null;
+            var tOut = splitPilotShip(plainOut[2]);
+            return { ts: ts, amount: pOut, dir: 'out', pilot: tOut.pilot, ship: tOut.ship, weapon: plainOut[1].trim(), verb: 'Hits' };
+        }
+
+        var plainOutMiss = PLAIN_OUT_MISS_RE.exec(line);
+        if (plainOutMiss) {
+            var missTarget = plainOutMiss[2].replace(/\s+completely\.?$/i, '').replace(/\.$/, '').trim();
+            var tMiss = splitPilotShip(missTarget);
+            return { ts: ts, miss: true, dir: 'out', pilot: tMiss.pilot, ship: tMiss.ship, weapon: plainOutMiss[1].trim() };
+        }
+
+        var plainIn = PLAIN_IN_HIT_RE.exec(line);
+        if (plainIn) {
+            var pIn = parseAmount(plainIn[2]);
+            if (pIn === null) return null;
+            var sIn = splitPilotShip(plainIn[1]);
+            return { ts: ts, amount: pIn, dir: 'in', pilot: sIn.pilot, ship: sIn.ship, weapon: '', verb: 'Hits' };
+        }
+
+        var missYou = MISS_YOU_RE.exec(line);
+        if (missYou) {
+            return { ts: ts, miss: true, dir: 'in', pilot: missYou[1].trim(), ship: '', weapon: '' };
+        }
+
+        var dmgM = DAMAGE_RE.exec(line);
+        if (!dmgM) return null;
+        var weaponM = WEAPON_RE.exec(line);
+        if (!weaponM) return null;
+
+        var dir = dmgM[2].toLowerCase() === 'to' ? 'out' : 'in';
+        var verb = weaponM[2];
+        if (/^(misses|deflects|absorbs)$/i.test(verb)) {
+            return { ts: ts, miss: true, dir: dir };
+        }
+        var amount = parseAmount(dmgM[1]);
+        if (amount === null) return null;
+        var src = parseCombatSource(line);
+        return {
+            ts: ts,
+            amount: amount,
+            dir: dir,
+            pilot: src.pilot,
+            ship: src.ship,
+            weapon: (weaponM[1] || '').trim(),
+            verb: verb,
+        };
+    }
+
     /**
      * Streaming game log parser.
      * Feed raw text chunks; complete lines are parsed incrementally.
@@ -64,6 +159,8 @@
         this.system = null;       // current solar system name (from jumps/undocks)
         this.evidence = new Map(); // npc name -> last seen ms
         this.pending = [];        // events with unknown system (backfilled on first system info)
+        this.damage = [];         // cumulative hits: {t,a,dir,pilot,ship,weapon,verb}
+        this.misses = [];         // cumulative misses: {t,dir,pilot,ship,weapon}
     }
 
     LogParser.prototype._setSystem = function (systemName) {
@@ -79,6 +176,8 @@
     LogParser.prototype.feed = function (chunk) {
         var events = [];
         var jumps = [];
+        var damage = [];
+        var misses = [];
         var text = this.buffer + chunk;
         var lines = text.split('\n');
         this.buffer = lines.pop(); // keep incomplete tail
@@ -87,12 +186,12 @@
             var line = lines[i];
             if (line.charAt(line.length - 1) === '\r') line = line.slice(0, -1);
             if (!line) continue;
-            this._line(line, events, jumps);
+            this._line(line, events, jumps, damage, misses);
         }
-        return { events: events, jumps: jumps };
+        return { events: events, jumps: jumps, damage: damage, misses: misses };
     };
 
-    LogParser.prototype._line = function (line, events, jumps) {
+    LogParser.prototype._line = function (line, events, jumps, damage, misses) {
         // Header lines (no timestamp)
         if (this.char === null) {
             var lm = LISTENER_RE.exec(line);
@@ -142,6 +241,26 @@
         // NPC activity evidence (drone engagements, damage lines)
         var dm = DRONES_RE.exec(line);
         if (dm) { this._noteEvidence(cleanName(dm[1]), ts); return; }
+
+        var dmg = parseCombatLine(line, ts);
+        if (dmg) {
+            if (dmg.pilot) this._noteEvidence(cleanName(dmg.pilot), ts);
+            if (dmg.miss) {
+                var miss = { t: ts, dir: dmg.dir, pilot: dmg.pilot || '', ship: dmg.ship || '', weapon: dmg.weapon || '' };
+                misses.push(miss);
+                this.misses.push(miss);
+            } else {
+                var hit = {
+                    t: ts, a: dmg.amount, dir: dmg.dir,
+                    pilot: dmg.pilot || '', ship: dmg.ship || '',
+                    weapon: dmg.weapon || '', verb: dmg.verb || '',
+                };
+                damage.push(hit);
+                this.damage.push(hit);
+            }
+            return;
+        }
+
         var cm = COMBAT_NAME_RE.exec(line);
         if (cm) { this._noteEvidence(cleanName(cm[2]), ts); return; }
     };
@@ -470,6 +589,78 @@
     }
 
     // ------------------------------------------------------------------
+    // DPS (combat log hits, rolling windows)
+    // ------------------------------------------------------------------
+
+    /**
+     * Compute incoming/outgoing DPS for one session.
+     * session: { damage:[{t,a,dir,...}], misses:[{t,dir,...}], start, end, live }
+     * spanOverride: optional total span in ms (used by the "all sessions" view).
+     */
+    function computeDps(session, nowMs, spanOverride) {
+        var damage = (session && session.damage) || [];
+        var misses = (session && session.misses) || [];
+        var now = nowMs || Date.now();
+        var sorted = damage.slice().sort(function (a, b) { return a.t - b.t; });
+        var firstT = sorted.length ? sorted[0].t : null;
+        var lastT = sorted.length ? sorted[sorted.length - 1].t : null;
+        var start = (session && session.start) || firstT || now;
+        var end;
+        if (session && session.live) end = now;
+        else end = Math.max((session && session.end) || 0, lastT || 0, start);
+        var spanMs = spanOverride != null ? spanOverride : Math.max(0, end - start);
+        var activeMs = (firstT != null && lastT != null) ? Math.max(0, lastT - firstT) : 0;
+        var activeSec = Math.max(1, activeMs / 1000);
+
+        var liveCut = end - 10000;
+        var cut60 = end - 60000;
+        var inLive = 0, outLive = 0, in60 = 0, out60 = 0;
+        var totalIn = 0, totalOut = 0, hitsIn = 0, hitsOut = 0;
+
+        for (var i = 0; i < sorted.length; i++) {
+            var e = sorted[i];
+            var isIn = e.dir === 'in';
+            if (isIn) { totalIn += e.a; hitsIn++; } else { totalOut += e.a; hitsOut++; }
+            if (e.t >= liveCut) { if (isIn) inLive += e.a; else outLive += e.a; }
+            if (e.t >= cut60) { if (isIn) in60 += e.a; else out60 += e.a; }
+        }
+
+        // Peak 10-second window (two-pointer; sorted by timestamp).
+        var p = 0, sumIn = 0, sumOut = 0, peakIn = 0, peakOut = 0;
+        for (var j = 0; j < sorted.length; j++) {
+            if (sorted[j].dir === 'in') sumIn += sorted[j].a; else sumOut += sorted[j].a;
+            while (sorted[j].t - sorted[p].t > 10000) {
+                if (sorted[p].dir === 'in') sumIn -= sorted[p].a; else sumOut -= sorted[p].a;
+                p++;
+            }
+            if (sumIn > peakIn) peakIn = sumIn;
+            if (sumOut > peakOut) peakOut = sumOut;
+        }
+
+        var missIn = 0, missOut = 0;
+        for (var m = 0; m < misses.length; m++) {
+            if (misses[m].dir === 'in') missIn++; else if (misses[m].dir === 'out') missOut++;
+        }
+        var rate = function (hits, miss) {
+            var total = hits + miss;
+            return total > 0 ? (hits / total) * 100 : null;
+        };
+
+        return {
+            live: { inDps: inLive / 10, outDps: outLive / 10 },
+            avg60: { inDps: in60 / 60, outDps: out60 / 60 },
+            avg: { inDps: totalIn / activeSec, outDps: totalOut / activeSec },
+            peak: { inDps: peakIn / 10, outDps: peakOut / 10 },
+            totals: { in: totalIn, out: totalOut },
+            hits: { in: hitsIn, out: hitsOut },
+            misses: { in: missIn, out: missOut },
+            hitRate: { inPct: rate(hitsIn, missIn), outPct: rate(hitsOut, missOut) },
+            spanMs: spanMs,
+            activeMs: activeMs,
+        };
+    }
+
+    // ------------------------------------------------------------------
     // Formatting helpers (shared with UI)
     // ------------------------------------------------------------------
 
@@ -526,6 +717,7 @@
         buildIndexes: buildIndexes,
         resolveEvent: resolveEvent,
         computeStats: computeStats,
+        computeDps: computeDps,
         normalizeEssSettings: normalizeEssSettings,
         essRateFor: essRateFor,
         ratName: ratName,
