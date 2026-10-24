@@ -180,7 +180,7 @@
     function sessionSpanMs(s, now) {
         const start = s.start || (s.events.length ? s.events[0].t : 0);
         if (!start) return 0;
-        const end = s.live ? now : (s.end || lastEventT(s) || start);
+        const end = s.live ? now : Math.max(s.end || 0, s.logEnd || 0, lastEventT(s) || 0, start);
         return Math.max(0, end - start);
     }
 
@@ -271,6 +271,7 @@
             events: [],
             damage: [],
             misses: [],
+            logEnd: 0,
             amountOverrides: {},
             eventFixes: {},
         };
@@ -393,6 +394,7 @@
         s.events = res.events;
         s.damage = res.damage || [];
         s.misses = res.misses || [];
+        s.logEnd = res.lastTs || (parser.lastTs || 0);
         s.source = source;
         s.live = isWatchedSession(id);
         s.end = lastEventT(s) || s.start || 0;
@@ -650,6 +652,7 @@
         s.events = res.events;
         s.damage = res.damage || [];
         s.misses = res.misses || [];
+        s.logEnd = res.lastTs || (parser.lastTs || 0);
         s.source = 'live';
         s.live = true;
         s.end = lastEventT(s) || s.start || 0;
@@ -682,6 +685,7 @@
         if (!Array.isArray(s.misses)) s.misses = [];
         for (const d of (res.damage || [])) { s.damage.push(d); added++; }
         for (const m of (res.misses || [])) { s.misses.push(m); added++; }
+        if (res.lastTs && res.lastTs > (s.logEnd || 0)) s.logEnd = res.lastTs;
         const esiFilled = added ? applyEsiToEvents(res.events) : 0;
         if (added || res.jumps.length || esiFilled) {
             s.end = lastEventT(s) || s.end;
@@ -1221,7 +1225,7 @@
 
     // Cached per-session stats (used by the history table; ~10s bucket for live sessions)
     function sessionStats(s) {
-        const key = s.events.length + '|' + s.end + '|' + (s.live ? Math.floor(Date.now() / 10000) : 0) + '|' + essSignature();
+        const key = s.events.length + '|' + (s.logEnd || 0) + '|' + (s.end || 0) + '|' + (s.live ? Math.floor(Date.now() / 10000) : 0) + '|' + essSignature();
         if (s._stats && s._statsKey === key) return s._stats;
         s._stats = T.computeStats(s, indexes, trackerEss(), Date.now());
         s._statsKey = key;
@@ -1236,16 +1240,29 @@
         const misses = [];
         const eventSession = new Map();
         let spanMs = 0;
+        let tickNet = 0, tickGross = 0, completedTicks = 0;
         for (const s of sessions) {
             for (const ev of s.events) { events.push(ev); eventSession.set(ev, s); }
             for (const d of (s.damage || [])) damage.push(d);
             for (const m of (s.misses || [])) misses.push(m);
             spanMs += sessionSpanMs(s, now);
+            const ss = sessionStats(s);
+            tickNet += ss.tickNet || 0;
+            tickGross += ss.tickGross || 0;
+            completedTicks += ss.completedTicks || 0;
         }
         const st = T.computeStats({ events: events, start: null, live: false }, indexes, trackerEss(), now);
         st.spanMs = spanMs;
-        st.iskPerHour = spanMs > 60000 ? st.net / (spanMs / 3600000) : null;
-        st.grossPerHour = spanMs > 60000 ? st.gross / (spanMs / 3600000) : null;
+        st.completedTicks = completedTicks;
+        st.tickNet = tickNet;
+        st.tickGross = tickGross;
+        st.avgTickNet = completedTicks ? tickNet / completedTicks : null;
+        st.iskPerHour = completedTicks ? (tickNet / completedTicks) * 3 : null;
+        st.grossPerHour = completedTicks ? (tickGross / completedTicks) * 3 : null;
+        st.last3Ticks = 0;
+        st.last3Net = 0;
+        st.last3PerHour = null;
+        st.currentTick = null;
         st._events = events;
         st._damage = damage;
         st._misses = misses;
@@ -1332,9 +1349,7 @@
         if (dom.svDpsOut) dom.svDpsOut.textContent = fmtDps(live ? dps.live.outDps : dps.peak.outDps);
         if (dom.ntDpsOut) dom.ntDpsOut.textContent = dpsNote('out', dps, live);
         if (dom.svRate) dom.svRate.textContent = st.iskPerHour != null ? fmtISKcard(st.iskPerHour) : '—';
-        if (dom.ntRate) dom.ntRate.textContent = st.iskPerHour != null
-            ? ('gross ' + T.fmtISK(st.grossPerHour || 0, true) + '/h · over ' + T.fmtDuration(st.spanMs))
-            : 'needs at least a minute of kill data';
+        if (dom.ntRate) dom.ntRate.textContent = rateNote(st, live);
         if (dom.svTime) dom.svTime.textContent = T.fmtDuration(st.spanMs);
         if (dom.ntTime) dom.ntTime.textContent = st.start
             ? ('started ' + T.fmtClock(st.start) + ' EVE' + (view.session && view.session.live ? ' · live' : ''))
@@ -1380,6 +1395,33 @@
         if (ess.taxPct) parts.push('corp tax ' + ess.taxPct + '%');
         parts.push(ess.includesBank ? 'incl. bank payout' : 'excl. bank payout');
         return parts.join(' · ');
+    }
+
+    function rateNote(st, live) {
+        const tickMin = st.tickMs ? Math.round(st.tickMs / 60000) : 20;
+        if (!st.completedTicks) {
+            const bits = ['waiting for first full ' + tickMin + '-min tick'];
+            if (st.currentTick) {
+                bits.push((live ? 'current ' : 'partial tick ') + T.fmtISK(st.currentTick.net, true) + ' ISK');
+                if (live) bits.push(T.fmtDuration(st.currentTick.remainingMs) + ' left');
+                else bits.push('not counted');
+            }
+            return bits.join(' · ');
+        }
+        const avg = st.tickNet / st.completedTicks;
+        const bits = [
+            tickMin + 'm ticks · 3/hr',
+            st.completedTicks + ' full tick' + (st.completedTicks === 1 ? '' : 's'),
+            'avg ' + T.fmtISK(avg, true) + '/tick',
+        ];
+        if (st.completedTicks >= 3 && st.last3PerHour != null) {
+            bits.push('last 3 ticks: ' + T.fmtISK(st.last3PerHour, true) + '/h');
+        }
+        if (st.currentTick) {
+            bits.push((live ? 'current ' : 'partial tick ') + T.fmtISK(st.currentTick.net, true) +
+                (live ? ' · ' + T.fmtDuration(st.currentTick.remainingMs) + ' left' : ' · not counted'));
+        }
+        return bits.join(' · ');
     }
 
     function bankNote(st, ess) {
@@ -1611,6 +1653,9 @@
             essCell = '<span class="mini-btn" data-ess-cycle="' + esc(r.nameDisp) + '" title="Click to override ESS for this system (Auto → 0% → 40% → Auto). Overrides apply in Auto mode. * = manual override">' + label + '</span>';
         }
         const rateStr = r.rate >= 0 ? T.fmtISK(r.rate) : '—';
+        const rateTitle = r.rate >= 0
+            ? 'ISK/hour from completed 20-minute bounty ticks'
+            : 'Waiting for a complete 20-minute bounty tick';
         return '<tr>' +
             '<td>' + name + '</td>' +
             '<td>' + esc(r.region || '—') + '</td>' +
@@ -1619,7 +1664,7 @@
             '<td class="num">' + T.fmtISK(r.net) + '</td>' +
             '<td class="num">' + essCell + '</td>' +
             '<td class="num">' + T.fmtISK(r.bank) + '</td>' +
-            '<td class="num">' + rateStr + '</td>' +
+            '<td class="num" title="' + rateTitle + '">' + rateStr + '</td>' +
             '</tr>';
     }
 
@@ -1628,8 +1673,7 @@
         const st = view.stats;
         const rows = st.bySystem.map((sy) => {
             const info = sy.name ? indexes.systems.get(sy.name.toLowerCase()) : null;
-            const spanH = (sy.last - sy.first) / 3600000;
-            const rate = spanH > (1 / 60) ? sy.net / spanH : null;
+            const rate = sy.tickRate;
             return {
                 name: sy.name ? sy.name.toLowerCase() : '\uffff',
                 region: info ? info.region : '',
@@ -1654,6 +1698,10 @@
     // ---------------------- History ----------------------
 
     function histRowHtml(r) {
+        const rateStr = r.rate >= 0 ? T.fmtISK(r.rate) : '—';
+        const rateTitle = r.rate >= 0
+            ? 'ISK/hour from completed 20-minute bounty ticks'
+            : 'Waiting for a complete 20-minute bounty tick';
         return '<tr' + (r.id === activeViewId ? ' style="box-shadow: inset 2px 0 0 var(--accent);"' : '') + '>' +
             '<td class="mono">' + fmtDate(r.date) + (r.live ? ' <span class="chip ok">live</span>' : '') + '</td>' +
             '<td>' + esc(r.char) + '</td>' +
@@ -1661,7 +1709,7 @@
             '<td class="num">' + T.fmtDuration(r.dur) + '</td>' +
             '<td class="num">' + r.kills.toLocaleString('en-US') + '</td>' +
             '<td class="num">' + T.fmtISK(r.net) + '</td>' +
-            '<td class="num">' + (r.rate >= 0 ? T.fmtISK(r.rate) : '—') + '</td>' +
+            '<td class="num" title="' + rateTitle + '">' + rateStr + '</td>' +
             '<td style="white-space:nowrap;"><button class="mini-btn" data-view-id="' + esc(r.id) + '">View</button> ' +
             '<button class="mini-btn" data-del-id="' + esc(r.id) + '" title="Delete this session" style="color:var(--danger);"><i class="fas fa-trash-can"></i></button></td>' +
             '</tr>';
@@ -2207,6 +2255,7 @@
                 events: s.events || [],
                 damage: s.damage || [],
                 misses: s.misses || [],
+                logEnd: s.logEnd || 0,
                 amountOverrides: s.amountOverrides || {},
                 eventFixes: s.eventFixes || {},
             }));

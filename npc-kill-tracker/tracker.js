@@ -161,6 +161,7 @@
         this.pending = [];        // events with unknown system (backfilled on first system info)
         this.damage = [];         // cumulative hits: {t,a,dir,pilot,ship,weapon,verb}
         this.misses = [];         // cumulative misses: {t,dir,pilot,ship,weapon}
+        this.lastTs = null;       // latest timestamp seen in any log line
     }
 
     LogParser.prototype._setSystem = function (systemName) {
@@ -188,7 +189,7 @@
             if (!line) continue;
             this._line(line, events, jumps, damage, misses);
         }
-        return { events: events, jumps: jumps, damage: damage, misses: misses };
+        return { events: events, jumps: jumps, damage: damage, misses: misses, lastTs: this.lastTs };
     };
 
     LogParser.prototype._line = function (line, events, jumps, damage, misses) {
@@ -204,6 +205,7 @@
 
         var ts = lineTimestamp(line);
         if (ts === null) return;
+        if (this.lastTs === null || ts > this.lastTs) this.lastTs = ts;
 
         // Bounty kill line
         if (BOUNTY_RE.test(line)) {
@@ -439,6 +441,10 @@
         useContext: true,
     };
 
+    // Bounty payouts are batched: the timer starts on the first accrual and pays
+    // everything accrued 20 minutes later, then waits for the next accrual.
+    var BOUNTY_TICK_MS = 20 * 60 * 1000;
+
     function normalizeEssSettings(settings) {
         var out = {};
         for (var k in DEFAULT_ESS) out[k] = DEFAULT_ESS[k];
@@ -478,12 +484,17 @@
 
         var start = session.start || (eventsSorted.length ? eventsSorted[0].t : now);
         var lastT = eventsSorted.length ? eventsSorted[eventsSorted.length - 1].t : start;
-        var end = session.live ? now : lastT;
+        var end = session.live
+            ? now
+            : Math.max(session.end || 0, session.logEnd || 0, lastT || 0, start);
         var spanMs = Math.max(0, end - start);
+        var tickNow = session.live ? now : end; // only fully observed ticks count
 
         var byNpc = new Map();     // key: rat idx or 'u:<amount>'
         var bySystem = new Map();  // key: system name or '' (unknown)
         var timeline = [];
+        var tickBuckets = [];
+        var activeTick = null;
         var grossTotal = 0, netTotal = 0, bankTotal = 0, taxTotal = 0, essTotal = 0;
         var resolved = 0, guessed = 0, unknown = 0, manual = 0;
         var cumNet = 0;
@@ -544,8 +555,75 @@
             sys.essRate = Math.max(sys.essRate, essInfo.rate);
             if (sys.essSource !== essInfo.source && essInfo.rate > 0) sys.essSource = essInfo.source;
 
+            // Bounty tick buckets: the first accrual starts the 20-minute payout
+            // timer; an accrual at/after the tick end starts the next tick.
+            if (!activeTick || ev.t >= activeTick.end) {
+                activeTick = {
+                    start: ev.t,
+                    end: ev.t + BOUNTY_TICK_MS,
+                    gross: 0, net: 0, bank: 0, kills: 0,
+                    bySystem: new Map(),
+                };
+                tickBuckets.push(activeTick);
+            }
+            activeTick.gross += gross;
+            activeTick.net += net;
+            activeTick.bank += bank;
+            activeTick.kills++;
+            var tickSys = activeTick.bySystem.get(sysKey);
+            if (!tickSys) {
+                tickSys = { net: 0, gross: 0, kills: 0 };
+                activeTick.bySystem.set(sysKey, tickSys);
+            }
+            tickSys.net += net;
+            tickSys.gross += gross;
+            tickSys.kills++;
+
             timeline.push({ t: ev.t, cum: cumNet });
         }
+
+        // Only completed 20-minute payouts count towards ISK/hour. A tick that is
+        // still open (fewer than 20 minutes old) is shown separately, never mixed
+        // into the hourly rate.
+        var completedTicks = [];
+        var currentTick = null;
+        for (var bt = 0; bt < tickBuckets.length; bt++) {
+            var bucket = tickBuckets[bt];
+            bucket.complete = bucket.end <= tickNow;
+            if (bucket.complete) completedTicks.push(bucket);
+            else currentTick = bucket;
+        }
+
+        var tickNet = 0, tickGross = 0;
+        for (var ct = 0; ct < completedTicks.length; ct++) {
+            tickNet += completedTicks[ct].net;
+            tickGross += completedTicks[ct].gross;
+        }
+        var last3 = completedTicks.slice(-3);
+        var last3Net = 0;
+        for (var l3 = 0; l3 < last3.length; l3++) last3Net += last3[l3].net;
+        var avgTickNet = completedTicks.length ? tickNet / completedTicks.length : null;
+        var iskPerHour = completedTicks.length ? (tickNet / completedTicks.length) * 3 : null;
+        var grossPerHour = completedTicks.length ? (tickGross / completedTicks.length) * 3 : null;
+        var last3PerHour = last3.length ? (last3Net / last3.length) * 3 : null;
+
+        // Per-system tick rates: average net per completed tick in which that
+        // system had kills, scaled to three ticks per hour.
+        var sysTickNet = new Map();
+        var sysTickCount = new Map();
+        for (var stc = 0; stc < completedTicks.length; stc++) {
+            completedTicks[stc].bySystem.forEach(function (v, key) {
+                sysTickNet.set(key, (sysTickNet.get(key) || 0) + v.net);
+                sysTickCount.set(key, (sysTickCount.get(key) || 0) + 1);
+            });
+        }
+        bySystem.forEach(function (v, key) {
+            var n = sysTickNet.get(key) || 0;
+            var c = sysTickCount.get(key) || 0;
+            v.tickNet = n;
+            v.tickTicks = c;
+            v.tickRate = c ? (n / c) * 3 : null;
+        });
 
         // Downsample timeline to ~150 points for drawing
         var drawn = timeline;
@@ -564,7 +642,6 @@
         bySystem.forEach(function (v) { sysList.push(v); });
         sysList.sort(function (a, b) { return b.net - a.net; });
 
-        var spanHours = spanMs / 3600000;
         return {
             start: start,
             end: end,
@@ -575,8 +652,25 @@
             bank: bankTotal,
             ess: essTotal,
             tax: taxTotal,
-            iskPerHour: spanHours > (1 / 60) ? netTotal / spanHours : null,
-            grossPerHour: spanHours > (1 / 60) ? grossTotal / spanHours : null,
+            tickMs: BOUNTY_TICK_MS,
+            completedTicks: completedTicks.length,
+            tickNet: tickNet,
+            tickGross: tickGross,
+            avgTickNet: avgTickNet,
+            last3Ticks: last3.length,
+            last3Net: last3Net,
+            last3PerHour: last3PerHour,
+            currentTick: currentTick ? {
+                start: currentTick.start,
+                end: currentTick.end,
+                net: currentTick.net,
+                gross: currentTick.gross,
+                bank: currentTick.bank,
+                kills: currentTick.kills,
+                remainingMs: Math.max(0, currentTick.end - tickNow),
+            } : null,
+            iskPerHour: iskPerHour,
+            grossPerHour: grossPerHour,
             resolved: resolved,
             guessed: guessed,
             unknown: unknown,
