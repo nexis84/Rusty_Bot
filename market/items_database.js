@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23722
-// SDE build: 3646012
-// Generated: 2026-10-23 22:16:35 UTC
+// Total items: 23724
+// SDE build: 3654997
+// Generated: 2026-10-28 10:18:37 UTC
 
 const AllMarketItems = {
     // Ships
@@ -24035,8 +24035,8 @@ const AllMarketItems = {
             { id: 83319, name: "Blood of Pator Matte - Unlimited" },
             { id: 83255, name: "Blood of Pator Satin - Limited" },
             { id: 83350, name: "Blood of Pator Satin - Unlimited" },
-            { id: 97897, name: "Blood Raider Background" },
             { id: 85307, name: "Blooded Steel Metallic - Limited" },
+            { id: 97897, name: "Bloody Sunset Background" },
             { id: 82393, name: "Blooming Void - Limited" },
             { id: 82477, name: "Blooming Void - Unlimited" },
             { id: 85843, name: "Blue Ice Gloss - Limited" },
@@ -24100,6 +24100,7 @@ const AllMarketItems = {
             { id: 88685, name: "Cosmic Dignity - Limited" },
             { id: 88686, name: "Cosmic Dignity - Unlimited" },
             { id: 85404, name: "Council Meeting Beige Matte - Limited" },
+            { id: 98147, name: "Crimson Totality Background" },
             { id: 87801, name: "Crisis Shield - Limited" },
             { id: 85786, name: "Cross Drift - Limited" },
             { id: 82352, name: "Crossroad - Limited" },
@@ -25801,6 +25802,7 @@ const AllMarketItems = {
             { id: 49644, name: "Black Dagger" },
             { id: 88179, name: "Blackbody Driver" },
             { id: 49646, name: "Blood Coated Statuette" },
+            { id: 98145, name: "Blood Raider Blueprint Crate" },
             { id: 90396, name: "Blood Raider Crate" },
             { id: 54162, name: "Bouquet of Flowers" },
             { id: 54161, name: "Box of Chocolates" },
