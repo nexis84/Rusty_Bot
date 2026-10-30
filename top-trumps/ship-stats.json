@@ -1,6 +1,6 @@
 {
-  "generated": "2026-10-28",
-  "sdeBuild": "3654997",
+  "generated": "2026-10-30",
+  "sdeBuild": "3662168",
   "stats": {
     "hp": {
       "name": "Structure HP",
@@ -7271,6 +7271,40 @@
       "maxTargetRange": 70000.0,
       "maxLockedTargets": 7.0,
       "basePrice": 52500000.0
+    },
+    "97793": {
+      "hp": 1100.0,
+      "armorHP": 1337.0,
+      "shieldCapacity": 664.0,
+      "maxVelocity": 420.0,
+      "capacitorCapacity": 675.0,
+      "mass": 1010100.0,
+      "agility": 3.3,
+      "capacity": 165.0,
+      "droneCapacity": 60.0,
+      "scanResolution": 650.0,
+      "warpSpeedMultiplier": 5.0,
+      "signatureRadius": 35.0,
+      "maxTargetRange": 69000.0,
+      "maxLockedTargets": 7.0,
+      "basePrice": 15900000.0
+    },
+    "97904": {
+      "hp": 2400.0,
+      "armorHP": 3540.0,
+      "shieldCapacity": 2730.0,
+      "maxVelocity": 230.0,
+      "capacitorCapacity": 3800.0,
+      "mass": 11810000.0,
+      "agility": 0.48,
+      "capacity": 475.0,
+      "droneCapacity": 300.0,
+      "scanResolution": 300.0,
+      "warpSpeedMultiplier": 4.0,
+      "signatureRadius": 140.0,
+      "maxTargetRange": 110500.0,
+      "maxLockedTargets": 10.0,
+      "basePrice": 145900000.0
     }
   }
 }

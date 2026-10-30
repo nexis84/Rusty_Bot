@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23724
-// SDE build: 3654997
-// Generated: 2026-10-28 10:18:37 UTC
+// Total items: 23727
+// SDE build: 3662168
+// Generated: 2026-10-30 17:20:00 UTC
 
 const AllMarketItems = {
     // Ships
@@ -175,6 +175,7 @@ const AllMarketItems = {
             { id: 22852, name: "Hel" },
             { id: 11172, name: "Helios" },
             { id: 33079, name: "Hematos" },
+            { id: 97793, name: "Herald" },
             { id: 22452, name: "Heretic" },
             { id: 605, name: "Heron" },
             { id: 72904, name: "Heron Navy Issue" },
@@ -297,6 +298,7 @@ const AllMarketItems = {
             { id: 44993, name: "Pacifier" },
             { id: 28659, name: "Paladin" },
             { id: 22440, name: "Panther" },
+            { id: 97904, name: "Penitence" },
             { id: 91174, name: "Perseverance" },
             { id: 17718, name: "Phantasm" },
             { id: 12021, name: "Phobos" },
@@ -16951,6 +16953,7 @@ const AllMarketItems = {
             { id: 42542, name: "Amarr Shuttle Purity of the Throne SKIN" },
             { id: 70795, name: "Amarr Shuttle Sarum SKIN" },
             { id: 59975, name: "Amarr Shuttle Tash-Murkon SKIN" },
+            { id: 98484, name: "Amarr Victory SKIN" },
             { id: 91235, name: "Anathema Aurora Universalis SKIN" },
             { id: 55342, name: "Anathema Biosecurity Responders SKIN" },
             { id: 82063, name: "Anathema Capsuleer Day XXI SKIN" },
@@ -20188,7 +20191,7 @@ const AllMarketItems = {
             { id: 59852, name: "Leopard Vherokior SKIN" },
             { id: 88896, name: "Leshak Azdaja Extirpated SKIN" },
             { id: 49928, name: "Leshak Blackfire Steel SKIN" },
-            { id: 97424, name: "Leshak Blood Raiders Crimson Mark SKIN" },
+            { id: 97431, name: "Leshak Blood Raiders Crimson Mark SKIN" },
             { id: 82078, name: "Leshak Capsuleer Day XXI SKIN" },
             { id: 54907, name: "Leshak Eden's Hunters SKIN" },
             { id: 49521, name: "Leshak Hadean Horror Serenity Only SKIN" },
@@ -20203,7 +20206,7 @@ const AllMarketItems = {
             { id: 52323, name: "Leshak Red Meatgrinder SKIN" },
             { id: 61182, name: "Leshak Scope Syndication YC122 SKIN" },
             { id: 48651, name: "Leshak Singularity Storm SKIN" },
-            { id: 97431, name: "Leshak Tetrimon Crimson Mark SKIN" },
+            { id: 97424, name: "Leshak Tetrimon Crimson Mark SKIN" },
             { id: 48565, name: "Leshak Triglavian Victory SKIN" },
             { id: 55520, name: "Leviathan Biosecurity Responders SKIN" },
             { id: 36744, name: "Leviathan Blue Tiger SKIN" },

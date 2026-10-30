@@ -2113,6 +2113,22 @@
     ]
   },
   {
+    "name": "Herald",
+    "race": "Amarr",
+    "class": "Electronic Attack Ship",
+    "bonuses": [
+      "increase in capacitor warfare resistance",
+      "reduction in Microwarpdrive signature radius penalty",
+      "Can fit Assault Damage Controls",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Small Energy Turret rate of fire",
+      "bonus to Small Energy Turret optimal range",
+      "bonus to Small Energy Turret damage",
+      "bonus to all armor resistances",
+      "reduction in ship capacitor recharge time"
+    ]
+  },
+  {
     "name": "Heretic",
     "race": "Amarr",
     "class": "Interdictor",
@@ -3754,6 +3770,25 @@
       "bonus to Large Projectile Turret tracking",
       "bonus to Large Projectile Turret falloff range",
       "bonus to Heavy Stasis Grappler optimal range"
+    ]
+  },
+  {
+    "name": "Penitence",
+    "race": "Amarr",
+    "class": "Combat Recon Ship",
+    "bonuses": [
+      "Cannot be detected by directional scanners",
+      "Can fit Warp Disruption Field Generator and Cynosural Field Generator modules",
+      "bonus to all armor resistances",
+      "bonus to Drone microwarp velocity",
+      "reduction to signature radius penalty from Warp Disruption Field Generator",
+      "bonus to Weapon Disruptor effectiveness",
+      "bonus to Drone hitpoints and damage",
+      "bonus to Drone operation range",
+      "bonus to Energy Nosferatu and Energy Neutralizer optimal range",
+      "bonus to Energy Nosferatu and Energy Neutralizer falloff range",
+      "bonus to Energy Nosferatu and Energy Neutralizer drain amount",
+      "bonus to Warp Disruption Field Generator range"
     ]
   },
   {

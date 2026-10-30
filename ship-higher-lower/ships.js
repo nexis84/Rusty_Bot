@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE
-// Ships: 424
-// Generated: 2026-10-28
+// Ships: 426
+// Generated: 2026-10-30
 
 const SHIPS = [
   {
@@ -964,6 +964,12 @@ const SHIPS = [
     "race": "Pirate"
   },
   {
+    "id": 97793,
+    "name": "Herald",
+    "class": "Electronic Attack Ship",
+    "race": "Amarr"
+  },
+  {
     "id": 22452,
     "name": "Heretic",
     "class": "Interdictor",
@@ -1682,6 +1688,12 @@ const SHIPS = [
     "name": "Panther",
     "class": "Black Ops",
     "race": "Minmatar"
+  },
+  {
+    "id": 97904,
+    "name": "Penitence",
+    "class": "Combat Recon Ship",
+    "race": "Amarr"
   },
   {
     "id": 91174,

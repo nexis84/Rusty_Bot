@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE by build_stats.py — do not edit by hand
-// SDE build: 3654997
-// Ships: 424
-// Generated: 2026-10-28
+// SDE build: 3662168
+// Ships: 426
+// Generated: 2026-10-30
 
 var SHIPS = [
   {
@@ -2546,6 +2546,18 @@ var SHIPS = [
     "id": 95741,
     "name": "Akoman",
     "class": "Attack Battlecruiser",
+    "race": "Amarr"
+  },
+  {
+    "id": 97793,
+    "name": "Herald",
+    "class": "Electronic Attack Ship",
+    "race": "Amarr"
+  },
+  {
+    "id": 97904,
+    "name": "Penitence",
+    "class": "Combat Recon Ship",
     "race": "Amarr"
   }
 ];
