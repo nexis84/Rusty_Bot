@@ -13,7 +13,7 @@ const SHELL = [
   './esi.js',
   './welcome.js',
   './sso-callback.html',
-  './manifest.webmanifest',
+  './manifest.json',
   './icon-192.png',
   './icon-512.png',
   './img/factions/manifest.json',

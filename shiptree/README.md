@@ -336,7 +336,7 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
 | `data/details.json` | generated data — commit this |
 | `data/version.json` | build id for cache-busting data URLs — commit this |
 | `img/factions/` | optional real faction emblems (see its own README) |
-| `manifest.webmanifest` | PWA manifest |
+| `manifest.json` | PWA manifest |
 | `sw.js` | service worker: offline shell, network-first data |
 | `icon-192.png`, `icon-512.png` | PWA icons |
 | `tests/smoke.mjs` | Playwright smoke tests (`npm install && npm test`) |
