@@ -1,0 +1,7 @@
+{
+  "sdeDir": "../sde",
+  "output": "data/shiptree.json",
+  "detailsOutput": "data/details.json",
+  "officialLatestUrl": "https://developers.eveonline.com/static-data/tranquility/latest.jsonl",
+  "officialZipBase": "https://developers.eveonline.com/static-data/tranquility/eve-online-static-data-{build}-jsonl.zip"
+}

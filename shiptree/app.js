@@ -48,17 +48,6 @@ const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MOBILE_Q = matchMedia('(max-width: 900px)');
 const isMobile = () => MOBILE_Q.matches;
 
-/* The pilot's ESI training queue: the list of queued skills in the left panel,
-   and the marker on the chip of the skill being trained right now. Both are
-   wired up and verified working, but nothing on the page acts on them yet, so
-   for now they only take up space in a panel the user reads to compare hulls.
-   Flip this to true to bring both back - it gates the extra ESI request, the
-   queue block and the chip marker, and nothing else. queueHTML() and
-   trainingNow() stay defined either way.
-   Note the chip only lights when the skill being trained is one the focused
-   hull actually needs, which is why the marker can look absent at a glance. */
-const SHOW_TRAINING_QUEUE = false;
-
 let buildInfoText = '';
 const setBuildInfo = text => {
   buildInfoText = text;
@@ -85,8 +74,13 @@ const state = {
   noMasteryV: false,                // only hulls not yet brought to Mastery V
   alphaOnly: false,                 // show only Alpha-flyable hulls
   levels: store.get('st.levels', {}),   // skill id -> your level (0..5)
-  primary: store.get('st.p', 17),
-  secondary: store.get('st.s', 17),
+  attrs: store.get('st.attrs', null) || {
+    charisma: 17,
+    intelligence: store.get('st.p', 17),
+    memory: 17,
+    perception: store.get('st.s', 17),
+    willpower: 17,
+  },
   selected: null,                   // ship id
   collapsed: new Set(store.get('st.collapsed', [])),   // folded faction sections
   esiChar: null,                    // { id, name } when signed in with EVE
@@ -95,14 +89,26 @@ const state = {
   panelTab: store.get('st.panelTab', 'overview'),  // which right-panel pane is open
   planMode: store.get('st.planMode', 'fly'),       // skill-plan target: 'fly' | 1..5
   loreOpen: false,                 // hull description expanded?
-  compare: null,                   // ship id pinned as the second compare column
-  awaitCompare: false,             // next hull click fills the compare column
+  compare: [],                     // ship ids pinned for comparison (max 4)
+  awaitCompare: false,             // next hull clicks add compare columns
   showSkills: true,                 // left skills panel visible
   focusLocked: false,               // explicit lane choice wins until you scroll
   hover: null,                      // 's<id>' | 'k<id>'
   query: '',
   matchIndex: 0,
+  searchShowAll: false,
+  searchTotals: null,
+  matchIds: new Set(),
+  showQueue: false,                 // show the ESI training queue in the skills panel
+  savedPlans: (() => {
+    const saved = store.get('st.savedPlans', []);
+    return Array.isArray(saved) ? saved : [];
+  })(),
+  importedPlan: null,
 };
+
+const MAX_COMPARE = 4;
+const ATTR_KEYS = ['charisma', 'intelligence', 'memory', 'perception', 'willpower'];
 
 let DATA = null;
 let skillById = new Map();
@@ -158,7 +164,11 @@ const roman = n => ROMAN[n] ?? String(n);
 const spTotal = (rank, level) => (level <= 0 ? 0 : 250 * (rank || 1) * Math.pow(4, level - 1));
 const spBetween = (rank, from, to) => Math.max(0, spTotal(rank, to) - spTotal(rank, Math.max(0, from)));
 
-const spm = () => (state.primary || 17) + (state.secondary || 17) / 2;
+const attrVal = name => state.attrs[String(name || '').toLowerCase()] ?? 17;
+const spmFor = skill => attrVal(skill?.primaryName || 'intelligence') + attrVal(skill?.secondaryName || 'perception') / 2;
+const spm = () => spmFor({ primaryName: 'Intelligence', secondaryName: 'Perception' });
+const avgAttr = () => ATTR_KEYS.reduce((a, k) => a + attrVal(k), 0) / ATTR_KEYS.length;
+const attrsSummary = () => ATTR_KEYS.map(k => attrVal(k)).join('/');
 
 function fmtMinutes(min) {
   if (!isFinite(min) || min <= 0) return '0m';
@@ -801,9 +811,15 @@ function statGrid(ship) {
       : fmt(b);
   };
 
+  const slotBoxes = (n, cls) => Array.from({ length: Math.min(8, n || 0) }, () => `<i class="slot ${cls}"></i>`).join('');
+  const slotVisual = [st.high, st.med, st.low].every(v => v == null)
+    ? null
+    : `<span class="slot-row">${slotBoxes(st.high, 'high')}${slotBoxes(st.med, 'med')}${slotBoxes(st.low, 'low')}</span>`;
+
   const groups = [
     ['fitting', [
       row('high / med / low', slots),
+      row('slot layout', slotVisual),
       row('rig slots', st.rig == null ? null : num(st.rig)),
       row('cpu / powergrid', cpuPg),
       row('hardpoints', weapons),
@@ -836,6 +852,17 @@ function statGrid(ship) {
       return body ? `<div class="sect">${title}</div><div class="statgrid">${body}</div>` : '';
     })
     .join('') + (eff ? `<div class="note-dim">values after <i class="arrow">&rarr;</i> include your trained skills</div>` : '');
+}
+
+/** Nearby hulls in the same lane and hull-class row. */
+function similarHullsHTML(ship) {
+  const list = DATA.ships
+    .filter(s => s.id !== ship.id && s.lane === ship.lane && s.row === ship.row)
+    .sort((a, b) => (a.gateDepth - b.gateDepth) || a.name.localeCompare(b.name))
+    .slice(0, 4);
+  if (!list.length) return '';
+  return `<div class="sect">similar hulls</div>
+    <div class="chips-row">${list.map(s => `<button class="tag sim-hull" data-sim="${s.id}">${esc(s.name)}</button>`).join('')}</div>`;
 }
 
 /* ---------------------------------------------------------------- prices */
@@ -892,6 +919,8 @@ function renderAuth() {
   const box = $('authBox');
   if (!box) return;
   const c = state.esiChar;
+  const qb = $('queueBtn');
+  if (qb) qb.hidden = !c;
   if (!c) {
     box.innerHTML = `<button id="ssoLogin" class="chip auth-btn" title="Sign in with EVE to use your real skills">
       <span class="dot"></span>login</button>`;
@@ -921,16 +950,37 @@ function setEsiCharacter(c) {
   if (state.selected) renderPanel(DATA.ships.find(s => s.id === state.selected));
 }
 
+/** Adopt the character's real attributes; the five values drive every skill's
+ *  SP/min individually (a skill's primary/secondary attributes differ). */
+function applyAttributes(data) {
+  const next = {};
+  for (const k of ATTR_KEYS) next[k] = clampAttr(data?.[k] ?? state.attrs[k] ?? 17);
+  state.attrs = next;
+  store.set('st.attrs', next);
+  syncAttrInputs();
+}
+
+function syncAttrInputs() {
+  const ids = { charisma: 'attrCha', intelligence: 'attrInt', memory: 'attrMem', perception: 'attrPer', willpower: 'attrWil' };
+  for (const [k, id] of Object.entries(ids)) {
+    const el = $(id);
+    if (el) el.value = attrVal(k);
+  }
+}
+
 /** Pull the character's trained levels and drive the whole tree from them. */
 async function applyEsiSkills(announce) {
   try {
-    // the queue is only fetched while something actually shows it
-    const [levels, queue] = await Promise.all([
+    // Fetch the queue even while hidden so the toggle has data immediately;
+    // attributes make the per-skill training times accurate.
+    const [levels, queue, attrs] = await Promise.all([
       EVE_SSO.fetchSkills(),
-      SHOW_TRAINING_QUEUE ? EVE_SSO.fetchQueue() : Promise.resolve([]),
+      EVE_SSO.fetchQueue().catch(() => []),
+      EVE_SSO.fetchAttributes().catch(() => null),
     ]);
     state.levels = Object.fromEntries([...levels.entries()].map(([id, lvl]) => [id, lvl]));
     state.esiQueue = queue;
+    if (attrs) applyAttributes(attrs);
     renderAuth();
     render();
     renderSkillsPanel();
@@ -1254,7 +1304,7 @@ function renderPanel(ship) {
         <h2>${esc(ship.name)}</h2>
         <div class="sub">${esc(ship.tier || 'hull')} &middot; ${ship.volume.toLocaleString()} m&sup3;${gate ? ` &middot; gated by ${esc(gate.name)}` : ''}</div>
       </div>
-      <button id="panelCompare" data-compare title="pin this hull, then pick another to compare"${state.awaitCompare ? ' class="armed"' : ''}>&#8646;</button>
+      <button id="panelCompare" data-compare title="add this hull to the comparison (up to 4)"${state.awaitCompare ? ' class="armed"' : ''}>&#8646;</button>
       <button id="panelClose" title="close">&#10005;</button>
     </div>
     <div class="panel-tabs" role="tablist">
@@ -1270,6 +1320,7 @@ function renderPanel(ship) {
       </div>
       ${loreHTML(ship)}
       ${masteryHTML(ship)}
+      ${similarHullsHTML(ship)}
       <div class="sect">estimated market price</div>
       <div class="statgrid" id="priceBox"><div class="stat"><span>price</span><b class="dim">fetching…</b></div></div>
       ${ship.basePrice ? `<div class="stat" title="CCP's reference price for this hull - not a market price, and unrelated to the Jita figures above."><span>base price <i>CCP</i></span><b class="dim">${isk(ship.basePrice)} ISK</b></div>` : ''}
@@ -1279,7 +1330,7 @@ function renderPanel(ship) {
       <div class="pane" data-pane="bonuses" hidden>${bonusesHTML(ship)}</div>
       <div class="pane" data-pane="plan" hidden>${planHTML(ship)}</div>
       <div class="pane" data-pane="compare" hidden>${
-        compareHTML(state.compare != null ? shipById.get(state.compare) : null, ship)
+        compareHTML(state.compare.map(id => shipById.get(id)).filter(Boolean))
       }</div>
     </div>
     <div class="panel-foot">
@@ -1287,6 +1338,7 @@ function renderPanel(ship) {
         <a href="https://zkillboard.com/ship/${ship.id}/" target="_blank" rel="noopener">zKill</a>
         <a href="https://www.rustybot.co.uk/market/?type=${ship.id}&region=${PRICE_REGION}" target="_blank" rel="noopener" title="RustyBot market — Jita">market</a>
         ${ship.bp ? `<a href="${bpVisualizerHref(ship.bp)}" target="_blank" rel="noopener" title="Open ${esc(ship.bp)} in the Blueprint Visualizer">blueprint \u2197</a>` : ''}
+        <button class="linkbtn" id="panelShare" title="copy a link to this hull">link</button>
       </div>
       <div class="panel-logo">${factionLogoHTML(ship.lane)}</div>
     </div>`;
@@ -1301,9 +1353,25 @@ function renderPanel(ship) {
   });
   panel.querySelector('[data-compare]')?.addEventListener('click', () => startCompare());
   panel.querySelector('[data-compare-clear]')?.addEventListener('click', () => {
-    state.compare = null;
+    state.compare = [];
     state.awaitCompare = false;
     renderPanel(shipById.get(state.selected));
+    syncURL();
+  });
+  panel.querySelectorAll('[data-compare-remove]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      state.compare = state.compare.filter(id => id !== Number(el.dataset.compareRemove));
+      if (!state.compare.length) state.awaitCompare = false;
+      renderPanel(shipById.get(state.selected));
+      syncURL();
+    });
+  });
+  $('panelShare')?.addEventListener('click', async () => {
+    syncURL();
+    const ok = await copyText(location.href);
+    const btn = $('panelShare');
+    if (btn) { btn.textContent = ok ? 'copied ✓' : 'copy failed'; setTimeout(() => { btn.textContent = 'link'; }, 1500); }
   });
   panel.querySelectorAll('.panel-tab').forEach(el => {
     el.onclick = () => {
@@ -1311,11 +1379,15 @@ function renderPanel(ship) {
       state.panelTab = el.dataset.tab;
       store.set('st.panelTab', state.panelTab);
       syncPanelTabs();
+      if (state.panelTab === 'plan') fillPlanCost(ship);
       syncURL();
     };
   });
   panel.querySelectorAll('.req .lvl').forEach(el => {
     el.onclick = () => { cycleSkill(Number(el.dataset.skill)); };
+  });
+  panel.querySelectorAll('[data-sim]').forEach(el => {
+    el.addEventListener('click', () => selectShip(Number(el.dataset.sim), true));
   });
 
   // skill plan: target selector, and clipboard / download / share exports
@@ -1346,6 +1418,40 @@ function renderPanel(ship) {
     btn.textContent = ok ? 'link copied \u2713' : 'copy failed';
     setTimeout(() => { btn.textContent = 'share'; }, 1600);
   });
+  $('planSave')?.addEventListener('click', () => {
+    const fallback = `${ship.name} — ${state.planMode === 'fly' ? 'fly' : `Mastery ${roman(state.planMode)}`}`;
+    const name = prompt('Save this plan as:', fallback);
+    if (!name || !name.trim()) return;
+    state.savedPlans.push({ id: Date.now(), name: name.trim(), shipId: ship.id, mode: state.planMode });
+    store.set('st.savedPlans', state.savedPlans);
+    renderPanel(ship);
+  });
+  $('planImport')?.addEventListener('click', () => importPlan(ship));
+  panel.querySelectorAll('[data-load-plan]').forEach(el => {
+    el.addEventListener('click', () => {
+      const p = state.savedPlans.find(x => String(x.id) === el.dataset.loadPlan);
+      if (!p) return;
+      state.awaitCompare = false;
+      state.planMode = p.mode;
+      store.set('st.planMode', p.mode);
+      state.panelTab = 'plan';
+      store.set('st.panelTab', 'plan');
+      selectShip(p.shipId, true);
+    });
+  });
+  panel.querySelectorAll('[data-del-plan]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.savedPlans = state.savedPlans.filter(x => String(x.id) !== el.dataset.delPlan);
+      store.set('st.savedPlans', state.savedPlans);
+      renderPanel(ship);
+    });
+  });
+  panel.querySelector('[data-import-clear]')?.addEventListener('click', () => {
+    state.importedPlan = null;
+    renderPanel(ship);
+  });
+
+  if (state.panelTab === 'plan') fillPlanCost(ship);
 }
 
 /* ---------------------------------------------------------------- compare */
@@ -1420,72 +1526,91 @@ function cmpValue(ship, key) {
   return typeof raw === 'number' ? raw : null;
 }
 
-/** Pin the open hull and wait for the user to pick the other one. */
+/** Add the open hull to the comparison and arm the next hull clicks. */
 function startCompare() {
   if (state.selected == null) return;
-  state.compare = state.selected;
-  state.awaitCompare = true;
-  setBuildInfo('compare armed — click another hull on the canvas');
+  const id = state.selected;
+  if (state.compare.includes(id)) {
+    state.awaitCompare = state.compare.length < MAX_COMPARE && !state.awaitCompare;
+  } else {
+    if (state.compare.length >= MAX_COMPARE) {
+      setBuildInfo(`compare is full (${MAX_COMPARE}) — remove a column first`);
+      return;
+    }
+    state.compare.push(id);
+    state.awaitCompare = state.compare.length < MAX_COMPARE;
+  }
+  setBuildInfo(state.awaitCompare
+    ? `compare armed (${state.compare.length}/${MAX_COMPARE}) — click another hull`
+    : `comparing ${state.compare.length} hull${state.compare.length === 1 ? '' : 's'}`);
   renderPanel(shipById.get(state.selected));
+  syncURL();
 }
 
-/** True when a hull click should be treated as picking the compare column.
- *  A stays pinned (the hull you armed on), the clicked hull becomes B. */
+/** True when a hull click should add a compare column. */
 function takeCompare(id) {
-  if (!state.awaitCompare || id == null || id === state.compare) return false;
-  state.awaitCompare = false;
+  if (!state.awaitCompare || id == null) return false;
+  if (state.compare.includes(id)) return false;
+  if (state.compare.length >= MAX_COMPARE) { state.awaitCompare = false; return false; }
+  state.compare.push(id);
   state.panelTab = 'compare';
   store.set('st.panelTab', 'compare');
-  setBuildInfo(`comparing against ${shipById.get(state.compare)?.name ?? ''}`);
+  state.awaitCompare = state.compare.length < MAX_COMPARE;
+  setBuildInfo(state.awaitCompare
+    ? `comparing ${state.compare.length}/${MAX_COMPARE} — click another hull`
+    : `comparing ${state.compare.length} hulls`);
   return true;
 }
 
-function compareHTML(a, b) {
-  if (!a) return `<div class="hint">pin a hull with the &#8646; button, then pick a second hull to compare against.</div>`;
-  if (!b) return `<div class="hint">pinned <b>${esc(a.name)}</b> — now click another hull on the canvas.</div>`;
+function compareHTML(ships) {
+  if (!ships.length) return `<div class="hint">add a hull with the &#8646; button, then click up to three more to compare.</div>`;
+  if (ships.length === 1) return `<div class="hint">pinned <b>${esc(ships[0].name)}</b> — click another hull on the canvas (up to ${MAX_COMPARE}).</div>`;
 
-  const head = (s, tag) => `<div class="cmp-head">
+  const cols = ships.length;
+  const grid = `style="--cmp-cols:${cols}"`;
+  const head = `<div class="cmp-heads" ${grid}><div class="cmp-corner"></div>${ships.map((s, i) => `
+    <div class="cmp-head">
+      <button class="cmp-remove" data-compare-remove="${s.id}" title="remove ${esc(s.name)}">&#10005;</button>
       <img src="${IMG}/${s.id}/render?size=128" alt="">
-      <b>${tag}</b><span>${esc(s.name)}</span>
-    </div>`;
+      <b>${String.fromCharCode(65 + i)}</b><span>${esc(s.name)}</span>
+    </div>`).join('')}</div>`;
 
   const groups = CMP_ROWS.map(([title, rows]) => {
     const body = rows.map(([label, get, dir]) => {
-      const va = get(a);
-      const vb = get(b);
-      let better = '';
+      const vals = ships.map(get);
+      const winners = new Set();
       if (dir) {
-        const na = cmpValue(a, label);
-        const nb = cmpValue(b, label);
-        // `dir` is the only source of truth: 'down' means lower wins
-        if (na != null && nb != null && na !== nb) better = (dir === 'down' ? na < nb : na > nb) ? 'a' : 'b';
+        const nums = ships.map(s => cmpValue(s, label));
+        const valid = nums.filter(n => n != null);
+        if (valid.length > 1) {
+          const best = dir === 'down' ? Math.min(...valid) : Math.max(...valid);
+          nums.forEach((n, i) => { if (n != null && n === best) winners.add(i); });
+        }
       }
-      return `<div class="cmp-row">
-        <span class="ck">${esc(label)}</span>
-        <span class="cv${better === 'a' ? ' win' : ''}">${esc(va)}</span>
-        <span class="cv${better === 'b' ? ' win' : ''}">${esc(vb)}</span>
-      </div>`;
+      const cells = vals.map((v, i) => `<span class="cv${winners.has(i) ? ' win' : ''}">${esc(v)}</span>`).join('');
+      return `<div class="cmp-row" ${grid}><span class="ck">${esc(label)}</span>${cells}</div>`;
     }).join('');
     return `<div class="sect">${esc(title)}</div>${body}`;
   }).join('');
 
-  // skills: what each hull needs that the other does not
-  const need = s => new Map(s.prereqs.map(p => [p.skill, p.level]));
-  const na = need(a);
-  const nb = need(b);
-  const onlyA = [...na].filter(([k]) => !nb.has(k));
-  const onlyB = [...nb].filter(([k]) => !na.has(k));
-  const shared = [...na].filter(([k]) => nb.has(k));
+  // Skills: per-hull unique requirements plus the intersection.
+  const needs = ships.map(s => new Map(s.prereqs.map(p => [p.skill, p.level])));
+  const shared = [...needs[0].keys()].filter(id => needs.every(m => m.has(id)));
   const skName = id => skillById.get(id)?.name ?? `skill ${id}`;
-  const list = (entries, cls) => entries.length
-    ? entries.map(([id, lvl]) => `<div class="cmp-sk ${cls}"><span>${esc(skName(id))}</span><b>${roman(lvl)}</b></div>`).join('')
+  const list = entries => entries.length
+    ? entries.map(([id, lvl]) => `<div class="cmp-sk"><span>${esc(skName(id))}</span><b>${roman(lvl)}</b></div>`).join('')
     : `<div class="cmp-sk none">—</div>`;
+  const uniqueBlocks = ships.map((s, i) => {
+    const others = needs.filter((_, j) => j !== i);
+    const unique = [...needs[i]].filter(([id]) => !others.some(m => m.has(id)));
+    return `<div class="sect">skills only ${esc(s.name)} needs</div>${list(unique)}`;
+  }).join('');
+  const sharedBlock = `<div class="sect">shared by all</div>${list(shared.map(id => [id, Math.max(...needs.map(m => m.get(id)))]))}`;
 
-  return `${head(a, 'A')}${head(b, 'B')}
+  return `${head}
     ${groups}
-    <div class="sect">skills only A needs</div>${list(onlyA, 'a')}
-    <div class="sect">skills only B needs</div>${list(onlyB, 'b')}
-    <div class="sect">shared</div>${list(shared, '')}
+    ${uniqueBlocks}
+    ${sharedBlock}
     <button class="ghost cmp-clear" data-compare-clear>clear comparison</button>`;
 }
 
@@ -1548,7 +1673,7 @@ function buildPlan(ship, mode) {
     const level = need.get(pick);
     const you = yourLevel(pick);
     const sp = spBetween(rankOf(pick), you, level);
-    steps.push({ id: pick, name: nameOf(pick), level, you, rank: rankOf(pick), sp, minutes: sp / spm() });
+    steps.push({ id: pick, name: nameOf(pick), level, you, rank: rankOf(pick), sp, minutes: sp / spmFor(skillById.get(pick)) });
   }
   return steps;
 }
@@ -1586,6 +1711,93 @@ function downloadText(name, text) {
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
+function savedPlansHTML() {
+  const plans = state.savedPlans ?? [];
+  return `<div class="sect">saved plans</div>
+    <div class="saved-plans">${plans.length ? plans.map(p => {
+      const pship = shipById.get(p.shipId);
+      const label = p.mode === 'fly' ? 'fly' : `Mastery ${roman(p.mode)}`;
+      return `<div class="saved-plan">
+        <button class="saved-load" data-load-plan="${p.id}">${esc(p.name)}</button>
+        <span>${esc(pship?.name ?? '?')} &middot; ${label}</span>
+        <button class="saved-del" data-del-plan="${p.id}" title="delete plan">&#10005;</button>
+      </div>`;
+    }).join('') : '<div class="note-dim">No saved plans yet — save one below.</div>'}</div>`;
+}
+
+function importedPlanHTML() {
+  const p = state.importedPlan;
+  if (!p) return '';
+  return `<div class="sect">imported plan &mdash; ${esc(p.name)}</div>
+    <div class="plan-summary">${p.steps.length} skill${p.steps.length === 1 ? '' : 's'} &middot;
+      <b>${num(Math.round(p.totalSP))} SP</b> &middot; <b>${fmtMinutes(p.totalMinutes)}</b>
+      &middot; <b>${p.unlocked}</b> hulls flyable after it</div>
+    <div class="skill-tree plan-tree">${p.steps.map(s => `<div class="skill-row plan-row">
+      <span class="lvl locked${s.you ? ' have' : ''}">${roman(s.you) || '0'}</span>
+      <span class="nm">${esc(s.name)}<small>${roman(s.level)} &middot; ${num(Math.round(s.sp))} SP &middot; ${fmtMinutes(s.minutes)}</small></span>
+    </div>`).join('')}</div>
+    ${p.missing.length ? `<div class="note-dim">unmatched: ${esc(p.missing.slice(0, 8).join(', '))}${p.missing.length > 8 ? ', …' : ''}</div>` : ''}
+    <button class="ghost" data-import-clear>clear imported plan</button>`;
+}
+
+/** Import a clipboard-style "Skill Name Level" plan. */
+function importPlan(ship) {
+  const text = prompt('Paste a skill plan (one "Skill Name Level" per line):');
+  if (!text) return;
+  const byName = new Map(DATA.skills.map(s => [s.name.toLowerCase(), s]));
+  const steps = [];
+  const missing = [];
+  for (const line of text.split(/\r?\n/)) {
+    const m = line.trim().match(/^(.+?)\s+([1-5])$/);
+    if (!m) continue;
+    const sk = byName.get(m[1].trim().toLowerCase());
+    if (!sk) { missing.push(m[1].trim()); continue; }
+    const level = Number(m[2]);
+    const you = yourLevel(sk.id);
+    if (you >= level) continue;
+    const sp = spBetween(sk.rank, you, level);
+    steps.push({ id: sk.id, name: sk.name, level, you, sp, minutes: sp / spmFor(sk) });
+  }
+  if (!steps.length) {
+    setBuildInfo(missing.length ? `import: ${missing.length} skill names not found` : 'import: nothing left to train');
+    return;
+  }
+  const future = { ...state.levels };
+  for (const s of steps) future[s.id] = Math.max(future[s.id] || 0, s.level);
+  const unlocked = DATA.ships.filter(sh => sh.prereqs.every(p => (future[p.skill] || 0) >= p.level)).length;
+  state.importedPlan = {
+    name: `imported ${new Date().toISOString().slice(0, 10)}`,
+    steps,
+    totalSP: steps.reduce((a, s) => a + s.sp, 0),
+    totalMinutes: steps.reduce((a, s) => a + s.minutes, 0),
+    unlocked,
+    missing,
+  };
+  renderPanel(ship);
+}
+
+/** Hull + skillbook cost for the current plan, priced from Jita. */
+async function fillPlanCost(ship) {
+  const box = $('planCost');
+  if (!box) return;
+  const steps = buildPlan(ship, state.planMode) ?? [];
+  const rows = levelsKnown() ? steps.filter(s => s.you < s.level) : steps;
+  const ids = [ship.id, ...rows.map(s => s.id)];
+  const prices = await loadPrices(ids);
+  if ($('planCost') !== box) return;
+  const byId = new Map(ids.map((id, i) => [id, prices[i]]));
+  const priceOf = id => byId.get(id)?.sell ?? byId.get(id)?.buy ?? 0;
+  const hullCost = priceOf(ship.id);
+  const bookCost = rows.reduce((a, s) => a + priceOf(s.id), 0);
+  if (!hullCost && !bookCost) {
+    box.innerHTML = `<div class="stat"><span>total</span><b class="dim">price unavailable offline</b></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="stat"><span>hull</span><b class="isk">${isk(hullCost)} ISK</b></div>
+    <div class="stat"><span>skillbooks (${rows.length})</span><b>${isk(bookCost)} ISK</b></div>
+    <div class="stat"><span>total</span><b class="isk">${isk(hullCost + bookCost)} ISK</b></div>`;
+}
+
 function planHTML(ship) {
   const mode = state.planMode;
   const masteryLoaded = !!masteryProfile(ship);
@@ -1606,14 +1818,19 @@ function planHTML(ship) {
   const rows = known ? steps.filter(s => s.you < s.level) : steps;
   const done = steps.length - rows.length;
   const totalSP = rows.reduce((a, s) => a + s.sp, 0);
+  const totalMinutes = rows.reduce((a, s) => a + s.minutes, 0);
   const label = mode === 'fly' ? 'to fly it' : `for Mastery ${roman(mode)}`;
 
   const head = `<div class="plan-modes" role="group" aria-label="plan target">${selector}</div>
     <div class="plan-summary">${rows.length
-      ? `${rows.length} skill${rows.length === 1 ? '' : 's'} ${label} &middot; <b>${num(Math.round(totalSP))} SP</b> &middot; <b>${fmtMinutes(totalSP / spm())}</b>${done ? ` <span class="dim">(${done} already trained)</span>` : ''}${known ? '' : ' <span class="dim">from scratch</span>'}`
+      ? `${rows.length} skill${rows.length === 1 ? '' : 's'} ${label} &middot; <b>${num(Math.round(totalSP))} SP</b> &middot; <b>${fmtMinutes(totalMinutes)}</b>${done ? ` <span class="dim">(${done} already trained)</span>` : ''}${known ? '' : ' <span class="dim">from scratch</span>'}`
       : `nothing left to train ${label}.`}</div>`;
 
-  if (!rows.length) return head;
+  const extras = `${savedPlansHTML()}${importedPlanHTML()}
+    <div class="sect">total cost to fly (Jita)</div>
+    <div class="statgrid" id="planCost"><div class="stat"><span>hull + skillbooks</span><b class="dim">fetching…</b></div></div>`;
+
+  if (!rows.length) return `${head}${extras}`;
 
   const list = rows.map(s => `<div class="skill-row plan-row" data-skill="${s.id}">
       <span class="lvl locked${s.you ? ' have' : ''}">${roman(s.you) || '0'}</span>
@@ -1625,9 +1842,12 @@ function planHTML(ship) {
       <button class="ghost" id="planCopy">copy for EVE</button>
       <button class="ghost" id="planDownload">.txt</button>
       <button class="ghost" id="planShare">share</button>
+      <button class="ghost" id="planSave">save</button>
+      <button class="ghost" id="planImport">import</button>
     </div>
     <div class="skill-tree plan-tree">${list}</div>
-    <div class="note-dim">In EVE: <b>Character Sheet &rarr; Skill Plans &rarr; Import</b>, then paste. The clipboard holds one skill per line. A plan over 150 skills is longer than the training queue.</div>`;
+    <div class="note-dim">In EVE: <b>Character Sheet &rarr; Skill Plans &rarr; Import</b>, then paste. The clipboard holds one skill per line. A plan over 150 skills is longer than the training queue.</div>
+    ${extras}`;
 }
 
 /* ---------------------------------------------------------- hull flavour text */
@@ -1771,7 +1991,7 @@ function renderSkillsPanel() {
       req !== undefined ? `needs ${roman(req)}${met ? ' ✓' : ''}` : null,
     ].filter(Boolean).join(' · ');
     // signed in: the levels are the pilot's real ones, so the chips are read-only
-    const training = SHOW_TRAINING_QUEUE ? trainingNow() : null;
+    const training = state.showQueue ? trainingNow() : null;
     const chip = state.esiChar
       ? `<span class="lvl locked${you ? ' have' : ''}${training?.skill_id === node.id ? ' training' : ''}" title="${training?.skill_id === node.id ? 'training this right now' : 'from your EVE character'}">${roman(you) || '0'}</span>`
       : `<span class="lvl${you ? ' have' : ''}" data-skill="${node.id}" role="button" tabindex="0" aria-label="set ${esc(sk.name)} level, now ${roman(you) || '0'}" title="click to set your level">${roman(you) || '0'}</span>`;
@@ -1791,10 +2011,13 @@ function renderSkillsPanel() {
   // panel is ship facts only, so nothing is duplicated.
   let verdictBlock = '';
   if (focused) {
-    const rate = spm();
     const miss = gaps(selected);
     const status = shipVerdict(selected);
     const totalSp = selected.prereqs.reduce((a, p) => a + spBetween(skillById.get(p.skill)?.rank, yourLevel(p.skill), p.level), 0);
+    const totalMinutes = selected.prereqs.reduce((a, p) => {
+      const sp = spBetween(skillById.get(p.skill)?.rank, yourLevel(p.skill), p.level);
+      return a + sp / spmFor(skillById.get(p.skill));
+    }, 0);
     // what is left to train, in the order it must be trained (prerequisites first)
     const todo = selected.prereqs
       .filter(p => yourLevel(p.skill) < p.level)
@@ -1802,16 +2025,18 @@ function renderSkillsPanel() {
         ...p,
         depth: skillById.get(p.skill)?.depth ?? 0,
         sp: spBetween(skillById.get(p.skill)?.rank, yourLevel(p.skill), p.level),
+        minutes: spBetween(skillById.get(p.skill)?.rank, yourLevel(p.skill), p.level) / spmFor(skillById.get(p.skill)),
       }))
       .sort((a, b) => a.depth - b.depth || a.level - b.level);
     const todoSp = todo.reduce((a, p) => a + p.sp, 0);
+    const todoMinutes = todo.reduce((a, p) => a + p.minutes, 0);
     const trainBlock = todo.length
       ? `<div class="sect">to train &mdash; in order (${todo.length})</div>
          <div class="skill-tree">${todo.map(p => `<div class="train-row">
             <span class="lvl">${roman(yourLevel(p.skill)) || '0'}&rarr;${roman(p.level)}</span>
-            <span class="nm">${esc(p.name)}<small>${p.sp.toLocaleString()} SP · ${fmtMinutes(p.sp / rate)}</small></span>
+            <span class="nm">${esc(p.name)}<small>${p.sp.toLocaleString()} SP · ${fmtMinutes(p.minutes)}</small></span>
           </div>`).join('')}</div>
-         <div class="req"><span class="nm"><b>${todoSp.toLocaleString()} SP</b><small>${fmtMinutes(todoSp / rate)} of training left at ${rate} SP/min</small></span></div>`
+         <div class="req"><span class="nm"><b>${todoSp.toLocaleString()} SP</b><small>${fmtMinutes(todoMinutes)} of training left at your attributes</small></span></div>`
       : '';
     const omega = selected.alpha ? '' : (() => {
       const w = selected.omegaWhy;
@@ -1830,11 +2055,11 @@ function renderSkillsPanel() {
           : `<div class="verdict no">&#10007; ${miss.length} skills missing — ${esc(miss.slice(0, 2).map(m => m.name).join(', '))}${miss.length > 2 ? ', …' : ''}</div>`;
     verdictBlock = `${v}${omega}
       ${trainBlock}
-      ${SHOW_TRAINING_QUEUE ? queueHTML(need) : ''}
+      ${state.showQueue ? queueHTML(need) : ''}
       <div class="sect">skillbook cost (Jita)</div>
       <div class="statgrid" id="bookBox"><div class="stat"><span>skillbooks</span><b class="dim">fetching…</b></div></div>
       <div class="sect">total from your current levels</div>
-      <div class="req"><span class="nm"><b>${totalSp.toLocaleString()} SP</b><small>${fmtMinutes(totalSp / rate)} at ${rate} SP/min (${state.primary}/${state.secondary})</small></span></div>`;
+      <div class="req"><span class="nm"><b>${totalSp.toLocaleString()} SP</b><small>${fmtMinutes(totalMinutes)} at your attributes (${attrsSummary()})</small></span></div>`;
   }
 
   panel.innerHTML = `
@@ -1911,67 +2136,158 @@ function bonusLinesOf(ship) {
 
 /* A lowercase index of everything searchable, built once when the hull data
    loads and rebuilt when the bonus text arrives. Keystrokes then scan plain
-   strings instead of rebuilding bonus lines for all 361 hulls. */
+   strings instead of rebuilding bonus lines for all 425 hulls. */
+const SEARCH_ALIASES = new Map(Object.entries({
+  hac: 'heavy assault cruiser', af: 'assault frigate', eaf: 'electronic attack ship',
+  sb: 'stealth bomber', dictor: 'interdictor', hic: 'heavy interdiction cruiser',
+  cs: 'command ships', t3c: 'strategic cruiser', t3d: 'tactical destroyer',
+  logi: 'logistics', jf: 'jump freighter', dst: 'transport ship',
+  br: 'battlecruiser', bs: 'battleship', ewar: 'disruption',
+  tackle: 'tackling', tank: 'armor',
+}));
+const SEARCH_LIMIT = 25;
+const BONUS_LIMIT = 12;
+
 let searchIndex = [];
 function buildSearchIndex() {
   searchIndex = DATA.ships.map(s => {
     const cls = rowById.get(s.row)?.name ?? '';
-    const roles = (s.tags ?? []).filter(t => ROLE_VOCAB.includes(t));
+    const lane = laneById.get(s.lane);
+    const tags = s.tags ?? [];
+    const aliases = [];
+    for (const [alias, target] of SEARCH_ALIASES) {
+      if (cls.toLowerCase().includes(target) || tags.some(t => t.toLowerCase().includes(target))) aliases.push(alias);
+    }
     return {
-      id: s.id, lane: s.lane, name: s.name,
-      nameL: s.name.toLowerCase(), cls, clsL: cls.toLowerCase(),
-      roles, rolesL: roles.join(' ').toLowerCase(),
+      id: s.id, lane: s.lane,
+      laneName: lane?.name ?? '', laneShort: lane?.short ?? '',
+      laneNameL: (lane?.name ?? '').toLowerCase(),
+      laneShortL: (lane?.short ?? '').toLowerCase(),
+      name: s.name, nameL: s.name.toLowerCase(),
+      cls, clsL: cls.toLowerCase(),
+      tags, tagsL: tags.join(' ').toLowerCase(),
+      aliases, aliasesL: aliases.join(' '),
+      tier: s.tier ?? '', tierL: (s.tier ?? '').toLowerCase(),
+      idL: String(s.id),
       bonuses: DETAILS ? bonusLinesOf(s) : [],
     };
   });
 }
 
-const ROLE_VOCAB = ['Attack', 'Combat', 'Disruption', 'Support', 'Hauling',
-  'Resource Harvesting', 'Exploration', 'Tackling'];
+function scoreEntry(e, needle) {
+  if (e.idL === needle) return { score: 100, why: 'type ID' };
+  if (e.nameL === needle) return { score: 95, why: e.laneShort };
+  if (e.nameL.startsWith(needle)) return { score: 90, why: e.laneShort };
+  if (e.nameL.includes(needle)) return { score: 85, why: e.laneShort };
+  const aliasTarget = SEARCH_ALIASES.get(needle);
+  if (aliasTarget && (e.clsL.includes(aliasTarget) || e.tagsL.includes(aliasTarget))) {
+    return { score: 78, why: needle.toUpperCase() };
+  }
+  if (needle.length >= 2) {
+    const alias = e.aliases.find(a => a === needle || a.startsWith(needle));
+    if (alias) return { score: 74, why: alias.toUpperCase() };
+  }
+  if (e.clsL === needle) return { score: 70, why: e.cls };
+  if (e.clsL.includes(needle)) return { score: 64, why: e.cls };
+  if (e.tagsL.includes(needle)) {
+    return { score: 56, why: e.tags.find(t => t.toLowerCase().includes(needle)) || 'tag' };
+  }
+  if (e.tierL === needle) return { score: 52, why: e.tier };
+  if (e.laneNameL.includes(needle) || e.laneShortL.includes(needle)) {
+    return { score: 46, why: e.laneShort };
+  }
+  return null;
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m || !n) return Math.max(m, n);
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+
+function fuzzyScore(e, needle) {
+  if (needle.length < 4) return 0;
+  const candidates = [e.nameL, e.clsL, ...e.aliases];
+  let best = 0;
+  for (const text of candidates) {
+    if (!text) continue;
+    if (text.startsWith(needle)) return 1;
+    const dist = levenshtein(needle, text);
+    if (dist <= 2) best = Math.max(best, 1 - dist / Math.max(needle.length, text.length));
+  }
+  return best;
+}
 
 function runSearch(q) {
-  state.query = q.trim().toLowerCase();
-  if (!state.query) { matches = []; renderHits(); applyHighlight(); return; }
+  const needle = q.trim().toLowerCase();
+  if (needle !== state.query) state.searchShowAll = false;
+  state.query = needle;
+  state.matchIds = new Set();
+  state.searchTotals = null;
+  if (!needle) { matches = []; renderHits(); applyHighlight(); syncURL(); return; }
   ensureDetails().catch(() => {});        // make bonus text searchable once it lands
-  const needle = state.query;
 
   const ships = [];
   const bonuses = [];
   for (const e of searchIndex) {
-    if (!state.lanes.has(e.lane)) continue;
-    let why = null;
-    if (e.nameL.includes(needle)) why = laneById.get(e.lane)?.short ?? '';
-    else if (e.clsL.includes(needle)) why = e.cls;
-    else {
-      const role = e.roles.find(t => t.toLowerCase().includes(needle));
-      if (role) why = role;
+    const hit = scoreEntry(e, needle);
+    if (hit) {
+      ships.push({ kind: 'ship', id: e.id, lane: e.lane, name: e.name, sub: hit.why, score: hit.score });
+      state.matchIds.add(e.id);
+      continue;
     }
-    if (why) ships.push({ kind: 'ship', id: e.id, name: e.name, sub: why });
-    // bonus text only exists once the lazy file has landed
-    if (DETAILS && !why) {
-      const hit = e.bonuses.find(b => b.text.toLowerCase().includes(needle));
-      if (hit) {
+    if (DETAILS) {
+      const bonus = e.bonuses.find(b => b.text.toLowerCase().includes(needle));
+      if (bonus) {
         bonuses.push({
-          kind: 'bonus', id: e.id, name: e.name,
-          sub: hit.section === 'role' ? 'role bonus' : (hit.skill || 'ship bonus'),
-          line: hit.text,
+          kind: 'bonus', id: e.id, lane: e.lane, name: e.name,
+          sub: bonus.section === 'role' ? 'role bonus' : (bonus.skill || 'ship bonus'),
+          line: bonus.text, score: 30,
         });
+        state.matchIds.add(e.id);
       }
     }
   }
+  if (!ships.length && !bonuses.length) {
+    for (const e of searchIndex) {
+      const score = fuzzyScore(e, needle);
+      if (score > 0) {
+        ships.push({ kind: 'ship', id: e.id, lane: e.lane, name: e.name, sub: 'did you mean?', score: 10 + score });
+        state.matchIds.add(e.id);
+      }
+    }
+  }
+  ships.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  bonuses.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
   const skills = DATA.skills
     .filter(s => s.name.toLowerCase().includes(needle))
     .slice(0, 10)
     .map(s => ({ kind: 'skill', id: s.id, name: s.name, sub: `rank ${s.rank ?? '?'}` }));
-
-  matches = [
-    ...ships.slice(0, 25),
-    ...bonuses.slice(0, 12),
-    ...skills,
-  ];
+  const shownShips = state.searchShowAll ? ships.length : Math.min(ships.length, SEARCH_LIMIT);
+  const shownBonuses = state.searchShowAll ? bonuses.length : Math.min(bonuses.length, BONUS_LIMIT);
+  state.searchTotals = { ship: ships.length, bonus: bonuses.length, skill: skills.length, shownShips, shownBonuses };
+  matches = [...ships.slice(0, shownShips), ...bonuses.slice(0, shownBonuses), ...skills];
   state.matchIndex = 0;
   renderHits();
   markMatches();
+  syncURL();
+}
+
+function highlightMatch(text, q) {
+  if (!text) return '';
+  if (!q) return esc(text);
+  const i = text.toLowerCase().indexOf(q);
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
 }
 
 function renderHits() {
@@ -1989,40 +2305,64 @@ function renderHits() {
   const GROUPS = [
     ['Hulls', 'ship'], ['Bonuses', 'bonus'], ['Skills', 'skill'],
   ];
+  const totals = state.searchTotals ?? {};
+  const countFor = (kind, rows) => {
+    const total = totals[kind];
+    return total && total > rows.length ? `${rows.length} / ${total}` : String(rows.length);
+  };
   let i = 0;
   let html = '';
   for (const [label, kind] of GROUPS) {
     const rows = matches.filter(m => m.kind === kind);
     if (!rows.length) continue;
-    html += `<div class="hit-group" role="presentation">${label}<span>${rows.length}</span></div>`;
+    html += `<div class="hit-group" role="presentation">${label}<span>${countFor(kind, rows)}</span></div>`;
     for (const m of rows) {
       const on = i === state.matchIndex;
       const icon = kind === 'skill'
         ? '<span style="width:26px;text-align:center;color:var(--accent)">&#9873;</span>'
         : `<img src="${IMG}/${m.id}/icon?size=64" alt="">`;
       const why = kind === 'bonus'
-        ? `<span class="why">${esc(trunc(m.line, 40))}</span>`
-        : `<span class="kind">${esc(m.sub ?? m.kind)}</span>`;
-      html += `<div class="hit${on ? ' on' : ''}" id="hit-${i}" role="option" aria-selected="${on}" data-i="${i}">${icon}<span>${esc(m.name)}</span>${why}</div>`;
+        ? `<span class="why">${highlightMatch(trunc(m.line, 40), state.query)}</span>`
+        : `<span class="kind">${highlightMatch(m.sub ?? m.kind, state.query)}</span>`;
+      html += `<div class="hit${on ? ' on' : ''}" id="hit-${i}" role="option" aria-selected="${on}" data-i="${i}">${icon}<span>${highlightMatch(m.name, state.query)}</span>${why}</div>`;
       i++;
     }
+  }
+  const more = (totals.ship > totals.shownShips) || (totals.bonus > totals.shownBonuses);
+  if (more) {
+    html += `<button class="hit hit-more" id="hitMore" type="button">show all ${totals.ship} hulls${totals.bonus ? ` · ${totals.bonus} bonus hits` : ''}</button>`;
   }
   box.innerHTML = html;
   const active = box.querySelector('.hit.on');
   if (active) input.setAttribute('aria-activedescendant', active.id);
   else input.removeAttribute('aria-activedescendant');
-  box.querySelectorAll('.hit').forEach(el => {
+  box.querySelectorAll('.hit[data-i]').forEach(el => {
     el.onclick = () => pickMatch(Number(el.dataset.i));
   });
+  $('hitMore')?.addEventListener('click', () => {
+    state.searchShowAll = true;
+    runSearch(state.query);
+  });
+  const live = $('live');
+  if (live && state.query) live.textContent = `${matches.length} search results for ${state.query}`;
+}
+
+function ensureLaneVisible(laneId) {
+  if (laneId == null || state.lanes.has(laneId)) return;
+  state.lanes.add(laneId);
+  render();
+  syncKey();
+  applyView();
 }
 
 function pickMatch(i) {
   const m = matches[i];
   if (!m) return;
-  if (m.kind === 'ship') { selectShip(m.id, true); }
+  if (m.kind === 'ship') { ensureLaneVisible(m.lane); selectShip(m.id, true); }
   else if (m.kind === 'bonus') {
     // a bonus hit opens the hull on the Bonuses tab and flashes the line that
     // matched, so the search term is visibly answered
+    ensureLaneVisible(m.lane);
     selectShip(m.id, true);
     state.panelTab = 'bonuses';
     store.set('st.panelTab', 'bonuses');
@@ -2059,11 +2399,8 @@ function pickMatchSkillOnly(skillId) {
 
 function markMatches() {
   for (const n of tileNodes) n.classList.remove('match');
-  if (!state.query) return;
-  for (const s of DATA.ships) {
-    if (!s.name.toLowerCase().includes(state.query)) continue;
-    tileById.get(s.id)?.classList.add('match');
-  }
+  if (!state.query || !state.matchIds) return;
+  for (const id of state.matchIds) tileById.get(id)?.classList.add('match');
 }
 
 /* ------------------------------------------------------------------- view */
@@ -2365,21 +2702,45 @@ const clickSuppressed = () => Date.now() < suppressClickUntil;
 
 /* ----------------------------------------------------------------- status */
 
+/** The non-flyable hull with the smallest remaining training time. */
+function nextUnlock() {
+  if (!levelsKnown()) return null;
+  let best = null;
+  for (const s of DATA.ships) {
+    if (isFlyable(s)) continue;
+    let minutes = 0;
+    for (const p of s.prereqs) {
+      const you = yourLevel(p.skill);
+      if (you >= p.level) continue;
+      const sk = skillById.get(p.skill);
+      minutes += spBetween(sk?.rank, you, p.level) / spmFor(sk);
+    }
+    if (minutes > 0 && (!best || minutes < best.minutes)) best = { id: s.id, name: s.name, minutes };
+  }
+  return best;
+}
+
 function renderStatus() {
   const shown = visibleShips().length;
   const fly = DATA.ships.filter(s => isFlyable(s)).length;
+  const next = nextUnlock();
   $('status').innerHTML = `<span id="buildinfo">${esc(buildInfoText)}</span>`
     + `<span><b>${DATA.meta.counts.ships}</b> hulls</span>`
-    + `<span><b>${layout ? layout.bands.length : DATA.lanes.length}</b> lanes</span>`
+    + `<span><b>${layout ? layout.bands.length : DATA.lanes.length}</b> lane${(layout ? layout.bands.length : DATA.lanes.length) === 1 ? '' : 's'}</span>`
     + `<span><b>${shown}</b> shown</span>`
     + `<span><b>${fly}</b> flyable at your levels</span>`
-    + `<span>${state.primary}/${state.secondary} &rarr; <b>${spm()}</b> SP/min</span>`
+    + (next ? `<button class="status-next" data-next="${next.id}" title="closest hull to fly">next unlock: ${esc(next.name)} &middot; ${fmtMinutes(next.minutes)}</button>` : '')
+    + `<span title="Intelligence / Perception base rate">attrs ${attrsSummary()} &rarr; <b>${spm().toFixed(1)}</b> SP/min</span>`
     + `<span class="legend">`
     + `<i class="dot ok"></i>flyable `
     + `<i class="dot warn"></i>partial `
     + `<i class="dot bad"></i>can't fly`
     + `</span>`
     + `<span style="margin-left:auto">scroll to move &middot; ctrl+scroll to zoom &middot; \u03A9 = Omega only</span>`;
+  $('status').querySelector('[data-next]')?.addEventListener('click', e => {
+    state.awaitCompare = false;
+    selectShip(Number(e.currentTarget.dataset.next), true);
+  });
   const live = $('live');
   if (live) live.textContent = `${shown} hulls shown, ${fly} flyable at your levels`;
 }
@@ -2399,8 +2760,9 @@ function syncURL() {
   set('nofly', state.noFlyOnly ? '1' : '');
   set('nmv', state.noMasteryV ? '1' : '');
   set('alpha', state.alphaOnly ? '1' : '');
-  set('p', state.primary === 17 ? '' : state.primary);
-  set('s', state.secondary === 17 ? '' : state.secondary);
+  set('q', state.query);
+  set('compare', state.compare.length ? state.compare.join(',') : '');
+  set('att', ATTR_KEYS.every(k => attrVal(k) === 17) ? '' : ATTR_KEYS.map(k => attrVal(k)).join(','));
   // only record lanes when the user has hidden some — an all-lanes URL stays clean
   if (DATA && state.lanes.size === DATA.lanes.length) p.delete('lanes');
   else set('lanes', [...state.lanes].join(','));
@@ -2416,16 +2778,36 @@ function readURL() {
   if (p.get('nmv')) state.noMasteryV = true;
   if (p.get('alpha')) state.alphaOnly = true;
   if (p.get('hideskills')) state.showSkills = false;
-  if (p.get('p')) state.primary = Number(p.get('p')) || 17;
-  if (p.get('s')) state.secondary = Number(p.get('s')) || 17;
+  if (p.get('att')) {
+    const vals = p.get('att').split(',').map(Number);
+    ATTR_KEYS.forEach((k, i) => { state.attrs[k] = clampAttr(vals[i] ?? 17); });
+  } else {
+    // backward compatibility with the old two-attribute links
+    if (p.get('p')) state.attrs.intelligence = clampAttr(p.get('p'));
+    if (p.get('s')) state.attrs.perception = clampAttr(p.get('s'));
+  }
   // a shared plan link opens the hull on the plan tab, at the shared target
   const plan = p.get('plan');
   if (plan) {
     state.panelTab = 'plan';
     state.planMode = plan === 'fly' ? 'fly' : Math.min(5, Math.max(1, Number(plan) || 5));
   }
+  // only apply lane visibility if the ids are real; an empty list falls back to all
   const lanes = p.get('lanes');
-  return { ship: p.get('ship'), skill: p.get('skill'), skills: p.get('skills'), hideSkills: p.has('hideskills') };
+  if (lanes) {
+    const ids = lanes.split(',').map(Number).filter(id => laneById.has(id));
+    if (ids.length) state.lanes = new Set(ids);
+  }
+  // compare links carry a comma-separated list, oldest first
+  const cmp = p.get('compare');
+  if (cmp) {
+    state.compare = cmp.split(',').map(Number).filter(id => shipById.has(id)).slice(0, MAX_COMPARE);
+    if (state.compare.length && !plan) state.panelTab = 'compare';
+  }
+  return {
+    ship: p.get('ship'), skill: p.get('skill'), skills: p.get('skills'),
+    hideSkills: p.has('hideskills'), q: p.get('q') || '',
+  };
 }
 
 /* --------------------------------------------------------------- filters */
@@ -2443,6 +2825,17 @@ function syncMasteryChip() {
     ? 'needs your skills — sign in with EVE, or set some skill levels'
     : !DETAILS ? 'mastery data still loading…'
       : 'only hulls you have not yet reached Mastery V with';
+}
+
+/** Keep Tab inside a popover/dialog while it is open. */
+function trapTab(container, e) {
+  if (e.key !== 'Tab' || !container) return;
+  const focusable = [...container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }
 
 /** On phones the side panels are drawers over the canvas; dim the canvas behind
@@ -2524,6 +2917,51 @@ function wireFilters() {
     syncURL();
   };
 
+  const queueBtn = $('queueBtn');
+  if (queueBtn) {
+    queueBtn.classList.toggle('on', state.showQueue);
+    queueBtn.onclick = () => {
+      state.showQueue = !state.showQueue;
+      queueBtn.classList.toggle('on', state.showQueue);
+      renderSkillsPanel();
+      if (state.selected) renderPanel(shipById.get(state.selected));
+    };
+  }
+
+  const randomBtn = $('randomBtn');
+  if (randomBtn) {
+    randomBtn.onclick = () => {
+      const pool = visibleShips();
+      if (!pool.length) return;
+      state.awaitCompare = false;
+      selectShip(pool[Math.floor(Math.random() * pool.length)].id, true);
+    };
+  }
+
+  const filtersBtn = $('filtersBtn');
+  const filterChips = $('filterChips');
+  const filterScrim = $('filterScrim');
+  const setFilters = open => {
+    if (!filterChips || !filtersBtn) return;
+    filterChips.classList.toggle('open', open);
+    if (filterScrim) filterScrim.hidden = !open;
+    document.body.classList.toggle('filter-open', open);
+    filtersBtn.setAttribute('aria-expanded', String(open));
+    if (open) $('filterClose')?.focus();
+    else filtersBtn.focus();
+  };
+  if (filtersBtn && filterChips) {
+    filtersBtn.onclick = () => setFilters(!filterChips.classList.contains('open'));
+    filterScrim?.addEventListener('click', () => setFilters(false));
+    $('filterClose')?.addEventListener('click', () => setFilters(false));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && filterChips.classList.contains('open')) setFilters(false);
+    });
+    filterChips.addEventListener('keydown', e => {
+      if (filterChips.classList.contains('open')) trapTab(filterChips, e);
+    });
+  }
+
   const q = $('q');
   q.addEventListener('input', () => runSearch(q.value));
   q.addEventListener('keydown', e => {
@@ -2564,12 +3002,38 @@ function wireFilters() {
       $('keyPop').classList.add('hidden');
     }
   });
-  $('attrP').value = state.primary;
-  $('attrS').value = state.secondary;
-  const attribNote = () => { $('attrNote').textContent = `SP/min = primary + secondary/2 = ${spm()}`; };
+  document.addEventListener('keydown', e => {
+    if (!pop.classList.contains('hidden')) trapTab(pop, e);
+    else if (!$('keyPop').classList.contains('hidden')) trapTab($('keyPop'), e);
+  });
+  const attrInputs = {
+    charisma: $('attrCha'), intelligence: $('attrInt'), memory: $('attrMem'),
+    perception: $('attrPer'), willpower: $('attrWil'),
+  };
+  const attribNote = () => { $('attrNote').textContent = 'SP/min is per skill: its primary + secondary/2.'; };
+  syncAttrInputs();
   attribNote();
-  $('attrP').oninput = () => { state.primary = clampAttr($('attrP').value); store.set('st.p', state.primary); attribNote(); render(); syncURL(); };
-  $('attrS').oninput = () => { state.secondary = clampAttr($('attrS').value); store.set('st.s', state.secondary); attribNote(); render(); syncURL(); };
+  for (const [k, el] of Object.entries(attrInputs)) {
+    if (!el) continue;
+    el.oninput = () => {
+      state.attrs[k] = clampAttr(el.value);
+      store.set('st.attrs', state.attrs);
+      attribNote();
+      render();
+      syncURL();
+    };
+  }
+  document.querySelectorAll('[data-attr-preset]').forEach(btn => {
+    btn.onclick = () => {
+      const v = clampAttr(btn.dataset.attrPreset);
+      for (const k of ATTR_KEYS) state.attrs[k] = v;
+      store.set('st.attrs', state.attrs);
+      syncAttrInputs();
+      attribNote();
+      render();
+      syncURL();
+    };
+  });
   $('attrReset').onclick = () => { state.levels = {}; store.set('st.levels', {}); render(); };
 
   // mobile drawer backdrop: tap outside to close whichever drawer is open
@@ -2625,23 +3089,51 @@ function buildKey() {
         <span class="key-name">${esc(l.short)}</span>
         <span class="key-count">${l.count} hulls</span>
       </span>
+      <span class="key-eye" role="button" tabindex="0" data-eye="${l.id}"
+        title="hide / show this lane" aria-label="hide or show ${esc(l.short)}">&#128065;</span>
     </button>`;
   }).join('');
   grid.querySelectorAll('.key-item').forEach(el => {
     el.onclick = () => { jumpToLane(Number(el.dataset.lane)); $('keyPop').classList.add('hidden'); };
   });
+  grid.querySelectorAll('.key-eye').forEach(el => {
+    const toggle = e => { e.stopPropagation(); toggleLane(Number(el.dataset.eye)); };
+    el.onclick = toggle;
+    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(e); } };
+  });
   syncKey();
 }
 
-/** Dim key entries whose lane is currently hidden. */
+/** Hide/show a faction lane without removing it from the key. */
+function toggleLane(laneId) {
+  if (state.lanes.has(laneId)) {
+    if (state.lanes.size === 1) return;       // always keep one lane on screen
+    state.lanes.delete(laneId);
+  } else {
+    state.lanes.add(laneId);
+  }
+  render();
+  syncKey();
+  applyView();
+  syncURL();
+}
+
+/** Dim key entries whose lane is hidden; mark folded sections separately. */
 function syncKey() {
   $('keyGrid').querySelectorAll('.key-item').forEach(el => {
-    el.classList.toggle('off', state.collapsed.has(Number(el.dataset.lane)));
+    const id = Number(el.dataset.lane);
+    el.classList.toggle('off', !state.lanes.has(id));
+    el.classList.toggle('folded', state.collapsed.has(id));
   });
 }
 
 /** Take the view to a faction's band and flash it so you can see where you landed. */
 function jumpToLane(laneId) {
+  if (!state.lanes.has(laneId)) {          // hidden lane: show it again
+    state.lanes.add(laneId);
+    render();
+    syncKey();
+  }
   if (state.collapsed.has(laneId)) {       // folded section: open it so you can see it
     state.collapsed.delete(laneId);
     store.set('st.collapsed', [...state.collapsed]);
@@ -2686,7 +3178,9 @@ async function init() {
   measureStage();
   state.lanes = new Set(DATA.lanes.map(l => l.id));
 
-  buildInfoText = `SDE build ${DATA.meta.sdeBuild ?? '?'} · ${DATA.meta.counts.ships} hulls · ${DATA.meta.counts.skills} skills`;
+  const built = DATA.meta.generatedAt ? new Date(DATA.meta.generatedAt) : null;
+  const builtTxt = built ? ` · updated ${built.toISOString().slice(0, 10)}` : '';
+  buildInfoText = `SDE build ${DATA.meta.sdeBuild ?? '?'} · ${DATA.meta.counts.ships} hulls · ${DATA.meta.counts.skills} skills${builtTxt}`;
 
   const url = readURL();
   // On phones the skills drawer starts closed (unless the URL explicitly asked
@@ -2713,12 +3207,18 @@ async function init() {
   // first paint. When they land only an open hull or the mastery filter redraws.
   scheduleDetailsWarm();
 
+  if (!url.ship && state.compare.length) url.ship = String(state.compare[0]);
   if (url.ship) {
     const id = Number(url.ship);
     if (DATA.ships.some(s => s.id === id)) selectShip(id, true);
   }
   if (url.skills && laneById.has(Number(url.skills))) openSkills(Number(url.skills));
   if (url.skill) pickMatchSkillOnly(Number(url.skill));
+  if (url.q) {
+    const qEl = $('q');
+    if (qEl) qEl.value = url.q;
+    runSearch(url.q);
+  }
 
   window.addEventListener('resize', () => { measureStage(); applyView(); syncScrim(); });
   window.addEventListener('error', e => { if (String(e.message).includes('shiptree')) setBuildInfo('data missing - run build-shiptree.mjs'); });
@@ -2728,5 +3228,12 @@ init().catch(err => {
   console.error(err);
   showError('could not load the ship tree', err.message);
 });
+
+// Installable/offline shell. Data stays network-first inside the worker.
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => { /* not fatal */ });
+  });
+}
 
 })();

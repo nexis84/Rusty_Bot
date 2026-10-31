@@ -2,7 +2,7 @@
 // Systems: 5378 (main: 5298)
 // Section exordium: 53
 // Section pochven: 27
-// Generated: 2026-10-30 17:20:02 UTC
+// Generated: 2026-10-31 00:19:46 UTC
 //
 // Excludes wormhole space, Jove space (UUA-F4) and other special
 // regions. Pochven/Exordium entries carry a "group" tag and are

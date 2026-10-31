@@ -15,6 +15,9 @@ gtag('config', 'G-1EELB9VSCK');
 <meta name="description" content="Browse every EVE Online hull by faction and class, see the skills each one needs, what an Alpha clone can fly, and the estimated Jita price. Free browser tool, no login needed.">
 <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
 <link rel="canonical" href="https://www.rustybot.co.uk/shiptree/">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121212">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RustyBot">
 <meta property="og:url" content="https://www.rustybot.co.uk/shiptree/">
@@ -66,17 +69,26 @@ gtag('config', 'G-1EELB9VSCK');
   <div class="tools">
     <button id="welcomeBtn" class="chip" title="Welcome &amp; help"><i class="fas fa-compass"></i> welcome</button>
     <div id="authBox" class="auth"></div>
-    <div class="chips" id="rowFilter">
-      <button data-rows="all" class="on">all</button>
-      <button data-rows="combat">combat</button>
-      <button data-rows="industry">industry</button>
+    <button id="queueBtn" class="chip" title="show / hide your EVE training queue" hidden>queue</button>
+    <button id="filtersBtn" class="chip mobile-only" aria-controls="filterChips" aria-expanded="false" title="filters">filters</button>
+    <div id="filterChips" class="filter-chips" role="group" aria-label="filters">
+      <div class="filter-sheet-head">
+        <h3>filters</h3>
+        <button id="filterClose" title="close filters">&#10005;</button>
+      </div>
+      <div class="chips" id="rowFilter">
+        <button data-rows="all" class="on">all</button>
+        <button data-rows="combat">combat</button>
+        <button data-rows="industry">industry</button>
+      </div>
+      <button id="flyable" class="chip">flyable</button>
+      <button id="noFly" class="chip" title="only hulls you cannot fly yet">can't fly</button>
+      <button id="alphaBtn" class="chip" title="hide Omega-only hulls">alpha</button>
+      <button id="masteryV" class="chip" title="only hulls you have not yet reached Mastery V with">not mastery V</button>
+      <button id="randomBtn" class="chip" title="jump to a random hull">random</button>
     </div>
     <button id="keyBtn" class="chip" title="faction key — jump to a lane, fold sections">key</button>
     <button id="skillsBtn" class="chip on" title="show / hide the skills panel">skills</button>
-    <button id="flyable" class="chip">flyable</button>
-    <button id="noFly" class="chip" title="only hulls you cannot fly yet">can't fly</button>
-    <button id="alphaBtn" class="chip" title="hide Omega-only hulls">alpha</button>
-    <button id="masteryV" class="chip" title="only hulls you have not yet reached Mastery V with">not mastery V</button>
     <button id="attribBtn" class="chip">attributes</button>
     <div class="zoomer">
       <button id="zin" title="zoom in">+</button>
@@ -85,6 +97,7 @@ gtag('config', 'G-1EELB9VSCK');
     </div>
   </div>
 </header>
+<div id="filterScrim" class="filter-scrim" hidden></div>
 
 <div id="main">
   <aside id="skillsPanel" class="side"></aside>
@@ -116,8 +129,17 @@ gtag('config', 'G-1EELB9VSCK');
 
 <div id="attribPop" class="pop hidden">
   <h3>Training attributes</h3>
-  <label>primary <input id="attrP" type="number" min="1" max="50" value="17"></label>
-  <label style="margin-top:6px">secondary <input id="attrS" type="number" min="1" max="50" value="17"></label>
+  <label>charisma <input id="attrCha" type="number" min="1" max="50" value="17"></label>
+  <label>intelligence <input id="attrInt" type="number" min="1" max="50" value="17"></label>
+  <label>memory <input id="attrMem" type="number" min="1" max="50" value="17"></label>
+  <label>perception <input id="attrPer" type="number" min="1" max="50" value="17"></label>
+  <label>willpower <input id="attrWil" type="number" min="1" max="50" value="17"></label>
+  <div class="attr-presets" role="group" aria-label="attribute presets">
+    <button class="ghost" data-attr-preset="17" title="base attributes">17s</button>
+    <button class="ghost" data-attr-preset="20" title="all attributes +3">+3</button>
+    <button class="ghost" data-attr-preset="21" title="all attributes +4">+4</button>
+    <button class="ghost" data-attr-preset="22" title="all attributes +5">+5</button>
+  </div>
   <div class="note" id="attrNote"></div>
   <button class="ghost reset" id="attrReset">reset levels</button>
 </div>
@@ -132,7 +154,7 @@ gtag('config', 'G-1EELB9VSCK');
 </div>
 
 <!-- Welcome / Help — entry page on first load, doubles as Help -->
-<div id="welcomeDom" class="welcome-dom hidden">
+<div id="welcomeDom" class="welcome-dom hidden" role="dialog" aria-modal="true" aria-label="Welcome and help">
   <div class="welcome-inner">
 
     <div class="welcome-hero">

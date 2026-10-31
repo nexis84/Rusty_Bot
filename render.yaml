@@ -32,6 +32,16 @@ services:
     branch: main
     buildCommand: ""
     staticPublishPath: .
+    headers:
+      # The tree's data files are served at fixed paths. Revalidate every load
+      # (ETag makes it a cheap 304) so a new SDE build cannot sit behind a
+      # 5-minute edge cache.
+      - path: /shiptree/data/shiptree.json
+        name: Cache-Control
+        value: public, max-age=0, s-maxage=0, must-revalidate
+      - path: /shiptree/data/details.json
+        name: Cache-Control
+        value: public, max-age=0, s-maxage=0, must-revalidate
     routes:
       - type: redirect
         source: /giveaway.html

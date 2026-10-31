@@ -66,6 +66,13 @@
   // Esc closes the overlay (captured so it doesn't also clear the selection).
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); close(); }
+    if (e.key !== 'Tab' || !isOpen()) return;
+    const focusable = [...dom.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+      .filter(el => !el.disabled && el.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }, true);
 
   // Reflect an already-signed-in pilot.

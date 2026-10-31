@@ -196,6 +196,16 @@ window.EVE_SSO = (() => {
     return out;
   }
 
+  /** The character's five attributes (charisma/intelligence/memory/perception/
+   *  willpower). Used for per-skill training-time estimates. */
+  async function fetchAttributes() {
+    const c = character();
+    if (!c) return null;
+    try {
+      return await esi(`/characters/${c.id}/attributes/?datasource=tranquility`);
+    } catch { return null; }
+  }
+
   /** What the character is training right now (or []). */
   async function fetchQueue() {
     const c = character();
@@ -210,7 +220,7 @@ window.EVE_SSO = (() => {
     CLIENT_ID, SCOPES, REDIRECT,
     login, logout, handleCallback,
     tokens, character, ensureFresh,
-    fetchSkills, fetchQueue,
+    fetchSkills, fetchQueue, fetchAttributes,
     portraitUrl: (id, size = 64) => `https://images.evetech.net/characters/${id}/portrait?size=${size}`,
   };
 })();
