@@ -44,6 +44,12 @@ services:
         value: public, max-age=0, s-maxage=0, must-revalidate
     routes:
       - type: redirect
+        source: /light
+        destination: /source/
+      - type: redirect
+        source: /light/*
+        destination: /source/*
+      - type: redirect
         source: /giveaway.html
         destination: /giveaway
       - type: rewrite
