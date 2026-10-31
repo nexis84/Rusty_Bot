@@ -30,8 +30,9 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   let rel = decodeURIComponent(url.pathname);
   if (rel === '/') rel = '/index.html';
-  const file = path.join(ROOT, rel);
-  if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+  let file = path.join(ROOT, rel);
+  if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+  if (!file.startsWith(ROOT) || !fs.existsSync(file)) {
     res.writeHead(404); res.end('not found'); return;
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
@@ -113,6 +114,14 @@ await load(`${base}?ship=97793&compare=97793,97904`);
 assert.equal(await page.locator('.cmp-head').count(), 2);
 await load(`${base}?lanes=500003`);
 assert.match(await page.textContent('#status'), /1 lane/);
+
+// Static per-ship pages.
+await page.goto(`${base}ship/24698-drake/`, { waitUntil: 'networkidle' });
+assert.equal(await page.textContent('h1'), 'Drake');
+assert.match(await page.textContent('#price-sell'), /ISK|unavailable/);
+assert.equal(await page.getAttribute('meta[name="robots"]', 'content'), 'index, follow');
+await page.goto(`${base}ship/`, { waitUntil: 'networkidle' });
+assert.equal(await page.locator('.ship-index-grid a').count(), 425);
 
 // Mobile filter sheet.
 const mobile = await context.newPage();

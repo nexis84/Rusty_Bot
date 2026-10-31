@@ -1338,6 +1338,7 @@ function renderPanel(ship) {
     </div>
     <div class="panel-foot">
       <div class="links">
+        <a href="ship/${ship.id}-${ship.slug || 'ship'}/">full page</a>
         <a href="https://zkillboard.com/ship/${ship.id}/" target="_blank" rel="noopener">zKill</a>
         <a href="https://www.rustybot.co.uk/market/?type=${ship.id}&region=${PRICE_REGION}" target="_blank" rel="noopener" title="RustyBot market — Jita">market</a>
         ${ship.bp ? `<a href="${bpVisualizerHref(ship.bp)}" target="_blank" rel="noopener" title="Open ${esc(ship.bp)} in the Blueprint Visualizer">blueprint \u2197</a>` : ''}

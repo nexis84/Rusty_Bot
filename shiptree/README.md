@@ -283,6 +283,7 @@ served by the main static site at `/shiptree/`.
 ```powershell
 cd "C:\Users\nexis\Desktop\Rustybot services\Rusty_Bot-main\shiptree"
 node build-shiptree.mjs          # SDE -> data/*.json (+ sanity report)
+node build-ship-pages.mjs        # data -> ship/<id>-<slug>/ + sitemap block
 node audit-skills.mjs            # cross-check every hull against CCP's own ship tree
 python -m http.server 8777       # then open http://127.0.0.1:8777/
 ```
@@ -310,6 +311,7 @@ directly into `Rusty_Bot-main\shiptree\data`. To rebuild only the tree:
 ```powershell
 cd "C:\Users\nexis\Desktop\Rustybot services\Rusty_Bot-main"
 node shiptree/build-shiptree.mjs
+node shiptree/build-ship-pages.mjs
 node shiptree/audit-skills.mjs
 ```
 
@@ -324,6 +326,7 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
 | file | what |
 |---|---|
 | `build-shiptree.mjs` | SDE jsonl → `data/shiptree.json` + `details.json`, prints a sanity report |
+| `build-ship-pages.mjs` | generates `ship/<id>-<slug>/` pages + `ship/index.html` + sitemap block |
 | `audit-skills.mjs` | cross-checks every hull's requirements against CCP's own ship tree |
 | `config.json` | `sdeDir` (defaults to `../sde`), output paths, official SDE URLs |
 | `index.html` | shell: header, stage, panel, status bar |
@@ -362,3 +365,7 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
 - **Mobile** — filter chips collapse into a bottom sheet.
 - **Data freshness** — `/shiptree/data/*` now revalidates every load; the
   footer shows the SDE build and generated date.
+- **Per-ship pages** — every hull has a static, indexable page at
+  `ship/<typeID>-<slug>/` with stats, bonuses, skills, mastery, description,
+  live Jita price and links into the tree. `ship/index.html` lists all hulls,
+  and `build-ship-pages.mjs` keeps the pages and sitemap block in sync.

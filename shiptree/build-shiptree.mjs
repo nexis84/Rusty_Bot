@@ -108,6 +108,15 @@ const META_TIERS = {
 const tierFrom = (metaID, techLevel) =>
   META_TIERS[metaID] ?? (techLevel === 3 ? 'T3' : 'T1');
 
+/** Stable URL slug used by the per-ship static pages. The typeID in the URL
+ *  keeps it unique even if two hulls ever normalise to the same slug. */
+const slugify = name => String(name)
+  .normalize('NFKD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '') || 'ship';
+
 const ATTR = { primary: 180, secondary: 181, req1: 182, req2: 183, req3: 184, rank: 275 };
 const REQ_LEVEL = { 182: 277, 183: 278, 184: 279 };
 
@@ -557,6 +566,7 @@ for (const ship of ships.values()) {
   lanesShips.push({
     id: ship.id,
     name: ship.name,
+    slug: slugify(ship.name),
     lane,
     row: ship.row,
     special: !!ship.special,
