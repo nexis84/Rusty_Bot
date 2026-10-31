@@ -124,8 +124,8 @@
         .section-sub { color: var(--dim); font-size: 0.95rem; margin: -6px 0 16px; max-width: 760px; }
 
         .preview-window {
-            border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
-            background: #0a0e14; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+            border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+            background: #070b11; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
             max-width: 980px; margin: 0 auto;
         }
         .preview-titlebar {
@@ -133,31 +133,76 @@
             padding: 9px 13px; background: #121a24; border-bottom: 1px solid #1e2e42;
             color: #8cc8ff; font-size: 0.78rem; letter-spacing: 0.5px;
         }
-        .preview-titlebar .left { display: flex; align-items: center; gap: 8px; }
-        .preview-titlebar .live { display: inline-flex; align-items: center; gap: 5px; color: #1ee034; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.2px; }
+        .preview-titlebar .left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .preview-titlebar .left .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .preview-titlebar .live { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; color: #1ee034; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.2px; }
         .preview-titlebar .live .dot { width: 6px; height: 6px; border-radius: 50%; background: #1ee034; box-shadow: 0 0 8px rgba(30, 224, 52, 0.7); }
-        .preview-stage {
-            display: grid; grid-template-columns: 1fr 340px 1fr; align-items: center; gap: 0;
-            min-height: 640px;
+        .preview-scene {
+            position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+            min-height: 720px; overflow: hidden; isolation: isolate;
             background:
-                radial-gradient(600px 380px at 25% 30%, rgba(90, 169, 230, 0.15), transparent 65%),
-                radial-gradient(500px 340px at 80% 70%, rgba(232, 217, 0, 0.08), transparent 65%),
-                linear-gradient(135deg, #111b27 0%, #090d12 55%, #0a1017 100%);
+                radial-gradient(900px 560px at 16% 24%, rgba(64, 116, 180, 0.28), transparent 64%),
+                radial-gradient(700px 420px at 82% 18%, rgba(232, 217, 0, 0.09), transparent 62%),
+                radial-gradient(900px 640px at 74% 100%, rgba(46, 88, 130, 0.22), transparent 68%),
+                linear-gradient(155deg, #101a26 0%, #070b11 52%, #0b1118 100%);
         }
-        .preview-left, .preview-right { padding: 30px; color: #5a6d82; font-size: 0.78rem; line-height: 1.8; }
-        .preview-left { text-align: right; border-right: 1px solid rgba(90, 169, 230, 0.12); }
-        .preview-right { border-left: 1px solid rgba(90, 169, 230, 0.12); }
-        .preview-left strong, .preview-right strong { color: #cbd6e0; font-weight: 600; }
-        .preview-left .k, .preview-right .k { color: #8cc8ff; }
+        .preview-scene::before {
+            content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.65;
+            background-image:
+                radial-gradient(1px 1px at 14% 22%, rgba(255, 255, 255, 0.9) 0, transparent 100%),
+                radial-gradient(1px 1px at 31% 68%, rgba(255, 255, 255, 0.55) 0, transparent 100%),
+                radial-gradient(1px 1px at 48% 14%, rgba(255, 255, 255, 0.7) 0, transparent 100%),
+                radial-gradient(1px 1px at 63% 54%, rgba(255, 255, 255, 0.45) 0, transparent 100%),
+                radial-gradient(1px 1px at 77% 29%, rgba(255, 255, 255, 0.75) 0, transparent 100%),
+                radial-gradient(1px 1px at 88% 72%, rgba(255, 255, 255, 0.5) 0, transparent 100%),
+                radial-gradient(1px 1px at 22% 86%, rgba(255, 255, 255, 0.4) 0, transparent 100%),
+                radial-gradient(1px 1px at 70% 88%, rgba(255, 255, 255, 0.55) 0, transparent 100%);
+            background-size: 420px 420px;
+        }
+        .preview-scene.is-checker {
+            background-color: #171b20;
+            background-image:
+                linear-gradient(45deg, #232a32 25%, transparent 25%, transparent 75%, #232a32 75%),
+                linear-gradient(45deg, #232a32 25%, transparent 25%, transparent 75%, #232a32 75%);
+            background-size: 34px 34px;
+            background-position: 0 0, 17px 17px;
+        }
+        .preview-scene.is-checker::before { opacity: 0; }
+        .preview-hud { position: relative; z-index: 1; align-self: center; padding: 36px; max-width: 480px; }
+        .preview-kicker { display: inline-flex; align-items: center; gap: 7px; color: #8cc8ff; font-size: 0.68rem; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; }
+        .preview-hud h3 { color: #f2f7fb; font-size: 1.3rem; line-height: 1.2; margin: 10px 0 8px; }
+        .preview-hud p { color: #9db0c2; font-size: 0.88rem; line-height: 1.65; }
+        .preview-meta { display: grid; gap: 0; margin-top: 22px; border-top: 1px solid rgba(140, 200, 255, 0.14); }
+        .preview-meta div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid rgba(140, 200, 255, 0.1); font-size: 0.78rem; }
+        .preview-meta .k { color: #8cc8ff; font-size: 0.68rem; letter-spacing: 1.2px; text-transform: uppercase; }
+        .preview-meta strong { color: #d8e6f2; font-weight: 600; text-align: right; }
+        .preview-states { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+        .preview-states span { padding: 3px 8px; border: 1px solid rgba(140, 200, 255, 0.18); border-radius: 999px; color: #8aa2b8; font-size: 0.66rem; letter-spacing: 0.8px; text-transform: uppercase; }
         .preview-frame {
-            height: 640px; width: 320px; margin: 0 auto; overflow: hidden; background: transparent;
-            border-left: 1px solid rgba(90, 169, 230, 0.12); border-right: 1px solid rgba(90, 169, 230, 0.12);
+            position: relative; z-index: 1; width: 320px; height: 720px; align-self: center; justify-self: center;
+            overflow: hidden; background: transparent;
+            border-left: 1px solid rgba(140, 200, 255, 0.26);
+            border-right: 1px solid rgba(140, 200, 255, 0.12);
+            box-shadow: -18px 0 44px rgba(0, 0, 0, 0.38);
         }
-        .preview-frame iframe { width: 320px; height: 640px; border: 0; display: block; background: transparent; }
+        .preview-frame iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; }
+        .preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 14px; background: #0c141d; border-top: 1px solid #1e2e42; }
+        .preview-toolbar .hint { color: #6f8499; font-size: 0.75rem; }
+        .preview-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .preview-toolbar .btn { white-space: nowrap; }
         @media (max-width: 900px) {
-            .preview-stage { grid-template-columns: 1fr; min-height: 0; }
-            .preview-left, .preview-right { display: none; }
-            .preview-frame { border: 0; }
+            .preview-scene { grid-template-columns: 1fr; min-height: 0; padding: 22px 16px 10px; }
+            .preview-frame { order: 1; width: min(320px, 100%); height: auto; aspect-ratio: 320 / 720; border: 1px solid rgba(140, 200, 255, 0.22); border-radius: 8px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4); }
+            .preview-hud { order: 2; max-width: none; padding: 20px 6px 10px; }
+            .preview-hud h3 { font-size: 1.15rem; }
+            .preview-meta { grid-template-columns: 1fr 1fr; border-top: 0; }
+            .preview-meta div { border-top: 1px solid rgba(140, 200, 255, 0.12); border-bottom: 0; }
+            .preview-toolbar .hint { display: none; }
+            .preview-actions { width: 100%; justify-content: space-between; }
+        }
+        @media (max-width: 480px) {
+            .preview-meta { grid-template-columns: 1fr; }
+            .preview-actions { justify-content: flex-start; }
         }
 
         .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -230,9 +275,23 @@
         .toast.show { opacity: 1; transform: translateY(0); }
 
         @media (max-width: 620px) {
+            .top-bar { gap: 10px; padding: 10px 14px; }
+            .brand-link .logo { width: 34px; height: 34px; }
+            .brand-link h1 { font-size: 17px; }
+            .breadcrumb { min-width: 0; overflow: hidden; font-size: 12px; }
+            .breadcrumb-item { white-space: nowrap; }
+            .breadcrumb-item:not(:last-child) { display: none; }
+            .section-header { flex-wrap: wrap; }
+            .section-header h2 { white-space: normal; font-size: 0.92rem; }
+            .section-header .line { display: none; }
             .hero h1 { font-size: 2.35rem; }
             .hero { padding-top: 32px; }
             .nav-wrap { top: 64px; }
+        }
+        @media (max-width: 420px) {
+            .breadcrumb { display: none; }
+            .hero h1 { font-size: 2rem; }
+            .hero .subtitle { font-size: 1rem; }
         }
     </style>
     <script type="application/ld+json">
@@ -308,27 +367,37 @@
             <p class="section-sub">This is the real OBS browser source, running a self-playing demo. Drop it on your scene and it updates as your chat enters and the draw runs.</p>
             <div class="preview-window">
                 <div class="preview-titlebar">
-                    <span class="left"><i class="fa-solid fa-window-maximize"></i> Rustybot Source — OBS Browser Source</span>
+                    <span class="left"><i class="fa-solid fa-window-maximize"></i> <span class="label">Rustybot Source — OBS Browser Source</span></span>
                     <span class="live"><span class="dot"></span> Live Demo</span>
                 </div>
-                <div class="preview-stage">
-                    <div class="preview-left">
-                        <div><span class="k">Scene</span><br><strong>Gameplay + Overlay</strong></div>
-                        <div style="margin-top:16px;"><span class="k">Source</span><br><strong>Browser</strong></div>
-                        <div style="margin-top:16px;"><span class="k">Size</span><br><strong>320 × 720</strong></div>
+                <div class="preview-scene" id="preview-scene">
+                    <div class="preview-hud">
+                        <span class="preview-kicker"><i class="fa-solid fa-tv"></i> OBS browser source</span>
+                        <h3>Gameplay + overlay</h3>
+                        <p>The same transparent source you add in OBS. It sits over your gameplay with no green screen and no window capture.</p>
+                        <div class="preview-meta">
+                            <div><span class="k">Scene</span><strong>Gameplay + Overlay</strong></div>
+                            <div><span class="k">Source</span><strong>Browser</strong></div>
+                            <div><span class="k">Size</span><strong>320 × 720</strong></div>
+                            <div><span class="k">Transparency</span><strong>On</strong></div>
+                        </div>
+                        <div class="preview-states" aria-label="Demo states">
+                            <span>Giveaway open</span>
+                            <span>Draw</span>
+                            <span>Winner card</span>
+                        </div>
                     </div>
                     <div class="preview-frame">
                         <iframe src="https://source.rustybot.co.uk/demo" title="Rustybot Source overlay demo" loading="lazy" allow="autoplay" referrerpolicy="no-referrer"></iframe>
                     </div>
-                    <div class="preview-right">
-                        <div><span class="k">Entries</span><br><strong>Twitch + Kick</strong></div>
-                        <div style="margin-top:16px;"><span class="k">Confirmation</span><br><strong>90 seconds</strong></div>
-                        <div style="margin-top:16px;"><span class="k">Winner</span><br><strong>ESI character card</strong></div>
+                </div>
+                <div class="preview-toolbar">
+                    <span class="hint"><i class="fa-solid fa-circle-info"></i> Self-playing demo of the real overlay.</span>
+                    <div class="preview-actions">
+                        <button class="btn small ghost" id="toggle-preview-bg" type="button" aria-pressed="false"><i class="fa-solid fa-border-all"></i> Transparency check</button>
+                        <a class="btn ghost small" href="https://source.rustybot.co.uk/demo" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Open demo</a>
                     </div>
                 </div>
-            </div>
-            <div style="text-align:center; margin-top:12px;">
-                <a class="btn ghost small" href="https://source.rustybot.co.uk/demo" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Open demo in a new tab</a>
             </div>
         </section>
 
@@ -552,6 +621,18 @@
                     } else {
                         show(demoUrl);
                     }
+                });
+            }
+
+            var toggleBg = document.getElementById('toggle-preview-bg');
+            var previewScene = document.getElementById('preview-scene');
+            if (toggleBg && previewScene) {
+                toggleBg.addEventListener('click', function () {
+                    var checker = previewScene.classList.toggle('is-checker');
+                    toggleBg.setAttribute('aria-pressed', checker ? 'true' : 'false');
+                    toggleBg.innerHTML = checker
+                        ? '<i class="fa-solid fa-star"></i> Back to scene'
+                        : '<i class="fa-solid fa-border-all"></i> Transparency check';
                 });
             }
         })();
