@@ -164,7 +164,10 @@ const roman = n => ROMAN[n] ?? String(n);
 const spTotal = (rank, level) => (level <= 0 ? 0 : 250 * (rank || 1) * Math.pow(4, level - 1));
 const spBetween = (rank, from, to) => Math.max(0, spTotal(rank, to) - spTotal(rank, Math.max(0, from)));
 
-const attrVal = name => state.attrs[String(name || '').toLowerCase()] ?? 17;
+const attrVal = name => {
+  const v = Number(state.attrs[String(name || '').toLowerCase()]);
+  return Number.isFinite(v) ? v : 17;
+};
 const spmFor = skill => attrVal(skill?.primaryName || 'intelligence') + attrVal(skill?.secondaryName || 'perception') / 2;
 const spm = () => spmFor({ primaryName: 'Intelligence', secondaryName: 'Perception' });
 const avgAttr = () => ATTR_KEYS.reduce((a, k) => a + attrVal(k), 0) / ATTR_KEYS.length;

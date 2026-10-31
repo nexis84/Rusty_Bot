@@ -44,7 +44,9 @@ self.addEventListener('fetch', event => {
 
   // Navigations and code/style: network-first so a deploy cannot be masked by
   // an older cached app.js or style.css. Offline falls back to the cache.
-  const isShell = req.mode === 'navigate' || /\.(?:js|css|html|webmanifest)$/.test(url.pathname);
+  const isShell = req.mode === 'navigate'
+    || /\.(?:js|css|html|webmanifest)$/.test(url.pathname)
+    || url.pathname.endsWith('/manifest.json');
   if (isShell) {
     event.respondWith(
       fetch(req)
