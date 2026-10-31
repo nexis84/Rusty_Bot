@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rustybot Source — Free OBS Giveaways &amp; Alerts for Twitch &amp; Kick | RustyBot</title>
-    <meta name="description" content="Run free browser-based giveaways and Twitch/Kick alert overlays for OBS. Chat entries, EVE ESI winner cards, plus follows, subs, gift subs, Bits and KICKs alerts. No install.">
+    <title>Rustybot Source — Free OBS Giveaways, Alerts &amp; Combined Chat for Twitch &amp; Kick | RustyBot</title>
+    <meta name="description" content="Run free browser-based giveaways, Twitch/Kick alerts and combined chat overlays for OBS. Chat entries, EVE ESI winner cards, plus follows, subs, gifts, Bits and KICKs. No install.">
     <link rel="stylesheet" href="../Style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,13 +21,13 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="RustyBot">
     <meta property="og:url" content="https://www.rustybot.co.uk/source/">
-    <meta property="og:title" content="Rustybot Source — Free OBS Giveaways &amp; Alerts for Twitch &amp; Kick">
-    <meta property="og:description" content="Browser giveaways and Twitch/Kick alert overlays built for OBS. Chat entries, winner cards, plus live follow, sub, gift, Bits and KICKs alerts. Free, no install.">
+    <meta property="og:title" content="Rustybot Source — Free OBS Giveaways, Alerts &amp; Combined Chat for Twitch &amp; Kick">
+    <meta property="og:description" content="Browser giveaways, Twitch/Kick alerts and combined chat built for OBS. Chat entries, winner cards, plus live follow, sub, gift, Bits and KICKs alerts. Free, no install.">
     <meta property="og:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <meta property="og:image:alt" content="RustyBot logo">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Rustybot Source — Free OBS Giveaway Tool for Twitch &amp; Kick">
-    <meta name="twitter:description" content="Browser giveaways built for OBS. Twitch + Kick entries, transparent overlay, EVE ESI winner cards.">
+    <meta name="twitter:title" content="Rustybot Source — Giveaways, Alerts &amp; Combined Chat for OBS">
+    <meta name="twitter:description" content="Browser giveaways, alerts and merged Twitch + Kick chat for OBS, with EVE ESI winner cards.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <link rel="canonical" href="https://www.rustybot.co.uk/source/">
     <meta name="robots" content="index, follow">
@@ -299,7 +299,7 @@
       "applicationCategory": "GameApplication",
       "operatingSystem": "Web",
       "url": "https://www.rustybot.co.uk/source/",
-      "description": "Free browser-based giveaway and alert tool for Twitch and Kick with transparent OBS overlays, chat entries, EVE Online ESI winner cards, 90-second winner confirmation and live follow, sub, Bits and KICKs alerts.",
+      "description": "Free browser-based giveaway, alert and combined chat tool for Twitch and Kick with transparent OBS overlays, chat entries, EVE Online ESI winner cards, 90-second winner confirmation and live follow, sub, Bits and KICKs alerts.",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
       "publisher": { "@type": "Organization", "name": "RustyBot", "url": "https://www.rustybot.co.uk/" }
     }
@@ -323,7 +323,7 @@
         <header class="hero">
             <img src="../rusty_bot.png" alt="Rustybot Source" class="hero-logo">
             <h1>Giveaways and alerts.<br><span>Built for OBS.</span></h1>
-            <p class="subtitle">Create one free room with giveaways, alerts, or both. Collect chat entries and draw a winner, or show follows, subs, gift subs, Bits and KICKs in a transparent OBS overlay. No install, no accounts, no plugin.</p>
+            <p class="subtitle">Create one free room for giveaways, live alerts and combined chat. Collect entries and draw a winner with an EVE ESI card, show follows, subs, gift subs, Bits and KICKs, or merge Twitch and Kick chat into one transparent OBS overlay. No install, no accounts, no plugin.</p>
             <div class="hero-actions">
                 <a class="btn primary" href="https://source.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-solid fa-bolt"></i> Launch Rustybot Source</a>
                 <a class="btn ghost" href="#preview"><i class="fa-solid fa-eye"></i> See the overlay</a>
@@ -334,6 +334,7 @@
                 <span class="chip kick"><span class="dot"></span> Kick chat</span>
                 <span class="chip"><span class="dot"></span> EVE ESI winner cards</span>
                 <span class="chip"><span class="dot"></span> Twitch + Kick alerts</span>
+                <span class="chip"><span class="dot"></span> Combined chat</span>
                 <span class="chip"><span class="dot"></span> Classic + Light skins</span>
                 <span class="chip"><span class="dot"></span> Free</span>
             </div>
@@ -345,6 +346,7 @@
         <nav class="quick-nav">
             <a href="#preview">Preview</a>
             <a href="#alerts">Alerts</a>
+            <a href="#chat">Combined chat</a>
             <a href="#features">Features</a>
             <a href="#how">How it works</a>
             <a href="#obs">OBS setup</a>
@@ -426,13 +428,44 @@
             </div>
         </section>
 
+        <section class="section" id="chat">
+            <div class="section-header">
+                <i class="fa-solid fa-comments"></i>
+                <h2>Combined Twitch + Kick chat</h2>
+                <span class="line"></span>
+                <span class="chip" style="font-size:0.65rem;">NEW</span>
+            </div>
+            <p class="section-sub">Enable Combined Chat when you create a room and both chats land in one control panel and one transparent OBS overlay. Native emotes, badges, replies, watch streaks, raids and filters are included.</p>
+            <div class="obs-panel">
+                <div>
+                    <ul class="checklist">
+                        <li><i class="fa-solid fa-check"></i><span>One merged feed for <b>Twitch and Kick</b> chat.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>Native emotes, badges, replies and platform tags.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>Filter by platform, role or individual chatter.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>History saved per room, so it survives refreshes and restarts.</span></li>
+                    </ul>
+                    <div class="hero-actions" style="justify-content:flex-start; margin-top:18px;">
+                        <a class="btn primary" href="https://source.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-solid fa-comments"></i> Create a room with chat</a>
+                        <a class="btn ghost" href="https://source.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open the tool</a>
+                    </div>
+                    <p class="note">Add the chat overlay as a Browser Source at <b>380 × 900</b> and tick <b>Allow Transparency</b>.</p>
+                </div>
+                <div class="feature" style="padding:20px;">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <h3>One feed, both platforms</h3>
+                    <p>Twitch and Kick messages are merged with their native emotes and badges. Hover a chatter to look up their EVE character, or filter the feed to one platform, moderators, VIPs or a single viewer.</p>
+                    <p>The chat overlay updates live over WebSocket and keeps working with the control panel closed.</p>
+                </div>
+            </div>
+        </section>
+
         <section class="section" id="features">
             <div class="section-header">
                 <i class="fa-solid fa-star"></i>
-                <h2>Everything a stream giveaway needs</h2>
+                <h2>Everything a stream needs</h2>
                 <span class="line"></span>
             </div>
-            <p class="section-sub">The RustyBot giveaway flow, rebuilt as a lightweight browser tool you can run from any laptop.</p>
+            <p class="section-sub">Giveaways, live alerts and combined chat in one lightweight browser tool you can run from any laptop.</p>
             <div class="feature-grid">
                 <div class="feature">
                     <i class="fa-solid fa-window-restore"></i>
@@ -513,6 +546,7 @@
                     <ul class="checklist">
                         <li><i class="fa-solid fa-check"></i><span>Add a <b>Browser</b> source in OBS.</span></li>
                         <li><i class="fa-solid fa-check"></i><span>Paste your room's overlay URL and set width <b>320</b>, height <b>720</b>.</span></li>
+                        <li><i class="fa-solid fa-check"></i><span>For <b>Combined Chat</b>, add the chat overlay URL at <b>380 × 900</b>.</span></li>
                         <li><i class="fa-solid fa-check"></i><span>Tick <b>Allow Transparency</b> so the overlay sits over your scene.</span></li>
                         <li><i class="fa-solid fa-check"></i><span>Optional: tick <b>Control audio via OBS</b> for winner and countdown sounds.</span></li>
                     </ul>
@@ -545,7 +579,11 @@
                 </details>
                 <details>
                     <summary>Does it work with both Twitch and Kick at the same time?</summary>
-                    <div class="answer">Yes. Set both channels on the room and entries from either chat go into the same draw. Duplicate names are ignored.</div>
+                    <div class="answer">Yes. Set both channels on the room and entries from either chat go into the same draw. Duplicate names are ignored, and Combined Chat can merge both chats into one panel and OBS overlay.</div>
+                </details>
+                <details>
+                    <summary>Can I combine Twitch and Kick chat?</summary>
+                    <div class="answer">Yes. Enable <b style="color:var(--text)">Combined Chat</b> when you create a room. Both chats appear in one control panel and one transparent OBS overlay, with native emotes, badges, replies and filters. Giveaway entries still work from both chats.</div>
                 </details>
                 <details>
                     <summary>What is EVE mode?</summary>
@@ -580,8 +618,8 @@
 
         <section class="section">
             <div class="cta-panel">
-                <h2>Ready to run a draw?</h2>
-                <p>Create a room in under a minute. No install, no account, no setup fee.</p>
+                <h2>Ready to run your next stream?</h2>
+                <p>Giveaways, live alerts and combined chat in one browser tool. No install, no account, no setup fee.</p>
                 <div class="hero-actions" style="margin-top:0;">
                     <a class="btn primary" href="https://source.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-solid fa-bolt"></i> Launch Rustybot Source</a>
                     <a class="btn ghost" href="https://discord.gg/w3WA2vfCSW" target="_blank" rel="noopener"><i class="fa-brands fa-discord"></i> Join the Discord</a>
