@@ -162,6 +162,27 @@
         .winners-table tr:hover td { background: var(--panel-hover); }
         .winners-table .week { color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
         .winners-table .name b { color: #eee; }
+        .winner-cell { display: flex; align-items: center; gap: 10px; }
+        .winner-avatar-wrap { width: 32px; height: 32px; flex: none; }
+        .winner-avatar {
+            width: 32px; height: 32px; display: block; object-fit: cover;
+            border-radius: 50%; border: 1px solid var(--border); background: var(--bg);
+        }
+        .winner-avatar-fallback {
+            width: 32px; height: 32px; align-items: center; justify-content: center;
+            border-radius: 50%; border: 1px solid var(--border); background: var(--bg);
+            color: var(--dim); font-size: 0.8rem;
+        }
+        .winners-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+        .winners-count { color: var(--dim); font-size: 0.8rem; }
+        .winners-toggle {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 18px; font-family: inherit; font-size: 0.8rem; font-weight: 700;
+            letter-spacing: 0.5px; color: var(--accent); background: var(--panel);
+            border: 1px solid var(--accent-dim); border-radius: 6px; cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+        }
+        .winners-toggle:hover { color: #111; background: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
         .no-winners { color: var(--dim); font-size: 0.95rem; }
 
         footer { text-align: center; padding: 24px; margin-top: 24px; border-top: 1px solid var(--border); color: #777; font-size: 0.85rem; }
@@ -444,6 +465,9 @@
         let wasClosed = false;
         let lastOpen = null;
         let drawEndsAt = null;
+        const WINNERS_PREVIEW = 10;
+        let cachedWinners = [];
+        let winnersExpanded = false;
         const loginHint = 'Sign in with EVE Online account you registered with eve2twitch to verify your character. You get one entry per week.';
 
         async function loadStatus() {
@@ -598,19 +622,54 @@
         }
 
         function renderPastWinners(winners) {
+            cachedWinners = Array.isArray(winners) ? winners : [];
+            drawPastWinners();
+        }
+
+        function portraitHtml(w) {
+            const id = Number(w.character_id);
+            if (!Number.isFinite(id) || id <= 0) {
+                return '<span class="winner-avatar-wrap"><span class="winner-avatar-fallback" style="display:flex;"><i class="fa-solid fa-user"></i></span></span>';
+            }
+            return '<span class="winner-avatar-wrap">' +
+                '<img class="winner-avatar" src="https://images.evetech.net/characters/' + id + '/portrait?size=64" alt="' + esc(w.character_name) + '" loading="lazy" ' +
+                'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+                '<span class="winner-avatar-fallback" style="display:none;"><i class="fa-solid fa-user"></i></span>' +
+                '</span>';
+        }
+
+        function drawPastWinners() {
             const el = document.getElementById('pastWinnersList');
-            const list = Array.isArray(winners) ? winners : [];
+            const list = cachedWinners;
             if (!list.length) {
                 el.innerHTML = '<div class="no-winners">No winners yet — be the first to enter this week!</div>';
                 return;
             }
-            const rows = list.map(w => {
+            const showAll = winnersExpanded || list.length <= WINNERS_PREVIEW;
+            const shown = showAll ? list : list.slice(0, WINNERS_PREVIEW);
+            const rows = shown.map(w => {
                 const prize = w.prize ? esc(w.prize) : '—';
                 const date = w.drawn_at ? new Date(w.drawn_at).toLocaleDateString() : '';
                 const meta = date ? '<span class="week">' + date + '</span>' : '';
-                return '<tr><td class="name"><b>' + esc(w.character_name) + '</b></td><td>' + prize + '</td><td class="week">' + meta + '</td></tr>';
+                return '<tr><td class="name"><div class="winner-cell">' + portraitHtml(w) + '<b>' + esc(w.character_name) + '</b></div></td><td>' + prize + '</td><td class="week">' + meta + '</td></tr>';
             }).join('');
-            el.innerHTML = '<table class="winners-table"><thead><tr><th>Winner</th><th>Prize Won</th><th>Date</th></tr></thead><tbody>' + rows + '</tbody></table>';
+            let html = '<table class="winners-table"><thead><tr><th>Winner</th><th>Prize Won</th><th>Date</th></tr></thead><tbody>' + rows + '</tbody></table>';
+            if (list.length > WINNERS_PREVIEW) {
+                const count = winnersExpanded
+                    ? 'Showing all ' + list.length + ' winners'
+                    : 'Showing ' + shown.length + ' of ' + list.length + ' winners';
+                html += '<div class="winners-meta"><span class="winners-count">' + count + '</span>' +
+                    '<button type="button" class="winners-toggle" onclick="toggleWinners()">' +
+                    '<i class="fa-solid fa-chevron-' + (winnersExpanded ? 'up' : 'down') + '"></i> ' +
+                    (winnersExpanded ? 'Show last ' + WINNERS_PREVIEW : 'Show all winners (' + list.length + ')') +
+                    '</button></div>';
+            }
+            el.innerHTML = html;
+        }
+
+        function toggleWinners() {
+            winnersExpanded = !winnersExpanded;
+            drawPastWinners();
         }
 
         if (err) {
