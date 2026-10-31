@@ -369,5 +369,4 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
   `ship/<typeID>-<slug>/` with stats, bonuses, skills, mastery, description,
   live Jita price and links into the tree. `ship/index.html` lists all hulls,
   and `build-ship-pages.mjs` keeps the pages and sitemap block in sync.
-  Clicking a hull's picture — either the tile icon on the canvas or the
-  picture in the hull panel — opens that full page.
+  Clicking the hull picture in the right-hand panel opens that full page.

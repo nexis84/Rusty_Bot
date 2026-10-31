@@ -998,8 +998,7 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
 }
 .hit mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; padding: 0 1px; }
 
-/* clicking a hull picture opens its full static page */
-.tile-img { cursor: pointer; }
+/* clicking the hull picture in the right panel opens its full static page */
 #panel .panel-head .head-img-link {
   flex: none; display: block; line-height: 0; border-radius: 6px;
 }

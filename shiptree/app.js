@@ -517,13 +517,6 @@ function render() {
           preserveAspectRatio: 'xMidYMid meet',
         }, tg);
         img.setAttribute('href', `${IMG}/${s.id}/icon?size=64`);
-        img.style.cursor = 'pointer';
-        img.addEventListener('click', ev => {
-          ev.stopPropagation();
-          if (clickSuppressed()) return;
-          location.href = `ship/${s.id}-${s.slug || 'ship'}/`;
-        });
-        svgEl('title', { text: `Open the full ${s.name} page` }, img);
         img.addEventListener('error', () => {
           img.remove();
           tg.insertBefore(svgEl('text', {
