@@ -717,6 +717,12 @@ fs.mkdirSync(path.dirname(CONFIG.output), { recursive: true });
 fs.mkdirSync(path.dirname(CONFIG.detailsOutput), { recursive: true });
 fs.writeFileSync(CONFIG.output, JSON.stringify(payload), 'utf8');
 fs.writeFileSync(CONFIG.detailsOutput, JSON.stringify(detailsPayload), 'utf8');
+const versionFile = path.join(path.dirname(CONFIG.output), 'version.json');
+fs.writeFileSync(versionFile, JSON.stringify({
+  build: payload.meta.sdeBuild,
+  generatedAt: payload.meta.generatedAt,
+  detailsHash,
+}, null, 2), 'utf8');
 
 // ---------------------------------------------------------------- report
 
@@ -725,6 +731,7 @@ if (!QUIET) {
   console.log(`
 wrote ${path.relative(process.cwd(), CONFIG.output)} (${kb(CONFIG.output)})
 wrote ${path.relative(process.cwd(), CONFIG.detailsOutput)} (${kb(CONFIG.detailsOutput)}, lazy — fetched after first paint)
+wrote ${path.relative(process.cwd(), versionFile)} (cache-busting version)
   details hash    ${detailsHash}
   bonus profiles  ${detailsBody.bonusCounts.roleSets} role sets + ${detailsBody.bonusCounts.shipSets} hull sets (${detailsBody.bonusCounts.roleLines} + ${detailsBody.bonusCounts.shipLines} lines)
   types scanned   ${scannedTypes}

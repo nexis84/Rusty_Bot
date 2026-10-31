@@ -3163,7 +3163,18 @@ function jumpToLane(laneId) {
 /* ------------------------------------------------------------------ init */
 
 async function init() {
-  const res = await fetch('data/shiptree.json');
+  // A tiny no-store version probe gives the data fetch a build-specific URL,
+  // so a new SDE build cannot sit behind an edge cache that ignores headers.
+  let dataUrl = 'data/shiptree.json';
+  try {
+    const vres = await fetch(`data/version.json?cb=${Date.now()}`, { cache: 'no-store' });
+    if (vres.ok) {
+      const v = await vres.json();
+      const stamp = v && (v.generatedAt || v.build);
+      if (stamp) dataUrl += `?v=${encodeURIComponent(stamp)}`;
+    }
+  } catch { /* fall back to the unversioned URL */ }
+  const res = await fetch(dataUrl, { cache: 'no-cache' });
   if (!res.ok) throw new Error(`data/shiptree.json: HTTP ${res.status}`);
   const t0 = performance.now();
   DATA = await res.json();

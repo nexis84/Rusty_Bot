@@ -334,6 +334,7 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
 | `sso-callback.html` | redirect target that swaps the SSO code for tokens |
 | `data/shiptree.json` | generated data — commit this |
 | `data/details.json` | generated data — commit this |
+| `data/version.json` | build id for cache-busting data URLs — commit this |
 | `img/factions/` | optional real faction emblems (see its own README) |
 | `manifest.webmanifest` | PWA manifest |
 | `sw.js` | service worker: offline shell, network-first data |

@@ -59,15 +59,17 @@ self.addEventListener('fetch', event => {
   }
 
   // Data: network-first so a refreshed SDE lands immediately; fall back offline.
+  // Cache by path, not by the version query, so old builds do not accumulate.
   if (url.pathname.includes('/data/')) {
+    const key = new Request(url.origin + url.pathname);
     event.respondWith(
       fetch(req, { cache: 'no-cache' })
         .then(res => {
           const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put(req, copy));
+          caches.open(CACHE).then(cache => cache.put(key, copy));
           return res;
         })
-        .catch(() => caches.match(req, { ignoreSearch: true }))
+        .catch(() => caches.match(key))
     );
     return;
   }
