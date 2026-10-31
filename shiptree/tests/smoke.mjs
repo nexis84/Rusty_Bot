@@ -89,6 +89,7 @@ assert.match((await search('herlad'))[0], /Herald/);
 await pick('Herald');
 assert.equal(await page.textContent('#panel h2'), 'Herald');
 assert.equal(await page.locator('#panelShare').count(), 1);
+assert.equal(await page.locator('#panel .head-img-link').getAttribute('href'), 'ship/97793-herald/');
 
 // Four-hull comparison.
 await page.click('#panelCompare');

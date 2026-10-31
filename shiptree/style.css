@@ -997,3 +997,14 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); }
   .filter-scrim { display: none !important; }
 }
 .hit mark { background: var(--accent-dim); color: var(--accent); border-radius: 2px; padding: 0 1px; }
+
+/* clicking a hull picture opens its full static page */
+.tile-img { cursor: pointer; }
+#panel .panel-head .head-img-link {
+  flex: none; display: block; line-height: 0; border-radius: 6px;
+}
+#panel .panel-head .head-img-link:hover .head-img,
+#panel .panel-head .head-img-link:focus-visible .head-img {
+  border-color: var(--accent);
+}
+#panel .panel-head .head-img-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

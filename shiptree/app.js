@@ -517,6 +517,13 @@ function render() {
           preserveAspectRatio: 'xMidYMid meet',
         }, tg);
         img.setAttribute('href', `${IMG}/${s.id}/icon?size=64`);
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', ev => {
+          ev.stopPropagation();
+          if (clickSuppressed()) return;
+          location.href = `ship/${s.id}-${s.slug || 'ship'}/`;
+        });
+        svgEl('title', { text: `Open the full ${s.name} page` }, img);
         img.addEventListener('error', () => {
           img.remove();
           tg.insertBefore(svgEl('text', {
@@ -1301,7 +1308,9 @@ function renderPanel(ship) {
   // never restarted by a tab click.
   panel.innerHTML = `
     <div class="panel-head">
-      <img class="head-img" src="${IMG}/${ship.id}/render?size=128" alt="${esc(ship.name)}">
+      <a class="head-img-link" href="ship/${ship.id}-${ship.slug || 'ship'}/" title="Open the full ${esc(ship.name)} page">
+        <img class="head-img" src="${IMG}/${ship.id}/render?size=128" alt="${esc(ship.name)}">
+      </a>
       <div class="head-txt">
         <div class="kicker">${esc(lane?.short ?? '')} &middot; ${esc(row?.name ?? '')}</div>
         <h2>${esc(ship.name)}</h2>
