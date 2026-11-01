@@ -1242,8 +1242,19 @@ async function refreshDiscordStatus() {
     }
     const charId = piEsiAuth.getCurrentCharacter();
     try {
-        const res = await fetch(`${PI_DISCORD_API}/status?character_id=${charId}`);
+        const token = await piEsiAuth.getAccessToken(charId);
+        const res = await fetch(`${PI_DISCORD_API}/status`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: 'no-store'
+        });
         const data = await res.json().catch(()=>({}));
+        if (res.status === 401) {
+            statusEl.textContent = 'SSO session expired — log in again';
+            if (linkBtn) linkBtn.classList.add('hidden');
+            if (unlinkBtn) unlinkBtn.classList.add('hidden');
+            if (testBtn) testBtn.classList.add('hidden');
+            return;
+        }
         if (data.linked && data.username) {
             statusEl.textContent = `Linked — ${data.username} will get DMs`;
             if (linkBtn) linkBtn.classList.add('hidden');
@@ -1256,7 +1267,10 @@ async function refreshDiscordStatus() {
             if (testBtn) testBtn.classList.add('hidden');
         }
     } catch (e) {
-        statusEl.textContent = 'Discord status unavailable';
+        const msg = String(e?.message || '');
+        statusEl.textContent = /expired|authenticated|token/i.test(msg)
+            ? 'SSO session expired — log in again'
+            : 'Discord status unavailable';
     }
 }
 
@@ -1266,15 +1280,18 @@ async function initiateDiscordLink() {
     if (!piEsiAuth.isAuthenticated()) { alert('Log in with EVE SSO first'); return; }
     const charId = piEsiAuth.getCurrentCharacter();
     try {
-        const cfgRes = await fetch(`${PI_DISCORD_API}/config`);
-        const cfg = await cfgRes.json();
-        if (!cfg.discord_client_id) throw new Error('Discord not configured');
-        const state = btoa(`${charId}:${Date.now()}:${Math.random().toString(36).slice(2)}`).replace(/=+$/,'');
-        localStorage.setItem('pi_discord_state', state);
-        localStorage.setItem('pi_discord_char', charId);
-        const redirectUri = cfg.redirect_uri || (isLocalhost ? 'http://localhost:8080/api/pi/discord/callback' : 'https://api.rustybot.co.uk/api/pi/discord/callback');
-        const url = `https://discord.com/api/oauth2/authorize?client_id=${cfg.discord_client_id}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify&state=${encodeURIComponent(state)}`;
-        window.location.href = url;
+        // Remove state left by the old client-side OAuth flow.
+        try { localStorage.removeItem('pi_discord_state'); localStorage.removeItem('pi_discord_char'); } catch (_) {}
+        const token = await piEsiAuth.getAccessToken(charId);
+        const res = await fetch(`${PI_DISCORD_API}/start`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ character_id: charId })
+        });
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        if (!data.url) throw new Error('Discord did not return an authorization URL');
+        window.location.href = data.url;
     } catch (e) {
         alert('Discord link failed: ' + e.message);
     }
@@ -1284,7 +1301,11 @@ async function unlinkDiscord() {
     const charId = piEsiAuth.getCurrentCharacter();
     if (!charId) return;
     try {
-        await fetch(`${PI_DISCORD_API}/link`, { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({character_id: charId})});
+        const token = await piEsiAuth.getAccessToken(charId);
+        await fetch(`${PI_DISCORD_API}/link`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+        });
     } catch(e) {}
     refreshDiscordStatus();
 }
@@ -1294,7 +1315,11 @@ async function testDiscordDM() {
     const statusEl = elements.discordStatus || document.getElementById('discordStatus');
     if (statusEl) statusEl.textContent = 'Sending test DM...';
     try {
-        const res = await fetch(`${PI_DISCORD_API}/test`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({character_id: charId})});
+        const token = await piEsiAuth.getAccessToken(charId);
+        const res = await fetch(`${PI_DISCORD_API}/test`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` }
+        });
         const data = await res.json().catch(()=>({}));
         if (!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
         if (statusEl) statusEl.textContent = 'Test DM sent — check Discord';
@@ -1314,11 +1339,19 @@ function setupDiscordDM() {
     refreshDiscordStatus();
     // Persist EVE tokens server-side for offline DM (one-time per login)
     if (piEsiAuth.isAuthenticated()) {
-        const c = piEsiAuth.getCurrentCharacter();
-        const t = piEsiAuth.tokens[c];
-        if (t && t.refreshToken) {
-            fetch(`${PI_DISCORD_API.replace('/discord','')}/tokens/persist`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({character_id:c, character_name:t.characterName, refresh_token:t.refreshToken, access_token:t.accessToken, expires_at:t.expiresAt})}).catch(()=>{});
-        }
+        (async () => {
+            const c = piEsiAuth.getCurrentCharacter();
+            const t = piEsiAuth.tokens[c];
+            if (!t || !t.refreshToken) return;
+            try {
+                const token = await piEsiAuth.getAccessToken(c);
+                await fetch(`${PI_DISCORD_API.replace('/discord','')}/tokens/persist`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ character_id: c, character_name: t.characterName, refresh_token: t.refreshToken, access_token: t.accessToken, expires_at: t.expiresAt })
+                });
+            } catch (_) {}
+        })();
     }
 }
 
