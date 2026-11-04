@@ -60,6 +60,20 @@ function skinIconMarkup(typeId, name, { large = false } = {}) {
     return `<img src="skin-icons/${file}" alt="${escapeHtml(name)}" class="item-icon skin-icon-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="skin-icon" style="display:none"><i class="fas fa-palette"></i></div>`;
 }
 
+let shipTypeIdSet = null;
+function isShipTypeId(typeId) {
+    if (typeof AllMarketItems === 'undefined' || !AllMarketItems.ships?.items) return false;
+    if (!shipTypeIdSet) {
+        shipTypeIdSet = new Set(AllMarketItems.ships.items.map(item => item.id));
+    }
+    return shipTypeIdSet.has(Number(typeId));
+}
+
+function skinTypeIdsForShip(typeId) {
+    const map = window.SkinShips;
+    return map ? map[typeId] || map[String(typeId)] || [] : [];
+}
+
 // Helper function to decode HTML entities (convert &quot; back to ")
 function decodeHtml(text) {
     const div = document.createElement('div');
@@ -2191,6 +2205,15 @@ async function loadItem(typeId, name, forceRefresh = false) {
         
         // Update state
         AppState.currentItem = { id: typeId, name: decodeHtml(name) };
+
+        // SKINs only make sense for ships; show the tab and its count for them.
+        const shipSkins = isShipTypeId(typeId) ? skinTypeIdsForShip(typeId) : null;
+        const skinsTabBtn = el('skinsTabBtn');
+        if (skinsTabBtn) {
+            skinsTabBtn.classList.toggle('hidden', shipSkins === null);
+            const skinsTabCount = el('skinsTabCount');
+            if (skinsTabCount) skinsTabCount.textContent = shipSkins === null ? '' : `(${shipSkins.length})`;
+        }
         
         // Switch to Orders tab as default when loading new item
         switchTab('orders');
@@ -4049,57 +4072,61 @@ function getItemName(typeId) {
     return `Item ${typeId}`;
 }
 
-// Load skins data for a ship
+// Load the exact SKINs for a ship and link each card to its market page.
 async function loadSkinsData(shipId, shipName) {
     const container = el('skinsInfo');
     if (!container) return;
-    
-    container.innerHTML = '<p class="loading-text">Loading skins data...</p>';
-    
+
+    container.innerHTML = '<p class="loading-text">Loading SKINs...</p>';
+
     try {
-        // Find skins that contain "SKIN" and the ship name
-        // We match words to avoid "Omen" matching "Omen Navy Issue" incorrectly when it shouldn't, 
-        // actually standard string inclusion is mostly fine but let's be careful.
-        // Usually ship skins are named "[ShipName] [SkinName] SKIN".
-        const skins = AppState.allItems.filter(item => {
-            const lowerName = item.name.toLowerCase();
-            return lowerName.includes('skin') && 
-                   lowerName.includes(shipName.toLowerCase());
-        });
-        
+        const itemsById = new Map(AppState.allItems.map(item => [item.id, item]));
+        const skins = skinTypeIdsForShip(shipId)
+            .map(id => itemsById.get(id))
+            .filter(Boolean)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
         if (skins.length === 0) {
+            container.onclick = null;
             container.innerHTML = `
                 <div class="no-manufacturing">
-                    <i class="fas fa-paint-brush"></i>
-                    <p>No skins found for ${shipName}.</p>
+                    <i class="fas fa-palette"></i>
+                    <p>No SKINs are available for ${escapeHtml(shipName)}.</p>
                 </div>
             `;
             return;
-}
-        
-        // Sort skins by name
-        skins.sort((a, b) => a.name.localeCompare(b.name));
-        
-        let html = '<div class="skins-section" style="padding: 15px;">';
-        html += `<h4><i class="fas fa-paint-brush"></i> Available Skins for ${shipName}</h4>`;
-        html += '<div class="item-grid" style="margin-top: 15px;">';
-        
+        }
+
+        const region = encodeURIComponent(AppState.currentRegion);
+        let html = '<div class="skins-section">';
+        html += `<h4><i class="fas fa-palette"></i> Available SKINs for ${escapeHtml(shipName)} <span class="item-count">${skins.length}</span></h4>`;
+        html += '<div class="item-grid skins-grid">';
+
         for (const skin of skins) {
-            const escapedName = skin.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             html += `
-                <div class="item-card" onclick="loadItem(${skin.id}, '${escapedName}')" style="cursor: pointer;">
+                <a class="item-card skin-card" href="?type=${skin.id}&amp;region=${region}" data-type-id="${skin.id}" data-name="${escapeHtml(skin.name)}">
                     ${skinIconMarkup(skin.id, skin.name)}
                     <div class="item-name">${escapeHtml(skin.name)}</div>
                     <div class="item-category">SKIN</div>
-                </div>
+                </a>
             `;
-}
-        
+        }
+
         html += '</div></div>';
         container.innerHTML = html;
-        
+
+        // Normal left-clicks stay inside the SPA; modified clicks (new tab,
+        // middle-click) follow the real href.
+        container.onclick = event => {
+            const link = event.target.closest('a.skin-card');
+            if (!link || event.defaultPrevented || event.button !== 0 ||
+                event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            loadItem(Number(link.dataset.typeId), link.dataset.name);
+        };
     } catch (error) {
         console.error('Error loading skins data:', error);
+        container.onclick = null;
         container.innerHTML = `
             <div class="no-manufacturing">
                 <i class="fas fa-exclamation-triangle"></i>

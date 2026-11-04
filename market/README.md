@@ -34,6 +34,10 @@ stale icons, and prints coverage. Newly added skins missing from the pack fall
 back to the palette icon automatically. If you rebuild the pack, bump
 `skin-icons.js?v=` in `market/index.html` so browsers pick up the new map.
 
+Ship → skin membership is generated separately from the SDE by
+`scripts/build-skin-ships.mjs` (run automatically by `refresh-sde.ps1`). It
+writes `market/skin-ships.js`, which powers the **SKINs** tab on ship pages.
+
 ## ESI Rate Limits
 
 The application respects ESI rate limits. For heavy usage, consider implementing server-side caching or using a proxy.
