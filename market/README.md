@@ -15,6 +15,25 @@ A fully-featured EVE Online market browser inspired by evemarketbrowser.com, fea
 - **Responsive Design** - Works on desktop and mobile devices
 - **Dark Theme** - Eye-friendly dark/rusty UI matching the original RustyBot style
 
+## SKIN Icons
+
+The market ships local icons for every SKIN in the SDE. `skin-icons.js` maps
+each skin typeID to a content-addressed PNG in `skin-icons/`; many skins share
+the same 64x64 theme icon, so the pack is deduplicated to a few hundred files.
+
+To rebuild the icons from a new `SKIN Icons.zip` (which must contain
+`skins.csv` plus the PNGs):
+
+```powershell
+cd "C:\Users\nexis\Desktop\Rustybot services\Rusty_Bot-main"
+python scripts/build-skin-icons.py "C:\Users\nexis\Desktop\SKIN Icons.zip"
+```
+
+The script adds/updates `market/skin-icons.js` and `market/skin-icons/`, removes
+stale icons, and prints coverage. Newly added skins missing from the pack fall
+back to the palette icon automatically. If you rebuild the pack, bump
+`skin-icons.js?v=` in `market/index.html` so browsers pick up the new map.
+
 ## ESI Rate Limits
 
 The application respects ESI rate limits. For heavy usage, consider implementing server-side caching or using a proxy.

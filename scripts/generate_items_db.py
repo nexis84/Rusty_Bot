@@ -132,7 +132,10 @@ def main():
                   f"({sde_cat_counts[best_cat]}/{len(ids)} items)")
 
     # Handle special cases
-    # "skins" come from skinLicenses, not types - keep existing
+    # "skins" are category 91 in types.jsonl, but unlike ships/modules we never
+    # carry forward IDs that disappeared from the SDE: typeIDs get reused, so a
+    # stale skin entry can end up pointing at an unrelated item (and the wrong
+    # icon). The SDE is authoritative for this category.
     # "special_edition" might use category 14 (Spawn Container) or just be curated
     # Check what we're missing
     mapped_market_cats = set(sde_cat_to_market_cat.values())
@@ -218,6 +221,10 @@ def main():
             new_ids = {item["id"] for item in new_items[cat_key]}
             missing = existing_ids - new_ids
             if missing:
+                if cat_key == "skins":
+                    print(f"  {cat_key}: {len(missing)} stale items dropped "
+                          f"(typeIDs no longer in SDE)")
+                    continue
                 print(f"  {cat_key}: {len(missing)} existing items missing from new SDE "
                       f"(keeping them)")
                 # Add missing items back
