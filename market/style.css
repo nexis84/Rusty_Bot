@@ -967,6 +967,18 @@ body {
     border-color: var(--accent-2);
 }
 
+.ship-tree-link {
+    width: auto;
+    padding: 0 12px;
+    gap: 7px;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.ship-tree-link:hover {
+    text-decoration: none;
+}
+
 /* Market Summary Cards */
 .market-summary {
     display: grid;

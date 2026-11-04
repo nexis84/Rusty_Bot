@@ -6,6 +6,7 @@ A fully-featured EVE Online market browser inspired by evemarketbrowser.com, fea
 
 - **Category Browser** - Browse items by category (Ships, Modules, Ammunition, Materials, etc.) with an expandable tree sidebar
 - **Live Market Data** - Real-time buy and sell orders from ESI
+- **Ship Tree Links** - Open any ship directly in the interactive RustyBot Ship Tree
 - **Multi-Region Support** - View data from all major trade hubs (Jita, Amarr, Dodixie, Rens, Hek) or individual regions
 - **Location Resolution** - Station and structure names resolved automatically
 - **Price History Charts** - Interactive charts with 7/30/90/180/365 day views showing high, low, and average prices

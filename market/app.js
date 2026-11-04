@@ -2214,6 +2214,14 @@ async function loadItem(typeId, name, forceRefresh = false) {
             const skinsTabCount = el('skinsTabCount');
             if (skinsTabCount) skinsTabCount.textContent = shipSkins === null ? '' : `(${shipSkins.length})`;
         }
+        const shipTreeLink = el('shipTreeLink');
+        if (shipTreeLink) {
+            shipTreeLink.classList.toggle('hidden', shipSkins === null);
+            if (shipSkins !== null) {
+                shipTreeLink.href = `https://www.rustybot.co.uk/shiptree/?ship=${typeId}`;
+                shipTreeLink.title = `Open ${decodeHtml(name)} in the Ship Tree`;
+            }
+        }
         
         // Switch to Orders tab as default when loading new item
         switchTab('orders');
