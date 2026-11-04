@@ -4,12 +4,12 @@ An out-of-game **EVE Online ship tree**: every hull in the game, arranged by
 faction lane and hull class, wired to the skills that gate it.
 
 Built from the EVE Static Data Export — not from CCP's ESI or any API, so it
-works offline and never rate-limits. 425 hulls (363 in CCP's own tree plus 62
+works offline and never rate-limits. 425 hulls (361 in CCP's own tree plus 64
 specials), 329 skills, 18 lanes, ≈1.2 MB of JSON split across two files (see
 **Data files** below).
 
 ```
-  ../sde ──▶ build-shiptree.mjs ──▶ data/shiptree.json  (363 KB)
+  ../sde ──▶ build-shiptree.mjs ──▶ data/shiptree.json  (370 KB)
                                                         │          │
                                                         │          └─▶ data/details.json (807 KB, lazy)
                                               index.html + app.js  (static)
@@ -54,7 +54,7 @@ specials), 329 skills, 18 lanes, ≈1.2 MB of JSON split across two files (see
   lines.
 - **Hull-class rows** — Frigate, Navy Frigate, Interceptor, Assault Frigate,
   Destroyer … sorted the way the game orders them, packed into lines.
-- **Special ships** — a final **Special** lane collects the 62 published hulls
+- **Special ships** — a final **Special** lane collects the 64 published hulls
   CCP leaves out of its own in-game ship tree: faction corvettes such as the
   *Immolator* (plus *Echo*, *Hematos*, *Taipan*, *Violator*), tournament/IGC
   prize ships (*Cambion*, *Freki*, *Geri*, *Malice*, *Python*, *Sidewinder*…),
@@ -285,6 +285,8 @@ cd "C:\Users\nexis\Desktop\Rustybot services\Rusty_Bot-main\shiptree"
 node build-shiptree.mjs          # SDE -> data/*.json (+ sanity report)
 node build-ship-pages.mjs        # data -> ship/<id>-<slug>/ + sitemap block
 node audit-skills.mjs            # cross-check every hull against CCP's own ship tree
+node tests/data.mjs              # data/page/sitemap checks (no browser)
+npm test                         # data checks + interactive smoke tests
 python -m http.server 8777       # then open http://127.0.0.1:8777/
 ```
 
@@ -328,6 +330,8 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
 | `build-shiptree.mjs` | SDE jsonl → `data/shiptree.json` + `details.json`, prints a sanity report |
 | `build-ship-pages.mjs` | generates `ship/<id>-<slug>/` pages + `ship/index.html` + sitemap block |
 | `audit-skills.mjs` | cross-checks every hull's requirements against CCP's own ship tree |
+| `tests/data.mjs` | browser-free checks for lanes, SPECIAL classification, pages, sitemap and build stamps |
+| `tests/smoke.mjs` | Playwright smoke tests for search, panels, plans, deep links and mobile filters |
 | `config.json` | `sdeDir` (defaults to `../sde`), output paths, official SDE URLs |
 | `index.html` | shell: header, stage, panel, status bar |
 | `welcome.js` | first-run / help overlay |

@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/smoke.mjs"
+    "test": "node tests/data.mjs && node tests/smoke.mjs",
+    "test:data": "node tests/data.mjs",
+    "test:smoke": "node tests/smoke.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.62.1"

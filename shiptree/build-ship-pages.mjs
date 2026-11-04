@@ -523,22 +523,40 @@ fetch('../data/version.json?cb=' + Date.now(), { cache: 'no-store' })
 </html>`;
 }
 
-function updateSitemap() {
+function readSitemapLastmods(xml) {
+  const lastmods = new Map();
+  for (const match of xml.matchAll(/<url>([\s\S]*?)<\/url>/g)) {
+    const loc = /<loc>(.*?)<\/loc>/.exec(match[1])?.[1];
+    const lastmod = /<lastmod>(.*?)<\/lastmod>/.exec(match[1])?.[1];
+    if (loc) lastmods.set(loc, lastmod);
+  }
+  return lastmods;
+}
+
+function updateSitemap({ changedPages = new Set(), indexChanged = true } = {}) {
   const sitemapPath = path.join(ROOT, 'sitemap.xml');
   if (!fs.existsSync(sitemapPath)) return 0;
   const date = (VERSION.generatedAt || new Date().toISOString()).slice(0, 10);
+  let xml = fs.readFileSync(sitemapPath, 'utf8').replace(/\r\n?/g, '\n');
+  const previous = readSitemapLastmods(xml);
+  const indexLoc = `${BASE}/ship/`;
+  // Keep the old lastmod for pages whose HTML did not change. Stamping every
+  // URL with today's date on each SDE build creates a ~850-line diff and lies
+  // to crawlers about which pages actually changed.
+  const indexLastmod = indexChanged ? date : previous.get(indexLoc) || date;
   const entries = [
-    `  <url>\n    <loc>${BASE}/ship/</loc>\n    <lastmod>${date}</lastmod>\n    <priority>0.7</priority>\n  </url>`,
-    ...DATA.ships.map(ship => `  <url>\n    <loc>${BASE}/ship/${ship.id}-${shipSlug(ship)}/</loc>\n    <lastmod>${date}</lastmod>\n    <priority>0.6</priority>\n  </url>`),
+    `  <url>\n    <loc>${indexLoc}</loc>\n    <lastmod>${indexLastmod}</lastmod>\n    <priority>0.7</priority>\n  </url>`,
+    ...DATA.ships.map(ship => {
+      const loc = `${BASE}/ship/${ship.id}-${shipSlug(ship)}/`;
+      const lastmod = changedPages.has(ship.id) ? date : previous.get(loc) || date;
+      return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>0.6</priority>\n  </url>`;
+    }),
   ].join('\n');
   const block = `  <!-- shiptree-ship-pages:start -->\n${entries}\n  <!-- shiptree-ship-pages:end -->`;
-  let xml = fs.readFileSync(sitemapPath, 'utf8');
-  if (/<!-- shiptree-ship-pages:start -->[\s\S]*?<!-- shiptree-ship-pages:end -->/.test(xml)) {
-    xml = xml.replace(/  <!-- shiptree-ship-pages:start -->[\s\S]*?  <!-- shiptree-ship-pages:end -->/, block);
-  } else {
-    xml = xml.replace('</urlset>', `${block}\n</urlset>`);
-  }
-  fs.writeFileSync(sitemapPath, xml, 'utf8');
+  const next = /<!-- shiptree-ship-pages:start -->[\s\S]*?<!-- shiptree-ship-pages:end -->/.test(xml)
+    ? xml.replace(/  <!-- shiptree-ship-pages:start -->[\s\S]*?  <!-- shiptree-ship-pages:end -->/, block)
+    : xml.replace('</urlset>', `${block}\n</urlset>`);
+  if (next !== xml) fs.writeFileSync(sitemapPath, next, 'utf8');
   return DATA.ships.length + 1;
 }
 
@@ -546,14 +564,32 @@ function updateSitemap() {
 
 fs.mkdirSync(SHIP_DIR, { recursive: true });
 const keep = new Set();
+const changedPages = new Set();
+let changedCount = 0;
 for (const ship of DATA.ships) {
   const dirName = `${ship.id}-${shipSlug(ship)}`;
   keep.add(dirName);
   const dir = path.join(SHIP_DIR, dirName);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'index.html'), pageHTML(ship), 'utf8');
+  const file = path.join(dir, 'index.html');
+  const html = pageHTML(ship);
+  let existing = null;
+  // Normalise line endings: Git may check files out as CRLF on Windows, but
+  // the generator always emits LF, and a line-ending-only difference should
+  // not count as a page change.
+  try { existing = fs.readFileSync(file, 'utf8').replace(/\r\n?/g, '\n'); } catch { /* new page */ }
+  if (existing !== html) {
+    fs.writeFileSync(file, html, 'utf8');
+    changedPages.add(ship.id);
+    changedCount++;
+  }
 }
-fs.writeFileSync(path.join(SHIP_DIR, 'index.html'), indexPageHTML(), 'utf8');
+
+const indexHTML = indexPageHTML();
+const indexPath = path.join(SHIP_DIR, 'index.html');
+let indexChanged = true;
+try { indexChanged = fs.readFileSync(indexPath, 'utf8').replace(/\r\n?/g, '\n') !== indexHTML; } catch { /* new index */ }
+if (indexChanged) fs.writeFileSync(indexPath, indexHTML, 'utf8');
 
 // Remove pages for hulls that no longer exist.
 for (const ent of fs.readdirSync(SHIP_DIR, { withFileTypes: true })) {
@@ -562,6 +598,6 @@ for (const ent of fs.readdirSync(SHIP_DIR, { withFileTypes: true })) {
   }
 }
 
-const sitemapCount = updateSitemap();
-console.log(`wrote ${DATA.ships.length} ship pages + index`);
+const sitemapCount = updateSitemap({ changedPages, indexChanged });
+console.log(`wrote ${changedCount} changed ship pages (${DATA.ships.length} total) + ${indexChanged ? 'updated' : 'unchanged'} index`);
 console.log(`updated sitemap.xml with ${sitemapCount} entries`);

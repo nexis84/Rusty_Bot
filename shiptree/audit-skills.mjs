@@ -123,4 +123,6 @@ if (!problems.length) {
     for (const p of list.slice(0, 12)) console.log('  ' + p.replace(/^\[[^\]]+\] /, ''));
     if (list.length > 12) console.log(`  … and ${list.length - 12} more`);
   }
+  // Make the refresh pipeline fail instead of printing problems and exiting 0.
+  process.exitCode = 1;
 }

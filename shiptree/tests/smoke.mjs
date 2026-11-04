@@ -14,6 +14,7 @@ import { chromium } from 'playwright-core';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
+const DATA = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/shiptree.json'), 'utf8'));
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -77,8 +78,8 @@ async function pick(q) {
 }
 
 await load();
-assert.match(await page.textContent('#status'), /425 hulls/);
-assert.equal((await search('Herald'))[0], 'HeraldAmarr');
+assert.match(await page.textContent('#status'), new RegExp(`${DATA.ships.length} hulls`));
+assert.equal((await search('Herald'))[0], 'HeraldSpecial');
 assert.match((await search('HAC'))[0], /HAC/);
 assert.match((await search('armor'))[0], /Armor/);
 assert.match((await search('Amarr'))[0], /Amarr/);
@@ -122,7 +123,7 @@ assert.equal(await page.textContent('h1'), 'Drake');
 assert.match(await page.textContent('#price-sell'), /ISK|unavailable/);
 assert.equal(await page.getAttribute('meta[name="robots"]', 'content'), 'index, follow');
 await page.goto(`${base}ship/`, { waitUntil: 'networkidle' });
-assert.equal(await page.locator('.ship-index-grid a').count(), 425);
+assert.equal(await page.locator('.ship-index-grid a').count(), DATA.ships.length);
 
 // Mobile filter sheet.
 const mobile = await context.newPage();

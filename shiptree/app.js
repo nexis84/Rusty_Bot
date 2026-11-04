@@ -4,7 +4,7 @@
  * Data comes from data/shiptree.json, built by build-shiptree.mjs out of the
  * EVE Static Data Export:
  *   skills[]  ship-gating skills + prerequisite closure (depth, rank, attrs)
- *   ships[]   423 published hulls (incl. the 62 specials in the synthetic
+ *   ships[]   425 published hulls (incl. the 64 specials in the synthetic
  *             Special lane): lane (faction), row (hull class), tier,
  *             CCP tag list, prerequisites, gate skill
  *
