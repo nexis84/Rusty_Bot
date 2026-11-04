@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23727
-// SDE build: 3662168
-// Generated: 2026-10-31 00:19:45 UTC
+// Total items: 23732
+// SDE build: 3670638
+// Generated: 2026-11-04 18:27:14 UTC
 
 const AllMarketItems = {
     // Ships
@@ -23981,6 +23981,10 @@ const AllMarketItems = {
             { id: 88577, name: "Agate Steel Metallic - Limited" },
             { id: 88578, name: "Agate Steel Metallic - Unlimited" },
             { id: 81348, name: "Alignment Sequencer" },
+            { id: 98521, name: "Alliance Tournament XXII Background" },
+            { id: 98522, name: "Alliance Tournament XXII Bronze Background" },
+            { id: 98524, name: "Alliance Tournament XXII Gold Background" },
+            { id: 98523, name: "Alliance Tournament XXII Silver Background" },
             { id: 88601, name: "Aluminum Aurora Metallic - Limited" },
             { id: 88602, name: "Aluminum Aurora Metallic - Unlimited" },
             { id: 84163, name: "Ancestral Fireclay Matte - Limited" },
@@ -24114,6 +24118,7 @@ const AllMarketItems = {
             { id: 87121, name: "Crystalflake Comet - Limited" },
             { id: 82357, name: "Crystalized Gradient - Limited" },
             { id: 82449, name: "Crystalized Gradient - Unlimited" },
+            { id: 98270, name: "CSM 21 Voter Background" },
             { id: 88539, name: "Cult Cardinal Matte - Limited" },
             { id: 88540, name: "Cult Cardinal Matte - Unlimited" },
             { id: 88648, name: "Cyber Quill - Limited" },
