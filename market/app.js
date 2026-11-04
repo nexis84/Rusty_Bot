@@ -4087,7 +4087,6 @@ async function loadSkinsData(shipId, shipName) {
             .sort((a, b) => a.name.localeCompare(b.name));
 
         if (skins.length === 0) {
-            container.onclick = null;
             container.innerHTML = `
                 <div class="no-manufacturing">
                     <i class="fas fa-palette"></i>
@@ -4104,7 +4103,7 @@ async function loadSkinsData(shipId, shipName) {
 
         for (const skin of skins) {
             html += `
-                <a class="item-card skin-card" href="?type=${skin.id}&amp;region=${region}" data-type-id="${skin.id}" data-name="${escapeHtml(skin.name)}">
+                <a class="item-card skin-card" href="?type=${skin.id}&amp;region=${region}" target="_blank" rel="noopener" data-type-id="${skin.id}" data-name="${escapeHtml(skin.name)}">
                     ${skinIconMarkup(skin.id, skin.name)}
                     <div class="item-name">${escapeHtml(skin.name)}</div>
                     <div class="item-category">SKIN</div>
@@ -4114,19 +4113,8 @@ async function loadSkinsData(shipId, shipName) {
 
         html += '</div></div>';
         container.innerHTML = html;
-
-        // Normal left-clicks stay inside the SPA; modified clicks (new tab,
-        // middle-click) follow the real href.
-        container.onclick = event => {
-            const link = event.target.closest('a.skin-card');
-            if (!link || event.defaultPrevented || event.button !== 0 ||
-                event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-            event.preventDefault();
-            loadItem(Number(link.dataset.typeId), link.dataset.name);
-        };
     } catch (error) {
         console.error('Error loading skins data:', error);
-        container.onclick = null;
         container.innerHTML = `
             <div class="no-manufacturing">
                 <i class="fas fa-exclamation-triangle"></i>

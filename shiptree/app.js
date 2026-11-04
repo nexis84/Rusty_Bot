@@ -1119,6 +1119,55 @@ function scheduleDetailsWarm() {
   else setTimeout(warm, 300);
 }
 
+/* ---------------------------------------------------------- ship skins (lazy) */
+
+/* The ship -> skin list is a separate lazy file: most visitors never open the
+   SKINs tab, so there is no reason to ship ~600 KB with the first paint. */
+let SKINS = null;
+let skinsPromise = null;
+
+async function loadSkins() {
+  const url = `data/skins.json?v=${DATA.meta.sdeBuild || ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  const body = await res.json();
+  return body.ships || {};
+}
+
+function ensureSkins() {
+  if (!skinsPromise) {
+    skinsPromise = loadSkins()
+      .then(ships => { SKINS = ships; return ships; })
+      .catch(e => {
+        debug('skins not loaded:', e.message);
+        skinsPromise = null;
+        throw e;
+      });
+  }
+  return skinsPromise;
+}
+
+function skinShortName(ship, name) {
+  const prefix = ship.name + ' ';
+  const short = name.startsWith(prefix) ? name.slice(prefix.length) : name;
+  return short.replace(/\s+SKIN(?=\s*\(|$)/i, '');
+}
+
+function skinsHTML(ship) {
+  if (!SKINS) return '<div class="hint">loading SKINs&hellip;</div>';
+  const list = SKINS[ship.id] || [];
+  if (!list.length) return `<div class="hint">no SKINs recorded for ${esc(ship.name)}.</div>`;
+  return `
+    <div class="sect">available skins (${list.length})</div>
+    <div class="skin-grid">
+      ${list.map(s => `<a class="skin-tile" href="/market/?type=${s.id}" target="_blank" rel="noopener" title="Open ${esc(s.name)} in the market">
+        <img src="/market/skin-icons/${s.icon}" alt="" loading="lazy">
+        <span>${esc(skinShortName(ship, s.name))}</span>
+      </a>`).join('')}
+    </div>
+    <div class="note-dim">Links open the market page in a new tab.</div>`;
+}
+
 /* ---------------------------------------------------------- ship bonuses */
 
 /* A bonus line is { v, u, t } from the SDE: value, unit symbol ('%', '+', 'x',
@@ -1271,6 +1320,7 @@ const PANEL_TABS = [
   { id: 'overview', label: 'overview', title: 'picture, description, mastery, price and base price' },
   { id: 'stats', label: 'stats', title: 'fitting, navigation, tank and hold' },
   { id: 'bonuses', label: 'bonuses', title: 'role bonuses and hull bonuses per skill' },
+  { id: 'skins', label: 'skins', title: 'available SKINs with links to the market' },
   { id: 'plan', label: 'plan', title: 'a trainable skill plan, exportable to the game' },
   { id: 'compare', label: 'compare', title: 'pin two hulls and diff them' },
 ];
@@ -1295,6 +1345,11 @@ function renderPanel(ship) {
   const row = rowById.get(ship.row);
   const gate = ship.gate ? skillById.get(ship.gate) : null;
   if (!PANEL_TABS.some(t => t.id === state.panelTab)) state.panelTab = 'overview';
+  if (state.panelTab === 'skins' && !SKINS) {
+    ensureSkins()
+      .then(() => { if (state.selected === ship.id && state.panelTab === 'skins') renderPanel(ship); })
+      .catch(() => {});
+  }
 
   // Every pane is rendered up front and the tabs only toggle visibility, so
   // moving between them is free and the price fetch (which writes #priceBox) is
@@ -1333,6 +1388,7 @@ function renderPanel(ship) {
       </div>
       <div class="pane" data-pane="stats" hidden>${statGrid(ship)}</div>
       <div class="pane" data-pane="bonuses" hidden>${bonusesHTML(ship)}</div>
+      <div class="pane" data-pane="skins" hidden>${skinsHTML(ship)}</div>
       <div class="pane" data-pane="plan" hidden>${planHTML(ship)}</div>
       <div class="pane" data-pane="compare" hidden>${
         compareHTML(state.compare.map(id => shipById.get(id)).filter(Boolean))
@@ -1386,6 +1442,11 @@ function renderPanel(ship) {
       store.set('st.panelTab', state.panelTab);
       syncPanelTabs();
       if (state.panelTab === 'plan') fillPlanCost(ship);
+      if (state.panelTab === 'skins' && !SKINS) {
+        ensureSkins()
+          .then(() => { if (state.selected === ship.id && state.panelTab === 'skins') renderPanel(ship); })
+          .catch(() => {});
+      }
       syncURL();
     };
   });

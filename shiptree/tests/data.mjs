@@ -84,6 +84,36 @@ for (const id of pageIds) {
 }
 check(fs.existsSync(path.join(shipDir, 'index.html')), 'missing ship index page');
 
+// Per-hull SKIN data (used by the interactive SKINs tab and static pages).
+const skinsPath = path.join(ROOT, 'data/skins.json');
+if (!fs.existsSync(skinsPath)) {
+  problems.push('missing data/skins.json');
+} else {
+  const skins = JSON.parse(fs.readFileSync(skinsPath, 'utf8'));
+  const iconDir = path.join(REPO, 'market', 'skin-icons');
+  const iconFiles = new Set(fs.existsSync(iconDir) ? fs.readdirSync(iconDir) : []);
+  let skinCount = 0;
+  for (const [shipId, list] of Object.entries(skins.ships || {})) {
+    check(shipIds.has(Number(shipId)), `skins.json has unknown ship ${shipId}`);
+    check(Array.isArray(list) && list.length > 0, `skins.json ship ${shipId} has no skins`);
+    const seen = new Set();
+    for (const skin of list || []) {
+      skinCount++;
+      check(Number.isInteger(skin.id), `skins.json ship ${shipId} has invalid skin id`);
+      check(!seen.has(skin.id), `skins.json ship ${shipId} repeats skin ${skin.id}`);
+      seen.add(skin.id);
+      check(typeof skin.name === 'string' && skin.name.length > 0,
+        `skins.json skin ${skin.id} has no name`);
+      check(typeof skin.icon === 'string' && iconFiles.has(skin.icon),
+        `skins.json skin ${skin.id} has missing icon ${skin.icon}`);
+    }
+  }
+  check(skins.meta?.count === skinCount,
+    `skins.json meta.count ${skins.meta?.count} != ${skinCount}`);
+  check(skins.meta?.sdeBuild === version.build,
+    `skins.json build ${skins.meta?.sdeBuild} != version ${version.build}`);
+}
+
 // Sitemap must contain exactly the index plus one URL per hull, with a date.
 const urls = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(match => ({
   loc: /<loc>(.*?)<\/loc>/.exec(match[1])?.[1],

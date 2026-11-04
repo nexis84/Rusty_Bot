@@ -22,6 +22,8 @@ const IMG = 'https://images.evetech.net/types';
 const DATA = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/shiptree.json'), 'utf8'));
 const DETAILS = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/details.json'), 'utf8'));
 const VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/version.json'), 'utf8'));
+const SKINS_FILE = path.join(__dirname, 'data/skins.json');
+const SKINS = fs.existsSync(SKINS_FILE) ? (JSON.parse(fs.readFileSync(SKINS_FILE, 'utf8')).ships || {}) : {};
 
 const laneById = new Map(DATA.lanes.map(l => [l.id, l]));
 const rowById = new Map(DATA.rows.map(r => [r.id, r]));
@@ -213,6 +215,25 @@ function relatedHTML(ship) {
   return `<div class="related">${list.map(s => `<a href="../${s.id}-${shipSlug(s)}/">${esc(s.name)}</a>`).join('')}</div>`;
 }
 
+function skinShortName(ship, name) {
+  const prefix = ship.name + ' ';
+  const short = name.startsWith(prefix) ? name.slice(prefix.length) : name;
+  return short.replace(/\s+SKIN(?=\s*\(|$)/i, '');
+}
+
+function skinsHTML(ship) {
+  const list = SKINS[ship.id] || [];
+  if (!list.length) return '';
+  return `<section class="panel" style="margin-top:16px" aria-labelledby="skins-title">
+    <h2 id="skins-title">SKINs <span class="muted">(${list.length})</span></h2>
+    <div class="skin-grid">${list.map(s => `<a class="skin-card" href="/market/?type=${s.id}" target="_blank" rel="noopener" title="Open ${esc(s.name)} in the market">
+      <img src="/market/skin-icons/${s.icon}" alt="" loading="lazy">
+      <span>${esc(skinShortName(ship, s.name))}</span>
+    </a>`).join('')}</div>
+    <p class="muted" style="margin:10px 0 0">Links open the RustyBot market in a new tab.</p>
+  </section>`;
+}
+
 function loreHTML(ship) {
   const raw = DETAILS.descriptions?.[ship.id];
   if (!raw) return '';
@@ -238,6 +259,7 @@ function pageHTML(ship) {
   const tier = ship.tier || 'Hull';
   const desc = metaDescription(ship);
   const lore = loreHTML(ship);
+  const skins = skinsHTML(ship);
   const bp = blueprintHref(ship);
   const omegaText = ship.omegaWhy
     ? `Needs ${esc(ship.omegaWhy.skill)} ${roman(ship.omegaWhy.level)}${ship.omegaWhy.cap ? `, which an Alpha can only train to ${roman(ship.omegaWhy.cap)}` : ', which an Alpha cannot train'}.`
@@ -374,7 +396,7 @@ function pageHTML(ship) {
       ${masteryHTML(ship)}
     </section>
   </div>
-
+${skins ? `\n${skins}\n` : ''}
   ${lore ? `<section class="panel" style="margin-top:16px" aria-labelledby="lore-title">
     <h2 id="lore-title">Description</h2>
     <div class="lore">${lore}</div>

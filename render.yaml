@@ -42,6 +42,9 @@ services:
       - path: /shiptree/data/details.json
         name: Cache-Control
         value: public, max-age=0, s-maxage=0, must-revalidate
+      - path: /shiptree/data/skins.json
+        name: Cache-Control
+        value: public, max-age=0, s-maxage=0, must-revalidate
       # Skin icons are content-addressed (hash filenames), so they never change.
       - path: /market/skin-icons/*
         name: Cache-Control

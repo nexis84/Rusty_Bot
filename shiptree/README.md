@@ -17,6 +17,8 @@ specials), 329 skills, 18 lanes, ≈1.2 MB of JSON split across two files (see
 
 ## What it does
 
+- **SKINs tab** — every hull with SKINs gets a tab listing them with their local
+  market icons; each card opens that SKIN's market page in a new tab.
 - **Two side panels** — **left = skills**, **right = info**. Click a hull and the
   view does *not* move: the hull is highlighted, the right panel shows its
   details, and the left panel switches to **that hull's own requirements** —
@@ -183,14 +185,15 @@ borders `#333`/`#444`). Title, meta description, favicon and a canonical of
 
 ## Data files
 
-The builder writes **two** files:
+The builders write **three** files:
 
 | file | size | when |
 |---|---|---|
-| `data/shiptree.json` | ~361 KB | blocks first paint — everything the tree needs |
-| `data/details.json` | ~804 KB | fetched *after* first paint; read once a hull is open |
+| `data/shiptree.json` | ~370 KB | blocks first paint — everything the tree needs |
+| `data/details.json` | ~807 KB | fetched *after* first paint; read once a hull is open |
+| `data/skins.json` | ~595 KB | fetched only when the SKINs tab is opened |
 
-Raw sizes are misleading here: gzipped they are **46 KB** and **116 KB**. Check
+Raw sizes are misleading here: gzipped the first two are **46 KB** and **116 KB**. Check
 with `node -e "…gzipSync(require('fs').readFileSync(f)).length…"` before worrying
 about a number above.
 
@@ -312,7 +315,9 @@ directly into `Rusty_Bot-main\shiptree\data`. To rebuild only the tree:
 
 ```powershell
 cd "C:\Users\nexis\Desktop\Rustybot services\Rusty_Bot-main"
+node scripts/build-skin-ships.mjs
 node shiptree/build-shiptree.mjs
+node scripts/build-shiptree-skins.mjs
 node shiptree/build-ship-pages.mjs
 node shiptree/audit-skills.mjs
 ```
@@ -341,6 +346,7 @@ the main Render static site serves `Rusty_Bot-main/shiptree/` at
 | `sso-callback.html` | redirect target that swaps the SSO code for tokens |
 | `data/shiptree.json` | generated data — commit this |
 | `data/details.json` | generated data — commit this |
+| `data/skins.json` | per-hull SKINs + market icons, generated from the SDE — commit this |
 | `data/version.json` | build id for cache-busting data URLs — commit this |
 | `img/factions/` | optional real faction emblems (see its own README) |
 | `manifest.json` | PWA manifest |

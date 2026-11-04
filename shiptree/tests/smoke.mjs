@@ -14,6 +14,7 @@ import { chromium } from 'playwright-core';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
+const REPO = path.resolve(ROOT, '..');
 const DATA = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/shiptree.json'), 'utf8'));
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -31,9 +32,12 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   let rel = decodeURIComponent(url.pathname);
   if (rel === '/') rel = '/index.html';
-  let file = path.join(ROOT, rel);
+  // Static ship pages link to /market/skin-icons/*; serve those from the repo
+  // root so the smoke test can run from the shiptree folder.
+  const base = rel.startsWith('/market/') ? REPO : ROOT;
+  let file = path.join(base, rel);
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
-  if (!file.startsWith(ROOT) || !fs.existsSync(file)) {
+  if (!file.startsWith(REPO) || !fs.existsSync(file)) {
     res.writeHead(404); res.end('not found'); return;
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
@@ -98,6 +102,14 @@ await pick('Penitence');
 await pick('Ishtar');
 await pick('Raven');
 assert.equal(await page.locator('.cmp-head').count(), 4);
+
+// Per-hull SKINs tab: Raven has a large set, and every tile links to market.
+await page.click('.panel-tab[data-tab="skins"]');
+await page.waitForSelector('.skin-tile', { timeout: 5000 });
+assert.ok((await page.locator('.skin-tile').count()) > 0);
+assert.match(await page.locator('.skin-tile').first().getAttribute('href'), /^\/market\/\?type=/);
+assert.equal(await page.locator('.skin-tile').first().getAttribute('target'), '_blank');
+await page.click('.panel-tab[data-tab="overview"]');
 
 // Plan cost + saved plan persistence.
 await pick('Herald');
