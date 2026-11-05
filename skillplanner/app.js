@@ -118,7 +118,6 @@ class SkillPlannerApp {
         this.skillsTrained = document.getElementById('skillsTrained');
         this.skillsAtFive = document.getElementById('skillsAtFive');
         this.unallocatedSp = document.getElementById('unallocatedSp');
-        this.activeBooster = document.getElementById('activeBooster');
         this.cloneLocation = document.getElementById('cloneLocation');
         this.attrInt = document.getElementById('attrInt');
         this.attrMem = document.getElementById('attrMem');
@@ -680,11 +679,6 @@ class SkillPlannerApp {
         
         // Update active booster
         // Note: active cerebral accelerators cannot be detected via ESI — set manually in Calculator
-        if (this.activeBooster) {
-            this.activeBooster.textContent = 'Set in Calculator';
-            this.activeBooster.title = 'Active cerebral accelerators cannot be read from ESI. Select one manually in the Training Calculator.';
-        }
-        
         // Update clone location
         if (this.cloneLocation) {
             this.renderCloneLocation(this.currentCharacterData?.clones?.home_location);
@@ -840,7 +834,6 @@ class SkillPlannerApp {
             this.skillsTrained.textContent = '--';
             this.skillsAtFive.textContent = '--';
             this.unallocatedSp.textContent = '--';
-            if (this.activeBooster) this.activeBooster.textContent = '--';
             if (this.cloneLocation) this.cloneLocation.textContent = '--';
             
             // Clear queue and recent skills
@@ -1540,7 +1533,7 @@ class SkillPlannerApp {
             }));
 
             list.innerHTML = implants.map(implant => `
-                <span class="implant-chip" title="${this.escapeHtml(implant.bonus)}">
+                <span class="implant-chip" title="${this.escapeHtml(implant.name)} - ${this.escapeHtml(implant.bonus)}">
                     <strong>${this.escapeHtml(implant.name)}</strong>
                     <small>${this.escapeHtml(implant.bonus)}</small>
                 </span>`).join('');
