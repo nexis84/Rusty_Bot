@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
     <title>EVE SSO Callback - Rusty Skill Planner</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -79,7 +81,6 @@
         }
     </style>
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/sso-callback.html">
-  <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
     <div class="callback-container">
@@ -103,144 +104,109 @@
     </div>
 
     <script>
-        const TOKEN_URL = 'https://login.eveonline.com/v2/oauth/token';
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? '/api' : 'https://api.rustybot.co.uk/api';
-        
-        // Parse URL parameters
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? `${window.location.origin}/api`
+            : 'https://api.rustybot.co.uk/api';
+
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const state = urlParams.get('state');
         const error = urlParams.get('error');
         const errorDescription = urlParams.get('error_description');
-        
+
         const loadingState = document.getElementById('loading-state');
         const errorState = document.getElementById('error-state');
         const successState = document.getElementById('success-state');
         const errorMessage = document.getElementById('error-message');
         const successMessage = document.getElementById('success-message');
-        
-        // Show appropriate state
-        function showState(state) {
+
+        function showState(name) {
             loadingState.style.display = 'none';
             errorState.style.display = 'none';
             successState.style.display = 'none';
-            
-            if (state === 'loading') loadingState.style.display = 'block';
-            if (state === 'error') errorState.style.display = 'block';
-            if (state === 'success') successState.style.display = 'block';
-        }
-        
-        // Decode JWT token
-        function decodeJWT(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
-        
-        // Handle authentication
-        async function handleAuthentication() {
-            // Pre-compute return target so error/success buttons both go back to the original view
-            let preReturnTo = '';
-            try { preReturnTo = localStorage.getItem('esi_return_to') || ''; } catch (_) {}
-            const preTarget = './' + (preReturnTo.startsWith('#') || preReturnTo.startsWith('?') || preReturnTo === '' ? preReturnTo : '#' + preReturnTo);
-            document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = preTarget; });
 
-            // Check for OAuth errors
+            if (name === 'loading') loadingState.style.display = 'block';
+            if (name === 'error') errorState.style.display = 'block';
+            if (name === 'success') successState.style.display = 'block';
+        }
+
+        function returnTarget() {
+            let returnTo = '';
+            try { returnTo = localStorage.getItem('esi_return_to') || ''; } catch (_) {}
+            return './' + (returnTo.startsWith('#') || returnTo.startsWith('?') || returnTo === '' ? returnTo : '#' + returnTo);
+        }
+
+        async function handleAuthentication() {
+            const target = returnTarget();
+            document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = target; });
+
             if (error) {
                 showState('error');
                 errorMessage.textContent = `EVE SSO Error: ${error} - ${errorDescription || 'Unknown error'}`;
                 return;
             }
-            
-            // Check if we have an authorization code
             if (!code) {
                 showState('error');
                 errorMessage.textContent = 'No authorization code received from EVE SSO.';
                 return;
             }
-            
+
             try {
                 const savedState = localStorage.getItem('esi_state');
                 if (state !== savedState) {
-                    throw new Error('Invalid state parameter. Possible CSRF attack.');
+                    throw new Error('Invalid state parameter. Please start the sign-in again.');
                 }
                 localStorage.removeItem('esi_state');
 
-                const configRes = await fetch(API_BASE + '/config');
-                const config = await configRes.json();
-                const clientId = config.eve_client_id;
-                if (!clientId) throw new Error('EVE Client ID not configured on server');
-
-                const response = await fetch(TOKEN_URL, {
+                const response = await fetch(`${API_BASE}/sp/token-exchange`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        grant_type: 'authorization_code',
-                        code: code,
-                        client_id: clientId
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
                 });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Token exchange error:', response.status, errorText);
-                    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.access_token) {
+                    throw new Error(data.error || `Token exchange failed (HTTP ${response.status})`);
                 }
-                
-                const tokenData = await response.json();
-                
-                // Decode JWT to get character info
-                const characterInfo = decodeJWT(tokenData.access_token);
-                const characterId = characterInfo.sub.split(':')[2];
-                const characterName = characterInfo.name;
-                
-                // Store tokens in skillplanner format (compatible with esi-auth.js)
+
+                const characterId = String(data.character_id);
+                const characterName = data.character_name || 'Unknown';
                 const tokens = JSON.parse(localStorage.getItem('esi_tokens') || '{}');
                 tokens[characterId] = {
-                    characterId: characterId,
-                    characterName: characterName,
-                    accessToken: tokenData.access_token,
-                    refreshToken: tokenData.refresh_token,
-                    expiresAt: Date.now() + (tokenData.expires_in * 1000)
+                    characterId,
+                    characterName,
+                    accessToken: data.access_token,
+                    refreshToken: data.refresh_token || null,
+                    expiresAt: Date.now() + ((data.expires_in || 1200) * 1000),
+                    scopes: Array.isArray(data.scopes) ? data.scopes : []
                 };
                 localStorage.setItem('esi_tokens', JSON.stringify(tokens));
                 localStorage.setItem('esi_current_character', characterId);
 
-                // Clear cached character data to ensure fresh skill data is fetched after login
+                // Clear cached character data so the dashboard fetches fresh data.
                 const characterData = JSON.parse(localStorage.getItem('character_data') || '{}');
                 if (characterData[characterId]) {
                     delete characterData[characterId];
                     localStorage.setItem('character_data', JSON.stringify(characterData));
                 }
 
+                // Clean the one-time code out of the address bar.
+                window.history.replaceState({}, document.title, window.location.pathname);
+
                 showState('success');
                 successMessage.textContent = `Welcome, ${characterName}! Successfully authenticated with EVE Online.`;
-                
-                // Return to where the user signed in from (preserves view/hash)
-                let returnTo = '';
-                try { returnTo = localStorage.getItem('esi_return_to') || ''; } catch (_) {}
                 try { localStorage.removeItem('esi_return_to'); } catch (_) {}
-                const target = './' + (returnTo.startsWith('#') || returnTo.startsWith('?') || returnTo === '' ? returnTo : '#' + returnTo);
-                // Update fallback links to also go to the original location
                 document.querySelectorAll('#success-state a.btn, #error-state a.btn').forEach(a => { a.href = target; });
                 setTimeout(() => {
                     window.location.replace(target);
                 }, 2000);
-                
             } catch (err) {
                 showState('error');
                 errorMessage.textContent = `Authentication error: ${err.message}`;
                 console.error('SSO Error:', err);
             }
         }
-        
-        // Start authentication process
+
         handleAuthentication();
     </script>
 </body>

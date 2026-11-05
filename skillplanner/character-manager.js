@@ -183,41 +183,26 @@ class CharacterManager {
         }
     }
 
-    // Get full character data (skills + attributes + queue first, then implants/boosters/clones)
+    // Get full character data. All requests are awaited so training-time
+    // calculations have the real implant/attribute data on the first render.
     async getFullCharacterData(characterId) {
-        // Load critical data first (needed for immediate UI display)
-        const [skills, attributes, queue] = await Promise.all([
+        const [skills, attributes, queue, implants, boosters, clones] = await Promise.all([
             this.fetchSkills(characterId),
             this.fetchAttributes(characterId),
-            this.fetchSkillQueue(characterId)
-        ]);
-        
-        // Return immediately with critical data; load secondary data in background
-        const data = {
-            skills: skills,
-            attributes: attributes,
-            skillQueue: queue,
-            implants: null,
-            boosters: [],
-            clones: null
-        };
-        
-        // Load secondary data asynchronously without blocking UI
-        // These are not critical for initial page load
-        Promise.all([
+            this.fetchSkillQueue(characterId),
             this.fetchImplants(characterId),
             this.fetchBoosters(characterId),
             this.fetchClones(characterId)
-        ]).then(([implants, boosters, clones]) => {
-            data.implants = implants;
-            data.boosters = boosters;
-            data.clones = clones;
-        }).catch(err => {
-            console.warn('Failed to load secondary character data:', err);
-            // Secondary data is not critical, so silently fail
-        });
-        
-        return data;
+        ]);
+
+        return {
+            skills,
+            attributes,
+            skillQueue: queue,
+            implants,
+            boosters,
+            clones
+        };
     }
 
     // Calculate total SP from skills (trained + unallocated)

@@ -1,267 +1,250 @@
 // ESI OAuth2 Authentication Module
-// Uses server-side token exchange (like market) for security
+// EVE SSO is handled by the RustyBot API so the client secret never reaches
+// the browser. The browser only receives short-lived access tokens and the
+// refresh token returned by our own API.
 
-// Determine redirect URI: use dynamic for localhost, hardcoded for production
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const REDIRECT_URI = isLocalhost
-    ? 'http://localhost:8080/sso-callback.html'
-    : 'https://www.rustybot.co.uk/skillplanner/sso-callback.html';
 
-const TOKEN_EXCHANGE_URL = isLocalhost
-    ? 'http://localhost:8080/api/token-exchange'
-    : 'https://api.rustybot.co.uk/api/token-exchange';
+const API_BASE = isLocalhost
+    ? `${window.location.origin}/api`
+    : 'https://api.rustybot.co.uk/api';
 
-const ESI_CONFIG = {
-    redirectUri: REDIRECT_URI,
-    authorizeUrl: 'https://login.eveonline.com/v2/oauth/authorize',
-    tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
-    revokeUrl: 'https://login.eveonline.com/oauth/revoke',
-    jwksUrl: 'https://login.eveonline.com/oauth/jwks',
-    scopes: [
-        'esi-skills.read_skills.v1',
-        'esi-skills.read_skillqueue.v1',
-        'esi-clones.read_implants.v1',
-        'esi-clones.read_clones.v1'
-    ]
-};
-
-let ssoClientId = null;
-
-(function loadClientId() {
-  fetch(TOKEN_EXCHANGE_URL.replace('/api/token-exchange', '/api/config'))
-    .then(r => r.json())
-    .then(cfg => { ssoClientId = cfg.eve_client_id || null; })
-    .catch(() => {});
-})();
+const REQUIRED_SCOPES = [
+    'esi-skills.read_skills.v1',
+    'esi-skills.read_skillqueue.v1',
+    'esi-clones.read_implants.v1',
+    'esi-clones.read_clones.v1'
+];
 
 class ESIAuth {
     constructor() {
         this.tokens = this.loadTokens();
         this.currentCharacter = this.loadCurrentCharacter();
+        this.refreshPromises = {};
     }
 
-    // Generate random state parameter for CSRF protection
-    generateState() {
-        const array = new Uint8Array(16);
-        crypto.getRandomValues(array);
-        return btoa(String.fromCharCode.apply(null, array))
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=/g, '');
-    }
-
-    // Initiate ESI login
+    // Ask the API to build the EVE authorize URL. The API owns the state nonce
+    // and validates it again when EVE redirects back to /api/auth/eve/callback.
     async initiateLogin() {
-        const state = this.generateState();
-        localStorage.setItem('esi_state', state);
-        try { localStorage.setItem('esi_return_to', window.location.hash || window.location.search || ''); } catch (_) {}
-        
-        const params = new URLSearchParams({
-            response_type: 'code',
-            redirect_uri: ESI_CONFIG.redirectUri,
-            client_id: ssoClientId,
-            scope: ESI_CONFIG.scopes.join(' '),
-            state: state
+        const callbackPage = `${window.location.origin}/skillplanner/sso-callback.html`;
+        const loginUrl = new URL(`${API_BASE}/auth/eve/login`);
+        loginUrl.searchParams.set('redirect', 'skillplanner');
+        loginUrl.searchParams.set('return', callbackPage);
+
+        const response = await fetch(loginUrl.toString(), {
+            headers: { 'Accept': 'application/json' }
         });
-        
-        const authUrl = `${ESI_CONFIG.authorizeUrl}?${params.toString()}`;
-        window.location.href = authUrl;
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data.url) {
+            throw new Error(data.error || `Could not start EVE login (HTTP ${response.status})`);
+        }
+
+        if (data.state) {
+            localStorage.setItem('esi_state', data.state);
+        }
+        try {
+            localStorage.setItem('esi_return_to', window.location.hash || window.location.search || '');
+        } catch (_) { /* storage may be unavailable */ }
+
+        window.location.href = data.url;
     }
 
-    // Handle OAuth callback (called from sso-callback.html)
-    // Exchanges auth code for tokens directly with EVE SSO
+    // Exchange an authorization code for tokens through the API.
     async exchangeCodeForTokens(code) {
-        const response = await fetch(ESI_CONFIG.tokenUrl, {
+        const response = await fetch(`${API_BASE}/sp/token-exchange`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: code,
-                client_id: ssoClientId
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
         });
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Token exchange failed: ${errorText}`);
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || !data.access_token) {
+            throw new Error(data.error || `Token exchange failed (HTTP ${response.status})`);
         }
-        
-        const tokens = await response.json();
-        
-        // Decode JWT to get character info
-        const characterInfo = this.decodeJWT(tokens.access_token);
-        
+
+        return this.saveAuthResult(data);
+    }
+
+    // Save the API token response in the shape the rest of the planner uses.
+    saveAuthResult(data) {
+        const characterId = data.character_id == null ? '' : String(data.character_id);
+        if (!characterId) {
+            throw new Error('The API did not return a character ID');
+        }
+
         const characterData = {
-            characterId: characterInfo.sub.split(':')[2],
-            characterName: characterInfo.name,
-            accessToken: tokens.access_token,
-            refreshToken: tokens.refresh_token,
-            expiresAt: Date.now() + (tokens.expires_in * 1000)
+            characterId,
+            characterName: data.character_name || 'Unknown',
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token || null,
+            expiresAt: Date.now() + ((data.expires_in || 1200) * 1000),
+            scopes: Array.isArray(data.scopes) ? data.scopes : []
         };
-        
+
         this.saveCharacterToken(characterData);
-        this.setCurrentCharacter(characterData.characterId);
-        
+        this.setCurrentCharacter(characterId);
+
         return characterData;
     }
 
-    // Decode JWT token
-    decodeJWT(token) {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    }
-
-    // Handle OAuth callback
+    // Fallback handler for a code that lands on the planner page directly.
+    // The normal flow uses sso-callback.html.
     async handleCallback() {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const error = urlParams.get('error');
-        
+
         if (error) {
             throw new Error(`ESI Error: ${error}`);
         }
-        
         if (!code) {
             return false;
         }
 
-        // Verify state
         const storedState = localStorage.getItem('esi_state');
         const state = urlParams.get('state');
         if (state !== storedState) {
-            throw new Error('State mismatch - possible CSRF attack');
+            throw new Error('State mismatch - please start the sign-in again');
         }
-        
+
         localStorage.removeItem('esi_state');
-        
-        // Exchange code for tokens
         const characterData = await this.exchangeCodeForTokens(code);
-        
-        // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
-        
         return characterData;
     }
 
-    // Refresh access token
+    // Refresh an access token through the API. A refresh response may contain a
+    // rotated refresh token, so always keep the newest one.
     async refreshToken(characterId) {
-        const tokens = this.tokens[characterId];
+        const charId = characterId || this.currentCharacter;
+        if (!charId) {
+            throw new Error('No character selected');
+        }
+        if (this.refreshPromises[charId]) {
+            return this.refreshPromises[charId];
+        }
+
+        const tokens = this.tokens[charId];
         if (!tokens || !tokens.refreshToken) {
-            throw new Error('No refresh token available');
+            throw new Error('No refresh token available - please sign in again');
         }
-        
-        const response = await fetch(ESI_CONFIG.tokenUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Host': 'login.eveonline.com'
-            },
-            body: new URLSearchParams({
-                grant_type: 'refresh_token',
-                refresh_token: tokens.refreshToken,
-                client_id: ssoClientId
-            })
-        });
-        
-        if (!response.ok) {
-            // If refresh fails, remove the character
-            this.removeCharacter(characterId);
-            throw new Error('Token refresh failed - please login again');
-        }
-        
-        const newTokens = await response.json();
-        
-        // Update stored tokens
-        tokens.accessToken = newTokens.access_token;
-        tokens.refreshToken = newTokens.refresh_token || tokens.refreshToken;
-        tokens.expiresAt = Date.now() + (newTokens.expires_in * 1000);
-        
-        this.saveCharacterToken(tokens);
-        
-        return tokens.accessToken;
+
+        this.refreshPromises[charId] = (async () => {
+            try {
+                const response = await fetch(`${API_BASE}/sp/token-exchange`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        grant_type: 'refresh_token',
+                        refresh_token: tokens.refreshToken
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.access_token) {
+                    this.removeCharacter(charId);
+                    throw new Error(data.error || 'SSO session expired - please sign in again');
+                }
+
+                tokens.accessToken = data.access_token;
+                tokens.refreshToken = data.refresh_token || tokens.refreshToken;
+                tokens.expiresAt = Date.now() + ((data.expires_in || 1200) * 1000);
+                if (Array.isArray(data.scopes) && data.scopes.length) {
+                    tokens.scopes = data.scopes;
+                }
+                this.saveCharacterToken(tokens);
+
+                return tokens.accessToken;
+            } finally {
+                delete this.refreshPromises[charId];
+            }
+        })();
+
+        return this.refreshPromises[charId];
     }
 
-    // Get valid access token (refresh if needed)
+    // Get a valid access token, refreshing first if it is about to expire.
     async getAccessToken(characterId = null) {
         const charId = characterId || this.currentCharacter;
         if (!charId) {
             throw new Error('No character selected');
         }
-        
+
         const tokens = this.tokens[charId];
         if (!tokens) {
             throw new Error('Character not authenticated');
         }
-        
-        // Check if token needs refresh (with 60s buffer)
+
         if (Date.now() >= tokens.expiresAt - 60000) {
             return await this.refreshToken(charId);
         }
-        
+
         return tokens.accessToken;
     }
 
-    // Save character token to localStorage
+    // Check that a stored session has the scopes this planner actually needs.
+    hasRequiredScopes(characterId = null) {
+        const charId = characterId || this.currentCharacter;
+        const tokens = charId ? this.tokens[charId] : null;
+        if (!tokens || !Array.isArray(tokens.scopes)) return false;
+        return REQUIRED_SCOPES.every(scope => tokens.scopes.includes(scope));
+    }
+
     saveCharacterToken(characterData) {
         this.tokens[characterData.characterId] = characterData;
         localStorage.setItem('esi_tokens', JSON.stringify(this.tokens));
     }
 
-    // Load tokens from localStorage
     loadTokens() {
-        const stored = localStorage.getItem('esi_tokens');
-        return stored ? JSON.parse(stored) : {};
+        try {
+            const stored = localStorage.getItem('esi_tokens');
+            const parsed = stored ? JSON.parse(stored) : {};
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_) {
+            return {};
+        }
     }
 
-    // Set current character
     setCurrentCharacter(characterId) {
-        this.currentCharacter = characterId;
-        localStorage.setItem('esi_current_character', characterId);
+        this.currentCharacter = characterId || null;
+        if (this.currentCharacter) {
+            localStorage.setItem('esi_current_character', this.currentCharacter);
+        } else {
+            localStorage.removeItem('esi_current_character');
+        }
     }
 
-    // Load current character from localStorage
     loadCurrentCharacter() {
         return localStorage.getItem('esi_current_character');
     }
 
-    // Get current character ID
     getCurrentCharacter() {
         return this.currentCharacter;
     }
 
-    // Remove character
     removeCharacter(characterId) {
         delete this.tokens[characterId];
         localStorage.setItem('esi_tokens', JSON.stringify(this.tokens));
-        
+
         if (this.currentCharacter === characterId) {
             const remainingChars = Object.keys(this.tokens);
             if (remainingChars.length > 0) {
                 this.setCurrentCharacter(remainingChars[0]);
             } else {
-                localStorage.removeItem('esi_current_character');
-                this.currentCharacter = null;
+                this.setCurrentCharacter(null);
             }
         }
     }
 
-    // Get all authenticated characters
     getAuthenticatedCharacters() {
         return Object.values(this.tokens);
     }
 
-    // Check if authenticated
     isAuthenticated() {
-        return this.currentCharacter !== null && this.tokens[this.currentCharacter];
+        return Boolean(this.currentCharacter && this.tokens[this.currentCharacter]);
     }
 
-    // Logout
     logout(characterId = null) {
         const charId = characterId || this.currentCharacter;
         if (charId) {
@@ -269,24 +252,24 @@ class ESIAuth {
         }
     }
 
-    // Logout all
     logoutAll() {
         this.tokens = {};
         this.currentCharacter = null;
+        this.refreshPromises = {};
         localStorage.removeItem('esi_tokens');
         localStorage.removeItem('esi_current_character');
+        localStorage.removeItem('esi_state');
     }
 
-    // ESI API helper with timeout
+    // ESI API helper with timeout, one refresh retry on 401, and 429 backoff.
     async esiFetch(endpoint, characterId = null, options = {}, attempt = 0) {
-        const token = await this.getAccessToken(characterId);
-        
+        const charId = characterId || this.currentCharacter;
+        const token = await this.getAccessToken(charId);
         const url = endpoint.startsWith('http') ? endpoint : `https://esi.evetech.net/latest${endpoint}`;
-        
-        // Add 10 second timeout to prevent hanging
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
+
         try {
             const response = await fetch(url, {
                 ...options,
@@ -298,29 +281,27 @@ class ESIAuth {
                     ...options.headers
                 }
             });
-            
+
             clearTimeout(timeoutId);
-            
+
             if (!response.ok) {
-            if (response.status === 401) {
-                // Token expired, try refresh once
-                await this.refreshToken(characterId || this.currentCharacter);
-                return this.esiFetch(endpoint, characterId, options, attempt + 1);
+                if (response.status === 401 && attempt < 1) {
+                    await this.refreshToken(charId);
+                    return this.esiFetch(endpoint, charId, options, attempt + 1);
+                }
+
+                if ((response.status === 429 || response.status === 420) && attempt < 3) {
+                    const retryAfterHeader = response.headers.get('Retry-After');
+                    const retryAfterSeconds = parseInt(retryAfterHeader || '2', 10);
+                    const delayMs = Math.max(1000, (Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : 2) * 1000);
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                    return this.esiFetch(endpoint, charId, options, attempt + 1);
+                }
+
+                throw new Error(`ESI Error ${response.status}: ${await response.text()}`);
             }
 
-            // ESI frequently returns 429 during bursts; respect Retry-After and retry.
-            if ((response.status === 429 || response.status === 420) && attempt < 3) {
-                const retryAfterHeader = response.headers.get('Retry-After');
-                const retryAfterSeconds = parseInt(retryAfterHeader || '2', 10);
-                const delayMs = Math.max(1000, (Number.isFinite(retryAfterSeconds) ? retryAfterSeconds : 2) * 1000);
-
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-                return this.esiFetch(endpoint, characterId, options, attempt + 1);
-            }
-            throw new Error(`ESI Error ${response.status}: ${await response.text()}`);
-        }
-        
-        return response.json();
+            return response.json();
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
@@ -335,7 +316,6 @@ class ESIAuth {
 const esiAuth = new ESIAuth();
 window.esiAuth = esiAuth;
 
-// Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ESIAuth, esiAuth };
+    module.exports = { ESIAuth, esiAuth, REQUIRED_SCOPES, API_BASE };
 }

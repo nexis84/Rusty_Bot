@@ -33,9 +33,19 @@ class SkillPlannerApp {
             this.showMessage('Authentication failed: ' + e.message, 'error');
         }
         
-        // Load character if authenticated
+        // Load character if authenticated. Sessions created before the new
+        // least-privilege SSO app may lack scope metadata, so ask for a fresh
+        // sign-in rather than failing on the first ESI call.
         if (esiAuth.isAuthenticated()) {
-            await this.loadCharacter(esiAuth.currentCharacter);
+            if (!esiAuth.hasRequiredScopes()) {
+                const oldChar = esiAuth.tokens[esiAuth.currentCharacter];
+                const oldName = oldChar?.characterName || 'your character';
+                esiAuth.removeCharacter(esiAuth.currentCharacter);
+                this.showMessage(`Please sign in again for ${oldName} - the Skill Planner needs updated permissions.`, 'warning');
+                skillPlanner.setActiveCharacter(null);
+            } else {
+                await this.loadCharacter(esiAuth.currentCharacter);
+            }
         } else {
             skillPlanner.setActiveCharacter(null);
         }
@@ -135,10 +145,23 @@ class SkillPlannerApp {
         });
 
         // Character login
-        this.esiLoginBtn?.addEventListener('click', () => esiAuth.initiateLogin());
+        this.esiLoginBtn?.addEventListener('click', async () => {
+            if (!this.esiLoginBtn) return;
+            const original = this.esiLoginBtn.innerHTML;
+            this.esiLoginBtn.disabled = true;
+            this.esiLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+            try {
+                await esiAuth.initiateLogin();
+            } catch (error) {
+                this.showMessage(error.message || 'Could not start EVE login', 'error');
+                this.esiLoginBtn.disabled = false;
+                this.esiLoginBtn.innerHTML = original;
+            }
+        });
         
-        // Character switch
+        // Character switch / add
         this.charSwitchBtn?.addEventListener('click', () => this.toggleCharacterList());
+        document.getElementById('charAddBtn')?.addEventListener('click', () => this.esiLoginBtn?.click());
         document.getElementById('charLogoutBtn')?.addEventListener('click', () => this.logoutCharacter());
         
         // Quick actions
