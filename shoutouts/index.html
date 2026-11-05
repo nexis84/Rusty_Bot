@@ -36,6 +36,16 @@ gtag('config', 'G-1EELB9VSCK');
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebPage","name":"Twitch & Discord ShoutOuts — Automatic Live Alerts","url":"https://www.rustybot.co.uk/shoutouts/","description":"Automatic live alerts for tracked streamers in Twitch and Kick chat, or in a Discord server.","isPartOf":{"@type":"WebSite","name":"RustyBot","url":"https://www.rustybot.co.uk/"},"publisher":{"@type":"Organization","name":"RustyBot","url":"https://www.rustybot.co.uk/"}}
 </script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is this only for EVE Online streamers?","acceptedAnswer":{"@type":"Answer","text":"No. The shared EVE streamer list is just a starting point — you can add or import the channels you want to follow, and enable or disable individual streamers per server."}},
+{"@type":"Question","name":"Does Kick work?","acceptedAnswer":{"@type":"Answer","text":"Yes. The Twitch / Kick ShoutOut posts to both platforms, and you can link separate Twitch and Kick logins for the same streamer group."}},
+{"@type":"Question","name":"Can one membership cover both platforms?","acceptedAnswer":{"@type":"Answer","text":"Yes — Bot Whisperer and Elite Supporter Status qualify for both. Link the same Ko-fi email in each dashboard. AA Battery Supplier covers Twitch/Kick only."}},
+{"@type":"Question","name":"How fast are the alerts?","acceptedAnswer":{"@type":"Answer","text":"RustyBot checks tracked streamers about every 60 seconds and posts each live stream once, with a per-streamer cooldown so channels don't flood."}},
+{"@type":"Question","name":"What happens if I cancel?","acceptedAnswer":{"@type":"Answer","text":"Your ShoutOut stays active until the end of the paid period. After that, alerts pause until you renew a qualifying tier."}},
+{"@type":"Question","name":"Do I need my own bot?","acceptedAnswer":{"@type":"Answer","text":"No. Sign in and link your channel on the Twitch/Kick dashboard. For Discord, invite RustyBot and run /shoutout setup in your server."}}
+]}
+</script>
 <style>
 :root{
   --bg:#121212;--panel:#1e1e1e;--panel-2:#2a2a2a;--border:#2a2a2a;
@@ -87,6 +97,7 @@ a{color:var(--accent)}
 .section-header .line{flex:1;height:1px;background:var(--border)}
 .section-header i{color:var(--accent);font-size:.85rem}
 .section-sub{color:var(--dim);font-size:.95rem;margin:-4px 0 20px}
+.section-sub strong{color:var(--text)}
 
 /* product cards */
 .product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
@@ -123,6 +134,25 @@ a{color:var(--accent)}
 }
 .product-cta:hover{background:var(--card-accent);color:#121212;transform:translateY(-1px)}
 
+/* alert previews */
+.alert-preview{border:1px solid var(--border);border-radius:8px;background:#101014;padding:10px 12px;margin:2px 0 4px}
+.preview-head{display:flex;align-items:center;gap:6px;font-size:.66rem;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:700;margin-bottom:8px}
+.preview-dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+.twitch-preview .preview-dot{background:#9146ff}
+.discord-preview .preview-dot{background:#5865f2}
+.preview-live{margin-left:auto;font-size:.58rem;letter-spacing:.8px;padding:1px 6px;border-radius:3px;background:rgba(233,25,22,.14);border:1px solid rgba(233,25,22,.4);color:#ff7b72}
+.chat-line{font-size:.82rem;line-height:1.5;color:var(--text);word-break:break-word}
+.chat-user{font-weight:700;color:var(--accent)}
+.preview-link{color:#8ab4f8;word-break:break-all}
+.discord-msg{display:flex;gap:9px;align-items:flex-start}
+.discord-avatar{flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--discord-soft);color:var(--discord);display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.discord-body{min-width:0}
+.discord-author{font-size:.76rem;font-weight:700;color:#fff}
+.discord-app{font-size:.54rem;background:#5865f2;color:#fff;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle;letter-spacing:.4px}
+.discord-title{font-size:.85rem;font-weight:700;color:var(--discord-h);margin-top:2px}
+.discord-desc{font-size:.78rem;color:var(--dim)}
+.discord-ping{display:inline-block;margin-top:6px;font-size:.68rem;background:rgba(88,101,242,.18);color:#b3bcff;border-radius:4px;padding:1px 6px;font-weight:700}
+
 /* how it works */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .step{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px}
@@ -139,9 +169,35 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--dim)
 td:first-child{font-weight:700;color:#fff}
 td .fa-check{color:var(--accent)}
 td .fa-xmark{color:#777}
+.tier-price{display:block;font-size:.76rem;font-weight:400;color:var(--dim);margin-top:2px}
 .notes{color:var(--dim);font-size:.86rem;margin-top:14px}
 .notes strong{color:var(--text)}
 .notes a{font-weight:700}
+
+/* FAQ */
+.faq{display:flex;flex-direction:column;gap:10px}
+.faq details{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.faq summary{cursor:pointer;padding:15px 18px;font-weight:700;color:#fff;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;font-size:.75rem;color:var(--accent);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(180deg)}
+.faq details p{padding:0 18px 16px;color:var(--dim);font-size:.92rem}
+.faq details p strong{color:var(--text)}
+.faq details a{font-weight:700}
+code{background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:.85em;color:var(--accent)}
+
+/* final CTA */
+.cta-band{border-top:none}
+.cta-inner{position:relative;text-align:center;background:linear-gradient(160deg,var(--panel) 0%,var(--bg) 100%);border:1px solid var(--border);border-radius:12px;padding:40px 24px;overflow:hidden}
+.cta-inner::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--accent),var(--discord))}
+.cta-icon{display:flex;align-items:center;justify-content:center;width:46px;height:46px;margin:0 auto;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:1.2rem}
+.cta-inner h2{font-size:1.7rem;color:#fff;margin:12px 0 6px;line-height:1.2}
+.cta-inner p{color:var(--dim);font-size:.95rem}
+.cta-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:22px}
+.cta-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:2px solid var(--btn-accent);border-radius:8px;background:var(--btn-soft);color:var(--btn-accent);font-weight:700;font-size:.95rem;text-decoration:none;transition:background .2s,border-color .2s,color .2s,transform .2s}
+.cta-button.twitch{--btn-accent:var(--accent);--btn-soft:var(--accent-soft)}
+.cta-button.discord{--btn-accent:var(--discord);--btn-soft:var(--discord-soft)}
+.cta-button:hover{background:var(--btn-accent);color:#121212;transform:translateY(-1px)}
 
 /* footer */
 footer{text-align:center;padding:1.5rem;color:var(--dim);border-top:1px solid var(--panel-2);margin-top:44px;font-size:.82rem}
@@ -180,7 +236,7 @@ footer a:hover{color:var(--accent)}
     <h1>Twitch &amp; Discord <span>ShoutOuts</span></h1>
     <p class="subtitle">Automatic live alerts for your chat and your community</p>
     <p class="hero-intro">
-      RustyBot ShoutOuts watch your tracked streamers and post an alert the moment
+      RustyBot ShoutOuts watch the streamers you choose and post an alert the moment
       they go live. There are two versions: one for <strong>Twitch &amp; Kick chat</strong>, and one for
       <strong>Discord servers</strong>. Both use the same shared streamer list and the same Ko-fi membership —
       pick the home that suits your audience.
@@ -201,6 +257,10 @@ footer a:hover{color:var(--accent)}
         <span class="product-kicker">For Twitch &amp; Kick streamers</span>
         <h3>Twitch / Kick ShoutOut</h3>
         <p>Alerts post straight into Twitch or Kick chat whenever a tracked streamer goes live — perfect for watch parties, raid targets and community channels.</p>
+        <div class="alert-preview twitch-preview" aria-hidden="true">
+          <div class="preview-head"><span class="preview-dot"></span>Twitch chat<span class="preview-live">Live</span></div>
+          <div class="chat-line"><span class="chat-user">Rusty ShoutOut:</span> ne_x_is is now live — <span class="preview-link">twitch.tv/ne_x_is</span></div>
+        </div>
         <ul class="feature-list">
           <li>Tracks the shared streamer list</li>
           <li>Posts to Twitch and Kick chat automatically</li>
@@ -222,6 +282,18 @@ footer a:hover{color:var(--accent)}
         <span class="product-kicker">For Discord communities</span>
         <h3>Discord ShoutOut</h3>
         <p>RustyBot posts a live alert in your Discord server when a tracked streamer goes live, with the Twitch link and an optional role ping.</p>
+        <div class="alert-preview discord-preview" aria-hidden="true">
+          <div class="preview-head"><span class="preview-dot"></span>#live-now<span class="preview-live">Live</span></div>
+          <div class="discord-msg">
+            <div class="discord-avatar"><i class="fa-solid fa-bullhorn"></i></div>
+            <div class="discord-body">
+              <div class="discord-author">Rusty ShoutOut <span class="discord-app">App</span></div>
+              <div class="discord-title">ne_x_is is now live</div>
+              <div class="discord-desc">Watch on Twitch — twitch.tv/ne_x_is</div>
+              <span class="discord-ping">@Live role ping</span>
+            </div>
+          </div>
+        </div>
         <ul class="feature-list">
           <li>Set the announcement channel with <code>/shoutout setup</code></li>
           <li>Enable or disable each known streamer</li>
@@ -272,25 +344,25 @@ footer a:hover{color:var(--accent)}
       <h2>Ko-fi membership</h2>
       <span class="line"></span>
     </div>
-    <p class="section-sub">One Ko-fi membership unlocks ShoutOuts. The tier you need depends on the platform.</p>
+    <p class="section-sub">Most people pick <strong>Bot Whisperer</strong> — it covers both platforms. <strong>AA Battery Supplier</strong> is the Twitch/Kick-only option.</p>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Ko-fi tier</th><th>Twitch / Kick ShoutOut</th><th>Discord ShoutOut</th></tr>
+          <tr><th scope="col">Ko-fi tier</th><th scope="col">Twitch / Kick ShoutOut</th><th scope="col">Discord ShoutOut</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>AA Battery Supplier</td>
+            <td>AA Battery Supplier <span class="tier-price">£10/month</span></td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
-            <td><i class="fa-solid fa-xmark" aria-hidden="true"></i> <span class="muted">Not included</span></td>
+            <td><i class="fa-solid fa-xmark" aria-hidden="true"></i> Not included</td>
           </tr>
           <tr>
-            <td>Bot Whisperer</td>
+            <td>Bot Whisperer <span class="tier-price">£15/month</span></td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
           </tr>
           <tr>
-            <td>Elite Supporter Status</td>
+            <td>Elite Supporter Status <span class="tier-price">£25/month</span></td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
           </tr>
@@ -298,10 +370,61 @@ footer a:hover{color:var(--accent)}
       </table>
     </div>
     <p class="notes">
-      <strong>AA Battery Supplier</strong> is Twitch/Kick only. Discord ShoutOut starts at Bot Whisperer.
-      Memberships are per streamer group on Twitch/Kick and per Discord server — one email or Discord ID per server.
-      Tiers and current prices are on <a href="https://ko-fi.com/rustybot/tiers#become-member-container" target="_blank" rel="noopener">Ko-fi</a>.
+      <strong>Bot Whisperer</strong> and <strong>Elite Supporter Status</strong> cover both platforms — link the same Ko-fi email in each dashboard.
+      <strong>AA Battery Supplier</strong> is Twitch/Kick only. Each membership is linked to one streamer group and one Discord server;
+      tiers and current prices are on <a href="https://ko-fi.com/rustybot/tiers#become-member-container" target="_blank" rel="noopener">Ko-fi</a>.
     </p>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="section-header">
+      <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+      <h2>Frequently asked</h2>
+      <span class="line"></span>
+    </div>
+    <p class="section-sub">The short answers before you connect anything.</p>
+    <div class="faq">
+      <details>
+        <summary>Is this only for EVE Online streamers?</summary>
+        <p>No. The shared EVE streamer list is just a starting point — you can add or import the channels you want to follow, and enable or disable individual streamers per server.</p>
+      </details>
+      <details>
+        <summary>Does Kick work?</summary>
+        <p>Yes. The Twitch / Kick ShoutOut posts to both platforms, and you can link separate Twitch and Kick logins for the same streamer group.</p>
+      </details>
+      <details>
+        <summary>Can one membership cover both platforms?</summary>
+        <p>Yes — <strong>Bot Whisperer</strong> and <strong>Elite Supporter Status</strong> qualify for both. Link the same Ko-fi email in each dashboard. <strong>AA Battery Supplier</strong> covers Twitch/Kick only.</p>
+      </details>
+      <details>
+        <summary>How fast are the alerts?</summary>
+        <p>RustyBot checks tracked streamers about every 60 seconds and posts each live stream once, with a per-streamer cooldown so channels don't flood.</p>
+      </details>
+      <details>
+        <summary>What happens if I cancel?</summary>
+        <p>Your ShoutOut stays active until the end of the paid period. After that, alerts pause until you renew a qualifying tier.</p>
+      </details>
+      <details>
+        <summary>Do I need my own bot?</summary>
+        <p>No. Sign in and link your channel on the Twitch/Kick dashboard. For Discord, invite RustyBot and run <code>/shoutout setup</code> in your server.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="section cta-band" id="get-started">
+    <div class="cta-inner">
+      <div class="cta-icon"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i></div>
+      <h2>Ready to switch on live alerts?</h2>
+      <p>Connect your first streamer in a few minutes — no code and no bot hosting.</p>
+      <div class="cta-actions">
+        <a class="cta-button twitch" href="https://shoutbot.rustybot.co.uk/" target="_blank" rel="noopener">
+          Twitch / Kick ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <a class="cta-button discord" href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener">
+          Discord ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
   </section>
 
   <footer>
