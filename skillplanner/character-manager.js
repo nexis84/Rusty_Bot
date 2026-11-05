@@ -29,10 +29,11 @@ class CharacterManager {
         return Date.now() - cache.timestamp < this.cacheExpiry;
     }
 
-    // Get cached data or null
-    // Always returns undefined to force live ESI data fetches
-    getCachedData(characterId, dataType) {
-        return undefined;
+    // Get cached data when it is still within the TTL.
+    getCachedData(characterId, dataType, allowCache = true) {
+        if (!allowCache) return undefined;
+        if (!this.isCacheValid(characterId, dataType)) return undefined;
+        return this.characters[characterId].cache[dataType].data;
     }
 
     // Set cached data
@@ -75,8 +76,8 @@ class CharacterManager {
     }
 
     // Fetch character skills
-    async fetchSkills(characterId) {
-        const cached = this.getCachedData(characterId, 'skills');
+    async fetchSkills(characterId, force = false) {
+        const cached = this.getCachedData(characterId, 'skills', !force);
         if (cached !== undefined) return cached;
         
         try {
@@ -90,8 +91,8 @@ class CharacterManager {
     }
 
     // Fetch skill queue
-    async fetchSkillQueue(characterId) {
-        const cached = this.getCachedData(characterId, 'skillQueue');
+    async fetchSkillQueue(characterId, force = false) {
+        const cached = this.getCachedData(characterId, 'skillQueue', !force);
         if (cached !== undefined) return cached;
         
         try {
@@ -105,8 +106,8 @@ class CharacterManager {
     }
 
     // Fetch character attributes from ESI
-    async fetchAttributes(characterId) {
-        const cached = this.getCachedData(characterId, 'attributes');
+    async fetchAttributes(characterId, force = false) {
+        const cached = this.getCachedData(characterId, 'attributes', !force);
         if (cached !== undefined) {
             return cached;
         }
@@ -134,8 +135,8 @@ class CharacterManager {
     }
 
     // Fetch implants from ESI
-    async fetchImplants(characterId) {
-        const cached = this.getCachedData(characterId, 'implants');
+    async fetchImplants(characterId, force = false) {
+        const cached = this.getCachedData(characterId, 'implants', !force);
         if (cached !== undefined) return cached;
         
         try {
@@ -163,8 +164,8 @@ class CharacterManager {
     }
 
     // Fetch clones from ESI
-    async fetchClones(characterId) {
-        const cached = this.getCachedData(characterId, 'clones');
+    async fetchClones(characterId, force = false) {
+        const cached = this.getCachedData(characterId, 'clones', !force);
         if (cached !== undefined) return cached;
         
         try {
@@ -185,14 +186,14 @@ class CharacterManager {
 
     // Get full character data. All requests are awaited so training-time
     // calculations have the real implant/attribute data on the first render.
-    async getFullCharacterData(characterId) {
+    async getFullCharacterData(characterId, { force = false } = {}) {
         const [skills, attributes, queue, implants, boosters, clones] = await Promise.all([
-            this.fetchSkills(characterId),
-            this.fetchAttributes(characterId),
-            this.fetchSkillQueue(characterId),
-            this.fetchImplants(characterId),
+            this.fetchSkills(characterId, force),
+            this.fetchAttributes(characterId, force),
+            this.fetchSkillQueue(characterId, force),
+            this.fetchImplants(characterId, force),
             this.fetchBoosters(characterId),
-            this.fetchClones(characterId)
+            this.fetchClones(characterId, force)
         ]);
 
         return {

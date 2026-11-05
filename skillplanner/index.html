@@ -19,15 +19,18 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="RustyBot">
     <meta property="og:url" content="https://www.rustybot.co.uk/skillplanner/">
-    <meta property="og:title" content="EVE Online Skill Planner — Training Queue, Implants &amp; Injectors | RustyBot">
+    <meta property="og:title" content="EVE Online Skill Planner | RustyBot">
     <meta property="og:description" content="Plan EVE Online skills with prerequisites, accurate training times, implant and remap boosts, injector costs and shareable plans. Free, no login needed.">
-    <meta property="og:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <meta property="og:image:alt" content="RustyBot logo">
+    <meta property="og:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
+    <meta property="og:image:alt" content="Rusty Skill Planner - EVE Online training plans, saved fits and doctrine readiness">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="EVE Online Skill Planner — Training Queue, Implants &amp; Injectors | RustyBot">
+    <meta name="twitter:title" content="EVE Online Skill Planner | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
-    <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=14">
+    <meta name="twitter:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
+    <link rel="stylesheet" href="style.css?v=15">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -41,7 +44,9 @@
       { "@type": "Question", "name": "Does the planner add prerequisite skills?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - when you add a skill, its prerequisite skills are added to the training queue automatically in the right order, with estimated training times." } },
       { "@type": "Question", "name": "Can it calculate skill injectors?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - the built-in injector calculator shows how many skill injectors you need between two SP totals and what they cost, using current Jita prices." } },
       { "@type": "Question", "name": "Can I import or export a skill plan?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - import an EVE skill plan by pasting it or choosing a file, copy a plan for EVE's in-game import, download it as .txt, or share it with a link." } },
-      { "@type": "Question", "name": "Can I import a ship fit?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - paste an EFT fit from EVE. The planner resolves the hull, modules, drones and charges, works out the skills you are missing, and creates a plan you can export back to EVE." } }
+      { "@type": "Question", "name": "Can I import a ship fit?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - paste an EFT fit from EVE. The planner resolves the hull, modules, drones and charges, works out the skills you are missing, and creates a plan you can export back to EVE." } },
+      { "@type": "Question", "name": "Does it check my saved EVE fittings?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - sign in with EVE SSO to load your personal saved fittings, see which ones you can fly, how long the missing skills will take, and create a training plan for each fit." } },
+      { "@type": "Question", "name": "Can I save corporation or alliance fits?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - ESI only exposes personal fittings, so paste corp or alliance EFT fits into the Doctrine Library. They are stored locally in your browser and can be combined into a doctrine plan." } }
     ]
   }
   </script>
@@ -116,6 +121,12 @@
                 <button class="nav-item" data-view="savedFits">
                     <i class="fas fa-list-check"></i> Saved Fits
                     <span class="badge hidden" id="savedFitsBadge">0</span>
+                </button>
+                <button class="nav-item" data-view="library">
+                    <i class="fas fa-book-bookmark"></i> Doctrine Library
+                </button>
+                <button class="nav-item" data-view="ships">
+                    <i class="fas fa-rocket"></i> Ship Browser
                 </button>
                 <button class="nav-item" data-view="calculator">
                     <i class="fas fa-calculator"></i> Training Calc
@@ -368,6 +379,9 @@
                             <button class="btn-secondary" id="copyPlanBtn">
                                 <i class="fas fa-copy"></i> Copy for EVE
                             </button>
+                            <button class="btn-secondary" id="bookListBtn">
+                                <i class="fas fa-book"></i> Skill Books
+                            </button>
                             <button class="btn-secondary" id="sharePlanBtn">
                                 <i class="fas fa-share-alt"></i> Share
                             </button>
@@ -383,7 +397,27 @@
                             <button class="btn-primary" id="optimizePlanBtn">
                                 <i class="fas fa-magic"></i> Optimize
                             </button>
+                            <button class="btn-secondary" id="undoPlanBtn" disabled title="Undo">
+                                <i class="fas fa-rotate-left"></i>
+                            </button>
+                            <button class="btn-secondary" id="redoPlanBtn" disabled title="Redo">
+                                <i class="fas fa-rotate-right"></i>
+                            </button>
                         </div>
+                    </div>
+
+                    <div class="plan-bulk-bar hidden" id="planBulkBar">
+                        <span><b id="planSelectedCount">0</b> selected</span>
+                        <select id="planBulkLevel" class="form-select">
+                            <option value="1">Level I</option>
+                            <option value="2">Level II</option>
+                            <option value="3">Level III</option>
+                            <option value="4">Level IV</option>
+                            <option value="5">Level V</option>
+                        </select>
+                        <button class="btn-secondary btn-small" id="planBulkSetLevel">Set Level</button>
+                        <button class="btn-danger btn-small" id="planBulkRemove">Remove</button>
+                        <button class="btn-secondary btn-small" id="planBulkClear">Clear</button>
                     </div>
 
                     <div class="planner-layout">
@@ -414,6 +448,14 @@
                                     <span class="sum-label">Estimated Completion</span>
                                     <span class="sum-value" id="sumCompletionDate">--</span>
                                 </div>
+                                <div class="sum-item">
+                                    <span class="sum-label">Plan Starts</span>
+                                    <span class="sum-value" id="sumPlanStart">Now</span>
+                                </div>
+                                <div class="sum-item">
+                                    <span class="sum-label">Completion After Queue</span>
+                                    <span class="sum-value" id="sumCompletionQueue">--</span>
+                                </div>
                                 <div class="sum-item hidden" id="sumTotalTimeCompareRow">
                                     <span class="sum-label">Before -> After</span>
                                     <span class="sum-value" id="sumTotalTimeCompare"></span>
@@ -425,6 +467,24 @@
                                 <div class="sum-item">
                                     <span class="sum-label">Skill Books Cost</span>
                                     <span class="sum-value" id="sumBookCost">--</span>
+                                </div>
+                                <div class="sum-item">
+                                    <span class="sum-label">Clone State</span>
+                                    <span class="sum-value" id="cloneStateSummary">Omega</span>
+                                </div>
+                            </div>
+
+                            <p class="queue-plan-note hidden" id="queuePlanNote"></p>
+
+                            <p class="alpha-warning hidden" id="alphaWarning">
+                                <i class="fas fa-triangle-exclamation"></i>
+                                Alpha clones train at half speed and cannot train every skill to level V. Check the in-game restriction before committing.
+                            </p>
+
+                            <div class="plan-impact">
+                                <h4><i class="fas fa-layer-group"></i> Doctrine Impact</h4>
+                                <div id="planImpactContent">
+                                    <p class="empty-hint">Save or import fits to see what this plan unlocks.</p>
                                 </div>
                             </div>
 
@@ -470,6 +530,12 @@
                             <p id="fitViewSubtitle" class="hint">Paste an EFT fit and the planner will work out which skills you are missing.</p>
                         </div>
                         <div class="fit-view-actions">
+                            <button class="btn-secondary hidden" id="fitViewCopyBtn">
+                                <i class="fas fa-copy"></i> Copy EFT
+                            </button>
+                            <button class="btn-secondary hidden" id="fitViewSaveLibraryBtn">
+                                <i class="fas fa-book-bookmark"></i> Save to Library
+                            </button>
                             <button class="btn-secondary" id="fitViewImportAnotherBtn">
                                 <i class="fas fa-file-import"></i> Import Another Fit
                             </button>
@@ -502,6 +568,9 @@
                             <button class="btn-primary hidden" id="savedFitsMergeBtn">
                                 <i class="fas fa-layer-group"></i> Combine Selected
                             </button>
+                            <button class="btn-secondary" id="savedFitsCheckCharsBtn">
+                                <i class="fas fa-users"></i> Check Characters
+                            </button>
                             <button class="btn-secondary" id="refreshSavedFitsBtn">
                                 <i class="fas fa-rotate"></i> Refresh
                             </button>
@@ -519,10 +588,14 @@
                             <option value="all">All fits</option>
                             <option value="missing">Missing skills</option>
                             <option value="ready">Ready to fly</option>
+                            <option value="week">Flyable within 7 days</option>
+                            <option value="month">Flyable within 30 days</option>
                         </select>
                         <select id="savedFitsSort" class="form-select" aria-label="Sort saved fits">
                             <option value="missing-desc">Most missing first</option>
                             <option value="missing-asc">Closest to flyable</option>
+                            <option value="time-asc">Shortest training time</option>
+                            <option value="time-desc">Longest training time</option>
                             <option value="name">Fit name</option>
                             <option value="ship">Ship name</option>
                         </select>
@@ -535,6 +608,89 @@
                             <button class="btn-primary" id="savedFitsLoginBtn">
                                 <i class="fas fa-user-astronaut"></i> Login with EVE
                             </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Doctrine Library View -->
+                <section id="libraryView" class="view">
+                    <div class="fit-view-header">
+                        <div>
+                            <span class="seo-faq-eyebrow"><i class="fas fa-book-bookmark"></i> Doctrine Library</span>
+                            <h2>Saved doctrine fits</h2>
+                            <p class="hint">Keep corp, alliance and pasted fits here. Stored locally in this browser; EVE SSO is optional.</p>
+                        </div>
+                        <div class="fit-view-actions">
+                            <button class="btn-secondary" id="libraryCheckCharsBtn">
+                                <i class="fas fa-users"></i> Check Characters
+                            </button>
+                            <button class="btn-primary hidden" id="libraryMergeBtn">
+                                <i class="fas fa-layer-group"></i> Combine Selected
+                            </button>
+                            <button class="btn-secondary" id="libraryAddBtn">
+                                <i class="fas fa-plus"></i> Add Fit
+                            </button>
+                        </div>
+                    </div>
+                    <div class="saved-fits-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="librarySearch" placeholder="Search fits, ships or tags..." autocomplete="off">
+                        </div>
+                        <select id="libraryTagFilter" class="form-select" aria-label="Filter doctrine tags">
+                            <option value="all">All tags</option>
+                        </select>
+                        <select id="librarySort" class="form-select" aria-label="Sort doctrine fits">
+                            <option value="time-asc">Shortest training time</option>
+                            <option value="name">Fit name</option>
+                            <option value="ship">Ship name</option>
+                            <option value="newest">Newest first</option>
+                        </select>
+                    </div>
+                    <div id="libraryContent" class="saved-fits-content" aria-live="polite">
+                        <div class="fit-empty-state">
+                            <i class="fas fa-book-bookmark"></i>
+                            <h3>No doctrine fits saved yet</h3>
+                            <p>Paste an EFT fit and save it here to plan corp or alliance doctrines.</p>
+                            <button class="btn-primary" id="libraryEmptyAddBtn">
+                                <i class="fas fa-plus"></i> Add a Fit
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ship Browser View -->
+                <section id="shipsView" class="view">
+                    <div class="fit-view-header">
+                        <div>
+                            <span class="seo-faq-eyebrow"><i class="fas fa-rocket"></i> Ship Browser</span>
+                            <h2>What can I fly?</h2>
+                            <p id="shipsSubtitle" class="hint">Checks hull requirements against your trained skills.</p>
+                        </div>
+                    </div>
+                    <div class="saved-fits-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="shipsSearch" placeholder="Search ships or classes..." autocomplete="off">
+                        </div>
+                        <select id="shipsFilter" class="form-select" aria-label="Filter ships">
+                            <option value="all">All ships</option>
+                            <option value="ready">Ready to fly</option>
+                            <option value="near">Almost ready</option>
+                            <option value="missing">Not ready</option>
+                        </select>
+                        <select id="shipsSort" class="form-select" aria-label="Sort ships">
+                            <option value="readiness">Readiness</option>
+                            <option value="time-asc">Shortest training time</option>
+                            <option value="name">Ship name</option>
+                            <option value="group">Ship class</option>
+                        </select>
+                    </div>
+                    <div id="shipsContent" class="saved-fits-content" aria-live="polite">
+                        <div class="fit-empty-state">
+                            <i class="fas fa-rocket"></i>
+                            <h3>Loading ship requirements</h3>
+                            <p>The SDE ship index is loaded on demand.</p>
                         </div>
                     </div>
                 </section>
@@ -696,6 +852,7 @@
                                     <div class="remap-attrs" id="suggestedRemap">
                                         <!-- Populated dynamically -->
                                     </div>
+                                    <p class="remap-savings" id="remapSavings"></p>
                                 </div>
                             </div>
 
@@ -786,6 +943,14 @@
                         <summary>Can I import a ship fit?</summary>
                         <p>Yes &mdash; paste an EFT fit from EVE. The planner resolves the hull, modules, drones and charges, works out the skills you are missing, and creates a plan you can export back to EVE.</p>
                     </details>
+                    <details class="seo-faq-item">
+                        <summary>Does it check my saved EVE fittings?</summary>
+                        <p>Yes &mdash; sign in with EVE SSO to load your personal saved fittings, see which ones you can fly, how long the missing skills will take, and create a training plan for each fit.</p>
+                    </details>
+                    <details class="seo-faq-item">
+                        <summary>Can I save corporation or alliance fits?</summary>
+                        <p>Yes &mdash; ESI only exposes your personal fittings, so paste corp or alliance EFT fits into the Doctrine Library. They are stored locally in your browser and can be combined into a doctrine training plan.</p>
+                    </details>
                 </div>
 
                 <div class="seo-faq-footer">
@@ -871,6 +1036,92 @@
         </div>
     </div>
 
+    <div class="modal hidden" id="librarySaveModal" role="dialog" aria-modal="true" aria-label="Save Fit to Doctrine Library">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="librarySaveTitle">Save to Doctrine Library</h3>
+                <button class="modal-close" id="closeLibrarySave"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Fit name</label>
+                    <input type="text" id="libraryFitName" placeholder="Doctrine fit name">
+                </div>
+                <div class="input-group">
+                    <label>Tags</label>
+                    <input type="text" id="libraryFitTags" placeholder="logi, shield, nullsec">
+                    <p class="hint">Comma-separated tags for filtering.</p>
+                </div>
+                <div class="input-group">
+                    <label>Notes</label>
+                    <textarea id="libraryFitNotes" class="form-textarea" rows="3" placeholder="Optional notes for this doctrine"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="librarySaveCancel">Cancel</button>
+                <button class="btn-primary" id="librarySaveConfirm">
+                    <i class="fas fa-book-bookmark"></i> Save Fit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="bookListModal" role="dialog" aria-modal="true" aria-label="Skill Book Shopping List">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Skill Book Shopping List</h3>
+                <button class="modal-close" id="closeBookList"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="bookListContent"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="copyBookListBtn"><i class="fas fa-copy"></i> Copy List</button>
+                <button class="btn-secondary" id="closeBookListFooter">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="planCompareModal" role="dialog" aria-modal="true" aria-label="Compare Saved Plans">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="planCompareTitle">Compare Plans</h3>
+                <button class="modal-close" id="closePlanCompare"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="planCompareContent"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closePlanCompareFooter">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="readinessModal" role="dialog" aria-modal="true" aria-label="Doctrine Readiness Across Characters">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Doctrine Readiness</h3>
+                <button class="modal-close" id="closeReadiness"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="readinessContent"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closeReadinessFooter">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="unknownItemModal" role="dialog" aria-modal="true" aria-label="Map Unknown Fit Items">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Map Unknown Fit Items</h3>
+                <button class="modal-close" id="closeUnknownItems"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="unknownItemContent"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closeUnknownItemsFooter">Close</button>
+                <button class="btn-primary" id="applyUnknownItems">
+                    <i class="fas fa-check"></i> Apply Mappings
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal hidden" id="planManagerModal" role="dialog" aria-modal="true" aria-label="Saved Skill Plans">
         <div class="modal-content">
             <div class="modal-header">
@@ -920,11 +1171,11 @@
 
     <script src="skills-data.js?v=2026110505"></script>
     <script src="esi-auth.js?v=2026110503"></script>
-    <script src="character-manager.js?v=2026110502"></script>
-    <script src="training-calc.js?v=2026110506"></script>
+    <script src="character-manager.js?v=2026110503"></script>
+    <script src="training-calc.js?v=2026110507"></script>
     <script src="injector-calc.js?v=20260414003"></script>
-    <script src="skill-planner.js?v=2026110508"></script>
+    <script src="skill-planner.js?v=2026110509"></script>
     <script src="fit-utils.js?v=2026110501"></script>
-    <script src="app.js?v=2026110513"></script>
+    <script src="app.js?v=2026110514"></script>
 </body>
 </html>

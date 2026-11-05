@@ -127,6 +127,34 @@ test('Fit data has valid ids, names and skill references', () => {
     assert.equal(fitData['warrior ii'].id, 2488);
 });
 
+test('Fit data includes ship categories for the ship browser', () => {
+    const ships = Object.values(fitData).filter(entry => entry.category === 'Ship');
+    assert.ok(ships.length > 500, `expected >500 ships, got ${ships.length}`);
+    assert.equal(fitData['ishtar'].category, 'Ship');
+    assert.equal(fitData['warrior ii'].category, 'Drone');
+    assert.equal(fitData['5mn microwarpdrive ii'].category, 'Module');
+});
+
+test('Remap optimizer returns a legal allocation and does not increase time', () => {
+    const calc = new TrainingCalculator();
+    calc.setAttributes({ intelligence: 20, memory: 20, perception: 20, willpower: 20, charisma: 19 });
+    calc.setCloneState('omega');
+    const plan = [
+        { skillId: 3328, targetLevel: 5 },
+        { skillId: 3332, targetLevel: 4 }
+    ];
+    const optimized = calc.optimizeRemap(plan, { skills: [] });
+    const values = Object.values(optimized.attributes);
+
+    assert.equal(values.length, 5);
+    assert.equal(values.reduce((sum, value) => sum + value, 0), 99);
+    values.forEach(value => {
+        assert.ok(value >= 17 && value <= 27, `invalid remap value ${value}`);
+    });
+    assert.ok(optimized.minutes <= optimized.currentMinutes);
+    assert.ok(optimized.savingsMinutes >= 0);
+});
+
 test('Fit resolver handles punctuation, aliases and unknown names', () => {
     assert.equal(
         FitUtils.normalizeFitName('  ‘Vigilant’   Shield Command Burst  '),

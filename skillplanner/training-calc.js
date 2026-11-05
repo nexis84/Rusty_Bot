@@ -317,6 +317,91 @@ class TrainingCalculator {
         this.cerebralAccelerator = false;
     }
 
+    // Brute-force the best legal remap for a plan. EVE remaps start at 17 in
+    // every attribute and distribute 14 extra points (maximum +10 each).
+    optimizeRemap(plan, currentSkills = null) {
+        const attrNames = ['intelligence', 'memory', 'perception', 'willpower', 'charisma'];
+        const entries = (plan || []).map(item => {
+            const skill = window.SKILLS?.[item.skillId];
+            if (!skill) return null;
+            const sp = this.spNeeded(item.skillId, this.getCurrentLevel(item.skillId, currentSkills), item.targetLevel);
+            if (!sp) return null;
+            const primary = window.ATTRIBUTES?.[skill.primary];
+            const secondary = window.ATTRIBUTES?.[skill.secondary];
+            if (!primary || !secondary) return null;
+            return { sp, primary, secondary };
+        }).filter(Boolean);
+
+        const currentAttributes = { ...this.baseAttributes };
+        const currentTime = this.calculatePlanTime(plan, currentSkills).totalMinutes;
+
+        if (entries.length === 0) {
+            return {
+                attributes: currentAttributes,
+                minutes: 0,
+                formattedTime: '0m',
+                currentMinutes: 0,
+                savingsMinutes: 0,
+                savingsFormatted: '0m'
+            };
+        }
+
+        const implantBonus = {
+            intelligence: this.implantBonuses[6]?.bonus || 0,
+            memory: this.implantBonuses[7]?.bonus || 0,
+            perception: this.implantBonuses[8]?.bonus || 0,
+            willpower: this.implantBonuses[9]?.bonus || 0,
+            charisma: this.implantBonuses[10]?.bonus || 0
+        };
+        const accelerator = this.cerebralAccelerator ? this.acceleratorBonus : 0;
+        const alphaMultiplier = this.cloneState === 'alpha' ? 2 : 1;
+
+        let best = null;
+        const evaluate = values => {
+            const effective = {};
+            attrNames.forEach(name => {
+                effective[name] = values[name] + implantBonus[name] + accelerator;
+            });
+
+            let minutes = 0;
+            for (const entry of entries) {
+                const primary = effective[entry.primary];
+                const secondary = effective[entry.secondary];
+                if (!primary || !secondary) return;
+                minutes += entry.sp / (primary + secondary / 2);
+            }
+            minutes *= alphaMultiplier;
+
+            if (!best || minutes < best.minutes) {
+                best = { minutes, values: { ...values } };
+            }
+        };
+
+        const values = {};
+        const search = (index, remaining) => {
+            if (index === attrNames.length - 1) {
+                values[attrNames[index]] = 17 + remaining;
+                evaluate(values);
+                return;
+            }
+            for (let extra = 0; extra <= Math.min(10, remaining); extra++) {
+                values[attrNames[index]] = 17 + extra;
+                search(index + 1, remaining - extra);
+            }
+        };
+        search(0, 14);
+
+        const savings = currentTime - best.minutes;
+        return {
+            attributes: best.values,
+            minutes: best.minutes,
+            formattedTime: this.formatTime(best.minutes),
+            currentMinutes: currentTime,
+            savingsMinutes: savings,
+            savingsFormatted: this.formatTime(Math.max(0, savings))
+        };
+    }
+
     // Optimize attributes for a plan (remap calculator)
     optimizeAttributes(plan, currentSkills = null) {
         if (!window.SKILLS || !window.ATTRIBUTES) {

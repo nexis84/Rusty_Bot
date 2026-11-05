@@ -26,6 +26,20 @@ class SkillPlannerApp {
         this.selectedSavedFits = new Set();
         this.characterSyncedAt = null;
         this.fitDataById = null;
+        this.shipData = [];
+        this.lastFitText = null;
+        this.libraryRecords = this.loadLibraryRecords();
+        this.libraryAnalyses = [];
+        this.libraryLoading = false;
+        this.libraryError = null;
+        this.selectedLibraryFits = new Set();
+        this.selectedPlanSkills = new Set();
+        this.pendingLibraryAnalysis = null;
+        this.pendingLibraryRecord = null;
+        this.fitAliases = this.loadFitAliases();
+        this.characterReadiness = null;
+        this.shipBrowserLoading = false;
+        this.shipReadinessCache = null;
         this.init();
     }
 
@@ -63,7 +77,7 @@ class SkillPlannerApp {
                 this.showMessage(`Please sign in again for ${oldName} - the Skill Planner needs updated permissions.`, 'warning');
                 skillPlanner.setActiveCharacter(null);
             } else {
-                await this.loadCharacter(esiAuth.currentCharacter);
+                await this.loadCharacter(esiAuth.currentCharacter, { force: Boolean(charData) });
             }
         } else {
             skillPlanner.setActiveCharacter(null);
@@ -209,12 +223,21 @@ class SkillPlannerApp {
         document.getElementById('plannerImportPlanBtn')?.addEventListener('click', () => this.openImportPlan());
         document.getElementById('plannerExportPlanBtn')?.addEventListener('click', () => this.downloadPlanText());
         document.getElementById('copyPlanBtn')?.addEventListener('click', () => this.copyPlanForEve());
+        document.getElementById('bookListBtn')?.addEventListener('click', () => this.openBookList());
+        document.getElementById('closeBookList')?.addEventListener('click', () => this.closeBookList());
+        document.getElementById('closeBookListFooter')?.addEventListener('click', () => this.closeBookList());
+        document.getElementById('copyBookListBtn')?.addEventListener('click', () => this.copyBookList());
         document.getElementById('sharePlanBtn')?.addEventListener('click', () => this.sharePlan());
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
         document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.openPlanManager());
         document.getElementById('savePlanBtn')?.addEventListener('click', () => this.openPlanManager());
         document.getElementById('deletePlanBtn')?.addEventListener('click', () => this.openPlanManager());
         document.getElementById('optimizePlanBtn')?.addEventListener('click', () => this.optimizePlan());
+        document.getElementById('undoPlanBtn')?.addEventListener('click', () => this.undoPlan());
+        document.getElementById('redoPlanBtn')?.addEventListener('click', () => this.redoPlan());
+        document.getElementById('planBulkSetLevel')?.addEventListener('click', () => this.bulkSetPlanLevel());
+        document.getElementById('planBulkRemove')?.addEventListener('click', () => this.bulkRemovePlanSkills());
+        document.getElementById('planBulkClear')?.addEventListener('click', () => this.clearPlanSelection());
         document.getElementById('addSkillToPlanBtn')?.addEventListener('click', () => this.openSkillPicker());
         document.getElementById('autoFixPrereqs')?.addEventListener('click', () => this.autoFixPrereqs());
         
@@ -240,7 +263,8 @@ class SkillPlannerApp {
         });
         document.getElementById('cloneState')?.addEventListener('change', (event) => {
             trainingCalc.setCloneState(event.target.value);
-            try { localStorage.setItem('skill_clone_state', event.target.value); } catch (_) {}
+            this.persistCloneState(event.target.value);
+            this.updateCloneStateUI();
             this.updateCalcDisplay();
         });
 
@@ -278,12 +302,40 @@ class SkillPlannerApp {
         document.getElementById('fitViewImportAnotherBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('fitViewEmptyImportBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('fitViewCreatePlanBtn')?.addEventListener('click', () => this.createFitPlan());
+        document.getElementById('fitViewCopyBtn')?.addEventListener('click', () => this.copyCurrentFitEft());
+        document.getElementById('fitViewSaveLibraryBtn')?.addEventListener('click', () => this.openLibrarySaveModal());
         document.getElementById('refreshSavedFitsBtn')?.addEventListener('click', () => this.loadSavedFits(true));
+        document.getElementById('savedFitsCheckCharsBtn')?.addEventListener('click', () => this.openCharacterReadiness());
         document.getElementById('savedFitsImportBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('savedFitsMergeBtn')?.addEventListener('click', () => this.createCombinedFitsPlan());
         document.getElementById('savedFitsSearch')?.addEventListener('input', () => this.renderSavedFits());
         document.getElementById('savedFitsFilter')?.addEventListener('change', () => this.renderSavedFits());
         document.getElementById('savedFitsSort')?.addEventListener('change', () => this.renderSavedFits());
+
+        document.getElementById('closeLibrarySave')?.addEventListener('click', () => this.closeLibrarySaveModal());
+        document.getElementById('librarySaveCancel')?.addEventListener('click', () => this.closeLibrarySaveModal());
+        document.getElementById('librarySaveConfirm')?.addEventListener('click', () => this.saveLibraryFromModal());
+        document.getElementById('closeUnknownItems')?.addEventListener('click', () => this.closeUnknownItemResolver());
+        document.getElementById('closeUnknownItemsFooter')?.addEventListener('click', () => this.closeUnknownItemResolver());
+        document.getElementById('applyUnknownItems')?.addEventListener('click', () => this.applyUnknownItemMappings());
+        document.getElementById('closeReadiness')?.addEventListener('click', () => this.closeCharacterReadiness());
+        document.getElementById('closeReadinessFooter')?.addEventListener('click', () => this.closeCharacterReadiness());
+        document.getElementById('closePlanCompare')?.addEventListener('click', () => this.closePlanCompare());
+        document.getElementById('closePlanCompareFooter')?.addEventListener('click', () => this.closePlanCompare());
+
+        // Doctrine library
+        document.getElementById('libraryAddBtn')?.addEventListener('click', () => this.openLibraryImport());
+        document.getElementById('libraryEmptyAddBtn')?.addEventListener('click', () => this.openLibraryImport());
+        document.getElementById('libraryMergeBtn')?.addEventListener('click', () => this.createCombinedLibraryPlan());
+        document.getElementById('libraryCheckCharsBtn')?.addEventListener('click', () => this.openCharacterReadiness());
+        document.getElementById('librarySearch')?.addEventListener('input', () => this.renderLibrary());
+        document.getElementById('libraryTagFilter')?.addEventListener('change', () => this.renderLibrary());
+        document.getElementById('librarySort')?.addEventListener('change', () => this.renderLibrary());
+
+        // Ship browser
+        document.getElementById('shipsSearch')?.addEventListener('input', () => this.renderShipBrowser());
+        document.getElementById('shipsFilter')?.addEventListener('change', () => this.renderShipBrowser());
+        document.getElementById('shipsSort')?.addEventListener('change', () => this.renderShipBrowser());
         
         // Skill picker search
         document.getElementById('pickerSearch')?.addEventListener('input', (e) => this.filterPickerSkills(e.target.value));
@@ -341,6 +393,8 @@ class SkillPlannerApp {
             planner: 'Skill Planner',
             fit: 'Fit Analysis',
             savedFits: 'Saved Fits',
+            library: 'Doctrine Library',
+            ships: 'Ship Browser',
             calculator: 'Training Calculator'
         };
         this.pageTitle.textContent = titles[viewName] || 'Skill Planner';
@@ -361,6 +415,13 @@ class SkillPlannerApp {
             if (esiAuth.isAuthenticated() && (this.savedFits === null || stale) && !this.savedFitsLoading) {
                 this.loadSavedFits();
             }
+        } else if (viewName === 'library') {
+            this.renderLibrary();
+            if (!this.libraryLoading && this.libraryAnalyses.length === 0) {
+                this.loadLibrary();
+            }
+        } else if (viewName === 'ships') {
+            this.renderShipBrowser();
         } else if (viewName === 'calculator') {
             this.initCalculator();
         }
@@ -377,7 +438,7 @@ class SkillPlannerApp {
     }
 
     // Character loading
-    async loadCharacter(characterId) {
+    async loadCharacter(characterId, { force = false } = {}) {
         const characterChanged = this.currentCharacter !== characterId;
         this.showLoading('Loading character data...');
 
@@ -393,7 +454,7 @@ class SkillPlannerApp {
             // Cache reads are disabled - all fetches hit ESI directly for live data.
             
             // Fetch character data through manager to avoid request bursts against ESI.
-            const fullData = await characterManager.getFullCharacterData(characterId);
+            const fullData = await characterManager.getFullCharacterData(characterId, { force });
             this.currentCharacterData = {
                 skills: fullData.skills,
                 attributes: fullData.attributes,
@@ -402,14 +463,23 @@ class SkillPlannerApp {
                 boosters: fullData.boosters,
                 clones: fullData.clones
             };
-            this.characterSyncedAt = new Date();
+            const cachedSkillsAt = characterManager.characters?.[characterId]?.cache?.skills?.timestamp;
+            this.characterSyncedAt = cachedSkillsAt ? new Date(cachedSkillsAt) : new Date();
             this.updateSyncStatus();
             
             // Update UI
             await this.updateCharacterUI(characterId);
             
-            // Load training calc attributes
+            // Load training calc attributes and the character's clone state.
             trainingCalc.loadFromCharacter(characterId);
+            this.restoreCloneState(characterId);
+            this.shipReadinessCache = null;
+            if (characterChanged || force) {
+                this.libraryAnalyses = [];
+                if (this.currentView === 'library' && this.libraryRecords.length) {
+                    this.loadLibrary();
+                }
+            }
 
             // Re-render sections that depend on fresh character data.
             this.renderMySkills();
@@ -449,16 +519,44 @@ class SkillPlannerApp {
         this.updateMergeButton();
     }
 
-    restoreCloneState() {
+    getCloneStateStorageKey(characterId = esiAuth.getCurrentCharacter()) {
+        return characterId ? `skill_clone_state_${characterId}` : 'skill_clone_state_guest';
+    }
+
+    persistCloneState(state) {
+        try {
+            localStorage.setItem(this.getCloneStateStorageKey(), state);
+        } catch (_) {
+            // Storage may be unavailable.
+        }
+    }
+
+    restoreCloneState(characterId = null) {
         let state = 'omega';
         try {
-            state = localStorage.getItem('skill_clone_state') || 'omega';
+            const key = this.getCloneStateStorageKey(characterId);
+            state = localStorage.getItem(key)
+                || localStorage.getItem('skill_clone_state')
+                || 'omega';
         } catch (_) {
             // Storage may be unavailable; Omega is the safe default.
         }
         trainingCalc.setCloneState(state);
+        this.updateCloneStateUI();
+    }
+
+    updateCloneStateUI() {
         const select = document.getElementById('cloneState');
-        if (select) select.value = trainingCalc.cloneState;
+        if (select) select.value = trainingCalc.cloneState || 'omega';
+
+        const warning = document.getElementById('alphaWarning');
+        warning?.classList.toggle('hidden', trainingCalc.cloneState !== 'alpha');
+
+        const summary = document.getElementById('cloneStateSummary');
+        if (summary) {
+            summary.textContent = trainingCalc.cloneState === 'alpha' ? 'Alpha' : 'Omega';
+            summary.classList.toggle('alpha', trainingCalc.cloneState === 'alpha');
+        }
     }
 
     updateSyncStatus() {
@@ -493,7 +591,7 @@ class SkillPlannerApp {
         try {
             this.resetSavedFitsState();
             // loadCharacter displays its own detailed error message.
-            const refreshed = await this.loadCharacter(charId);
+            const refreshed = await this.loadCharacter(charId, { force: true });
             if (!refreshed) {
                 if (this.currentView === 'savedFits') {
                     this.savedFitsError = 'Character data could not be refreshed. Check your connection and try again.';
@@ -664,6 +762,7 @@ class SkillPlannerApp {
             this.updateSyncStatus();
             this.resetSavedFitsState();
             this.renderSavedFits();
+            this.restoreCloneState(null);
             
             // Update UI
             this.characterInfo?.classList.add('hidden');
@@ -1290,6 +1389,9 @@ class SkillPlannerApp {
         if (plan.length === 0) {
             this.planList.innerHTML = '<p class="empty-state">No skills in plan yet. Add skills from the browser.</p>';
             this.planName.value = skillPlanner.getName();
+            this.selectedPlanSkills.clear();
+            this.updatePlanBulkBar();
+            this.updatePlanHistoryButtons();
             return;
         }
         
@@ -1298,8 +1400,14 @@ class SkillPlannerApp {
         const baselineSettings = this.getCharacterTrainingSettings();
         const hasOverrides = this.calculatorOverrides && this.settingsDiffer(this.calculatorOverrides, baselineSettings);
 
-        this.planList.innerHTML = plan.map(item => {
+        const planIds = new Set(plan.map(item => item.skillId));
+        this.selectedPlanSkills.forEach(id => {
+            if (!planIds.has(id)) this.selectedPlanSkills.delete(id);
+        });
+
+        this.planList.innerHTML = plan.map((item, index) => {
             const skill = window.SKILLS[item.skillId];
+            const selected = this.selectedPlanSkills.has(item.skillId);
             const currentLevel = this.getCharacterSkillLevel(item.skillId);
             
             // Check prerequisites
@@ -1337,7 +1445,9 @@ class SkillPlannerApp {
             const marketLink = marketLinkUrl ? `<a href="${marketLinkUrl}" target="_blank" class="plan-market-link" title="View in Market"><i class="fas fa-shopping-cart"></i></a>` : '';
             
             return `
-                <div class="plan-skill-item" data-skill-id="${item.skillId}">
+                <div class="plan-skill-item ${selected ? 'selected' : ''}" data-skill-id="${item.skillId}" data-index="${index}" draggable="true">
+                    <span class="plan-drag-handle" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></span>
+                    <input type="checkbox" class="plan-select" data-skill-id="${item.skillId}" ${selected ? 'checked' : ''} aria-label="Select ${this.escapeHtml(skill.name)}">
                     <div class="skill-info">
                         <div class="skill-name">
                             <a href="#" class="plan-skill-link" data-skill-id="${item.skillId}">${skill.name}</a>
@@ -1380,6 +1490,93 @@ class SkillPlannerApp {
                 this.showSkillDetails(skillId);
             });
         });
+
+        this.planList.querySelectorAll('.plan-select').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const skillId = parseInt(checkbox.dataset.skillId);
+                if (checkbox.checked) this.selectedPlanSkills.add(skillId);
+                else this.selectedPlanSkills.delete(skillId);
+                checkbox.closest('.plan-skill-item')?.classList.toggle('selected', checkbox.checked);
+                this.updatePlanBulkBar();
+            });
+        });
+
+        let draggedSkillId = null;
+        this.planList.querySelectorAll('.plan-skill-item').forEach(row => {
+            row.addEventListener('dragstart', event => {
+                draggedSkillId = parseInt(row.dataset.skillId);
+                row.classList.add('dragging');
+                event.dataTransfer.effectAllowed = 'move';
+            });
+            row.addEventListener('dragend', () => {
+                draggedSkillId = null;
+                row.classList.remove('dragging');
+            });
+            row.addEventListener('dragover', event => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                row.classList.add('drag-over');
+            });
+            row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+            row.addEventListener('drop', event => {
+                event.preventDefault();
+                row.classList.remove('drag-over');
+                if (draggedSkillId == null) return;
+                const targetIndex = parseInt(row.dataset.index);
+                skillPlanner.moveSkill(draggedSkillId, targetIndex);
+            });
+        });
+
+        this.updatePlanBulkBar();
+        this.updatePlanHistoryButtons();
+    }
+
+    updatePlanBulkBar() {
+        const bar = document.getElementById('planBulkBar');
+        const count = document.getElementById('planSelectedCount');
+        const size = this.selectedPlanSkills.size;
+        if (bar) bar.classList.toggle('hidden', size === 0);
+        if (count) count.textContent = size;
+    }
+
+    clearPlanSelection() {
+        this.selectedPlanSkills.clear();
+        this.renderPlan();
+    }
+
+    bulkSetPlanLevel() {
+        const level = parseInt(document.getElementById('planBulkLevel')?.value || 1);
+        const count = skillPlanner.updateSkillLevels([...this.selectedPlanSkills], level);
+        if (count) this.showMessage(`Updated ${count} skill${count === 1 ? '' : 's'} to level ${this.roman(level)}.`, 'success');
+    }
+
+    bulkRemovePlanSkills() {
+        const count = skillPlanner.removeSkills([...this.selectedPlanSkills]);
+        if (count) {
+            this.selectedPlanSkills.clear();
+            this.showMessage(`Removed ${count} skill${count === 1 ? '' : 's'} from the plan.`, 'info');
+        }
+    }
+
+    updatePlanHistoryButtons() {
+        const undo = document.getElementById('undoPlanBtn');
+        const redo = document.getElementById('redoPlanBtn');
+        if (undo) undo.disabled = !skillPlanner.canUndo();
+        if (redo) redo.disabled = !skillPlanner.canRedo();
+    }
+
+    undoPlan() {
+        if (skillPlanner.undo()) {
+            this.updatePlanHistoryButtons();
+            this.showMessage('Plan change undone.', 'info');
+        }
+    }
+
+    redoPlan() {
+        if (skillPlanner.redo()) {
+            this.updatePlanHistoryButtons();
+            this.showMessage('Plan change redone.', 'info');
+        }
     }
 
     updatePlanSummary() {
@@ -1393,9 +1590,15 @@ class SkillPlannerApp {
         this.sumTotalTime.textContent = active.summary.totalTime;
         this.sumSpNeeded.textContent = characterManager.formatSP(active.summary.totalSP);
 
+        const queueTiming = this.getQueueTiming();
+        const now = new Date();
+        const planStart = queueTiming.active && queueTiming.queueEnd > now
+            ? queueTiming.queueEnd
+            : now;
+
         if (this.sumCompletionDate) {
             if (active.summary.totalMinutes > 0) {
-                const finish = new Date(Date.now() + active.summary.totalMinutes * 60 * 1000);
+                const finish = new Date(now.getTime() + active.summary.totalMinutes * 60 * 1000);
                 this.sumCompletionDate.textContent = finish.toLocaleString(undefined, {
                     year: 'numeric', month: 'short', day: 'numeric',
                     hour: '2-digit', minute: '2-digit'
@@ -1404,6 +1607,56 @@ class SkillPlannerApp {
             } else {
                 this.sumCompletionDate.textContent = '--';
                 this.sumCompletionDate.title = '';
+            }
+        }
+
+        const planStartEl = document.getElementById('sumPlanStart');
+        if (planStartEl) {
+            planStartEl.textContent = queueTiming.active
+                ? planStart.toLocaleString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                })
+                : 'Now';
+            planStartEl.title = queueTiming.active
+                ? 'The plan starts when the current EVE skill queue finishes'
+                : 'No active skill queue';
+        }
+
+        const completionQueueEl = document.getElementById('sumCompletionQueue');
+        if (completionQueueEl) {
+            if (active.summary.totalMinutes > 0) {
+                const actualFinish = new Date(planStart.getTime() + active.summary.totalMinutes * 60 * 1000);
+                completionQueueEl.textContent = actualFinish.toLocaleString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } else {
+                completionQueueEl.textContent = queueTiming.active
+                    ? planStart.toLocaleString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    })
+                    : '--';
+            }
+        }
+
+        const queueNote = document.getElementById('queuePlanNote');
+        if (queueNote) {
+            const totalEntries = queueTiming.count + skillPlanner.getPlanLength();
+            const batches = Math.ceil(totalEntries / 50);
+            if (queueTiming.active) {
+                queueNote.innerHTML = `<i class="fas fa-clock"></i> Current queue ends ${planStart.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}. Training the plan starts after that.`;
+                queueNote.classList.remove('hidden');
+            } else if (batches > 1) {
+                queueNote.innerHTML = `<i class="fas fa-triangle-exclamation"></i> EVE's skill queue holds 50 entries; this plan needs ${batches} queue batches.`;
+                queueNote.classList.remove('hidden');
+            } else {
+                queueNote.classList.add('hidden');
+            }
+
+            if (queueTiming.active && batches > 1) {
+                queueNote.innerHTML += ` EVE's queue holds 50 entries; this plan needs ${batches} batches.`;
             }
         }
 
@@ -1469,8 +1722,85 @@ class SkillPlannerApp {
         // Prereq warning
         this.prereqWarning?.classList.toggle('hidden', !active.summary.hasPrereqIssues);
         
-        // Update badge
+        // Update badge and doctrine coverage
         this.updatePlanBadge();
+        this.updatePlanImpact();
+    }
+
+    getAllFitAnalyses() {
+        return [
+            ...(this.savedFits || []),
+            ...((this.libraryAnalyses || []).map(item => item.analysis))
+        ].filter(Boolean);
+    }
+
+    getPlannedSkillLevels() {
+        const levels = new Map();
+        if (this.currentCharacterData?.skills?.skills) {
+            this.currentCharacterData.skills.skills.forEach(skill => {
+                levels.set(skill.skill_id, skill.trained_skill_level || 0);
+            });
+        }
+        skillPlanner.getPlan().forEach(item => {
+            levels.set(item.skillId, Math.max(levels.get(item.skillId) || 0, item.targetLevel));
+        });
+        return levels;
+    }
+
+    fitIsReadyWithLevels(fit, levels) {
+        return Object.entries(fit.required || {}).every(([skillId, level]) => {
+            return (levels.get(parseInt(skillId, 10)) || 0) >= level;
+        });
+    }
+
+    getQueueTiming() {
+        const rawQueue = this.currentCharacterData?.queue;
+        const queue = Array.isArray(rawQueue) ? rawQueue : (rawQueue?.data || []);
+        if (!queue.length) {
+            return { active: false, queueEnd: null, count: 0 };
+        }
+
+        const last = queue[queue.length - 1];
+        const end = last?.finish_date ? new Date(last.finish_date) : null;
+        return {
+            active: Boolean(end && end.getTime() > Date.now()),
+            queueEnd: end,
+            count: queue.length
+        };
+    }
+
+    updatePlanImpact() {
+        const target = document.getElementById('planImpactContent');
+        if (!target) return;
+
+        const fits = this.getAllFitAnalyses();
+        if (fits.length === 0) {
+            target.innerHTML = '<p class="empty-hint">Save an EVE fitting or add a doctrine to see what this plan unlocks.</p>';
+            return;
+        }
+
+        const levels = this.getPlannedSkillLevels();
+        const readyNow = fits.filter(fit => fit.missing.length === 0);
+        const readyAfter = fits.filter(fit => this.fitIsReadyWithLevels(fit, levels));
+        const unlocked = readyAfter.filter(fit => !readyNow.includes(fit));
+
+        const unlockedNames = unlocked.slice(0, 4).map(fit => this.escapeHtml(fit.fitName));
+        const more = unlocked.length > unlockedNames.length
+            ? ` and ${unlocked.length - unlockedNames.length} more`
+            : '';
+
+        target.innerHTML = `
+            <div class="impact-stat-grid">
+                <div><b>${readyNow.length}/${fits.length}</b><span>ready now</span></div>
+                <div><b>+${unlocked.length}</b><span>unlocked by plan</span></div>
+            </div>
+            <p class="impact-summary">
+                ${unlocked.length
+                    ? `This plan unlocks ${unlockedNames.join(', ')}${more}.`
+                    : (skillPlanner.getPlanLength()
+                        ? 'No additional saved fits are unlocked by the current plan yet.'
+                        : 'Add skills to the plan to see which doctrines it unlocks.')}
+            </p>`;
     }
 
     updatePlanBadge() {
@@ -1494,6 +1824,7 @@ class SkillPlannerApp {
     onPlanChanged() {
         this.renderPlan();
         this.updatePlanSummary();
+        this.updatePlanHistoryButtons();
 
         if (skillPlanner.getPlanLength() === 0) {
             this.prereqBreakdownPanel?.classList.add('hidden');
@@ -1556,6 +1887,8 @@ class SkillPlannerApp {
     }
 
     optimizePlan() {
+        if (skillPlanner.getPlanLength() === 0) return;
+        skillPlanner.recordUndo();
         skillPlanner.optimizeOrder(this.currentCharacterData?.skills);
         this.showMessage('Plan optimized for prerequisite order', 'success');
     }
@@ -1614,6 +1947,8 @@ class SkillPlannerApp {
                 </div>
                 <div class="saved-plan-actions">
                     <button class="btn-secondary btn-small" data-load-plan="${this.escapeHtml(name)}">Load</button>
+                    <button class="btn-secondary btn-small" data-compare-plan="${this.escapeHtml(name)}">Compare</button>
+                    <button class="btn-secondary btn-small" data-duplicate-plan="${this.escapeHtml(name)}">Duplicate</button>
                     <button class="btn-danger btn-small" data-delete-plan="${this.escapeHtml(name)}">Delete</button>
                 </div>
             </div>
@@ -1624,6 +1959,12 @@ class SkillPlannerApp {
         });
         list.querySelectorAll('[data-delete-plan]').forEach(button => {
             button.addEventListener('click', () => this.deletePlanFromManager(button.dataset.deletePlan));
+        });
+        list.querySelectorAll('[data-duplicate-plan]').forEach(button => {
+            button.addEventListener('click', () => this.duplicatePlanFromManager(button.dataset.duplicatePlan));
+        });
+        list.querySelectorAll('[data-compare-plan]').forEach(button => {
+            button.addEventListener('click', () => this.comparePlanFromManager(button.dataset.comparePlan));
         });
     }
 
@@ -1655,6 +1996,64 @@ class SkillPlannerApp {
         skillPlanner.deleteNamedPlan(name);
         this.renderSavedPlans();
         this.showMessage(`Plan "${name}" deleted`, 'info');
+    }
+
+    duplicatePlanFromManager(name) {
+        const newName = prompt('Name for the copy:', `${name} copy`);
+        if (!newName || newName === name) return;
+        if (skillPlanner.duplicateNamedPlan(name, newName)) {
+            this.renderSavedPlans();
+            this.showMessage(`Plan "${name}" duplicated as "${newName}".`, 'success');
+        } else {
+            this.showMessage('Could not duplicate that plan.', 'error');
+        }
+    }
+
+    comparePlanFromManager(name) {
+        const plans = skillPlanner.loadSavedPlans();
+        const saved = plans[name];
+        if (!saved) return;
+
+        const current = new Map(skillPlanner.getPlan().map(item => [item.skillId, item.targetLevel]));
+        const other = new Map((saved.plan || []).map(item => [item.skillId, item.targetLevel]));
+        const ids = new Set([...current.keys(), ...other.keys()]);
+
+        const rows = [...ids].map(skillId => {
+            const currentLevel = current.get(skillId) || 0;
+            const otherLevel = other.get(skillId) || 0;
+            if (currentLevel === otherLevel) return null;
+
+            const skill = window.SKILLS[skillId];
+            let change;
+            if (!currentLevel) change = `Only in saved plan: ${this.roman(otherLevel)}`;
+            else if (!otherLevel) change = `Only in current plan: ${this.roman(currentLevel)}`;
+            else change = `Current ${this.roman(currentLevel)} → saved ${this.roman(otherLevel)}`;
+
+            return `<div class="compare-row"><span>${this.escapeHtml(skill?.name || `Skill ${skillId}`)}</span><small>${change}</small></div>`;
+        }).filter(Boolean);
+
+        const currentMinutes = trainingCalc.calculatePlanTime(skillPlanner.getPlan(), this.currentCharacterData?.skills).totalMinutes;
+        const savedMinutes = trainingCalc.calculatePlanTime(
+            (saved.plan || []).map(item => ({ skillId: item.skillId, targetLevel: item.targetLevel })),
+            this.currentCharacterData?.skills
+        ).totalMinutes;
+
+        const content = document.getElementById('planCompareContent');
+        const title = document.getElementById('planCompareTitle');
+        if (title) title.textContent = `Current Plan vs ${name}`;
+        if (content) {
+            content.innerHTML = `
+                <div class="compare-summary">
+                    <div><span>Current plan</span><strong>${current.size} skills · ${trainingCalc.formatTime(currentMinutes)}</strong></div>
+                    <div><span>${this.escapeHtml(name)}</span><strong>${other.size} skills · ${trainingCalc.formatTime(savedMinutes)}</strong></div>
+                </div>
+                ${rows.length ? `<div class="compare-list">${rows.join('')}</div>` : '<p class="fit-note success">The plans have identical skill targets.</p>'}`;
+        }
+        document.getElementById('planCompareModal')?.classList.remove('hidden');
+    }
+
+    closePlanCompare() {
+        document.getElementById('planCompareModal')?.classList.add('hidden');
     }
 
     savePlanDialog() { this.openPlanManager(); }
@@ -1755,6 +2154,13 @@ class SkillPlannerApp {
     }
 
     resolveFitEntry(data, name) {
+        const alias = this.fitAliases?.[this.normalizeFitName(name)];
+        if (alias) {
+            const aliased = window.FitUtils
+                ? window.FitUtils.resolveFitEntry(data, alias)
+                : (data[this.normalizeFitName(alias)] || null);
+            if (aliased) return aliased;
+        }
         return window.FitUtils
             ? window.FitUtils.resolveFitEntry(data, name)
             : (data[this.normalizeFitName(name)] || null);
@@ -1784,7 +2190,108 @@ class SkillPlannerApp {
             </span>`).join('')}</div>`;
     }
 
-    openFitImport() {
+    openUnknownItemResolver() {
+        const modal = document.getElementById('unknownItemModal');
+        const content = document.getElementById('unknownItemContent');
+        if (!modal || !content || !this.fitAnalysis?.unknown?.length) return;
+
+        this.unknownMappings = {};
+        content.innerHTML = `
+            <p class="hint">Some item names were not found in the SDE. Search for the correct item below. Mappings are remembered for future imports.</p>
+            ${this.fitAnalysis.unknown.map((name, index) => `
+                <div class="unknown-item-row">
+                    <div class="unknown-item-head">
+                        <strong>${this.escapeHtml(name)}</strong>
+                        <span class="unknown-item-status" data-unknown-status="${index}">Not mapped</span>
+                    </div>
+                    <input type="text" class="form-input unknown-item-search" data-unknown-search="${index}" placeholder="Search SDE items..." autocomplete="off">
+                    <div class="unknown-item-results" data-unknown-results="${index}"></div>
+                </div>`).join('')}`;
+
+        content.querySelectorAll('[data-unknown-search]').forEach(input => {
+            input.addEventListener('input', () => this.searchUnknownItem(Number(input.dataset.unknownSearch), input.value));
+        });
+        modal.classList.remove('hidden');
+    }
+
+    searchUnknownItem(index, term) {
+        const results = document.querySelector(`[data-unknown-results="${index}"]`);
+        if (!results) return;
+
+        const query = String(term || '').trim().toLowerCase();
+        if (query.length < 2) {
+            results.innerHTML = '';
+            return;
+        }
+
+        const unkName = this.fitAnalysis?.unknown?.[index];
+        if (!unkName) return;
+
+        const matches = Object.values(this.fitData || {})
+            .filter(entry => `${entry.name} ${entry.group}`.toLowerCase().includes(query))
+            .slice(0, 8);
+
+        results.innerHTML = matches.length
+            ? matches.map(entry => `
+                <button type="button" class="unknown-item-result" data-unknown-pick="${index}" data-entry-name="${this.escapeHtml(entry.name)}">
+                    <span>${this.escapeHtml(entry.name)}</span>
+                    <small>${this.escapeHtml(entry.group || entry.category || '')}</small>
+                </button>`).join('')
+            : '<p class="empty-hint">No matches</p>';
+
+        results.querySelectorAll('[data-unknown-pick]').forEach(button => {
+            button.addEventListener('click', () => {
+                const entryName = button.dataset.entryName;
+                this.unknownMappings[unkName] = entryName;
+                const status = document.querySelector(`[data-unknown-status="${index}"]`);
+                if (status) {
+                    status.textContent = `Mapped to ${entryName}`;
+                    status.classList.add('mapped');
+                }
+                results.innerHTML = '';
+            });
+        });
+    }
+
+    closeUnknownItemResolver() {
+        document.getElementById('unknownItemModal')?.classList.add('hidden');
+        this.unknownMappings = {};
+    }
+
+    async applyUnknownItemMappings() {
+        const mappings = this.unknownMappings || {};
+        const names = Object.keys(mappings);
+        if (names.length === 0) {
+            this.showMessage('No items have been mapped yet.', 'warning');
+            return;
+        }
+
+        names.forEach(name => {
+            this.fitAliases[this.normalizeFitName(name)] = mappings[name];
+        });
+        this.saveFitAliases();
+
+        const text = this.fitAnalysis?.eftText || this.lastFitText;
+        this.closeUnknownItemResolver();
+
+        if (text) {
+            try {
+                const { analysis } = await this.analyseFitText(text, { remember: true });
+                this.fitAnalysis = analysis;
+                this.renderFitAnalysis();
+                this.showMessage(`Mapped ${names.length} item${names.length === 1 ? '' : 's'}.`, 'success');
+            } catch (error) {
+                this.showMessage(error.message, 'error');
+            }
+        }
+    }
+
+    openLibraryImport() {
+        this.openFitImport(true);
+    }
+
+    openFitImport(fromLibrary = false) {
+        this.autoLibrarySave = Boolean(fromLibrary);
         const modal = document.getElementById('fitImportModal');
         const text = document.getElementById('fitImportText');
         const file = document.getElementById('fitImportFile');
@@ -1814,21 +2321,87 @@ class SkillPlannerApp {
         reader.readAsText(file);
     }
 
+    async readFitDataCache() {
+        if (typeof indexedDB === 'undefined') return null;
+
+        try {
+            const db = await new Promise((resolve, reject) => {
+                const request = indexedDB.open('rusty-skillplanner', 1);
+                request.onupgradeneeded = () => {
+                    if (!request.result.objectStoreNames.contains('assets')) {
+                        request.result.createObjectStore('assets');
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+
+            const cached = await new Promise((resolve, reject) => {
+                const tx = db.transaction('assets', 'readonly');
+                const request = tx.objectStore('assets').get('fit-data-v2');
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+            db.close();
+
+            if (!cached?.data) return null;
+            if (Date.now() - cached.timestamp > 24 * 60 * 60 * 1000) return null;
+            return cached.data;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    async writeFitDataCache(data) {
+        if (typeof indexedDB === 'undefined') return;
+
+        try {
+            const db = await new Promise((resolve, reject) => {
+                const request = indexedDB.open('rusty-skillplanner', 1);
+                request.onupgradeneeded = () => {
+                    if (!request.result.objectStoreNames.contains('assets')) {
+                        request.result.createObjectStore('assets');
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+
+            await new Promise((resolve, reject) => {
+                const tx = db.transaction('assets', 'readwrite');
+                tx.objectStore('assets').put({ data, timestamp: Date.now() }, 'fit-data-v2');
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+            db.close();
+        } catch (_) {
+            // IndexedDB is an optional performance improvement.
+        }
+    }
+
     async loadFitData() {
         if (this.fitData) return this.fitData;
         if (this.fitDataPromise) return this.fitDataPromise;
 
-        this.fitDataPromise = fetch('fit-data.json', { cache: 'no-cache' })
-            .then(response => {
-                if (!response.ok) throw new Error(`Fit data unavailable (HTTP ${response.status})`);
-                return response.json();
-            })
+        this.fitDataPromise = (async () => {
+            const cached = await this.readFitDataCache();
+            if (cached) return cached;
+
+            const response = await fetch('fit-data.json', { cache: 'no-cache' });
+            if (!response.ok) throw new Error(`Fit data unavailable (HTTP ${response.status})`);
+            const data = await response.json();
+            this.writeFitDataCache(data);
+            return data;
+        })()
             .then(data => {
                 this.fitData = data;
                 this.fitDataById = {};
                 Object.values(data).forEach(entry => {
                     if (entry?.id) this.fitDataById[entry.id] = entry;
                 });
+                this.shipData = Object.values(data)
+                    .filter(entry => entry.category === 'Ship')
+                    .sort((a, b) => a.name.localeCompare(b.name));
                 return data;
             })
             .finally(() => {
@@ -1865,6 +2438,41 @@ class SkillPlannerApp {
         return { hullName, fitName, items };
     }
 
+    async analyseFitText(text, { remember = true } = {}) {
+        const parsed = this.parseFitText(text);
+        const fitData = await this.loadFitData();
+        const hull = this.resolveFitEntry(fitData, parsed.hullName);
+        if (!hull) {
+            throw new Error(`Hull "${parsed.hullName}" was not found in the SDE.`);
+        }
+
+        const entries = [];
+        const unknown = [];
+        parsed.items.forEach(item => {
+            const entry = this.resolveFitEntry(fitData, item.name);
+            if (!entry) {
+                unknown.push(item.name);
+                return;
+            }
+            entries.push(entry);
+        });
+
+        const analysis = this.buildFitAnalysisFromEntries({
+            hull,
+            entries,
+            items: this.buildFitItems(parsed.items, fitData),
+            totalItems: parsed.items.length,
+            unknown,
+            fitName: parsed.fitName
+        });
+
+        if (analysis) {
+            analysis.eftText = String(text || '').trim();
+            if (remember) this.lastFitText = analysis.eftText;
+        }
+        return { analysis, parsed, fitData };
+    }
+
     async analyseFit() {
         const text = document.getElementById('fitImportText')?.value.trim();
         if (!text) {
@@ -1880,50 +2488,17 @@ class SkillPlannerApp {
         }
 
         try {
-            let parsed;
-            try {
-                parsed = this.parseFitText(text);
-            } catch (error) {
-                this.showMessage(error.message, 'error');
-                return;
-            }
-
-            let fitData;
-            try {
-                fitData = await this.loadFitData();
-            } catch (error) {
-                this.showMessage(error.message, 'error');
-                return;
-            }
-
-            const hull = this.resolveFitEntry(fitData, parsed.hullName);
-            if (!hull) {
-                this.showMessage(`Hull "${parsed.hullName}" was not found in the SDE.`, 'error');
-                return;
-            }
-
-            const entries = [];
-            const unknown = [];
-            parsed.items.forEach(item => {
-                const entry = this.resolveFitEntry(fitData, item.name);
-                if (!entry) {
-                    unknown.push(item.name);
-                    return;
-                }
-                entries.push(entry);
-            });
-
-            this.fitAnalysis = this.buildFitAnalysisFromEntries({
-                hull,
-                entries,
-                items: this.buildFitItems(parsed.items, fitData),
-                totalItems: parsed.items.length,
-                unknown,
-                fitName: parsed.fitName
-            });
-
+            const { analysis } = await this.analyseFitText(text);
+            this.fitAnalysis = analysis;
             this.closeFitImport();
             this.switchView('fit');
+            if (this.autoLibrarySave) {
+                this.autoLibrarySave = false;
+                this.pendingLibraryAnalysis = analysis;
+                this.openLibrarySaveModal();
+            }
+        } catch (error) {
+            this.showMessage(error.message, 'error');
         } finally {
             if (button) {
                 button.disabled = false;
@@ -1990,17 +2565,47 @@ class SkillPlannerApp {
         });
         missing.sort((a, b) => a.skillName.localeCompare(b.skillName));
 
+        let trainingMinutes = 0;
+        try {
+            trainingMinutes = this.withTrainingCalcState(() => {
+                this.applyTrainingSettings(this.calculatorOverrides || this.getCharacterTrainingSettings());
+                return missing.reduce((total, skill) => {
+                    return total + trainingCalc.calculateSkillTime(
+                        skill.skillId,
+                        skill.currentLevel,
+                        skill.targetLevel
+                    );
+                }, 0);
+            });
+        } catch (_) {
+            trainingMinutes = 0;
+        }
+
+        const completionDate = trainingMinutes > 0
+            ? new Date(Date.now() + trainingMinutes * 60 * 1000)
+            : null;
+        const eftName = String(fitName || hull.name).replace(/[\[\]\r\n]/g, ' ').trim();
+        const eftText = [
+            `[${hull.name}, ${eftName}]`,
+            ...items.map(item => `${item.name}${item.quantity > 1 ? ` x${item.quantity}` : ''}`)
+        ].join('\n');
+
         return {
             fittingId,
             description,
             fitName,
             hullName: hull.name,
+            category: hull.category || '',
             matchedItems: entries.length,
             totalItems,
             items,
             unknown,
             required: Object.fromEntries(expanded),
-            missing
+            missing,
+            trainingMinutes,
+            trainingTime: trainingCalc.formatTime(trainingMinutes),
+            completionDate,
+            eftText
         };
     }
 
@@ -2008,6 +2613,8 @@ class SkillPlannerApp {
         const content = document.getElementById('fitViewContent');
         const createBtn = document.getElementById('fitViewCreatePlanBtn');
         const importBtn = document.getElementById('fitViewImportAnotherBtn');
+        const copyBtn = document.getElementById('fitViewCopyBtn');
+        const saveBtn = document.getElementById('fitViewSaveLibraryBtn');
         const title = document.getElementById('fitViewTitle');
         const subtitle = document.getElementById('fitViewSubtitle');
         const badge = document.getElementById('fitBadge');
@@ -2019,6 +2626,8 @@ class SkillPlannerApp {
             if (subtitle) subtitle.textContent = 'Paste an EFT fit and the planner will work out which skills you are missing.';
             createBtn?.classList.add('hidden');
             importBtn?.classList.add('hidden');
+            copyBtn?.classList.add('hidden');
+            saveBtn?.classList.add('hidden');
             badge?.classList.add('hidden');
             content.innerHTML = `
                 <div class="fit-empty-state">
@@ -2038,13 +2647,23 @@ class SkillPlannerApp {
         const requiredCount = Object.keys(analysis.required || {}).length;
         const trainedCount = Math.max(0, requiredCount - missing.length);
         const unknownNote = analysis.unknown.length
-            ? `<p class="fit-note warn"><strong>Not recognised:</strong> ${analysis.unknown.map(item => this.escapeHtml(item)).join(', ')}</p>`
+            ? `<div class="fit-note warn"><strong>Not recognised:</strong> ${analysis.unknown.map(item => this.escapeHtml(item)).join(', ')}
+                <button class="btn-small" id="resolveUnknownItemsBtn"><i class="fas fa-link"></i> Map Items</button>
+               </div>`
+            : '';
+        const completion = analysis.completionDate
+            ? analysis.completionDate.toLocaleString(undefined, {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            })
             : '';
 
         if (title) title.textContent = analysis.fitName;
-        if (subtitle) subtitle.textContent = `${analysis.hullName} · ${analysis.matchedItems}/${analysis.totalItems} items matched · ${requiredCount} required skills`;
+        if (subtitle) subtitle.textContent = `${analysis.hullName} · ${analysis.matchedItems}/${analysis.totalItems} items matched · ${missing.length ? `${analysis.trainingTime} to fly` : 'ready to fly'}`;
         createBtn?.classList.toggle('hidden', missing.length === 0);
         importBtn?.classList.remove('hidden');
+        copyBtn?.classList.remove('hidden');
+        saveBtn?.classList.remove('hidden');
 
         if (badge) {
             badge.textContent = missing.length;
@@ -2058,6 +2677,8 @@ class SkillPlannerApp {
                 <div><span>Required skills</span><strong>${requiredCount}</strong></div>
                 <div><span>Already trained</span><strong>${trainedCount}</strong></div>
                 <div><span>Missing skills</span><strong>${missing.length}</strong></div>
+                <div><span>Time to fly</span><strong>${missing.length ? analysis.trainingTime : 'Ready'}</strong></div>
+                <div><span>Completion</span><strong>${completion || '--'}</strong></div>
             </div>
             <div class="fit-view-section-head">
                 <h3>Fitted items</h3>
@@ -2079,6 +2700,8 @@ class SkillPlannerApp {
                 : '<p class="fit-note success">You already meet every skill requirement for this fit.</p>'}
             ${unknownNote}
         `;
+
+        document.getElementById('resolveUnknownItemsBtn')?.addEventListener('click', () => this.openUnknownItemResolver());
     }
 
     async createFitPlan() {
@@ -2333,7 +2956,8 @@ class SkillPlannerApp {
         let entries = this.savedFits.map((fit, index) => ({ fit, index }));
         if (search) {
             entries = entries.filter(({ fit }) => {
-                const haystack = `${fit.fitName} ${fit.hullName} ${fit.description || ''}`.toLowerCase();
+                const itemNames = (fit.items || []).map(item => item.name).join(' ');
+                const haystack = `${fit.fitName} ${fit.hullName} ${fit.description || ''} ${itemNames}`.toLowerCase();
                 return haystack.includes(search);
             });
         }
@@ -2341,12 +2965,18 @@ class SkillPlannerApp {
             entries = entries.filter(({ fit }) => fit.missing.length === 0);
         } else if (filter === 'missing') {
             entries = entries.filter(({ fit }) => fit.missing.length > 0);
+        } else if (filter === 'week') {
+            entries = entries.filter(({ fit }) => fit.trainingMinutes <= 7 * 1440);
+        } else if (filter === 'month') {
+            entries = entries.filter(({ fit }) => fit.trainingMinutes <= 30 * 1440);
         }
 
         entries.sort((a, b) => {
             if (sort === 'name') return a.fit.fitName.localeCompare(b.fit.fitName);
             if (sort === 'ship') return a.fit.hullName.localeCompare(b.fit.hullName) || a.fit.fitName.localeCompare(b.fit.fitName);
             if (sort === 'missing-asc') return a.fit.missing.length - b.fit.missing.length || a.fit.fitName.localeCompare(b.fit.fitName);
+            if (sort === 'time-asc') return a.fit.trainingMinutes - b.fit.trainingMinutes || a.fit.fitName.localeCompare(b.fit.fitName);
+            if (sort === 'time-desc') return b.fit.trainingMinutes - a.fit.trainingMinutes || a.fit.fitName.localeCompare(b.fit.fitName);
             return b.fit.missing.length - a.fit.missing.length || a.fit.fitName.localeCompare(b.fit.fitName);
         });
 
@@ -2387,6 +3017,15 @@ class SkillPlannerApp {
             const description = fit.description
                 ? `<p class="saved-fit-description">${this.escapeHtml(fit.description)}</p>`
                 : '';
+            const completion = fit.completionDate
+                ? fit.completionDate.toLocaleString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                })
+                : null;
+            const timeLine = ready
+                ? 'Ready now'
+                : `${fit.trainingTime} to fly${completion ? ` · ${completion}` : ''}`;
 
             return `
                 <details class="saved-fit-card ${ready ? 'ready' : 'missing'}">
@@ -2396,13 +3035,18 @@ class SkillPlannerApp {
                         </label>
                         <span class="saved-fit-main">
                             <strong>${this.escapeHtml(fit.fitName)}</strong>
-                            <small>${this.escapeHtml(fit.hullName)} &middot; ${fit.matchedItems}/${fit.totalItems} items</small>
+                            <small>${this.escapeHtml(fit.hullName)} &middot; ${fit.matchedItems}/${fit.totalItems} items &middot; ${timeLine}</small>
                         </span>
                         ${status}
                         <i class="fas fa-chevron-down saved-fit-chevron" aria-hidden="true"></i>
                     </summary>
                     <div class="saved-fit-body">
                         ${description}
+                        <div class="saved-fit-metrics">
+                            <span><i class="fas fa-clock"></i> ${ready ? 'Ready to fly' : `${fit.trainingTime} training`}</span>
+                            ${completion ? `<span><i class="fas fa-calendar-check"></i> ${completion}</span>` : ''}
+                            <span><i class="fas fa-list-check"></i> ${missing.length} missing skill${missing.length === 1 ? '' : 's'}</span>
+                        </div>
                         <div class="fit-view-section-head">
                             <h3>Fitted items</h3>
                             <span>${fit.matchedItems}/${fit.totalItems} resolved</span>
@@ -2419,12 +3063,21 @@ class SkillPlannerApp {
                                     <span>${this.escapeHtml(skill.skillName)}</span>
                                     <b>${this.roman(skill.targetLevel)}</b>
                                     <small>${skill.currentLevel ? `have ${this.roman(skill.currentLevel)}` : 'not trained'}</small>
-                                </div>`).join('')}</div>
-                                <div class="saved-fit-actions">
-                                    <button class="btn-primary" data-saved-fit-plan="${index}">
-                                        <i class="fas fa-clipboard-list"></i> Create Skill Plan
-                                    </button>
-                                </div>`}
+                                </div>`).join('')}</div>`}
+                        <div class="saved-fit-actions">
+                            <button class="btn-secondary btn-small" data-saved-fit-copy="${index}">
+                                <i class="fas fa-copy"></i> Copy EFT
+                            </button>
+                            <button class="btn-secondary btn-small" data-saved-fit-open="${index}">
+                                <i class="fas fa-wrench"></i> Open Analysis
+                            </button>
+                            <button class="btn-secondary btn-small" data-saved-fit-library="${index}">
+                                <i class="fas fa-book-bookmark"></i> Save to Library
+                            </button>
+                            ${ready ? '' : `<button class="btn-primary btn-small" data-saved-fit-plan="${index}">
+                                <i class="fas fa-clipboard-list"></i> Create Skill Plan
+                            </button>`}
+                        </div>
                         ${unknownNote}
                     </div>
                 </details>`;
@@ -2450,8 +3103,18 @@ class SkillPlannerApp {
         content.querySelectorAll('[data-saved-fit-plan]').forEach(button => {
             button.addEventListener('click', () => this.createSavedFitPlan(Number(button.dataset.savedFitPlan)));
         });
+        content.querySelectorAll('[data-saved-fit-copy]').forEach(button => {
+            button.addEventListener('click', () => this.copySavedFitEft(Number(button.dataset.savedFitCopy)));
+        });
+        content.querySelectorAll('[data-saved-fit-open]').forEach(button => {
+            button.addEventListener('click', () => this.openSavedFitAnalysis(Number(button.dataset.savedFitOpen)));
+        });
+        content.querySelectorAll('[data-saved-fit-library]').forEach(button => {
+            button.addEventListener('click', () => this.saveSavedFitToLibrary(Number(button.dataset.savedFitLibrary)));
+        });
 
         this.updateMergeButton();
+        this.updatePlanImpact();
     }
 
     async createSavedFitPlan(index) {
@@ -2459,6 +3122,46 @@ class SkillPlannerApp {
         if (!analysis || analysis.missing.length === 0) return;
         this.fitAnalysis = analysis;
         await this.createFitPlan();
+    }
+
+    async copySavedFitEft(index) {
+        const fit = this.savedFits?.[index];
+        if (!fit?.eftText) {
+            this.showMessage('EFT text is unavailable for this fit.', 'warning');
+            return;
+        }
+        const ok = await this.copyText(fit.eftText);
+        this.showMessage(
+            ok ? `Copied ${fit.fitName} as EFT` : 'Could not copy the fit',
+            ok ? 'success' : 'error'
+        );
+    }
+
+    async copyCurrentFitEft() {
+        if (!this.fitAnalysis?.eftText) {
+            this.showMessage('No analysed fit to copy.', 'warning');
+            return;
+        }
+        const ok = await this.copyText(this.fitAnalysis.eftText);
+        this.showMessage(
+            ok ? `Copied ${this.fitAnalysis.fitName} as EFT` : 'Could not copy the fit',
+            ok ? 'success' : 'error'
+        );
+    }
+
+    openSavedFitAnalysis(index) {
+        const fit = this.savedFits?.[index];
+        if (!fit) return;
+        this.fitAnalysis = fit;
+        this.lastFitText = fit.eftText || this.lastFitText;
+        this.switchView('fit');
+    }
+
+    saveSavedFitToLibrary(index) {
+        const fit = this.savedFits?.[index];
+        if (!fit) return;
+        this.pendingLibraryAnalysis = fit;
+        this.openLibrarySaveModal();
     }
 
     async createCombinedFitsPlan() {
@@ -2512,6 +3215,692 @@ class SkillPlannerApp {
             `Created a combined plan with ${result.missing} missing skills for ${selected.length} ${selected.length === 1 ? 'fit' : 'fits'}.`,
             'success'
         );
+    }
+
+    // Locally saved doctrine fits
+    loadLibraryRecords() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem('skillplanner_library_fits') || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    saveLibraryRecords() {
+        try {
+            localStorage.setItem('skillplanner_library_fits', JSON.stringify(this.libraryRecords));
+        } catch (_) {
+            this.showMessage('Could not save the doctrine library in this browser.', 'error');
+        }
+    }
+
+    loadFitAliases() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem('skillplanner_fit_aliases') || '{}');
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    saveFitAliases() {
+        try {
+            localStorage.setItem('skillplanner_fit_aliases', JSON.stringify(this.fitAliases));
+        } catch (_) {
+            // Aliases are an optional convenience.
+        }
+    }
+
+    async loadLibrary() {
+        this.libraryLoading = true;
+        this.libraryError = null;
+        this.renderLibrary();
+
+        try {
+            await this.loadFitData();
+            const results = [];
+            for (const record of this.libraryRecords) {
+                try {
+                    const { analysis } = await this.analyseFitText(record.eft, { remember: false });
+                    results.push({ record, analysis, error: null });
+                } catch (error) {
+                    results.push({ record, analysis: null, error: error.message });
+                }
+            }
+            this.libraryAnalyses = results;
+        } catch (error) {
+            this.libraryError = error.message || 'Could not load the doctrine library.';
+            this.libraryAnalyses = [];
+        } finally {
+            this.libraryLoading = false;
+            this.renderLibrary();
+            this.populateLibraryTags();
+            this.updatePlanImpact();
+        }
+    }
+
+    populateLibraryTags() {
+        const select = document.getElementById('libraryTagFilter');
+        if (!select) return;
+
+        const current = select.value || 'all';
+        const tags = new Set();
+        this.libraryRecords.forEach(record => {
+            (record.tags || []).forEach(tag => tags.add(tag));
+        });
+
+        const options = [...tags].sort((a, b) => a.localeCompare(b));
+        select.innerHTML = '<option value="all">All tags</option>' +
+            options.map(tag => `<option value="${this.escapeHtml(tag)}">${this.escapeHtml(tag)}</option>`).join('');
+        select.value = options.includes(current) ? current : 'all';
+    }
+
+    updateLibraryMergeButton() {
+        const button = document.getElementById('libraryMergeBtn');
+        if (!button) return;
+        const count = this.selectedLibraryFits.size;
+        button.classList.toggle('hidden', count === 0);
+        button.disabled = count === 0;
+        button.innerHTML = `<i class="fas fa-layer-group"></i> Combine Selected${count ? ` (${count})` : ''}`;
+    }
+
+    renderLibrary() {
+        const content = document.getElementById('libraryContent');
+        if (!content) return;
+
+        if (this.libraryLoading) {
+            this.updateLibraryMergeButton();
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <div class="loading-spinner"></div>
+                    <h3>Loading doctrine library</h3>
+                    <p>Resolving saved fits against the SDE.</p>
+                </div>`;
+            return;
+        }
+
+        if (this.libraryError) {
+            this.updateLibraryMergeButton();
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <h3>Could not load the doctrine library</h3>
+                    <p>${this.escapeHtml(this.libraryError)}</p>
+                    <button class="btn-primary" id="libraryRetryBtn"><i class="fas fa-rotate"></i> Try Again</button>
+                </div>`;
+            document.getElementById('libraryRetryBtn')?.addEventListener('click', () => this.loadLibrary());
+            return;
+        }
+
+        if (this.libraryRecords.length === 0) {
+            this.updateLibraryMergeButton();
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-book-bookmark"></i>
+                    <h3>No doctrine fits saved yet</h3>
+                    <p>Paste an EFT fit and save it here to plan corp or alliance doctrines.</p>
+                    <button class="btn-primary" id="libraryEmptyAddBtn"><i class="fas fa-plus"></i> Add a Fit</button>
+                </div>`;
+            document.getElementById('libraryEmptyAddBtn')?.addEventListener('click', () => this.openFitImport());
+            return;
+        }
+
+        const search = (document.getElementById('librarySearch')?.value || '').trim().toLowerCase();
+        const tag = document.getElementById('libraryTagFilter')?.value || 'all';
+        const sort = document.getElementById('librarySort')?.value || 'time-asc';
+
+        let entries = [...this.libraryAnalyses];
+        if (search) {
+            entries = entries.filter(({ record, analysis }) => {
+                const itemNames = (analysis?.items || []).map(item => item.name).join(' ');
+                const haystack = `${record.name} ${record.tags?.join(' ') || ''} ${record.notes || ''} ${analysis?.hullName || ''} ${itemNames}`.toLowerCase();
+                return haystack.includes(search);
+            });
+        }
+        if (tag !== 'all') {
+            entries = entries.filter(({ record }) => (record.tags || []).includes(tag));
+        }
+
+        entries.sort((a, b) => {
+            if (sort === 'name') return a.record.name.localeCompare(b.record.name);
+            if (sort === 'ship') return (a.analysis?.hullName || '').localeCompare(b.analysis?.hullName || '') || a.record.name.localeCompare(b.record.name);
+            if (sort === 'newest') return (b.record.createdAt || 0) - (a.record.createdAt || 0);
+            return (a.analysis?.trainingMinutes ?? Infinity) - (b.analysis?.trainingMinutes ?? Infinity)
+                || a.record.name.localeCompare(b.record.name);
+        });
+
+        if (entries.length === 0) {
+            this.updateLibraryMergeButton();
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-filter-circle-xmark"></i>
+                    <h3>No doctrine fits match</h3>
+                    <p>Try a different search or tag.</p>
+                </div>`;
+            return;
+        }
+
+        content.innerHTML = `<div class="saved-fits-list">${entries.map(({ record, analysis, error }) => {
+            if (error || !analysis) {
+                return `
+                    <div class="saved-fit-card missing">
+                        <div class="saved-fit-body">
+                            <strong>${this.escapeHtml(record.name)}</strong>
+                            <p class="fit-note warn">Could not analyse this fit: ${this.escapeHtml(error || 'unknown error')}</p>
+                            <div class="saved-fit-actions">
+                                <button class="btn-secondary btn-small" data-library-edit="${record.id}"><i class="fas fa-pen"></i> Edit</button>
+                                <button class="btn-danger btn-small" data-library-delete="${record.id}"><i class="fas fa-trash"></i> Delete</button>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            const ready = analysis.missing.length === 0;
+            const selected = this.selectedLibraryFits.has(record.id);
+            const tags = (record.tags || []).map(t => `<span class="doctrine-tag">${this.escapeHtml(t)}</span>`).join('');
+            const completion = analysis.completionDate
+                ? analysis.completionDate.toLocaleString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                })
+                : null;
+
+            return `
+                <details class="saved-fit-card ${ready ? 'ready' : 'missing'}">
+                    <summary>
+                        <label class="saved-fit-select" title="Select for a combined plan">
+                            <input type="checkbox" data-library-key="${this.escapeHtml(record.id)}" ${selected ? 'checked' : ''} aria-label="Select ${this.escapeHtml(record.name)} for a combined plan">
+                        </label>
+                        <span class="saved-fit-main">
+                            <strong>${this.escapeHtml(record.name)}</strong>
+                            <small>${this.escapeHtml(analysis.hullName)} &middot; ${ready ? 'Ready now' : `${analysis.trainingTime} to fly${completion ? ` · ${completion}` : ''}`}</small>
+                        </span>
+                        <span class="fit-status ${ready ? 'ready' : 'missing'}">
+                            <i class="fas ${ready ? 'fa-check' : 'fa-xmark'}"></i>
+                            ${ready ? 'Ready to fly' : `${analysis.missing.length} missing`}
+                        </span>
+                        <i class="fas fa-chevron-down saved-fit-chevron" aria-hidden="true"></i>
+                    </summary>
+                    <div class="saved-fit-body">
+                        ${record.notes ? `<p class="saved-fit-description">${this.escapeHtml(record.notes)}</p>` : ''}
+                        <div class="doctrine-tags">${tags}</div>
+                        <div class="saved-fit-metrics">
+                            <span><i class="fas fa-clock"></i> ${ready ? 'Ready to fly' : `${analysis.trainingTime} training`}</span>
+                            ${completion ? `<span><i class="fas fa-calendar-check"></i> ${completion}</span>` : ''}
+                            <span><i class="fas fa-list-check"></i> ${analysis.missing.length} missing skill${analysis.missing.length === 1 ? '' : 's'}</span>
+                        </div>
+                        <div class="fit-view-section-head">
+                            <h3>Fitted items</h3>
+                            <span>${analysis.matchedItems}/${analysis.totalItems} resolved</span>
+                        </div>
+                        ${this.renderFitItems(analysis.items)}
+                        <div class="fit-view-section-head">
+                            <h3>${ready ? 'Skills' : 'Missing skills'}</h3>
+                            <span>${ready ? 'All requirements trained' : `${analysis.missing.length} to train`}</span>
+                        </div>
+                        ${ready
+                            ? '<p class="fit-note success">All required skills are trained.</p>'
+                            : `<div class="fit-skill-list">${analysis.missing.map(skill => `
+                                <div class="fit-skill-item">
+                                    <span>${this.escapeHtml(skill.skillName)}</span>
+                                    <b>${this.roman(skill.targetLevel)}</b>
+                                    <small>${skill.currentLevel ? `have ${this.roman(skill.currentLevel)}` : 'not trained'}</small>
+                                </div>`).join('')}</div>`}
+                        <div class="saved-fit-actions">
+                            <button class="btn-secondary btn-small" data-library-copy="${record.id}"><i class="fas fa-copy"></i> Copy EFT</button>
+                            <button class="btn-secondary btn-small" data-library-open="${record.id}"><i class="fas fa-wrench"></i> Open Analysis</button>
+                            <button class="btn-secondary btn-small" data-library-edit="${record.id}"><i class="fas fa-pen"></i> Edit</button>
+                            <button class="btn-danger btn-small" data-library-delete="${record.id}"><i class="fas fa-trash"></i> Delete</button>
+                            ${ready ? '' : `<button class="btn-primary btn-small" data-library-plan="${record.id}"><i class="fas fa-clipboard-list"></i> Create Skill Plan</button>`}
+                        </div>
+                    </div>
+                </details>`;
+        }).join('')}</div>`;
+
+        content.querySelectorAll('.saved-fit-select').forEach(label => {
+            label.addEventListener('click', event => event.stopPropagation());
+        });
+        content.querySelectorAll('[data-library-key]').forEach(checkbox => {
+            checkbox.addEventListener('click', event => event.stopPropagation());
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) this.selectedLibraryFits.add(checkbox.dataset.libraryKey);
+                else this.selectedLibraryFits.delete(checkbox.dataset.libraryKey);
+                this.updateLibraryMergeButton();
+            });
+        });
+        content.querySelectorAll('[data-library-plan]').forEach(button => {
+            button.addEventListener('click', () => this.createLibraryPlan(button.dataset.libraryPlan));
+        });
+        content.querySelectorAll('[data-library-copy]').forEach(button => {
+            button.addEventListener('click', () => this.copyLibraryEft(button.dataset.libraryCopy));
+        });
+        content.querySelectorAll('[data-library-open]').forEach(button => {
+            button.addEventListener('click', () => this.openLibraryAnalysis(button.dataset.libraryOpen));
+        });
+        content.querySelectorAll('[data-library-edit]').forEach(button => {
+            button.addEventListener('click', () => this.editLibraryRecord(button.dataset.libraryEdit));
+        });
+        content.querySelectorAll('[data-library-delete]').forEach(button => {
+            button.addEventListener('click', () => this.deleteLibraryRecord(button.dataset.libraryDelete));
+        });
+
+        this.updateLibraryMergeButton();
+        this.updatePlanImpact();
+    }
+
+    openLibrarySaveModal(record = null) {
+        const modal = document.getElementById('librarySaveModal');
+        const title = document.getElementById('librarySaveTitle');
+        const nameInput = document.getElementById('libraryFitName');
+        const tagsInput = document.getElementById('libraryFitTags');
+        const notesInput = document.getElementById('libraryFitNotes');
+
+        this.pendingLibraryRecord = record || null;
+        if (record) {
+            this.pendingLibraryAnalysis = null;
+            if (title) title.textContent = 'Edit Doctrine Fit';
+            if (nameInput) nameInput.value = record.name || '';
+            if (tagsInput) tagsInput.value = (record.tags || []).join(', ');
+            if (notesInput) notesInput.value = record.notes || '';
+        } else {
+            const analysis = this.pendingLibraryAnalysis || this.fitAnalysis;
+            if (title) title.textContent = 'Save to Doctrine Library';
+            if (nameInput) nameInput.value = analysis?.fitName || '';
+            if (tagsInput) tagsInput.value = '';
+            if (notesInput) notesInput.value = analysis?.description || '';
+        }
+
+        modal?.classList.remove('hidden');
+        nameInput?.focus();
+    }
+
+    closeLibrarySaveModal() {
+        document.getElementById('librarySaveModal')?.classList.add('hidden');
+        this.pendingLibraryAnalysis = null;
+        this.pendingLibraryRecord = null;
+    }
+
+    async saveLibraryFromModal() {
+        const name = document.getElementById('libraryFitName')?.value.trim();
+        const tags = (document.getElementById('libraryFitTags')?.value || '')
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean);
+        const notes = document.getElementById('libraryFitNotes')?.value.trim() || '';
+
+        if (!name) {
+            this.showMessage('Give this doctrine fit a name.', 'warning');
+            return;
+        }
+
+        if (this.pendingLibraryRecord) {
+            const record = this.libraryRecords.find(item => item.id === this.pendingLibraryRecord.id);
+            if (!record) return;
+            record.name = name;
+            record.tags = tags;
+            record.notes = notes;
+            record.updatedAt = Date.now();
+        } else {
+            const analysis = this.pendingLibraryAnalysis || this.fitAnalysis;
+            if (!analysis?.eftText) {
+                this.showMessage('Analyse a fit before saving it to the library.', 'warning');
+                return;
+            }
+            this.libraryRecords.push({
+                id: `fit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                name,
+                tags,
+                notes,
+                eft: analysis.eftText,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            });
+        }
+
+        this.saveLibraryRecords();
+        this.pendingLibraryRecord = null;
+        this.pendingLibraryAnalysis = null;
+        this.closeLibrarySaveModal();
+        await this.loadLibrary();
+        this.showMessage(`Saved ${name} to the doctrine library.`, 'success');
+    }
+
+    editLibraryRecord(id) {
+        const record = this.libraryRecords.find(item => item.id === id);
+        if (record) this.openLibrarySaveModal(record);
+    }
+
+    deleteLibraryRecord(id) {
+        const record = this.libraryRecords.find(item => item.id === id);
+        if (!record) return;
+        if (!confirm(`Delete ${record.name} from the doctrine library?`)) return;
+        this.libraryRecords = this.libraryRecords.filter(item => item.id !== id);
+        this.selectedLibraryFits.delete(id);
+        this.saveLibraryRecords();
+        this.loadLibrary();
+        this.showMessage(`Deleted ${record.name}.`, 'info');
+    }
+
+    getLibraryResult(id) {
+        return this.libraryAnalyses.find(item => item.record.id === id);
+    }
+
+    async copyLibraryEft(id) {
+        const result = this.getLibraryResult(id);
+        const eft = result?.record?.eft || result?.analysis?.eftText;
+        if (!eft) return;
+        const ok = await this.copyText(eft);
+        this.showMessage(
+            ok ? `Copied ${result.record.name} as EFT` : 'Could not copy the fit',
+            ok ? 'success' : 'error'
+        );
+    }
+
+    openLibraryAnalysis(id) {
+        const result = this.getLibraryResult(id);
+        if (!result?.analysis) return;
+        this.fitAnalysis = result.analysis;
+        this.lastFitText = result.record.eft;
+        this.switchView('fit');
+    }
+
+    async createLibraryPlan(id) {
+        const result = this.getLibraryResult(id);
+        if (!result?.analysis || result.analysis.missing.length === 0) return;
+        this.fitAnalysis = result.analysis;
+        await this.createFitPlan();
+    }
+
+    async createCombinedLibraryPlan() {
+        const selected = this.libraryAnalyses
+            .filter(item => this.selectedLibraryFits.has(item.record.id) && item.analysis)
+            .map(item => item.analysis);
+
+        if (selected.length === 0) {
+            this.showMessage('Select at least one doctrine fit to combine.', 'warning');
+            return;
+        }
+
+        if (skillPlanner.getPlan().length > 0) {
+            const replace = confirm('Replace the current skill plan with this combined doctrine plan?');
+            if (!replace) return;
+        }
+
+        const required = {};
+        selected.forEach(fit => {
+            Object.entries(fit.required || {}).forEach(([skillId, level]) => {
+                required[skillId] = Math.max(required[skillId] || 0, Number(level) || 0);
+            });
+        });
+
+        const names = selected.map(fit => fit.fitName);
+        const name = selected.length === 1
+            ? `Fit: ${names[0]}`
+            : `Doctrine: ${names.slice(0, 2).join(' + ')}${names.length > 2 ? ` +${names.length - 2}` : ''}`;
+
+        const result = skillPlanner.buildPlanFromRequirements(
+            required,
+            this.currentCharacterData?.skills,
+            name
+        );
+
+        if (!result.missing) {
+            this.showMessage('You already meet every skill requirement for these fits.', 'success');
+            return;
+        }
+
+        this.selectedLibraryFits.clear();
+        this.updateLibraryMergeButton();
+        this.renderLibrary();
+        this.planName.value = skillPlanner.getName();
+        this.renderPlan();
+        this.updatePlanSummary();
+        this.updatePlanBadge();
+        this.switchView('planner');
+        this.showMessage(
+            `Created a combined plan with ${result.missing} missing skills for ${selected.length} ${selected.length === 1 ? 'fit' : 'fits'}.`,
+            'success'
+        );
+    }
+
+    // Multi-character doctrine readiness
+    closeCharacterReadiness() {
+        document.getElementById('readinessModal')?.classList.add('hidden');
+    }
+
+    async openCharacterReadiness() {
+        const modal = document.getElementById('readinessModal');
+        const content = document.getElementById('readinessContent');
+        if (!modal || !content) return;
+
+        const fits = this.getAllFitAnalyses();
+        if (fits.length === 0) {
+            content.innerHTML = '<p class="empty-state">Save at least one EVE or doctrine fit first.</p>';
+            modal.classList.remove('hidden');
+            return;
+        }
+
+        const characters = esiAuth.getAuthenticatedCharacters();
+        if (characters.length === 0) {
+            content.innerHTML = '<p class="empty-state">Sign in with EVE SSO to check doctrine readiness across characters.</p>';
+            modal.classList.remove('hidden');
+            return;
+        }
+
+        content.innerHTML = `
+            <div class="fit-empty-state">
+                <div class="loading-spinner"></div>
+                <h3>Checking ${characters.length} character${characters.length === 1 ? '' : 's'}</h3>
+                <p>Comparing trained skills with each doctrine fit.</p>
+            </div>`;
+        modal.classList.remove('hidden');
+
+        const skillsByCharacter = await Promise.all(characters.map(async character => {
+            try {
+                const skills = await characterManager.fetchSkills(character.characterId);
+                return { character, skills };
+            } catch (_) {
+                return { character, skills: null };
+            }
+        }));
+
+        const rows = fits.map(fit => {
+            const cells = skillsByCharacter.map(({ skills }) => {
+                if (!skills?.skills) return '<td class="readiness-unknown">--</td>';
+                const levels = new Map(skills.skills.map(skill => [skill.skill_id, skill.trained_skill_level || 0]));
+                const missing = Object.entries(fit.required || {}).filter(([skillId, level]) => {
+                    return (levels.get(parseInt(skillId, 10)) || 0) < level;
+                }).length;
+                return missing === 0
+                    ? '<td class="readiness-ready"><i class="fas fa-check"></i> Ready</td>'
+                    : `<td class="readiness-missing">${missing} missing</td>`;
+            }).join('');
+            return `<tr><td><strong>${this.escapeHtml(fit.fitName)}</strong><small>${this.escapeHtml(fit.hullName)}</small></td>${cells}</tr>`;
+        }).join('');
+
+        content.innerHTML = `
+            <p class="hint">Uses each character's last fetched skills. Refresh a character on the dashboard for the latest training.</p>
+            <div class="readiness-table-wrap">
+                <table class="readiness-table">
+                    <thead><tr><th>Doctrine</th>${characters.map(character => `<th>${this.escapeHtml(character.characterName || 'Character')}</th>`).join('')}</tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+    }
+
+    // Ship readiness browser
+    getShipReadiness() {
+        if (this.shipReadinessCache) return this.shipReadinessCache;
+
+        this.shipReadinessCache = this.shipData.map(ship => {
+            const analysis = this.buildFitAnalysisFromEntries({
+                hull: ship,
+                entries: [],
+                items: [],
+                totalItems: 0,
+                unknown: [],
+                fitName: ship.name
+            });
+            return { ship, analysis };
+        });
+        return this.shipReadinessCache;
+    }
+
+    async renderShipBrowser() {
+        const content = document.getElementById('shipsContent');
+        const subtitle = document.getElementById('shipsSubtitle');
+        if (!content) return;
+
+        if (!this.shipData.length) {
+            if (this.shipBrowserLoading) return;
+            this.shipBrowserLoading = true;
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <div class="loading-spinner"></div>
+                    <h3>Loading ship requirements</h3>
+                    <p>Reading the SDE ship index.</p>
+                </div>`;
+            try {
+                await this.loadFitData();
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="fit-empty-state">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <h3>Could not load ships</h3>
+                        <p>${this.escapeHtml(error.message)}</p>
+                        <button class="btn-primary" id="shipRetryBtn"><i class="fas fa-rotate"></i> Try Again</button>
+                    </div>`;
+                document.getElementById('shipRetryBtn')?.addEventListener('click', () => this.renderShipBrowser());
+                this.shipBrowserLoading = false;
+                return;
+            }
+            this.shipBrowserLoading = false;
+        }
+
+        const search = (document.getElementById('shipsSearch')?.value || '').trim().toLowerCase();
+        const filter = document.getElementById('shipsFilter')?.value || 'all';
+        const sort = document.getElementById('shipsSort')?.value || 'readiness';
+
+        content.innerHTML = `
+            <div class="fit-empty-state">
+                <div class="loading-spinner"></div>
+                <h3>Checking ship requirements</h3>
+                <p>Comparing hull skills with your character.</p>
+            </div>`;
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        let entries = this.getShipReadiness();
+        const readyCount = entries.filter(({ analysis }) => analysis.missing.length === 0).length;
+
+        if (search) {
+            entries = entries.filter(({ ship }) => {
+                return `${ship.name} ${ship.group}`.toLowerCase().includes(search);
+            });
+        }
+        if (filter === 'ready') {
+            entries = entries.filter(({ analysis }) => analysis.missing.length === 0);
+        } else if (filter === 'near') {
+            entries = entries.filter(({ analysis }) => analysis.missing.length > 0 && analysis.missing.length <= 3);
+        } else if (filter === 'missing') {
+            entries = entries.filter(({ analysis }) => analysis.missing.length > 0);
+        }
+
+        entries.sort((a, b) => {
+            if (sort === 'name') return a.ship.name.localeCompare(b.ship.name);
+            if (sort === 'group') return a.ship.group.localeCompare(b.ship.group) || a.ship.name.localeCompare(b.ship.name);
+            if (sort === 'time-asc') return a.analysis.trainingMinutes - b.analysis.trainingMinutes || a.ship.name.localeCompare(b.ship.name);
+            const readyDiff = (a.analysis.missing.length === 0 ? 0 : 1) - (b.analysis.missing.length === 0 ? 0 : 1);
+            return readyDiff || a.analysis.trainingMinutes - b.analysis.trainingMinutes || a.ship.name.localeCompare(b.ship.name);
+        });
+
+        if (subtitle) {
+            subtitle.textContent = `${readyCount} of ${this.shipData.length} ships ready · hull requirements only, not a fitted doctrine`;
+        }
+
+        if (entries.length === 0) {
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-filter-circle-xmark"></i>
+                    <h3>No ships match</h3>
+                    <p>Try a different search or filter.</p>
+                </div>`;
+            return;
+        }
+
+        const limited = entries.slice(0, 120);
+        content.innerHTML = `
+            <p class="ships-count">Showing ${limited.length} of ${entries.length} matching ships</p>
+            <div class="ship-browser-grid">${limited.map(({ ship, analysis }) => {
+                const missing = analysis.missing;
+                const ready = missing.length === 0;
+                const statusClass = ready ? 'ready' : (missing.length <= 3 ? 'near' : 'missing');
+                return `
+                    <details class="ship-card ${statusClass}">
+                        <summary>
+                            <span class="ship-card-main">
+                                <strong>${this.escapeHtml(ship.name)}</strong>
+                                <small>${this.escapeHtml(ship.group)}</small>
+                            </span>
+                            <span class="fit-status ${ready ? 'ready' : 'missing'}">
+                                <i class="fas ${ready ? 'fa-check' : 'fa-xmark'}"></i>
+                                ${ready ? 'Ready' : `${missing.length} missing`}
+                            </span>
+                            <i class="fas fa-chevron-down saved-fit-chevron" aria-hidden="true"></i>
+                        </summary>
+                        <div class="ship-card-body">
+                            <div class="saved-fit-metrics">
+                                <span><i class="fas fa-clock"></i> ${ready ? 'Ready now' : analysis.trainingTime}</span>
+                                <span><i class="fas fa-list-check"></i> ${missing.length} skill${missing.length === 1 ? '' : 's'} missing</span>
+                            </div>
+                            ${ready
+                                ? '<p class="fit-note success">Hull requirements are trained.</p>'
+                                : `<div class="fit-skill-list">${missing.map(skill => `
+                                    <div class="fit-skill-item">
+                                        <span>${this.escapeHtml(skill.skillName)}</span>
+                                        <b>${this.roman(skill.targetLevel)}</b>
+                                        <small>${skill.currentLevel ? `have ${this.roman(skill.currentLevel)}` : 'not trained'}</small>
+                                    </div>`).join('')}</div>
+                                    <div class="saved-fit-actions">
+                                        <button class="btn-primary btn-small" data-ship-plan="${ship.id}">
+                                            <i class="fas fa-clipboard-list"></i> Create Hull Plan
+                                        </button>
+                                    </div>`}
+                        </div>
+                    </details>`;
+            }).join('')}</div>`;
+
+        content.querySelectorAll('[data-ship-plan]').forEach(button => {
+            button.addEventListener('click', () => this.createShipPlan(Number(button.dataset.shipPlan)));
+        });
+    }
+
+    async createShipPlan(shipId) {
+        const entry = this.getShipReadiness().find(item => item.ship.id === shipId);
+        if (!entry || entry.analysis.missing.length === 0) return;
+
+        if (skillPlanner.getPlan().length > 0) {
+            const replace = confirm('Replace the current skill plan with this hull plan?');
+            if (!replace) return;
+        }
+
+        const result = skillPlanner.buildPlanFromRequirements(
+            entry.analysis.required,
+            this.currentCharacterData?.skills,
+            `Ship: ${entry.ship.name}`
+        );
+
+        if (!result.missing) {
+            this.showMessage('You already meet the hull requirements.', 'success');
+            return;
+        }
+
+        this.planName.value = skillPlanner.getName();
+        this.renderPlan();
+        this.updatePlanSummary();
+        this.updatePlanBadge();
+        this.switchView('planner');
+        this.showMessage(`Created a hull plan with ${result.missing} missing skills for the ${entry.ship.name}.`, 'success');
     }
 
     // EVE clipboard / file export
@@ -2639,6 +4028,106 @@ class SkillPlannerApp {
     }
 
     // Skill book prices (Jita sell) for the plan summary.
+    getPlanBookEntries() {
+        const plan = skillPlanner.getPlan();
+        const currentSkills = this.currentCharacterData?.skills;
+        const bySkill = new Map();
+
+        plan.forEach(item => {
+            const current = currentSkills?.skills?.find(s => s.skill_id === item.skillId);
+            const currentLevel = current?.trained_skill_level || 0;
+            if (item.targetLevel <= currentLevel) return;
+            bySkill.set(item.skillId, Math.max(bySkill.get(item.skillId) || 0, item.targetLevel));
+        });
+
+        return [...bySkill.entries()]
+            .map(([skillId, level]) => ({
+                skillId,
+                name: window.SKILLS[skillId]?.name || `Skill ${skillId}`,
+                level
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    async openBookList() {
+        const modal = document.getElementById('bookListModal');
+        const content = document.getElementById('bookListContent');
+        if (!modal || !content) return;
+
+        const entries = this.getPlanBookEntries();
+        this.bookListEntries = entries;
+        this.bookListPrices = {};
+
+        if (entries.length === 0) {
+            content.innerHTML = '<p class="empty-state">The plan has no untrained skill books.</p>';
+            modal.classList.remove('hidden');
+            return;
+        }
+
+        content.innerHTML = `
+            <div class="fit-empty-state">
+                <div class="loading-spinner"></div>
+                <h3>Pricing skill books</h3>
+                <p>Loading Jita sell prices.</p>
+            </div>`;
+        modal.classList.remove('hidden');
+
+        try {
+            this.bookListPrices = await this.getBookPrices(entries.map(entry => entry.skillId));
+        } catch (_) {
+            this.bookListPrices = {};
+        }
+
+        let total = 0;
+        let priced = 0;
+        const rows = entries.map(entry => {
+            const price = this.bookListPrices[entry.skillId];
+            if (price) {
+                total += price;
+                priced++;
+            }
+            const marketLink = getSkillMarketLink(entry.skillId);
+            return `
+                <tr>
+                    <td>${marketLink ? `<a href="${marketLink}" target="_blank">${this.escapeHtml(entry.name)}</a>` : this.escapeHtml(entry.name)}</td>
+                    <td>${this.roman(entry.level)}</td>
+                    <td>${price ? injectorCalc.formatISK(price) : '--'}</td>
+                </tr>`;
+        }).join('');
+
+        content.innerHTML = `
+            <p class="hint">One skill book per skill. Prices are Jita sell percentiles and may exclude books you already own.</p>
+            <div class="book-list-table-wrap">
+                <table class="book-list-table">
+                    <thead><tr><th>Skill Book</th><th>Level</th><th>Price</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+            <div class="book-list-total">
+                <span>${priced}/${entries.length} priced</span>
+                <strong>${total ? injectorCalc.formatISK(total) : '--'}</strong>
+            </div>`;
+    }
+
+    closeBookList() {
+        document.getElementById('bookListModal')?.classList.add('hidden');
+    }
+
+    async copyBookList() {
+        const entries = this.bookListEntries || [];
+        if (!entries.length) {
+            this.showMessage('No skill books to copy.', 'warning');
+            return;
+        }
+
+        const lines = entries.map(entry => {
+            const price = this.bookListPrices?.[entry.skillId];
+            return `${entry.name} ${this.roman(entry.level)}${price ? ` - ${injectorCalc.formatISK(price)}` : ''}`;
+        });
+        const ok = await this.copyText(lines.join('\n'));
+        this.showMessage(ok ? 'Skill book list copied' : 'Could not copy the list', ok ? 'success' : 'error');
+    }
+
     async updateBookCost() {
         const el = this.sumBookCost;
         if (!el) return;
@@ -2932,6 +4421,7 @@ class SkillPlannerApp {
 
     updateCalcDisplay() {
         this.calculatorOverrides = this.getCalculatorSettingsFromUI();
+        this.shipReadinessCache = null;
 
         const acceleratorBonus = this.calculatorOverrides?.accelerator?.enabled
             ? this.calculatorOverrides.accelerator.bonus
@@ -3051,12 +4541,12 @@ class SkillPlannerApp {
             return;
         }
 
-        const suggested = trainingCalc.optimizeAttributes(plan, this.currentCharacterData?.skills);
-        this.setSliderValue('calcInt', suggested.intelligence || 20);
-        this.setSliderValue('calcMem', suggested.memory || 20);
-        this.setSliderValue('calcPer', suggested.perception || 20);
-        this.setSliderValue('calcWill', suggested.willpower || 20);
-        this.setSliderValue('calcChar', suggested.charisma || 19);
+        const suggested = trainingCalc.optimizeRemap(plan, this.currentCharacterData?.skills).attributes;
+        this.setSliderValue('calcInt', suggested.intelligence || 17);
+        this.setSliderValue('calcMem', suggested.memory || 17);
+        this.setSliderValue('calcPer', suggested.perception || 17);
+        this.setSliderValue('calcWill', suggested.willpower || 17);
+        this.setSliderValue('calcChar', suggested.charisma || 17);
 
         this.updateCalcDisplay();
         this.showMessage('Applied suggested remap to calculator preview', 'success');
@@ -3144,13 +4634,21 @@ class SkillPlannerApp {
             return;
         }
 
-        const suggested = trainingCalc.optimizeAttributes(plan, this.currentCharacterData?.skills);
+        const optimized = trainingCalc.optimizeRemap(plan, this.currentCharacterData?.skills);
+        const suggested = optimized.attributes;
         container.innerHTML = Object.entries(suggested).map(([attr, val]) => `
             <div class="remap-attr">
                 <span class="attr-name">${attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
                 <span class="attr-val">${val}</span>
             </div>
         `).join('');
+
+        const savings = document.getElementById('remapSavings');
+        if (savings) {
+            savings.textContent = optimized.savingsMinutes > 0
+                ? `Saves ${optimized.savingsFormatted} (${trainingCalc.formatTime(optimized.currentMinutes)} → ${optimized.formattedTime}).`
+                : 'This is already close to the best allocation for the plan.';
+        }
     }
 
     // Utility

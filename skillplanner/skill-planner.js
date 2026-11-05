@@ -8,6 +8,8 @@ class SkillPlanner {
         this.name = this.loadPlanName();
         this.listeners = [];
         this.prereqCache = this.loadPrereqCache();
+        this.undoStack = [];
+        this.redoStack = [];
     }
 
     loadPrereqCache() {
@@ -168,6 +170,66 @@ class SkillPlanner {
         });
     }
 
+    snapshotState() {
+        return JSON.stringify({ plan: this.plan, name: this.name });
+    }
+
+    recordUndo() {
+        this.undoStack.push(this.snapshotState());
+        if (this.undoStack.length > 40) this.undoStack.shift();
+        this.redoStack = [];
+    }
+
+    restoreSnapshot(snapshot) {
+        const state = JSON.parse(snapshot);
+        this.plan = this.normalizePlanEntries(state.plan || []);
+        this.name = state.name || 'My Skill Plan';
+        this.savePlan();
+    }
+
+    canUndo() {
+        return this.undoStack.length > 0;
+    }
+
+    canRedo() {
+        return this.redoStack.length > 0;
+    }
+
+    undo() {
+        if (!this.undoStack.length) return false;
+        this.redoStack.push(this.snapshotState());
+        this.restoreSnapshot(this.undoStack.pop());
+        return true;
+    }
+
+    redo() {
+        if (!this.redoStack.length) return false;
+        this.undoStack.push(this.snapshotState());
+        this.restoreSnapshot(this.redoStack.pop());
+        return true;
+    }
+
+    updateSkillLevels(skillIds, targetLevel) {
+        const ids = new Set(skillIds);
+        const changes = this.plan.filter(item => ids.has(item.skillId) && item.targetLevel !== targetLevel);
+        if (changes.length === 0) return 0;
+        this.recordUndo();
+        changes.forEach(item => { item.targetLevel = targetLevel; });
+        this.savePlan();
+        return changes.length;
+    }
+
+    removeSkills(skillIds) {
+        const ids = new Set(skillIds);
+        const before = this.plan.length;
+        const remaining = this.plan.filter(item => !ids.has(item.skillId));
+        if (remaining.length === before) return 0;
+        this.recordUndo();
+        this.plan = remaining;
+        this.savePlan();
+        return before - remaining.length;
+    }
+
     // Add skill to plan (single entry at target level)
     addSkill(skillId, targetLevel, currentSkills = null) {
         // Check if already in plan
@@ -200,6 +262,7 @@ class SkillPlanner {
         if (existingIndex >= 0) {
             // Update if higher level requested
             if (targetLevel > this.plan[existingIndex].targetLevel) {
+                this.recordUndo();
                 this.plan[existingIndex].targetLevel = targetLevel;
                 this.savePlan();
                 return { success: true, message: 'Skill level updated' };
@@ -239,6 +302,7 @@ class SkillPlanner {
         }
 
         const added = [];
+        this.recordUndo();
 
         // Remove all existing entries for this skill (we're replacing with level-by-level)
         for (let i = this.plan.length - 1; i >= 0; i--) {
@@ -412,6 +476,7 @@ class SkillPlanner {
     removeSkill(skillId) {
         const index = this.plan.findIndex(item => item.skillId === skillId);
         if (index >= 0) {
+            this.recordUndo();
             this.plan.splice(index, 1);
             this.savePlan();
             return true;
@@ -422,7 +487,8 @@ class SkillPlanner {
     // Update skill target level
     updateSkillLevel(skillId, targetLevel) {
         const item = this.plan.find(item => item.skillId === skillId);
-        if (item) {
+        if (item && item.targetLevel !== targetLevel) {
+            this.recordUndo();
             item.targetLevel = targetLevel;
             this.savePlan();
             return true;
@@ -434,7 +500,9 @@ class SkillPlanner {
     moveSkill(skillId, newIndex) {
         const currentIndex = this.plan.findIndex(item => item.skillId === skillId);
         if (currentIndex < 0) return false;
-        
+        if (currentIndex === newIndex) return true;
+
+        this.recordUndo();
         const [item] = this.plan.splice(currentIndex, 1);
         this.plan.splice(newIndex, 0, item);
         this.savePlan();
@@ -463,13 +531,17 @@ class SkillPlanner {
 
     // Clear plan
     clearPlan() {
+        if (this.plan.length > 0) this.recordUndo();
         this.plan = [];
         this.savePlan();
     }
 
     // Set plan name
     setName(name) {
-        this.name = name;
+        const next = name || 'My Skill Plan';
+        if (next === this.name) return;
+        this.recordUndo();
+        this.name = next;
         this.savePlan();
     }
 
@@ -696,6 +768,7 @@ class SkillPlanner {
                 return { success: false, message: 'Import failed: no valid skills in file' };
             }
 
+            this.recordUndo();
             this.plan = normalized;
             
             if (data.name) {
@@ -761,6 +834,7 @@ class SkillPlanner {
             };
         }
 
+        this.recordUndo();
         this.plan = Array.from(found.entries()).map(([skillId, targetLevel]) => ({
             skillId,
             skillName: window.SKILLS[skillId].name,
@@ -885,6 +959,7 @@ class SkillPlanner {
             });
         });
 
+        this.recordUndo();
         this.plan = this.normalizePlanEntries(missing);
         this.name = name;
         this.optimizeOrder(currentSkills);
@@ -1000,11 +1075,24 @@ class SkillPlanner {
         localStorage.setItem(savedPlansKey, JSON.stringify(plans));
     }
 
+    duplicateNamedPlan(sourceName, newName) {
+        const plans = this.loadSavedPlans();
+        const source = plans[sourceName];
+        if (!source || !newName) return false;
+        plans[newName] = {
+            plan: (source.plan || []).map(item => ({ ...item })),
+            savedAt: new Date().toISOString()
+        };
+        localStorage.setItem(this.getScopedStorageKey('saved_plans'), JSON.stringify(plans));
+        return true;
+    }
+
     // Load saved plan
     loadNamedPlan(name) {
         const plans = this.loadSavedPlans();
         const saved = plans[name];
         if (saved) {
+            this.recordUndo();
             this.plan = this.normalizePlanEntries((saved.plan || []).map(item => ({ ...item })));
             this.name = name;
             this.savePlan();

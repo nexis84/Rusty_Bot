@@ -105,6 +105,7 @@ def main():
             "id": type_id,
             "name": name,
             "group": english(group.get("name")),
+            "category": category_name.get(group.get("categoryID"), ""),
             "skills": skills,
         }
 
