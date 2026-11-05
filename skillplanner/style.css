@@ -2485,6 +2485,112 @@ body {
     color: var(--success-color);
 }
 
+.saved-fits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.saved-fit-card {
+    overflow: hidden;
+    background: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+}
+
+.saved-fit-card.ready {
+    border-left: 3px solid var(--success-color);
+}
+
+.saved-fit-card.missing {
+    border-left: 3px solid var(--error-color);
+}
+
+.saved-fit-card summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.saved-fit-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.saved-fit-card summary:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: -2px;
+}
+
+.saved-fit-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.saved-fit-main strong {
+    display: block;
+    overflow: hidden;
+    color: var(--text-color);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.saved-fit-main small {
+    display: block;
+    color: var(--text-subtle-color);
+    font-size: 0.78rem;
+}
+
+.fit-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.fit-status.ready {
+    color: var(--success-color);
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.35);
+}
+
+.fit-status.missing {
+    color: var(--error-color);
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.35);
+}
+
+.saved-fit-chevron {
+    color: var(--text-subtle-color);
+    transition: transform 0.2s ease;
+}
+
+.saved-fit-card[open] .saved-fit-chevron {
+    transform: rotate(180deg);
+}
+
+.saved-fit-body {
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--secondary-color);
+}
+
+.saved-fit-body .fit-skill-list {
+    margin-top: 14px;
+    max-height: 360px;
+}
+
+.saved-fit-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
 /* --- Footer --- */
 .main-footer {
     text-align: center;
@@ -2581,6 +2687,18 @@ body {
     .fit-skill-item {
         grid-template-columns: minmax(0, 1fr) 30px 78px;
         gap: 8px;
+    }
+
+    .saved-fit-card summary {
+        flex-wrap: wrap;
+    }
+
+    .saved-fit-main {
+        flex: 1 1 100%;
+    }
+
+    .saved-fit-chevron {
+        margin-left: auto;
     }
 
     .seo-faq-bar-sub {

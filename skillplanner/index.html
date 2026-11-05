@@ -27,7 +27,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner Ã¢â‚¬â€ Training Queue, Implants &amp; Injectors | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -109,6 +109,10 @@
                 <button class="nav-item" data-view="fit">
                     <i class="fas fa-wrench"></i> Fit Analysis
                     <span class="badge hidden" id="fitBadge">0</span>
+                </button>
+                <button class="nav-item" data-view="savedFits">
+                    <i class="fas fa-list-check"></i> Saved Fits
+                    <span class="badge hidden" id="savedFitsBadge">0</span>
                 </button>
                 <button class="nav-item" data-view="calculator">
                     <i class="fas fa-calculator"></i> Training Calc
@@ -474,6 +478,35 @@
                             <p>Paste an EFT fit to see the hull, matched modules and missing skills.</p>
                             <button class="btn-primary" id="fitViewEmptyImportBtn">
                                 <i class="fas fa-file-import"></i> Import Fit
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Saved Fits View -->
+                <section id="savedFitsView" class="view">
+                    <div class="fit-view-header">
+                        <div>
+                            <span class="seo-faq-eyebrow"><i class="fas fa-list-check"></i> Saved Fits</span>
+                            <h2>Your EVE fittings</h2>
+                            <p id="savedFitsSubtitle" class="hint">Fittings saved on your signed-in character.</p>
+                        </div>
+                        <div class="fit-view-actions">
+                            <button class="btn-secondary" id="refreshSavedFitsBtn">
+                                <i class="fas fa-rotate"></i> Refresh
+                            </button>
+                            <button class="btn-secondary" id="savedFitsImportBtn">
+                                <i class="fas fa-file-import"></i> Paste Fit
+                            </button>
+                        </div>
+                    </div>
+                    <div id="savedFitsContent" class="saved-fits-content">
+                        <div class="fit-empty-state">
+                            <i class="fas fa-list-check"></i>
+                            <h3>Sign in to load your saved fits</h3>
+                            <p>Your personal EVE fittings will be checked against your trained skills.</p>
+                            <button class="btn-primary" id="savedFitsLoginBtn">
+                                <i class="fas fa-user-astronaut"></i> Login with EVE
                             </button>
                         </div>
                     </div>
@@ -850,11 +883,11 @@
     </div>
 
     <script src="skills-data.js?v=2026110505"></script>
-    <script src="esi-auth.js?v=2026110502"></script>
+    <script src="esi-auth.js?v=2026110503"></script>
     <script src="character-manager.js?v=2026110502"></script>
     <script src="training-calc.js?v=2026110505"></script>
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110508"></script>
-    <script src="app.js?v=2026110511"></script>
+    <script src="app.js?v=2026110512"></script>
 </body>
 </html>

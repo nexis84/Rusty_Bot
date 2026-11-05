@@ -16,6 +16,9 @@ class SkillPlannerApp {
         this.fitData = null;
         this.fitDataPromise = null;
         this.fitAnalysis = null;
+        this.savedFits = null;
+        this.savedFitsLoading = false;
+        this.savedFitsError = null;
         this.init();
     }
 
@@ -261,6 +264,8 @@ class SkillPlannerApp {
         document.getElementById('fitViewImportAnotherBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('fitViewEmptyImportBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('fitViewCreatePlanBtn')?.addEventListener('click', () => this.createFitPlan());
+        document.getElementById('refreshSavedFitsBtn')?.addEventListener('click', () => this.loadSavedFits(true));
+        document.getElementById('savedFitsImportBtn')?.addEventListener('click', () => this.openFitImport());
         
         // Skill picker search
         document.getElementById('pickerSearch')?.addEventListener('input', (e) => this.filterPickerSkills(e.target.value));
@@ -317,6 +322,7 @@ class SkillPlannerApp {
             mySkills: 'My Skills',
             planner: 'Skill Planner',
             fit: 'Fit Analysis',
+            savedFits: 'Saved Fits',
             calculator: 'Training Calculator'
         };
         this.pageTitle.textContent = titles[viewName] || 'Skill Planner';
@@ -331,6 +337,11 @@ class SkillPlannerApp {
             this.updatePlanSummary();
         } else if (viewName === 'fit') {
             this.renderFitAnalysis();
+        } else if (viewName === 'savedFits') {
+            this.renderSavedFits();
+            if (esiAuth.isAuthenticated() && this.savedFits === null && !this.savedFitsLoading) {
+                this.loadSavedFits();
+            }
         } else if (viewName === 'calculator') {
             this.initCalculator();
         }
@@ -1661,6 +1672,10 @@ class SkillPlannerApp {
             })
             .then(data => {
                 this.fitData = data;
+                this.fitDataById = {};
+                Object.values(data).forEach(entry => {
+                    if (entry?.id) this.fitDataById[entry.id] = entry;
+                });
                 return data;
             })
             .finally(() => {
@@ -1726,6 +1741,32 @@ class SkillPlannerApp {
             return;
         }
 
+        const entries = [];
+        const unknown = [];
+        parsed.items.forEach(item => {
+            const entry = fitData[this.normalizeFitName(item.name)];
+            if (!entry) {
+                unknown.push(item.name);
+                return;
+            }
+            entries.push(entry);
+        });
+
+        this.fitAnalysis = this.buildFitAnalysisFromEntries({
+            hull,
+            entries,
+            totalItems: parsed.items.length,
+            unknown,
+            fitName: parsed.fitName
+        });
+
+        this.closeFitImport();
+        this.switchView('fit');
+    }
+
+    buildFitAnalysisFromEntries({ hull, entries = [], totalItems = 0, unknown = [], fitName, fittingId = null, description = '' }) {
+        if (!hull) return null;
+
         const requirements = new Map();
         const addSkills = entry => {
             Object.entries(entry.skills || {}).forEach(([skillId, level]) => {
@@ -1737,20 +1778,9 @@ class SkillPlannerApp {
         };
 
         addSkills(hull);
+        entries.forEach(addSkills);
 
-        const unknown = [];
-        let matchedItems = 0;
-        parsed.items.forEach(item => {
-            const entry = fitData[this.normalizeFitName(item.name)];
-            if (!entry) {
-                unknown.push(item.name);
-                return;
-            }
-            matchedItems++;
-            addSkills(entry);
-        });
-
-        // Expand prerequisites locally so the preview matches the final plan.
+        // Expand prerequisites so the summary and generated plan agree.
         const expanded = new Map();
         const visiting = new Set();
         const addRequirement = (skillId, level) => {
@@ -1792,19 +1822,17 @@ class SkillPlannerApp {
         });
         missing.sort((a, b) => a.skillName.localeCompare(b.skillName));
 
-        this.fitAnalysis = {
-            fitName: parsed.fitName,
+        return {
+            fittingId,
+            description,
+            fitName,
             hullName: hull.name,
-            matchedItems,
-            totalItems: parsed.items.length,
+            matchedItems: entries.length,
+            totalItems,
             unknown,
-            // Include prerequisites so the summary and the generated plan agree.
             required: Object.fromEntries(expanded),
             missing
         };
-
-        this.closeFitImport();
-        this.switchView('fit');
     }
 
     renderFitAnalysis() {
@@ -1905,6 +1933,202 @@ class SkillPlannerApp {
         this.updatePlanBadge();
         this.switchView('planner');
         this.showMessage(`Created a plan with ${result.missing} missing skills for ${this.fitAnalysis.fitName}.`, 'success');
+    }
+
+    // Saved in-game fittings
+    async loadSavedFits(force = false) {
+        if (!esiAuth.isAuthenticated()) {
+            this.savedFits = null;
+            this.savedFitsError = null;
+            this.renderSavedFits();
+            return;
+        }
+        if (this.savedFitsLoading) return;
+        if (this.savedFits && !force) {
+            this.renderSavedFits();
+            return;
+        }
+
+        this.savedFitsLoading = true;
+        this.savedFitsError = null;
+        this.renderSavedFits();
+
+        try {
+            const characterId = esiAuth.getCurrentCharacter();
+            const [fittings] = await Promise.all([
+                esiAuth.esiFetch(`/characters/${characterId}/fittings/`),
+                this.loadFitData()
+            ]);
+
+            const byId = this.fitDataById || {};
+            const analyses = [];
+
+            (fittings || []).forEach(fitting => {
+                const hull = byId[fitting.ship_type_id];
+                if (!hull) return;
+
+                const entries = [];
+                const unknown = [];
+                (fitting.items || []).forEach(item => {
+                    const entry = byId[item.type_id];
+                    if (entry) entries.push(entry);
+                    else unknown.push(`Type ${item.type_id}`);
+                });
+
+                const analysis = this.buildFitAnalysisFromEntries({
+                    hull,
+                    entries,
+                    totalItems: (fitting.items || []).length,
+                    unknown,
+                    fitName: fitting.name || `Fitting ${fitting.fitting_id}`,
+                    fittingId: fitting.fitting_id,
+                    description: fitting.description || ''
+                });
+
+                if (analysis) analyses.push(analysis);
+            });
+
+            analyses.sort((a, b) => {
+                return (b.missing.length - a.missing.length) || a.fitName.localeCompare(b.fitName);
+            });
+
+            this.savedFits = analyses;
+        } catch (error) {
+            this.savedFits = null;
+            this.savedFitsError = String(error.message || error).includes('403')
+                ? 'EVE denied access to your fittings. Sign in again to grant the fittings permission.'
+                : error.message || 'Could not load saved fittings.';
+        } finally {
+            this.savedFitsLoading = false;
+            this.renderSavedFits();
+        }
+    }
+
+    renderSavedFits() {
+        const content = document.getElementById('savedFitsContent');
+        const badge = document.getElementById('savedFitsBadge');
+        if (!content) return;
+
+        if (!esiAuth.isAuthenticated()) {
+            badge?.classList.add('hidden');
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-list-check"></i>
+                    <h3>Sign in to load your saved fits</h3>
+                    <p>Your personal EVE fittings will be checked against your trained skills.</p>
+                    <button class="btn-primary" id="savedFitsLoginBtn">
+                        <i class="fas fa-user-astronaut"></i> Login with EVE
+                    </button>
+                </div>`;
+            document.getElementById('savedFitsLoginBtn')?.addEventListener('click', () => this.esiLoginBtn?.click());
+            return;
+        }
+
+        if (this.savedFitsLoading) {
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <div class="loading-spinner"></div>
+                    <h3>Loading saved fits</h3>
+                    <p>Reading fittings and comparing their skills with your character.</p>
+                </div>`;
+            return;
+        }
+
+        if (this.savedFitsError) {
+            badge?.classList.add('hidden');
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <h3>Could not load saved fits</h3>
+                    <p>${this.escapeHtml(this.savedFitsError)}</p>
+                    <button class="btn-primary" id="savedFitsRetryBtn">
+                        <i class="fas fa-rotate"></i> Try Again
+                    </button>
+                </div>`;
+            document.getElementById('savedFitsRetryBtn')?.addEventListener('click', () => this.loadSavedFits(true));
+            return;
+        }
+
+        if (!Array.isArray(this.savedFits)) {
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-list-check"></i>
+                    <h3>Loading saved fits</h3>
+                    <p>Your EVE fittings will appear here.</p>
+                </div>`;
+            return;
+        }
+
+        if (this.savedFits.length === 0) {
+            badge?.classList.add('hidden');
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-list-check"></i>
+                    <h3>No saved fits found</h3>
+                    <p>Save a fitting in EVE Online, then refresh this page.</p>
+                    <button class="btn-primary" id="savedFitsEmptyImportBtn">
+                        <i class="fas fa-file-import"></i> Paste a Fit Instead
+                    </button>
+                </div>`;
+            document.getElementById('savedFitsEmptyImportBtn')?.addEventListener('click', () => this.openFitImport());
+            return;
+        }
+
+        const missingFits = this.savedFits.filter(fit => fit.missing.length > 0).length;
+        if (badge) {
+            badge.textContent = missingFits;
+            badge.classList.toggle('hidden', missingFits === 0);
+        }
+
+        content.innerHTML = `<div class="saved-fits-list">${this.savedFits.map((fit, index) => {
+            const missing = fit.missing;
+            const ready = missing.length === 0;
+            const status = ready
+                ? '<span class="fit-status ready"><i class="fas fa-check"></i> Ready to fly</span>'
+                : `<span class="fit-status missing"><i class="fas fa-times"></i> ${missing.length} missing</span>`;
+            const unknownNote = fit.unknown.length
+                ? `<p class="fit-note warn"><strong>Not recognised:</strong> ${fit.unknown.map(item => this.escapeHtml(item)).join(', ')}</p>`
+                : '';
+
+            return `
+                <details class="saved-fit-card ${ready ? 'ready' : 'missing'}">
+                    <summary>
+                        <span class="saved-fit-main">
+                            <strong>${this.escapeHtml(fit.fitName)}</strong>
+                            <small>${this.escapeHtml(fit.hullName)} &middot; ${fit.matchedItems}/${fit.totalItems} items</small>
+                        </span>
+                        ${status}
+                        <i class="fas fa-chevron-down saved-fit-chevron" aria-hidden="true"></i>
+                    </summary>
+                    <div class="saved-fit-body">
+                        ${ready
+                            ? '<p class="fit-note success">All required skills are trained.</p>'
+                            : `<div class="fit-skill-list">${missing.map(skill => `
+                                <div class="fit-skill-item">
+                                    <span>${this.escapeHtml(skill.skillName)}</span>
+                                    <b>${this.roman(skill.targetLevel)}</b>
+                                    <small>${skill.currentLevel ? `have ${this.roman(skill.currentLevel)}` : 'not trained'}</small>
+                                </div>`).join('')}</div>
+                                <div class="saved-fit-actions">
+                                    <button class="btn-primary" data-saved-fit-plan="${index}">
+                                        <i class="fas fa-clipboard-list"></i> Create Skill Plan
+                                    </button>
+                                </div>`}
+                        ${unknownNote}
+                    </div>
+                </details>`;
+        }).join('')}</div>`;
+
+        content.querySelectorAll('[data-saved-fit-plan]').forEach(button => {
+            button.addEventListener('click', () => this.createSavedFitPlan(Number(button.dataset.savedFitPlan)));
+        });
+    }
+
+    async createSavedFitPlan(index) {
+        const analysis = this.savedFits?.[index];
+        if (!analysis || analysis.missing.length === 0) return;
+        this.fitAnalysis = analysis;
+        await this.createFitPlan();
     }
 
     // EVE clipboard / file export

@@ -13,7 +13,8 @@ const REQUIRED_SCOPES = [
     'esi-skills.read_skills.v1',
     'esi-skills.read_skillqueue.v1',
     'esi-clones.read_implants.v1',
-    'esi-clones.read_clones.v1'
+    'esi-clones.read_clones.v1',
+    'esi-fittings.read_fittings.v1'
 ];
 
 class ESIAuth {
