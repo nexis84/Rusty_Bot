@@ -94,6 +94,10 @@
     document.getElementById('quickWelcomeBtn')?.addEventListener('click', open);
     document.getElementById('welcomeSsoLogin')?.addEventListener('click', () => act('sso'));
 
+    window.updateWelcomeSso = updateSso;
+    window.addEventListener('focus', updateSso);
+    window.addEventListener('storage', updateSso);
+
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape' && isOpen()) {
             event.stopPropagation();

@@ -559,6 +559,14 @@ class SkillPlannerApp {
         }
     }
 
+    updateWelcomeIdentity() {
+        try {
+            window.updateWelcomeSso?.();
+        } catch (_) {
+            // The welcome overlay is optional.
+        }
+    }
+
     updateSyncStatus() {
         const el = document.getElementById('lastSynced');
         if (!el) return;
@@ -624,6 +632,12 @@ class SkillPlannerApp {
         // Update portrait and name
         this.charPortrait.src = characterManager.getPortraitUrl(characterId, 128);
         this.charName.textContent = charData.characterName;
+
+        const heroTitle = document.getElementById('dashboardHeroTitle');
+        if (heroTitle) {
+            heroTitle.textContent = `Welcome, ${charData.characterName}`;
+        }
+        this.updateWelcomeIdentity();
         
         // Update stats
         const summary = characterManager.getCharacterSummary(characterId);
@@ -770,6 +784,9 @@ class SkillPlannerApp {
             this.charName.textContent = 'Character Name';
             this.charPortrait.src = '';
             this.charMeta.textContent = '0 SP • 0 Skills';
+            const heroTitle = document.getElementById('dashboardHeroTitle');
+            if (heroTitle) heroTitle.textContent = 'Welcome to EVE Skill Planner';
+            this.updateWelcomeIdentity();
             
             // Clear dashboard stats
             this.totalSp.textContent = '--';
