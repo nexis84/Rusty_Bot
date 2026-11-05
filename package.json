@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node api/token-exchange.js",
     "dev": "node api/token-exchange.js",
-    "build": "npm install"
+    "build": "npm install",
+    "test": "node skillplanner/tests/run-tests.js",
+    "test:skillplanner": "node skillplanner/tests/run-tests.js"
   },
   "engines": {
     "node": ">=18.0.0"

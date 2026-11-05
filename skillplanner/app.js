@@ -19,12 +19,20 @@ class SkillPlannerApp {
         this.savedFits = null;
         this.savedFitsLoading = false;
         this.savedFitsError = null;
+        this.savedFitsErrorNeedsLogin = false;
+        this.savedFitsRetryAction = 'load';
+        this.savedFitsSyncedAt = 0;
+        this.savedFitsCacheMs = 5 * 60 * 1000;
+        this.selectedSavedFits = new Set();
+        this.characterSyncedAt = null;
+        this.fitDataById = null;
         this.init();
     }
 
     async init() {
         this.bindElements();
         this.bindEvents();
+        this.restoreCloneState();
         this.startClock();
         
         // Validate SKILLS data is loaded
@@ -174,9 +182,10 @@ class SkillPlannerApp {
             }
         });
         
-        // Character switch / add
+        // Character switch / add / refresh
         this.charSwitchBtn?.addEventListener('click', () => this.toggleCharacterList());
         document.getElementById('charAddBtn')?.addEventListener('click', () => this.esiLoginBtn?.click());
+        document.getElementById('charRefreshBtn')?.addEventListener('click', () => this.refreshCharacter());
         document.getElementById('charLogoutBtn')?.addEventListener('click', () => this.logoutCharacter());
         
         // Quick actions
@@ -229,6 +238,11 @@ class SkillPlannerApp {
         document.getElementById('acceleratorPreset')?.addEventListener('change', () => {
             this.updateCalcDisplay();
         });
+        document.getElementById('cloneState')?.addEventListener('change', (event) => {
+            trainingCalc.setCloneState(event.target.value);
+            try { localStorage.setItem('skill_clone_state', event.target.value); } catch (_) {}
+            this.updateCalcDisplay();
+        });
 
         // Calculator actions
         document.getElementById('applySuggestedRemap')?.addEventListener('click', () => this.applySuggestedRemap());
@@ -266,6 +280,10 @@ class SkillPlannerApp {
         document.getElementById('fitViewCreatePlanBtn')?.addEventListener('click', () => this.createFitPlan());
         document.getElementById('refreshSavedFitsBtn')?.addEventListener('click', () => this.loadSavedFits(true));
         document.getElementById('savedFitsImportBtn')?.addEventListener('click', () => this.openFitImport());
+        document.getElementById('savedFitsMergeBtn')?.addEventListener('click', () => this.createCombinedFitsPlan());
+        document.getElementById('savedFitsSearch')?.addEventListener('input', () => this.renderSavedFits());
+        document.getElementById('savedFitsFilter')?.addEventListener('change', () => this.renderSavedFits());
+        document.getElementById('savedFitsSort')?.addEventListener('change', () => this.renderSavedFits());
         
         // Skill picker search
         document.getElementById('pickerSearch')?.addEventListener('input', (e) => this.filterPickerSkills(e.target.value));
@@ -339,7 +357,8 @@ class SkillPlannerApp {
             this.renderFitAnalysis();
         } else if (viewName === 'savedFits') {
             this.renderSavedFits();
-            if (esiAuth.isAuthenticated() && this.savedFits === null && !this.savedFitsLoading) {
+            const stale = !this.savedFitsSyncedAt || (Date.now() - this.savedFitsSyncedAt > 5 * 60 * 1000);
+            if (esiAuth.isAuthenticated() && (this.savedFits === null || stale) && !this.savedFitsLoading) {
                 this.loadSavedFits();
             }
         } else if (viewName === 'calculator') {
@@ -359,8 +378,13 @@ class SkillPlannerApp {
 
     // Character loading
     async loadCharacter(characterId) {
+        const characterChanged = this.currentCharacter !== characterId;
         this.showLoading('Loading character data...');
-        
+
+        if (characterChanged) {
+            this.resetSavedFitsState();
+        }
+
         try {
             this.currentCharacter = characterId;
             this.calculatorOverrides = null;
@@ -378,6 +402,8 @@ class SkillPlannerApp {
                 boosters: fullData.boosters,
                 clones: fullData.clones
             };
+            this.characterSyncedAt = new Date();
+            this.updateSyncStatus();
             
             // Update UI
             await this.updateCharacterUI(characterId);
@@ -390,12 +416,102 @@ class SkillPlannerApp {
             this.renderPlan();
             this.updatePlanSummary();
             this.updatePlanBadge();
-            
+
+            // A character switch while this view is open should immediately
+            // replace the old character's fittings.
+            if (characterChanged && this.currentView === 'savedFits') {
+                this.loadSavedFits(true);
+            }
+
+            return true;
         } catch (e) {
             this.showMessage('Failed to load character: ' + e.message, 'error');
             console.error(e);
+            if (this.currentView === 'savedFits') {
+                this.savedFitsError = 'Character data could not be loaded. Check your connection and try again.';
+                this.savedFitsRetryAction = 'refresh';
+                this.renderSavedFits();
+            }
+            return false;
         } finally {
             this.hideLoading();
+        }
+    }
+
+    resetSavedFitsState() {
+        this.savedFits = null;
+        this.savedFitsLoading = false;
+        this.savedFitsError = null;
+        this.savedFitsErrorNeedsLogin = false;
+        this.savedFitsRetryAction = 'load';
+        this.savedFitsSyncedAt = 0;
+        this.selectedSavedFits.clear();
+        this.updateMergeButton();
+    }
+
+    restoreCloneState() {
+        let state = 'omega';
+        try {
+            state = localStorage.getItem('skill_clone_state') || 'omega';
+        } catch (_) {
+            // Storage may be unavailable; Omega is the safe default.
+        }
+        trainingCalc.setCloneState(state);
+        const select = document.getElementById('cloneState');
+        if (select) select.value = trainingCalc.cloneState;
+    }
+
+    updateSyncStatus() {
+        const el = document.getElementById('lastSynced');
+        if (!el) return;
+        if (!this.characterSyncedAt) {
+            el.textContent = '--';
+            el.title = '';
+            return;
+        }
+        el.textContent = this.characterSyncedAt.toLocaleTimeString(undefined, {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        el.title = this.characterSyncedAt.toLocaleString();
+    }
+
+    async refreshCharacter() {
+        const charId = esiAuth.getCurrentCharacter();
+        if (!charId) {
+            this.showMessage('Sign in with EVE SSO first.', 'warning');
+            return;
+        }
+
+        const button = document.getElementById('charRefreshBtn');
+        const original = button?.innerHTML;
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        try {
+            this.resetSavedFitsState();
+            // loadCharacter displays its own detailed error message.
+            const refreshed = await this.loadCharacter(charId);
+            if (!refreshed) {
+                if (this.currentView === 'savedFits') {
+                    this.savedFitsError = 'Character data could not be refreshed. Check your connection and try again.';
+                    this.savedFitsRetryAction = 'refresh';
+                    this.renderSavedFits();
+                }
+                return;
+            }
+
+            if (this.currentView === 'savedFits') {
+                await this.loadSavedFits(true);
+            }
+            this.showMessage('Character refreshed.', 'success');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = original;
+            }
         }
     }
 
@@ -543,6 +659,11 @@ class SkillPlannerApp {
 
             esiAuth.removeCharacter(charId);
             characterManager.removeCharacter(charId);
+
+            this.characterSyncedAt = null;
+            this.updateSyncStatus();
+            this.resetSavedFitsState();
+            this.renderSavedFits();
             
             // Update UI
             this.characterInfo?.classList.add('hidden');
@@ -1628,7 +1749,39 @@ class SkillPlannerApp {
 
     // Fit import
     normalizeFitName(value) {
-        return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+        return window.FitUtils
+            ? window.FitUtils.normalizeFitName(value)
+            : String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    resolveFitEntry(data, name) {
+        return window.FitUtils
+            ? window.FitUtils.resolveFitEntry(data, name)
+            : (data[this.normalizeFitName(name)] || null);
+    }
+
+    buildFitItems(items, data) {
+        return (items || []).map(item => {
+            const entry = this.resolveFitEntry(data, item.name);
+            return {
+                name: entry?.name || item.name,
+                quantity: item.quantity || 1,
+                group: entry?.group || 'Unknown',
+                known: Boolean(entry)
+            };
+        });
+    }
+
+    renderFitItems(items) {
+        if (!items || items.length === 0) {
+            return '<p class="fit-note">No fitted items were found.</p>';
+        }
+
+        return `<div class="fit-item-list">${items.map(item => `
+            <span class="fit-item-chip ${item.known ? '' : 'unknown'}" title="${this.escapeHtml(item.group)}">
+                <span>${this.escapeHtml(item.name)}</span>
+                ${item.quantity > 1 ? `<b>&times;${item.quantity}</b>` : ''}
+            </span>`).join('')}</div>`;
     }
 
     openFitImport() {
@@ -1719,52 +1872,67 @@ class SkillPlannerApp {
             return;
         }
 
-        let parsed;
+        const button = document.getElementById('analyseFitBtn');
+        const originalLabel = button?.innerHTML;
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analysing...';
+        }
+
         try {
-            parsed = this.parseFitText(text);
-        } catch (error) {
-            this.showMessage(error.message, 'error');
-            return;
-        }
-
-        let fitData;
-        try {
-            fitData = await this.loadFitData();
-        } catch (error) {
-            this.showMessage(error.message, 'error');
-            return;
-        }
-
-        const hull = fitData[this.normalizeFitName(parsed.hullName)];
-        if (!hull) {
-            this.showMessage(`Hull "${parsed.hullName}" was not found in the SDE.`, 'error');
-            return;
-        }
-
-        const entries = [];
-        const unknown = [];
-        parsed.items.forEach(item => {
-            const entry = fitData[this.normalizeFitName(item.name)];
-            if (!entry) {
-                unknown.push(item.name);
+            let parsed;
+            try {
+                parsed = this.parseFitText(text);
+            } catch (error) {
+                this.showMessage(error.message, 'error');
                 return;
             }
-            entries.push(entry);
-        });
 
-        this.fitAnalysis = this.buildFitAnalysisFromEntries({
-            hull,
-            entries,
-            totalItems: parsed.items.length,
-            unknown,
-            fitName: parsed.fitName
-        });
+            let fitData;
+            try {
+                fitData = await this.loadFitData();
+            } catch (error) {
+                this.showMessage(error.message, 'error');
+                return;
+            }
 
-        this.closeFitImport();
-        this.switchView('fit');
+            const hull = this.resolveFitEntry(fitData, parsed.hullName);
+            if (!hull) {
+                this.showMessage(`Hull "${parsed.hullName}" was not found in the SDE.`, 'error');
+                return;
+            }
+
+            const entries = [];
+            const unknown = [];
+            parsed.items.forEach(item => {
+                const entry = this.resolveFitEntry(fitData, item.name);
+                if (!entry) {
+                    unknown.push(item.name);
+                    return;
+                }
+                entries.push(entry);
+            });
+
+            this.fitAnalysis = this.buildFitAnalysisFromEntries({
+                hull,
+                entries,
+                items: this.buildFitItems(parsed.items, fitData),
+                totalItems: parsed.items.length,
+                unknown,
+                fitName: parsed.fitName
+            });
+
+            this.closeFitImport();
+            this.switchView('fit');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = originalLabel;
+            }
+        }
     }
 
-    buildFitAnalysisFromEntries({ hull, entries = [], totalItems = 0, unknown = [], fitName, fittingId = null, description = '' }) {
+    buildFitAnalysisFromEntries({ hull, entries = [], items = [], totalItems = 0, unknown = [], fitName, fittingId = null, description = '' }) {
         if (!hull) return null;
 
         const requirements = new Map();
@@ -1829,6 +1997,7 @@ class SkillPlannerApp {
             hullName: hull.name,
             matchedItems: entries.length,
             totalItems,
+            items,
             unknown,
             required: Object.fromEntries(expanded),
             missing
@@ -1891,6 +2060,11 @@ class SkillPlannerApp {
                 <div><span>Missing skills</span><strong>${missing.length}</strong></div>
             </div>
             <div class="fit-view-section-head">
+                <h3>Fitted items</h3>
+                <span>${analysis.matchedItems}/${analysis.totalItems} resolved from the SDE</span>
+            </div>
+            ${this.renderFitItems(analysis.items)}
+            <div class="fit-view-section-head">
                 <h3>${missing.length ? 'Skills you are missing' : 'You can fly this fit'}</h3>
                 <span>${this.currentCharacterData?.skills ? 'Compared with your signed-in character' : 'Sign in with EVE SSO to compare with your character'}</span>
             </div>
@@ -1944,13 +2118,16 @@ class SkillPlannerApp {
             return;
         }
         if (this.savedFitsLoading) return;
-        if (this.savedFits && !force) {
+        if (this.savedFits && !force && this.savedFitsSyncedAt
+            && Date.now() - this.savedFitsSyncedAt < this.savedFitsCacheMs) {
             this.renderSavedFits();
             return;
         }
 
         this.savedFitsLoading = true;
         this.savedFitsError = null;
+        this.savedFitsErrorNeedsLogin = false;
+        this.savedFitsRetryAction = 'load';
         this.renderSavedFits();
 
         try {
@@ -1967,18 +2144,29 @@ class SkillPlannerApp {
                 const hull = byId[fitting.ship_type_id];
                 if (!hull) return;
 
+                const rawItems = fitting.items || [];
                 const entries = [];
                 const unknown = [];
-                (fitting.items || []).forEach(item => {
+                const items = rawItems.map(item => {
                     const entry = byId[item.type_id];
-                    if (entry) entries.push(entry);
-                    else unknown.push(`Type ${item.type_id}`);
+                    if (entry) {
+                        entries.push(entry);
+                    } else {
+                        unknown.push(`Type ${item.type_id}`);
+                    }
+                    return {
+                        name: entry?.name || `Type ${item.type_id}`,
+                        quantity: item.quantity || 1,
+                        group: entry?.group || 'Unknown',
+                        known: Boolean(entry)
+                    };
                 });
 
                 const analysis = this.buildFitAnalysisFromEntries({
                     hull,
                     entries,
-                    totalItems: (fitting.items || []).length,
+                    items,
+                    totalItems: rawItems.length,
                     unknown,
                     fitName: fitting.name || `Fitting ${fitting.fitting_id}`,
                     fittingId: fitting.fitting_id,
@@ -1993,9 +2181,18 @@ class SkillPlannerApp {
             });
 
             this.savedFits = analyses;
+            this.savedFitsSyncedAt = Date.now();
+
+            const validKeys = new Set(analyses.map(fit => String(fit.fittingId)));
+            this.selectedSavedFits.forEach(key => {
+                if (!validKeys.has(key)) this.selectedSavedFits.delete(key);
+            });
         } catch (error) {
+            const message = String(error.message || error);
             this.savedFits = null;
-            this.savedFitsError = String(error.message || error).includes('403')
+            this.savedFitsSyncedAt = 0;
+            this.savedFitsErrorNeedsLogin = message.includes('403');
+            this.savedFitsError = this.savedFitsErrorNeedsLogin
                 ? 'EVE denied access to your fittings. Sign in again to grant the fittings permission.'
                 : error.message || 'Could not load saved fittings.';
         } finally {
@@ -2004,13 +2201,46 @@ class SkillPlannerApp {
         }
     }
 
+    savedFitKey(fit) {
+        return fit?.fittingId == null ? `name:${fit?.fitName || ''}` : String(fit.fittingId);
+    }
+
+    updateMergeButton() {
+        const button = document.getElementById('savedFitsMergeBtn');
+        if (!button) return;
+
+        const count = this.selectedSavedFits.size;
+        button.classList.toggle('hidden', count === 0);
+        button.disabled = count === 0;
+        button.innerHTML = `<i class="fas fa-layer-group"></i> Combine Selected${count ? ` (${count})` : ''}`;
+    }
+
     renderSavedFits() {
         const content = document.getElementById('savedFitsContent');
         const badge = document.getElementById('savedFitsBadge');
+        const subtitle = document.getElementById('savedFitsSubtitle');
+        const refreshBtn = document.getElementById('refreshSavedFitsBtn');
         if (!content) return;
+
+        if (refreshBtn) {
+            refreshBtn.disabled = this.savedFitsLoading;
+        }
+
+        const synced = this.savedFitsSyncedAt
+            ? new Date(this.savedFitsSyncedAt).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+            : null;
+        if (subtitle) {
+            subtitle.textContent = synced
+                ? `Fittings saved on your signed-in character · Synced ${synced}`
+                : 'Fittings saved on your signed-in character.';
+        }
 
         if (!esiAuth.isAuthenticated()) {
             badge?.classList.add('hidden');
+            this.updateMergeButton();
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-list-check"></i>
@@ -2025,10 +2255,11 @@ class SkillPlannerApp {
         }
 
         if (this.savedFitsLoading) {
+            this.updateMergeButton();
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <div class="loading-spinner"></div>
-                    <h3>Loading saved fits</h3>
+                    <h3>Loading and analysing saved fits</h3>
                     <p>Reading fittings and comparing their skills with your character.</p>
                 </div>`;
             return;
@@ -2036,20 +2267,34 @@ class SkillPlannerApp {
 
         if (this.savedFitsError) {
             badge?.classList.add('hidden');
+            this.updateMergeButton();
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-triangle-exclamation"></i>
                     <h3>Could not load saved fits</h3>
                     <p>${this.escapeHtml(this.savedFitsError)}</p>
-                    <button class="btn-primary" id="savedFitsRetryBtn">
-                        <i class="fas fa-rotate"></i> Try Again
-                    </button>
+                    <div class="fit-view-actions fit-empty-actions">
+                        ${this.savedFitsErrorNeedsLogin
+                            ? '<button class="btn-primary" id="savedFitsReloginBtn"><i class="fas fa-user-astronaut"></i> Sign in Again</button>'
+                            : ''}
+                        <button class="btn-secondary" id="savedFitsRetryBtn">
+                            <i class="fas fa-rotate"></i> Try Again
+                        </button>
+                    </div>
                 </div>`;
-            document.getElementById('savedFitsRetryBtn')?.addEventListener('click', () => this.loadSavedFits(true));
+            document.getElementById('savedFitsReloginBtn')?.addEventListener('click', () => this.esiLoginBtn?.click());
+            document.getElementById('savedFitsRetryBtn')?.addEventListener('click', () => {
+                if (this.savedFitsRetryAction === 'refresh') {
+                    this.refreshCharacter();
+                } else {
+                    this.loadSavedFits(true);
+                }
+            });
             return;
         }
 
         if (!Array.isArray(this.savedFits)) {
+            this.updateMergeButton();
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-list-check"></i>
@@ -2061,6 +2306,7 @@ class SkillPlannerApp {
 
         if (this.savedFits.length === 0) {
             badge?.classList.add('hidden');
+            this.updateMergeButton();
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-list-check"></i>
@@ -2080,19 +2326,74 @@ class SkillPlannerApp {
             badge.classList.toggle('hidden', missingFits === 0);
         }
 
-        content.innerHTML = `<div class="saved-fits-list">${this.savedFits.map((fit, index) => {
+        const search = (document.getElementById('savedFitsSearch')?.value || '').trim().toLowerCase();
+        const filter = document.getElementById('savedFitsFilter')?.value || 'all';
+        const sort = document.getElementById('savedFitsSort')?.value || 'missing-desc';
+
+        let entries = this.savedFits.map((fit, index) => ({ fit, index }));
+        if (search) {
+            entries = entries.filter(({ fit }) => {
+                const haystack = `${fit.fitName} ${fit.hullName} ${fit.description || ''}`.toLowerCase();
+                return haystack.includes(search);
+            });
+        }
+        if (filter === 'ready') {
+            entries = entries.filter(({ fit }) => fit.missing.length === 0);
+        } else if (filter === 'missing') {
+            entries = entries.filter(({ fit }) => fit.missing.length > 0);
+        }
+
+        entries.sort((a, b) => {
+            if (sort === 'name') return a.fit.fitName.localeCompare(b.fit.fitName);
+            if (sort === 'ship') return a.fit.hullName.localeCompare(b.fit.hullName) || a.fit.fitName.localeCompare(b.fit.fitName);
+            if (sort === 'missing-asc') return a.fit.missing.length - b.fit.missing.length || a.fit.fitName.localeCompare(b.fit.fitName);
+            return b.fit.missing.length - a.fit.missing.length || a.fit.fitName.localeCompare(b.fit.fitName);
+        });
+
+        if (entries.length === 0) {
+            this.updateMergeButton();
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-filter-circle-xmark"></i>
+                    <h3>No fits match these filters</h3>
+                    <p>Try a different search, filter or sort option.</p>
+                    <button class="btn-secondary" id="clearSavedFitsFiltersBtn">
+                        <i class="fas fa-rotate-left"></i> Reset Filters
+                    </button>
+                </div>`;
+            document.getElementById('clearSavedFitsFiltersBtn')?.addEventListener('click', () => {
+                const searchInput = document.getElementById('savedFitsSearch');
+                const filterSelect = document.getElementById('savedFitsFilter');
+                const sortSelect = document.getElementById('savedFitsSort');
+                if (searchInput) searchInput.value = '';
+                if (filterSelect) filterSelect.value = 'all';
+                if (sortSelect) sortSelect.value = 'missing-desc';
+                this.renderSavedFits();
+            });
+            return;
+        }
+
+        content.innerHTML = `<div class="saved-fits-list">${entries.map(({ fit, index }) => {
             const missing = fit.missing;
             const ready = missing.length === 0;
+            const key = this.savedFitKey(fit);
+            const selected = this.selectedSavedFits.has(key);
             const status = ready
                 ? '<span class="fit-status ready"><i class="fas fa-check"></i> Ready to fly</span>'
-                : `<span class="fit-status missing"><i class="fas fa-times"></i> ${missing.length} missing</span>`;
+                : `<span class="fit-status missing"><i class="fas fa-xmark"></i> ${missing.length} missing</span>`;
             const unknownNote = fit.unknown.length
                 ? `<p class="fit-note warn"><strong>Not recognised:</strong> ${fit.unknown.map(item => this.escapeHtml(item)).join(', ')}</p>`
+                : '';
+            const description = fit.description
+                ? `<p class="saved-fit-description">${this.escapeHtml(fit.description)}</p>`
                 : '';
 
             return `
                 <details class="saved-fit-card ${ready ? 'ready' : 'missing'}">
                     <summary>
+                        <label class="saved-fit-select" title="Select for a combined plan">
+                            <input type="checkbox" data-fit-key="${this.escapeHtml(key)}" ${selected ? 'checked' : ''} aria-label="Select ${this.escapeHtml(fit.fitName)} for a combined plan">
+                        </label>
                         <span class="saved-fit-main">
                             <strong>${this.escapeHtml(fit.fitName)}</strong>
                             <small>${this.escapeHtml(fit.hullName)} &middot; ${fit.matchedItems}/${fit.totalItems} items</small>
@@ -2101,6 +2402,16 @@ class SkillPlannerApp {
                         <i class="fas fa-chevron-down saved-fit-chevron" aria-hidden="true"></i>
                     </summary>
                     <div class="saved-fit-body">
+                        ${description}
+                        <div class="fit-view-section-head">
+                            <h3>Fitted items</h3>
+                            <span>${fit.matchedItems}/${fit.totalItems} resolved</span>
+                        </div>
+                        ${this.renderFitItems(fit.items)}
+                        <div class="fit-view-section-head">
+                            <h3>${ready ? 'Skills' : 'Missing skills'}</h3>
+                            <span>${ready ? 'All requirements trained' : `${missing.length} to train`}</span>
+                        </div>
                         ${ready
                             ? '<p class="fit-note success">All required skills are trained.</p>'
                             : `<div class="fit-skill-list">${missing.map(skill => `
@@ -2119,9 +2430,28 @@ class SkillPlannerApp {
                 </details>`;
         }).join('')}</div>`;
 
+        content.querySelectorAll('.saved-fit-select').forEach(label => {
+            label.addEventListener('click', event => event.stopPropagation());
+        });
+
+        content.querySelectorAll('[data-fit-key]').forEach(checkbox => {
+            checkbox.addEventListener('click', event => event.stopPropagation());
+            checkbox.addEventListener('change', () => {
+                const key = checkbox.dataset.fitKey;
+                if (checkbox.checked) {
+                    this.selectedSavedFits.add(key);
+                } else {
+                    this.selectedSavedFits.delete(key);
+                }
+                this.updateMergeButton();
+            });
+        });
+
         content.querySelectorAll('[data-saved-fit-plan]').forEach(button => {
             button.addEventListener('click', () => this.createSavedFitPlan(Number(button.dataset.savedFitPlan)));
         });
+
+        this.updateMergeButton();
     }
 
     async createSavedFitPlan(index) {
@@ -2129,6 +2459,59 @@ class SkillPlannerApp {
         if (!analysis || analysis.missing.length === 0) return;
         this.fitAnalysis = analysis;
         await this.createFitPlan();
+    }
+
+    async createCombinedFitsPlan() {
+        const selected = (this.savedFits || []).filter(fit =>
+            this.selectedSavedFits.has(this.savedFitKey(fit))
+        );
+
+        if (selected.length === 0) {
+            this.showMessage('Select at least one saved fit to combine.', 'warning');
+            return;
+        }
+
+        if (skillPlanner.getPlan().length > 0) {
+            const replace = confirm('Replace the current skill plan with this combined fit plan?');
+            if (!replace) return;
+        }
+
+        const required = {};
+        selected.forEach(fit => {
+            Object.entries(fit.required || {}).forEach(([skillId, level]) => {
+                required[skillId] = Math.max(required[skillId] || 0, Number(level) || 0);
+            });
+        });
+
+        const names = selected.map(fit => fit.fitName);
+        const name = selected.length === 1
+            ? `Fit: ${names[0]}`
+            : `Doctrine: ${names.slice(0, 2).join(' + ')}${names.length > 2 ? ` +${names.length - 2}` : ''}`;
+
+        const result = skillPlanner.buildPlanFromRequirements(
+            required,
+            this.currentCharacterData?.skills,
+            name
+        );
+
+        if (!result.missing) {
+            this.showMessage('You already meet every skill requirement for these fits.', 'success');
+            return;
+        }
+
+        this.selectedSavedFits.clear();
+        this.updateMergeButton();
+        this.renderSavedFits();
+
+        this.planName.value = skillPlanner.getName();
+        this.renderPlan();
+        this.updatePlanSummary();
+        this.updatePlanBadge();
+        this.switchView('planner');
+        this.showMessage(
+            `Created a combined plan with ${result.missing} missing skills for ${selected.length} ${selected.length === 1 ? 'fit' : 'fits'}.`,
+            'success'
+        );
     }
 
     // EVE clipboard / file export
@@ -2493,6 +2876,11 @@ class SkillPlannerApp {
                 settings.accelerator.enabled && (a.typeId === settings.accelerator.typeId || a.bonus === settings.accelerator.bonus)
             );
             acceleratorPreset.value = selected ? selected.name : 'None';
+        }
+
+        const cloneSelect = document.getElementById('cloneState');
+        if (cloneSelect) {
+            cloneSelect.value = trainingCalc.cloneState || 'omega';
         }
 
         // Initialize calculatorOverrides BEFORE calling updateCalcDisplay

@@ -21,6 +21,7 @@ class TrainingCalculator {
         
         this.cerebralAccelerator = false;
         this.acceleratorBonus = 10; // +10 all attributes
+        this.cloneState = 'omega';
     }
 
     // SP_TABLE holds cumulative SP per rank for each level:
@@ -107,8 +108,10 @@ class TrainingCalculator {
         
         const spPerMinute = primary + (secondary / 2);
         const minutes = sp / spPerMinute;
-        
-        return minutes;
+
+        // Alpha clones train at half the Omega rate. ESI does not expose clone
+        // state, so this is driven by the manual calculator switch.
+        return this.cloneState === 'alpha' ? minutes * 2 : minutes;
     }
 
     // Format training time from seconds (ESI skill queue format)
@@ -234,6 +237,11 @@ class TrainingCalculator {
     setCerebralAccelerator(enabled, bonus = 10) {
         this.cerebralAccelerator = enabled;
         this.acceleratorBonus = bonus;
+    }
+
+    // Set clone state. Alpha training takes twice as long as Omega.
+    setCloneState(state) {
+        this.cloneState = state === 'alpha' ? 'alpha' : 'omega';
     }
 
     // Load from character

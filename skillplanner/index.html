@@ -27,11 +27,11 @@
     <meta name="twitter:title" content="EVE Online Skill Planner Ã¢â‚¬â€ Training Queue, Implants &amp; Injectors | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=14">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="noindex, nofollow">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -76,6 +76,9 @@
                         <h3 id="charName">Character Name</h3>
                         <p class="char-meta" id="charMeta">0 SP Ã¢â‚¬Â¢ 0 Skills</p>
                     </div>
+                    <button class="char-switch-btn" id="charRefreshBtn" title="Refresh Character">
+                        <i class="fas fa-rotate"></i>
+                    </button>
                     <button class="char-switch-btn" id="charAddBtn" title="Add Character">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -187,6 +190,10 @@
                                 <div class="stat-item">
                                     <span class="stat-label">Clone Location</span>
                                     <span class="stat-value" id="cloneLocation">--</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Last Synced</span>
+                                    <span class="stat-value" id="lastSynced">--</span>
                                 </div>
                             </div>
                         </div>
@@ -492,6 +499,9 @@
                             <p id="savedFitsSubtitle" class="hint">Fittings saved on your signed-in character.</p>
                         </div>
                         <div class="fit-view-actions">
+                            <button class="btn-primary hidden" id="savedFitsMergeBtn">
+                                <i class="fas fa-layer-group"></i> Combine Selected
+                            </button>
                             <button class="btn-secondary" id="refreshSavedFitsBtn">
                                 <i class="fas fa-rotate"></i> Refresh
                             </button>
@@ -500,7 +510,24 @@
                             </button>
                         </div>
                     </div>
-                    <div id="savedFitsContent" class="saved-fits-content">
+                    <div class="saved-fits-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="savedFitsSearch" placeholder="Search fits or ships..." autocomplete="off">
+                        </div>
+                        <select id="savedFitsFilter" class="form-select" aria-label="Filter saved fits">
+                            <option value="all">All fits</option>
+                            <option value="missing">Missing skills</option>
+                            <option value="ready">Ready to fly</option>
+                        </select>
+                        <select id="savedFitsSort" class="form-select" aria-label="Sort saved fits">
+                            <option value="missing-desc">Most missing first</option>
+                            <option value="missing-asc">Closest to flyable</option>
+                            <option value="name">Fit name</option>
+                            <option value="ship">Ship name</option>
+                        </select>
+                    </div>
+                    <div id="savedFitsContent" class="saved-fits-content" aria-live="polite">
                         <div class="fit-empty-state">
                             <i class="fas fa-list-check"></i>
                             <h3>Sign in to load your saved fits</h3>
@@ -622,6 +649,15 @@
                                         <option value="None" data-bonus="0">None</option>
                                     </select>
                                     <div class="accelerator-list" id="acceleratorList"></div>
+                                </div>
+
+                                <div class="accelerator-section">
+                                    <h4>Clone State</h4>
+                                    <select id="cloneState" class="form-select">
+                                        <option value="omega">Omega (full training speed)</option>
+                                        <option value="alpha">Alpha (half training speed)</option>
+                                    </select>
+                                    <p class="hint">ESI does not expose Alpha/Omega status, so set this manually.</p>
                                 </div>
                             </div>
 
@@ -885,9 +921,10 @@
     <script src="skills-data.js?v=2026110505"></script>
     <script src="esi-auth.js?v=2026110503"></script>
     <script src="character-manager.js?v=2026110502"></script>
-    <script src="training-calc.js?v=2026110505"></script>
+    <script src="training-calc.js?v=2026110506"></script>
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110508"></script>
-    <script src="app.js?v=2026110512"></script>
+    <script src="fit-utils.js?v=2026110501"></script>
+    <script src="app.js?v=2026110513"></script>
 </body>
 </html>
