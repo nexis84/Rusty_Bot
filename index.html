@@ -287,6 +287,7 @@
             color: var(--accent);
             border: 1px solid var(--accent-dim);
             border-radius: 6px;
+            text-decoration: none;
             transition: background 0.2s, border-color 0.2s, color 0.2s;
         }
 
@@ -295,6 +296,18 @@
             background: var(--accent);
             border-color: var(--accent);
         }
+
+        .card-grid .card-cta-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .card-grid .card-cta-group .card-cta { margin-top: 0; }
+
+        .card-grid .card-cta i { margin-right: 6px; font-size: 0.75rem; }
 
         #giveaway .card {
             flex: 0 1 300px;
@@ -698,6 +711,7 @@
     <div class="nav-wrap">
         <nav class="quick-nav">
             <a href="#giveaway">Giveaway</a>
+            <a href="#shoutouts">ShoutOuts</a>
             <span class="nav-disabled">Rustybot Source</span>
             <a href="#tools">Tools</a>
             <a href="#coming-soon">Coming Soon</a>
@@ -740,12 +754,19 @@
                     <p>For Discord Communities</p>
                     <span class="card-cta">Use RustyBot</span>
                 </a>
-                <a href="https://shoutbot.rustybot.co.uk/" class="card" target="_blank" rel="noopener">
+                <div class="card" id="shoutouts">
                     <div class="card-icon"><i class="fa-solid fa-bullhorn"></i></div>
-                    <h3>ShoutOut Bot</h3>
-                    <p>Auto Shoutouts for Twitch &amp; Kick</p>
-                    <span class="card-cta">Use RustyBot</span>
-                </a>
+                    <h3>Twitch &amp; Discord ShoutOuts</h3>
+                    <p>Automatic live alerts for streamers and communities</p>
+                    <div class="card-cta-group">
+                        <a href="https://shoutbot.rustybot.co.uk/" class="card-cta" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-twitch"></i>Twitch / Kick
+                        </a>
+                        <a href="https://shoutbot-discord.rustybot.co.uk/" class="card-cta" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-discord"></i>Discord
+                        </a>
+                    </div>
+                </div>
             </div>
         </section>
 
