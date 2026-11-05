@@ -13,9 +13,12 @@ const REQUIRED_SCOPES = [
     'esi-skills.read_skills.v1',
     'esi-skills.read_skillqueue.v1',
     'esi-clones.read_implants.v1',
-    'esi-clones.read_clones.v1',
-    'esi-fittings.read_fittings.v1'
+    'esi-clones.read_clones.v1'
 ];
+
+// Saved Fits needs this, but the rest of the planner should remain usable if
+// EVE does not grant it. Users can re-login from the Saved Fits view.
+const FITTINGS_SCOPE = 'esi-fittings.read_fittings.v1';
 
 class ESIAuth {
     constructor() {
@@ -74,13 +77,16 @@ class ESIAuth {
             throw new Error('The API did not return a character ID');
         }
 
+        const scopes = (Array.isArray(data.scopes) ? data.scopes : [])
+            .flatMap(scope => String(scope).split(/\s+/))
+            .filter(Boolean);
         const characterData = {
             characterId,
             characterName: data.character_name || 'Unknown',
             accessToken: data.access_token,
             refreshToken: data.refresh_token || null,
             expiresAt: Date.now() + ((data.expires_in || 1200) * 1000),
-            scopes: Array.isArray(data.scopes) ? data.scopes : []
+            scopes
         };
 
         this.saveCharacterToken(characterData);
@@ -190,6 +196,12 @@ class ESIAuth {
         const tokens = charId ? this.tokens[charId] : null;
         if (!tokens || !Array.isArray(tokens.scopes)) return false;
         return REQUIRED_SCOPES.every(scope => tokens.scopes.includes(scope));
+    }
+
+    hasFittingsScope(characterId = null) {
+        const charId = characterId || this.currentCharacter;
+        const tokens = charId ? this.tokens[charId] : null;
+        return Boolean(tokens && Array.isArray(tokens.scopes) && tokens.scopes.includes(FITTINGS_SCOPE));
     }
 
     saveCharacterToken(characterData) {
@@ -318,5 +330,5 @@ const esiAuth = new ESIAuth();
 window.esiAuth = esiAuth;
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ESIAuth, esiAuth, REQUIRED_SCOPES, API_BASE };
+    module.exports = { ESIAuth, esiAuth, REQUIRED_SCOPES, FITTINGS_SCOPE, API_BASE };
 }

@@ -74,7 +74,7 @@ class SkillPlannerApp {
                 const oldChar = esiAuth.tokens[esiAuth.currentCharacter];
                 const oldName = oldChar?.characterName || 'your character';
                 esiAuth.removeCharacter(esiAuth.currentCharacter);
-                this.showMessage(`Please sign in again for ${oldName} - the Skill Planner needs updated permissions.`, 'warning');
+                this.showMessage(`Please sign in again for ${oldName} - the Skill Planner needs updated skill permissions.`, 'warning');
                 skillPlanner.setActiveCharacter(null);
             } else {
                 await this.loadCharacter(esiAuth.currentCharacter, { force: Boolean(charData) });
@@ -2754,6 +2754,14 @@ class SkillPlannerApp {
         if (!esiAuth.isAuthenticated()) {
             this.savedFits = null;
             this.savedFitsError = null;
+            this.renderSavedFits();
+            return;
+        }
+        if (!esiAuth.hasFittingsScope()) {
+            this.savedFits = null;
+            this.savedFitsError = 'Saved Fits needs the fittings permission. Sign in again to grant it; the rest of the planner remains available.';
+            this.savedFitsErrorNeedsLogin = true;
+            this.savedFitsSyncedAt = 0;
             this.renderSavedFits();
             return;
         }

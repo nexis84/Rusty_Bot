@@ -171,6 +171,9 @@
 
                 const characterId = String(data.character_id);
                 const characterName = data.character_name || 'Unknown';
+                const scopes = (Array.isArray(data.scopes) ? data.scopes : [])
+                    .flatMap(scope => String(scope).split(/\s+/))
+                    .filter(Boolean);
                 const tokens = JSON.parse(localStorage.getItem('esi_tokens') || '{}');
                 tokens[characterId] = {
                     characterId,
@@ -178,7 +181,7 @@
                     accessToken: data.access_token,
                     refreshToken: data.refresh_token || null,
                     expiresAt: Date.now() + ((data.expires_in || 1200) * 1000),
-                    scopes: Array.isArray(data.scopes) ? data.scopes : []
+                    scopes
                 };
                 localStorage.setItem('esi_tokens', JSON.stringify(tokens));
                 localStorage.setItem('esi_current_character', characterId);
