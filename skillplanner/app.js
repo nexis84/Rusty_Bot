@@ -690,17 +690,16 @@ class SkillPlannerApp {
             }
         }
         
-        // Update attributes with implant and accelerator bonuses if active.
+        // ESI attributes already include implant bonuses. Split them back out
+        // only for the base/+bonus display so the total stays truthful.
         if (this.currentCharacterData?.attributes) {
-            const attrs = this.currentCharacterData.attributes;
-            const accelBonus = trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0;
-            const settings = this.getCharacterTrainingSettings();
-            const implants = settings.implants;
-            this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus + (implants[6] || 0));
-            this.updateAttributeDisplay('Mem', attrs.memory, accelBonus + (implants[7] || 0));
-            this.updateAttributeDisplay('Per', attrs.perception, accelBonus + (implants[8] || 0));
-            this.updateAttributeDisplay('Will', attrs.willpower, accelBonus + (implants[9] || 0));
-            this.updateAttributeDisplay('Char', attrs.charisma, accelBonus + (implants[10] || 0));
+            const attrs = this.getCharacterBaseAttributes();
+            const implants = this.getCurrentImplantBonuses();
+            this.updateAttributeDisplay('Int', attrs.intelligence, implants.intelligence);
+            this.updateAttributeDisplay('Mem', attrs.memory, implants.memory);
+            this.updateAttributeDisplay('Per', attrs.perception, implants.perception);
+            this.updateAttributeDisplay('Will', attrs.willpower, implants.willpower);
+            this.updateAttributeDisplay('Char', attrs.charisma, implants.charisma);
 
             if (this.remapCount) {
                 const remaps = Number(attrs.bonus_remaps);
@@ -1309,7 +1308,32 @@ class SkillPlannerApp {
         trainingCalc.setCerebralAccelerator(!!settings.accelerator.enabled, settings.accelerator.bonus || 10);
     }
 
-    getCharacterTrainingSettings() {
+    getCurrentImplantBonuses() {
+        const bonuses = {
+            intelligence: 0,
+            memory: 0,
+            perception: 0,
+            willpower: 0,
+            charisma: 0
+        };
+        const implants = this.currentCharacterData?.implants || [];
+        const bonusMap = window.IMPLANT_BONUSES || {};
+
+        implants.forEach(implant => {
+            const typeId = typeof implant === 'number' ? implant : implant?.type_id;
+            const implantBonuses = bonusMap[typeId];
+            if (!implantBonuses) return;
+            Object.entries(implantBonuses).forEach(([attribute, bonus]) => {
+                if (attribute in bonuses) bonuses[attribute] += Number(bonus) || 0;
+            });
+        });
+        return bonuses;
+    }
+
+    // ESI returns effective attributes with implants (and any active cerebral
+    // accelerator) already applied. Remove the known implant portion so the
+    // calculator can add it back without double-counting.
+    getCharacterBaseAttributes() {
         const attrs = this.currentCharacterData?.attributes || {
             intelligence: 20,
             memory: 20,
@@ -1317,15 +1341,20 @@ class SkillPlannerApp {
             willpower: 20,
             charisma: 19
         };
+        const bonuses = this.getCurrentImplantBonuses();
 
+        return {
+            intelligence: Math.max(1, (attrs.intelligence || 20) - bonuses.intelligence),
+            memory: Math.max(1, (attrs.memory || 20) - bonuses.memory),
+            perception: Math.max(1, (attrs.perception || 20) - bonuses.perception),
+            willpower: Math.max(1, (attrs.willpower || 20) - bonuses.willpower),
+            charisma: Math.max(1, (attrs.charisma || 19) - bonuses.charisma)
+        };
+    }
+
+    getCharacterTrainingSettings() {
         const settings = {
-            attributes: {
-                intelligence: attrs.intelligence || 20,
-                memory: attrs.memory || 20,
-                perception: attrs.perception || 20,
-                willpower: attrs.willpower || 20,
-                charisma: attrs.charisma || 19
-            },
+            attributes: this.getCharacterBaseAttributes(),
             implants: { 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 },
             accelerator: { enabled: false, bonus: 10, typeId: 0 }
         };
@@ -1340,7 +1369,8 @@ class SkillPlannerApp {
             charisma: 10
         };
         implants.forEach(implant => {
-            const bonuses = implantBonuses[implant.type_id];
+            const typeId = typeof implant === 'number' ? implant : implant?.type_id;
+            const bonuses = implantBonuses[typeId];
             if (!bonuses) return;
             Object.entries(bonuses).forEach(([attribute, bonus]) => {
                 const slot = implantSlots[attribute];
@@ -4496,9 +4526,9 @@ class SkillPlannerApp {
                 this.calculatorOverrides.accelerator.bonus
             );
             
-            // Update dashboard to show bonus immediately
+            // Update dashboard to show the selected what-if bonuses.
             if (this.currentCharacterData?.attributes) {
-                const attrs = this.currentCharacterData.attributes;
+                const attrs = this.getCharacterBaseAttributes();
                 const accelBonus = this.calculatorOverrides.accelerator.bonus;
                 const implants = this.calculatorOverrides.implants || {};
                 this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus + (implants[6] || 0));

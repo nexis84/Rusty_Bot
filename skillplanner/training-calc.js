@@ -278,13 +278,28 @@ class TrainingCalculator {
             };
 
             implants.forEach(implant => {
-                const bonuses = bonusMap[implant.type_id];
+                const typeId = typeof implant === 'number' ? implant : implant?.type_id;
+                const bonuses = bonusMap[typeId];
                 if (!bonuses) return;
                 Object.entries(bonuses).forEach(([attribute, bonus]) => {
                     const slot = slots[attribute];
                     if (slot) this.setImplant(slot, bonus);
                 });
             });
+
+            // ESI attributes are effective values (implants already applied).
+            // Store the pre-implant values so getEffectiveAttributes() does not
+            // add the same implants twice.
+            if (char.cache.attributes) {
+                Object.values(this.implantBonuses).forEach(implant => {
+                    if (implant.bonus) {
+                        this.baseAttributes[implant.attr] = Math.max(
+                            1,
+                            this.baseAttributes[implant.attr] - implant.bonus
+                        );
+                    }
+                });
+            }
         }
 
         // Load active cerebral accelerator from boosters when available.

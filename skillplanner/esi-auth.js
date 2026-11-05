@@ -281,7 +281,7 @@ class ESIAuth {
         const url = endpoint.startsWith('http') ? endpoint : `https://esi.evetech.net/latest${endpoint}`;
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
 
         try {
             const response = await fetch(url, {
@@ -318,7 +318,11 @@ class ESIAuth {
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
-                throw new Error('ESI request timed out after 10 seconds');
+                const isGet = !options.method || String(options.method).toUpperCase() === 'GET';
+                if (isGet && attempt < 1) {
+                    return this.esiFetch(endpoint, charId, options, attempt + 1);
+                }
+                throw new Error('ESI request timed out after 12 seconds. ESI may be busy - try Refresh.');
             }
             throw error;
         }
