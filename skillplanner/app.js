@@ -414,15 +414,17 @@ class SkillPlannerApp {
             }
         }
         
-        // Update attributes with accelerator bonus if active
+        // Update attributes with implant and accelerator bonuses if active.
         if (this.currentCharacterData?.attributes) {
             const attrs = this.currentCharacterData.attributes;
             const accelBonus = trainingCalc.cerebralAccelerator ? trainingCalc.acceleratorBonus : 0;
-            this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus);
-            this.updateAttributeDisplay('Mem', attrs.memory, accelBonus);
-            this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
-            this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
-            this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
+            const settings = this.getCharacterTrainingSettings();
+            const implants = settings.implants;
+            this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus + (implants[6] || 0));
+            this.updateAttributeDisplay('Mem', attrs.memory, accelBonus + (implants[7] || 0));
+            this.updateAttributeDisplay('Per', attrs.perception, accelBonus + (implants[8] || 0));
+            this.updateAttributeDisplay('Will', attrs.willpower, accelBonus + (implants[9] || 0));
+            this.updateAttributeDisplay('Char', attrs.charisma, accelBonus + (implants[10] || 0));
 
             if (this.remapCount) {
                 const remaps = Number(attrs.bonus_remaps);
@@ -2032,11 +2034,12 @@ class SkillPlannerApp {
             if (this.currentCharacterData?.attributes) {
                 const attrs = this.currentCharacterData.attributes;
                 const accelBonus = this.calculatorOverrides.accelerator.bonus;
-                this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus);
-                this.updateAttributeDisplay('Mem', attrs.memory, accelBonus);
-                this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
-                this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
-                this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
+                const implants = this.calculatorOverrides.implants || {};
+                this.updateAttributeDisplay('Int', attrs.intelligence, accelBonus + (implants[6] || 0));
+                this.updateAttributeDisplay('Mem', attrs.memory, accelBonus + (implants[7] || 0));
+                this.updateAttributeDisplay('Per', attrs.perception, accelBonus + (implants[8] || 0));
+                this.updateAttributeDisplay('Will', attrs.willpower, accelBonus + (implants[9] || 0));
+                this.updateAttributeDisplay('Char', attrs.charisma, accelBonus + (implants[10] || 0));
             }
         } else {
             trainingCalc.setCerebralAccelerator(false, 0);
