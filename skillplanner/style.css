@@ -2115,10 +2115,68 @@ body {
 
 /* --- About / FAQ --- */
 .seo-faq {
+    width: 100%;
     max-width: 980px;
     margin: 2.5rem auto 1rem;
     padding: 0 1rem;
     color: var(--text-subtle-color);
+}
+
+.seo-faq-collapsible {
+    overflow: hidden;
+    background: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 10px;
+}
+
+.seo-faq-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    color: var(--text-color);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.seo-faq-bar::-webkit-details-marker {
+    display: none;
+}
+
+.seo-faq-bar:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: -2px;
+}
+
+.seo-faq-bar-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.seo-faq-bar-title i,
+.seo-faq-chevron {
+    color: var(--accent-color);
+}
+
+.seo-faq-bar-sub {
+    color: var(--text-subtle-color);
+    font-size: 0.78rem;
+}
+
+.seo-faq-chevron {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.seo-faq-collapsible[open] .seo-faq-chevron {
+    transform: rotate(180deg);
+}
+
+.seo-faq-body {
+    padding: 0 18px 20px;
 }
 
 .seo-faq-header {
@@ -2425,6 +2483,10 @@ body {
 
     .fit-summary {
         grid-template-columns: 1fr;
+    }
+
+    .seo-faq-bar-sub {
+        display: none;
     }
 
     .plan-actions {
