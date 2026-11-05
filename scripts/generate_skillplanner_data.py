@@ -35,6 +35,15 @@ ATTRIBUTES = {
     "cha": "charisma",
 }
 
+# Implant dogma attributes that add to a character attribute.
+IMPLANT_ATTRIBUTES = {
+    175: "charisma",
+    176: "intelligence",
+    177: "memory",
+    178: "perception",
+    179: "willpower",
+}
+
 SP_TABLE = {
     "1": 250,
     "2": 1415,
@@ -180,6 +189,26 @@ def main():
     for group_name in categories_out:
         categories_out[group_name]["skills"].sort()
 
+    # Every published implant that changes a character attribute. This replaces
+    # the old hand-maintained type-ID ranges, which were wrong for many implants.
+    implant_bonuses = {}
+    for type_id, item in types.items():
+        if item.get("published") is not True:
+            continue
+        attributes = {
+            entry["attributeID"]: entry["value"]
+            for entry in type_dogma.get(type_id, {}).get("dogmaAttributes", [])
+        }
+        bonuses = {
+            attribute: int(round(attributes.get(attribute_id, 0)))
+            for attribute_id, attribute in IMPLANT_ATTRIBUTES.items()
+            if int(round(attributes.get(attribute_id, 0))) > 0
+        }
+        if bonuses:
+            implant_bonuses[str(type_id)] = bonuses
+
+    print(f"  Attribute implants: {len(implant_bonuses)}")
+
     sde_meta = load_jsonl("_sde.jsonl").get("sde", {})
     build_number = sde_meta.get("buildNumber", "unknown")
     release_date = sde_meta.get("releaseDate", "unknown")
@@ -197,6 +226,8 @@ const SKILL_CATEGORIES = {js(dict(sorted(categories_out.items())))};
 const SP_TABLE = {js(SP_TABLE)};
 
 const SKILL_BOOKS = {{}};
+
+const IMPLANT_BONUSES = {js(implant_bonuses)};
 
 function getSkillBookMarketLink(skillId) {{
   const bookId = SKILL_BOOKS[skillId];
@@ -250,6 +281,7 @@ if (root) {{
   root.SKILL_CATEGORIES = SKILL_CATEGORIES;
   root.SP_TABLE = SP_TABLE;
   root.SKILL_BOOKS = SKILL_BOOKS;
+  root.IMPLANT_BONUSES = IMPLANT_BONUSES;
   root.ATTRIBUTES = ATTRIBUTES;
   root.getSkillBookMarketLink = getSkillBookMarketLink;
   root.getSkillMarketLink = getSkillMarketLink;
@@ -265,6 +297,7 @@ if (typeof window !== "undefined") {{
   window.SKILL_CATEGORIES = SKILL_CATEGORIES;
   window.SP_TABLE = SP_TABLE;
   window.SKILL_BOOKS = SKILL_BOOKS;
+  window.IMPLANT_BONUSES = IMPLANT_BONUSES;
   window.ATTRIBUTES = ATTRIBUTES;
   window.getSkillBookMarketLink = getSkillBookMarketLink;
   window.getSkillMarketLink = getSkillMarketLink;
@@ -282,6 +315,7 @@ if (typeof module !== "undefined" && module.exports) {{
     SKILL_CATEGORIES,
     SP_TABLE,
     SKILL_BOOKS,
+    IMPLANT_BONUSES,
     ATTRIBUTES,
     getSkillBookMarketLink,
     getSkillMarketLink,

@@ -2179,4 +2179,32 @@ body {
     .remap-preview {
         grid-template-columns: 1fr;
     }
+
+    .plan-actions {
+        width: 100%;
+    }
+
+    .plan-actions .btn-primary,
+    .plan-actions .btn-secondary,
+    .plan-actions .btn-danger {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .plan-manager-save {
+        flex-direction: column;
+    }
+
+    .saved-plan-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .saved-plan-actions {
+        justify-content: flex-end;
+    }
+
+    .modal-content {
+        width: 95%;
+    }
 }

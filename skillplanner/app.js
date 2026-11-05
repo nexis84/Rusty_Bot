@@ -11,6 +11,8 @@ class SkillPlannerApp {
         this.bookPriceCache = new Map();
         this.bookPriceCacheAt = 0;
         this.bookPricePromise = null;
+        this.injectorPrice = 900000000;
+        this.injectorPriceType = 40520; // Large Skill Injector
         this.init();
     }
 
@@ -55,6 +57,7 @@ class SkillPlannerApp {
         
         this.updateUI();
         this.loadPlanFromUrl();
+        this.updateInjectorPrice();
     }
 
     bindElements() {
@@ -120,8 +123,10 @@ class SkillPlannerApp {
         this.sumTotalTimeCompare = document.getElementById('sumTotalTimeCompare');
         this.sumSpNeeded = document.getElementById('sumSpNeeded');
         this.sumBookCost = document.getElementById('sumBookCost');
+        this.sumCompletionDate = document.getElementById('sumCompletionDate');
         this.injLargeCount = document.getElementById('injLargeCount');
         this.injTotalCost = document.getElementById('injTotalCost');
+        this.remapCount = document.getElementById('remapCount');
         this.injCompareRow = document.getElementById('injCompareRow');
         this.injCompareText = document.getElementById('injCompareText');
         this.prereqWarning = document.getElementById('prereqWarning');
@@ -220,6 +225,9 @@ class SkillPlannerApp {
         // Calculator actions
         document.getElementById('applySuggestedRemap')?.addEventListener('click', () => this.applySuggestedRemap());
         document.getElementById('calcInjectorsBtn')?.addEventListener('click', () => this.runInjectorCalculator());
+        document.getElementById('injectorPriceInput')?.addEventListener('input', (event) => {
+            event.target.dataset.userEdited = '1';
+        });
         
         // Modal close buttons
         document.getElementById('closeSkillPicker')?.addEventListener('click', () => this.closeSkillPicker());
@@ -244,6 +252,24 @@ class SkillPlannerApp {
         
         // Mobile toggle
         document.getElementById('toggleSidebar')?.addEventListener('click', () => this.toggleSidebar());
+
+        // Keyboard shortcuts: Escape closes modals; "/" focuses skill search.
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.closeSkillPicker();
+                this.closeSkillDetail();
+                this.closePlanManager();
+                this.closeImportPlan();
+                return;
+            }
+
+            const tag = document.activeElement?.tagName;
+            if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) {
+                event.preventDefault();
+                this.switchView('skills');
+                this.skillSearch?.focus();
+            }
+        });
         
         // Plan name edit
         this.planName?.addEventListener('blur', () => {
@@ -397,6 +423,14 @@ class SkillPlannerApp {
             this.updateAttributeDisplay('Per', attrs.perception, accelBonus);
             this.updateAttributeDisplay('Will', attrs.willpower, accelBonus);
             this.updateAttributeDisplay('Char', attrs.charisma, accelBonus);
+
+            if (this.remapCount) {
+                const remaps = Number(attrs.bonus_remaps);
+                this.remapCount.textContent = Number.isFinite(remaps) ? remaps : '0';
+                this.remapCount.title = attrs.accrued_remap_cooldown_date
+                    ? `Next accrued remap: ${new Date(attrs.accrued_remap_cooldown_date).toLocaleDateString()}`
+                    : '';
+            }
         }
         
         // Render character list
@@ -1000,13 +1034,21 @@ class SkillPlannerApp {
         };
 
         const implants = this.currentCharacterData?.implants || [];
+        const implantBonuses = window.IMPLANT_BONUSES || {};
+        const implantSlots = {
+            intelligence: 6,
+            memory: 7,
+            perception: 8,
+            willpower: 9,
+            charisma: 10
+        };
         implants.forEach(implant => {
-            const typeId = implant.type_id;
-            if (typeId >= 9956 && typeId <= 9960) settings.implants[6] = typeId - 9955;
-            else if (typeId >= 9961 && typeId <= 9965) settings.implants[7] = typeId - 9960;
-            else if (typeId >= 9966 && typeId <= 9970) settings.implants[8] = typeId - 9965;
-            else if (typeId >= 9971 && typeId <= 9975) settings.implants[9] = typeId - 9970;
-            else if (typeId >= 9976 && typeId <= 9980) settings.implants[10] = typeId - 9975;
+            const bonuses = implantBonuses[implant.type_id];
+            if (!bonuses) return;
+            Object.entries(bonuses).forEach(([attribute, bonus]) => {
+                const slot = implantSlots[attribute];
+                if (slot) settings.implants[slot] = bonus;
+            });
         });
 
         const boosters = this.currentCharacterData?.boosters || [];
@@ -1062,7 +1104,7 @@ class SkillPlannerApp {
                 ? characterManager.calculateTotalSP(this.currentCharacterData.skills)
                 : 0;
             const injectors = injectorCalc.calculateInjectors(totalSp, totalSp + summary.totalSP);
-            const injectorCost = injectorCalc.calculateCost(injectors.count);
+            const injectorCost = injectorCalc.calculateCost(injectors.count, this.injectorPrice);
 
             return {
                 summary,
@@ -1188,8 +1230,27 @@ class SkillPlannerApp {
         this.sumTotalTime.textContent = active.summary.totalTime;
         this.sumSpNeeded.textContent = characterManager.formatSP(active.summary.totalSP);
 
+        if (this.sumCompletionDate) {
+            if (active.summary.totalMinutes > 0) {
+                const finish = new Date(Date.now() + active.summary.totalMinutes * 60 * 1000);
+                this.sumCompletionDate.textContent = finish.toLocaleString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                this.sumCompletionDate.title = 'Estimated from now, assuming continuous training';
+            } else {
+                this.sumCompletionDate.textContent = '--';
+                this.sumCompletionDate.title = '';
+            }
+        }
+
         this.injLargeCount.textContent = active.injectors.count;
         this.injTotalCost.textContent = active.injectorCost.formatted;
+
+        const tierLabel = document.getElementById('injTierLabel');
+        if (tierLabel) {
+            tierLabel.textContent = active.injectors.tierLabel || '500k';
+        }
 
         // Fire-and-forget: the price lookup must never block plan rendering.
         this.updateBookCost();
@@ -1361,6 +1422,7 @@ class SkillPlannerApp {
         if (nameInput) nameInput.value = skillPlanner.getName();
         this.renderSavedPlans();
         modal?.classList.remove('hidden');
+        nameInput?.focus();
     }
 
     closePlanManager() {
@@ -1730,6 +1792,28 @@ class SkillPlannerApp {
         return Object.fromEntries(ids.map(id => [id, this.bookPriceCache.get(id)]));
     }
 
+    async updateInjectorPrice() {
+        try {
+            const prices = await this.getBookPrices([this.injectorPriceType]);
+            const price = prices[this.injectorPriceType];
+            if (!price) return;
+
+            this.injectorPrice = price;
+
+            const input = document.getElementById('injectorPriceInput');
+            if (input && !input.dataset.userEdited) {
+                input.value = Math.round(price);
+            }
+
+            const unit = document.getElementById('injUnitPrice');
+            if (unit) unit.textContent = injectorCalc.formatISK(price);
+
+            this.updatePlanSummary();
+        } catch (_) {
+            // Keep the manual/default price if the market lookup is unavailable.
+        }
+    }
+
     escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, char => ({
             '&': '&amp;',
@@ -2045,7 +2129,7 @@ class SkillPlannerApp {
     runInjectorCalculator() {
         const currentSp = parseInt(document.getElementById('currentSpInput')?.value || 0);
         const targetSp = parseInt(document.getElementById('targetSpInput')?.value || 0);
-        const injectorPrice = parseInt(document.getElementById('injectorPriceInput')?.value || 900000000);
+        const injectorPrice = parseInt(document.getElementById('injectorPriceInput')?.value || this.injectorPrice);
         const results = document.getElementById('injectorResults');
 
         if (!results) return;
@@ -2085,48 +2169,52 @@ class SkillPlannerApp {
 
     updateRemapSuggestion() {
         const plan = skillPlanner.getPlan();
-        if (plan.length === 0) return;
-        
-        const suggested = trainingCalc.optimizeAttributes(plan, this.currentCharacterData?.skills);
-        
-        // Display suggested remap
-        const container = document.getElementById('suggestedRemap');
-        if (container) {
-            container.innerHTML = Object.entries(suggested).map(([attr, val]) => `
+        const attrs = this.currentCharacterData?.attributes;
+
+        // Display current attributes (what the calculator is using).
+        const currentContainer = document.getElementById('currentRemap');
+        if (currentContainer) {
+            const values = attrs || {
+                intelligence: 20,
+                memory: 20,
+                perception: 20,
+                willpower: 20,
+                charisma: 19
+            };
+            currentContainer.innerHTML = [
+                ['Intelligence', values.intelligence || 20],
+                ['Memory', values.memory || 20],
+                ['Perception', values.perception || 20],
+                ['Willpower', values.willpower || 20],
+                ['Charisma', values.charisma || 19]
+            ].map(([name, value]) => `
                 <div class="remap-attr">
-                    <span class="attr-name">${attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
-                    <span class="attr-val">${val}</span>
+                    <span class="attr-name">${name}</span>
+                    <span class="attr-val">${value}</span>
                 </div>
             `).join('');
         }
-        
-        // Display current (simplified - just showing base)
-        const currentContainer = document.getElementById('currentRemap');
-        if (currentContainer && this.currentCharacterData?.attributes) {
-            const attrs = this.currentCharacterData.attributes;
-            currentContainer.innerHTML = `
-                <div class="remap-attr">
-                    <span class="attr-name">Intelligence</span>
-                    <span class="attr-val">${attrs.intelligence || 20}</span>
-                </div>
-                <div class="remap-attr">
-                    <span class="attr-name">Memory</span>
-                    <span class="attr-val">${attrs.memory || 20}</span>
-                </div>
-                <div class="remap-attr">
-                    <span class="attr-name">Perception</span>
-                    <span class="attr-val">${attrs.perception || 20}</span>
-                </div>
-                <div class="remap-attr">
-                    <span class="attr-name">Willpower</span>
-                    <span class="attr-val">${attrs.willpower || 20}</span>
-                </div>
-                <div class="remap-attr">
-                    <span class="attr-name">Charisma</span>
-                    <span class="attr-val">${attrs.charisma || 19}</span>
-                </div>
-            `;
+
+        if (this.remapCount) {
+            const remaps = Number(attrs?.bonus_remaps);
+            this.remapCount.textContent = Number.isFinite(remaps) ? remaps : '0';
         }
+
+        const container = document.getElementById('suggestedRemap');
+        if (!container) return;
+
+        if (plan.length === 0) {
+            container.innerHTML = '<p class="empty-state">Add skills to the plan to see a suggested remap.</p>';
+            return;
+        }
+
+        const suggested = trainingCalc.optimizeAttributes(plan, this.currentCharacterData?.skills);
+        container.innerHTML = Object.entries(suggested).map(([attr, val]) => `
+            <div class="remap-attr">
+                <span class="attr-name">${attr.charAt(0).toUpperCase() + attr.slice(1)}</span>
+                <span class="attr-val">${val}</span>
+            </div>
+        `).join('');
     }
 
     // Utility

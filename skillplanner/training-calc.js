@@ -23,54 +23,56 @@ class TrainingCalculator {
         this.acceleratorBonus = 10; // +10 all attributes
     }
 
-    // Calculate SP needed for a skill level
+    // SP_TABLE holds cumulative SP per rank for each level:
+    // I 250, II 1,415, III 8,000, IV 45,255, V 256,000.
     spForLevel(skillId, level) {
         if (!window.SKILLS || !window.SP_TABLE) {
             console.error('SKILLS or SP_TABLE not loaded');
             return 0;
         }
-        
+
         const skill = window.SKILLS[skillId];
         if (!skill) {
             console.warn(`Skill ${skillId} not found in database`);
             return 0;
         }
-        
-        let totalSP = 0;
-        for (let i = 1; i <= level; i++) {
-            if (!window.SP_TABLE[i]) {
-                console.warn(`SP_TABLE missing level ${i}`);
-                continue;
-            }
-            totalSP += window.SP_TABLE[i] * skill.rank;
+
+        const clamped = Math.max(0, Math.min(5, Number(level) || 0));
+        if (clamped === 0) return 0;
+
+        if (!window.SP_TABLE[clamped]) {
+            console.warn(`SP_TABLE missing level ${clamped}`);
+            return 0;
         }
-        return totalSP;
+
+        return window.SP_TABLE[clamped] * skill.rank;
     }
 
-    // Calculate SP needed from current level to target level
+    // Calculate SP needed from current level to target level.
     spNeeded(skillId, currentLevel, targetLevel) {
-        if (targetLevel <= currentLevel) return 0;
-        
+        const from = Math.max(0, Math.min(5, Number(currentLevel) || 0));
+        const to = Math.max(0, Math.min(5, Number(targetLevel) || 0));
+        if (to <= from) return 0;
+
         if (!window.SKILLS || !window.SP_TABLE) {
             console.error('SKILLS or SP_TABLE not loaded');
             return 0;
         }
-        
+
         const skill = window.SKILLS[skillId];
         if (!skill) {
             console.warn(`Skill ${skillId} not found in database`);
             return 0;
         }
-        
-        let sp = 0;
-        for (let i = currentLevel + 1; i <= targetLevel; i++) {
-            if (!window.SP_TABLE[i]) {
-                console.warn(`SP_TABLE missing level ${i}`);
-                continue;
-            }
-            sp += window.SP_TABLE[i] * skill.rank;
+
+        const targetSp = window.SP_TABLE[to];
+        const currentSp = from > 0 ? window.SP_TABLE[from] : 0;
+        if (!Number.isFinite(targetSp) || !Number.isFinite(currentSp)) {
+            console.warn(`SP_TABLE missing level data for ${skillId}: ${from} -> ${to}`);
+            return 0;
         }
-        return sp;
+
+        return Math.max(0, (targetSp - currentSp) * skill.rank);
     }
 
     // Get effective attributes
@@ -254,42 +256,26 @@ class TrainingCalculator {
             });
         }
         
-        // Load implants
+        // Load attribute implants from the SDE-generated map. The old
+        // hard-coded type-ID ranges did not match the actual implant data.
         if (char.cache && char.cache.implants) {
             const implants = char.cache.implants.data;
+            const bonusMap = window.IMPLANT_BONUSES || {};
+            const slots = {
+                intelligence: 6,
+                memory: 7,
+                perception: 8,
+                willpower: 9,
+                charisma: 10
+            };
+
             implants.forEach(implant => {
-                // Parse implant type to determine bonus
-                const typeId = implant.type_id;
-                // Common attribute implant ranges
-                // 9956-9960: +1 to +5 Intelligence (slot 1)
-                // 9961-9965: +1 to +5 Memory (slot 2)
-                // 9966-9970: +1 to +5 Perception (slot 3)
-                // 9971-9975: +1 to +5 Willpower (slot 4)
-                // 9976-9980: +1 to +5 Charisma (slot 5)
-                
-                let slot = 0;
-                let bonus = 0;
-                
-                if (typeId >= 9956 && typeId <= 9960) {
-                    slot = 6;
-                    bonus = typeId - 9955;
-                } else if (typeId >= 9961 && typeId <= 9965) {
-                    slot = 7;
-                    bonus = typeId - 9960;
-                } else if (typeId >= 9966 && typeId <= 9970) {
-                    slot = 8;
-                    bonus = typeId - 9965;
-                } else if (typeId >= 9971 && typeId <= 9975) {
-                    slot = 9;
-                    bonus = typeId - 9970;
-                } else if (typeId >= 9976 && typeId <= 9980) {
-                    slot = 10;
-                    bonus = typeId - 9975;
-                }
-                
-                if (slot > 0) {
-                    this.setImplant(slot, bonus);
-                }
+                const bonuses = bonusMap[implant.type_id];
+                if (!bonuses) return;
+                Object.entries(bonuses).forEach(([attribute, bonus]) => {
+                    const slot = slots[attribute];
+                    if (slot) this.setImplant(slot, bonus);
+                });
             });
         }
 

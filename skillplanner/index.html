@@ -27,7 +27,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner — Training Queue &amp; Prerequisites | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skill training with the free Rusty Skill Planner.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -393,6 +393,10 @@
                                     <span class="sum-label">Total Training Time</span>
                                     <span class="sum-value" id="sumTotalTime">--</span>
                                 </div>
+                                <div class="sum-item">
+                                    <span class="sum-label">Estimated Completion</span>
+                                    <span class="sum-value" id="sumCompletionDate">--</span>
+                                </div>
                                 <div class="sum-item hidden" id="sumTotalTimeCompareRow">
                                     <span class="sum-label">Before -> After</span>
                                     <span class="sum-value" id="sumTotalTimeCompare"></span>
@@ -411,11 +415,11 @@
                                 <h4>Skill Injector Estimate</h4>
                                 <div class="injector-calc">
                                     <div class="inj-item">
-                                        <span>Large Injectors (500k)</span>
+                                        <span>Large Injectors (<span id="injTierLabel">500k</span>)</span>
                                         <span id="injLargeCount">0</span>
                                     </div>
                                     <div class="inj-item">
-                                        <span>Cost @ 900M ISK each</span>
+                                        <span>Cost @ <span id="injUnitPrice">900M</span> ISK each</span>
                                         <span id="injTotalCost">0 ISK</span>
                                     </div>
                                     <div class="inj-item hidden" id="injCompareRow">
@@ -637,7 +641,7 @@
             </div>
 
             <!-- Message Area -->
-            <div id="messageArea" class="message-area hidden"></div>
+            <div id="messageArea" class="message-area hidden" role="status" aria-live="polite"></div>
 
             <section class="seo-faq" aria-label="About the Rusty Skill Planner">
               <h2>About Rusty Skill Planner — free EVE Online skill planning</h2>
@@ -660,7 +664,7 @@
     </div>
 
     <!-- Modals -->
-    <div class="modal hidden" id="skillPickerModal">
+    <div class="modal hidden" id="skillPickerModal" role="dialog" aria-modal="true" aria-label="Add Skill to Plan">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Add Skill to Plan</h3>
@@ -677,7 +681,7 @@
         </div>
     </div>
 
-    <div class="modal hidden" id="skillDetailModal">
+    <div class="modal hidden" id="skillDetailModal" role="dialog" aria-modal="true" aria-label="Skill details">
         <div class="modal-content large">
             <div class="modal-header">
                 <h3 id="detailSkillName">Skill Name</h3>
@@ -693,7 +697,7 @@
         </div>
     </div>
 
-    <div class="modal hidden" id="planManagerModal">
+    <div class="modal hidden" id="planManagerModal" role="dialog" aria-modal="true" aria-label="Saved Skill Plans">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Saved Skill Plans</h3>
@@ -714,7 +718,7 @@
         </div>
     </div>
 
-    <div class="modal hidden" id="planImportModal">
+    <div class="modal hidden" id="planImportModal" role="dialog" aria-modal="true" aria-label="Import Skill Plan">
         <div class="modal-content large">
             <div class="modal-header">
                 <h3>Import Skill Plan</h3>
@@ -740,12 +744,12 @@
         </div>
     </div>
 
-    <script src="skills-data.js?v=2026110503"></script>
+    <script src="skills-data.js?v=2026110505"></script>
     <script src="esi-auth.js?v=2026110502"></script>
     <script src="character-manager.js?v=2026110502"></script>
-    <script src="training-calc.js?v=20260510002"></script>
+    <script src="training-calc.js?v=2026110505"></script>
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110504"></script>
-    <script src="app.js?v=2026110504"></script>
+    <script src="app.js?v=2026110505"></script>
 </body>
 </html>

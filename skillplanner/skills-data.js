@@ -6537,6 +6537,2291 @@ const SP_TABLE = {
 
 const SKILL_BOOKS = {};
 
+const IMPLANT_BONUSES = {
+  "2082": {
+    "perception": 3
+  },
+  "2589": {
+    "intelligence": 3
+  },
+  "2838": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "9899": {
+    "perception": 3
+  },
+  "9941": {
+    "memory": 3
+  },
+  "9942": {
+    "willpower": 3
+  },
+  "9943": {
+    "intelligence": 3
+  },
+  "9956": {
+    "charisma": 3
+  },
+  "10208": {
+    "memory": 4
+  },
+  "10209": {
+    "memory": 5
+  },
+  "10212": {
+    "willpower": 4
+  },
+  "10213": {
+    "willpower": 5
+  },
+  "10216": {
+    "perception": 4
+  },
+  "10217": {
+    "perception": 5
+  },
+  "10221": {
+    "intelligence": 4
+  },
+  "10222": {
+    "intelligence": 5
+  },
+  "10225": {
+    "charisma": 4
+  },
+  "10226": {
+    "charisma": 5
+  },
+  "13283": {
+    "perception": 1
+  },
+  "13284": {
+    "memory": 1
+  },
+  "13285": {
+    "willpower": 1
+  },
+  "13286": {
+    "charisma": 1
+  },
+  "13287": {
+    "intelligence": 1
+  },
+  "14295": {
+    "perception": 2
+  },
+  "14296": {
+    "willpower": 2
+  },
+  "14297": {
+    "memory": 2
+  },
+  "14298": {
+    "intelligence": 2
+  },
+  "14299": {
+    "charisma": 2
+  },
+  "19534": {
+    "perception": 4
+  },
+  "19535": {
+    "memory": 4
+  },
+  "19536": {
+    "willpower": 4
+  },
+  "19537": {
+    "intelligence": 4
+  },
+  "19538": {
+    "charisma": 4
+  },
+  "19540": {
+    "perception": 4
+  },
+  "19551": {
+    "memory": 4
+  },
+  "19553": {
+    "willpower": 4
+  },
+  "19554": {
+    "intelligence": 4
+  },
+  "19555": {
+    "charisma": 4
+  },
+  "20121": {
+    "perception": 4
+  },
+  "20157": {
+    "memory": 4
+  },
+  "20158": {
+    "willpower": 4
+  },
+  "20159": {
+    "intelligence": 4
+  },
+  "20160": {
+    "charisma": 4
+  },
+  "20498": {
+    "perception": 4
+  },
+  "20499": {
+    "perception": 4
+  },
+  "20500": {
+    "memory": 4
+  },
+  "20501": {
+    "memory": 4
+  },
+  "20502": {
+    "intelligence": 4
+  },
+  "20503": {
+    "intelligence": 4
+  },
+  "20504": {
+    "charisma": 4
+  },
+  "20505": {
+    "charisma": 4
+  },
+  "20506": {
+    "willpower": 4
+  },
+  "20507": {
+    "willpower": 4
+  },
+  "22107": {
+    "perception": 3
+  },
+  "22108": {
+    "memory": 3
+  },
+  "22109": {
+    "intelligence": 3
+  },
+  "22110": {
+    "charisma": 3
+  },
+  "22111": {
+    "willpower": 3
+  },
+  "22113": {
+    "perception": 3
+  },
+  "22114": {
+    "memory": 3
+  },
+  "22115": {
+    "intelligence": 3
+  },
+  "22116": {
+    "charisma": 3
+  },
+  "22117": {
+    "willpower": 3
+  },
+  "22119": {
+    "perception": 3
+  },
+  "22120": {
+    "memory": 3
+  },
+  "22121": {
+    "intelligence": 3
+  },
+  "22122": {
+    "charisma": 3
+  },
+  "22123": {
+    "willpower": 3
+  },
+  "22125": {
+    "perception": 3
+  },
+  "22126": {
+    "memory": 3
+  },
+  "22127": {
+    "intelligence": 3
+  },
+  "22128": {
+    "charisma": 3
+  },
+  "22129": {
+    "willpower": 3
+  },
+  "22131": {
+    "perception": 3
+  },
+  "22133": {
+    "memory": 3
+  },
+  "22134": {
+    "intelligence": 3
+  },
+  "22135": {
+    "charisma": 3
+  },
+  "22136": {
+    "willpower": 3
+  },
+  "22715": {
+    "willpower": 4
+  },
+  "22760": {
+    "perception": 4
+  },
+  "28790": {
+    "perception": 3
+  },
+  "28791": {
+    "memory": 3
+  },
+  "28792": {
+    "intelligence": 3
+  },
+  "28793": {
+    "charisma": 3
+  },
+  "28794": {
+    "willpower": 3
+  },
+  "28796": {
+    "perception": 3
+  },
+  "28797": {
+    "memory": 3
+  },
+  "28798": {
+    "intelligence": 3
+  },
+  "28799": {
+    "charisma": 3
+  },
+  "28800": {
+    "willpower": 3
+  },
+  "28802": {
+    "perception": 3
+  },
+  "28803": {
+    "memory": 3
+  },
+  "28804": {
+    "intelligence": 3
+  },
+  "28805": {
+    "charisma": 3
+  },
+  "28806": {
+    "willpower": 3
+  },
+  "28808": {
+    "perception": 3
+  },
+  "28809": {
+    "memory": 3
+  },
+  "28810": {
+    "intelligence": 3
+  },
+  "28811": {
+    "charisma": 3
+  },
+  "28812": {
+    "willpower": 3
+  },
+  "28814": {
+    "perception": 3
+  },
+  "28815": {
+    "memory": 3
+  },
+  "28816": {
+    "intelligence": 3
+  },
+  "28817": {
+    "charisma": 3
+  },
+  "28818": {
+    "willpower": 3
+  },
+  "31954": {
+    "perception": 4
+  },
+  "31955": {
+    "memory": 4
+  },
+  "31956": {
+    "intelligence": 4
+  },
+  "31957": {
+    "charisma": 4
+  },
+  "31958": {
+    "willpower": 4
+  },
+  "31962": {
+    "perception": 4
+  },
+  "31963": {
+    "memory": 4
+  },
+  "31964": {
+    "intelligence": 4
+  },
+  "31965": {
+    "charisma": 4
+  },
+  "31966": {
+    "willpower": 4
+  },
+  "31968": {
+    "perception": 4
+  },
+  "31969": {
+    "memory": 4
+  },
+  "31970": {
+    "intelligence": 4
+  },
+  "31971": {
+    "charisma": 4
+  },
+  "31972": {
+    "willpower": 4
+  },
+  "31974": {
+    "perception": 4
+  },
+  "31975": {
+    "memory": 4
+  },
+  "31976": {
+    "intelligence": 4
+  },
+  "31977": {
+    "charisma": 4
+  },
+  "31978": {
+    "willpower": 4
+  },
+  "32101": {
+    "perception": 2
+  },
+  "32102": {
+    "memory": 2
+  },
+  "32103": {
+    "intelligence": 2
+  },
+  "32104": {
+    "charisma": 2
+  },
+  "32105": {
+    "willpower": 2
+  },
+  "32107": {
+    "perception": 2
+  },
+  "32108": {
+    "memory": 2
+  },
+  "32109": {
+    "intelligence": 2
+  },
+  "32110": {
+    "charisma": 2
+  },
+  "32111": {
+    "willpower": 2
+  },
+  "32112": {
+    "perception": 2
+  },
+  "32113": {
+    "memory": 2
+  },
+  "32114": {
+    "intelligence": 2
+  },
+  "32115": {
+    "charisma": 2
+  },
+  "32116": {
+    "willpower": 2
+  },
+  "32117": {
+    "perception": 2
+  },
+  "32118": {
+    "memory": 2
+  },
+  "32119": {
+    "intelligence": 2
+  },
+  "32120": {
+    "charisma": 2
+  },
+  "32121": {
+    "willpower": 2
+  },
+  "33087": {
+    "charisma": 17,
+    "intelligence": 17,
+    "memory": 17,
+    "perception": 17,
+    "willpower": 17
+  },
+  "33111": {
+    "charisma": 9,
+    "intelligence": 9,
+    "memory": 9,
+    "perception": 9,
+    "willpower": 9
+  },
+  "33393": {
+    "willpower": 3
+  },
+  "33394": {
+    "memory": 3
+  },
+  "33516": {
+    "perception": 4
+  },
+  "33525": {
+    "memory": 4
+  },
+  "33526": {
+    "intelligence": 4
+  },
+  "33527": {
+    "charisma": 4
+  },
+  "33528": {
+    "willpower": 4
+  },
+  "33555": {
+    "perception": 3
+  },
+  "33557": {
+    "memory": 3
+  },
+  "33559": {
+    "intelligence": 3
+  },
+  "33561": {
+    "charisma": 3
+  },
+  "33563": {
+    "willpower": 3
+  },
+  "33807": {
+    "intelligence": 4
+  },
+  "33808": {
+    "willpower": 4
+  },
+  "33917": {
+    "perception": 2
+  },
+  "33918": {
+    "memory": 2
+  },
+  "33919": {
+    "intelligence": 2
+  },
+  "33920": {
+    "charisma": 2
+  },
+  "33921": {
+    "willpower": 2
+  },
+  "33923": {
+    "perception": 2
+  },
+  "33924": {
+    "memory": 2
+  },
+  "33925": {
+    "intelligence": 2
+  },
+  "33926": {
+    "charisma": 2
+  },
+  "33927": {
+    "willpower": 2
+  },
+  "33929": {
+    "perception": 2
+  },
+  "33930": {
+    "memory": 2
+  },
+  "33931": {
+    "intelligence": 2
+  },
+  "33932": {
+    "charisma": 2
+  },
+  "33933": {
+    "willpower": 2
+  },
+  "33935": {
+    "perception": 2
+  },
+  "33936": {
+    "memory": 2
+  },
+  "33937": {
+    "intelligence": 2
+  },
+  "33938": {
+    "charisma": 2
+  },
+  "33939": {
+    "willpower": 2
+  },
+  "33941": {
+    "perception": 2
+  },
+  "33942": {
+    "memory": 2
+  },
+  "33943": {
+    "intelligence": 2
+  },
+  "33944": {
+    "charisma": 2
+  },
+  "33945": {
+    "willpower": 2
+  },
+  "33947": {
+    "perception": 2
+  },
+  "33948": {
+    "memory": 2
+  },
+  "33949": {
+    "intelligence": 2
+  },
+  "33950": {
+    "charisma": 2
+  },
+  "33951": {
+    "willpower": 2
+  },
+  "33953": {
+    "perception": 2
+  },
+  "33954": {
+    "memory": 2
+  },
+  "33955": {
+    "intelligence": 2
+  },
+  "33956": {
+    "charisma": 2
+  },
+  "33957": {
+    "willpower": 2
+  },
+  "33959": {
+    "perception": 2
+  },
+  "33960": {
+    "memory": 2
+  },
+  "33961": {
+    "intelligence": 2
+  },
+  "33962": {
+    "charisma": 2
+  },
+  "33963": {
+    "willpower": 2
+  },
+  "33965": {
+    "perception": 2
+  },
+  "33966": {
+    "memory": 2
+  },
+  "33967": {
+    "intelligence": 2
+  },
+  "33968": {
+    "charisma": 2
+  },
+  "33969": {
+    "willpower": 2
+  },
+  "33971": {
+    "perception": 2
+  },
+  "33972": {
+    "memory": 2
+  },
+  "33973": {
+    "intelligence": 2
+  },
+  "33974": {
+    "charisma": 2
+  },
+  "33975": {
+    "willpower": 2
+  },
+  "42145": {
+    "perception": 2
+  },
+  "42146": {
+    "memory": 2
+  },
+  "42200": {
+    "intelligence": 2
+  },
+  "42201": {
+    "charisma": 2
+  },
+  "42202": {
+    "willpower": 2
+  },
+  "42204": {
+    "perception": 3
+  },
+  "42205": {
+    "memory": 3
+  },
+  "42206": {
+    "willpower": 3
+  },
+  "42207": {
+    "intelligence": 3
+  },
+  "42208": {
+    "charisma": 3
+  },
+  "42210": {
+    "perception": 4
+  },
+  "42211": {
+    "memory": 4
+  },
+  "42212": {
+    "willpower": 4
+  },
+  "42213": {
+    "intelligence": 4
+  },
+  "42214": {
+    "charisma": 4
+  },
+  "47265": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "47266": {
+    "charisma": 12,
+    "intelligence": 12,
+    "memory": 12,
+    "perception": 12,
+    "willpower": 12
+  },
+  "47267": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "47395": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "47396": {
+    "charisma": 12,
+    "intelligence": 12,
+    "memory": 12,
+    "perception": 12,
+    "willpower": 12
+  },
+  "47397": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "47481": {
+    "charisma": 12,
+    "intelligence": 12,
+    "memory": 12,
+    "perception": 12,
+    "willpower": 12
+  },
+  "48582": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "49753": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "52674": {
+    "perception": 2
+  },
+  "52679": {
+    "memory": 2
+  },
+  "52680": {
+    "willpower": 2
+  },
+  "52681": {
+    "intelligence": 2
+  },
+  "52682": {
+    "charisma": 2
+  },
+  "52785": {
+    "perception": 3
+  },
+  "52786": {
+    "memory": 3
+  },
+  "52787": {
+    "willpower": 3
+  },
+  "52788": {
+    "intelligence": 3
+  },
+  "52789": {
+    "charisma": 3
+  },
+  "52917": {
+    "perception": 4
+  },
+  "52918": {
+    "memory": 4
+  },
+  "52919": {
+    "intelligence": 4
+  },
+  "52920": {
+    "charisma": 4
+  },
+  "52921": {
+    "willpower": 4
+  },
+  "53704": {
+    "perception": 3
+  },
+  "53705": {
+    "memory": 3
+  },
+  "53706": {
+    "intelligence": 3
+  },
+  "53707": {
+    "charisma": 3
+  },
+  "53708": {
+    "willpower": 3
+  },
+  "53710": {
+    "perception": 4
+  },
+  "53711": {
+    "memory": 4
+  },
+  "53712": {
+    "intelligence": 4
+  },
+  "53713": {
+    "charisma": 4
+  },
+  "53715": {
+    "willpower": 4
+  },
+  "53853": {
+    "perception": 2
+  },
+  "53854": {
+    "memory": 2
+  },
+  "53855": {
+    "willpower": 2
+  },
+  "53856": {
+    "intelligence": 2
+  },
+  "53857": {
+    "charisma": 2
+  },
+  "53890": {
+    "perception": 4
+  },
+  "53891": {
+    "memory": 4
+  },
+  "53892": {
+    "willpower": 4
+  },
+  "53893": {
+    "intelligence": 4
+  },
+  "53894": {
+    "charisma": 4
+  },
+  "53896": {
+    "perception": 3
+  },
+  "53897": {
+    "memory": 3
+  },
+  "53898": {
+    "willpower": 3
+  },
+  "53899": {
+    "intelligence": 3
+  },
+  "53900": {
+    "charisma": 3
+  },
+  "53902": {
+    "perception": 2
+  },
+  "53903": {
+    "memory": 2
+  },
+  "53904": {
+    "willpower": 2
+  },
+  "53905": {
+    "intelligence": 2
+  },
+  "53906": {
+    "charisma": 2
+  },
+  "54392": {
+    "perception": 4
+  },
+  "54393": {
+    "memory": 4
+  },
+  "54394": {
+    "willpower": 4
+  },
+  "54395": {
+    "intelligence": 4
+  },
+  "54396": {
+    "charisma": 4
+  },
+  "54398": {
+    "perception": 3
+  },
+  "54399": {
+    "memory": 3
+  },
+  "54400": {
+    "willpower": 3
+  },
+  "54401": {
+    "intelligence": 3
+  },
+  "54402": {
+    "charisma": 3
+  },
+  "54404": {
+    "perception": 2
+  },
+  "54405": {
+    "memory": 2
+  },
+  "54406": {
+    "willpower": 2
+  },
+  "54407": {
+    "intelligence": 2
+  },
+  "54408": {
+    "charisma": 2
+  },
+  "55826": {
+    "charisma": 8,
+    "intelligence": 8,
+    "memory": 8,
+    "perception": 8,
+    "willpower": 8
+  },
+  "55927": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "55928": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "55929": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "55942": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "55943": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "55944": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "55945": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "55946": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "55947": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "55977": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56125": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56128": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56129": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56130": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56153": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56154": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56155": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56156": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56157": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56158": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56179": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56180": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56181": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56182": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56183": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56184": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56185": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56186": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56187": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56619": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56620": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56621": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56640": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56659": {
+    "charisma": 3,
+    "intelligence": 3,
+    "memory": 3,
+    "perception": 3,
+    "willpower": 3
+  },
+  "56661": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "56662": {
+    "charisma": 15,
+    "intelligence": 15,
+    "memory": 15,
+    "perception": 15,
+    "willpower": 15
+  },
+  "56823": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56833": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56834": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56835": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56893": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56970": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "56984": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56985": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56986": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56987": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56988": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56989": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56990": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56991": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56992": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56993": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56994": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "56995": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57035": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57036": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57037": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57110": {
+    "perception": 2
+  },
+  "57111": {
+    "memory": 2
+  },
+  "57112": {
+    "willpower": 2
+  },
+  "57113": {
+    "intelligence": 2
+  },
+  "57114": {
+    "charisma": 2
+  },
+  "57117": {
+    "perception": 3
+  },
+  "57118": {
+    "memory": 3
+  },
+  "57119": {
+    "willpower": 3
+  },
+  "57120": {
+    "intelligence": 3
+  },
+  "57121": {
+    "charisma": 3
+  },
+  "57123": {
+    "perception": 4
+  },
+  "57124": {
+    "memory": 4
+  },
+  "57125": {
+    "willpower": 4
+  },
+  "57126": {
+    "intelligence": 4
+  },
+  "57127": {
+    "charisma": 4
+  },
+  "57201": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57209": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57210": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57211": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57242": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57243": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57244": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57245": {
+    "charisma": 3,
+    "intelligence": 3,
+    "memory": 3,
+    "perception": 3,
+    "willpower": 3
+  },
+  "57246": {
+    "charisma": 3,
+    "intelligence": 3,
+    "memory": 3,
+    "perception": 3,
+    "willpower": 3
+  },
+  "57247": {
+    "charisma": 3,
+    "intelligence": 3,
+    "memory": 3,
+    "perception": 3,
+    "willpower": 3
+  },
+  "57248": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57249": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57250": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57251": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57252": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57253": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57284": {
+    "charisma": 2,
+    "intelligence": 2,
+    "memory": 2,
+    "perception": 2,
+    "willpower": 2
+  },
+  "57287": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57288": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57289": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57290": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57291": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57292": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57293": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57294": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57295": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57296": {
+    "charisma": 2,
+    "intelligence": 2,
+    "memory": 2,
+    "perception": 2,
+    "willpower": 2
+  },
+  "57297": {
+    "charisma": 4,
+    "intelligence": 4,
+    "memory": 4,
+    "perception": 4,
+    "willpower": 4
+  },
+  "57298": {
+    "charisma": 6,
+    "intelligence": 6,
+    "memory": 6,
+    "perception": 6,
+    "willpower": 6
+  },
+  "57299": {
+    "charisma": 8,
+    "intelligence": 8,
+    "memory": 8,
+    "perception": 8,
+    "willpower": 8
+  },
+  "57300": {
+    "charisma": 2021,
+    "intelligence": 2021,
+    "memory": 2021,
+    "perception": 2021,
+    "willpower": 2021
+  },
+  "57301": {
+    "charisma": 2021,
+    "intelligence": 2021,
+    "memory": 2021,
+    "perception": 2021,
+    "willpower": 2021
+  },
+  "57311": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57312": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57313": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57323": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57324": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57325": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57326": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57428": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57430": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57431": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57432": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57722": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57723": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57724": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57725": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57726": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57727": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57728": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "57763": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57765": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57766": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57767": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57768": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "57821": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57822": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "57823": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "58727": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "58758": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "58759": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "58760": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "58770": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "58771": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "58772": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59177": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "59294": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "59295": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "59296": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59297": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59298": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59299": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59301": {
+    "charisma": 6,
+    "intelligence": 6,
+    "memory": 6,
+    "perception": 6,
+    "willpower": 6
+  },
+  "59302": {
+    "charisma": 8,
+    "intelligence": 8,
+    "memory": 8,
+    "perception": 8,
+    "willpower": 8
+  },
+  "59303": {
+    "charisma": 4,
+    "intelligence": 4,
+    "memory": 4,
+    "perception": 4,
+    "willpower": 4
+  },
+  "59620": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "59756": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "59757": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59758": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59759": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59760": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59761": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59762": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59763": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59764": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59765": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59766": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59767": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59768": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59803": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "59804": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "59805": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "59806": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "59960": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59961": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "59962": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60023": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "60091": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "60092": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "60093": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60172": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "60187": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "60188": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "60189": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "60190": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "60250": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "60251": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60269": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60270": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60271": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60272": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60273": {
+    "charisma": 1,
+    "intelligence": 1,
+    "memory": 1,
+    "perception": 1,
+    "willpower": 1
+  },
+  "60485": {
+    "charisma": 5,
+    "intelligence": 5,
+    "memory": 5,
+    "perception": 5,
+    "willpower": 5
+  },
+  "72238": {
+    "charisma": 2,
+    "intelligence": 2,
+    "memory": 2,
+    "perception": 2,
+    "willpower": 2
+  },
+  "72239": {
+    "charisma": 4,
+    "intelligence": 4,
+    "memory": 4,
+    "perception": 4,
+    "willpower": 4
+  },
+  "72240": {
+    "charisma": 6,
+    "intelligence": 6,
+    "memory": 6,
+    "perception": 6,
+    "willpower": 6
+  },
+  "72241": {
+    "charisma": 8,
+    "intelligence": 8,
+    "memory": 8,
+    "perception": 8,
+    "willpower": 8
+  },
+  "72242": {
+    "charisma": 10,
+    "intelligence": 10,
+    "memory": 10,
+    "perception": 10,
+    "willpower": 10
+  },
+  "77919": {
+    "charisma": 12,
+    "intelligence": 12,
+    "memory": 12,
+    "perception": 12,
+    "willpower": 12
+  },
+  "77934": {
+    "charisma": 6,
+    "intelligence": 6,
+    "memory": 6,
+    "perception": 6,
+    "willpower": 6
+  },
+  "85279": {
+    "charisma": 13,
+    "intelligence": 13,
+    "memory": 13,
+    "perception": 13,
+    "willpower": 13
+  },
+  "88119": {
+    "perception": 2
+  },
+  "88120": {
+    "memory": 2
+  },
+  "88121": {
+    "willpower": 2
+  },
+  "88122": {
+    "intelligence": 2
+  },
+  "88123": {
+    "charisma": 2
+  },
+  "88125": {
+    "perception": 3
+  },
+  "88126": {
+    "memory": 3
+  },
+  "88127": {
+    "willpower": 3
+  },
+  "88128": {
+    "intelligence": 3
+  },
+  "88129": {
+    "charisma": 3
+  },
+  "96542": {
+    "charisma": 4,
+    "intelligence": 4,
+    "memory": 4,
+    "perception": 4,
+    "willpower": 4
+  },
+  "96543": {
+    "charisma": 8,
+    "intelligence": 8,
+    "memory": 8,
+    "perception": 8,
+    "willpower": 8
+  },
+  "96544": {
+    "charisma": 6,
+    "intelligence": 6,
+    "memory": 6,
+    "perception": 6,
+    "willpower": 6
+  }
+};
+
 function getSkillBookMarketLink(skillId) {
   const bookId = SKILL_BOOKS[skillId];
   if (!bookId) return null;
@@ -6636,6 +8921,7 @@ if (root) {
   root.SKILL_CATEGORIES = SKILL_CATEGORIES;
   root.SP_TABLE = SP_TABLE;
   root.SKILL_BOOKS = SKILL_BOOKS;
+  root.IMPLANT_BONUSES = IMPLANT_BONUSES;
   root.ATTRIBUTES = ATTRIBUTES;
   root.getSkillBookMarketLink = getSkillBookMarketLink;
   root.getSkillMarketLink = getSkillMarketLink;
@@ -6651,6 +8937,7 @@ if (typeof window !== "undefined") {
   window.SKILL_CATEGORIES = SKILL_CATEGORIES;
   window.SP_TABLE = SP_TABLE;
   window.SKILL_BOOKS = SKILL_BOOKS;
+  window.IMPLANT_BONUSES = IMPLANT_BONUSES;
   window.ATTRIBUTES = ATTRIBUTES;
   window.getSkillBookMarketLink = getSkillBookMarketLink;
   window.getSkillMarketLink = getSkillMarketLink;
@@ -6668,6 +8955,7 @@ if (typeof module !== "undefined" && module.exports) {
     SKILL_CATEGORIES,
     SP_TABLE,
     SKILL_BOOKS,
+    IMPLANT_BONUSES,
     ATTRIBUTES,
     getSkillBookMarketLink,
     getSkillMarketLink,
