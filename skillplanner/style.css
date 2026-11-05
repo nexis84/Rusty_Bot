@@ -2331,16 +2331,79 @@ body {
     color: var(--accent-color);
 }
 
-/* --- Fit import --- */
-.fit-results {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--secondary-color);
+/* --- Fit import / analysis --- */
+.fit-view-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.fit-view-header h2 {
+    color: var(--text-color);
+    font-size: clamp(1.3rem, 2.3vw, 1.7rem);
+    line-height: 1.25;
+    margin: 8px 0 6px;
+}
+
+.fit-view-header .hint {
+    margin: 0;
+}
+
+.fit-view-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.fit-empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    background: var(--primary-color);
+    border: 1px dashed var(--border-color);
+    border-radius: 10px;
+}
+
+.fit-empty-state > i {
+    color: var(--accent-color);
+    font-size: 2rem;
+}
+
+.fit-empty-state h3 {
+    color: var(--text-color);
+    margin: 12px 0 6px;
+}
+
+.fit-empty-state p {
+    color: var(--text-subtle-color);
+    margin: 0 0 18px;
+}
+
+.fit-view-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 18px 0 10px;
+}
+
+.fit-view-section-head h3 {
+    color: var(--text-color);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.fit-view-section-head span {
+    color: var(--text-subtle-color);
+    font-size: 0.78rem;
 }
 
 .fit-summary {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px;
     margin-bottom: 14px;
 }
@@ -2371,6 +2434,14 @@ body {
     gap: 5px;
     max-height: 280px;
     overflow-y: auto;
+}
+
+.fit-view .fit-skill-list {
+    max-height: 480px;
+}
+
+.fit-view .fit-skill-item {
+    padding: 10px 12px;
 }
 
 .fit-skill-item {
@@ -2483,6 +2554,20 @@ body {
 
     .fit-summary {
         grid-template-columns: 1fr;
+    }
+
+    .fit-view-header {
+        flex-direction: column;
+    }
+
+    .fit-view-actions {
+        width: 100%;
+    }
+
+    .fit-view-actions .btn-primary,
+    .fit-view-actions .btn-secondary {
+        flex: 1 1 auto;
+        justify-content: center;
     }
 
     .seo-faq-bar-sub {

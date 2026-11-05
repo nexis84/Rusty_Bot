@@ -256,9 +256,11 @@ class SkillPlannerApp {
         document.getElementById('closeFitImport')?.addEventListener('click', () => this.closeFitImport());
         document.getElementById('closeFitImportFooter')?.addEventListener('click', () => this.closeFitImport());
         document.getElementById('analyseFitBtn')?.addEventListener('click', () => this.analyseFit());
-        document.getElementById('createFitPlanBtn')?.addEventListener('click', () => this.createFitPlan());
         document.getElementById('fitImportFileBtn')?.addEventListener('click', () => document.getElementById('fitImportFile')?.click());
         document.getElementById('fitImportFile')?.addEventListener('change', (event) => this.loadFitFile(event));
+        document.getElementById('fitViewImportAnotherBtn')?.addEventListener('click', () => this.openFitImport());
+        document.getElementById('fitViewEmptyImportBtn')?.addEventListener('click', () => this.openFitImport());
+        document.getElementById('fitViewCreatePlanBtn')?.addEventListener('click', () => this.createFitPlan());
         
         // Skill picker search
         document.getElementById('pickerSearch')?.addEventListener('input', (e) => this.filterPickerSkills(e.target.value));
@@ -314,6 +316,7 @@ class SkillPlannerApp {
             skills: 'Skill Browser',
             mySkills: 'My Skills',
             planner: 'Skill Planner',
+            fit: 'Fit Analysis',
             calculator: 'Training Calculator'
         };
         this.pageTitle.textContent = titles[viewName] || 'Skill Planner';
@@ -326,6 +329,8 @@ class SkillPlannerApp {
         } else if (viewName === 'planner') {
             this.renderPlan();
             this.updatePlanSummary();
+        } else if (viewName === 'fit') {
+            this.renderFitAnalysis();
         } else if (viewName === 'calculator') {
             this.initCalculator();
         }
@@ -1618,17 +1623,12 @@ class SkillPlannerApp {
     openFitImport() {
         const modal = document.getElementById('fitImportModal');
         const text = document.getElementById('fitImportText');
-        const results = document.getElementById('fitImportResults');
-        const create = document.getElementById('createFitPlanBtn');
         const file = document.getElementById('fitImportFile');
         const label = document.getElementById('fitImportFileLabel');
 
         if (text) text.value = '';
         if (file) file.value = '';
         if (label) label.textContent = '';
-        results?.classList.add('hidden');
-        create?.classList.add('hidden');
-        this.fitAnalysis = null;
         modal?.classList.remove('hidden');
         text?.focus();
     }
@@ -1797,30 +1797,73 @@ class SkillPlannerApp {
             matchedItems,
             totalItems: parsed.items.length,
             unknown,
-            required: Object.fromEntries(requirements),
+            // Include prerequisites so the summary and the generated plan agree.
+            required: Object.fromEntries(expanded),
             missing
         };
 
-        this.renderFitAnalysis();
+        this.closeFitImport();
+        this.switchView('fit');
     }
 
     renderFitAnalysis() {
-        const results = document.getElementById('fitImportResults');
-        const createBtn = document.getElementById('createFitPlanBtn');
-        if (!results || !this.fitAnalysis) return;
+        const content = document.getElementById('fitViewContent');
+        const createBtn = document.getElementById('fitViewCreatePlanBtn');
+        const importBtn = document.getElementById('fitViewImportAnotherBtn');
+        const title = document.getElementById('fitViewTitle');
+        const subtitle = document.getElementById('fitViewSubtitle');
+        const badge = document.getElementById('fitBadge');
+
+        if (!content) return;
+
+        if (!this.fitAnalysis) {
+            if (title) title.textContent = 'Import a fit to get started';
+            if (subtitle) subtitle.textContent = 'Paste an EFT fit and the planner will work out which skills you are missing.';
+            createBtn?.classList.add('hidden');
+            importBtn?.classList.add('hidden');
+            badge?.classList.add('hidden');
+            content.innerHTML = `
+                <div class="fit-empty-state">
+                    <i class="fas fa-wrench"></i>
+                    <h3>No fit analysed yet</h3>
+                    <p>Paste an EFT fit to see the hull, matched modules and missing skills.</p>
+                    <button class="btn-primary" id="fitViewEmptyImportBtn">
+                        <i class="fas fa-file-import"></i> Import Fit
+                    </button>
+                </div>`;
+            document.getElementById('fitViewEmptyImportBtn')?.addEventListener('click', () => this.openFitImport());
+            return;
+        }
 
         const analysis = this.fitAnalysis;
         const missing = analysis.missing;
+        const requiredCount = Object.keys(analysis.required || {}).length;
+        const trainedCount = Math.max(0, requiredCount - missing.length);
         const unknownNote = analysis.unknown.length
             ? `<p class="fit-note warn"><strong>Not recognised:</strong> ${analysis.unknown.map(item => this.escapeHtml(item)).join(', ')}</p>`
             : '';
 
-        results.innerHTML = `
+        if (title) title.textContent = analysis.fitName;
+        if (subtitle) subtitle.textContent = `${analysis.hullName} · ${analysis.matchedItems}/${analysis.totalItems} items matched · ${requiredCount} required skills`;
+        createBtn?.classList.toggle('hidden', missing.length === 0);
+        importBtn?.classList.remove('hidden');
+
+        if (badge) {
+            badge.textContent = missing.length;
+            badge.classList.toggle('hidden', missing.length === 0);
+        }
+
+        content.innerHTML = `
             <div class="fit-summary">
                 <div><span>Hull</span><strong>${this.escapeHtml(analysis.hullName)}</strong></div>
-                <div><span>Fit</span><strong>${this.escapeHtml(analysis.fitName)}</strong></div>
                 <div><span>Items matched</span><strong>${analysis.matchedItems}/${analysis.totalItems}</strong></div>
+                <div><span>Required skills</span><strong>${requiredCount}</strong></div>
+                <div><span>Already trained</span><strong>${trainedCount}</strong></div>
                 <div><span>Missing skills</span><strong>${missing.length}</strong></div>
+            </div>
+            <div class="fit-view-section-head">
+                <h3>${missing.length ? 'Skills you are missing' : 'You can fly this fit'}</h3>
+                <span>${this.currentCharacterData?.skills ? 'Compared with your signed-in character' : 'Sign in with EVE SSO to compare with your character'}</span>
             </div>
             ${missing.length
                 ? `<div class="fit-skill-list">${missing.map(skill => `
@@ -1829,12 +1872,10 @@ class SkillPlannerApp {
                         <b>${this.roman(skill.targetLevel)}</b>
                         <small>${skill.currentLevel ? `have ${this.roman(skill.currentLevel)}` : 'not trained'}</small>
                     </div>`).join('')}</div>
-                    <p class="fit-note">${this.currentCharacterData?.skills ? 'Only skills you are missing are shown.' : 'Sign in with EVE SSO to compare against your real skills.'}</p>`
+                    <p class="fit-note">Creating a plan will add these skills and their prerequisites, ordered for training.</p>`
                 : '<p class="fit-note success">You already meet every skill requirement for this fit.</p>'}
             ${unknownNote}
         `;
-        results.classList.remove('hidden');
-        createBtn?.classList.toggle('hidden', missing.length === 0);
     }
 
     async createFitPlan() {

@@ -27,7 +27,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner Ã¢â‚¬â€ Training Queue, Implants &amp; Injectors | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -105,6 +105,10 @@
                 <button class="nav-item" data-view="planner">
                     <i class="fas fa-clipboard-list"></i> Skill Plan
                     <span class="badge hidden" id="planBadge">0</span>
+                </button>
+                <button class="nav-item" data-view="fit">
+                    <i class="fas fa-wrench"></i> Fit Analysis
+                    <span class="badge hidden" id="fitBadge">0</span>
                 </button>
                 <button class="nav-item" data-view="calculator">
                     <i class="fas fa-calculator"></i> Training Calc
@@ -446,6 +450,35 @@
                     </div>
                 </section>
 
+                <!-- Fit Analysis View -->
+                <section id="fitView" class="view">
+                    <div class="fit-view-header">
+                        <div>
+                            <span class="seo-faq-eyebrow"><i class="fas fa-wrench"></i> Fit Analysis</span>
+                            <h2 id="fitViewTitle">Import a fit to get started</h2>
+                            <p id="fitViewSubtitle" class="hint">Paste an EFT fit and the planner will work out which skills you are missing.</p>
+                        </div>
+                        <div class="fit-view-actions">
+                            <button class="btn-secondary" id="fitViewImportAnotherBtn">
+                                <i class="fas fa-file-import"></i> Import Another Fit
+                            </button>
+                            <button class="btn-primary hidden" id="fitViewCreatePlanBtn">
+                                <i class="fas fa-clipboard-list"></i> Create Skill Plan
+                            </button>
+                        </div>
+                    </div>
+                    <div id="fitViewContent" class="fit-view-content">
+                        <div class="fit-empty-state">
+                            <i class="fas fa-wrench"></i>
+                            <h3>No fit analysed yet</h3>
+                            <p>Paste an EFT fit to see the hull, matched modules and missing skills.</p>
+                            <button class="btn-primary" id="fitViewEmptyImportBtn">
+                                <i class="fas fa-file-import"></i> Import Fit
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Calculator View -->
                 <section id="calculatorView" class="view">
                     <div class="calc-tabs">
@@ -759,15 +792,11 @@
                     </button>
                     <span id="fitImportFileLabel" class="hint"></span>
                 </div>
-                <div id="fitImportResults" class="fit-results hidden"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" id="closeFitImportFooter">Cancel</button>
-                <button class="btn-secondary" id="analyseFitBtn">
+                <button class="btn-primary" id="analyseFitBtn">
                     <i class="fas fa-magnifying-glass"></i> Analyse Fit
-                </button>
-                <button class="btn-primary hidden" id="createFitPlanBtn">
-                    <i class="fas fa-clipboard-list"></i> Create Skill Plan
                 </button>
             </div>
         </div>
@@ -826,6 +855,6 @@
     <script src="training-calc.js?v=2026110505"></script>
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110508"></script>
-    <script src="app.js?v=2026110509"></script>
+    <script src="app.js?v=2026110510"></script>
 </body>
 </html>
