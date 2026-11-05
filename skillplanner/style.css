@@ -812,8 +812,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    max-height: 300px;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
 }
 
 .current-skill-item {
