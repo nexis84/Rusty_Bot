@@ -92,6 +92,7 @@ class SkillPlannerApp {
         
         this.updateUI();
         this.loadPlanFromUrl();
+        this.loadSharedFitFromUrl();
         this.updateInjectorPrice();
     }
 
@@ -3784,6 +3785,7 @@ class SkillPlannerApp {
                                 </div>`).join('')}</div>`}
                         <div class="saved-fit-actions">
                             <button class="btn-secondary btn-small" data-library-copy="${record.id}"><i class="fas fa-copy"></i> Copy EFT</button>
+                            <button class="btn-secondary btn-small" data-library-share="${record.id}"><i class="fas fa-share-nodes"></i> Share</button>
                             <button class="btn-secondary btn-small" data-library-open="${record.id}"><i class="fas fa-wrench"></i> Open Analysis</button>
                             <button class="btn-secondary btn-small" data-library-edit="${record.id}"><i class="fas fa-pen"></i> Edit</button>
                             <button class="btn-danger btn-small" data-library-delete="${record.id}"><i class="fas fa-trash"></i> Delete</button>
@@ -3809,6 +3811,9 @@ class SkillPlannerApp {
         });
         content.querySelectorAll('[data-library-copy]').forEach(button => {
             button.addEventListener('click', () => this.copyLibraryEft(button.dataset.libraryCopy));
+        });
+        content.querySelectorAll('[data-library-share]').forEach(button => {
+            button.addEventListener('click', () => this.shareLibraryFit(button.dataset.libraryShare));
         });
         content.querySelectorAll('[data-library-open]').forEach(button => {
             button.addEventListener('click', () => this.openLibraryAnalysis(button.dataset.libraryOpen));
@@ -3842,8 +3847,8 @@ class SkillPlannerApp {
             const analysis = this.pendingLibraryAnalysis || this.fitAnalysis;
             if (title) title.textContent = 'Save to Doctrine Library';
             if (nameInput) nameInput.value = analysis?.fitName || '';
-            if (tagsInput) tagsInput.value = '';
-            if (notesInput) notesInput.value = analysis?.description || '';
+            if (tagsInput) tagsInput.value = (analysis?.sharedTags || []).join(', ');
+            if (notesInput) notesInput.value = analysis?.sharedNotes || analysis?.description || '';
         }
 
         modal?.classList.remove('hidden');
@@ -3930,6 +3935,48 @@ class SkillPlannerApp {
             ok ? `Copied ${result.record.name} as EFT` : 'Could not copy the fit',
             ok ? 'success' : 'error'
         );
+    }
+
+    async shareLibraryFit(id) {
+        const result = this.getLibraryResult(id);
+        const record = result?.record || this.libraryRecords.find(item => item.id === id);
+        if (!record) return;
+
+        const eft = record.eft || result?.analysis?.eftText;
+        if (!eft) {
+            this.showMessage('That doctrine fit has no EFT to share.', 'warning');
+            return;
+        }
+
+        const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
+        try {
+            const response = await fetch(`${apiBase}/skillplan/fit-share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    name: record.name,
+                    hull: result?.analysis?.hullName || '',
+                    eft,
+                    tags: record.tags || [],
+                    notes: record.notes || ''
+                })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.code) {
+                throw new Error(data.error || 'Share link creation failed');
+            }
+
+            const url = new URL(window.location.href);
+            url.search = '';
+            url.hash = `fit=${data.code}`;
+            const ok = await this.copyText(url.toString());
+            this.showMessage(
+                ok ? 'Short fit share link copied' : 'Could not copy the share link',
+                ok ? 'success' : 'error'
+            );
+        } catch (error) {
+            this.showMessage(`Could not create a share link: ${error.message}`, 'error');
+        }
     }
 
     openLibraryAnalysis(id) {
@@ -4409,6 +4456,48 @@ class SkillPlannerApp {
             + (params.toString() ? `?${params.toString()}` : '')
             + (!shortCode ? window.location.hash : '');
         window.history.replaceState({}, document.title, cleanUrl);
+    }
+
+    async loadSharedFitFromUrl() {
+        const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const code = hash.get('fit');
+        if (!code) return;
+
+        const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
+        let shared;
+        try {
+            const response = await fetch(`${apiBase}/skillplan/fit-share/${encodeURIComponent(code)}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.eft) {
+                this.showMessage('That shared fit link is invalid or has expired.', 'error');
+                return;
+            }
+            shared = data;
+        } catch (_) {
+            this.showMessage('Could not load that shared fit link.', 'error');
+            return;
+        }
+
+        try {
+            const { analysis } = await this.analyseFitText(shared.eft);
+            if (!analysis) throw new Error('the fit could not be analysed');
+            if (shared.name) analysis.fitName = shared.name;
+            analysis.sharedTags = Array.isArray(shared.tags) ? shared.tags : [];
+            analysis.sharedNotes = shared.notes || '';
+            this.fitAnalysis = analysis;
+            this.switchView('fit');
+            this.showMessage(`Loaded shared doctrine fit "${analysis.fitName}".`, 'success');
+        } catch (error) {
+            this.showMessage(`Could not analyse the shared fit: ${error.message}`, 'error');
+        }
+
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname + window.location.search
+        );
     }
 
     // Skill book prices (Jita sell) for the plan summary.

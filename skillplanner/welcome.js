@@ -123,6 +123,6 @@
     // Do not cover a shared plan link; the recipient came for the plan.
     const params = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    const isSharedPlan = params.has('plan') || hashParams.has('plan');
+    const isSharedPlan = params.has('plan') || hashParams.has('plan') || hashParams.has('fit');
     if (!store.seen() && !isSharedPlan) open();
 })();
