@@ -1678,7 +1678,8 @@ class SkillPlannerApp {
         if (!header) throw new Error('The first line must look like [Ship, Fit Name].');
 
         const hullName = header[1].trim();
-        const fitName = (header[2] || '').trim() || `${hullName} fit`;
+        // EVE prefixes simulated fittings with an asterisk; keep the name clean.
+        const fitName = ((header[2] || '').trim() || `${hullName} fit`).replace(/^\*\s*/, '');
         const items = [];
 
         lines.forEach(line => {
