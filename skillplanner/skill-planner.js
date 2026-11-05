@@ -55,6 +55,33 @@ class SkillPlanner {
         return `${baseKey}_${characterId || 'guest'}`;
     }
 
+    // Normalize old plans that stored one entry per skill level into one entry
+    // per skill at the highest target level.
+    normalizePlanEntries(plan) {
+        if (!Array.isArray(plan)) return [];
+
+        const bySkill = new Map();
+        plan.forEach(item => {
+            const skillId = Number(item.skillId);
+            const targetLevel = Number(item.targetLevel);
+            if (!Number.isInteger(skillId) || !Number.isInteger(targetLevel)) return;
+            if (targetLevel < 1 || targetLevel > 5) return;
+
+            const existing = bySkill.get(skillId);
+            if (!existing || targetLevel > existing.targetLevel) {
+                bySkill.set(skillId, {
+                    ...item,
+                    skillId,
+                    targetLevel,
+                    skillName: window.SKILLS?.[skillId]?.name || item.skillName || `Skill ${skillId}`,
+                    addedAt: item.addedAt || Date.now()
+                });
+            }
+        });
+
+        return Array.from(bySkill.values());
+    }
+
     // Switch active character context for plan data
     setActiveCharacter(characterId) {
         this.activeCharacterId = characterId || null;
@@ -86,7 +113,7 @@ class SkillPlanner {
 
         try {
             const plan = stored ? JSON.parse(stored) : [];
-            return Array.isArray(plan) ? plan : [];
+            return this.normalizePlanEntries(plan);
         } catch (e) {
             console.warn('Failed to load saved skill plan:', e);
             return [];
@@ -302,23 +329,21 @@ class SkillPlanner {
             const beforeLevel = this.getEffectiveSkillLevel(id, currentSkills);
             if (requiredLevel > beforeLevel) {
                 const wasInPlan = this.isInPlan(id);
-                // Use addSkillLevels to add individual entries for each level
-                const result = this.addSkillLevels(id, requiredLevel, currentSkills);
-                if (result.success && result.added.length > 0) {
-                    result.added.forEach(add => {
-                        const entry = {
-                            skillId: id,
-                            skillName: skill.name,
-                            fromLevel: add.level - 1,
-                            toLevel: add.level
-                        };
+                // Keep one entry per skill; the entry stores the target level.
+                const result = this.addSkill(id, requiredLevel, currentSkills);
+                if (result.success) {
+                    const entry = {
+                        skillId: id,
+                        skillName: skill.name,
+                        fromLevel: beforeLevel,
+                        toLevel: requiredLevel
+                    };
 
-                        if (beforeLevel > 0 || wasInPlan) {
-                            upgraded.push(entry);
-                        } else {
-                            added.push(entry);
-                        }
-                    });
+                    if (beforeLevel > 0 || wasInPlan) {
+                        upgraded.push(entry);
+                    } else {
+                        added.push(entry);
+                    }
                 }
             }
 
@@ -686,11 +711,12 @@ class SkillPlanner {
 
     // Import EVE clipboard text ("Skill Name Level" per line) or JSON.
     async importPlanText(text, currentSkills = null, name = null) {
+        const normalizeName = value => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
         const lines = String(text || '').split(/\r?\n/);
         const byName = new Map();
         Object.entries(window.SKILLS).forEach(([id, skill]) => {
             if (skill?.name) {
-                byName.set(skill.name.trim().toLowerCase(), parseInt(id, 10));
+                byName.set(normalizeName(skill.name), parseInt(id, 10));
             }
         });
 
@@ -708,7 +734,7 @@ class SkillPlanner {
             const skillName = match[1].trim();
             const levelToken = match[2].toUpperCase();
             const level = /^[1-5]$/.test(levelToken) ? parseInt(levelToken, 10) : roman[levelToken];
-            const skillId = byName.get(skillName.toLowerCase());
+            const skillId = byName.get(normalizeName(skillName));
 
             if (!skillId || !level) {
                 missing.push(skillName);
@@ -894,18 +920,17 @@ class SkillPlanner {
         return skill ? skill.trained_skill_level : 0;
     }
 
-    // Save named plan
+    // Save named plan. Clone the entries so editing the live plan afterwards
+    // cannot mutate the saved copy.
     saveNamedPlan(name) {
         const plans = this.loadSavedPlans();
         plans[name] = {
-            plan: this.plan,
+            plan: this.plan.map(item => ({ ...item })),
             savedAt: new Date().toISOString()
         };
 
         const savedPlansKey = this.getScopedStorageKey('saved_plans');
-        if (savedPlansKey) {
-            localStorage.setItem(savedPlansKey, JSON.stringify(plans));
-        }
+        localStorage.setItem(savedPlansKey, JSON.stringify(plans));
     }
 
     // Load saved plan
@@ -913,7 +938,7 @@ class SkillPlanner {
         const plans = this.loadSavedPlans();
         const saved = plans[name];
         if (saved) {
-            this.plan = saved.plan;
+            this.plan = this.normalizePlanEntries((saved.plan || []).map(item => ({ ...item })));
             this.name = name;
             this.savePlan();
             return true;

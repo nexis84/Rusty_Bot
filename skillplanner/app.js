@@ -503,9 +503,9 @@ class SkillPlannerApp {
         const charName = char?.characterName || 'Character';
         
         if (confirm(`Logout ${charName}?`)) {
-            // Reset visible planner state while keeping persisted per-character plans.
+            // Return to the anonymous workspace. Character plans stay persisted
+            // under their own key and are restored when the character returns.
             skillPlanner.setActiveCharacter(null);
-            skillPlanner.clearSessionPlan();
 
             this.currentCharacter = null;
             this.currentCharacterData = null;
