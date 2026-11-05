@@ -667,6 +667,84 @@ body {
     color: var(--error-color);
 }
 
+.implant-summary {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--secondary-color);
+}
+
+.implant-summary-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--text-subtle-color);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.implant-summary-head i {
+    color: var(--accent-color);
+    margin-right: 4px;
+}
+
+.implant-count {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.implant-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.implant-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    max-width: 100%;
+    padding: 5px 8px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.76rem;
+}
+
+.implant-chip strong {
+    overflow: hidden;
+    color: var(--text-color);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.implant-chip small {
+    color: var(--accent-color);
+    font-size: 0.68rem;
+    white-space: nowrap;
+}
+
+.implant-empty {
+    color: var(--text-subtle-color);
+    font-size: 0.78rem;
+}
+
+.booster-note {
+    margin: 9px 0 0;
+    color: var(--text-subtle-color);
+    font-size: 0.74rem;
+    line-height: 1.4;
+}
+
+.booster-note i {
+    color: var(--accent-color);
+    margin-right: 4px;
+}
+
 .attr-value {
     font-size: 0.9rem;
     font-weight: 600;

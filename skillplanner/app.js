@@ -27,6 +27,8 @@ class SkillPlannerApp {
         this.characterSyncedAt = null;
         this.fitDataById = null;
         this.shipData = [];
+        this.typeNameCache = new Map();
+        this.implantRenderToken = 0;
         this.lastFitText = null;
         this.libraryRecords = this.loadLibraryRecords();
         this.libraryAnalyses = [];
@@ -708,6 +710,7 @@ class SkillPlannerApp {
             this.updateAttributeDisplay('Per', attrs.perception, implants.perception);
             this.updateAttributeDisplay('Will', attrs.willpower, implants.willpower);
             this.updateAttributeDisplay('Char', attrs.charisma, implants.charisma);
+            this.renderImplantSummary();
 
             if (this.remapCount) {
                 const rawAttrs = this.currentCharacterData.attributes;
@@ -730,6 +733,7 @@ class SkillPlannerApp {
                 if (valBonus) valBonus.textContent = '';
             });
             if (this.remapCount) this.remapCount.textContent = '--';
+            this.renderImplantSummary();
         }
         
         // Render character list
@@ -824,6 +828,17 @@ class SkillPlannerApp {
             const heroTitle = document.getElementById('dashboardHeroTitle');
             if (heroTitle) heroTitle.textContent = 'Welcome to EVE Skill Planner';
             this.updateWelcomeIdentity();
+
+            this.implantRenderToken++;
+            const implantList = document.getElementById('implantList');
+            const implantCount = document.getElementById('implantCount');
+            const attrSource = document.getElementById('attrSource');
+            if (implantList) implantList.innerHTML = '<span class="implant-empty">Sign in to load implants.</span>';
+            if (implantCount) implantCount.textContent = '';
+            if (attrSource) {
+                attrSource.textContent = 'Sign in';
+                attrSource.classList.remove('unavailable');
+            }
             
             // Clear dashboard stats
             this.totalSp.textContent = '--';
@@ -1348,6 +1363,121 @@ class SkillPlannerApp {
             });
         });
         return bonuses;
+    }
+
+    getImplantTypeIds() {
+        return (this.currentCharacterData?.implants || [])
+            .map(implant => typeof implant === 'number' ? implant : implant?.type_id)
+            .filter(typeId => Number.isInteger(typeId) && typeId > 0);
+    }
+
+    formatImplantBonus(typeId) {
+        const bonuses = (window.IMPLANT_BONUSES || {})[typeId];
+        if (!bonuses) return 'No attribute bonus';
+        const short = {
+            intelligence: 'INT',
+            memory: 'MEM',
+            perception: 'PER',
+            willpower: 'WIL',
+            charisma: 'CHA'
+        };
+        return Object.entries(bonuses)
+            .map(([attribute, bonus]) => `+${bonus} ${short[attribute] || attribute}`)
+            .join(', ');
+    }
+
+    async resolveTypeNames(typeIds) {
+        const names = new Map();
+        const missing = [];
+
+        typeIds.forEach(typeId => {
+            const known = this.fitDataById?.[typeId]?.name || this.typeNameCache.get(typeId);
+            if (known) names.set(typeId, known);
+            else missing.push(typeId);
+        });
+
+        if (missing.length > 0) {
+            try {
+                const response = await fetch(
+                    'https://esi.evetech.net/latest/universe/names/',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(missing)
+                    }
+                );
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                data.forEach(entry => {
+                    const name = entry.name || `Type ${entry.id}`;
+                    this.typeNameCache.set(entry.id, name);
+                    names.set(entry.id, name);
+                });
+            } catch (_) {
+                // Fall through to stable placeholders.
+            }
+        }
+
+        typeIds.forEach(typeId => {
+            if (!names.has(typeId)) names.set(typeId, `Type ${typeId}`);
+        });
+        return names;
+    }
+
+    async renderImplantSummary() {
+        const list = document.getElementById('implantList');
+        const count = document.getElementById('implantCount');
+        const boosterNote = document.getElementById('boosterNote');
+        if (!list) return;
+
+        const token = ++this.implantRenderToken;
+        const typeIds = this.getImplantTypeIds();
+
+        if (!this.currentCharacterData?.attributes) {
+            if (count) count.textContent = '';
+            list.innerHTML = '<span class="implant-empty">ESI attributes are unavailable.</span>';
+            return;
+        }
+
+        if (typeIds.length === 0) {
+            if (count) count.textContent = '0 active';
+            list.innerHTML = '<span class="implant-empty">No active implants detected.</span>';
+        } else {
+            if (count) count.textContent = `${typeIds.length} active`;
+            list.innerHTML = '<span class="implant-empty">Loading implant names...</span>';
+
+            const names = await this.resolveTypeNames(typeIds);
+            if (token !== this.implantRenderToken) return;
+
+            const implants = typeIds.map(typeId => ({
+                typeId,
+                name: names.get(typeId),
+                bonus: this.formatImplantBonus(typeId)
+            }));
+
+            list.innerHTML = implants.map(implant => `
+                <span class="implant-chip" title="${this.escapeHtml(implant.bonus)}">
+                    <strong>${this.escapeHtml(implant.name)}</strong>
+                    <small>${this.escapeHtml(implant.bonus)}</small>
+                </span>`).join('');
+        }
+
+        if (boosterNote) {
+            const boosters = this.currentCharacterData?.boosters || [];
+            if (boosters.length > 0) {
+                const boosterIds = boosters
+                    .map(booster => typeof booster === 'number' ? booster : booster?.type_id)
+                    .filter(typeId => Number.isInteger(typeId) && typeId > 0);
+                const boosterNames = await this.resolveTypeNames(boosterIds);
+                if (token !== this.implantRenderToken) return;
+                boosterNote.innerHTML = `<i class="fas fa-flask"></i> Active booster: ${boosterIds.map(typeId => this.escapeHtml(boosterNames.get(typeId))).join(', ')}. Its bonus is included in the totals above.`;
+            } else {
+                boosterNote.innerHTML = '<i class="fas fa-flask"></i> ESI does not expose the specific active booster. Any booster bonus is already included in the attribute totals above.';
+            }
+        }
     }
 
     // ESI returns effective attributes with implants (and any active cerebral
