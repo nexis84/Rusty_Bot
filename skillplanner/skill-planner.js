@@ -832,6 +832,73 @@ class SkillPlanner {
         return Array.from(map.values());
     }
 
+    // Build a plan from a fit's requirement map (skillId -> level).
+    // Adds prerequisites, removes skills the character already has, and orders
+    // the result so it can be exported straight to EVE.
+    buildPlanFromRequirements(requirements, currentSkills = null, name = 'Fit Plan') {
+        const required = new Map();
+        const visiting = new Set();
+        const unknownSkills = [];
+
+        const addRequirement = (skillId, level) => {
+            const id = parseInt(skillId, 10);
+            const target = parseInt(level, 10);
+            if (!window.SKILLS[id]) {
+                if (!unknownSkills.includes(id)) unknownSkills.push(id);
+                return;
+            }
+            if (!Number.isInteger(target) || target < 1 || target > 5) return;
+
+            const existing = required.get(id) || 0;
+            if (target <= existing) return;
+            required.set(id, target);
+
+            if (visiting.has(id)) return;
+            visiting.add(id);
+            Object.entries(window.SKILLS[id].prereqs || {}).forEach(([prereqId, prereqLevel]) => {
+                addRequirement(prereqId, prereqLevel);
+            });
+            visiting.delete(id);
+        };
+
+        Object.entries(requirements || {}).forEach(([skillId, level]) => {
+            addRequirement(skillId, level);
+        });
+
+        const currentLevels = new Map();
+        if (currentSkills?.skills) {
+            currentSkills.skills.forEach(skill => {
+                currentLevels.set(skill.skill_id, skill.trained_skill_level || 0);
+            });
+        }
+
+        const missing = [];
+        required.forEach((level, skillId) => {
+            const current = currentLevels.get(skillId) || 0;
+            if (level <= current) return;
+            missing.push({
+                skillId,
+                skillName: window.SKILLS[skillId].name,
+                targetLevel: level,
+                currentLevel: current,
+                addedAt: Date.now()
+            });
+        });
+
+        this.plan = this.normalizePlanEntries(missing);
+        this.name = name;
+        this.optimizeOrder(currentSkills);
+        this.savePlan();
+
+        return {
+            success: true,
+            plan: this.plan,
+            required: required.size,
+            missing: this.plan.length,
+            unknownSkills
+        };
+    }
+
     // Get plan summary stats
     getSummary(currentSkills = null) {
         const trainingResult = trainingCalc.calculatePlanTime(this.plan, currentSkills);

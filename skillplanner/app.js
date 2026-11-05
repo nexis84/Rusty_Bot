@@ -13,6 +13,9 @@ class SkillPlannerApp {
         this.bookPricePromise = null;
         this.injectorPrice = 900000000;
         this.injectorPriceType = 40520; // Large Skill Injector
+        this.fitData = null;
+        this.fitDataPromise = null;
+        this.fitAnalysis = null;
         this.init();
     }
 
@@ -175,6 +178,7 @@ class SkillPlannerApp {
         
         // Quick actions
         document.getElementById('quickPlanBtn')?.addEventListener('click', () => this.switchView('skills'));
+        document.getElementById('quickFitBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('quickImportBtn')?.addEventListener('click', () => this.openImportPlan());
         document.getElementById('quickImportQueueBtn')?.addEventListener('click', () => this.importFromQueue());
         document.getElementById('quickExportBtn')?.addEventListener('click', () => this.downloadPlanText());
@@ -189,6 +193,7 @@ class SkillPlannerApp {
         this.mySkillsFilter?.addEventListener('change', () => this.renderMySkills());
         
         // Planner actions
+        document.getElementById('plannerImportFitBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('plannerImportPlanBtn')?.addEventListener('click', () => this.openImportPlan());
         document.getElementById('plannerExportPlanBtn')?.addEventListener('click', () => this.downloadPlanText());
         document.getElementById('copyPlanBtn')?.addEventListener('click', () => this.copyPlanForEve());
@@ -246,6 +251,14 @@ class SkillPlannerApp {
         document.getElementById('confirmPlanImport')?.addEventListener('click', () => this.submitImportPlan());
         document.getElementById('planImportFileBtn')?.addEventListener('click', () => document.getElementById('planImportFile')?.click());
         document.getElementById('planImportFile')?.addEventListener('change', (event) => this.loadImportFile(event));
+
+        // Fit import
+        document.getElementById('closeFitImport')?.addEventListener('click', () => this.closeFitImport());
+        document.getElementById('closeFitImportFooter')?.addEventListener('click', () => this.closeFitImport());
+        document.getElementById('analyseFitBtn')?.addEventListener('click', () => this.analyseFit());
+        document.getElementById('createFitPlanBtn')?.addEventListener('click', () => this.createFitPlan());
+        document.getElementById('fitImportFileBtn')?.addEventListener('click', () => document.getElementById('fitImportFile')?.click());
+        document.getElementById('fitImportFile')?.addEventListener('change', (event) => this.loadFitFile(event));
         
         // Skill picker search
         document.getElementById('pickerSearch')?.addEventListener('input', (e) => this.filterPickerSkills(e.target.value));
@@ -260,6 +273,7 @@ class SkillPlannerApp {
                 this.closeSkillDetail();
                 this.closePlanManager();
                 this.closeImportPlan();
+                this.closeFitImport();
                 return;
             }
 
@@ -1594,6 +1608,261 @@ class SkillPlannerApp {
         } else {
             this.showMessage(result.message, 'error');
         }
+    }
+
+    // Fit import
+    normalizeFitName(value) {
+        return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    openFitImport() {
+        const modal = document.getElementById('fitImportModal');
+        const text = document.getElementById('fitImportText');
+        const results = document.getElementById('fitImportResults');
+        const create = document.getElementById('createFitPlanBtn');
+        const file = document.getElementById('fitImportFile');
+        const label = document.getElementById('fitImportFileLabel');
+
+        if (text) text.value = '';
+        if (file) file.value = '';
+        if (label) label.textContent = '';
+        results?.classList.add('hidden');
+        create?.classList.add('hidden');
+        this.fitAnalysis = null;
+        modal?.classList.remove('hidden');
+        text?.focus();
+    }
+
+    closeFitImport() {
+        document.getElementById('fitImportModal')?.classList.add('hidden');
+    }
+
+    loadFitFile(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const text = document.getElementById('fitImportText');
+            if (text) text.value = reader.result;
+            const label = document.getElementById('fitImportFileLabel');
+            if (label) label.textContent = file.name;
+        };
+        reader.readAsText(file);
+    }
+
+    async loadFitData() {
+        if (this.fitData) return this.fitData;
+        if (this.fitDataPromise) return this.fitDataPromise;
+
+        this.fitDataPromise = fetch('fit-data.json', { cache: 'no-cache' })
+            .then(response => {
+                if (!response.ok) throw new Error(`Fit data unavailable (HTTP ${response.status})`);
+                return response.json();
+            })
+            .then(data => {
+                this.fitData = data;
+                return data;
+            })
+            .finally(() => {
+                this.fitDataPromise = null;
+            });
+
+        return this.fitDataPromise;
+    }
+
+    parseFitText(text) {
+        const lines = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+        if (lines.length === 0) throw new Error('Paste an EFT fit first.');
+
+        const header = lines.shift().match(/^\[([^\],]+)(?:,\s*(.+?))?\]$/);
+        if (!header) throw new Error('The first line must look like [Ship, Fit Name].');
+
+        const hullName = header[1].trim();
+        const fitName = (header[2] || '').trim() || `${hullName} fit`;
+        const items = [];
+
+        lines.forEach(line => {
+            if (/^\[empty/i.test(line)) return;
+            if (/^---/.test(line)) return;
+            if (/^[;#]/.test(line)) return;
+
+            const quantityMatch = line.match(/^(.+?)\s+x(\d+)$/i);
+            const name = (quantityMatch ? quantityMatch[1] : line).trim();
+            const quantity = quantityMatch ? Number(quantityMatch[2]) : 1;
+            if (!name || /^\[empty/i.test(name)) return;
+            items.push({ name, quantity });
+        });
+
+        return { hullName, fitName, items };
+    }
+
+    async analyseFit() {
+        const text = document.getElementById('fitImportText')?.value.trim();
+        if (!text) {
+            this.showMessage('Paste an EFT fit first.', 'warning');
+            return;
+        }
+
+        let parsed;
+        try {
+            parsed = this.parseFitText(text);
+        } catch (error) {
+            this.showMessage(error.message, 'error');
+            return;
+        }
+
+        let fitData;
+        try {
+            fitData = await this.loadFitData();
+        } catch (error) {
+            this.showMessage(error.message, 'error');
+            return;
+        }
+
+        const hull = fitData[this.normalizeFitName(parsed.hullName)];
+        if (!hull) {
+            this.showMessage(`Hull "${parsed.hullName}" was not found in the SDE.`, 'error');
+            return;
+        }
+
+        const requirements = new Map();
+        const addSkills = entry => {
+            Object.entries(entry.skills || {}).forEach(([skillId, level]) => {
+                const id = parseInt(skillId, 10);
+                if (Number.isInteger(id) && level > 0) {
+                    requirements.set(id, Math.max(requirements.get(id) || 0, level));
+                }
+            });
+        };
+
+        addSkills(hull);
+
+        const unknown = [];
+        let matchedItems = 0;
+        parsed.items.forEach(item => {
+            const entry = fitData[this.normalizeFitName(item.name)];
+            if (!entry) {
+                unknown.push(item.name);
+                return;
+            }
+            matchedItems++;
+            addSkills(entry);
+        });
+
+        // Expand prerequisites locally so the preview matches the final plan.
+        const expanded = new Map();
+        const visiting = new Set();
+        const addRequirement = (skillId, level) => {
+            const skill = window.SKILLS[skillId];
+            if (!skill) return;
+
+            const current = expanded.get(skillId) || 0;
+            if (level <= current) return;
+            expanded.set(skillId, level);
+
+            if (visiting.has(skillId)) return;
+            visiting.add(skillId);
+            Object.entries(skill.prereqs || {}).forEach(([id, prereqLevel]) => {
+                addRequirement(parseInt(id, 10), prereqLevel);
+            });
+            visiting.delete(skillId);
+        };
+
+        requirements.forEach((level, id) => addRequirement(id, level));
+
+        const currentLevels = new Map();
+        if (this.currentCharacterData?.skills?.skills) {
+            this.currentCharacterData.skills.skills.forEach(skill => {
+                currentLevels.set(skill.skill_id, skill.trained_skill_level || 0);
+            });
+        }
+
+        const missing = [];
+        expanded.forEach((level, skillId) => {
+            const current = currentLevels.get(skillId) || 0;
+            if (level > current) {
+                missing.push({
+                    skillId,
+                    skillName: window.SKILLS[skillId]?.name || `Skill ${skillId}`,
+                    targetLevel: level,
+                    currentLevel: current
+                });
+            }
+        });
+        missing.sort((a, b) => a.skillName.localeCompare(b.skillName));
+
+        this.fitAnalysis = {
+            fitName: parsed.fitName,
+            hullName: hull.name,
+            matchedItems,
+            totalItems: parsed.items.length,
+            unknown,
+            required: Object.fromEntries(requirements),
+            missing
+        };
+
+        this.renderFitAnalysis();
+    }
+
+    renderFitAnalysis() {
+        const results = document.getElementById('fitImportResults');
+        const createBtn = document.getElementById('createFitPlanBtn');
+        if (!results || !this.fitAnalysis) return;
+
+        const analysis = this.fitAnalysis;
+        const missing = analysis.missing;
+        const unknownNote = analysis.unknown.length
+            ? `<p class="fit-note warn"><strong>Not recognised:</strong> ${analysis.unknown.map(item => this.escapeHtml(item)).join(', ')}</p>`
+            : '';
+
+        results.innerHTML = `
+            <div class="fit-summary">
+                <div><span>Hull</span><strong>${this.escapeHtml(analysis.hullName)}</strong></div>
+                <div><span>Fit</span><strong>${this.escapeHtml(analysis.fitName)}</strong></div>
+                <div><span>Items matched</span><strong>${analysis.matchedItems}/${analysis.totalItems}</strong></div>
+                <div><span>Missing skills</span><strong>${missing.length}</strong></div>
+            </div>
+            ${missing.length
+                ? `<div class="fit-skill-list">${missing.map(skill => `
+                    <div class="fit-skill-item">
+                        <span>${this.escapeHtml(skill.skillName)}</span>
+                        <b>${this.roman(skill.targetLevel)}</b>
+                        <small>${skill.currentLevel ? `have ${this.roman(skill.currentLevel)}` : 'not trained'}</small>
+                    </div>`).join('')}</div>
+                    <p class="fit-note">${this.currentCharacterData?.skills ? 'Only skills you are missing are shown.' : 'Sign in with EVE SSO to compare against your real skills.'}</p>`
+                : '<p class="fit-note success">You already meet every skill requirement for this fit.</p>'}
+            ${unknownNote}
+        `;
+        results.classList.remove('hidden');
+        createBtn?.classList.toggle('hidden', missing.length === 0);
+    }
+
+    async createFitPlan() {
+        if (!this.fitAnalysis || this.fitAnalysis.missing.length === 0) return;
+
+        if (skillPlanner.getPlan().length > 0) {
+            const replace = confirm('Replace the current skill plan with this fit plan?');
+            if (!replace) return;
+        }
+
+        const result = skillPlanner.buildPlanFromRequirements(
+            this.fitAnalysis.required,
+            this.currentCharacterData?.skills,
+            `Fit: ${this.fitAnalysis.fitName}`
+        );
+
+        if (!result.missing) {
+            this.showMessage('You already meet every skill requirement for this fit.', 'success');
+            return;
+        }
+
+        this.closeFitImport();
+        this.planName.value = skillPlanner.getName();
+        this.renderPlan();
+        this.updatePlanSummary();
+        this.updatePlanBadge();
+        this.switchView('planner');
+        this.showMessage(`Created a plan with ${result.missing} missing skills for ${this.fitAnalysis.fitName}.`, 'success');
     }
 
     // EVE clipboard / file export

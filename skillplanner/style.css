@@ -2273,6 +2273,81 @@ body {
     color: var(--accent-color);
 }
 
+/* --- Fit import --- */
+.fit-results {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--secondary-color);
+}
+
+.fit-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.fit-summary > div {
+    padding: 10px 12px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.fit-summary span {
+    display: block;
+    color: var(--text-subtle-color);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.fit-summary strong {
+    color: var(--text-color);
+}
+
+.fit-skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.fit-skill-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--secondary-color);
+    border-radius: 5px;
+    font-size: 0.84rem;
+}
+
+.fit-skill-item b {
+    color: var(--accent-color);
+}
+
+.fit-skill-item small {
+    color: var(--text-subtle-color);
+}
+
+.fit-note {
+    margin-top: 12px;
+    color: var(--text-subtle-color);
+    font-size: 0.82rem;
+}
+
+.fit-note.warn {
+    color: var(--warning-color);
+}
+
+.fit-note.success {
+    color: var(--success-color);
+}
+
 /* --- Footer --- */
 .main-footer {
     text-align: center;
@@ -2346,6 +2421,10 @@ body {
 
     .seo-faq-footer {
         align-items: flex-start;
+    }
+
+    .fit-summary {
+        grid-template-columns: 1fr;
     }
 
     .plan-actions {
