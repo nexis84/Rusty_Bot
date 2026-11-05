@@ -341,6 +341,7 @@ class ESIAuth {
 // Create global instance
 const esiAuth = new ESIAuth();
 window.esiAuth = esiAuth;
+window.SKILLPLANNER_API_BASE = API_BASE;
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { ESIAuth, esiAuth, REQUIRED_SCOPES, FITTINGS_SCOPE, STRUCTURES_SCOPE, API_BASE };

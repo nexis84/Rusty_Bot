@@ -4283,18 +4283,43 @@ class SkillPlannerApp {
             return;
         }
 
+        const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
+        const name = skillPlanner.getName() || 'Shared Skill Plan';
+
+        // Prefer a compact short link. Fall back to the legacy inline link if
+        // the short-link service is unavailable.
+        try {
+            const response = await fetch(`${apiBase}/skillplan/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ plan: payload, name })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (response.ok && data.code) {
+                const url = new URL(window.location.href);
+                url.search = '';
+                url.hash = `plan=${data.code}`;
+                const ok = await this.copyText(url.toString());
+                this.showMessage(
+                    ok ? 'Short share link copied' : 'Could not copy the share link',
+                    ok ? 'success' : 'error'
+                );
+                return;
+            }
+        } catch (_) {
+            // Fall through to the long-link fallback.
+        }
+
         const url = new URL(window.location.href);
         url.search = '';
         url.hash = '';
         url.searchParams.set('plan', payload);
-        if (skillPlanner.getName()) {
-            url.searchParams.set('name', skillPlanner.getName());
-        }
+        if (name) url.searchParams.set('name', name);
 
         const ok = await this.copyText(url.toString());
         this.showMessage(
-            ok ? 'Share link copied' : 'Could not copy the share link',
-            ok ? 'success' : 'error'
+            ok ? 'Short link unavailable - full share link copied' : 'Could not copy the share link',
+            ok ? 'warning' : 'error'
         );
     }
 
@@ -4321,12 +4346,36 @@ class SkillPlannerApp {
         }
     }
 
-    loadPlanFromUrl() {
+    async loadPlanFromUrl() {
         const params = new URLSearchParams(window.location.search);
-        const payload = params.get('plan');
-        if (!payload) return;
+        let payload = params.get('plan');
+        let name = params.get('name') || 'Shared Plan';
+        let shortCode = null;
 
-        if (payload.length > 10000) {
+        if (!payload) {
+            const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            shortCode = hash.get('plan');
+            if (!shortCode) return;
+
+            const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
+            try {
+                const response = await fetch(`${apiBase}/skillplan/share/${encodeURIComponent(shortCode)}`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.plan) {
+                    this.showMessage('That short share link is invalid or has expired.', 'error');
+                    return;
+                }
+                payload = data.plan;
+                name = data.name || name;
+            } catch (_) {
+                this.showMessage('Could not load that short share link.', 'error');
+                return;
+            }
+        }
+
+        if (payload.length > 20000) {
             this.showMessage('That share link is too large', 'warning');
             return;
         }
@@ -4343,7 +4392,6 @@ class SkillPlannerApp {
             return;
         }
 
-        const name = params.get('name') || 'Shared Plan';
         const result = skillPlanner.importPlan(JSON.stringify({ name, skills }));
 
         if (result.success) {
@@ -4352,13 +4400,14 @@ class SkillPlannerApp {
             this.renderPlan();
             this.updatePlanSummary();
             this.updatePlanBadge();
+            this.switchView('planner');
         }
 
         params.delete('plan');
         params.delete('name');
         const cleanUrl = window.location.pathname
             + (params.toString() ? `?${params.toString()}` : '')
-            + window.location.hash;
+            + (!shortCode ? window.location.hash : '');
         window.history.replaceState({}, document.title, cleanUrl);
     }
 
