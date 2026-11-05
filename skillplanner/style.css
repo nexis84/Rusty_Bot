@@ -654,6 +654,19 @@ body {
     transition: width 0.3s ease;
 }
 
+.attr-source {
+    margin-left: 6px;
+    color: var(--text-subtle-color);
+    font-size: 0.66rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.attr-source.unavailable {
+    color: var(--error-color);
+}
+
 .attr-value {
     font-size: 0.9rem;
     font-weight: 600;

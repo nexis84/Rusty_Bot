@@ -117,20 +117,12 @@ class CharacterManager {
             this.setCachedData(characterId, 'attributes', data);
             return data;
         } catch (e) {
-            console.warn('Failed to fetch attributes from ESI, using defaults:', e.message);
-            // Return defaults as fallback
-            const defaults = {
-                intelligence: 20,
-                memory: 20,
-                perception: 20,
-                willpower: 20,
-                charisma: 19,
-                bonus_remaps: 0,
-                last_remap_date: null,
-                accrued_remap_cooldown_date: null
-            };
-            this.setCachedData(characterId, 'attributes', defaults);
-            return defaults;
+            console.warn('Failed to fetch attributes from ESI:', e.message);
+            // Never cache invented defaults. If a previous successful value
+            // exists, keep showing that; otherwise let the UI report that ESI
+            // attributes are unavailable and offer a refresh.
+            const previous = this.characters[characterId]?.cache?.attributes?.data;
+            return previous || null;
         }
     }
 
@@ -149,10 +141,11 @@ class CharacterManager {
             } else {
                 console.warn('Failed to fetch implants:', e);
             }
-            // Return empty array as fallback
-            const empty = [];
-            this.setCachedData(characterId, 'implants', empty);
-            return empty;
+            // Do not cache an empty result: that would make real implants look
+            // absent for the whole cache TTL. Return the last good value if we
+            // have one.
+            const previous = this.characters[characterId]?.cache?.implants?.data;
+            return previous || [];
         }
     }
 

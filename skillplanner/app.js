@@ -480,6 +480,9 @@ class SkillPlannerApp {
                 boosters: fullData.boosters,
                 clones: fullData.clones
             };
+            if (!fullData.attributes) {
+                this.showMessage('Could not load attribute points from ESI. Click Refresh to try again.', 'error');
+            }
             const cachedSkillsAt = characterManager.characters?.[characterId]?.cache?.skills?.timestamp;
             this.characterSyncedAt = cachedSkillsAt ? new Date(cachedSkillsAt) : new Date();
             this.updateSyncStatus();
@@ -693,6 +696,11 @@ class SkillPlannerApp {
         // ESI attributes already include implant bonuses. Split them back out
         // only for the base/+bonus display so the total stays truthful.
         if (this.currentCharacterData?.attributes) {
+            const attrSource = document.getElementById('attrSource');
+            if (attrSource) {
+                attrSource.textContent = 'From ESI';
+                attrSource.classList.remove('unavailable');
+            }
             const attrs = this.getCharacterBaseAttributes();
             const implants = this.getCurrentImplantBonuses();
             this.updateAttributeDisplay('Int', attrs.intelligence, implants.intelligence);
@@ -702,12 +710,26 @@ class SkillPlannerApp {
             this.updateAttributeDisplay('Char', attrs.charisma, implants.charisma);
 
             if (this.remapCount) {
-                const remaps = Number(attrs.bonus_remaps);
+                const rawAttrs = this.currentCharacterData.attributes;
+                const remaps = Number(rawAttrs.bonus_remaps);
                 this.remapCount.textContent = Number.isFinite(remaps) ? remaps : '0';
-                this.remapCount.title = attrs.accrued_remap_cooldown_date
-                    ? `Next accrued remap: ${new Date(attrs.accrued_remap_cooldown_date).toLocaleDateString()}`
+                this.remapCount.title = rawAttrs.accrued_remap_cooldown_date
+                    ? `Next accrued remap: ${new Date(rawAttrs.accrued_remap_cooldown_date).toLocaleDateString()}`
                     : '';
             }
+        } else {
+            const attrSource = document.getElementById('attrSource');
+            if (attrSource) {
+                attrSource.textContent = 'ESI unavailable';
+                attrSource.classList.add('unavailable');
+            }
+            ['Int', 'Mem', 'Per', 'Will', 'Char'].forEach(suffix => {
+                const valBase = document.getElementById('val' + suffix + 'Base');
+                const valBonus = document.getElementById('val' + suffix + 'Bonus');
+                if (valBase) valBase.textContent = '--';
+                if (valBonus) valBonus.textContent = '';
+            });
+            if (this.remapCount) this.remapCount.textContent = '--';
         }
         
         // Render character list
@@ -728,16 +750,14 @@ class SkillPlannerApp {
             const totalValue = baseValue + bonusValue;
             const percent = ((totalValue - 17) / 15) * 100; // 17 base, max ~32
             bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
-            
-            // Display base value
-            valBase.textContent = baseValue;
-            
-            // Display bonus in different color if present
-            if (bonusValue > 0) {
-                valBonus.textContent = ' +' + bonusValue;
-            } else {
-                valBonus.textContent = '';
-            }
+
+            // The number in-game is the effective total. Keep the base and
+            // implant split visible as a secondary hint.
+            valBase.textContent = totalValue;
+            valBonus.textContent = bonusValue > 0 ? ` (${baseValue}+${bonusValue})` : '';
+            valBase.parentElement.title = bonusValue > 0
+                ? `ESI attributes: ${baseValue} base + ${bonusValue} implant = ${totalValue}`
+                : `ESI attribute: ${totalValue}`;
         }
     }
 
