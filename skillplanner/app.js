@@ -57,8 +57,9 @@ class SkillPlannerApp {
         }
         
         // Check for OAuth callback
+        let charData = null;
         try {
-            const charData = await esiAuth.handleCallback();
+            charData = await esiAuth.handleCallback();
             if (charData) {
                 this.showMessage('Successfully authenticated!', 'success');
             }
