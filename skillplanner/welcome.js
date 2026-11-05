@@ -91,6 +91,7 @@
         if (isOpen()) close();
         else open();
     });
+    document.getElementById('quickWelcomeBtn')?.addEventListener('click', open);
     document.getElementById('welcomeSsoLogin')?.addEventListener('click', () => act('sso'));
 
     document.addEventListener('keydown', event => {
