@@ -1005,6 +1005,7 @@ body {
 
 .plan-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
@@ -1844,6 +1845,113 @@ body {
     gap: 10px;
     padding: 15px 20px;
     border-top: 1px solid var(--secondary-color);
+}
+
+.plan-manager-save {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.plan-manager-save input,
+.form-textarea {
+    width: 100%;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    padding: 10px 12px;
+    font: inherit;
+}
+
+.plan-manager-save input:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.form-textarea {
+    min-height: 220px;
+    resize: vertical;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.88rem;
+    margin: 12px 0;
+}
+
+.import-file-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.saved-plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.saved-plan-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.saved-plan-info {
+    min-width: 0;
+}
+
+.saved-plan-info strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.saved-plan-info small {
+    color: var(--text-subtle-color);
+    font-size: 0.78rem;
+}
+
+.saved-plan-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.accelerator-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.accelerator-item-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 5px;
+    background: var(--secondary-color);
+    color: var(--text-subtle-color);
+    font-size: 0.78rem;
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+}
+
+.accelerator-item-link:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.accelerator-item-disabled {
+    opacity: 0.6;
 }
 
 .picker-search {

@@ -51,8 +51,8 @@ class SkillPlanner {
     }
 
     getScopedStorageKey(baseKey, characterId = this.activeCharacterId) {
-        if (!characterId) return null;
-        return `${baseKey}_${characterId}`;
+        // Anonymous planners still get their own persistent workspace.
+        return `${baseKey}_${characterId || 'guest'}`;
     }
 
     // Switch active character context for plan data
@@ -73,8 +73,6 @@ class SkillPlanner {
     // Load plan from localStorage
     loadPlan() {
         const scopedKey = this.getScopedStorageKey('skill_plan');
-        if (!scopedKey) return [];
-
         let stored = localStorage.getItem(scopedKey);
 
         // One-time migration from legacy single-plan storage.
@@ -86,13 +84,17 @@ class SkillPlanner {
             }
         }
 
-        return stored ? JSON.parse(stored) : [];
+        try {
+            const plan = stored ? JSON.parse(stored) : [];
+            return Array.isArray(plan) ? plan : [];
+        } catch (e) {
+            console.warn('Failed to load saved skill plan:', e);
+            return [];
+        }
     }
 
     loadPlanName() {
         const scopedKey = this.getScopedStorageKey('skill_plan_name');
-        if (!scopedKey) return 'My Skill Plan';
-
         let stored = localStorage.getItem(scopedKey);
 
         // One-time migration from legacy single-name storage.
@@ -112,10 +114,8 @@ class SkillPlanner {
         const planKey = this.getScopedStorageKey('skill_plan');
         const nameKey = this.getScopedStorageKey('skill_plan_name');
 
-        if (planKey && nameKey) {
-            localStorage.setItem(planKey, JSON.stringify(this.plan));
-            localStorage.setItem(nameKey, this.name);
-        }
+        localStorage.setItem(planKey, JSON.stringify(this.plan));
+        localStorage.setItem(nameKey, this.name);
 
         this.notifyListeners();
     }
@@ -630,6 +630,27 @@ class SkillPlanner {
         }, null, 2);
     }
 
+    // EVE's clipboard import format: one "Skill Name Level" per line.
+    planToText(currentSkills = null) {
+        const lines = [];
+        for (const item of this.plan) {
+            const skill = window.SKILLS[item.skillId];
+            if (!skill) continue;
+
+            const current = currentSkills?.skills?.find(s => s.skill_id === item.skillId);
+            const currentLevel = current ? current.trained_skill_level : 0;
+            if (item.targetLevel <= currentLevel) continue;
+
+            lines.push(`${skill.name} ${item.targetLevel}`);
+        }
+        return lines.join('\n');
+    }
+
+    // Compact payload used by share links.
+    sharePayload() {
+        return this.plan.map(item => `${item.skillId}:${item.targetLevel}`).join(',');
+    }
+
     // Import plan from JSON
     importPlan(jsonString) {
         try {
@@ -661,6 +682,79 @@ class SkillPlanner {
         } catch (e) {
             return { success: false, message: 'Invalid JSON: ' + e.message };
         }
+    }
+
+    // Import EVE clipboard text ("Skill Name Level" per line) or JSON.
+    async importPlanText(text, currentSkills = null, name = null) {
+        const lines = String(text || '').split(/\r?\n/);
+        const byName = new Map();
+        Object.entries(window.SKILLS).forEach(([id, skill]) => {
+            if (skill?.name) {
+                byName.set(skill.name.trim().toLowerCase(), parseInt(id, 10));
+            }
+        });
+
+        const roman = { I: 1, II: 2, III: 3, IV: 4, V: 5 };
+        const found = new Map();
+        const missing = [];
+
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line || line.startsWith('#')) continue;
+
+            const match = line.match(/^(.+?)\s+([1-5]|I{1,3}|IV|V)$/i);
+            if (!match) continue;
+
+            const skillName = match[1].trim();
+            const levelToken = match[2].toUpperCase();
+            const level = /^[1-5]$/.test(levelToken) ? parseInt(levelToken, 10) : roman[levelToken];
+            const skillId = byName.get(skillName.toLowerCase());
+
+            if (!skillId || !level) {
+                missing.push(skillName);
+                continue;
+            }
+
+            const current = currentSkills?.skills?.find(s => s.skill_id === skillId);
+            const currentLevel = current ? current.trained_skill_level : 0;
+            if (level <= currentLevel) continue;
+
+            const existing = found.get(skillId);
+            if (!existing || level > existing) {
+                found.set(skillId, level);
+            }
+        }
+
+        if (found.size === 0) {
+            return {
+                success: false,
+                message: missing.length
+                    ? `No matching skills found (${missing.length} name${missing.length === 1 ? '' : 's'} not recognised)`
+                    : 'No skills found in that plan',
+                missing
+            };
+        }
+
+        this.plan = Array.from(found.entries()).map(([skillId, targetLevel]) => ({
+            skillId,
+            skillName: window.SKILLS[skillId].name,
+            targetLevel,
+            addedAt: Date.now()
+        }));
+
+        if (name) {
+            this.name = name;
+        }
+
+        await this.autoResolvePrerequisites(currentSkills);
+        this.optimizeOrder(currentSkills);
+        this.savePlan();
+
+        return {
+            success: true,
+            message: `Imported ${this.plan.length} skills${missing.length ? `, ${missing.length} name${missing.length === 1 ? '' : 's'} not found` : ''}`,
+            missing
+        };
     }
 
     extractImportedSkillList(data) {
@@ -830,10 +924,14 @@ class SkillPlanner {
     // Load all saved plans
     loadSavedPlans() {
         const savedPlansKey = this.getScopedStorageKey('saved_plans');
-        if (!savedPlansKey) return {};
-
         const stored = localStorage.getItem(savedPlansKey);
-        return stored ? JSON.parse(stored) : {};
+        try {
+            const plans = stored ? JSON.parse(stored) : {};
+            return plans && typeof plans === 'object' ? plans : {};
+        } catch (e) {
+            console.warn('Failed to load saved plans:', e);
+            return {};
+        }
     }
 
     // Delete saved plan

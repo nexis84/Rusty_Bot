@@ -27,7 +27,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner — Training Queue &amp; Prerequisites | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skill training with the free Rusty Skill Planner.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -268,6 +268,13 @@
                                 <p class="empty-hint">Login to see your recent skill training</p>
                             </div>
                         </div>
+
+                        <div class="dash-card current-skills" id="currentSkillsCard">
+                            <h3><i class="fas fa-list"></i> Top Trained Skills</h3>
+                            <div class="current-skills-list" id="currentSkillsList">
+                                <p class="empty-hint">Login to see your trained skills</p>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -335,6 +342,18 @@
                             <button id="renamePlanBtn"><i class="fas fa-edit"></i></button>
                         </div>
                         <div class="plan-actions">
+                            <button class="btn-secondary" id="plannerImportPlanBtn">
+                                <i class="fas fa-file-import"></i> Import
+                            </button>
+                            <button class="btn-secondary" id="plannerExportPlanBtn">
+                                <i class="fas fa-file-export"></i> Export
+                            </button>
+                            <button class="btn-secondary" id="copyPlanBtn">
+                                <i class="fas fa-copy"></i> Copy for EVE
+                            </button>
+                            <button class="btn-secondary" id="sharePlanBtn">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
                             <button class="btn-secondary" id="loadPlanBtn">
                                 <i class="fas fa-folder-open"></i> Load
                             </button>
@@ -530,6 +549,7 @@
                                     <select id="acceleratorPreset" class="form-select">
                                         <option value="None" data-bonus="0">None</option>
                                     </select>
+                                    <div class="accelerator-list" id="acceleratorList"></div>
                                 </div>
                             </div>
 
@@ -673,12 +693,59 @@
         </div>
     </div>
 
+    <div class="modal hidden" id="planManagerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Saved Skill Plans</h3>
+                <button class="modal-close" id="closePlanManager"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="plan-manager-save">
+                    <input type="text" id="planManagerName" placeholder="Plan name">
+                    <button class="btn-primary" id="planManagerSave">
+                        <i class="fas fa-save"></i> Save Current
+                    </button>
+                </div>
+                <div class="saved-plan-list" id="savedPlanList"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closePlanManagerFooter">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="planImportModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>Import Skill Plan</h3>
+                <button class="modal-close" id="closePlanImport"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="hint">Paste an EVE skill plan — one <strong>Skill Name Level</strong> per line — or a RustyBot plan JSON file.</p>
+                <textarea id="planImportText" class="form-textarea" placeholder="Gunnery V&#10;Small Hybrid Turret III&#10;Navigation IV"></textarea>
+                <div class="import-file-row">
+                    <input type="file" id="planImportFile" accept=".txt,.json" class="hidden">
+                    <button class="btn-secondary" id="planImportFileBtn">
+                        <i class="fas fa-folder-open"></i> Choose file
+                    </button>
+                    <span id="planImportFileLabel" class="hint"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closePlanImportFooter">Cancel</button>
+                <button class="btn-primary" id="confirmPlanImport">
+                    <i class="fas fa-file-import"></i> Import Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="skills-data.js?v=2026110503"></script>
     <script src="esi-auth.js?v=2026110502"></script>
     <script src="character-manager.js?v=2026110502"></script>
     <script src="training-calc.js?v=20260510002"></script>
     <script src="injector-calc.js?v=20260414003"></script>
-    <script src="skill-planner.js?v=2026110503"></script>
-    <script src="app.js?v=2026110502"></script>
+    <script src="skill-planner.js?v=2026110504"></script>
+    <script src="app.js?v=2026110504"></script>
 </body>
 </html>

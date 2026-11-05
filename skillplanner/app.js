@@ -8,6 +8,9 @@ class SkillPlannerApp {
         this.currentCharacterData = null;
         this.selectedSkill = null;
         this.calculatorOverrides = null;
+        this.bookPriceCache = new Map();
+        this.bookPriceCacheAt = 0;
+        this.bookPricePromise = null;
         this.init();
     }
 
@@ -51,6 +54,7 @@ class SkillPlannerApp {
         }
         
         this.updateUI();
+        this.loadPlanFromUrl();
     }
 
     bindElements() {
@@ -166,9 +170,9 @@ class SkillPlannerApp {
         
         // Quick actions
         document.getElementById('quickPlanBtn')?.addEventListener('click', () => this.switchView('skills'));
-        document.getElementById('quickImportBtn')?.addEventListener('click', () => this.importPlan());
+        document.getElementById('quickImportBtn')?.addEventListener('click', () => this.openImportPlan());
         document.getElementById('quickImportQueueBtn')?.addEventListener('click', () => this.importFromQueue());
-        document.getElementById('quickExportBtn')?.addEventListener('click', () => this.exportPlan());
+        document.getElementById('quickExportBtn')?.addEventListener('click', () => this.downloadPlanText());
         document.getElementById('quickClearBtn')?.addEventListener('click', () => this.clearPlan());
         
         // Skill search
@@ -180,12 +184,14 @@ class SkillPlannerApp {
         this.mySkillsFilter?.addEventListener('change', () => this.renderMySkills());
         
         // Planner actions
-        document.getElementById('plannerImportPlanBtn')?.addEventListener('click', () => this.importPlan());
-        document.getElementById('plannerExportPlanBtn')?.addEventListener('click', () => this.exportPlan());
+        document.getElementById('plannerImportPlanBtn')?.addEventListener('click', () => this.openImportPlan());
+        document.getElementById('plannerExportPlanBtn')?.addEventListener('click', () => this.downloadPlanText());
+        document.getElementById('copyPlanBtn')?.addEventListener('click', () => this.copyPlanForEve());
+        document.getElementById('sharePlanBtn')?.addEventListener('click', () => this.sharePlan());
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
-        document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.loadSavedPlan());
-        document.getElementById('savePlanBtn')?.addEventListener('click', () => this.savePlanDialog());
-        document.getElementById('deletePlanBtn')?.addEventListener('click', () => this.deletePlan());
+        document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.openPlanManager());
+        document.getElementById('savePlanBtn')?.addEventListener('click', () => this.openPlanManager());
+        document.getElementById('deletePlanBtn')?.addEventListener('click', () => this.openPlanManager());
         document.getElementById('optimizePlanBtn')?.addEventListener('click', () => this.optimizePlan());
         document.getElementById('addSkillToPlanBtn')?.addEventListener('click', () => this.openSkillPicker());
         document.getElementById('autoFixPrereqs')?.addEventListener('click', () => this.autoFixPrereqs());
@@ -212,8 +218,6 @@ class SkillPlannerApp {
         });
 
         // Calculator actions
-        document.getElementById('calcImportPlanBtn')?.addEventListener('click', () => this.importPlan());
-        document.getElementById('calcExportPlanBtn')?.addEventListener('click', () => this.exportPlan());
         document.getElementById('applySuggestedRemap')?.addEventListener('click', () => this.applySuggestedRemap());
         document.getElementById('calcInjectorsBtn')?.addEventListener('click', () => this.runInjectorCalculator());
         
@@ -222,6 +226,18 @@ class SkillPlannerApp {
         document.getElementById('closeSkillDetail')?.addEventListener('click', () => this.closeSkillDetail());
         document.getElementById('closeDetailBtn')?.addEventListener('click', () => this.closeSkillDetail());
         document.getElementById('addToPlanFromDetail')?.addEventListener('click', () => this.addSelectedSkillToPlan());
+
+        // Saved plan manager
+        document.getElementById('closePlanManager')?.addEventListener('click', () => this.closePlanManager());
+        document.getElementById('closePlanManagerFooter')?.addEventListener('click', () => this.closePlanManager());
+        document.getElementById('planManagerSave')?.addEventListener('click', () => this.savePlanFromManager());
+
+        // Import modal
+        document.getElementById('closePlanImport')?.addEventListener('click', () => this.closeImportPlan());
+        document.getElementById('closePlanImportFooter')?.addEventListener('click', () => this.closeImportPlan());
+        document.getElementById('confirmPlanImport')?.addEventListener('click', () => this.submitImportPlan());
+        document.getElementById('planImportFileBtn')?.addEventListener('click', () => document.getElementById('planImportFile')?.click());
+        document.getElementById('planImportFile')?.addEventListener('change', (event) => this.loadImportFile(event));
         
         // Skill picker search
         document.getElementById('pickerSearch')?.addEventListener('input', (e) => this.filterPickerSkills(e.target.value));
@@ -483,6 +499,9 @@ class SkillPlannerApp {
             }
             if (this.recentSkillsList) {
                 this.recentSkillsList.innerHTML = '<p class="empty-hint">Login to see your recent skill training</p>';
+            }
+            if (this.currentSkillsList) {
+                this.currentSkillsList.innerHTML = '<p class="empty-hint">Login to see your trained skills</p>';
             }
 
             this.renderMySkills();
@@ -1172,6 +1191,9 @@ class SkillPlannerApp {
         this.injLargeCount.textContent = active.injectors.count;
         this.injTotalCost.textContent = active.injectorCost.formatted;
 
+        // Fire-and-forget: the price lookup must never block plan rendering.
+        this.updateBookCost();
+
         if (this.sumTotalTimeCompare) {
             if (hasOverrides) {
                 const deltaMinutes = baseline.summary.totalMinutes - active.summary.totalMinutes;
@@ -1329,39 +1351,145 @@ class SkillPlannerApp {
     }
 
     exportPlan() {
-        const json = skillPlanner.exportPlan();
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${skillPlanner.getName().replace(/\s+/g, '_')}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        this.showMessage('Plan exported', 'success');
+        this.downloadPlanText();
+    }
+
+    // Saved plan manager
+    openPlanManager() {
+        const modal = document.getElementById('planManagerModal');
+        const nameInput = document.getElementById('planManagerName');
+        if (nameInput) nameInput.value = skillPlanner.getName();
+        this.renderSavedPlans();
+        modal?.classList.remove('hidden');
+    }
+
+    closePlanManager() {
+        document.getElementById('planManagerModal')?.classList.add('hidden');
+    }
+
+    renderSavedPlans() {
+        const list = document.getElementById('savedPlanList');
+        if (!list) return;
+
+        const plans = skillPlanner.loadSavedPlans();
+        const entries = Object.entries(plans).sort((a, b) => {
+            return new Date(b[1].savedAt || 0) - new Date(a[1].savedAt || 0);
+        });
+
+        if (entries.length === 0) {
+            list.innerHTML = '<p class="empty-state">No saved plans yet. Name this plan and click Save Current.</p>';
+            return;
+        }
+
+        list.innerHTML = entries.map(([name, data]) => `
+            <div class="saved-plan-item">
+                <div class="saved-plan-info">
+                    <strong>${this.escapeHtml(name)}</strong>
+                    <small>${(data.plan || []).length} skills${data.savedAt ? ` &middot; ${new Date(data.savedAt).toLocaleString()}` : ''}</small>
+                </div>
+                <div class="saved-plan-actions">
+                    <button class="btn-secondary btn-small" data-load-plan="${this.escapeHtml(name)}">Load</button>
+                    <button class="btn-danger btn-small" data-delete-plan="${this.escapeHtml(name)}">Delete</button>
+                </div>
+            </div>
+        `).join('');
+
+        list.querySelectorAll('[data-load-plan]').forEach(button => {
+            button.addEventListener('click', () => this.loadPlanFromManager(button.dataset.loadPlan));
+        });
+        list.querySelectorAll('[data-delete-plan]').forEach(button => {
+            button.addEventListener('click', () => this.deletePlanFromManager(button.dataset.deletePlan));
+        });
+    }
+
+    savePlanFromManager() {
+        const input = document.getElementById('planManagerName');
+        const name = input?.value.trim() || skillPlanner.getName();
+        if (!name) {
+            this.showMessage('Enter a plan name first', 'warning');
+            return;
+        }
+        skillPlanner.setName(name);
+        skillPlanner.saveNamedPlan(name);
+        this.renderSavedPlans();
+        this.showMessage(`Plan "${name}" saved`, 'success');
+    }
+
+    loadPlanFromManager(name) {
+        if (!skillPlanner.loadNamedPlan(name)) return;
+        this.closePlanManager();
+        this.planName.value = skillPlanner.getName();
+        this.renderPlan();
+        this.updatePlanSummary();
+        this.updatePlanBadge();
+        this.showMessage(`Plan "${name}" loaded`, 'success');
+    }
+
+    deletePlanFromManager(name) {
+        if (!confirm(`Delete saved plan "${name}"?`)) return;
+        skillPlanner.deleteNamedPlan(name);
+        this.renderSavedPlans();
+        this.showMessage(`Plan "${name}" deleted`, 'info');
+    }
+
+    savePlanDialog() { this.openPlanManager(); }
+    loadSavedPlan() { this.openPlanManager(); }
+    deletePlan() { this.openPlanManager(); }
+
+    // Import
+    openImportPlan() {
+        const modal = document.getElementById('planImportModal');
+        const text = document.getElementById('planImportText');
+        const file = document.getElementById('planImportFile');
+        const label = document.getElementById('planImportFileLabel');
+        if (text) text.value = '';
+        if (file) file.value = '';
+        if (label) label.textContent = '';
+        modal?.classList.remove('hidden');
+        text?.focus();
+    }
+
+    closeImportPlan() {
+        document.getElementById('planImportModal')?.classList.add('hidden');
+    }
+
+    loadImportFile(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const text = document.getElementById('planImportText');
+            if (text) text.value = reader.result;
+            const label = document.getElementById('planImportFileLabel');
+            if (label) label.textContent = file.name;
+        };
+        reader.readAsText(file);
+    }
+
+    async submitImportPlan() {
+        const text = document.getElementById('planImportText')?.value.trim();
+        if (!text) {
+            this.showMessage('Paste a skill plan or choose a file first', 'warning');
+            return;
+        }
+
+        const isJson = text.startsWith('{') || text.startsWith('[');
+        const result = isJson
+            ? skillPlanner.importPlan(text)
+            : await skillPlanner.importPlanText(text, this.currentCharacterData?.skills);
+
+        this.showMessage(result.message, result.success ? 'success' : 'error');
+        if (!result.success) return;
+
+        this.closeImportPlan();
+        this.planName.value = skillPlanner.getName();
+        this.renderPlan();
+        this.updatePlanSummary();
+        this.updatePlanBadge();
     }
 
     importPlan() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const result = skillPlanner.importPlan(event.target.result);
-                this.showMessage(result.message, result.success ? 'success' : 'error');
-            };
-            reader.readAsText(file);
-        };
-        
-        input.click();
+        this.openImportPlan();
     }
 
     importFromQueue() {
@@ -1371,23 +1499,19 @@ class SkillPlannerApp {
             return;
         }
 
-        const queue = this.currentCharacterData?.queue;
-        if (!queue || queue.length === 0) {
+        const rawQueue = this.currentCharacterData?.queue;
+        const queueData = Array.isArray(rawQueue) ? rawQueue : (rawQueue?.data || []);
+        if (queueData.length === 0) {
             this.showMessage('No skills in your current queue', 'error');
             return;
         }
 
-        // Convert queue to plan format
-        const queueData = Array.isArray(queue) ? queue : queue.data || [];
         const planSkills = queueData.map(item => ({
             skillId: item.skill_id,
             targetLevel: item.finish_level || item.level_end
-        }));
+        })).filter(item => Number.isInteger(item.skillId) && item.targetLevel);
 
-        // Import as plan
-        const json = JSON.stringify({ skills: planSkills });
-        const result = skillPlanner.importPlan(json);
-
+        const result = skillPlanner.importPlan(JSON.stringify({ skills: planSkills }));
         if (result.success) {
             this.showMessage(`Imported ${planSkills.length} skills from your queue`, 'success');
             this.renderPlan();
@@ -1398,47 +1522,222 @@ class SkillPlannerApp {
         }
     }
 
-    savePlanDialog() {
-        const name = prompt('Save plan as:', skillPlanner.getName());
-        if (name) {
-            skillPlanner.saveNamedPlan(name);
-            this.showMessage('Plan saved', 'success');
-        }
+    // EVE clipboard / file export
+    getPlanText() {
+        return skillPlanner.planToText(this.currentCharacterData?.skills);
     }
 
-    loadSavedPlan() {
-        const plans = skillPlanner.getSavedPlanNames();
-        if (plans.length === 0) {
-            this.showMessage('No saved plans found', 'warning');
+    async copyPlanForEve() {
+        const text = this.getPlanText();
+        if (!text) {
+            this.showMessage('Plan is empty or already trained', 'warning');
             return;
         }
-        
-        const selected = prompt('Saved plans:\n' + plans.map((p, i) => `${i + 1}. ${p}`).join('\n') + '\n\nEnter number to load:');
-        const index = parseInt(selected) - 1;
-        
-        if (index >= 0 && index < plans.length) {
-            skillPlanner.loadNamedPlan(plans[index]);
-            this.showMessage('Plan loaded', 'success');
-        }
+        const ok = await this.copyText(text);
+        this.showMessage(
+            ok ? 'Plan copied - paste it into EVE\'s skill plan import' : 'Could not copy the plan',
+            ok ? 'success' : 'error'
+        );
     }
 
-    deletePlan() {
-        const plans = skillPlanner.getSavedPlanNames();
-        if (plans.length === 0) {
-            this.showMessage('No saved plans to delete', 'warning');
+    downloadPlanText() {
+        const text = this.getPlanText();
+        if (!text) {
+            this.showMessage('Plan is empty or already trained', 'warning');
             return;
         }
-        
-        const selected = prompt('Delete which plan?\n' + plans.map((p, i) => `${i + 1}. ${p}`).join('\n') + '\n\nEnter number to delete:');
-        const index = parseInt(selected) - 1;
-        
-        if (index >= 0 && index < plans.length) {
-            const planName = plans[index];
-            if (confirm(`Delete plan "${planName}"?`)) {
-                skillPlanner.deleteNamedPlan(planName);
-                this.showMessage(`Plan "${planName}" deleted`, 'success');
+
+        const name = (skillPlanner.getName() || 'skill-plan').replace(/[^\w.-]+/g, '_');
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${name}-plan.txt`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        this.showMessage('Plan downloaded', 'success');
+    }
+
+    async sharePlan() {
+        const payload = skillPlanner.sharePayload();
+        if (!payload) {
+            this.showMessage('Plan is empty', 'warning');
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.search = '';
+        url.hash = '';
+        url.searchParams.set('plan', payload);
+        if (skillPlanner.getName()) {
+            url.searchParams.set('name', skillPlanner.getName());
+        }
+
+        const ok = await this.copyText(url.toString());
+        this.showMessage(
+            ok ? 'Share link copied' : 'Could not copy the share link',
+            ok ? 'success' : 'error'
+        );
+    }
+
+    async copyText(text) {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+                return true;
             }
+        } catch (_) { /* fall through */ }
+
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            const ok = document.execCommand('copy');
+            textarea.remove();
+            return ok;
+        } catch (_) {
+            return false;
         }
+    }
+
+    loadPlanFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const payload = params.get('plan');
+        if (!payload) return;
+
+        if (payload.length > 10000) {
+            this.showMessage('That share link is too large', 'warning');
+            return;
+        }
+
+        const skills = payload.split(',').map(pair => {
+            const [skillId, targetLevel] = pair.split(':').map(Number);
+            return Number.isInteger(skillId) && targetLevel >= 1 && targetLevel <= 5
+                ? { skillId, targetLevel }
+                : null;
+        }).filter(Boolean);
+
+        if (skills.length === 0) {
+            this.showMessage('That share link did not contain a valid plan', 'warning');
+            return;
+        }
+
+        const name = params.get('name') || 'Shared Plan';
+        const result = skillPlanner.importPlan(JSON.stringify({ name, skills }));
+
+        if (result.success) {
+            this.showMessage(`Loaded shared plan "${name}"`, 'success');
+            this.planName.value = name;
+            this.renderPlan();
+            this.updatePlanSummary();
+            this.updatePlanBadge();
+        }
+
+        params.delete('plan');
+        params.delete('name');
+        const cleanUrl = window.location.pathname
+            + (params.toString() ? `?${params.toString()}` : '')
+            + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+
+    // Skill book prices (Jita sell) for the plan summary.
+    async updateBookCost() {
+        const el = this.sumBookCost;
+        if (!el) return;
+
+        const plan = skillPlanner.getPlan();
+        if (plan.length === 0) {
+            el.textContent = '--';
+            el.title = 'Skill book prices';
+            return;
+        }
+
+        const currentSkills = this.currentCharacterData?.skills;
+        const ids = [...new Set(plan.filter(item => {
+            const current = currentSkills?.skills?.find(s => s.skill_id === item.skillId);
+            return item.targetLevel > (current?.trained_skill_level || 0);
+        }).map(item => item.skillId))];
+
+        if (ids.length === 0) {
+            el.textContent = '0 ISK';
+            el.title = 'All plan skills are already trained';
+            return;
+        }
+
+        try {
+            const prices = await this.getBookPrices(ids);
+            let total = 0;
+            let missing = 0;
+            for (const id of ids) {
+                if (prices[id]) total += prices[id];
+                else missing++;
+            }
+            el.textContent = total ? injectorCalc.formatISK(total) : '--';
+            el.title = missing
+                ? `${missing} skill book price${missing === 1 ? '' : 's'} unavailable`
+                : 'Jita sell prices for skill books not already trained';
+        } catch (_) {
+            el.textContent = '--';
+            el.title = 'Skill book prices unavailable';
+        }
+    }
+
+    async getBookPrices(ids) {
+        const now = Date.now();
+        if (now - this.bookPriceCacheAt > 10 * 60 * 1000) {
+            this.bookPriceCache.clear();
+            this.bookPriceCacheAt = now;
+        }
+
+        const missing = ids.filter(id => !this.bookPriceCache.has(id));
+        if (missing.length) {
+            if (this.bookPricePromise) {
+                try { await this.bookPricePromise; } catch (_) { /* handled below */ }
+                return this.getBookPrices(ids);
+            }
+
+            this.bookPricePromise = (async () => {
+                try {
+                    const response = await fetch(
+                        `https://market.fuzzwork.co.uk/aggregates/?region=10000002&types=${missing.join(',')}`
+                    );
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    for (const id of missing) {
+                        const row = data[String(id)];
+                        const price = Number(row?.sell?.percentile || row?.sell?.min || 0) || null;
+                        this.bookPriceCache.set(id, price);
+                    }
+                } catch (error) {
+                    for (const id of missing) this.bookPriceCache.set(id, null);
+                    throw error;
+                } finally {
+                    this.bookPricePromise = null;
+                }
+            })();
+
+            try {
+                await this.bookPricePromise;
+            } catch (_) { /* prices unavailable */ }
+        }
+
+        return Object.fromEntries(ids.map(id => [id, this.bookPriceCache.get(id)]));
+    }
+
+    escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
     }
 
     // Skill picker modal
