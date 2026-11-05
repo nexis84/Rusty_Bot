@@ -1911,6 +1911,7 @@ function planHTML(ship) {
       <button class="ghost" id="planShare">share</button>
       <button class="ghost" id="planSave">save</button>
       <button class="ghost" id="planImport">import</button>
+      <a class="ghost" href="../skillplanner/" target="_blank" rel="noopener" title="Open the full Rusty Skill Planner">full planner</a>
     </div>
     <div class="skill-tree plan-tree">${list}</div>
     <div class="note-dim">In EVE: <b>Character Sheet &rarr; Skill Plans &rarr; Import</b>, then paste. The clipboard holds one skill per line. A plan over 150 skills is longer than the training queue.</div>
