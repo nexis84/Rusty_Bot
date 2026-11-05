@@ -609,6 +609,24 @@ body {
     flex-direction: column;
 }
 
+.stat-link {
+    padding: 0;
+    margin-left: 4px;
+    background: none;
+    border: 0;
+    color: var(--accent-color);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.stat-link:hover {
+    color: var(--accent-color-hover);
+}
+
 .stat-label {
     font-size: 0.8rem;
     color: var(--text-subtle-color);

@@ -28,7 +28,9 @@ class SkillPlannerApp {
         this.fitDataById = null;
         this.shipData = [];
         this.typeNameCache = new Map();
+        this.locationNameCache = new Map();
         this.implantRenderToken = 0;
+        this.cloneLocationToken = 0;
         this.lastFitText = null;
         this.libraryRecords = this.loadLibraryRecords();
         this.libraryAnalyses = [];
@@ -685,14 +687,7 @@ class SkillPlannerApp {
         
         // Update clone location
         if (this.cloneLocation) {
-            const clones = this.currentCharacterData?.clones;
-            if (clones && clones.home_location) {
-                const locationId = clones.home_location.location_id;
-                const locationType = clones.home_location.location_type;
-                this.cloneLocation.textContent = locationType === 'station' ? 'Station' : 'Structure';
-            } else {
-                this.cloneLocation.textContent = 'Unknown';
-            }
+            this.renderCloneLocation(this.currentCharacterData?.clones?.home_location);
         }
         
         // ESI attributes already include implant bonuses. Split them back out
@@ -1428,6 +1423,68 @@ class SkillPlannerApp {
             if (!names.has(typeId)) names.set(typeId, `Type ${typeId}`);
         });
         return names;
+    }
+
+    async renderCloneLocation(location) {
+        const element = this.cloneLocation;
+        if (!element) return;
+
+        const token = ++this.cloneLocationToken;
+        const locationId = location?.location_id;
+        const locationType = location?.location_type;
+
+        if (!locationId) {
+            element.textContent = 'Unknown';
+            element.title = '';
+            return;
+        }
+
+        if (locationType === 'station') {
+            element.textContent = 'Station';
+            element.title = 'Loading station name...';
+            try {
+                const response = await fetch(
+                    `https://esi.evetech.net/latest/universe/stations/${locationId}/?datasource=tranquility`
+                );
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                if (token !== this.cloneLocationToken) return;
+                const name = data.name || 'Station';
+                this.locationNameCache.set(`station:${locationId}`, name);
+                element.textContent = name;
+                element.title = name;
+            } catch (_) {
+                if (token !== this.cloneLocationToken) return;
+                element.textContent = 'Station';
+                element.title = 'Station name unavailable';
+            }
+            return;
+        }
+
+        if (!esiAuth.hasStructuresScope()) {
+            element.innerHTML = 'Structure <button class="stat-link" id="structureNameLoginBtn" type="button">Show name</button>';
+            element.title = 'Re-authorise with EVE SSO to reveal citadel names for structures you can dock in.';
+            document.getElementById('structureNameLoginBtn')?.addEventListener('click', () => this.esiLoginBtn?.click());
+            return;
+        }
+
+        element.textContent = 'Structure';
+        element.title = 'Loading structure name...';
+        try {
+            const data = await esiAuth.esiFetch(`/universe/structures/${locationId}/`);
+            if (token !== this.cloneLocationToken) return;
+            const name = data.name || 'Structure';
+            this.locationNameCache.set(`structure:${locationId}`, name);
+            element.textContent = name;
+            element.title = name;
+        } catch (error) {
+            if (token !== this.cloneLocationToken) return;
+            const forbidden = String(error.message || '').includes('403');
+            element.textContent = forbidden ? 'Structure (no access)' : 'Structure';
+            element.title = forbidden
+                ? 'ESI could not read this structure. Check docking access, or re-authorise with the structures scope.'
+                : 'Structure name unavailable.';
+        }
     }
 
     async renderImplantSummary() {

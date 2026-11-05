@@ -20,6 +20,9 @@ const REQUIRED_SCOPES = [
 // EVE does not grant it. Users can re-login from the Saved Fits view.
 const FITTINGS_SCOPE = 'esi-fittings.read_fittings.v1';
 
+// Optional: resolves names of player-owned structures the character can dock in.
+const STRUCTURES_SCOPE = 'esi-universe.read_structures.v1';
+
 class ESIAuth {
     constructor() {
         this.tokens = this.loadTokens();
@@ -204,6 +207,12 @@ class ESIAuth {
         return Boolean(tokens && Array.isArray(tokens.scopes) && tokens.scopes.includes(FITTINGS_SCOPE));
     }
 
+    hasStructuresScope(characterId = null) {
+        const charId = characterId || this.currentCharacter;
+        const tokens = charId ? this.tokens[charId] : null;
+        return Boolean(tokens && Array.isArray(tokens.scopes) && tokens.scopes.includes(STRUCTURES_SCOPE));
+    }
+
     saveCharacterToken(characterData) {
         this.tokens[characterData.characterId] = characterData;
         localStorage.setItem('esi_tokens', JSON.stringify(this.tokens));
@@ -334,5 +343,5 @@ const esiAuth = new ESIAuth();
 window.esiAuth = esiAuth;
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ESIAuth, esiAuth, REQUIRED_SCOPES, FITTINGS_SCOPE, API_BASE };
+    module.exports = { ESIAuth, esiAuth, REQUIRED_SCOPES, FITTINGS_SCOPE, STRUCTURES_SCOPE, API_BASE };
 }
