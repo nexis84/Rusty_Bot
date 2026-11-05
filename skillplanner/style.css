@@ -2136,17 +2136,10 @@ body {
     text-transform: uppercase;
 }
 
-.seo-faq h2 {
-    color: var(--text-color);
-    font-size: clamp(1.35rem, 2.5vw, 1.8rem);
-    line-height: 1.25;
-    margin: 8px 0 12px;
-}
-
 .seo-faq-lead {
     font-size: 0.95rem;
     line-height: 1.7;
-    margin: 0;
+    margin: 12px 0 0;
 }
 
 .seo-faq-badges {
