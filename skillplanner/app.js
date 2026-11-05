@@ -755,10 +755,10 @@ class SkillPlannerApp {
             const percent = ((totalValue - 17) / 15) * 100; // 17 base, max ~32
             bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
 
-            // The number in-game is the effective total. Keep the base and
-            // implant split visible as a secondary hint.
+            // Show the effective ESI total only. The base/implant split stays
+            // in the tooltip for anyone who wants the detail.
             valBase.textContent = totalValue;
-            valBonus.textContent = bonusValue > 0 ? ` (${baseValue}+${bonusValue})` : '';
+            valBonus.textContent = '';
             valBase.parentElement.title = bonusValue > 0
                 ? `ESI attributes: ${baseValue} base + ${bonusValue} implant = ${totalValue}`
                 : `ESI attribute: ${totalValue}`;
