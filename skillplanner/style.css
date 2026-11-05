@@ -782,6 +782,38 @@ body {
     font-size: 0.8rem;
 }
 
+.quick-btn.quick-btn-welcome {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 20px;
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #111;
+    font-weight: 800;
+}
+
+.quick-btn.quick-btn-welcome i {
+    color: #111;
+    font-size: 1.35rem;
+}
+
+.quick-btn.quick-btn-welcome span {
+    font-size: 1.05rem;
+}
+
+.quick-btn.quick-btn-welcome:hover {
+    background: var(--accent-color-hover);
+    border-color: var(--accent-color-hover);
+    color: #111;
+    transform: translateY(-1px);
+}
+
+.quick-btn.quick-btn-welcome:hover i {
+    color: #111;
+}
+
 .empty-hint {
     color: var(--text-subtle-color);
     font-size: 0.9rem;
