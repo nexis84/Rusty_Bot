@@ -438,9 +438,25 @@ class SkillPlannerApp {
         });
     }
 
+    showStoredCharacterIdentity(characterId) {
+        const character = esiAuth.tokens?.[characterId];
+        if (!character) return;
+
+        this.characterInfo?.classList.remove('hidden');
+        this.loginPrompt?.classList.add('hidden');
+        this.charPortrait.src = characterManager.getPortraitUrl(characterId, 128);
+        this.charName.textContent = character.characterName || 'Character';
+        this.charMeta.textContent = 'Loading character data...';
+
+        const heroTitle = document.getElementById('dashboardHeroTitle');
+        if (heroTitle) heroTitle.textContent = `Welcome, ${character.characterName || 'Pilot'}`;
+        this.updateWelcomeIdentity();
+    }
+
     // Character loading
     async loadCharacter(characterId, { force = false } = {}) {
         const characterChanged = this.currentCharacter !== characterId;
+        this.showStoredCharacterIdentity(characterId);
         this.showLoading('Loading character data...');
 
         if (characterChanged) {
@@ -496,6 +512,7 @@ class SkillPlannerApp {
 
             return true;
         } catch (e) {
+            this.charMeta.textContent = 'Character data unavailable - try Refresh';
             this.showMessage('Failed to load character: ' + e.message, 'error');
             console.error(e);
             if (this.currentView === 'savedFits') {
