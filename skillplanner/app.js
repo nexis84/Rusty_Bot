@@ -927,7 +927,10 @@ class SkillPlannerApp {
         // Sort by level (highest first) and take top 10
         const topSkills = skills
             .filter(s => s.trained_skill_level > 0)
-            .sort((a, b) => b.trained_skill_level - a.trained_skill_level)
+            .sort((a, b) => {
+                const spDiff = (Number(b.skillpoints_in_skill) || 0) - (Number(a.skillpoints_in_skill) || 0);
+                return spDiff || b.trained_skill_level - a.trained_skill_level;
+            })
             .slice(0, 10);
         
         this.currentSkillsList.innerHTML = topSkills.map(skill => {
