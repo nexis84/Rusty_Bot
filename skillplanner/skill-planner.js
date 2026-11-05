@@ -28,64 +28,26 @@ class SkillPlanner {
         }
     }
 
-    // Load prerequisites for a skill from ESI dogma attributes when local data does not include them.
+    // Prerequisites are generated into skills-data.js from the SDE, so plan
+    // building works instantly and offline. Keep the method async so the
+    // existing callers do not need to change.
     async fetchSkillPrerequisites(skillId) {
         const skill = window.SKILLS[skillId];
         if (!skill) return {};
 
-        if (skill.prereqs && Object.keys(skill.prereqs).length > 0) {
+        // An empty object is valid: the skill genuinely has no prerequisites.
+        if (skill.prereqs && typeof skill.prereqs === 'object') {
             return skill.prereqs;
         }
 
+        // Legacy fallback for sessions holding an older prerequisites cache.
         if (this.prereqCache[skillId]) {
             skill.prereqs = this.prereqCache[skillId];
             return skill.prereqs;
         }
 
-        try {
-            const response = await fetch(`https://esi.evetech.net/latest/universe/types/${skillId}/`);
-            if (!response.ok) {
-                throw new Error(`ESI ${response.status}`);
-            }
-
-            const data = await response.json();
-            const attrs = Array.isArray(data.dogma_attributes) ? data.dogma_attributes : [];
-
-            const getAttrVal = (id) => {
-                const entry = attrs.find(a => a.attribute_id === id);
-                return entry ? Number(entry.value) : NaN;
-            };
-
-            const mappings = [
-                [182, 277],
-                [183, 278],
-                [184, 279],
-                [1285, 1286],
-                [1289, 1287],
-                [1290, 1288]
-            ];
-
-            const prereqs = {};
-            mappings.forEach(([skillAttrId, levelAttrId]) => {
-                const prereqSkillId = Math.trunc(getAttrVal(skillAttrId));
-                const prereqLevel = Math.trunc(getAttrVal(levelAttrId));
-
-                if (Number.isFinite(prereqSkillId) && prereqSkillId > 0 && Number.isFinite(prereqLevel) && prereqLevel > 0) {
-                    prereqs[prereqSkillId] = prereqLevel;
-                }
-            });
-
-            skill.prereqs = prereqs;
-            this.prereqCache[skillId] = prereqs;
-            this.savePrereqCache();
-            return prereqs;
-        } catch (e) {
-            console.warn(`Failed to fetch prerequisites for ${skillId}:`, e.message || e);
-            skill.prereqs = {};
-            this.prereqCache[skillId] = {};
-            this.savePrereqCache();
-            return {};
-        }
+        console.warn(`No bundled prerequisites for skill ${skillId}`);
+        return {};
     }
 
     getScopedStorageKey(baseKey, characterId = this.activeCharacterId) {
