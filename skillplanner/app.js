@@ -1468,8 +1468,8 @@ class SkillPlannerApp {
             return;
         }
 
-        element.textContent = 'Structure';
-        element.title = 'Loading structure name...';
+        element.textContent = 'Structure (loading...)';
+        element.title = `Looking up structure ${locationId}...`;
         try {
             const data = await esiAuth.esiFetch(`/universe/structures/${locationId}/`);
             if (token !== this.cloneLocationToken) return;
@@ -1479,11 +1479,32 @@ class SkillPlannerApp {
             element.title = name;
         } catch (error) {
             if (token !== this.cloneLocationToken) return;
-            const forbidden = String(error.message || '').includes('403');
-            element.textContent = forbidden ? 'Structure (no access)' : 'Structure';
-            element.title = forbidden
-                ? 'ESI could not read this structure. Check docking access, or re-authorise with the structures scope.'
-                : 'Structure name unavailable.';
+            const message = String(error.message || error);
+            const forbidden = message.includes('403');
+            console.warn('[Skill Planner] Structure lookup failed', { locationId, message });
+
+            // A few ESI records use the station ID range even when tagged as a
+            // structure; try the public station endpoint as a fallback.
+            try {
+                const fallback = await fetch(
+                    `https://esi.evetech.net/latest/universe/stations/${locationId}/?datasource=tranquility`
+                );
+                if (fallback.ok) {
+                    const data = await fallback.json();
+                    if (token !== this.cloneLocationToken) return;
+                    if (data.name) {
+                        element.textContent = data.name;
+                        element.title = data.name;
+                        return;
+                    }
+                }
+            } catch (_) { /* fall through */ }
+
+            element.innerHTML = forbidden
+                ? 'Structure (no access) <button class="stat-link" id="structureNameRetryBtn" type="button">Retry</button>'
+                : 'Structure (name unavailable) <button class="stat-link" id="structureNameRetryBtn" type="button">Retry</button>';
+            element.title = `${forbidden ? 'ESI denied access to this structure.' : 'Could not read this structure from ESI.'}\nStructure ID: ${locationId}\n${message}`;
+            document.getElementById('structureNameRetryBtn')?.addEventListener('click', () => this.renderCloneLocation(location));
         }
     }
 
