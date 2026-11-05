@@ -444,6 +444,30 @@ body {
     background: var(--secondary-color);
 }
 
+.welcome-top-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    background: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 999px;
+    color: #111;
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.welcome-top-btn i {
+    font-size: 0.78rem;
+}
+
+.welcome-top-btn:hover {
+    background: var(--accent-color-hover);
+    border-color: var(--accent-color-hover);
+    color: #111;
+}
+
 /* --- Content Wrapper --- */
 .content-wrapper {
     flex: 1;
@@ -914,38 +938,6 @@ body {
 
 .quick-btn span {
     font-size: 0.8rem;
-}
-
-.quick-btn.quick-btn-welcome {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    justify-content: center;
-    gap: 10px;
-    padding: 18px 20px;
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: #111;
-    font-weight: 800;
-}
-
-.quick-btn.quick-btn-welcome i {
-    color: #111;
-    font-size: 1.35rem;
-}
-
-.quick-btn.quick-btn-welcome span {
-    font-size: 1.05rem;
-}
-
-.quick-btn.quick-btn-welcome:hover {
-    background: var(--accent-color-hover);
-    border-color: var(--accent-color-hover);
-    color: #111;
-    transform: translateY(-1px);
-}
-
-.quick-btn.quick-btn-welcome:hover i {
-    color: #111;
 }
 
 .empty-hint {

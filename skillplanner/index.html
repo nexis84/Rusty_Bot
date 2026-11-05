@@ -30,7 +30,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
-    <link rel="stylesheet" href="style.css?v=24">
+    <link rel="stylesheet" href="style.css?v=25">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -161,8 +161,9 @@
                 </button>
                 <h2 class="page-title" id="pageTitle">Dashboard</h2>
                 <div class="top-actions">
-                    <button class="action-btn" id="welcomeBtn" title="Welcome &amp; help">
+                    <button class="action-btn welcome-top-btn" id="welcomeBtn" title="Welcome &amp; help">
                         <i class="fas fa-compass"></i>
+                        <span>Welcome</span>
                     </button>
                     <button class="action-btn" id="settingsBtn" title="Settings">
                         <i class="fas fa-cog"></i>
@@ -268,10 +269,6 @@
                         <div class="dash-card quick-actions">
                             <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
                             <div class="action-grid">
-                                <button class="quick-btn quick-btn-welcome" id="quickWelcomeBtn">
-                                    <i class="fas fa-compass"></i>
-                                    <span>Welcome</span>
-                                </button>
                                 <button class="quick-btn" id="quickPlanBtn">
                                     <i class="fas fa-plus"></i>
                                     <span>New Skill Plan</span>
