@@ -566,14 +566,24 @@ class SkillPlannerApp {
         this.skillQueueList.innerHTML = queue.slice(0, 5).map((item, index) => {
             const skill = window.SKILLS[item.skill_id];
             const skillName = skill ? skill.name : `Skill ${item.skill_id}`;
-            const level = item.finish_level;
+            const level = item.finished_level ?? item.finish_level;
             const position = index === 0 ? 'training' : `queue #${index + 1}`;
-            const time = trainingCalc.formatTrainingTime(item.training_time_remaining || 0);
-            
+
+            // ESI's skill queue uses finished_level/finish_date. Older data used
+            // finish_level/training_time_remaining, so keep a fallback for both.
+            const finish = item.finish_date ? new Date(item.finish_date) : null;
+            let time;
+            if (finish && !Number.isNaN(finish.getTime())) {
+                const minutes = Math.max(0, (finish.getTime() - Date.now()) / 60000);
+                time = minutes <= 0 ? 'done' : trainingCalc.formatTime(minutes);
+            } else {
+                time = trainingCalc.formatTrainingTime(item.training_time_remaining || 0);
+            }
+
             return `
                 <div class="queue-item ${index === 0 ? 'active' : ''}">
                     <span class="queue-position">${position}</span>
-                    <span class="queue-name">${skillName} ${this.roman(level)}</span>
+                    <span class="queue-name">${skillName}${level ? ` ${this.roman(level)}` : ''}</span>
                     <span class="queue-time">${time}</span>
                 </div>
             `;
@@ -1572,8 +1582,8 @@ class SkillPlannerApp {
 
         const planSkills = queueData.map(item => ({
             skillId: item.skill_id,
-            targetLevel: item.finish_level || item.level_end
-        })).filter(item => Number.isInteger(item.skillId) && item.targetLevel);
+            targetLevel: item.finished_level ?? item.finish_level
+        })).filter(item => Number.isInteger(item.skillId) && Number.isInteger(item.targetLevel));
 
         const result = skillPlanner.importPlan(JSON.stringify({ skills: planSkills }));
         if (result.success) {
