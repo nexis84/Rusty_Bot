@@ -50,6 +50,7 @@ class SkillPlannerApp {
     async init() {
         this.bindElements();
         this.bindEvents();
+        this.applyUiScale(this.readSavedUiScale(), false);
         this.restoreCloneState();
         this.startClock();
         
@@ -237,6 +238,9 @@ class SkillPlannerApp {
         document.getElementById('savePlanBtn')?.addEventListener('click', () => this.openPlanManager());
         document.getElementById('deletePlanBtn')?.addEventListener('click', () => this.openPlanManager());
         document.getElementById('optimizePlanBtn')?.addEventListener('click', () => this.optimizePlan());
+        document.getElementById('uiScaleSelect')?.addEventListener('change', (event) => {
+            this.applyUiScale(event.target.value, true);
+        });
         document.getElementById('undoPlanBtn')?.addEventListener('click', () => this.undoPlan());
         document.getElementById('redoPlanBtn')?.addEventListener('click', () => this.redoPlan());
         document.getElementById('planBulkSetLevel')?.addEventListener('click', () => this.bulkSetPlanLevel());
@@ -552,6 +556,28 @@ class SkillPlannerApp {
             localStorage.setItem(this.getCloneStateStorageKey(), state);
         } catch (_) {
             // Storage may be unavailable.
+        }
+    }
+
+    readSavedUiScale() {
+        try {
+            const saved = parseFloat(localStorage.getItem('skillplanner_ui_scale'));
+            return Number.isFinite(saved) ? saved : 1;
+        } catch (_) {
+            return 1;
+        }
+    }
+
+    applyUiScale(scale, persist = false) {
+        const value = Math.max(0.75, Math.min(2, Number(scale) || 1));
+        document.documentElement.style.setProperty('--ui-scale', String(value));
+        document.documentElement.style.fontSize = `${16 * value}px`;
+
+        const select = document.getElementById('uiScaleSelect');
+        if (select) select.value = String(value);
+
+        if (persist) {
+            try { localStorage.setItem('skillplanner_ui_scale', String(value)); } catch (_) {}
         }
     }
 

@@ -3,6 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+      (function () {
+        try {
+          var s = parseFloat(localStorage.getItem('skillplanner_ui_scale'));
+          if (s >= 0.75 && s <= 2) {
+            document.documentElement.style.setProperty('--ui-scale', String(s));
+            document.documentElement.style.fontSize = (16 * s) + 'px';
+          }
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
     <script>
@@ -30,7 +41,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=31">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -161,6 +172,17 @@
                 </button>
                 <h2 class="page-title" id="pageTitle">Dashboard</h2>
                 <div class="top-actions">
+                    <div class="ui-scale-control" title="Interface size">
+                        <i class="fas fa-text-height"></i>
+                        <select id="uiScaleSelect" aria-label="Interface size">
+                            <option value="0.75">75%</option>
+                            <option value="1">100%</option>
+                            <option value="1.25">125%</option>
+                            <option value="1.5">150%</option>
+                            <option value="1.75">175%</option>
+                            <option value="2">200%</option>
+                        </select>
+                    </div>
                     <button class="action-btn welcome-top-btn" id="welcomeBtn" title="Welcome &amp; help">
                         <i class="fas fa-compass"></i>
                         <span>Welcome</span>
@@ -1291,7 +1313,7 @@
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110509"></script>
     <script src="fit-utils.js?v=2026110501"></script>
-    <script src="app.js?v=2026110527"></script>
+    <script src="app.js?v=2026110528"></script>
     <script src="welcome.js?v=2026110603"></script>
 </body>
 </html>
