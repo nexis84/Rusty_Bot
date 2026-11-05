@@ -7,6 +7,7 @@ class SkillPlannerApp {
         this.currentCharacter = null;
         this.currentCharacterData = null;
         this.selectedSkill = null;
+        this.expandedSkillGroups = new Set();
         this.calculatorOverrides = null;
         this.bookPriceCache = new Map();
         this.bookPriceCacheAt = 0;
@@ -1093,7 +1094,10 @@ class SkillPlannerApp {
             groups[skill.group].push({ id: skillId, ...skill });
         });
         
+        const previousScrollTop = this.skillCategories.scrollTop;
+
         this.skillCategories.innerHTML = Object.entries(groups).map(([groupName, skills]) => {
+            const isExpanded = this.expandedSkillGroups.has(groupName);
             // Filter skills
             const filtered = skills.filter(skill => {
                 if (filter === 'all') return true;
@@ -1108,12 +1112,12 @@ class SkillPlannerApp {
             
             return `
                 <div class="cat-group">
-                    <div class="cat-header">
+                    <div class="cat-header ${isExpanded ? 'expanded' : ''}" data-group="${this.escapeHtml(groupName)}" aria-expanded="${isExpanded}">
                         <i class="fas fa-chevron-right"></i>
                         <span>${groupName}</span>
                         <span class="cat-count">${filtered.length}</span>
                     </div>
-                    <div class="cat-skills">
+                    <div class="cat-skills ${isExpanded ? 'expanded' : ''}">
                         ${filtered.map(skill => this.renderSkillItem(skill)).join('')}
                     </div>
                 </div>
@@ -1123,12 +1127,17 @@ class SkillPlannerApp {
         // Bind events
         this.skillCategories.querySelectorAll('.cat-header').forEach(header => {
             header.addEventListener('click', () => {
-                header.classList.toggle('expanded');
-                header.nextElementSibling?.classList.toggle('expanded');
+                const groupName = header.dataset.group || '';
+                const isExpanded = header.classList.toggle('expanded');
+                header.nextElementSibling?.classList.toggle('expanded', isExpanded);
+                header.setAttribute('aria-expanded', String(isExpanded));
+                if (isExpanded) this.expandedSkillGroups.add(groupName);
+                else this.expandedSkillGroups.delete(groupName);
             });
         });
         
         this.skillCategories.querySelectorAll('.skill-item').forEach(item => {
+            if (parseInt(item.dataset.skillId) === this.selectedSkill) item.classList.add('active');
             item.addEventListener('click', () => {
                 const skillId = parseInt(item.dataset.skillId);
                 this.selectSkill(skillId);
@@ -1138,6 +1147,9 @@ class SkillPlannerApp {
                 item.classList.add('active');
             });
         });
+
+        // Re-renders triggered by adding to the plan should not jump the list.
+        this.skillCategories.scrollTop = previousScrollTop;
     }
 
     renderSkillItem(skill) {
