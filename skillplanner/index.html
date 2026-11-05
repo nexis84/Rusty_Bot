@@ -30,7 +30,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -159,6 +159,9 @@
                 </button>
                 <h2 class="page-title" id="pageTitle">Dashboard</h2>
                 <div class="top-actions">
+                    <button class="action-btn" id="welcomeBtn" title="Welcome &amp; help">
+                        <i class="fas fa-compass"></i>
+                    </button>
                     <button class="action-btn" id="settingsBtn" title="Settings">
                         <i class="fas fa-cog"></i>
                     </button>
@@ -976,6 +979,105 @@
         </main>
     </div>
 
+    <!-- Welcome / help overlay -->
+    <div id="welcomeDom" class="welcome-dom hidden" role="dialog" aria-modal="true" aria-label="Welcome to Rusty Skill Planner">
+        <div class="welcome-inner">
+            <button class="welcome-close" id="welcomeClose" title="Close welcome" aria-label="Close welcome">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div class="welcome-hero">
+                <img src="../rusty_bot.png" alt="RustyBot logo" class="welcome-logo">
+                <div class="welcome-hero-text">
+                    <span class="seo-faq-eyebrow"><i class="fas fa-graduation-cap"></i> Rusty Skill Planner</span>
+                    <h2>Plan your next <span class="accent">EVE skill</span></h2>
+                    <p class="welcome-subtitle">Skills, saved fittings, doctrines and ship readiness in one place.</p>
+                    <p class="welcome-tagline">First time here? Start below. Returning? Jump straight in, or reopen this page any time from the compass button.</p>
+                    <div class="welcome-cta-row">
+                        <button class="welcome-cta" data-welcome-act="dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Open Dashboard
+                        </button>
+                        <button class="welcome-cta secondary" data-welcome-act="planner">
+                            <i class="fas fa-clipboard-list"></i> Build a Skill Plan
+                        </button>
+                        <button class="welcome-cta secondary" data-welcome-act="savedFits">
+                            <i class="fas fa-list-check"></i> Saved Fits
+                        </button>
+                        <button class="welcome-cta secondary" data-welcome-act="ships">
+                            <i class="fas fa-rocket"></i> Ship Browser
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="welcome-sso" id="welcomeSso">
+                <div class="welcome-sso-text">
+                    <i class="fas fa-user-lock"></i>
+                    <div>
+                        <strong>Unlock your character</strong>
+                        <p>Sign in with EVE SSO to load real skills, personal saved fittings, and doctrine readiness.</p>
+                    </div>
+                </div>
+                <button class="welcome-cta welcome-sso-btn" id="welcomeSsoLogin">
+                    <i class="fas fa-right-to-bracket"></i> Sign in with EVE
+                </button>
+            </div>
+
+            <div class="welcome-grid">
+                <div class="welcome-card" data-welcome-act="planner">
+                    <div class="welcome-card-head"><i class="fas fa-clipboard-list"></i> Skill Planner</div>
+                    <div class="welcome-card-title">Build a training plan</div>
+                    <p>Add any skill and the planner expands every prerequisite, orders the plan and estimates completion from your real attributes.</p>
+                    <span class="welcome-card-link">Open Skill Planner <i class="fas fa-arrow-right"></i></span>
+                </div>
+                <div class="welcome-card" data-welcome-act="savedFits">
+                    <div class="welcome-card-head"><i class="fas fa-list-check"></i> Saved Fits</div>
+                    <div class="welcome-card-title">What can I fly?</div>
+                    <p>Load your personal EVE fittings, see ready and missing skills, time-to-fly, and create a plan for each fit.</p>
+                    <span class="welcome-card-link">Open Saved Fits <i class="fas fa-arrow-right"></i></span>
+                </div>
+                <div class="welcome-card" data-welcome-act="library">
+                    <div class="welcome-card-head"><i class="fas fa-book-bookmark"></i> Doctrine Library</div>
+                    <div class="welcome-card-title">Corp fits, kept locally</div>
+                    <p>Paste corp or alliance EFT fits, tag them, and combine several doctrines into one efficient training plan.</p>
+                    <span class="welcome-card-link">Open Doctrine Library <i class="fas fa-arrow-right"></i></span>
+                </div>
+                <div class="welcome-card" data-welcome-act="ships">
+                    <div class="welcome-card-head"><i class="fas fa-rocket"></i> Ship Browser</div>
+                    <div class="welcome-card-title">Browse every hull</div>
+                    <p>Compare 572 ships against your trained skills, filter by readiness, and create a hull plan for the next hull you want.</p>
+                    <span class="welcome-card-link">Open Ship Browser <i class="fas fa-arrow-right"></i></span>
+                </div>
+                <div class="welcome-card" data-welcome-act="fit">
+                    <div class="welcome-card-head"><i class="fas fa-wrench"></i> Fit Analysis</div>
+                    <div class="welcome-card-title">Paste an EFT fit</div>
+                    <p>Resolve the hull, modules, drones and charges against the SDE, then see every missing skill and copy the fit back out.</p>
+                    <span class="welcome-card-link">Open Fit Analysis <i class="fas fa-arrow-right"></i></span>
+                </div>
+                <div class="welcome-card" data-welcome-act="calculator">
+                    <div class="welcome-card-head"><i class="fas fa-calculator"></i> Training Calculator</div>
+                    <div class="welcome-card-title">Attributes, remaps and injectors</div>
+                    <p>Compare Alpha and Omega rates, test implants and accelerators, find the best remap, and price skill injectors.</p>
+                    <span class="welcome-card-link">Open Calculator <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+
+            <div class="welcome-steps">
+                <h3><i class="fas fa-compass"></i> Quick start</h3>
+                <ol>
+                    <li><em>Sign in</em> with EVE SSO to use your real skills and personal fittings.</li>
+                    <li>Paste a fit or browse ships to find what you want to fly.</li>
+                    <li>Create a skill plan, check the doctrine impact, then copy it into EVE.</li>
+                </ol>
+            </div>
+
+            <div class="welcome-foot">
+                <img src="../rusty_bot.png" alt="" class="welcome-foot-logo">
+                <span>Rusty Skill Planner is free to use. <a href="../">Back to RustyBot</a></span>
+            </div>
+        </div>
+    </div>
+
     <!-- Modals -->
     <div class="modal hidden" id="skillPickerModal" role="dialog" aria-modal="true" aria-label="Add Skill to Plan">
         <div class="modal-content">
@@ -1177,5 +1279,6 @@
     <script src="skill-planner.js?v=2026110509"></script>
     <script src="fit-utils.js?v=2026110501"></script>
     <script src="app.js?v=2026110514"></script>
+    <script src="welcome.js?v=2026110601"></script>
 </body>
 </html>
