@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-1EELB9VSCK');
+</script>
+<title>Twitch &amp; Discord ShoutOuts — Automatic Live Alerts | RustyBot</title>
+<meta name="description" content="RustyBot ShoutOuts post automatic live alerts for tracked EVE Online streamers in Twitch and Kick chat or in your Discord server. Compare both versions, features and Ko-fi membership tiers.">
+<meta name="theme-color" content="#121212">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="canonical" href="https://www.rustybot.co.uk/shoutouts/">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RustyBot">
+<meta property="og:title" content="Twitch &amp; Discord ShoutOuts — Automatic Live Alerts">
+<meta property="og:description" content="Automatic live alerts for tracked EVE Online streamers — in Twitch and Kick chat, or in your Discord server.">
+<meta property="og:url" content="https://www.rustybot.co.uk/shoutouts/">
+<meta property="og:image" content="https://www.rustybot.co.uk/og-image.jpg">
+<meta property="og:image:alt" content="RustyBot logo">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Twitch &amp; Discord ShoutOuts — Automatic Live Alerts">
+<meta name="twitter:description" content="Automatic live alerts for tracked EVE Online streamers — in Twitch and Kick chat, or in your Discord server.">
+<meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
+<link rel="icon" type="image/png" href="../rusty_bot.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","name":"Twitch & Discord ShoutOuts — Automatic Live Alerts","url":"https://www.rustybot.co.uk/shoutouts/","description":"Automatic live alerts for tracked EVE Online streamers in Twitch and Kick chat, or in a Discord server.","isPartOf":{"@type":"WebSite","name":"RustyBot","url":"https://www.rustybot.co.uk/"},"publisher":{"@type":"Organization","name":"RustyBot","url":"https://www.rustybot.co.uk/"}}
+</script>
+<style>
+:root{
+  --bg:#121212;--panel:#1e1e1e;--panel-2:#2a2a2a;--border:#2a2a2a;
+  --text:#e0e0e0;--dim:#aaa;
+  --accent:#e8d900;--accent-h:#f5e53b;--accent-glow:rgba(232,217,0,.28);--accent-soft:rgba(232,217,0,.12);
+  --discord:#c97b5a;--discord-h:#e08f6d;--discord-soft:rgba(201,123,90,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(ellipse at 20% -10%,rgba(232,217,0,.08),transparent 60%),
+    radial-gradient(ellipse at 80% 5%,rgba(90,120,160,.07),transparent 55%),
+    var(--bg);
+  background-attachment:fixed;color:var(--text);font-family:'Titillium Web',sans-serif;
+  min-height:100vh;line-height:1.6;
+}
+a{color:var(--accent)}
+.container{max-width:1080px;margin:0 auto;padding:20px 20px 0;position:relative}
+
+/* top bar (matches rest of site) */
+.top-bar{display:flex;align-items:center;gap:20px;width:100%;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.brand{flex-shrink:0}
+.brand-link{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-link .logo{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(232,217,0,.35))}
+.brand-link h1{font-size:20px;margin:0;font-weight:700;color:var(--text);letter-spacing:.5px;white-space:nowrap}
+.brand-link h1 .accent{color:var(--accent)}
+.breadcrumb{flex:1;display:flex;align-items:center;gap:8px;font-size:.9rem}
+.breadcrumb-item{display:flex;align-items:center;gap:8px}
+.breadcrumb-item:not(:last-child)::after{content:'/';color:var(--dim)}
+.breadcrumb-item a{color:var(--dim);text-decoration:none;transition:color .2s}
+.breadcrumb-item a:hover{color:var(--accent)}
+.breadcrumb-item:last-child a{color:var(--text);font-weight:500}
+
+/* hero */
+.tool-header{text-align:center;padding:2rem 1rem 1rem}
+.tool-header .logo{max-width:100px;margin-bottom:.5rem;filter:drop-shadow(0 0 18px rgba(232,217,0,.25))}
+.tool-header h1{font-size:2.5rem;font-weight:700}
+.tool-header h1 span{color:var(--accent);text-shadow:0 0 24px var(--accent-glow)}
+.subtitle{color:var(--dim);max-width:660px;margin:6px auto 0;line-height:1.5;text-align:center;font-size:1.05rem}
+.hero-intro{max-width:800px;margin:18px auto 0;text-align:center;color:var(--text);font-size:.95rem}
+.hero-intro strong{color:var(--accent)}
+.hero-note{display:inline-block;margin-top:16px;padding:5px 14px;border:1px solid var(--panel-2);border-radius:999px;color:var(--dim);font-size:.78rem;letter-spacing:1px;text-transform:uppercase}
+.hero-note i{color:var(--accent);margin-right:6px}
+
+/* sections */
+.section{padding:2rem 0;border-top:1px solid var(--border);margin-top:2rem}
+.section:first-of-type{border-top:none;margin-top:0}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.section-header h2{font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);white-space:nowrap}
+.section-header .line{flex:1;height:1px;background:var(--border)}
+.section-header i{color:var(--accent);font-size:.85rem}
+.section-sub{color:var(--dim);font-size:.95rem;margin:-4px 0 20px}
+
+/* product cards */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.product-card{
+  position:relative;background:linear-gradient(160deg,var(--panel) 0%,var(--bg) 100%);
+  border:1px solid var(--border);border-radius:10px;padding:28px 24px 24px;
+  display:flex;flex-direction:column;gap:10px;overflow:hidden;
+}
+.product-card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--card-accent)}
+.product-card.twitch{--card-accent:var(--accent);--card-soft:var(--accent-soft)}
+.product-card.discord{--card-accent:var(--discord);--card-soft:var(--discord-soft)}
+.product-icon{
+  display:flex;align-items:center;justify-content:center;width:46px;height:46px;
+  border-radius:10px;background:var(--card-soft);color:var(--card-accent);font-size:1.35rem;
+}
+.product-kicker{font-size:.72rem;text-transform:uppercase;letter-spacing:1.3px;color:var(--card-accent);font-weight:700}
+.product-card h3{font-size:1.5rem;color:#fff;line-height:1.2}
+.product-card > p{color:var(--dim);font-size:.94rem}
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin:4px 0 6px}
+.feature-list li{position:relative;padding-left:24px;color:var(--text);font-size:.9rem}
+.feature-list li::before{content:"\f00c";font-family:"Font Awesome 6 Free";font-weight:900;position:absolute;left:0;top:1px;color:var(--card-accent);font-size:.75rem}
+.tier-note{
+  margin-top:auto;padding-top:14px;border-top:1px solid var(--border);
+  color:var(--dim);font-size:.82rem;display:flex;gap:8px;align-items:flex-start;
+}
+.tier-note i{color:var(--card-accent);margin-top:3px}
+.tier-note strong{color:var(--text)}
+.product-cta{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;
+  padding:12px 18px;border:2px solid var(--card-accent);border-radius:8px;
+  background:var(--card-soft);color:var(--card-accent);
+  font-weight:700;font-size:.95rem;text-decoration:none;
+  transition:background .2s,border-color .2s,color .2s,transform .2s;
+}
+.product-cta:hover{background:var(--card-accent);color:#121212;transform:translateY(-1px)}
+
+/* how it works */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.step{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px}
+.step-number{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:.85rem}
+.step h3{font-size:1.05rem;color:#fff;margin:8px 0 4px}
+.step p{color:var(--dim);font-size:.88rem}
+
+/* membership table */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;background:var(--panel)}
+th,td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:.93rem}
+tr:last-child td{border-bottom:none}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:700}
+td:first-child{font-weight:700;color:#fff}
+td .fa-check{color:var(--accent)}
+td .fa-xmark{color:#777}
+.notes{color:var(--dim);font-size:.86rem;margin-top:14px}
+.notes strong{color:var(--text)}
+.notes a{font-weight:700}
+
+/* footer */
+footer{text-align:center;padding:1.5rem;color:var(--dim);border-top:1px solid var(--panel-2);margin-top:44px;font-size:.82rem}
+footer a{color:var(--dim);text-decoration:none}
+footer a:hover{color:var(--accent)}
+.footer-links{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+
+@media (max-width:700px){
+  .tool-header h1{font-size:1.9rem}
+  .top-bar{flex-wrap:wrap;gap:10px;padding:10px 16px}
+  .breadcrumb{flex:0 0 100%;order:3;justify-content:flex-start}
+  .container{padding:12px 14px 0}
+  .product-card{padding:24px 18px}
+}
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="brand">
+    <a href="../" class="brand-link">
+      <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+      <h1 class="brand-name">Rusty<span class="accent">Bot</span></h1>
+    </a>
+  </div>
+  <div class="breadcrumb">
+    <span class="breadcrumb-item"><a href="../">Home</a></span>
+    <span class="breadcrumb-item"><a href="./">ShoutOuts</a></span>
+  </div>
+</header>
+
+<div class="container">
+
+  <header class="tool-header">
+    <img src="../rusty_bot.png" alt="RustyBot Logo" class="logo">
+    <h1>Twitch &amp; Discord <span>ShoutOuts</span></h1>
+    <p class="subtitle">Automatic live alerts for your chat and your community</p>
+    <p class="hero-intro">
+      RustyBot ShoutOuts watch your tracked <strong>EVE Online streamers</strong> and post an alert the moment
+      they go live. There are two versions: one for <strong>Twitch &amp; Kick chat</strong>, and one for
+      <strong>Discord servers</strong>. Both use the same shared streamer list and the same Ko-fi membership —
+      pick the home that suits your audience.
+    </p>
+    <span class="hero-note"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i>One streamer list, two places your viewers already are</span>
+  </header>
+
+  <section class="section" id="products">
+    <div class="section-header">
+      <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+      <h2>Choose your platform</h2>
+      <span class="line"></span>
+    </div>
+    <p class="section-sub">Both versions run from their own dashboard and set up in a few minutes.</p>
+
+    <div class="product-grid">
+      <article class="product-card twitch">
+        <div class="product-icon"><i class="fa-brands fa-twitch" aria-hidden="true"></i></div>
+        <span class="product-kicker">For Twitch &amp; Kick streamers</span>
+        <h3>Twitch / Kick ShoutOut</h3>
+        <p>Alerts post straight into Twitch or Kick chat whenever a tracked streamer goes live — perfect for watch parties, raid targets and community channels.</p>
+        <ul class="feature-list">
+          <li>Tracks the shared EVE Online streamer list</li>
+          <li>Posts to Twitch and Kick chat automatically</li>
+          <li>Priority streamers can use a separate channel</li>
+          <li>Per-streamer cooldown stops repeat spam</li>
+          <li>Dashboard commands, timers and custom messages</li>
+        </ul>
+        <p class="tier-note">
+          <i class="fa-solid fa-crown" aria-hidden="true"></i>
+          <span>Included with <strong>AA Battery Supplier</strong> or higher on Ko-fi.</span>
+        </p>
+        <a class="product-cta" href="https://shoutbot.rustybot.co.uk/" target="_blank" rel="noopener">
+          Open Twitch / Kick ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </article>
+
+      <article class="product-card discord">
+        <div class="product-icon"><i class="fa-brands fa-discord" aria-hidden="true"></i></div>
+        <span class="product-kicker">For Discord communities</span>
+        <h3>Discord ShoutOut</h3>
+        <p>RustyBot posts a live alert in your Discord server when a tracked streamer goes live, with the Twitch link and an optional role ping.</p>
+        <ul class="feature-list">
+          <li>Set the announcement channel with <code>/shoutout setup</code></li>
+          <li>Enable or disable each known EVE streamer</li>
+          <li>Priority streamers get their own channel</li>
+          <li>One membership per Discord server</li>
+          <li>Works alongside the RustyBot Discord bot</li>
+        </ul>
+        <p class="tier-note">
+          <i class="fa-solid fa-crown" aria-hidden="true"></i>
+          <span>Included with <strong>Bot Whisperer</strong> or <strong>Elite Supporter Status</strong> on Ko-fi.</span>
+        </p>
+        <a class="product-cta" href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener">
+          Open Discord ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="how-it-works">
+    <div class="section-header">
+      <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+      <h2>How it works</h2>
+      <span class="line"></span>
+    </div>
+    <p class="section-sub">Same idea on both platforms — connect, choose streamers, and let the alerts run.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="step-number">1</span>
+        <h3>Become a member</h3>
+        <p>Pick a qualifying Ko-fi tier, then link the same email (or your Discord ID) in the dashboard.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">2</span>
+        <h3>Choose your streamers</h3>
+        <p>Start from the shared EVE Online streamer list and enable the ones you want. Mark favourites as priority.</p>
+      </div>
+      <div class="step">
+        <span class="step-number">3</span>
+        <h3>Alerts post automatically</h3>
+        <p>RustyBot checks every 60 seconds and posts each live stream once, with a cooldown so channels don't flood.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="membership">
+    <div class="section-header">
+      <i class="fa-solid fa-crown" aria-hidden="true"></i>
+      <h2>Ko-fi membership</h2>
+      <span class="line"></span>
+    </div>
+    <p class="section-sub">One Ko-fi membership unlocks ShoutOuts. The tier you need depends on the platform.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Ko-fi tier</th><th>Twitch / Kick ShoutOut</th><th>Discord ShoutOut</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>AA Battery Supplier</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+            <td><i class="fa-solid fa-xmark" aria-hidden="true"></i> <span class="muted">Not included</span></td>
+          </tr>
+          <tr>
+            <td>Bot Whisperer</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+          </tr>
+          <tr>
+            <td>Elite Supporter Status</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="notes">
+      <strong>AA Battery Supplier</strong> is Twitch/Kick only. Discord ShoutOut starts at Bot Whisperer.
+      Memberships are per streamer group on Twitch/Kick and per Discord server — one email or Discord ID per server.
+      Tiers and current prices are on <a href="https://ko-fi.com/rustybot/tiers#become-member-container" target="_blank" rel="noopener">Ko-fi</a>.
+    </p>
+  </section>
+
+  <footer>
+    <div class="footer-links">
+      <a href="../">Home</a>
+      <a href="../giveaway">Giveaway Client</a>
+      <a href="../discord">Discord Bot</a>
+      <a href="../sponsors/">Sponsors</a>
+      <a href="../Support/">Support</a>
+      <a href="https://ko-fi.com/rustybot/tiers#become-member-container" target="_blank" rel="noopener">Ko-fi</a>
+    </div>
+    RustyBot ShoutOuts &middot; Part of RustyBot.
+  </footer>
+
+</div>
+</body>
+</html>
