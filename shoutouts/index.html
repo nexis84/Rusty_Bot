@@ -143,15 +143,25 @@ a{color:var(--accent)}
 .preview-live{margin-left:auto;font-size:.58rem;letter-spacing:.8px;padding:1px 6px;border-radius:3px;background:rgba(233,25,22,.14);border:1px solid rgba(233,25,22,.4);color:#ff7b72}
 .chat-line{font-size:.82rem;line-height:1.5;color:var(--text);word-break:break-word}
 .chat-user{font-weight:700;color:var(--accent)}
+.twitch-preview .chat-user{color:#c9a7ff}
 .preview-link{color:#8ab4f8;word-break:break-all}
 .discord-msg{display:flex;gap:9px;align-items:flex-start}
 .discord-avatar{flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--discord-soft);color:var(--discord);display:flex;align-items:center;justify-content:center;font-size:.85rem}
 .discord-body{min-width:0}
 .discord-author{font-size:.76rem;font-weight:700;color:#fff}
-.discord-app{font-size:.54rem;background:#5865f2;color:#fff;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle;letter-spacing:.4px}
-.discord-title{font-size:.85rem;font-weight:700;color:var(--discord-h);margin-top:2px}
+.discord-app{font-size:.54rem;background:#5865f2;color:#fff;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle;letter-spacing:.4px;text-transform:uppercase}
+.discord-time{font-size:.64rem;color:var(--dim);font-weight:400;margin-left:6px}
+.discord-mention{display:inline-block;margin:3px 0 2px;padding:1px 6px;border-radius:4px;background:rgba(88,101,242,.2);color:#b3bcff;font-size:.72rem;font-weight:700}
+.discord-title{font-size:.85rem;font-weight:700;color:#fff;margin-top:2px}
 .discord-desc{font-size:.78rem;color:var(--dim)}
+.discord-links{display:flex;flex-direction:column;gap:1px;margin-top:2px;font-size:.74rem;color:#8ab4f8;word-break:break-all}
 .discord-ping{display:inline-block;margin-top:6px;font-size:.68rem;background:rgba(88,101,242,.18);color:#b3bcff;border-radius:4px;padding:1px 6px;font-weight:700}
+.discord-embed-mini{position:relative;margin-top:8px;padding:8px 10px 8px 13px;background:rgba(0,0,0,.22);border-radius:4px;overflow:hidden}
+.discord-embed-mini::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#9146ff}
+.embed-title{font-size:.74rem;font-weight:700;color:#8ab4f8}
+.embed-desc{font-size:.68rem;color:var(--dim);margin-top:2px}
+.embed-watch{font-size:.66rem;color:var(--dim);margin-top:4px}
+.embed-watch i{color:#8ab4f8;margin-right:4px}
 
 /* how it works */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
@@ -259,7 +269,7 @@ footer a:hover{color:var(--accent)}
         <p>Alerts post straight into Twitch or Kick chat whenever a tracked streamer goes live — perfect for watch parties, raid targets and community channels.</p>
         <div class="alert-preview twitch-preview" aria-hidden="true">
           <div class="preview-head"><span class="preview-dot"></span>Twitch chat<span class="preview-live">Live</span></div>
-          <div class="chat-line"><span class="chat-user">Rusty ShoutOut:</span> ne_x_is is now live — <span class="preview-link">twitch.tv/ne_x_is</span></div>
+          <div class="chat-line"><span class="chat-user">The_Rusty_Bot:</span> Check out Ne_x_is and RustyBot - <span class="preview-link">www.rustybot.co.uk</span></div>
         </div>
         <ul class="feature-list">
           <li>Tracks the shared streamer list</li>
@@ -287,10 +297,15 @@ footer a:hover{color:var(--accent)}
           <div class="discord-msg">
             <div class="discord-avatar"><i class="fa-solid fa-bullhorn"></i></div>
             <div class="discord-body">
-              <div class="discord-author">Rusty ShoutOut <span class="discord-app">App</span></div>
-              <div class="discord-title">ne_x_is is now live</div>
-              <div class="discord-desc">Watch on Twitch — twitch.tv/ne_x_is</div>
-              <span class="discord-ping">@Live role ping</span>
+              <div class="discord-author">RustyBot <span class="discord-app">App</span><span class="discord-time">Today at 01:02</span></div>
+              <div class="discord-mention">@everyone</div>
+              <div class="discord-title">Ne_x_is is still live</div>
+              <div class="discord-links"><span>twitch.tv/ne_x_is</span><span>kick.com/ne_x_is</span></div>
+              <div class="discord-embed-mini">
+                <div class="embed-title">Ne_x_is is still live</div>
+                <div class="embed-desc">Live now — tune in on Twitch or Kick.</div>
+                <div class="embed-watch"><i class="fa-solid fa-eye"></i>52 watching</div>
+              </div>
             </div>
           </div>
         </div>
