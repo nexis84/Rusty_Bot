@@ -41,7 +41,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
-    <link rel="stylesheet" href="style.css?v=35">
+    <link rel="stylesheet" href="style.css?v=36">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -1213,15 +1213,23 @@
                 <button class="modal-close" id="closeBookList"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" id="bookListContent"></div>
-            <div class="book-list-mail-recipient">
-                <label for="bookListMailRecipient"><i class="fas fa-user"></i> Send to character</label>
-                <input type="text" id="bookListMailRecipient" list="bookListMailRecipientList" placeholder="Leave blank for your signed-in character" autocomplete="off">
-                <datalist id="bookListMailRecipientList"></datalist>
-            </div>
             <div class="modal-footer book-list-footer">
                 <span class="book-list-mail-status" id="bookListMailStatus" role="status"></span>
                 <button class="btn-secondary" id="copyBookListBtn"><i class="fas fa-copy"></i> Copy List</button>
-                <button class="btn-primary" id="sendBookListMailBtn"><i class="fas fa-envelope"></i> Send to EVE Mail</button>
+                <div class="book-list-mail-send" id="bookListMailSend">
+                    <button class="btn-primary book-list-mail-send-main" id="sendBookListMailBtn">
+                        <i class="fas fa-envelope"></i> Send to EVE Mail
+                    </button>
+                    <button class="btn-primary book-list-mail-send-toggle" id="toggleBookListMailRecipient" aria-haspopup="true" aria-expanded="false" aria-controls="bookListMailRecipientPanel" title="Choose a different recipient">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="book-list-mail-recipient-panel" id="bookListMailRecipientPanel">
+                        <label for="bookListMailRecipient"><i class="fas fa-user"></i> Send to character</label>
+                        <input type="text" id="bookListMailRecipient" list="bookListMailRecipientList" placeholder="Leave blank for your signed-in character" autocomplete="off">
+                        <datalist id="bookListMailRecipientList"></datalist>
+                        <p class="book-list-mail-recipient-hint">Leave blank to send to your signed-in character.</p>
+                    </div>
+                </div>
                 <button class="btn-secondary" id="closeBookListFooter">Close</button>
             </div>
         </div>
@@ -1323,7 +1331,7 @@
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110509"></script>
     <script src="fit-utils.js?v=2026110501"></script>
-    <script src="app.js?v=2026110537"></script>
+    <script src="app.js?v=2026110538"></script>
     <script src="welcome.js?v=2026110606"></script>
 </body>
 </html>

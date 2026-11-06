@@ -242,6 +242,17 @@ class SkillPlannerApp {
         document.getElementById('closeBookListFooter')?.addEventListener('click', () => this.closeBookList());
         document.getElementById('copyBookListBtn')?.addEventListener('click', () => this.copyBookList());
         document.getElementById('sendBookListMailBtn')?.addEventListener('click', () => this.sendBookListMail());
+        document.getElementById('toggleBookListMailRecipient')?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.toggleBookListMailRecipient();
+        });
+        document.addEventListener('click', (event) => {
+            const panel = document.getElementById('bookListMailRecipientPanel');
+            const wrapper = document.getElementById('bookListMailSend');
+            if (!panel?.classList.contains('open')) return;
+            if (wrapper && wrapper.contains(event.target)) return;
+            this.closeBookListMailRecipient();
+        });
         document.getElementById('sharePlanBtn')?.addEventListener('click', () => this.sharePlan());
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
         document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.openPlanManager());
@@ -4664,6 +4675,7 @@ class SkillPlannerApp {
     }
 
     closeBookList() {
+        this.closeBookListMailRecipient();
         document.getElementById('bookListModal')?.classList.add('hidden');
     }
 
@@ -4686,6 +4698,27 @@ class SkillPlannerApp {
         status.className = `book-list-mail-status${type ? ` ${type}` : ''}`;
     }
 
+    toggleBookListMailRecipient() {
+        const panel = document.getElementById('bookListMailRecipientPanel');
+        const toggle = document.getElementById('toggleBookListMailRecipient');
+        if (!panel) return;
+
+        const isOpen = !panel.classList.contains('open');
+        panel.classList.toggle('open', isOpen);
+        toggle?.setAttribute('aria-expanded', String(isOpen));
+
+        if (isOpen) {
+            const input = document.getElementById('bookListMailRecipient');
+            input?.focus();
+            input?.select();
+        }
+    }
+
+    closeBookListMailRecipient() {
+        document.getElementById('bookListMailRecipientPanel')?.classList.remove('open');
+        document.getElementById('toggleBookListMailRecipient')?.setAttribute('aria-expanded', 'false');
+    }
+
     setupBookListMailRecipient() {
         const input = document.getElementById('bookListMailRecipient');
         const list = document.getElementById('bookListMailRecipientList');
@@ -4697,12 +4730,26 @@ class SkillPlannerApp {
         input.placeholder = currentName
             ? `Leave blank for ${currentName}`
             : 'Leave blank for your signed-in character';
+        const updateSendTitle = () => {
+            const sendButton = document.getElementById('sendBookListMailBtn');
+            if (!sendButton) return;
+            const entered = input.value.trim();
+            sendButton.title = entered
+                ? `Send to ${entered}`
+                : `Send to ${currentName || 'your signed-in character'}`;
+        };
+        input.oninput = updateSendTitle;
         input.onkeydown = event => {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 this.sendBookListMail();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                this.closeBookListMailRecipient();
             }
         };
+        updateSendTitle();
+        this.closeBookListMailRecipient();
 
         const names = [...new Set(
             esiAuth.getAuthenticatedCharacters()
@@ -4823,6 +4870,7 @@ class SkillPlannerApp {
                 `EVE mail sent to ${recipientLabel}. Check the in-game mailbox.`,
                 'success'
             );
+            this.closeBookListMailRecipient();
             this.showMessage(`Skill book list sent to ${recipientLabel}`, 'success');
         } catch (error) {
             this.setBookListMailStatus(`Could not send EVE mail: ${error.message}`, 'error');
