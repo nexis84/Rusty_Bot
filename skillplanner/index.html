@@ -41,7 +41,7 @@
     <meta name="twitter:title" content="EVE Online Skill Planner | RustyBot">
     <meta name="twitter:description" content="Plan EVE Online skills with prerequisites, accurate training times, implants, remaps, injector costs and shareable plans.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
-    <link rel="stylesheet" href="style.css?v=32">
+    <link rel="stylesheet" href="style.css?v=33">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="canonical" href="https://www.rustybot.co.uk/skillplanner/">
@@ -1213,8 +1213,10 @@
                 <button class="modal-close" id="closeBookList"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" id="bookListContent"></div>
-            <div class="modal-footer">
+            <div class="modal-footer book-list-footer">
+                <span class="book-list-mail-status" id="bookListMailStatus" role="status"></span>
                 <button class="btn-secondary" id="copyBookListBtn"><i class="fas fa-copy"></i> Copy List</button>
+                <button class="btn-primary" id="sendBookListMailBtn"><i class="fas fa-envelope"></i> Send to EVE Mail</button>
                 <button class="btn-secondary" id="closeBookListFooter">Close</button>
             </div>
         </div>
@@ -1316,7 +1318,7 @@
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110509"></script>
     <script src="fit-utils.js?v=2026110501"></script>
-    <script src="app.js?v=2026110535"></script>
+    <script src="app.js?v=2026110536"></script>
     <script src="welcome.js?v=2026110606"></script>
 </body>
 </html>

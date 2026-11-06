@@ -2040,6 +2040,30 @@ body {
     border-top: 1px solid var(--secondary-color);
 }
 
+.book-list-footer {
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.book-list-mail-status {
+    flex: 1 1 220px;
+    min-height: 1.2em;
+    color: var(--text-subtle-color);
+    font-size: 0.82rem;
+}
+
+.book-list-mail-status.success {
+    color: var(--success-color);
+}
+
+.book-list-mail-status.warn {
+    color: var(--warning-color);
+}
+
+.book-list-mail-status.error {
+    color: var(--error-color);
+}
+
 .plan-manager-save {
     display: flex;
     gap: 10px;

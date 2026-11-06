@@ -241,6 +241,7 @@ class SkillPlannerApp {
         document.getElementById('closeBookList')?.addEventListener('click', () => this.closeBookList());
         document.getElementById('closeBookListFooter')?.addEventListener('click', () => this.closeBookList());
         document.getElementById('copyBookListBtn')?.addEventListener('click', () => this.copyBookList());
+        document.getElementById('sendBookListMailBtn')?.addEventListener('click', () => this.sendBookListMail());
         document.getElementById('sharePlanBtn')?.addEventListener('click', () => this.sharePlan());
         document.getElementById('renamePlanBtn')?.addEventListener('click', () => this.renamePlan());
         document.getElementById('loadPlanBtn')?.addEventListener('click', () => this.openPlanManager());
@@ -4598,6 +4599,18 @@ class SkillPlannerApp {
         this.bookListEntries = entries;
         this.bookListPrices = {};
 
+        const mailButton = document.getElementById('sendBookListMailBtn');
+        if (mailButton) mailButton.disabled = entries.length === 0;
+        if (entries.length > 0) {
+            const authed = esiAuth.isAuthenticated();
+            this.setBookListMailStatus(
+                authed ? '' : 'Sign in with EVE SSO to send this list to your in-game mail.',
+                authed ? '' : 'warn'
+            );
+        } else {
+            this.setBookListMailStatus('');
+        }
+
         if (entries.length === 0) {
             content.innerHTML = '<p class="empty-state">The plan has no untrained skill books.</p>';
             modal.classList.remove('hidden');
@@ -4636,7 +4649,7 @@ class SkillPlannerApp {
         }).join('');
 
         content.innerHTML = `
-            <p class="hint">One skill book per skill. Prices are Jita sell percentiles and may exclude books you already own.</p>
+            <p class="hint">One skill book per skill. Prices are for reference only; copied and mailed lists contain just the book names and levels.</p>
             <div class="book-list-table-wrap">
                 <table class="book-list-table">
                     <thead><tr><th>Skill Book</th><th>Level</th><th>Price</th></tr></thead>
@@ -4660,12 +4673,128 @@ class SkillPlannerApp {
             return;
         }
 
-        const lines = entries.map(entry => {
-            const price = this.bookListPrices?.[entry.skillId];
-            return `${entry.name} ${this.roman(entry.level)}${price ? ` - ${injectorCalc.formatISK(price)}` : ''}`;
-        });
+        const lines = entries.map(entry => `${entry.name} ${this.roman(entry.level)}`);
         const ok = await this.copyText(lines.join('\n'));
         this.showMessage(ok ? 'Skill book list copied' : 'Could not copy the list', ok ? 'success' : 'error');
+    }
+
+    setBookListMailStatus(text, type = '') {
+        const status = document.getElementById('bookListMailStatus');
+        if (!status) return;
+        status.textContent = text || '';
+        status.className = `book-list-mail-status${type ? ` ${type}` : ''}`;
+    }
+
+    buildBookListMailParts(entries, planName) {
+        const date = new Date().toISOString().slice(0, 10);
+        const header = [
+            `Skill books for ${planName}`,
+            `Generated ${date} by Rusty Skill Planner`,
+            `${entries.length} skill book${entries.length === 1 ? '' : 's'}`,
+            ''
+        ].join('\n');
+        const maxBody = 7500;
+        const parts = [];
+        let current = header;
+
+        entries.forEach(entry => {
+            const line = `${entry.name} ${this.roman(entry.level)}`;
+            if (current.length + line.length + 1 > maxBody) {
+                parts.push(current.trimEnd());
+                current = '';
+            }
+            current += `${current ? '\n' : ''}${line}`;
+        });
+        if (current.trim()) parts.push(current.trimEnd());
+
+        if (parts.length > 3) {
+            parts.length = 3;
+            parts[2] += '\n\n...list truncated. Open Rusty Skill Planner > Skill Books for the full list.';
+        }
+        return parts;
+    }
+
+    async sendBookListMail() {
+        const entries = this.bookListEntries || [];
+        const button = document.getElementById('sendBookListMailBtn');
+        const originalLabel = button?.innerHTML;
+
+        if (!entries.length) {
+            this.setBookListMailStatus('No skill books to send.', 'warn');
+            return;
+        }
+        if (!esiAuth.isAuthenticated()) {
+            this.setBookListMailStatus('Sign in with EVE SSO to send this list to your in-game mail.', 'warn');
+            return;
+        }
+
+        const characterId = String(esiAuth.getCurrentCharacter() || '');
+        if (!characterId) {
+            this.setBookListMailStatus('Signed in, but no character found. Sign in again.', 'error');
+            return;
+        }
+
+        const planName = skillPlanner.getName() || 'My Skill Plan';
+        const parts = this.buildBookListMailParts(entries, planName);
+        const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
+
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        }
+
+        try {
+            let token = await esiAuth.getAccessToken();
+            const sendPart = async (tokenValue, subject, body, part, total) => {
+                const response = await fetch(`${apiBase}/bv/mail/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${tokenValue}`
+                    },
+                    body: JSON.stringify({
+                        recipient_id: characterId,
+                        subject,
+                        body,
+                        part,
+                        parts: total
+                    })
+                });
+                const data = await response.json().catch(() => ({}));
+                return { response, data };
+            };
+
+            for (let index = 0; index < parts.length; index++) {
+                const part = index + 1;
+                const suffix = parts.length > 1 ? ` (Part ${part}/${parts.length})` : '';
+                const subject = `Skill Book Shopping List - ${planName}${suffix}`.slice(0, 1000);
+                this.setBookListMailStatus(`Sending EVE mail${parts.length > 1 ? ` ${part}/${parts.length}` : ''}...`);
+
+                let result = await sendPart(token, subject, parts[index], part, parts.length);
+                if (result.response.status === 401) {
+                    await esiAuth.refreshToken();
+                    token = await esiAuth.getAccessToken();
+                    result = await sendPart(token, subject, parts[index], part, parts.length);
+                }
+                if (!result.response.ok) {
+                    throw new Error(result.data?.error || `HTTP ${result.response.status}`);
+                }
+            }
+
+            this.setBookListMailStatus(
+                `EVE mail sent to ${esiAuth.tokens?.[characterId]?.characterName || 'your character'}. Check your in-game mailbox.`,
+                'success'
+            );
+            this.showMessage('Skill book list sent to EVE Mail', 'success');
+        } catch (error) {
+            this.setBookListMailStatus(`Could not send EVE mail: ${error.message}`, 'error');
+            this.showMessage(`Could not send EVE mail: ${error.message}`, 'error');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = originalLabel;
+            }
+        }
     }
 
     async updateBookCost() {
