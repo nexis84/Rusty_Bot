@@ -12,7 +12,7 @@ gtag('js', new Date());
 gtag('config', 'G-1EELB9VSCK');
 </script>
 <title>Twitch &amp; Discord ShoutOuts — Automatic Live Alerts | RustyBot</title>
-<meta name="description" content="RustyBot ShoutOuts post automatic live alerts for tracked streamers in Twitch and Kick chat or in your Discord server. Compare both versions, features and Ko-fi membership tiers.">
+<meta name="description" content="RustyBot ShoutOuts post automatic live alerts for tracked streamers in Twitch and Kick chat or in your Discord server. Compare Twitch, Discord and Both, plus Ko-fi membership tiers.">
 <meta name="theme-color" content="#121212">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,9 +40,10 @@ gtag('config', 'G-1EELB9VSCK');
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"Is this only for EVE Online streamers?","acceptedAnswer":{"@type":"Answer","text":"No. The shared EVE streamer list is just a starting point — you can add or import the channels you want to follow, and enable or disable individual streamers per server."}},
 {"@type":"Question","name":"Does Kick work?","acceptedAnswer":{"@type":"Answer","text":"Yes. The Twitch / Kick ShoutOut posts to both platforms, and you can link separate Twitch and Kick logins for the same streamer group."}},
-{"@type":"Question","name":"Can one membership cover both platforms?","acceptedAnswer":{"@type":"Answer","text":"Yes — Bot Whisperer and Elite Supporter Status qualify for both. Link the same Ko-fi email in each dashboard. AA Battery Supplier covers Twitch/Kick only."}},
+{"@type":"Question","name":"Can one membership cover both platforms?","acceptedAnswer":{"@type":"Answer","text":"Yes — Bot Whisperer (£15/mo) and Elite Supporter Status (£25/mo) cover both Twitch/Kick and Discord. AA Battery Supplier (£10/mo) covers one platform: Twitch/Kick or Discord. Upgrade to Bot Whisperer and the second platform unlocks automatically with the same Ko-fi email."}},
+{"@type":"Question","name":"How does the 7-day trial work?","acceptedAnswer":{"@type":"Answer","text":"Each platform gets its own 7-day trial. Twitch/Kick trial alerts are prefixed 'Rusty ShoutOut says: …'; join a qualifying Ko-fi tier to remove the branding and keep your setup."}},
 {"@type":"Question","name":"How fast are the alerts?","acceptedAnswer":{"@type":"Answer","text":"RustyBot checks tracked streamers about every 60 seconds and posts each live stream once, with a per-streamer cooldown so channels don't flood."}},
-{"@type":"Question","name":"What happens if I cancel?","acceptedAnswer":{"@type":"Answer","text":"Your ShoutOut stays active until the end of the paid period. After that, alerts pause until you renew a qualifying tier."}},
+{"@type":"Question","name":"What happens if I cancel?","acceptedAnswer":{"@type":"Answer","text":"Your ShoutOut stays active until the end of the paid period. If you downgrade to AA, one platform stays active and the other locks. Upgrade again to unlock both."}},
 {"@type":"Question","name":"Do I need my own bot?","acceptedAnswer":{"@type":"Answer","text":"No. Sign in and link your channel on the Twitch/Kick dashboard. For Discord, invite RustyBot and run /shoutout setup in your server."}}
 ]}
 </script>
@@ -100,7 +101,7 @@ a{color:var(--accent)}
 .section-sub strong{color:var(--text)}
 
 /* product cards */
-.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
 .product-card{
   position:relative;background:linear-gradient(160deg,var(--panel) 0%,var(--bg) 100%);
   border:1px solid var(--border);border-radius:10px;padding:28px 24px 24px;
@@ -109,6 +110,10 @@ a{color:var(--accent)}
 .product-card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--card-accent)}
 .product-card.twitch{--card-accent:var(--accent);--card-soft:var(--accent-soft)}
 .product-card.discord{--card-accent:var(--discord);--card-soft:var(--discord-soft)}
+.product-card.both{--card-accent:#e0b84a;--card-soft:linear-gradient(135deg,var(--accent-soft),var(--discord-soft))}
+.product-card.both::before{background:linear-gradient(90deg,var(--accent),var(--discord))}
+.product-card.both .product-icon{background:linear-gradient(135deg,var(--accent-soft),var(--discord-soft));color:var(--accent);gap:6px}
+.product-card.both .product-icon i:last-child{color:var(--discord)}
 .product-icon{
   display:flex;align-items:center;justify-content:center;width:46px;height:46px;
   border-radius:10px;background:var(--card-soft);color:var(--card-accent);font-size:1.35rem;
@@ -133,6 +138,38 @@ a{color:var(--accent)}
   transition:background .2s,border-color .2s,color .2s,transform .2s;
 }
 .product-cta:hover{background:var(--card-accent);color:#121212;transform:translateY(-1px)}
+.product-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.product-actions .product-cta{margin-top:0;flex:1 1 150px;text-align:center}
+.product-cta.secondary{background:transparent;border-color:var(--border);color:var(--text)}
+.product-cta.secondary:hover{background:var(--card-soft);border-color:var(--card-accent);color:var(--card-accent)}
+.product-note{color:var(--dim);font-size:.8rem;margin-top:2px}
+.product-note strong{color:var(--accent)}
+.product-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:.78rem}
+.product-links a{color:var(--dim);text-decoration:none}
+.product-links a:hover{color:var(--accent)}
+.both-preview{display:flex;flex-direction:column;gap:6px;margin:2px 0 4px}
+.both-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:#101014;font-size:.78rem;color:var(--text)}
+.both-row i{width:14px;text-align:center}
+.both-row.twitch i{color:#9146ff}
+.both-row.discord i{color:var(--discord)}
+.both-row em{margin-left:auto;font-style:normal;font-size:.58rem;letter-spacing:.8px;padding:1px 6px;border-radius:3px;background:rgba(233,25,22,.14);border:1px solid rgba(233,25,22,.4);color:#ff7b72}
+.both-why{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);font-size:.8rem;color:var(--dim)}
+.both-why strong{color:var(--text);font-size:.82rem}
+
+/* trial callout */
+.trial-notice{
+  display:flex;gap:16px;align-items:flex-start;margin:0 0 24px;padding:18px 20px;
+  border:1px solid rgba(232,217,0,.35);border-radius:10px;
+  background:linear-gradient(135deg,var(--accent-soft),var(--discord-soft));
+}
+.trial-notice > i{color:var(--accent);font-size:1.4rem;margin-top:2px;flex:0 0 auto}
+.trial-notice h3{font-size:1.05rem;color:#fff;margin-bottom:4px}
+.trial-notice p{color:var(--dim);font-size:.9rem;max-width:760px}
+.trial-notice strong{color:var(--text)}
+.trial-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.trial-actions a{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#121212;font-weight:700;font-size:.84rem;text-decoration:none;transition:background .2s,color .2s}
+.trial-actions a.ghost{background:transparent;color:var(--accent)}
+.trial-actions a:hover{background:var(--accent-h);color:#121212}
 
 /* alert previews */
 .alert-preview{border:1px solid var(--border);border-radius:8px;background:#101014;padding:10px 12px;margin:2px 0 4px}
@@ -189,6 +226,7 @@ td .fa-xmark{color:#777}
 .tier-link{display:inline-block;color:#fff;text-decoration:none;transition:color .2s}
 .tier-link:hover{color:var(--accent)}
 .tier-price{display:block;font-size:.76rem;font-weight:400;color:var(--dim);margin-top:2px}
+.tier-badge{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle}
 .tier-join{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px}
 .tier-join i{font-size:.6rem;transition:transform .2s}
 .tier-link:hover .tier-join i{transform:translateX(3px)}
@@ -219,6 +257,7 @@ code{background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;font-fam
 .cta-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:2px solid var(--btn-accent);border-radius:8px;background:var(--btn-soft);color:var(--btn-accent);font-weight:700;font-size:.95rem;text-decoration:none;transition:background .2s,border-color .2s,color .2s,transform .2s}
 .cta-button.twitch{--btn-accent:var(--accent);--btn-soft:var(--accent-soft)}
 .cta-button.discord{--btn-accent:var(--discord);--btn-soft:var(--discord-soft)}
+.cta-button.both{--btn-accent:#e0b84a;--btn-soft:linear-gradient(135deg,var(--accent-soft),var(--discord-soft))}
 .cta-button:hover{background:var(--btn-accent);color:#121212;transform:translateY(-1px)}
 
 /* footer */
@@ -226,6 +265,10 @@ footer{text-align:center;padding:1.5rem;color:var(--dim);border-top:1px solid va
 footer a{color:var(--dim);text-decoration:none}
 footer a:hover{color:var(--accent)}
 .footer-links{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+
+@media (max-width:900px){
+  .product-card.both{grid-column:1 / -1}
+}
 
 @media (max-width:700px){
   .tool-header h1{font-size:1.9rem}
@@ -259,11 +302,28 @@ footer a:hover{color:var(--accent)}
     <p class="subtitle">Automatic live alerts for your chat and your community</p>
     <p class="hero-intro">
       RustyBot ShoutOuts watch the streamers you choose and post an alert the moment
-      they go live. There are two versions: one for <strong>Twitch &amp; Kick chat</strong>, and one for
-      <strong>Discord servers</strong>. Both use the same shared streamer list and the same Ko-fi membership —
-      pick the home that suits your audience.
+      they go live. Run it in <strong>Twitch &amp; Kick chat</strong>, in your
+      <strong>Discord server</strong>, or <strong>both</strong>. Same shared streamer list,
+      same Ko-fi membership — and a <strong>7-day free trial</strong> on either platform.
     </p>
   </header>
+
+  <div class="trial-notice" id="free-trial">
+    <i class="fa-solid fa-flask" aria-hidden="true"></i>
+    <div>
+      <h3>Try it free before you join.</h3>
+      <p>
+        <strong>7 days on Twitch/Kick and 7 days on Discord.</strong> No Ko-fi membership needed.
+        Twitch/Kick trial alerts are prefixed “Rusty ShoutOut says: …”; join a qualifying tier to
+        remove the branding and keep your setup. Each platform has its own trial, so you can start
+        with one or try both.
+      </p>
+      <div class="trial-actions">
+        <a href="https://shoutbot.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-solid fa-comments" aria-hidden="true"></i> Start Twitch/Kick trial</a>
+        <a class="ghost" href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener"><i class="fa-brands fa-discord" aria-hidden="true"></i> Start Discord trial</a>
+      </div>
+    </div>
+  </div>
 
   <section class="section" id="products">
     <div class="section-header">
@@ -271,7 +331,7 @@ footer a:hover{color:var(--accent)}
       <h2>Choose your platform</h2>
       <span class="line"></span>
     </div>
-    <p class="section-sub">Both versions run from their own dashboard and set up in a few minutes.</p>
+    <p class="section-sub">Three ways to run it. Start with one platform, or cover both with one membership.</p>
 
     <div class="product-grid">
       <article class="product-card twitch">
@@ -297,9 +357,14 @@ footer a:hover{color:var(--accent)}
           <i class="fa-solid fa-crown" aria-hidden="true"></i>
           <span>Included with <strong>AA Battery Supplier</strong> or higher on Ko-fi.</span>
         </p>
-        <a class="product-cta" href="https://shoutbot.rustybot.co.uk/" target="_blank" rel="noopener">
-          Open Twitch / Kick ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
+        <div class="product-actions">
+          <a class="product-cta" href="https://shoutbot.rustybot.co.uk/" target="_blank" rel="noopener">
+            Start 7-day trial <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a class="product-cta secondary" href="https://ko-fi.com/summary/7c83e181-f9a8-4082-a605-d37af9ffb779" target="_blank" rel="noopener">
+            Join AA — £10/mo
+          </a>
+        </div>
       </article>
 
       <article class="product-card discord">
@@ -339,11 +404,58 @@ footer a:hover{color:var(--accent)}
         </ul>
         <p class="tier-note">
           <i class="fa-solid fa-crown" aria-hidden="true"></i>
+          <span>Included with <strong>AA Battery Supplier</strong> or higher on Ko-fi.</span>
+        </p>
+        <div class="product-actions">
+          <a class="product-cta" href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener">
+            Start 7-day trial <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a class="product-cta secondary" href="https://ko-fi.com/summary/7c83e181-f9a8-4082-a605-d37af9ffb779" target="_blank" rel="noopener">
+            Join AA — £10/mo
+          </a>
+        </div>
+      </article>
+
+      <article class="product-card both">
+        <div class="product-icon"><i class="fa-brands fa-twitch" aria-hidden="true"></i><i class="fa-brands fa-discord" aria-hidden="true"></i></div>
+        <span class="product-kicker">For streamers with a community</span>
+        <h3>Both ShoutOuts</h3>
+        <p>One membership for Twitch/Kick chat and your Discord server. Same streamer list, same Ko-fi email, both dashboards.</p>
+        <div class="both-preview" aria-hidden="true">
+          <div class="both-row twitch"><i class="fa-brands fa-twitch"></i><span>Twitch/Kick chat alert</span><em>Live</em></div>
+          <div class="both-row discord"><i class="fa-brands fa-discord"></i><span>Discord server alert</span><em>Live</em></div>
+        </div>
+        <ul class="feature-list">
+          <li>Everything in Twitch / Kick ShoutOut</li>
+          <li>Everything in Discord ShoutOut</li>
+          <li>One membership instead of two</li>
+          <li>One streamer group + one Discord server</li>
+          <li>Separate Twitch and Kick templates</li>
+          <li>Priority streamers and per-streamer channels</li>
+          <li>Commands, timers and custom messages on both</li>
+          <li>Works with the RustyBot Discord bot</li>
+        </ul>
+        <p class="tier-note">
+          <i class="fa-solid fa-crown" aria-hidden="true"></i>
           <span>Included with <strong>Bot Whisperer</strong> or <strong>Elite Supporter Status</strong> on Ko-fi.</span>
         </p>
-        <a class="product-cta" href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener">
-          Open Discord ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </a>
+        <div class="both-why">
+          <strong>Why Both?</strong>
+          <span>One payment and one Ko-fi email keep your chat and Discord in sync — no second membership to manage.</span>
+        </div>
+        <p class="product-note">Two AA memberships would cost <strong>£20</strong> — Bot Whisperer covers both for <strong>£15</strong>.</p>
+        <div class="product-actions">
+          <a class="product-cta" href="https://ko-fi.com/summary/bb429141-96e4-478f-b291-2e237124ef01" target="_blank" rel="noopener">
+            Join Bot Whisperer — £15/mo
+          </a>
+          <a class="product-cta secondary" href="https://ko-fi.com/summary/963ed22a-93ed-4fc9-926a-441ab407367e" target="_blank" rel="noopener">
+            Elite — £25/mo
+          </a>
+        </div>
+        <div class="product-links">
+          <a href="https://shoutbot.rustybot.co.uk/" target="_blank" rel="noopener">Twitch/Kick dashboard</a>
+          <a href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener">Discord dashboard</a>
+        </div>
       </article>
     </div>
   </section>
@@ -354,12 +466,12 @@ footer a:hover{color:var(--accent)}
       <h2>How it works</h2>
       <span class="line"></span>
     </div>
-    <p class="section-sub">Same idea on both platforms — connect, choose streamers, and let the alerts run.</p>
+    <p class="section-sub">Same idea on every setup — connect, choose streamers, and let the alerts run.</p>
     <div class="steps">
       <div class="step">
         <span class="step-number">1</span>
-        <h3>Become a member</h3>
-        <p>Pick a qualifying Ko-fi tier, then link the same email (or your Discord ID) in the dashboard.</p>
+        <h3>Start your free trial</h3>
+        <p>Open the Twitch/Kick or Discord dashboard and connect your channel. No Ko-fi membership needed.</p>
       </div>
       <div class="step">
         <span class="step-number">2</span>
@@ -371,6 +483,11 @@ footer a:hover{color:var(--accent)}
         <h3>Alerts post automatically</h3>
         <p>RustyBot checks every 60 seconds and posts each live stream once, with a cooldown so channels don't flood.</p>
       </div>
+      <div class="step">
+        <span class="step-number">4</span>
+        <h3>Join when you’re ready</h3>
+        <p>Pick a tier and keep your setup. Upgrading to Bot Whisperer unlocks both platforms.</p>
+      </div>
     </div>
   </section>
 
@@ -380,11 +497,11 @@ footer a:hover{color:var(--accent)}
       <h2>Ko-fi membership</h2>
       <span class="line"></span>
     </div>
-    <p class="section-sub">Most people pick <strong>Bot Whisperer</strong> — it covers both platforms. <strong>AA Battery Supplier</strong> is the Twitch/Kick-only option.</p>
+    <p class="section-sub">Pick one platform for <strong>£10</strong>, or cover both for <strong>£15</strong>. AA covers one platform per membership; Bot Whisperer and Elite cover both.</p>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th scope="col">Ko-fi tier</th><th scope="col">Twitch / Kick ShoutOut</th><th scope="col">Discord ShoutOut</th></tr>
+          <tr><th scope="col">Ko-fi tier</th><th scope="col">Twitch / Kick ShoutOut</th><th scope="col">Discord ShoutOut</th><th scope="col">Both</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -395,7 +512,8 @@ footer a:hover{color:var(--accent)}
                 <span class="tier-join">Join on Ko-fi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
               </a>
             </td>
-            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included — choose this or Discord</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included — choose this or Twitch</td>
             <td><i class="fa-solid fa-xmark" aria-hidden="true"></i> Not included</td>
           </tr>
           <tr>
@@ -405,7 +523,9 @@ footer a:hover{color:var(--accent)}
                 <span class="tier-price">£15/month</span>
                 <span class="tier-join">Join on Ko-fi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
               </a>
+              <span class="tier-badge">Best for both</span>
             </td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
           </tr>
@@ -419,14 +539,17 @@ footer a:hover{color:var(--accent)}
             </td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
+            <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
           </tr>
         </tbody>
       </table>
     </div>
     <p class="notes">
-      <strong>Bot Whisperer</strong> and <strong>Elite Supporter Status</strong> cover both platforms — link the same Ko-fi email in each dashboard.
-      <strong>AA Battery Supplier</strong> is Twitch/Kick only. Each membership is linked to one streamer group and one Discord server;
-      tiers and current prices are on <a href="https://ko-fi.com/rustybot/tiers#become-member-container" target="_blank" rel="noopener">Ko-fi</a>.
+      <strong>AA Battery Supplier</strong> covers one platform per membership — choose Twitch/Kick or Discord when you link your Ko-fi email.
+      A second AA membership would be another £10, so <strong>Bot Whisperer at £15 covers both</strong> and is the better deal.
+      <strong>Already on AA?</strong> Upgrade to Bot Whisperer and the second platform unlocks automatically with the same email — no re-linking needed.
+      Each membership links one streamer group and one Discord server; tiers and current prices are on
+      <a href="https://ko-fi.com/rustybot/tiers#become-member-container" target="_blank" rel="noopener">Ko-fi</a>.
     </p>
   </section>
 
@@ -448,7 +571,11 @@ footer a:hover{color:var(--accent)}
       </details>
       <details>
         <summary>Can one membership cover both platforms?</summary>
-        <p>Yes — <strong>Bot Whisperer</strong> and <strong>Elite Supporter Status</strong> qualify for both. Link the same Ko-fi email in each dashboard. <strong>AA Battery Supplier</strong> covers Twitch/Kick only.</p>
+        <p>Yes — <strong>Bot Whisperer</strong> (£15/mo) and <strong>Elite Supporter Status</strong> (£25/mo) cover both Twitch/Kick and Discord. <strong>AA Battery Supplier</strong> (£10/mo) covers one platform: Twitch/Kick or Discord. Upgrade to Bot Whisperer and the second platform unlocks automatically with the same Ko-fi email.</p>
+      </details>
+      <details>
+        <summary>How does the 7-day trial work?</summary>
+        <p>Each platform gets its own 7-day trial. Twitch/Kick trial alerts are prefixed “Rusty ShoutOut says: …”; join a qualifying Ko-fi tier to remove the branding and keep your setup.</p>
       </details>
       <details>
         <summary>How fast are the alerts?</summary>
@@ -456,7 +583,7 @@ footer a:hover{color:var(--accent)}
       </details>
       <details>
         <summary>What happens if I cancel?</summary>
-        <p>Your ShoutOut stays active until the end of the paid period. After that, alerts pause until you renew a qualifying tier.</p>
+        <p>Your ShoutOut stays active until the end of the paid period. If you downgrade to AA, one platform stays active and the other locks. Upgrade again to unlock both.</p>
       </details>
       <details>
         <summary>Do I need my own bot?</summary>
@@ -476,6 +603,9 @@ footer a:hover{color:var(--accent)}
         </a>
         <a class="cta-button discord" href="https://shoutbot-discord.rustybot.co.uk/" target="_blank" rel="noopener">
           Discord ShoutOut <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
+        <a class="cta-button both" href="https://ko-fi.com/summary/bb429141-96e4-478f-b291-2e237124ef01" target="_blank" rel="noopener">
+          Both — £15/mo <i class="fa-solid fa-heart" aria-hidden="true"></i>
         </a>
       </div>
     </div>
