@@ -4428,17 +4428,24 @@ class SkillPlannerApp {
         }
     }
 
+    dismissWelcomeIfOpen() {
+        const welcome = document.getElementById('welcomeDom');
+        if (welcome && !welcome.classList.contains('hidden')) {
+            document.getElementById('welcomeClose')?.click();
+        }
+    }
+
     async loadPlanFromUrl() {
         const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         let payload = params.get('plan');
         let name = params.get('name') || 'Shared Plan';
-        let shortCode = null;
+        const shortCode = payload ? null : hashParams.get('plan');
+
+        if (!payload && !shortCode) return;
+        this.dismissWelcomeIfOpen();
 
         if (!payload) {
-            const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-            shortCode = hash.get('plan');
-            if (!shortCode) return;
-
             const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
             try {
                 const response = await fetch(`${apiBase}/skillplan/share/${encodeURIComponent(shortCode)}`, {
@@ -4497,6 +4504,8 @@ class SkillPlannerApp {
         const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         const code = hash.get('fit');
         if (!code) return;
+
+        this.dismissWelcomeIfOpen();
 
         const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
         let shared;
