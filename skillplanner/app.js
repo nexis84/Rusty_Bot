@@ -4598,6 +4598,7 @@ class SkillPlannerApp {
         const entries = this.getPlanBookEntries();
         this.bookListEntries = entries;
         this.bookListPrices = {};
+        this.setupBookListMailRecipient();
 
         const mailButton = document.getElementById('sendBookListMailBtn');
         if (mailButton) mailButton.disabled = entries.length === 0;
@@ -4685,6 +4686,35 @@ class SkillPlannerApp {
         status.className = `book-list-mail-status${type ? ` ${type}` : ''}`;
     }
 
+    setupBookListMailRecipient() {
+        const input = document.getElementById('bookListMailRecipient');
+        const list = document.getElementById('bookListMailRecipientList');
+        if (!input || !list) return;
+
+        const currentId = esiAuth.getCurrentCharacter();
+        const currentName = currentId ? esiAuth.tokens?.[currentId]?.characterName : '';
+        input.value = '';
+        input.placeholder = currentName
+            ? `Leave blank for ${currentName}`
+            : 'Leave blank for your signed-in character';
+        input.onkeydown = event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                this.sendBookListMail();
+            }
+        };
+
+        const names = [...new Set(
+            esiAuth.getAuthenticatedCharacters()
+                .map(character => character.characterName)
+                .filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b));
+
+        list.innerHTML = names
+            .map(name => `<option value="${this.escapeHtml(name)}"></option>`)
+            .join('');
+    }
+
     buildBookListMailParts(entries, planName) {
         const date = new Date().toISOString().slice(0, 10);
         const header = [
@@ -4734,6 +4764,7 @@ class SkillPlannerApp {
             return;
         }
 
+        const recipientName = document.getElementById('bookListMailRecipient')?.value.trim() || '';
         const planName = skillPlanner.getName() || 'My Skill Plan';
         const parts = this.buildBookListMailParts(entries, planName);
         const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
@@ -4745,15 +4776,19 @@ class SkillPlannerApp {
 
         try {
             let token = await esiAuth.getAccessToken();
+            let recipientLabel = recipientName || esiAuth.tokens?.[characterId]?.characterName || 'your character';
             const sendPart = async (tokenValue, subject, body, part, total) => {
-                const response = await fetch(`${apiBase}/bv/mail/send`, {
+                const recipient = recipientName
+                    ? { recipient_name: recipientName }
+                    : { recipient_id: characterId };
+                const response = await fetch(`${apiBase}/skillplan/mail/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${tokenValue}`
                     },
                     body: JSON.stringify({
-                        recipient_id: characterId,
+                        ...recipient,
                         subject,
                         body,
                         part,
@@ -4779,13 +4814,16 @@ class SkillPlannerApp {
                 if (!result.response.ok) {
                     throw new Error(result.data?.error || `HTTP ${result.response.status}`);
                 }
+                if (result.data?.recipient?.name) {
+                    recipientLabel = result.data.recipient.name;
+                }
             }
 
             this.setBookListMailStatus(
-                `EVE mail sent to ${esiAuth.tokens?.[characterId]?.characterName || 'your character'}. Check your in-game mailbox.`,
+                `EVE mail sent to ${recipientLabel}. Check the in-game mailbox.`,
                 'success'
             );
-            this.showMessage('Skill book list sent to EVE Mail', 'success');
+            this.showMessage(`Skill book list sent to ${recipientLabel}`, 'success');
         } catch (error) {
             this.setBookListMailStatus(`Could not send EVE mail: ${error.message}`, 'error');
             this.showMessage(`Could not send EVE mail: ${error.message}`, 'error');

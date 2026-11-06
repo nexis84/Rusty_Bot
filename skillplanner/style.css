@@ -2045,6 +2045,36 @@ body {
     flex-wrap: wrap;
 }
 
+.book-list-mail-recipient {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 20px 0;
+}
+
+.book-list-mail-recipient label {
+    color: var(--text-subtle-color);
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.book-list-mail-recipient input {
+    flex: 1 1 260px;
+    min-width: 0;
+    padding: 8px 10px;
+    background: var(--bg-color);
+    border: 1px solid var(--tertiary-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    font-size: 0.85rem;
+}
+
+.book-list-mail-recipient input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
 .book-list-mail-status {
     flex: 1 1 220px;
     min-height: 1.2em;
