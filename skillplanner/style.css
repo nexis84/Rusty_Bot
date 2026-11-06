@@ -2275,9 +2275,9 @@ body {
 
 .message-area {
     position: fixed;
-    top: 80px;
     right: 25px;
-    max-width: 400px;
+    bottom: 25px;
+    max-width: min(400px, calc(100vw - 2rem));
     z-index: 1500;
 }
 
