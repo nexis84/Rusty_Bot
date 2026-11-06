@@ -737,7 +737,7 @@
 </head>
 <body>
 
-    <div class="plex-sale">
+    <div class="plex-sale" id="plex-sale" data-expires="2026-11-26T00:00:00">
         <div class="plex-sale-inner">
             <p class="plex-sale-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Plex sale now on</p>
             <a class="plex-sale-btn" href="https://store.eveonline.com/" target="_blank" rel="noopener noreferrer">
@@ -747,6 +747,22 @@
             Until 26 November, Omega packs in the EVE Store come at their regular price with up to 1,500 PLEX included at no extra cost.</p>
         </div>
     </div>
+    <script>
+        (function () {
+            const banner = document.getElementById('plex-sale');
+            if (!banner) return;
+            const expires = new Date(banner.dataset.expires).getTime();
+            function removeIfExpired() {
+                if (Date.now() >= expires) {
+                    banner.remove();
+                    return;
+                }
+                // Re-check periodically; also handles pages left open across the expiry time.
+                setTimeout(removeIfExpired, Math.min(expires - Date.now(), 2147483647));
+            }
+            removeIfExpired();
+        })();
+    </script>
 
     <div class="hero-wrap">
         <header class="hero">
