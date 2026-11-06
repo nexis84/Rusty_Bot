@@ -3418,6 +3418,9 @@ class SkillPlannerApp {
                             <button class="btn-secondary btn-small" data-saved-fit-copy="${index}">
                                 <i class="fas fa-copy"></i> Copy EFT
                             </button>
+                            <button class="btn-secondary btn-small" data-saved-fit-share="${index}">
+                                <i class="fas fa-share-nodes"></i> Share
+                            </button>
                             <button class="btn-secondary btn-small" data-saved-fit-open="${index}">
                                 <i class="fas fa-wrench"></i> Open Analysis
                             </button>
@@ -3456,6 +3459,9 @@ class SkillPlannerApp {
         content.querySelectorAll('[data-saved-fit-copy]').forEach(button => {
             button.addEventListener('click', () => this.copySavedFitEft(Number(button.dataset.savedFitCopy)));
         });
+        content.querySelectorAll('[data-saved-fit-share]').forEach(button => {
+            button.addEventListener('click', () => this.shareSavedFit(Number(button.dataset.savedFitShare)));
+        });
         content.querySelectorAll('[data-saved-fit-open]').forEach(button => {
             button.addEventListener('click', () => this.openSavedFitAnalysis(Number(button.dataset.savedFitOpen)));
         });
@@ -3485,6 +3491,22 @@ class SkillPlannerApp {
             ok ? `Copied ${fit.fitName} as EFT` : 'Could not copy the fit',
             ok ? 'success' : 'error'
         );
+    }
+
+    async shareSavedFit(index) {
+        const fit = this.savedFits?.[index];
+        if (!fit?.eftText) {
+            this.showMessage('EFT text is unavailable for this fit.', 'warning');
+            return;
+        }
+
+        await this.createFitShare({
+            name: fit.fitName,
+            hull: fit.hullName || '',
+            eft: fit.eftText,
+            tags: [],
+            notes: fit.description || ''
+        });
     }
 
     async copyCurrentFitEft() {
