@@ -2077,7 +2077,7 @@ body {
 .book-list-mail-recipient-panel {
     position: absolute;
     right: 0;
-    bottom: calc(100% + 8px);
+    top: calc(100% + 8px);
     display: none;
     width: min(360px, calc(100vw - 40px));
     padding: 12px;
