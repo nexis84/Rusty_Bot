@@ -3129,7 +3129,13 @@ class SkillPlannerApp {
                 const hull = byId[fitting.ship_type_id];
                 if (!hull) return;
 
-                const rawItems = fitting.items || [];
+                // Cargo contents do not affect whether the fit can be flown.
+                // ESI flags them separately (e.g. Liquid Ozone in Cargo);
+                // ignoring them avoids false "not recognised" warnings.
+                const rawItems = (fitting.items || []).filter(item => {
+                    const flag = String(item.flag || '').toLowerCase();
+                    return flag !== 'cargo' && flag !== 'invalid';
+                });
                 const entries = [];
                 const unknown = [];
                 const items = rawItems.map(item => {
