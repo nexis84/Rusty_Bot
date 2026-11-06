@@ -94,6 +94,13 @@ class SkillPlannerApp {
         this.loadPlanFromUrl();
         this.loadSharedFitFromUrl();
         this.updateInjectorPrice();
+
+        // In-page hash changes do not reload the document. Handle shared plan
+        // and fit links pasted into the address bar of an already-open tab.
+        window.addEventListener('hashchange', () => {
+            this.loadPlanFromUrl();
+            this.loadSharedFitFromUrl();
+        });
     }
 
     bindElements() {
@@ -313,6 +320,7 @@ class SkillPlannerApp {
         document.getElementById('fitViewEmptyImportBtn')?.addEventListener('click', () => this.openFitImport());
         document.getElementById('fitViewCreatePlanBtn')?.addEventListener('click', () => this.createFitPlan());
         document.getElementById('fitViewCopyBtn')?.addEventListener('click', () => this.copyCurrentFitEft());
+        document.getElementById('fitViewShareBtn')?.addEventListener('click', () => this.shareCurrentFit());
         document.getElementById('fitViewSaveLibraryBtn')?.addEventListener('click', () => this.openLibrarySaveModal());
         document.getElementById('refreshSavedFitsBtn')?.addEventListener('click', () => this.loadSavedFits(true));
         document.getElementById('savedFitsCheckCharsBtn')?.addEventListener('click', () => this.openCharacterReadiness());
@@ -2942,6 +2950,7 @@ class SkillPlannerApp {
         const createBtn = document.getElementById('fitViewCreatePlanBtn');
         const importBtn = document.getElementById('fitViewImportAnotherBtn');
         const copyBtn = document.getElementById('fitViewCopyBtn');
+        const shareBtn = document.getElementById('fitViewShareBtn');
         const saveBtn = document.getElementById('fitViewSaveLibraryBtn');
         const title = document.getElementById('fitViewTitle');
         const subtitle = document.getElementById('fitViewSubtitle');
@@ -2955,6 +2964,7 @@ class SkillPlannerApp {
             createBtn?.classList.add('hidden');
             importBtn?.classList.add('hidden');
             copyBtn?.classList.add('hidden');
+            shareBtn?.classList.add('hidden');
             saveBtn?.classList.add('hidden');
             badge?.classList.add('hidden');
             content.innerHTML = `
@@ -2991,6 +3001,7 @@ class SkillPlannerApp {
         createBtn?.classList.toggle('hidden', missing.length === 0);
         importBtn?.classList.remove('hidden');
         copyBtn?.classList.remove('hidden');
+        shareBtn?.classList.remove('hidden');
         saveBtn?.classList.remove('hidden');
 
         if (badge) {
@@ -3008,6 +3019,9 @@ class SkillPlannerApp {
                 <div><span>Time to fly</span><strong>${missing.length ? analysis.trainingTime : 'Ready'}</strong></div>
                 <div><span>Completion</span><strong>${completion || '--'}</strong></div>
             </div>
+            ${analysis.sharedFromLink
+                ? '<div class="fit-note success"><i class="fas fa-share-nodes"></i> Shared fit only. Your own skill plan was not changed.</div>'
+                : ''}
             <div class="fit-view-section-head">
                 <h3>Fitted items</h3>
                 <span>${analysis.matchedItems}/${analysis.totalItems} resolved from the SDE</span>
@@ -3937,15 +3951,10 @@ class SkillPlannerApp {
         );
     }
 
-    async shareLibraryFit(id) {
-        const result = this.getLibraryResult(id);
-        const record = result?.record || this.libraryRecords.find(item => item.id === id);
-        if (!record) return;
-
-        const eft = record.eft || result?.analysis?.eftText;
+    async createFitShare({ name, hull = '', eft, tags = [], notes = '' }) {
         if (!eft) {
-            this.showMessage('That doctrine fit has no EFT to share.', 'warning');
-            return;
+            this.showMessage('There is no fit EFT to share.', 'warning');
+            return false;
         }
 
         const apiBase = window.SKILLPLANNER_API_BASE || 'https://api.rustybot.co.uk/api';
@@ -3953,30 +3962,56 @@ class SkillPlannerApp {
             const response = await fetch(`${apiBase}/skillplan/fit-share`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({
-                    name: record.name,
-                    hull: result?.analysis?.hullName || '',
-                    eft,
-                    tags: record.tags || [],
-                    notes: record.notes || ''
-                })
+                body: JSON.stringify({ name, hull, eft, tags, notes })
             });
             const data = await response.json().catch(() => ({}));
             if (!response.ok || !data.code) {
                 throw new Error(data.error || 'Share link creation failed');
             }
 
+            // Replace any plan hash so this link contains only the fit.
             const url = new URL(window.location.href);
             url.search = '';
             url.hash = `fit=${data.code}`;
             const ok = await this.copyText(url.toString());
             this.showMessage(
-                ok ? 'Short fit share link copied' : 'Could not copy the share link',
+                ok ? 'Short fit share link copied (fit only)' : 'Could not copy the share link',
                 ok ? 'success' : 'error'
             );
+            return ok;
         } catch (error) {
             this.showMessage(`Could not create a share link: ${error.message}`, 'error');
+            return false;
         }
+    }
+
+    async shareLibraryFit(id) {
+        const result = this.getLibraryResult(id);
+        const record = result?.record || this.libraryRecords.find(item => item.id === id);
+        if (!record) return;
+
+        await this.createFitShare({
+            name: record.name,
+            hull: result?.analysis?.hullName || '',
+            eft: record.eft || result?.analysis?.eftText,
+            tags: record.tags || [],
+            notes: record.notes || ''
+        });
+    }
+
+    async shareCurrentFit() {
+        if (!this.fitAnalysis?.eftText) {
+            this.showMessage('Analyse a fit before sharing it.', 'warning');
+            return;
+        }
+
+        await this.createFitShare({
+            name: this.fitAnalysis.fitName || 'Shared Fit',
+            hull: this.fitAnalysis.hullName || '',
+            eft: this.fitAnalysis.eftText,
+            tags: this.fitAnalysis.sharedTags || [],
+            notes: this.fitAnalysis.sharedNotes || this.fitAnalysis.description || ''
+        });
     }
 
     openLibraryAnalysis(id) {
@@ -4486,9 +4521,10 @@ class SkillPlannerApp {
             if (shared.name) analysis.fitName = shared.name;
             analysis.sharedTags = Array.isArray(shared.tags) ? shared.tags : [];
             analysis.sharedNotes = shared.notes || '';
+            analysis.sharedFromLink = true;
             this.fitAnalysis = analysis;
             this.switchView('fit');
-            this.showMessage(`Loaded shared doctrine fit "${analysis.fitName}".`, 'success');
+            this.showMessage(`Loaded shared fit "${analysis.fitName}" (fit only).`, 'success');
         } catch (error) {
             this.showMessage(`Could not analyse the shared fit: ${error.message}`, 'error');
         }
