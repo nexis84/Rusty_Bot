@@ -34,13 +34,13 @@
             button.disabled = true;
             button.classList.add('is-done');
             if (heading) heading.textContent = 'Character connected';
-            if (text) text.textContent = `Signed in as ${character.characterName || 'your pilot'}. Your skills and personal saved fittings are ready.`;
+            if (text) text.textContent = `Signed in as ${character.characterName || 'your pilot'}. Your skills and personal in-game fittings are ready.`;
         } else if (button) {
             button.innerHTML = '<i class="fas fa-right-to-bracket"></i> Sign in with EVE';
             button.disabled = false;
             button.classList.remove('is-done');
             if (heading) heading.textContent = 'Unlock your character';
-            if (text) text.textContent = 'Sign in with EVE SSO to load real skills, personal saved fittings, and doctrine readiness.';
+            if (text) text.textContent = 'Sign in with EVE SSO to load real skills, personal in-game fittings, and doctrine readiness.';
         }
     }
 

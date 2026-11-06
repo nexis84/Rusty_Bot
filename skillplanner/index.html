@@ -33,7 +33,7 @@
     <meta property="og:title" content="EVE Online Skill Planner | RustyBot">
     <meta property="og:description" content="Plan EVE Online skills with prerequisites, accurate training times, implant and remap boosts, injector costs and shareable plans. Free, no login needed.">
     <meta property="og:image" content="https://www.rustybot.co.uk/skillplanner/og-skillplanner.jpg">
-    <meta property="og:image:alt" content="Rusty Skill Planner - EVE Online training plans, saved fits and doctrine readiness">
+    <meta property="og:image:alt" content="Rusty Skill Planner - EVE Online training plans, personal in-game fits and doctrine readiness">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -56,7 +56,7 @@
       { "@type": "Question", "name": "Can it calculate skill injectors?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - the built-in injector calculator shows how many skill injectors you need between two SP totals and what they cost, using current Jita prices." } },
       { "@type": "Question", "name": "Can I import or export a skill plan?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - import an EVE skill plan by pasting it or choosing a file, copy a plan for EVE's in-game import, download it as .txt, or share it with a link." } },
       { "@type": "Question", "name": "Can I import a ship fit?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - paste an EFT fit from EVE. The planner resolves the hull, modules, drones and charges, works out the skills you are missing, and creates a plan you can export back to EVE." } },
-      { "@type": "Question", "name": "Does it check my saved EVE fittings?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - sign in with EVE SSO to load your personal saved fittings, see which ones you can fly, how long the missing skills will take, and create a training plan for each fit." } },
+      { "@type": "Question", "name": "Does it check my in-game personal fittings?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - sign in with EVE SSO to load your personal in-game fittings, see which ones you can fly, how long the missing skills will take, and create a training plan for each fit." } },
       { "@type": "Question", "name": "Can I save corporation or alliance fits?", "acceptedAnswer": { "@type": "Answer", "text": "Yes - ESI only exposes personal fittings, so paste corp or alliance EFT fits into the Doctrine Library. They are stored locally in your browser and can be combined into a doctrine plan." } }
     ]
   }
@@ -132,7 +132,7 @@
                     <span class="badge hidden" id="fitBadge">0</span>
                 </button>
                 <button class="nav-item" data-view="savedFits">
-                    <i class="fas fa-list-check"></i> Saved Fits
+                    <i class="fas fa-list-check"></i> In Game Fits (Personal)
                     <span class="badge hidden" id="savedFitsBadge">0</span>
                 </button>
                 <button class="nav-item" data-view="library">
@@ -597,13 +597,13 @@
                     </div>
                 </section>
 
-                <!-- Saved Fits View -->
+                <!-- In Game Fits (Personal) View -->
                 <section id="savedFitsView" class="view">
                     <div class="fit-view-header">
                         <div>
-                            <span class="seo-faq-eyebrow"><i class="fas fa-list-check"></i> Saved Fits</span>
-                            <h2>Your EVE fittings</h2>
-                            <p id="savedFitsSubtitle" class="hint">Fittings saved on your signed-in character.</p>
+                            <span class="seo-faq-eyebrow"><i class="fas fa-list-check"></i> In Game Fits (Personal)</span>
+                            <h2>Your personal in-game fittings</h2>
+                            <p id="savedFitsSubtitle" class="hint">Personal fittings saved on your signed-in EVE character.</p>
                         </div>
                         <div class="fit-view-actions">
                             <button class="btn-primary hidden" id="savedFitsMergeBtn">
@@ -625,14 +625,14 @@
                             <i class="fas fa-search"></i>
                             <input type="text" id="savedFitsSearch" placeholder="Search fits or ships..." autocomplete="off">
                         </div>
-                        <select id="savedFitsFilter" class="form-select" aria-label="Filter saved fits">
+                        <select id="savedFitsFilter" class="form-select" aria-label="Filter in-game fits">
                             <option value="all">All fits</option>
                             <option value="missing">Missing skills</option>
                             <option value="ready">Ready to fly</option>
                             <option value="week">Flyable within 7 days</option>
                             <option value="month">Flyable within 30 days</option>
                         </select>
-                        <select id="savedFitsSort" class="form-select" aria-label="Sort saved fits">
+                        <select id="savedFitsSort" class="form-select" aria-label="Sort in-game fits">
                             <option value="missing-desc">Most missing first</option>
                             <option value="missing-asc">Closest to flyable</option>
                             <option value="time-asc">Shortest training time</option>
@@ -644,8 +644,8 @@
                     <div id="savedFitsContent" class="saved-fits-content" aria-live="polite">
                         <div class="fit-empty-state">
                             <i class="fas fa-list-check"></i>
-                            <h3>Sign in to load your saved fits</h3>
-                            <p>Your personal EVE fittings will be checked against your trained skills.</p>
+                            <h3>Sign in to load your in-game fits</h3>
+                            <p>Your personal in-game fittings will be checked against your trained skills.</p>
                             <button class="btn-primary" id="savedFitsLoginBtn">
                                 <i class="fas fa-user-astronaut"></i> Login with EVE
                             </button>
@@ -985,8 +985,8 @@
                         <p>Yes &mdash; paste an EFT fit from EVE. The planner resolves the hull, modules, drones and charges, works out the skills you are missing, and creates a plan you can export back to EVE.</p>
                     </details>
                     <details class="seo-faq-item">
-                        <summary>Does it check my saved EVE fittings?</summary>
-                        <p>Yes &mdash; sign in with EVE SSO to load your personal saved fittings, see which ones you can fly, how long the missing skills will take, and create a training plan for each fit.</p>
+                        <summary>Does it check my in-game personal fittings?</summary>
+                        <p>Yes &mdash; sign in with EVE SSO to load your personal in-game fittings, see which ones you can fly, how long the missing skills will take, and create a training plan for each fit.</p>
                     </details>
                     <details class="seo-faq-item">
                         <summary>Can I save corporation or alliance fits?</summary>
@@ -1029,7 +1029,7 @@
                 <div class="welcome-hero-text">
                     <span class="seo-faq-eyebrow"><i class="fas fa-graduation-cap"></i> Rusty Skill Planner</span>
                     <h2>Plan your next <span class="accent">EVE skill</span></h2>
-                    <p class="welcome-subtitle">Skills, saved fittings, doctrines and ship readiness in one place.</p>
+                    <p class="welcome-subtitle">Skills, in-game fits, doctrines and ship readiness in one place.</p>
                     <p class="welcome-tagline">First time here? Start below. Returning? Jump straight in, or reopen this page any time from the compass button.</p>
                     <div class="welcome-cta-row">
                         <button class="welcome-cta" data-welcome-act="dashboard">
@@ -1039,7 +1039,7 @@
                             <i class="fas fa-clipboard-list"></i> Build a Skill Plan
                         </button>
                         <button class="welcome-cta secondary" data-welcome-act="savedFits">
-                            <i class="fas fa-list-check"></i> Saved Fits
+                            <i class="fas fa-list-check"></i> In Game Fits (Personal)
                         </button>
                         <button class="welcome-cta secondary" data-welcome-act="ships">
                             <i class="fas fa-rocket"></i> Ship Browser
@@ -1053,7 +1053,7 @@
                     <i class="fas fa-user-lock"></i>
                     <div>
                         <strong>Unlock your character</strong>
-                        <p>Sign in with EVE SSO to load real skills, personal saved fittings, and doctrine readiness.</p>
+                        <p>Sign in with EVE SSO to load real skills, personal in-game fittings, and doctrine readiness.</p>
                     </div>
                 </div>
                 <button class="welcome-cta welcome-sso-btn" id="welcomeSsoLogin">
@@ -1069,10 +1069,10 @@
                     <span class="welcome-card-link">Open Skill Planner <i class="fas fa-arrow-right"></i></span>
                 </div>
                 <div class="welcome-card" data-welcome-act="savedFits">
-                    <div class="welcome-card-head"><i class="fas fa-list-check"></i> Saved Fits</div>
+                    <div class="welcome-card-head"><i class="fas fa-list-check"></i> In Game Fits (Personal)</div>
                     <div class="welcome-card-title">What can I fly?</div>
-                    <p>Load your personal EVE fittings, see ready and missing skills, time-to-fly, and create a plan for each fit.</p>
-                    <span class="welcome-card-link">Open Saved Fits <i class="fas fa-arrow-right"></i></span>
+                    <p>Load your personal in-game fittings, see ready and missing skills, time-to-fly, and create a plan for each fit.</p>
+                    <span class="welcome-card-link">Open In Game Fits <i class="fas fa-arrow-right"></i></span>
                 </div>
                 <div class="welcome-card" data-welcome-act="library">
                     <div class="welcome-card-head"><i class="fas fa-book-bookmark"></i> Doctrine Library</div>
@@ -1316,7 +1316,7 @@
     <script src="injector-calc.js?v=20260414003"></script>
     <script src="skill-planner.js?v=2026110509"></script>
     <script src="fit-utils.js?v=2026110501"></script>
-    <script src="app.js?v=2026110534"></script>
-    <script src="welcome.js?v=2026110605"></script>
+    <script src="app.js?v=2026110535"></script>
+    <script src="welcome.js?v=2026110606"></script>
 </body>
 </html>

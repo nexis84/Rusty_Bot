@@ -410,7 +410,7 @@ class SkillPlannerApp {
             mySkills: 'My Skills',
             planner: 'Skill Planner',
             fit: 'Fit Analysis',
-            savedFits: 'Saved Fits',
+            savedFits: 'In Game Fits (Personal)',
             library: 'Doctrine Library',
             ships: 'Ship Browser',
             calculator: 'Training Calculator'
@@ -2134,7 +2134,7 @@ class SkillPlannerApp {
                 ${unlocked.length
                     ? `This plan unlocks ${unlockedNames.join(', ')}${more}.`
                     : (skillPlanner.getPlanLength()
-                        ? 'No additional saved fits are unlocked by the current plan yet.'
+                        ? 'No additional in-game fits are unlocked by the current plan yet.'
                         : 'Add skills to the plan to see which doctrines it unlocks.')}
             </p>`;
     }
@@ -3074,7 +3074,7 @@ class SkillPlannerApp {
         this.showMessage(`Created a plan with ${result.missing} missing skills for ${this.fitAnalysis.fitName}.`, 'success');
     }
 
-    // Saved in-game fittings
+    // In Game Fits (Personal)
     async loadSavedFits(force = false) {
         if (!esiAuth.isAuthenticated()) {
             this.savedFits = null;
@@ -3084,7 +3084,7 @@ class SkillPlannerApp {
         }
         if (!esiAuth.hasFittingsScope()) {
             this.savedFits = null;
-            this.savedFitsError = 'Saved Fits needs the fittings permission. Sign in again to grant it; the rest of the planner remains available.';
+            this.savedFitsError = 'In Game Fits (Personal) needs the fittings permission. Sign in again to grant it; the rest of the planner remains available.';
             this.savedFitsErrorNeedsLogin = true;
             this.savedFitsSyncedAt = 0;
             this.renderSavedFits();
@@ -3167,7 +3167,7 @@ class SkillPlannerApp {
             this.savedFitsErrorNeedsLogin = message.includes('403');
             this.savedFitsError = this.savedFitsErrorNeedsLogin
                 ? 'EVE denied access to your fittings. Sign in again to grant the fittings permission.'
-                : error.message || 'Could not load saved fittings.';
+                : error.message || 'Could not load in-game fittings.';
         } finally {
             this.savedFitsLoading = false;
             this.renderSavedFits();
@@ -3207,8 +3207,8 @@ class SkillPlannerApp {
             : null;
         if (subtitle) {
             subtitle.textContent = synced
-                ? `Fittings saved on your signed-in character · Synced ${synced}`
-                : 'Fittings saved on your signed-in character.';
+                ? `Personal fittings saved on your signed-in EVE character · Synced ${synced}`
+                : 'Personal fittings saved on your signed-in EVE character.';
         }
 
         if (!esiAuth.isAuthenticated()) {
@@ -3217,8 +3217,8 @@ class SkillPlannerApp {
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-list-check"></i>
-                    <h3>Sign in to load your saved fits</h3>
-                    <p>Your personal EVE fittings will be checked against your trained skills.</p>
+                    <h3>Sign in to load your in-game fits</h3>
+                    <p>Your personal in-game fittings will be checked against your trained skills.</p>
                     <button class="btn-primary" id="savedFitsLoginBtn">
                         <i class="fas fa-user-astronaut"></i> Login with EVE
                     </button>
@@ -3232,8 +3232,8 @@ class SkillPlannerApp {
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <div class="loading-spinner"></div>
-                    <h3>Loading and analysing saved fits</h3>
-                    <p>Reading fittings and comparing their skills with your character.</p>
+                    <h3>Loading and analysing in-game fits</h3>
+                    <p>Reading personal fittings and comparing their skills with your character.</p>
                 </div>`;
             return;
         }
@@ -3244,7 +3244,7 @@ class SkillPlannerApp {
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-triangle-exclamation"></i>
-                    <h3>Could not load saved fits</h3>
+                    <h3>Could not load in-game fits</h3>
                     <p>${this.escapeHtml(this.savedFitsError)}</p>
                     <div class="fit-view-actions fit-empty-actions">
                         ${this.savedFitsErrorNeedsLogin
@@ -3271,8 +3271,8 @@ class SkillPlannerApp {
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-list-check"></i>
-                    <h3>Loading saved fits</h3>
-                    <p>Your EVE fittings will appear here.</p>
+                    <h3>Loading in-game fits</h3>
+                    <p>Your personal fittings will appear here.</p>
                 </div>`;
             return;
         }
@@ -3283,7 +3283,7 @@ class SkillPlannerApp {
             content.innerHTML = `
                 <div class="fit-empty-state">
                     <i class="fas fa-list-check"></i>
-                    <h3>No saved fits found</h3>
+                    <h3>No in-game personal fits found</h3>
                     <p>Save a fitting in EVE Online, then refresh this page.</p>
                     <button class="btn-primary" id="savedFitsEmptyImportBtn">
                         <i class="fas fa-file-import"></i> Paste a Fit Instead
@@ -3542,7 +3542,7 @@ class SkillPlannerApp {
         );
 
         if (selected.length === 0) {
-            this.showMessage('Select at least one saved fit to combine.', 'warning');
+            this.showMessage('Select at least one in-game fit to combine.', 'warning');
             return;
         }
 
@@ -3687,7 +3687,7 @@ class SkillPlannerApp {
                 <div class="fit-empty-state">
                     <div class="loading-spinner"></div>
                     <h3>Loading doctrine library</h3>
-                    <p>Resolving saved fits against the SDE.</p>
+                    <p>Resolving doctrine fits against the SDE.</p>
                 </div>`;
             return;
         }

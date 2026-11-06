@@ -16,8 +16,8 @@ const REQUIRED_SCOPES = [
     'esi-clones.read_clones.v1'
 ];
 
-// Saved Fits needs this, but the rest of the planner should remain usable if
-// EVE does not grant it. Users can re-login from the Saved Fits view.
+// In Game Fits (Personal) needs this, but the rest of the planner should remain usable if
+// EVE does not grant it. Users can re-login from the In Game Fits view.
 const FITTINGS_SCOPE = 'esi-fittings.read_fittings.v1';
 
 // Optional: resolves names of player-owned structures the character can dock in.
