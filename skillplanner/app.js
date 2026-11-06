@@ -4781,7 +4781,7 @@ class SkillPlannerApp {
         let current = header;
 
         entries.forEach(entry => {
-            const line = `${entry.name} ${this.roman(entry.level)}`;
+            const line = `<url=showinfo:${entry.skillId}>${this.escapeHtml(entry.name)}</url> ${this.roman(entry.level)}`;
             if (current.length + line.length + 1 > maxBody) {
                 parts.push(current.trimEnd());
                 current = '';
