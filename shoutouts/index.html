@@ -186,7 +186,12 @@ th{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:var(--dim)
 td:first-child{font-weight:700;color:#fff}
 td .fa-check{color:var(--accent)}
 td .fa-xmark{color:#777}
+.tier-link{display:inline-block;color:#fff;text-decoration:none;transition:color .2s}
+.tier-link:hover{color:var(--accent)}
 .tier-price{display:block;font-size:.76rem;font-weight:400;color:var(--dim);margin-top:2px}
+.tier-join{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px}
+.tier-join i{font-size:.6rem;transition:transform .2s}
+.tier-link:hover .tier-join i{transform:translateX(3px)}
 .notes{color:var(--dim);font-size:.86rem;margin-top:14px}
 .notes strong{color:var(--text)}
 .notes a{font-weight:700}
@@ -383,17 +388,35 @@ footer a:hover{color:var(--accent)}
         </thead>
         <tbody>
           <tr>
-            <td>AA Battery Supplier <span class="tier-price">£10/month</span></td>
+            <td>
+              <a class="tier-link" href="https://ko-fi.com/summary/7c83e181-f9a8-4082-a605-d37af9ffb779" target="_blank" rel="noopener" title="Join AA Battery Supplier (£10/month) on Ko-fi">
+                AA Battery Supplier
+                <span class="tier-price">£10/month</span>
+                <span class="tier-join">Join on Ko-fi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+              </a>
+            </td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-xmark" aria-hidden="true"></i> Not included</td>
           </tr>
           <tr>
-            <td>Bot Whisperer <span class="tier-price">£15/month</span></td>
+            <td>
+              <a class="tier-link" href="https://ko-fi.com/summary/bb429141-96e4-478f-b291-2e237124ef01" target="_blank" rel="noopener" title="Join Bot Whisperer (£15/month) on Ko-fi">
+                Bot Whisperer
+                <span class="tier-price">£15/month</span>
+                <span class="tier-join">Join on Ko-fi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+              </a>
+            </td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
           </tr>
           <tr>
-            <td>Elite Supporter Status <span class="tier-price">£25/month</span></td>
+            <td>
+              <a class="tier-link" href="https://ko-fi.com/summary/963ed22a-93ed-4fc9-926a-441ab407367e" target="_blank" rel="noopener" title="Join Elite Supporter Status (£25/month) on Ko-fi">
+                Elite Supporter Status
+                <span class="tier-price">£25/month</span>
+                <span class="tier-join">Join on Ko-fi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+              </a>
+            </td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
             <td><i class="fa-solid fa-check" aria-hidden="true"></i> Included</td>
           </tr>
