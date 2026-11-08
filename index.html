@@ -41,35 +41,67 @@
             line-height: 1.6;
         }
 
-        .plex-sale {
-            background: linear-gradient(135deg, rgba(232, 217, 0, 0.08) 0%, rgba(232, 217, 0, 0.02) 100%);
-            border-bottom: 1px solid var(--accent-dim);
-            text-align: center;
-            padding: 18px 24px 20px;
+        .promo-row {
+            display: flex;
+            flex-wrap: wrap;
+            background: #111;
         }
 
-        .plex-sale-inner {
+        .promo-card {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 24px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--promo-tint) 0%, rgba(0, 0, 0, 0) 100%);
+            border-bottom: 1px solid var(--promo-border);
+        }
+
+        .promo-card + .promo-card {
+            border-left: 1px solid var(--border);
+        }
+
+        .plex-sale {
+            --promo-accent: var(--accent);
+            --promo-tint: rgba(232, 217, 0, 0.08);
+            --promo-border: var(--accent-dim);
+            --promo-glow: rgba(232, 217, 0, 0.2);
+            --promo-glow-hover: rgba(232, 217, 0, 0.4);
+        }
+
+        .extra-life {
+            --promo-accent: #ff5c5c;
+            --promo-tint: rgba(226, 58, 58, 0.1);
+            --promo-border: rgba(226, 58, 58, 0.35);
+            --promo-glow: rgba(226, 58, 58, 0.2);
+            --promo-glow-hover: rgba(226, 58, 58, 0.4);
+        }
+
+        .promo-inner {
             max-width: 760px;
+            width: 100%;
             margin: 0 auto;
         }
 
-        .plex-sale-title {
+        .promo-title {
             font-size: 0.95rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: var(--accent);
+            color: var(--promo-accent);
         }
 
-        .plex-sale-title i { margin-right: 6px; }
+        .promo-title i { margin-right: 6px; }
 
-        .plex-sale-btn {
+        .promo-btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
             margin-top: 8px;
             padding: 6px 16px;
-            background: var(--accent);
+            background: var(--promo-accent);
             color: #0d0d0d;
             font-weight: 700;
             font-size: 0.75rem;
@@ -77,23 +109,31 @@
             letter-spacing: 1px;
             text-decoration: none;
             border-radius: 4px;
-            border: 1px solid var(--accent);
-            box-shadow: 0 0 10px rgba(232, 217, 0, 0.2);
+            border: 1px solid var(--promo-accent);
+            box-shadow: 0 0 10px var(--promo-glow);
             transition: transform 0.15s, box-shadow 0.15s;
         }
 
-        .plex-sale-btn:hover {
+        .promo-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 0 16px rgba(232, 217, 0, 0.4);
+            box-shadow: 0 0 16px var(--promo-glow-hover);
         }
 
-        .plex-sale-note {
+        .promo-note {
             font-size: 0.85rem;
             color: var(--dim);
             margin-top: 12px;
         }
 
-        .plex-sale-note strong { color: #eee; }
+        .promo-note strong { color: #eee; }
+
+        .promo-note a {
+            color: var(--promo-accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .promo-note a:hover { text-decoration: underline; }
 
         .hero-wrap {
             background: #111;
@@ -691,8 +731,9 @@
             .feat-grid .feat { flex: 0 1 45%; }
             .hero h1 { font-size: 2.2rem; }
             .hero-logo { max-width: 110px; }
-            .plex-sale { padding: 16px 18px 18px; }
-            .plex-sale-btn { width: 100%; max-width: 280px; justify-content: center; }
+            .promo-card { flex-basis: 100%; padding: 16px 18px 18px; }
+            .promo-card + .promo-card { border-left: none; }
+            .promo-btn { width: 100%; max-width: 280px; justify-content: center; }
             .back-top { bottom: 20px; right: 20px; }
         }
 
@@ -737,14 +778,25 @@
 </head>
 <body>
 
-    <div class="plex-sale" id="plex-sale" data-expires="2026-11-26T00:00:00">
-        <div class="plex-sale-inner">
-            <p class="plex-sale-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Plex sale now on</p>
-            <a class="plex-sale-btn" href="https://store.eveonline.com/" target="_blank" rel="noopener noreferrer">
-                <i class="fa-solid fa-rocket" aria-hidden="true"></i> Warp to the store
-            </a>
-            <p class="plex-sale-note">Use code <strong>"rusty"</strong> at checkout<br>
-            Until 26 November, Omega packs in the EVE Store come at their regular price with up to 1,500 PLEX included at no extra cost.</p>
+    <div class="promo-row">
+        <div class="promo-card plex-sale" id="plex-sale" data-expires="2026-11-26T00:00:00">
+            <div class="promo-inner">
+                <p class="promo-title"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Plex sale now on</p>
+                <a class="promo-btn" href="https://store.eveonline.com/" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-rocket" aria-hidden="true"></i> Warp to the store
+                </a>
+                <p class="promo-note">Use code <strong>"rusty"</strong> at checkout<br>
+                Until 26 November, Omega packs in the EVE Store come at their regular price with up to 1,500 PLEX included at no extra cost.</p>
+            </div>
+        </div>
+        <div class="promo-card extra-life">
+            <div class="promo-inner">
+                <p class="promo-title"><i class="fa-solid fa-heart" aria-hidden="true"></i>Extra Life fundraiser</p>
+                <a class="promo-btn" href="https://dd.extra-life.org/participants/566293" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Donate today
+                </a>
+                <p class="promo-note"><a href="https://www.twitch.tv/schadsquatch" target="_blank" rel="noopener noreferrer">Schadsquatch</a> is raising funds with <strong>#ExtraLife</strong> for kids treated at his Children's Miracle Network hospital! Help him reach his fundraising goal and make big change for all kids.</p>
+            </div>
         </div>
     </div>
     <script>
