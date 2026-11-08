@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>document.documentElement.classList.add('js');</script>
+
+  <title>EVE Evolved: A New Horizon for the HUD | RustyBot</title>
+  <meta name="description" content="CCP's redesigned EVE Online HUD is now in Feature Previews. See the before/after, what's changing in the command board, and how to enable the opt-in beta.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/hud/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/hud/">
+  <meta property="og:title" content="EVE Evolved: A New Horizon for the HUD | RustyBot">
+  <meta property="og:description" content="The new Ship HUD is live in EVE Online's Feature Previews. See the before/after, what's changing, and how to enable the opt-in beta.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="EVE Online: Fractured Skies key art with the EVE Online logo">
+  <meta property="article:published_time" content="2026-11-08T00:00:00+00:00">
+  <meta property="article:modified_time" content="2026-11-08T00:00:00+00:00">
+  <meta property="article:author" content="RustyBot">
+  <meta property="article:section" content="EVE Online">
+  <meta property="article:tag" content="EVE Evolved">
+  <meta property="article:tag" content="HUD">
+  <meta property="article:tag" content="Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="EVE Evolved: A New Horizon for the HUD | RustyBot">
+  <meta name="twitter:description" content="The new Ship HUD is live in EVE Online's Feature Previews. See the before/after, what's changing, and how to enable the opt-in beta.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-image.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "EVE Evolved: A New Horizon for the HUD",
+    "description": "CCP's redesigned EVE Online HUD is now in Feature Previews. See the before/after, what's changing in the command board, and how to enable the opt-in beta.",
+    "datePublished": "2026-11-08",
+    "dateModified": "2026-11-08",
+    "author": { "@type": "Organization", "name": "RustyBot" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "RustyBot",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.rustybot.co.uk/Fracturedskies/assets/rustybot-logo.webp"
+      }
+    },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-image.jpg",
+    "mainEntityOfPage": "https://www.rustybot.co.uk/Fracturedskies/hud/",
+    "isBasedOn": "https://www.eveonline.com/news/view/eve-evolved-a-new-horizon-for-the-hud",
+    "about": "EVE Online HUD"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-2: #111111;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --kofi: #f573f1;
+      --kofi-hover: #ff8df7;
+      --danger: #ff6b6b;
+      --radius: 8px;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      background: var(--accent);
+      color: #0d0d0d;
+      padding: 10px 16px;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-size: 0.78rem;
+      color: var(--dim);
+    }
+    .breadcrumb a {
+      color: var(--dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.62rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 52px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
+      gap: 48px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .hero-lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: min(300px, 80%);
+      margin-bottom: 18px;
+    }
+    .expansion-logo {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 26px rgba(232, 217, 0, 0.07));
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .hero h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2.55rem, 5vw, 4rem);
+      line-height: 1.03;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 560px;
+      margin: 0;
+      color: #c9c9c9;
+      font-size: 1.06rem;
+      line-height: 1.65;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: #555; }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .btn-kofi {
+      background: var(--kofi);
+      border-color: var(--kofi);
+      color: #170017;
+    }
+    .btn-kofi:hover {
+      background: var(--kofi-hover);
+      border-color: var(--kofi-hover);
+      color: #170017;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(245, 115, 241, 0.2);
+    }
+
+    .hero-visual { min-width: 0; }
+    .compare-hero-foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .compare-hero-foot .compare-caption { margin: 0; text-align: left; }
+
+    /* ---------- Expansion strip ---------- */
+    .expansion-strip {
+      background-color: var(--bg);
+      background:
+        linear-gradient(180deg, var(--bg) 0%, rgba(13, 13, 13, 0) 26%, rgba(13, 13, 13, 0) 74%, var(--bg) 100%),
+        linear-gradient(90deg, rgba(13, 13, 13, 0.99) 0%, rgba(13, 13, 13, 0.97) 30%, rgba(13, 13, 13, 0.92) 50%, rgba(13, 13, 13, 0.78) 72%, rgba(13, 13, 13, 0.62) 100%),
+        url("../assets/fractured-skies-keyart.webp") right center / 55% auto no-repeat;
+    }
+    .strip-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 56px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .strip-inner > div { max-width: 720px; }
+    .strip-kicker {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .strip-inner h2 {
+      margin: 0 0 8px;
+      color: #ffffff;
+      font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+      line-height: 1.2;
+    }
+    .strip-inner p {
+      margin: 0;
+      color: #cfcfcf;
+      font-size: 0.9rem;
+    }
+    .expansion-strip .btn { flex-shrink: 0; margin-top: 18px; }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .section { padding: 56px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .section-header i {
+      color: var(--accent);
+      font-size: 0.92rem;
+    }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub {
+      max-width: 780px;
+      margin: -12px 0 24px;
+      color: var(--dim);
+      font-size: 0.9rem;
+    }
+    .lead {
+      max-width: 72ch;
+      margin: 0 0 22px;
+      color: #d6d6d6;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+    .lead strong { color: #ffffff; }
+    .muted { color: var(--dim); }
+
+    /* ---------- Cards ---------- */
+    .card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 100%);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { border-color: var(--accent-dim); }
+    .card h3 { margin: 0 0 6px; color: #ffffff; font-size: 1rem; line-height: 1.3; }
+    .card p { margin: 0; color: var(--dim); font-size: 0.86rem; line-height: 1.6; }
+    .icon-box {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 14px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 8px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.92rem;
+    }
+    .icon-box.cyan {
+      border-color: var(--hud-dim);
+      background: rgba(99, 216, 230, 0.08);
+      color: var(--hud);
+    }
+
+    /* ---------- Split layouts ---------- */
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .split.center { align-items: center; }
+    .aim-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .aim-grid .card h3 { font-size: 0.94rem; }
+    .aim-grid .card p { font-size: 0.82rem; }
+
+    figure { margin: 0; }
+    figcaption {
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.55;
+    }
+    figcaption a { color: var(--dim); }
+    .command-stack { display: grid; gap: 16px; }
+    .command-stack-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+    }
+    .command-stack-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .command-figure {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 100%);
+    }
+    .command-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 330px;
+      margin: 0 auto;
+      object-fit: contain;
+    }
+
+    /* ---------- First build ---------- */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 22px;
+    }
+    .annotated-wrap { margin-top: 30px; }
+    .annotated {
+      position: relative;
+      max-width: 957px;
+      margin: 0 auto;
+    }
+    .annotated img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #000;
+    }
+    .marker {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      z-index: 3;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #0d0d0d;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 4px rgba(232, 217, 0, 0.18);
+    }
+    .marker::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      z-index: 5;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #0d0d0d;
+      color: #ffffff;
+      font-size: 0.66rem;
+      font-weight: 600;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(4px);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .marker:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .marker.m5::after, .marker.m6::after {
+      left: auto;
+      right: 0;
+      transform: translateY(4px);
+    }
+    .marker.m5:hover::after, .marker.m6:hover::after { transform: translateY(0); }
+    .annotated-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
+      max-width: 957px;
+      margin: 16px auto 0;
+    }
+    .legend-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--dim);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .legend-num {
+      display: grid;
+      place-items: center;
+      flex: 0 0 24px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .legend-item strong { color: #ffffff; }
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 20px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout.cyan { border-left-color: var(--hud); background: rgba(99, 216, 230, 0.04); }
+    .callout.cyan i { color: var(--hud); }
+    .callout strong { color: #ffffff; }
+
+    /* ---------- Compare slider ---------- */
+    .compare-shell { max-width: 1000px; margin: 0 auto; }
+    .reset-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--dim);
+      font-family: inherit;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .reset-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+    .compare {
+      position: relative;
+      --pos: 50%;
+      aspect-ratio: 872 / 283;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #000;
+      touch-action: pan-y;
+      cursor: ew-resize;
+    }
+    .compare img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+    }
+    .compare-after {
+      clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+    }
+    .compare-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: var(--pos);
+      z-index: 4;
+      width: 2px;
+      background: var(--accent);
+      pointer-events: none;
+      transform: translateX(-1px);
+      box-shadow: 0 0 14px rgba(232, 217, 0, 0.6);
+    }
+    .compare-grip {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      background: rgba(13, 13, 13, 0.88);
+      color: var(--accent);
+      font-size: 0.8rem;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 6px rgba(232, 217, 0, 0.12);
+    }
+    .compare-label {
+      position: absolute;
+      top: 12px;
+      z-index: 5;
+      padding: 5px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.72);
+      color: #ffffff;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+    }
+    .compare-label.left { left: 12px; }
+    .compare-label.right { right: 12px; border-color: var(--hud-dim); color: var(--hud); }
+    .compare-range {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: ew-resize;
+    }
+    .compare:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .compare-caption {
+      margin: 10px 0 0;
+      color: var(--dim);
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
+
+    /* ---------- Evolution / concepts ---------- */
+    .evolution-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 24px;
+    }
+    .evolution-grid img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 3 / 2;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #000;
+    }
+    .concept-figure { margin-top: 24px; }
+    .concept-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .credit {
+      margin: 12px 0 0;
+      color: #777;
+      font-size: 0.68rem;
+    }
+
+    /* ---------- Quote ---------- */
+    .quote {
+      margin: 28px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p {
+      margin: 0;
+      color: #f0f0f0;
+      font-size: 1.12rem;
+      line-height: 1.55;
+    }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- Principles ---------- */
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    /* ---------- Players ---------- */
+    .player-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 8px;
+      width: 1px;
+      background: var(--border);
+    }
+    .timeline-item { position: relative; padding-bottom: 24px; }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      top: 3px;
+      left: -28px;
+      display: grid;
+      place-items: center;
+      width: 17px;
+      height: 17px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      background: var(--bg);
+    }
+    .timeline-item h3 { margin: 0 0 4px; color: #ffffff; font-size: 0.96rem; }
+    .timeline-item p { margin: 0; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .fanfest-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .fanfest-grid img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    /* ---------- Rollout ---------- */
+    .rollout-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .rollout-step {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 100%);
+    }
+    .step-num {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 50%;
+      background: rgba(232, 217, 0, 0.1);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .rollout-step h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.93rem; }
+    .rollout-step p { margin: 0; color: var(--dim); font-size: 0.8rem; line-height: 1.6; }
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 12px;
+      padding: 3px 7px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--dim);
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .status-tag.live { border-color: var(--hud-dim); background: rgba(99, 216, 230, 0.06); color: var(--hud); }
+    .status-tag.current { border-color: var(--accent-dim); background: rgba(232, 217, 0, 0.06); color: var(--accent); }
+
+    .how-to { margin-top: 34px; }
+    .steps {
+      display: grid;
+      gap: 14px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .step { display: flex; align-items: flex-start; gap: 12px; }
+    .step-num-big {
+      display: grid;
+      place-items: center;
+      flex: 0 0 28px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .step strong { display: block; color: #ffffff; font-size: 0.9rem; }
+    .step p { margin: 2px 0 0; color: var(--dim); font-size: 0.82rem; }
+    .zoomable {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: zoom-in;
+    }
+    .zoomable img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: border-color 0.2s;
+    }
+    .zoomable:hover img { border-color: var(--accent-dim); }
+    .zoom-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      color: var(--dim);
+      font-size: 0.68rem;
+    }
+
+    /* ---------- Next / FAQ ---------- */
+    .next-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .faq { margin-top: 34px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      color: #ffffff;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.75rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 82ch;
+      padding: 0 0 16px;
+      color: var(--dim);
+      font-size: 0.86rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    /* ---------- Source / support ---------- */
+    .source-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 14px;
+    }
+    .source-card, .support-card {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.12rem; line-height: 1.3; }
+    .source-card p { margin: 0 0 18px; color: var(--dim); font-size: 0.8rem; }
+    .support-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1rem; }
+    .support-card p { margin: 0 0 16px; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      margin-top: 20px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666; font-size: 0.7rem; }
+
+    /* ---------- Back to top ---------- */
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Lightbox ---------- */
+    .lightbox {
+      max-width: min(96vw, 1400px);
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+    .lightbox::backdrop {
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(4px);
+    }
+    .lightbox-wrap { position: relative; }
+    .lightbox img {
+      display: block;
+      max-width: 100%;
+      max-height: 90vh;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: -16px;
+      right: -16px;
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--panel);
+      color: #ffffff;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .lightbox-close:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Reveal ---------- */
+    .js .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .js .reveal.in { opacity: 1; transform: none; }
+
+    /* ---------- Responsive ---------- */
+    @media (min-width: 1200px) {
+      .hero-visual { transform: translateX(32px); }
+    }
+
+    @media (min-width: 1300px) {
+      .hero-visual { transform: translateX(64px); }
+    }
+
+    @media (min-width: 1400px) {
+      .hero-visual { transform: translateX(96px); }
+    }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 36px; }
+      .hero-visual { max-width: 820px; }
+      .hero-sub { max-width: 720px; }
+      .rollout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 900px) {
+      .split, .player-grid, .how-to { grid-template-columns: 1fr; }
+      .principles-grid, .next-grid { grid-template-columns: 1fr; }
+      .evolution-grid { grid-template-columns: 1fr; }
+      .source-grid { grid-template-columns: 1fr; }
+      .fanfest-grid img { aspect-ratio: 16 / 10; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-lockup { width: 230px; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .expansion-strip {
+        background:
+          linear-gradient(180deg, var(--bg) 0%, rgba(13, 13, 13, 0.12) 20%, rgba(13, 13, 13, 0.12) 80%, var(--bg) 100%),
+          linear-gradient(90deg, rgba(13, 13, 13, 0.96) 0%, rgba(13, 13, 13, 0.86) 100%),
+          url("../assets/fractured-skies-keyart.webp") center center / 100% auto no-repeat;
+      }
+      .strip-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 40px 18px;
+      }
+      .container { padding: 0 18px; }
+      .section { padding: 42px 0; }
+      .aim-grid, .feature-grid, .fanfest-grid, .annotated-legend { grid-template-columns: 1fr; }
+      .rollout-grid { grid-template-columns: 1fr; }
+      .compare-label { top: 8px; font-size: 0.52rem; padding: 4px 6px; }
+      .compare-label.left { left: 8px; }
+      .compare-label.right { right: 8px; }
+      .compare-grip { width: 36px; height: 36px; font-size: 0.7rem; }
+      .marker { width: 26px; height: 26px; font-size: 0.68rem; }
+      .marker::after { display: none; }
+      .quote p { font-size: 1rem; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+      .hero-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .hero-meta .dot-sep { display: none; }
+      .lightbox-close { top: 6px; right: 6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .js .reveal { opacity: 1; transform: none; transition: none; }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="https://www.rustybot.co.uk/">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">HUD Evolved</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="https://www.rustybot.co.uk/">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">New HUD</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/eve-evolved-a-new-horizon-for-the-hud" target="_blank" rel="noopener noreferrer">
+      Source: EVE Online <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="hero-lockup">
+          <img class="expansion-logo" src="../assets/fractured-skies-logo.webp" alt="EVE Online: Fractured Skies — Blaze a path to conquest" width="900" height="352">
+          <div class="status-pill"><span class="dot" aria-hidden="true"></span> Live in Feature Previews</div>
+        </div>
+        <p class="kicker">EVE Evolved · New Ship HUD</p>
+        <h1 id="hero-title">A New Horizon<br><span>for the HUD</span></h1>
+        <p class="hero-sub">CCP's redesigned command board is now an opt&#8209;in beta. Here's what's changing, why it matters, and how to try it.</p>
+        <div class="hero-meta">
+          <span>Recap of CCP's 14 Aug 2026 dev blog</span>
+          <span class="dot-sep" aria-hidden="true"></span>
+          <span>Updated 8 Nov 2026</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://www.eveonline.com/news/view/eve-evolved-a-new-horizon-for-the-hud" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-book-open" aria-hidden="true"></i> Read CCP's dev blog
+          </a>
+          <a class="btn btn-ghost" href="#changing">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i> Explore the changes
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="compare-shell">
+          <div class="compare" id="hudCompare">
+            <img class="compare-img compare-before" src="../assets/before-compare.png" alt="Legacy EVE Online command board" width="872" height="283">
+            <img class="compare-img compare-after" src="../assets/after-compare.png" alt="New Ship HUD in EVE Online Feature Previews" width="872" height="283">
+            <div class="compare-line" aria-hidden="true">
+              <span class="compare-grip"><i class="fa-solid fa-left-right" aria-hidden="true"></i></span>
+            </div>
+            <span class="compare-label left">Legacy HUD</span>
+            <span class="compare-label right">New Ship HUD</span>
+            <input class="compare-range" id="compareRange" type="range" min="0" max="100" value="50" step="1" aria-label="Before and after HUD comparison">
+          </div>
+          <div class="compare-hero-foot">
+            <p class="compare-caption">Drag the handle to compare. Screenshots: RustyBot.</p>
+            <button class="reset-btn" id="compareReset" type="button"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fractured Skies strip -->
+    <section class="expansion-strip" aria-labelledby="strip-title">
+      <div class="strip-inner">
+        <div>
+          <p class="strip-kicker">Part of Fractured Skies</p>
+          <h2 id="strip-title">The HUD evolves with EVE's latest expansion.</h2>
+          <p>Fractured Skies arrives 10 November 2026. The new HUD is available now through Feature Previews.</p>
+          <a class="btn btn-ghost" href="../">
+            See the expansion <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- What's changing -->
+      <section class="section reveal" id="changing" aria-labelledby="changing-title">
+        <div class="section-header">
+          <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+          <h2 id="changing-title">What's changing</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="split">
+          <div>
+            <p class="lead">The first iteration focuses on the <strong>command board</strong> — the center-bottom cluster that holds your capacitor, modules, shield, and armor. CCP's stated aims:</p>
+            <div class="aim-grid">
+              <div class="card">
+                <div class="icon-box"><i class="fa-solid fa-toggle-on" aria-hidden="true"></i></div>
+                <h3>Module states &amp; ship status</h3>
+                <p>Clearer communication of what your modules are doing and what's happening to your ship.</p>
+              </div>
+              <div class="card">
+                <div class="icon-box"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></div>
+                <h3>Danger, at a glance</h3>
+                <p>More recognizable danger indicators, and better prioritisation of information that needs attention now.</p>
+              </div>
+              <div class="card">
+                <div class="icon-box"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></div>
+                <h3>Easier to discover</h3>
+                <p>Overheating, precise speed controls, and other features should be easier to find and understand.</p>
+              </div>
+              <div class="card">
+                <div class="icon-box"><i class="fa-solid fa-user-astronaut" aria-hidden="true"></i></div>
+                <h3>Clarity for everyone</h3>
+                <p>More clarity for new players; more precision and insight for experienced pilots.</p>
+              </div>
+            </div>
+          </div>
+          <div class="command-stack">
+            <h3 class="command-stack-title">Command board</h3>
+            <figure class="command-figure">
+              <img src="../assets/command-board.webp" alt="Diagram of the EVE Online command board, showing capacitor, modules, shield, and armor" width="585" height="180" loading="lazy" decoding="async">
+            </figure>
+            <figure class="command-figure">
+              <img src="../assets/example-hud.webp" alt="The New Ship HUD in EVE Online, showing the medallion, module rack, and utility column" width="957" height="381" loading="lazy" decoding="async">
+              <figcaption>The New Ship HUD in space.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- First build -->
+      <section class="section reveal" id="first-build" aria-labelledby="build-title">
+        <div class="section-header">
+          <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+          <h2 id="build-title">Inside the first build</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">These are the changes listed in the client's Feature Previews description for the New Ship HUD:</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></div>
+            <h3>Updated medallion</h3>
+            <p>Hitpoints, capacitor, speed, and heat in one redesigned display.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i></div>
+            <h3>Module status &amp; animations</h3>
+            <p>New feedback and animations make module states easier to read at a glance.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-sliders" aria-hidden="true"></i></div>
+            <h3>Utility column &amp; safety toggle</h3>
+            <p>A redesigned utility button column and a clearer safety toggle.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-fire" aria-hidden="true"></i></div>
+            <h3>Overheating controls</h3>
+            <p>More prominent overloading controls with clearer state changes and damage display.</p>
+          </div>
+        </div>
+
+        <div class="annotated-wrap">
+          <div class="annotated">
+            <img src="../assets/example-hud.webp" alt="The New Ship HUD in EVE Online, showing cargo, speed controls, the medallion, module rack, utility column, and safety toggle" width="957" height="381" loading="lazy" decoding="async">
+            <span class="marker m1" style="--x:9.3%; --y:38.06%;" data-tip="Cargo" aria-hidden="true">1</span>
+            <span class="marker m2" style="--x:16.2%; --y:53.02%;" data-tip="Speed controls" aria-hidden="true">2</span>
+            <span class="marker m3" style="--x:33.16%; --y:53.33%;" data-tip="Medallion" aria-hidden="true">3</span>
+            <span class="marker m4" style="--x:68.65%; --y:53.02%;" data-tip="Module rack" aria-hidden="true">4</span>
+            <span class="marker m5" style="--x:92.16%; --y:53.02%;" data-tip="Utility column" aria-hidden="true">5</span>
+            <span class="marker m6" style="--x:92.16%; --y:21.78%;" data-tip="Safety toggle" aria-hidden="true">6</span>
+          </div>
+          <div class="annotated-legend">
+            <div class="legend-item"><span class="legend-num">1</span><span><strong>Cargo</strong> — far-left cargo access.</span></div>
+            <div class="legend-item"><span class="legend-num">2</span><span><strong>Speed controls</strong> — left-hand speed adjustment for precise velocity.</span></div>
+            <div class="legend-item"><span class="legend-num">3</span><span><strong>Medallion</strong> — hitpoints, capacitor, speed, and heat in one display.</span></div>
+            <div class="legend-item"><span class="legend-num">4</span><span><strong>Module rack</strong> — new status display and animations for module states.</span></div>
+            <div class="legend-item"><span class="legend-num">5</span><span><strong>Utility column</strong> — redesigned buttons and a clearer safety toggle.</span></div>
+            <div class="legend-item"><span class="legend-num">6</span><span><strong>Safety toggle</strong> — a clearer state indicator at the top of the utility column.</span></div>
+          </div>
+          <p class="credit">New Ship HUD (Feature Preview).</p>
+        </div>
+
+        <div class="callout cyan">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Currently applies to ship HUDs only.</strong> Structure control HUDs remain unchanged at this time.</span>
+        </div>
+      </section>
+
+      <!-- Why now -->
+      <section class="section reveal" id="why-now" aria-labelledby="why-title">
+        <div class="section-header">
+          <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+          <h2 id="why-title">Why now</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="split">
+          <div>
+            <p class="lead">The HUD has been part of EVE for two decades. Much of its current form dates to around 2005, and for many players it is the only HUD they have ever known. It is iconic — but it was not designed for the way people learn games today.</p>
+            <p class="lead">After Photon UI, CCP is taking a deliberate look at the command board. The intention is not to make EVE simpler, or to change it just to look new and shiny. It is to improve <strong>telegraphing, legibility, and clarity</strong> while preserving the identity of EVE's HUD.</p>
+            <blockquote class="quote">
+              <p>“The goal is not to make EVE simpler, but to make its complexity easier to engage with.”</p>
+              <cite>EVE Online Team</cite>
+            </blockquote>
+          </div>
+          <figure class="concept-figure" style="margin-top:0;">
+            <img src="../assets/hud-concepts.webp" alt="A collage of previous EVE Online HUD concepts explored by CCP" width="1336" height="804" loading="lazy" decoding="async">
+            <figcaption>Previous HUD concepts explored by CCP. Image: CCP Games / Fenris Creations.</figcaption>
+          </figure>
+        </div>
+
+        <div class="evolution-grid">
+          <figure>
+            <img src="../assets/evolution-early.webp" alt="A very early EVE Online HUD" width="455" height="364" loading="lazy" decoding="async">
+            <figcaption>Early HUD iterations.</figcaption>
+          </figure>
+          <figure>
+            <img src="../assets/evolution-mid.webp" alt="An older EVE Online HUD with the command board taking shape" width="470" height="352" loading="lazy" decoding="async">
+            <figcaption>The command board takes shape.</figcaption>
+          </figure>
+          <figure>
+            <img src="../assets/evolution-modern.webp" alt="The modern EVE Online HUD players know today" width="931" height="560" loading="lazy" decoding="async">
+            <figcaption>The HUD players know today.</figcaption>
+          </figure>
+        </div>
+        <p class="credit">Evolution images: CCP Games / Fenris Creations, via the EVE Evolved dev blog.</p>
+      </section>
+
+      <!-- Principles -->
+      <section class="section reveal" id="principles" aria-labelledby="principles-title">
+        <div class="section-header">
+          <i class="fa-solid fa-compass-drafting" aria-hidden="true"></i>
+          <h2 id="principles-title">The design principles</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="principles-grid">
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i></div>
+            <h3>Telegraphing</h3>
+            <p>Danger should be easier to recognize. Important information should announce itself before it becomes a problem.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-eye" aria-hidden="true"></i></div>
+            <h3>Legibility</h3>
+            <p>Status, states, and priorities should be readable at a glance — not learned by osmosis.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i></div>
+            <h3>Clarity</h3>
+            <p>Moment-to-moment piloting should feel natural, without removing the depth that makes EVE, EVE.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          <span><strong>Preserve the identity.</strong> CCP is explicitly trying to keep the HUD unmistakably EVE. The goal is not a simpler game; it is complexity that is easier to engage with.</span>
+        </div>
+      </section>
+
+      <!-- Designed with players -->
+      <section class="section reveal" id="players" aria-labelledby="players-title">
+        <div class="section-header">
+          <i class="fa-solid fa-users" aria-hidden="true"></i>
+          <h2 id="players-title">Designed with players</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">A design is a hypothesis. CCP tested this one with new players, the CSM, and players at Fanfest.</p>
+        <div class="player-grid">
+          <div class="timeline">
+            <div class="timeline-item">
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <h3>New-player interviews &amp; usability sessions</h3>
+              <p>Watching where the current HUD creates friction, and how new designs communicate important information.</p>
+            </div>
+            <div class="timeline-item">
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <h3>CSM reviews</h3>
+              <p>Concepts and iterations reviewed with the Council of Stellar Management across playstyles.</p>
+            </div>
+            <div class="timeline-item">
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <h3>Fanfest workshop</h3>
+              <p>A dedicated HUD workshop and UI/UX booth feedback from players at Fanfest.</p>
+            </div>
+          </div>
+          <div class="fanfest-grid">
+            <figure>
+              <img src="../assets/fanfest-workshop.webp" alt="EVE Online developers and players at a HUD workshop during Fanfest" width="900" height="506" loading="lazy" decoding="async">
+              <figcaption>Fanfest HUD workshop. Photo: CCP Games / Fenris Creations.</figcaption>
+            </figure>
+            <figure>
+              <img src="../assets/fanfest-corner.webp" alt="The UI/UX corner at EVE Fanfest with a board asking what players want in the new HUD" width="900" height="606" loading="lazy" decoding="async">
+              <figcaption>The UI/UX corner at Fanfest. Photo: CCP Games / Fenris Creations.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <blockquote class="quote">
+          <p>“A design is ultimately a hypothesis about what will work best for the people using it.”</p>
+          <cite>EVE Online Team</cite>
+        </blockquote>
+      </section>
+
+      <!-- Rollout -->
+      <section class="section reveal" id="rollout" aria-labelledby="rollout-title">
+        <div class="section-header">
+          <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+          <h2 id="rollout-title">How it rolls out</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The rollout follows the Photon UI pattern: start opt-in, learn, widen the test, then make it the default.</p>
+        <div class="rollout-grid">
+          <div class="rollout-step">
+            <div class="step-num">1</div>
+            <h3>Feature Previews</h3>
+            <p>Opt in through the client settings and spend meaningful time with the new HUD.</p>
+            <span class="status-tag live">Live now</span>
+          </div>
+          <div class="rollout-step">
+            <div class="step-num">2</div>
+            <h3>Feedback &amp; iteration</h3>
+            <p>Player feedback and testing data shape the next iteration of the design.</p>
+            <span class="status-tag current">In progress</span>
+          </div>
+          <div class="rollout-step">
+            <div class="step-num">3</div>
+            <h3>Opt-out beta</h3>
+            <p>A wider test before the HUD becomes the default experience.</p>
+            <span class="status-tag">Later</span>
+          </div>
+          <div class="rollout-step">
+            <div class="step-num">4</div>
+            <h3>Default HUD</h3>
+            <p>The polished version rolls out to everyone once it is ready.</p>
+            <span class="status-tag">TBD</span>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-clock" aria-hidden="true"></i>
+          <span><strong>Later-stage timing is still being determined.</strong> CCP has not committed to dates for the opt-out beta or the default release.</span>
+        </div>
+
+        <div class="split center how-to" id="how-to">
+          <div>
+            <p class="kicker">Try it yourself</p>
+            <h3 style="margin:0 0 16px; color:#fff; font-size:1.35rem;">How to enable the New Ship HUD</h3>
+            <ol class="steps">
+              <li class="step"><span class="step-num-big">1</span><div><strong>Open Settings</strong><p>Press Esc in the EVE client.</p></div></li>
+              <li class="step"><span class="step-num-big">2</span><div><strong>Go to Feature Previews</strong><p>It is in the left sidebar.</p></div></li>
+              <li class="step"><span class="step-num-big">3</span><div><strong>Select New Ship HUD</strong><p>The preview is marked NEW.</p></div></li>
+              <li class="step"><span class="step-num-big">4</span><div><strong>Enable it</strong><p>No restart required. Toggle it off any time.</p></div></li>
+            </ol>
+            <div class="callout cyan" style="margin-top:22px;">
+              <i class="fa-solid fa-ship" aria-hidden="true"></i>
+              <span><strong>Ship HUDs only.</strong> The preview currently applies to ship HUDs. Structure control HUDs remain unchanged at this time.</span>
+            </div>
+          </div>
+          <figure>
+            <button class="zoomable" type="button" data-lightbox data-full="../assets/feature-previews.webp" aria-label="Open the Feature Previews screenshot at full size">
+              <img src="../assets/feature-previews.webp" alt="EVE Online Settings window with Feature Previews selected, showing the New Ship HUD option and its description" width="1400" height="1071" loading="lazy" decoding="async">
+            </button>
+            <figcaption>Settings → Feature Previews → New Ship HUD.</figcaption>
+            <span class="zoom-hint"><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i> Click to enlarge</span>
+          </figure>
+        </div>
+      </section>
+
+      <!-- What's next -->
+      <section class="section reveal" id="next" aria-labelledby="next-title">
+        <div class="section-header">
+          <i class="fa-solid fa-forward" aria-hidden="true"></i>
+          <h2 id="next-title">What comes next</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">This is the first of three HUD dev blogs. The next two will take a closer look at specific parts of the HUD, the design decisions behind them, and what CCP learned from player research. EVE Evolved also covers the move to Python 3 and lighting/VFX improvements.</p>
+        <div class="next-grid">
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></div>
+            <h3>Two more HUD posts</h3>
+            <p>Specific parts, design decisions, and research learnings.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-code" aria-hidden="true"></i></div>
+            <h3>Python 3 modernization</h3>
+            <p>Part of the wider EVE Evolved series.</p>
+          </div>
+          <div class="card">
+            <div class="icon-box"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></div>
+            <h3>Lighting &amp; VFX</h3>
+            <p>Also on the EVE Evolved roadmap.</p>
+          </div>
+        </div>
+
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What exactly is the command board? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The center-bottom part of the HUD. It holds the capacitor, module rack, shield, and armor information — the cluster CCP is focused on for this first iteration.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Is the new HUD mandatory? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. It is an opt-in Feature Preview right now. CCP plans to move to an opt-out beta later, then make the HUD the default once it has been refined with player feedback.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Will it change how the game plays? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. It is a UI update. The underlying game systems, rules, and balance are unchanged.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Does it apply to structure HUDs? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Not yet. The current preview applies to ship HUDs only; structure control HUDs remain unchanged at this time.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How do I enable it? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Open Settings, go to Feature Previews, select New Ship HUD, and enable it. No restart is required, and you can toggle it off at any time. See the walkthrough <a href="#how-to">above</a>.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where does feedback go? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Use the in-client feedback tools and CCP's official channels. CCP says feedback from the feature preview will be used to improve future versions.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What's next for EVE Evolved? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Two more HUD dev blogs, plus EVE Evolved posts on the Python 3 modernization and lighting/VFX improvements.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source / support -->
+      <section class="section reveal" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Read the source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-grid">
+          <div class="source-card">
+            <p class="kicker">Primary source</p>
+            <h2>EVE Evolved: A New Horizon for the HUD</h2>
+            <p>EVE Online Team · 14 August 2026</p>
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/eve-evolved-a-new-horizon-for-the-hud" target="_blank" rel="noopener noreferrer">
+              Read on EVE Online <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div class="support-card">
+            <p class="kicker">Support RustyBot</p>
+            <h3>Enjoying the recap?</h3>
+            <p>If this was useful, you can support RustyBot on Ko-fi. Every contribution goes back into the tools and coverage.</p>
+            <a class="btn btn-kofi" href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">
+              <i class="fa-solid fa-mug-hot" aria-hidden="true"></i> Support on Ko-fi
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>HUD Evolved</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="https://www.rustybot.co.uk/">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/eve-evolved-a-new-horizon-for-the-hud" target="_blank" rel="noopener noreferrer">Source article</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Key art, evolution images, concept art, and Fanfest photography: CCP Games / Fenris Creations. HUD screenshots: RustyBot. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Screenshot preview">
+    <div class="lightbox-wrap">
+      <button class="lightbox-close" type="button" aria-label="Close preview"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <img src="../assets/feature-previews.webp" alt="">
+    </div>
+  </dialog>
+
+  <script>
+    // Before/after comparison slider.
+    (function () {
+      var compare = document.getElementById('hudCompare');
+      var range = document.getElementById('compareRange');
+      var reset = document.getElementById('compareReset');
+      if (!compare || !range) return;
+
+      function update(value) {
+        var v = Math.max(0, Math.min(100, Number(value)));
+        compare.style.setProperty('--pos', v + '%');
+        range.value = v;
+        range.setAttribute('aria-valuetext', Math.round(v) + '% new HUD');
+      }
+
+      range.addEventListener('input', function () { update(range.value); });
+      if (reset) reset.addEventListener('click', function () { update(50); });
+      update(range.value);
+    })();
+
+    // Lightbox for the Feature Previews screenshot.
+    (function () {
+      var dialog = document.getElementById('lightbox');
+      if (!dialog || typeof dialog.showModal !== 'function') return;
+      var image = dialog.querySelector('img');
+      var close = dialog.querySelector('.lightbox-close');
+
+      document.querySelectorAll('[data-lightbox]').forEach(function (trigger) {
+        trigger.addEventListener('click', function () {
+          var inner = trigger.querySelector('img');
+          image.src = trigger.dataset.full || (inner ? inner.src : '');
+          image.alt = inner ? inner.alt : '';
+          dialog.showModal();
+        });
+      });
+
+      close.addEventListener('click', function () { dialog.close(); });
+      dialog.addEventListener('click', function (event) {
+        if (event.target === dialog) dialog.close();
+      });
+    })();
+
+    // Reveal sections on scroll.
+    (function () {
+      var elements = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        elements.forEach(function (el) { el.classList.add('in'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+      elements.forEach(function (el) { io.observe(el); });
+    })();
+
+    // Back-to-top button.
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+</body>
+</html>
