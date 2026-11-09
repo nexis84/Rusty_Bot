@@ -55,7 +55,7 @@ services:
         destination: /source/
       - type: redirect
         source: /light/*
-        destination: /source/:splat
+        destination: /source/*
       - type: redirect
         source: /giveaway.html
         destination: /giveaway
@@ -100,19 +100,19 @@ services:
         destination: /Support/
       - type: redirect
         source: /support/*
-        destination: /Support/:splat
+        destination: /Support/*
       - type: redirect
         source: /pi
         destination: /PI/
       - type: redirect
         source: /pi/*
-        destination: /PI/:splat
+        destination: /PI/*
       - type: redirect
         source: /fracturedskies
         destination: /Fracturedskies/
       - type: redirect
         source: /fracturedskies/*
-        destination: /Fracturedskies/:splat
+        destination: /Fracturedskies/*
       - type: rewrite
         source: /*
         destination: /index.html
