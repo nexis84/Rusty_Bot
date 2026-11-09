@@ -11,7 +11,7 @@
   -->
 
   <title>EVE Vanguard — Fractured Skies | RustyBot</title>
-  <meta name="description" content="EVE Vanguard's 24/7 paid Alpha: Founder's Access, High Castle, Vorago, The Vault, Weapon Telemetry, the BR-60 and the ground-to-space connection.">
+  <meta name="description" content="EVE Vanguard's 24/7 paid Alpha: Founder's Packs from $15, High Castle, Vorago, The Vault, Weapon Telemetry, the BR-60 and the ground-to-space connection.">
   <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/eve-vanguard/">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#0d0d0d">
@@ -20,7 +20,7 @@
   <meta property="og:site_name" content="RustyBot">
   <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/eve-vanguard/">
   <meta property="og:title" content="EVE Vanguard — Fractured Skies | RustyBot">
-  <meta property="og:description" content="24/7 paid Alpha, three new battlegrounds, deeper progression and the ground-to-space connection.">
+  <meta property="og:description" content="24/7 paid Alpha from $15, three new battlegrounds, deeper progression and the ground-to-space connection.">
   <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-vanguard.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -28,7 +28,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="EVE Vanguard — Fractured Skies | RustyBot">
-  <meta name="twitter:description" content="24/7 paid Alpha, three new battlegrounds, deeper progression and the ground-to-space connection.">
+  <meta name="twitter:description" content="24/7 paid Alpha from $15, three new battlegrounds, deeper progression and the ground-to-space connection.">
   <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-vanguard.jpg">
 
   <link rel="icon" type="image/png" href="../assets/favicon.png">
@@ -51,7 +51,7 @@
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "name": "EVE Vanguard — Fractured Skies",
-    "description": "EVE Vanguard's 24/7 paid Alpha: Founder's Access, new battlegrounds, progression and the ground-to-space connection.",
+    "description": "EVE Vanguard's 24/7 paid Alpha: Founder's Packs from $15, new battlegrounds, progression and the ground-to-space connection.",
     "url": "https://www.rustybot.co.uk/Fracturedskies/eve-vanguard/",
     "isPartOf": {
       "@type": "WebSite",
@@ -62,7 +62,10 @@
     "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-vanguard.jpg",
     "datePublished": "2026-11-09",
     "dateModified": "2026-11-09",
-    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov"
+    "isBasedOn": [
+      "https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov",
+      "https://fenris.com/news/2026/eve-vanguard-opens-new-edens-ground-war-to-founders-from-15-on-10-november"
+    ]
   }
   </script>
 
@@ -344,6 +347,56 @@
     .intro-split .lead + .lead {
       padding-left: 32px;
       border-left: 1px solid var(--border);
+    }
+
+    /* ---------- Founder's Packs ---------- */
+    .pack-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .pack-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .pack-card h3 { margin: 0; color: #ffffff; font-size: 1rem; }
+    .pack-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .pack-price {
+      flex-shrink: 0;
+      color: var(--accent);
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .pack-card p { margin: 0 0 8px; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+    .pack-card ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .pack-card li { margin: 3px 0; }
+    .pack-card li::marker { color: var(--accent); }
+
+    .price-figure {
+      margin: 0 0 18px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #000;
+    }
+    .price-figure img { display: block; width: 100%; height: auto; }
+    .price-figure figcaption {
+      padding: 10px 14px;
+      background: var(--panel);
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
     }
 
     /* ---------- Info cards ---------- */
@@ -639,6 +692,7 @@
       .intro-split { grid-template-columns: 1fr; gap: 16px; }
       .intro-split .lead:first-child { padding-right: 0; }
       .intro-split .lead + .lead { padding-left: 0; border-left: 0; }
+      .pack-grid { grid-template-columns: 1fr; }
       .source-link { display: none; }
     }
 
@@ -694,10 +748,10 @@
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 24/7 paid Alpha · 10 November 2026</div>
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 24/7 paid Alpha · 10 November, 11:00 UTC</div>
         <p class="kicker">Fractured Skies · Ground Warfare</p>
         <h1 id="hero-title">EVE <span>Vanguard</span></h1>
-        <p class="hero-sub">24/7 paid Alpha, three new battlegrounds, deeper progression, and a permanent link between the ground war and New Eden.</p>
+        <p class="hero-sub">24/7 paid Alpha from $15, three new battlegrounds, deeper progression, and a permanent link between the ground war and New Eden.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer">
             <i class="fa-solid fa-play" aria-hidden="true"></i> Watch studio update
@@ -708,6 +762,7 @@
         </div>
         <div class="hero-facts" aria-label="Key facts">
           <span>24/7 Alpha</span>
+          <span>From $15</span>
           <span>3 new maps</span>
           <span>Ground → space</span>
         </div>
@@ -729,14 +784,14 @@
           <span class="line" aria-hidden="true"></span>
         </div>
         <div class="intro-split">
-          <p class="lead">EVE Vanguard is the ground-combat side of New Eden. On <strong>10 November 2026</strong> it becomes playable <strong>24/7 as a paid Alpha</strong> alongside Fractured Skies, with Founder's Access purchased through the EVE launcher.</p>
+          <p class="lead">EVE Vanguard is the ground-combat side of New Eden. On <strong>10 November 2026</strong> it becomes playable <strong>24/7 as a paid Alpha</strong> alongside Fractured Skies, with Founder's Packs starting at <strong>$15</strong> and permanent access through full release.</p>
           <p class="lead">Warclones take on contracts and expeditions for the four empires. Their combined efforts connect directly to the war in EVE Online — unlocking sites, feeding campaigns and, from February, contributing Conquest Power.</p>
         </div>
         <div class="info-grid">
           <div class="info-card">
             <div class="info-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
             <h3>24/7 paid Alpha</h3>
-            <p>Playable around the clock from 10 November 2026, not just during limited playtest windows.</p>
+            <p>Playable around the clock from 10 November 2026 at 11:00 UTC, not just during limited playtest windows.</p>
           </div>
           <div class="info-card">
             <div class="info-icon"><i class="fa-solid fa-file-signature" aria-hidden="true"></i></div>
@@ -751,7 +806,7 @@
         </div>
         <div class="callout">
           <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-          <span><strong>What we know so far:</strong> CCP has announced the Alpha, the new maps and the connection to EVE. Exact Founder's Access pricing, the full progression numbers and the complete Alpha ruleset have not been published.</span>
+          <span><strong>Pricing is live:</strong> Founder's Packs start at $15, with Contraband Packs at $30 each, the Fulcrum Pack at $100 and the Legacy Pack at $514. Every pack includes permanent access through full release.</span>
         </div>
       </section>
 
@@ -879,22 +934,80 @@
       <section class="section" id="access" aria-labelledby="access-title">
         <div class="section-header">
           <i class="fa-solid fa-key" aria-hidden="true"></i>
-          <h2 id="access-title">How to get access</h2>
+          <h2 id="access-title">Founder's Packs &amp; access</h2>
           <span class="line" aria-hidden="true"></span>
         </div>
-        <p class="section-sub">Founder's Access is purchased through the EVE launcher from 10 November. Pricing and the full access details are still to be announced.</p>
+        <p class="section-sub">EVE Vanguard opens at 11:00 UTC on 10 November. Founder's Packs start at $15 USD and are sold through the EVE Launcher only.</p>
         <div class="access-panel">
           <div>
-            <h3>Founder's Access</h3>
-            <p>From 10 November 2026, all players can purchase Founder's Access to join the Alpha through the EVE launcher. CCP has not yet published pricing or the full details of what is included.</p>
+            <h3>Founder's Packs from $15</h3>
+            <p>Every pack includes permanent access through the EVE Launcher into full release, a Resonant Key and the Deployment-Ready Bundle of weapons, grenades and gear. Prices are USD.</p>
           </div>
-          <a class="btn btn-primary" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer">
-            Watch for details <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          <a class="btn btn-primary" href="https://www.eveonline.com/launch" target="_blank" rel="noopener noreferrer">
+            Open EVE launcher <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
           </a>
         </div>
+        <figure class="price-figure">
+          <img src="../assets/vanguard-pricing.webp" alt="EVE Vanguard Founder's Pack comparison: Resonant Pack $15, four Contraband Packs at $30 each and Fulcrum Pack $100" width="1200" height="675" loading="lazy" decoding="async">
+          <figcaption>Founder's Pack comparison. Image: Fenris Creations. Prices in USD; contents subject to change.</figcaption>
+        </figure>
+        <div class="pack-grid">
+          <div class="pack-card">
+            <div class="pack-top">
+              <h3>Resonant Pack</h3>
+              <span class="pack-price">$15</span>
+            </div>
+            <p>The entry pack and the cheapest way into the alpha.</p>
+            <ul>
+              <li>Permanent access through full release</li>
+              <li>Resonant Key and Deployment-Ready Bundle</li>
+              <li>Keshik M247 Tier-2 blueprint</li>
+              <li>Support crafter program blueprint</li>
+            </ul>
+          </div>
+          <div class="pack-card">
+            <div class="pack-top">
+              <h3>Contraband Packs</h3>
+              <span class="pack-price">$30 each</span>
+            </div>
+            <p>Four mercenary corporation packs: Circle of Huskarl, Crux Special Tasks Group, Amarr Templars and Zumari Force Projection.</p>
+            <ul>
+              <li>Resonant Key and Deployment-Ready Bundle</li>
+              <li>Corporation skin line for all four weapons</li>
+              <li>Empire weapon charm</li>
+              <li>A weapon or equipment blueprint</li>
+            </ul>
+          </div>
+          <div class="pack-card">
+            <div class="pack-top">
+              <h3>Fulcrum Pack</h3>
+              <span class="pack-price">$100</span>
+            </div>
+            <p>The all-in cosmetics and blueprint pack.</p>
+            <ul>
+              <li>All 16 weapon skins</li>
+              <li>All four faction emblems</li>
+              <li>All faction blueprints</li>
+              <li>Banshee M247 faction variant, Founder Access only</li>
+            </ul>
+          </div>
+          <div class="pack-card">
+            <div class="pack-top">
+              <h3>Legacy Pack</h3>
+              <span class="pack-price">$514</span>
+            </div>
+            <p>Everything in the Fulcrum Pack, plus DUST 514 tribute rewards.</p>
+            <ul>
+              <li>Exclusive Avalon weapon emblem</li>
+              <li>VIP Discord access and a dev-team video call</li>
+              <li>Your name in the lore</li>
+              <li>EVE Fanfest 2027 ticket</li>
+            </ul>
+          </div>
+        </div>
         <div class="callout">
-          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-          <span><strong>Pricing TBA:</strong> treat any exact Founder's Access price or bundle contents you see outside CCP's channels as unconfirmed until CCP publishes them.</span>
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Alpha roadmap:</strong> Warclones can enlist in Factional Warfare in Q2 2027, and EVE Vanguard is planned for Steam Early Access in Q3 2027. Dates and features are subject to change.</span>
         </div>
       </section>
 
@@ -912,15 +1025,19 @@
           </details>
           <details class="faq-item">
             <summary>When does the Alpha start? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
-            <div class="faq-answer"><p>10 November 2026, alongside the Fractured Skies expansion. It becomes playable 24/7 as a paid Alpha.</p></div>
+            <div class="faq-answer"><p>10 November 2026 at 11:00 UTC, alongside the Fractured Skies expansion. It is playable 24/7 as a paid Alpha through the EVE Launcher.</p></div>
           </details>
           <details class="faq-item">
             <summary>Is it free? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
-            <div class="faq-answer"><p>No. EVE Vanguard enters paid Alpha with Founder's Access. CCP has not yet published the pricing.</p></div>
+            <div class="faq-answer"><p>No. EVE Vanguard enters paid Alpha with Founder's Packs starting at $15 USD. That includes permanent access through full release.</p></div>
           </details>
           <details class="faq-item">
             <summary>How do I get Founder's Access? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
-            <div class="faq-answer"><p>Founder's Access is purchased through the EVE launcher from 10 November. CCP said more details on pricing and access would follow.</p></div>
+            <div class="faq-answer"><p>Buy a Founder's Pack through the EVE Launcher from 10 November at 11:00 UTC. The paid Alpha is exclusive to the launcher; Steam Early Access is planned for Q3 2027.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What is in each Founder's Pack? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p><strong>Resonant ($15):</strong> permanent access, Resonant Key, Deployment-Ready Bundle, Keshik M247 Tier-2 blueprint and support crafter blueprint. <strong>Contraband ($30 each):</strong> a corporation skin line for all four weapons, an empire weapon charm and a weapon or equipment blueprint. <strong>Fulcrum ($100):</strong> all 16 weapon skins, all four faction emblems, all faction blueprints and the Banshee M247. <strong>Legacy ($514):</strong> everything in Fulcrum plus an Avalon weapon emblem, VIP Discord, a dev-team video call, your name in the lore and an EVE Fanfest 2027 ticket.</p></div>
           </details>
           <details class="faq-item">
             <summary>What are the new maps? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
@@ -944,7 +1061,7 @@
           </details>
           <details class="faq-item">
             <summary>What is still unknown? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
-            <div class="faq-answer"><p>Exact Founder's Access pricing, the full progression numbers and equipment list, Alpha duration and the complete ruleset. CCP has not published those details yet.</p></div>
+            <div class="faq-answer"><p>The full progression numbers, the complete equipment list, Alpha duration and the final ruleset. Pack contents and roadmap dates are also subject to change as development continues.</p></div>
           </details>
         </div>
       </section>
@@ -960,10 +1077,13 @@
           <div>
             <p class="kicker">Primary sources</p>
             <h2>Fractured Skies — EVE Vanguard</h2>
-            <p>EVE Online Team · expansion article and notes</p>
+            <p>EVE Online Team / Fenris Creations · expansion article, notes and Founder's Pack announcement</p>
           </div>
           <div class="source-links">
-            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+            <a class="btn btn-primary" href="https://fenris.com/news/2026/eve-vanguard-opens-new-edens-ground-war-to-founders-from-15-on-10-november" target="_blank" rel="noopener noreferrer">
+              Founder's Packs &amp; pricing <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
               Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
             </a>
             <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-12" target="_blank" rel="noopener noreferrer">
