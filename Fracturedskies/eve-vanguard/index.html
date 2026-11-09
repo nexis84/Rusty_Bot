@@ -302,6 +302,38 @@
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
     }
     .vanguard-frame img { display: block; width: 100%; height: auto; }
+    .image-zoom {
+      position: relative;
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      cursor: zoom-in;
+    }
+    .image-zoom img { display: block; width: 100%; height: auto; }
+    .zoom-badge {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 6px;
+      background: rgba(13, 13, 13, 0.75);
+      color: #ffffff;
+      font-size: 0.85rem;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .image-zoom:hover .zoom-badge,
+    .image-zoom:focus-visible .zoom-badge {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #0d0d0d;
+    }
     .vanguard-caption {
       margin: 10px 0 0;
       color: var(--dim);
@@ -584,30 +616,9 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       background: #000;
-      text-decoration: none;
     }
     .video-card img { display: block; width: 100%; height: auto; }
-    .video-card .play {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      display: grid;
-      place-items: center;
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: rgba(13, 13, 13, 0.82);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      font-size: 1.2rem;
-      transform: translate(-50%, -50%);
-      transition: background 0.2s, color 0.2s, transform 0.2s;
-    }
-    .video-card:hover .play {
-      background: var(--accent);
-      color: #0d0d0d;
-      transform: translate(-50%, -50%) scale(1.06);
-    }
+    .video-actions { display: flex; justify-content: center; margin-top: 14px; }
     .video-caption {
       max-width: 900px;
       margin: 10px auto 0;
@@ -723,6 +734,64 @@
     }
     .back-top.visible { opacity: 1; pointer-events: auto; }
     .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Image lightbox ---------- */
+    body.lightbox-open { overflow: hidden; }
+    .lightbox {
+      width: 94vw;
+      max-width: 1200px;
+      max-height: 92vh;
+      margin: auto;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #0d0d0d;
+      color: var(--text);
+      overflow: hidden;
+    }
+    .lightbox::backdrop {
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(3px);
+    }
+    .lightbox-inner { position: relative; }
+    .lightbox img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      max-height: calc(88vh - 48px);
+      margin: 0 auto;
+      background: #000;
+    }
+    .lightbox-caption {
+      margin: 0;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.74rem;
+      line-height: 1.5;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 6px;
+      background: rgba(13, 13, 13, 0.8);
+      color: #ffffff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .lightbox-close:hover {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #0d0d0d;
+    }
 
     @media (max-width: 1000px) {
       .hero { grid-template-columns: 1fr; gap: 32px; }
@@ -841,7 +910,10 @@
       </div>
       <div class="hero-visual">
         <div class="vanguard-frame">
-          <img src="../assets/eve-vanguard.webp" alt="An EVE Vanguard warclone" width="1200" height="675" fetchpriority="high">
+          <button class="image-zoom" type="button" data-lightbox-src="../assets/eve-vanguard.webp" data-lightbox-alt="An EVE Vanguard warclone" data-lightbox-caption="EVE Vanguard warclone. Image: CCP Games / Fenris Creations." aria-label="Enlarge the EVE Vanguard warclone image">
+            <img src="../assets/eve-vanguard.webp" alt="An EVE Vanguard warclone" width="1200" height="675" fetchpriority="high">
+            <span class="zoom-badge" aria-hidden="true"><i class="fa-solid fa-expand"></i></span>
+          </button>
         </div>
         <p class="vanguard-caption">EVE Vanguard warclone. Image: CCP Games / Fenris Creations.</p>
       </div>
@@ -995,10 +1067,17 @@
           <span class="line" aria-hidden="true"></span>
         </div>
         <p class="section-sub">CCP's Alpha News and Studio Update covers the new battlegrounds, deeper progression and the next chapter of ground warfare.</p>
-        <a class="video-card" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer" aria-label="Watch the EVE Vanguard Alpha News and Studio Update on YouTube">
-          <img src="../assets/vanguard-video.webp" alt="EVE Vanguard Alpha News and Studio Update video thumbnail" width="1280" height="720" loading="lazy" decoding="async">
-          <span class="play"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
-        </a>
+        <div class="video-card">
+          <button class="image-zoom" type="button" data-lightbox-src="../assets/vanguard-video.webp" data-lightbox-alt="EVE Vanguard Alpha News and Studio Update video thumbnail" data-lightbox-caption="EVE Vanguard Alpha News and Studio Update. Video: CCP Games / Fenris Creations." aria-label="Enlarge the studio update thumbnail">
+            <img src="../assets/vanguard-video.webp" alt="EVE Vanguard Alpha News and Studio Update video thumbnail" width="1280" height="720" loading="lazy" decoding="async">
+            <span class="zoom-badge" aria-hidden="true"><i class="fa-solid fa-expand"></i></span>
+          </button>
+        </div>
+        <div class="video-actions">
+          <a class="btn btn-primary" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-play" aria-hidden="true"></i> Watch on YouTube
+          </a>
+        </div>
         <p class="video-caption">EVE Vanguard Alpha News and Studio Update. Video: CCP Games / Fenris Creations.</p>
       </section>
 
@@ -1020,7 +1099,10 @@
           </a>
         </div>
         <figure class="price-figure">
-          <img src="../assets/vanguard-pricing.webp" alt="EVE Vanguard Founder's Pack comparison: Resonant Pack $15, four Contraband Packs at $30 each and Fulcrum Pack $100" width="1200" height="675" loading="lazy" decoding="async">
+          <button class="image-zoom" type="button" data-lightbox-src="../assets/vanguard-pricing.webp" data-lightbox-alt="EVE Vanguard Founder's Pack comparison: Resonant Pack $15, four Contraband Packs at $30 each and Fulcrum Pack $100" data-lightbox-caption="Founder's Pack comparison. Image: Fenris Creations. Prices in USD; contents subject to change." aria-label="Enlarge the Founder's Pack comparison image">
+            <img src="../assets/vanguard-pricing.webp" alt="EVE Vanguard Founder's Pack comparison: Resonant Pack $15, four Contraband Packs at $30 each and Fulcrum Pack $100" width="1200" height="675" loading="lazy" decoding="async">
+            <span class="zoom-badge" aria-hidden="true"><i class="fa-solid fa-expand"></i></span>
+          </button>
           <figcaption>Founder's Pack comparison. Image: Fenris Creations. Prices in USD; contents subject to change.</figcaption>
         </figure>
         <div class="pack-grid">
@@ -1245,6 +1327,14 @@
     </div>
   </footer>
 
+  <dialog class="lightbox" id="imageLightbox" aria-label="Enlarged image">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" type="button" aria-label="Close enlarged image"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <img id="lightboxImage" alt="">
+      <p class="lightbox-caption" id="lightboxCaption"></p>
+    </div>
+  </dialog>
+
   <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
 
   <script>
@@ -1256,6 +1346,39 @@
       }
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
+    })();
+
+    // Click-to-enlarge images with an accessible modal.
+    (function () {
+      var dialog = document.getElementById('imageLightbox');
+      if (!dialog || typeof dialog.showModal !== 'function') return;
+      var image = document.getElementById('lightboxImage');
+      var caption = document.getElementById('lightboxCaption');
+      var close = dialog.querySelector('.lightbox-close');
+      var triggers = document.querySelectorAll('[data-lightbox-src]');
+
+      Array.prototype.forEach.call(triggers, function (trigger) {
+        trigger.addEventListener('click', function () {
+          image.src = trigger.getAttribute('data-lightbox-src');
+          image.alt = trigger.getAttribute('data-lightbox-alt') || '';
+          caption.textContent = trigger.getAttribute('data-lightbox-caption') || '';
+          document.body.classList.add('lightbox-open');
+          if (!dialog.open) dialog.showModal();
+        });
+      });
+
+      if (close) {
+        close.addEventListener('click', function () { dialog.close(); });
+      }
+
+      dialog.addEventListener('click', function (event) {
+        if (event.target === dialog) dialog.close();
+      });
+
+      dialog.addEventListener('close', function () {
+        document.body.classList.remove('lightbox-open');
+        image.removeAttribute('src');
+      });
     })();
   </script>
 </body>
