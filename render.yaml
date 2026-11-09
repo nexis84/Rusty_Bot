@@ -55,10 +55,64 @@ services:
         destination: /source/
       - type: redirect
         source: /light/*
-        destination: /source/*
+        destination: /source/:splat
       - type: redirect
         source: /giveaway.html
         destination: /giveaway
+      # Removed/renamed pages: keep any old inbound links pointing somewhere
+      # useful instead of returning 404.
+      - type: redirect
+        source: /Killboard
+        destination: /RustyStats/
+      - type: redirect
+        source: /Killboard/*
+        destination: /RustyStats/
+      - type: redirect
+        source: /skin-gallery
+        destination: /market/
+      - type: redirect
+        source: /skin-gallery/*
+        destination: /market/
+      - type: redirect
+        source: /skinr-browser
+        destination: /market/
+      - type: redirect
+        source: /skinr-browser/*
+        destination: /market/
+      - type: redirect
+        source: /ship-guess-game
+        destination: /top-trumps/
+      - type: redirect
+        source: /ship-guess-game/*
+        destination: /top-trumps/
+      - type: redirect
+        source: /ship-higher-lower
+        destination: /top-trumps/
+      - type: redirect
+        source: /ship-higher-lower/*
+        destination: /top-trumps/
+      - type: redirect
+        source: /patchnotes.html
+        destination: /patchnotes
+      # Case-insensitive fallbacks (Render paths are case-sensitive).
+      - type: redirect
+        source: /support
+        destination: /Support/
+      - type: redirect
+        source: /support/*
+        destination: /Support/:splat
+      - type: redirect
+        source: /pi
+        destination: /PI/
+      - type: redirect
+        source: /pi/*
+        destination: /PI/:splat
+      - type: redirect
+        source: /fracturedskies
+        destination: /Fracturedskies/
+      - type: redirect
+        source: /fracturedskies/*
+        destination: /Fracturedskies/:splat
       - type: rewrite
         source: /*
         destination: /index.html
