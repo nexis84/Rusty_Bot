@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    CAMPAIGN GUIDE TEMPLATE
+    Duplicate this page for future event/campaign guides. Swap the campaign cards,
+    activities, rewards, consequence table and timeline; the layout is reusable.
+  -->
+
+  <title>Military Campaigns — Fractured Skies | RustyBot</title>
+  <meta name="description" content="Fractured Skies Military Campaigns: the four empire campaigns, how to contribute, rewards, War HQs, previous consequences and the January showdown.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/military-campaigns/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/military-campaigns/">
+  <meta property="og:title" content="Military Campaigns — Fractured Skies | RustyBot">
+  <meta property="og:description" content="The four empire campaigns, activities, rewards, War HQs and the January empire showdown.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-military-campaigns.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Military Campaigns in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Military Campaigns — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="The four empire campaigns, activities, rewards, War HQs and the January empire showdown.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-military-campaigns.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Military Campaigns — Fractured Skies",
+    "description": "The four empire Military Campaigns in Fractured Skies: activities, rewards, War HQs, previous consequences and the January showdown.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/military-campaigns/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-military-campaigns.jpg",
+    "datePublished": "2026-11-09",
+    "dateModified": "2026-11-09",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-11"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.6rem, 5vw, 4.25rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    .hero-visual { min-width: 0; }
+    .campaign-frame {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #000;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+    .campaign-frame img { display: block; width: 100%; height: auto; }
+    .campaign-caption {
+      margin: 10px 0 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 82ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- Info cards ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Campaign cards ---------- */
+    .campaign-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .campaign-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--faction-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .campaign-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .faction-tag {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.6);
+      color: var(--faction-color, var(--dim));
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .campaign-kind {
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .campaign-card h3 { margin: 0 0 12px; color: #ffffff; font-size: 1.2rem; }
+    .campaign-meta {
+      display: grid;
+      gap: 1px;
+      margin: 0 0 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .campaign-meta div {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 8px 11px;
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 0.78rem;
+    }
+    .campaign-meta span:first-child { color: var(--dim); }
+    .campaign-meta span:last-child { color: #ffffff; text-align: right; font-weight: 600; }
+    .campaign-bonus {
+      margin: 0 0 10px;
+      padding: 10px 12px;
+      border-left: 2px solid var(--faction-color, var(--accent));
+      border-radius: 0 5px 5px 0;
+      background: rgba(255, 255, 255, 0.025);
+      color: #d0d0d0;
+      font-size: 0.79rem;
+      line-height: 1.55;
+    }
+    .campaign-bonus strong { color: #ffffff; }
+    .campaign-store { margin: 0; color: var(--dim); font-size: 0.74rem; line-height: 1.55; }
+    .campaign-store i { color: var(--accent); margin-right: 5px; }
+
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+
+    /* ---------- Activities ---------- */
+    .activity-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .activity-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .activity-card .info-icon { margin-bottom: 10px; }
+    .activity-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.02rem; }
+    .activity-card p { margin: 0 0 8px; color: var(--dim); font-size: 0.83rem; line-height: 1.6; }
+    .activity-card ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .activity-card li { margin: 4px 0; }
+    .activity-card li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    /* ---------- Rewards ---------- */
+    .reward-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .reward-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .reward-card h3 { margin: 0 0 10px; color: #ffffff; font-size: 1rem; }
+    .reward-card p { margin: 0 0 8px; color: var(--dim); font-size: 0.83rem; line-height: 1.6; }
+    .reward-card .big {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .reward-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .reward-card li { margin: 4px 0; }
+    .reward-card li::marker { color: var(--accent); }
+    .token-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 20px;
+      margin: 10px 0 0;
+      padding-left: 17px;
+      color: #d0d0d0;
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+
+    /* ---------- Consequence table ---------- */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    table { width: 100%; min-width: 820px; border-collapse: collapse; }
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ffffff; font-weight: 600; white-space: nowrap; }
+    td ul { margin: 0; padding-left: 16px; }
+    td li { margin: 3px 0; }
+    td li::marker { color: var(--accent); }
+
+    /* ---------- Timeline ---------- */
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .timeline-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .timeline-date {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 3px 7px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 4px;
+      color: var(--accent);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .timeline-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .timeline-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Quote / FAQ / source / footer ---------- */
+    .quote {
+      margin: 22px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p { margin: 0; color: #f0f0f0; font-size: 1.05rem; line-height: 1.6; }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .campaign-grid, .activity-grid { grid-template-columns: 1fr; }
+      .reward-grid { grid-template-columns: 1fr; }
+      .timeline-grid { grid-template-columns: repeat(2, 1fr); }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .info-grid { grid-template-columns: 1fr; }
+      .timeline-grid { grid-template-columns: 1fr; }
+      .token-list { grid-template-columns: 1fr; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">Campaign Guides</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">Military Campaigns</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-11" target="_blank" rel="noopener noreferrer">
+      Expansion notes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 4 campaigns · 4 objectives · 1.2M SP each</div>
+        <p class="kicker">Fractured Skies · Military Campaigns</p>
+        <h1 id="hero-title">Military <span>Campaigns</span></h1>
+        <p class="hero-sub">Four empire campaigns, four objectives, and a race to shape the next stage of the war.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-11" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-file-lines" aria-hidden="true"></i> Read expansion notes
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>Launch 10 Nov 2026</span>
+          <span>Bonuses 5 Jan 2027</span>
+          <span>1.2M SP per campaign</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="campaign-frame">
+          <img src="../assets/military-campaigns.webp" alt="The four empire Military Campaigns in EVE Online's Theaters of War" width="1200" height="1044" fetchpriority="high">
+        </div>
+        <p class="campaign-caption">Theaters of War campaign briefing (pre-launch capture). Image: CCP Games / Fenris Creations.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- How they work -->
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="section-header">
+          <i class="fa-solid fa-gears" aria-hidden="true"></i>
+          <h2 id="how-title">How they work</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Each campaign has four objectives, all live at launch. Complete activities, deliver the items, and push your empire forward.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></div>
+            <h3>Four objectives, live now</h3>
+            <p>All four objectives are available from launch; no new objectives appear over the course of the campaign.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></div>
+            <h3>Personal = community</h3>
+            <p>Your personal contribution can match the community's progress. There is no per-character cap until the objective is complete.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></div>
+            <h3>Deliver to the War HQ</h3>
+            <p>Collect faction-specific items and deliver them to the item trader in your empire's War HQ system.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i></div>
+            <h3>Race for the finish</h3>
+            <p>The first empire to complete all four objectives earns command carrier reinforcements in the January showdown.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- The four campaigns -->
+      <section class="section" id="campaigns" aria-labelledby="campaigns-title">
+        <div class="section-header">
+          <i class="fa-solid fa-flag" aria-hidden="true"></i>
+          <h2 id="campaigns-title">The four campaigns</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Choose an empire, deliver to its War HQ, and race its rivals to complete all four objectives. The commander listed below attends the January battlefield if that empire finishes first.</p>
+        <div class="campaign-grid">
+          <article class="campaign-card f-amarr">
+            <div class="campaign-top">
+              <span class="faction-tag">Amarr</span>
+              <span class="campaign-kind">Military Campaign</span>
+            </div>
+            <h3>Amarr Empire</h3>
+            <div class="campaign-meta">
+              <div><span>War HQ</span><span>Mehatoor</span></div>
+              <div><span>Commander</span><span>Capital Marshal Sirdan xer Qosh</span></div>
+            </div>
+            <p class="campaign-bonus"><strong>First-finish bonus:</strong> if the Amarr complete their campaign first, Sirdan xer Qosh attends the battlefield and provides bonuses to all enlisted Amarr capsuleers.</p>
+            <p class="campaign-store"><i class="fa-solid fa-store" aria-hidden="true"></i> Campaign completion adds new modules to the 24th Imperial Crusade LP store.</p>
+          </article>
+
+          <article class="campaign-card f-caldari">
+            <div class="campaign-top">
+              <span class="faction-tag">Caldari</span>
+              <span class="campaign-kind">Military Campaign</span>
+            </div>
+            <h3>Caldari State</h3>
+            <div class="campaign-meta">
+              <div><span>War HQ</span><span>Onnamon</span></div>
+              <div><span>Commander</span><span>Executive General Heika Torigo</span></div>
+            </div>
+            <p class="campaign-bonus"><strong>First-finish bonus:</strong> if the Caldari complete their campaign before the Gallente, Heika Torigo attends the battlefield and provides bonuses to all enlisted Caldari capsuleers.</p>
+            <p class="campaign-store"><i class="fa-solid fa-store" aria-hidden="true"></i> Campaign completion adds new modules to the State Protectorate LP store.</p>
+          </article>
+
+          <article class="campaign-card f-gallente">
+            <div class="campaign-top">
+              <span class="faction-tag">Gallente</span>
+              <span class="campaign-kind">Military Campaign</span>
+            </div>
+            <h3>Gallente Federation</h3>
+            <div class="campaign-meta">
+              <div><span>War HQ</span><span>Intaki</span></div>
+              <div><span>Commander</span><span>Vice Admiral Foriana Revelli</span></div>
+            </div>
+            <p class="campaign-bonus"><strong>First-finish bonus:</strong> if the Gallente complete their campaign before the Caldari, Foriana Revelli attends the battlefield and provides bonuses to all enlisted Gallente capsuleers.</p>
+            <p class="campaign-store"><i class="fa-solid fa-store" aria-hidden="true"></i> Campaign completion adds new modules to the Federal Defense Union LP store.</p>
+          </article>
+
+          <article class="campaign-card f-minmatar">
+            <div class="campaign-top">
+              <span class="faction-tag">Minmatar</span>
+              <span class="campaign-kind">Military Campaign</span>
+            </div>
+            <h3>Minmatar Republic</h3>
+            <div class="campaign-meta">
+              <div><span>War HQ</span><span>Amo</span></div>
+              <div><span>Commander</span><span>Hetman General Kanth Filmir</span></div>
+            </div>
+            <p class="campaign-bonus"><strong>First-finish bonus:</strong> if the Minmatar complete their campaign first, Kanth Filmir attends the battlefield and provides bonuses to all enlisted Minmatar capsuleers.</p>
+            <p class="campaign-store"><i class="fa-solid fa-store" aria-hidden="true"></i> Campaign completion adds new modules to the Tribal Liberation Force LP store.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Activities -->
+      <section class="section" id="activities" aria-labelledby="activities-title">
+        <div class="section-header">
+          <i class="fa-solid fa-person-digging" aria-hidden="true"></i>
+          <h2 id="activities-title">Activities that count</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Campaign progress comes from exploration, PvE, PvP and industry. Deliver the resulting items to your empire's War HQ.</p>
+        <div class="activity-grid">
+          <div class="activity-card">
+            <div class="info-icon"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i></div>
+            <h3>Ambushed expeditions</h3>
+            <p>Complete ambushed expedition PvE sites, destroy enemy NPCs, then salvage the expedition ships to recover prototypes.</p>
+            <ul>
+              <li>Designed for a well-fit Assault Frigate or Navy Destroyer.</li>
+              <li>Highest concentration in Bulwark and FW systems.</li>
+            </ul>
+          </div>
+          <div class="activity-card">
+            <div class="info-icon"><i class="fa-solid fa-pickaxe" aria-hidden="true"></i></div>
+            <h3>Mining</h3>
+            <p>Mine ore in Bulwark systems, or richer ore in FW frontline systems, then reprocess it and deliver the materials to the item trader.</p>
+            <ul>
+              <li>Deliver to the War HQ item trader.</li>
+              <li>Frontline ore is richer than Bulwark ore.</li>
+            </ul>
+          </div>
+          <div class="activity-card">
+            <div class="info-icon"><i class="fa-solid fa-terminal" aria-hidden="true"></i></div>
+            <h3>Hacking Drifter caches</h3>
+            <p>Hack Collapsed Drifter Caches and Fabricated Rogue Caches in highsec, lowsec and C1–C3 wormhole space.</p>
+            <ul>
+              <li>Engineering section — Amarr data.</li>
+              <li>Logistics section — Caldari data.</li>
+              <li>Communications section — Minmatar data.</li>
+            </ul>
+          </div>
+          <div class="activity-card">
+            <div class="info-icon"><i class="fa-solid fa-flag" aria-hidden="true"></i></div>
+            <h3>FW complexes</h3>
+            <p>Destroy NPCs in regular Factional Warfare capture complexes, recover strategic intel, and deliver it to your empire.</p>
+            <ul>
+              <li>FW NPCs now have increased tag drop rates.</li>
+              <li>Complex NPCs are limited to five waves.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+          <span><strong>War HQs:</strong> Amarr — Mehatoor · Caldari — Onnamon · Gallente — Intaki · Minmatar — Amo. Deliver campaign items to the item trader in your chosen empire's War HQ.</span>
+        </div>
+      </section>
+
+      <!-- Rewards -->
+      <section class="section" id="rewards" aria-labelledby="rewards-title">
+        <div class="section-header">
+          <i class="fa-solid fa-gift" aria-hidden="true"></i>
+          <h2 id="rewards-title">Rewards</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Each campaign has six regular achievements and six hidden achievements, plus ISK, LP and faction loyalty tokens from item hand-ins.</p>
+        <div class="reward-grid">
+          <div class="reward-card">
+            <div class="big">600K</div>
+            <h3>Regular achievements</h3>
+            <p>Complete all six regular achievements to earn:</p>
+            <ul>
+              <li>5 exclusive Penumbral Shadows SKINs</li>
+              <li>6 titles</li>
+              <li>600,000 SP</li>
+            </ul>
+          </div>
+          <div class="reward-card">
+            <div class="big">600K</div>
+            <h3>Hidden achievements</h3>
+            <p>Complete all six hidden achievements to earn:</p>
+            <ul>
+              <li>6 hidden titles</li>
+              <li>600,000 SP</li>
+            </ul>
+          </div>
+          <div class="reward-card">
+            <div class="big">1.2M</div>
+            <h3>Total SP per campaign</h3>
+            <p>Regular and hidden achievements combine for 1.2 million SP per campaign, plus the rewards from item hand-ins.</p>
+            <ul>
+              <li>ISK and Loyalty Points</li>
+              <li>Faction loyalty tokens</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-coins" aria-hidden="true"></i>
+          <span><strong>Loyalty tokens can be traded for:</strong> Glamourex Boosters, SKINR components, Agency Boosters, the Navy Salvager faction module, the Conquest Salvager officer module, returning campaign modules, rare faction apparel and returning Resource Wars Navy SKINs.</span>
+        </div>
+      </section>
+
+      <!-- Previous consequences -->
+      <section class="section" id="consequences" aria-labelledby="consequences-title">
+        <div class="section-header">
+          <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+          <h2 id="consequences-title">Previous campaign consequences</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The outcomes of the previous Military Campaigns are live in November. From 5 January, the new campaign bonuses activate in designated faction systems.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Empire</th>
+                <th>What changed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Amarr</td>
+                <td>
+                  <ul>
+                    <li>Deaconry of Economic Oversight established around Amarr VIII (Oris) — Emperor Family Academy.</li>
+                    <li>Reduced sales tax and broker fees at Amarr VIII (Oris) — Emperor Family Academy.</li>
+                    <li>Imperial Navy Stasis Webifier, Warp Disruptor and Warp Scrambler blueprints added to the Amarr FW LP store.</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>Gallente</td>
+                <td>
+                  <ul>
+                    <li>Stargate construction complete in Renyn and Jufvitte, creating a connection between the two systems.</li>
+                    <li>New 'Pluto' Mining and Ice Mining Drones added to Gallente Loyalty Point Stores.</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>Caldari</td>
+                <td>
+                  <ul>
+                    <li>Stargate construction complete in Ienakkamon and T-LIWS, creating a connection between the two systems.</li>
+                    <li>Intaki Syndicate offers added to Caldari Navy stores: Focused Void Bombs, Syndicate Signal Amplifier, Syndicate Mobile Medium and Small Warp Disruptors.</li>
+                    <li>Intaki Syndicate renamed to State Syndicate and moved to the Caldari State; related corporations renamed.</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>Minmatar</td>
+                <td>
+                  <ul>
+                    <li>Arzad renamed Starkman; Arzad II renamed Starkman Prime.</li>
+                    <li>Starkmanir Council Hall of Restoration station added; migration fleet relocated.</li>
+                    <li>Sovereignty of Starkman and Ezzara changed to Minmatar; stargates use Minmatar models.</li>
+                    <li>A Phased Fields instance added to Minmatar highsec.</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>EDENCOM</td>
+                <td>
+                  <ul>
+                    <li>Kasiha Valkanir is no longer Provost Marshal (CEO) of AEGIS; Baldur Chaiya now holds the position.</li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Timeline -->
+      <section class="section" id="timeline" aria-labelledby="timeline-title">
+        <div class="section-header">
+          <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+          <h2 id="timeline-title">What happens next</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The campaign is the opening move. The bonuses, the empire brawl and the first Conquests follow.</p>
+        <div class="timeline-grid">
+          <div class="timeline-card">
+            <span class="timeline-date">10 Nov 2026</span>
+            <h3>Campaigns launch</h3>
+            <p>Four empire campaigns go live with four objectives each.</p>
+          </div>
+          <div class="timeline-card">
+            <span class="timeline-date">5 Jan 2027</span>
+            <h3>Bonuses activate</h3>
+            <p>Completed objective bonuses become active in designated faction systems.</p>
+          </div>
+          <div class="timeline-card">
+            <span class="timeline-date">January 2027</span>
+            <h3>Empire brawl</h3>
+            <p>The empires clash over Drifter technology in lowsec. The winning empire gains an exclusive Drifter module in its LP store for a limited time.</p>
+          </div>
+          <div class="timeline-card">
+            <span class="timeline-date">February 2027</span>
+            <h3>First Conquests</h3>
+            <p>The first Conquest comes online, changing Factional Warfare for good.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why it matters -->
+      <section class="section" id="why" aria-labelledby="why-title">
+        <div class="section-header">
+          <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+          <h2 id="why-title">Why it matters</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">The campaigns are a race with consequences that outlast launch. Every completed objective strengthens an empire; the first to finish all four gains an edge in the January showdown.</p>
+        <p class="lead">The campaigns also feed the wider war: the bonuses activate in January, the empires clash over Drifter technology, and the first Conquests arrive in February.</p>
+        <blockquote class="quote">
+          <p>“Every completed campaign objective unlocks a bonus for that empire, and the first of each opposing rival faction to complete all their objectives earns special command carrier reinforcements in an upcoming empire showdown.”</p>
+          <cite>EVE Online Team — Fractured Skies expansion article</cite>
+        </blockquote>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What are Military Campaigns? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Four empire campaigns, each with four objectives. Complete activities, deliver the items to your empire's War HQ, and earn personal rewards while progressing the campaign.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>When do they start? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>With the Fractured Skies expansion on 10 November 2026.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do I need to be in Factional Warfare? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The expansion notes do not list a Factional Warfare enlistment requirement. You contribute by completing the campaign activities and delivering the items to the item trader in your chosen empire's War HQ.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How do I contribute? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Run ambushed expedition sites, mine in Bulwark or FW frontline systems, hack Drifter and Rogue caches, or fight in FW complexes. Then deliver the resulting items to your empire's War HQ.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are the rewards? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Each campaign has six regular and six hidden achievements. Regular achievements grant 5 Penumbral Shadows SKINs, 6 titles and 600,000 SP; hidden achievements grant 6 hidden titles and another 600,000 SP. That is 1.2 million SP per campaign, plus ISK, LP and faction loyalty tokens from item hand-ins.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>When do the campaign bonuses activate? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>From 5 January 2027, the bonuses become active in solar systems under the sovereign control of the faction, and in any territory it occupies through Factional Warfare at that time.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What happens in January? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The four empires clash in a major lowsec battle over access to Drifter technology. The winning empire gains access to an exclusive Drifter module through its LP store for a limited time.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where are the War HQs? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Amarr — Mehatoor · Caldari — Onnamon · Gallente — Intaki · Minmatar — Amo.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary sources</p>
+            <h2>Fractured Skies Expansion Notes — Military Campaigns</h2>
+            <p>EVE Online Team · 6 November 2026</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-11" target="_blank" rel="noopener noreferrer">
+              New campaigns <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-10" target="_blank" rel="noopener noreferrer">
+              Campaign progress <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>Campaign Guides</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-11" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Campaign image and expansion details: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+</body>
+</html>
