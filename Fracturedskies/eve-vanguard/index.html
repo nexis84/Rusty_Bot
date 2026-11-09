@@ -333,6 +333,19 @@
     .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
     .lead strong { color: #fff; }
 
+    /* Two-column intro so the opening copy fills the width */
+    .intro-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 22px;
+    }
+    .intro-split .lead { max-width: none; margin: 0; }
+    .intro-split .lead:first-child { padding-right: 32px; }
+    .intro-split .lead + .lead {
+      padding-left: 32px;
+      border-left: 1px solid var(--border);
+    }
+
     /* ---------- Info cards ---------- */
     .info-grid {
       display: grid;
@@ -623,6 +636,9 @@
       .info-grid, .map-grid, .progress-grid { grid-template-columns: 1fr; }
       .connection-grid { grid-template-columns: 1fr; }
       .access-panel { grid-template-columns: 1fr; }
+      .intro-split { grid-template-columns: 1fr; gap: 16px; }
+      .intro-split .lead:first-child { padding-right: 0; }
+      .intro-split .lead + .lead { padding-left: 0; border-left: 0; }
       .source-link { display: none; }
     }
 
@@ -712,8 +728,10 @@
           <h2 id="what-title">What is EVE Vanguard?</h2>
           <span class="line" aria-hidden="true"></span>
         </div>
-        <p class="lead">EVE Vanguard is the ground-combat side of New Eden. On <strong>10 November 2026</strong> it becomes playable <strong>24/7 as a paid Alpha</strong> alongside Fractured Skies, with Founder's Access purchased through the EVE launcher.</p>
-        <p class="lead">Warclones take on contracts and expeditions for the four empires. Their combined efforts connect directly to the war in EVE Online — unlocking sites, feeding campaigns and, from February, contributing Conquest Power.</p>
+        <div class="intro-split">
+          <p class="lead">EVE Vanguard is the ground-combat side of New Eden. On <strong>10 November 2026</strong> it becomes playable <strong>24/7 as a paid Alpha</strong> alongside Fractured Skies, with Founder's Access purchased through the EVE launcher.</p>
+          <p class="lead">Warclones take on contracts and expeditions for the four empires. Their combined efforts connect directly to the war in EVE Online — unlocking sites, feeding campaigns and, from February, contributing Conquest Power.</p>
+        </div>
         <div class="info-grid">
           <div class="info-card">
             <div class="info-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
