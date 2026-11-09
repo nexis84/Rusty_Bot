@@ -302,38 +302,6 @@
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
     }
     .vanguard-frame img { display: block; width: 100%; height: auto; }
-    .image-zoom {
-      position: relative;
-      display: block;
-      width: 100%;
-      padding: 0;
-      border: 0;
-      background: none;
-      color: inherit;
-      cursor: zoom-in;
-    }
-    .image-zoom img { display: block; width: 100%; height: auto; }
-    .zoom-badge {
-      position: absolute;
-      right: 10px;
-      bottom: 10px;
-      display: grid;
-      place-items: center;
-      width: 34px;
-      height: 34px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 6px;
-      background: rgba(13, 13, 13, 0.75);
-      color: #ffffff;
-      font-size: 0.85rem;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
-    }
-    .image-zoom:hover .zoom-badge,
-    .image-zoom:focus-visible .zoom-badge {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: #0d0d0d;
-    }
     .vanguard-caption {
       margin: 10px 0 0;
       color: var(--dim);
@@ -735,64 +703,6 @@
     .back-top.visible { opacity: 1; pointer-events: auto; }
     .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
 
-    /* ---------- Image lightbox ---------- */
-    body.lightbox-open { overflow: hidden; }
-    .lightbox {
-      width: 94vw;
-      max-width: 1200px;
-      max-height: 92vh;
-      margin: auto;
-      padding: 0;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #0d0d0d;
-      color: var(--text);
-      overflow: hidden;
-    }
-    .lightbox::backdrop {
-      background: rgba(0, 0, 0, 0.86);
-      backdrop-filter: blur(3px);
-    }
-    .lightbox-inner { position: relative; }
-    .lightbox img {
-      display: block;
-      width: auto;
-      max-width: 100%;
-      max-height: calc(88vh - 48px);
-      margin: 0 auto;
-      background: #000;
-    }
-    .lightbox-caption {
-      margin: 0;
-      padding: 10px 16px;
-      border-top: 1px solid var(--border);
-      color: var(--dim);
-      font-size: 0.74rem;
-      line-height: 1.5;
-    }
-    .lightbox-close {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 2;
-      display: grid;
-      place-items: center;
-      width: 40px;
-      height: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 6px;
-      background: rgba(13, 13, 13, 0.8);
-      color: #ffffff;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
-    }
-    .lightbox-close:hover {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: #0d0d0d;
-    }
-
     @media (max-width: 1000px) {
       .hero { grid-template-columns: 1fr; gap: 32px; }
       .hero-visual { max-width: 760px; }
@@ -863,6 +773,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
 </head>
 <body id="top">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -1327,14 +1238,6 @@
     </div>
   </footer>
 
-  <dialog class="lightbox" id="imageLightbox" aria-label="Enlarged image">
-    <div class="lightbox-inner">
-      <button class="lightbox-close" type="button" aria-label="Close enlarged image"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-      <img id="lightboxImage" alt="">
-      <p class="lightbox-caption" id="lightboxCaption"></p>
-    </div>
-  </dialog>
-
   <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
 
   <script>
@@ -1347,39 +1250,7 @@
       window.addEventListener('scroll', onScroll, { passive: true });
       onScroll();
     })();
-
-    // Click-to-enlarge images with an accessible modal.
-    (function () {
-      var dialog = document.getElementById('imageLightbox');
-      if (!dialog || typeof dialog.showModal !== 'function') return;
-      var image = document.getElementById('lightboxImage');
-      var caption = document.getElementById('lightboxCaption');
-      var close = dialog.querySelector('.lightbox-close');
-      var triggers = document.querySelectorAll('[data-lightbox-src]');
-
-      Array.prototype.forEach.call(triggers, function (trigger) {
-        trigger.addEventListener('click', function () {
-          image.src = trigger.getAttribute('data-lightbox-src');
-          image.alt = trigger.getAttribute('data-lightbox-alt') || '';
-          caption.textContent = trigger.getAttribute('data-lightbox-caption') || '';
-          document.body.classList.add('lightbox-open');
-          if (!dialog.open) dialog.showModal();
-        });
-      });
-
-      if (close) {
-        close.addEventListener('click', function () { dialog.close(); });
-      }
-
-      dialog.addEventListener('click', function (event) {
-        if (event.target === dialog) dialog.close();
-      });
-
-      dialog.addEventListener('close', function () {
-        document.body.classList.remove('lightbox-open');
-        image.removeAttribute('src');
-      });
-    })();
   </script>
+  <script src="../assets/lightbox.js"></script>
 </body>
 </html>

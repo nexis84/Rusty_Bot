@@ -340,6 +340,7 @@
       margin-top: 10px;
     }
     .compare-hero-foot .compare-caption { margin: 0; text-align: left; }
+    .compare-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
     /* ---------- Expansion strip ---------- */
     .expansion-strip {
@@ -1035,42 +1036,6 @@
     .back-top.visible { opacity: 1; pointer-events: auto; }
     .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
 
-    /* ---------- Lightbox ---------- */
-    .lightbox {
-      max-width: min(96vw, 1400px);
-      padding: 0;
-      border: 0;
-      background: transparent;
-    }
-    .lightbox::backdrop {
-      background: rgba(0, 0, 0, 0.88);
-      backdrop-filter: blur(4px);
-    }
-    .lightbox-wrap { position: relative; }
-    .lightbox img {
-      display: block;
-      max-width: 100%;
-      max-height: 90vh;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-    }
-    .lightbox-close {
-      position: absolute;
-      top: -16px;
-      right: -16px;
-      display: grid;
-      place-items: center;
-      width: 36px;
-      height: 36px;
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      background: var(--panel);
-      color: #ffffff;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-    .lightbox-close:hover { border-color: var(--accent-dim); color: var(--accent); }
-
     /* ---------- Reveal ---------- */
     .js .reveal {
       opacity: 0;
@@ -1145,7 +1110,6 @@
       .btn { width: 100%; }
       .hero-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
       .hero-meta .dot-sep { display: none; }
-      .lightbox-close { top: 6px; right: 6px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1158,6 +1122,7 @@
       .js .reveal { opacity: 1; transform: none; transition: none; }
     }
   </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
 </head>
 <body id="top">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -1221,7 +1186,12 @@
           </div>
           <div class="compare-hero-foot">
             <p class="compare-caption">Drag the handle to compare. Screenshots: RustyBot.</p>
-            <button class="reset-btn" id="compareReset" type="button"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset</button>
+            <div class="compare-actions">
+              <button class="reset-btn" type="button" data-lightbox-src="../assets/after-compare.png" data-lightbox-alt="New Ship HUD in EVE Online Feature Previews" data-lightbox-caption="New Ship HUD in EVE Online Feature Previews. Screenshot: RustyBot." aria-label="Enlarge the new HUD comparison screenshot">
+                <i class="fa-solid fa-expand" aria-hidden="true"></i> Enlarge
+              </button>
+              <button class="reset-btn" id="compareReset" type="button"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1513,7 +1483,7 @@
             </div>
           </div>
           <figure>
-            <button class="zoomable" type="button" data-lightbox data-full="../assets/feature-previews.webp" aria-label="Open the Feature Previews screenshot at full size">
+            <button class="zoomable" type="button" data-lightbox-src="../assets/feature-previews.webp" data-lightbox-alt="EVE Online Settings window with Feature Previews selected, showing the New Ship HUD option and its description" data-lightbox-caption="EVE Online Settings window with Feature Previews selected, showing the New Ship HUD option and its description. Image: CCP Games / Fenris Creations." aria-label="Open the Feature Previews screenshot at full size">
               <img src="../assets/feature-previews.webp" alt="EVE Online Settings window with Feature Previews selected, showing the New Ship HUD option and its description" width="1400" height="1071" loading="lazy" decoding="async">
             </button>
             <figcaption>Settings → Feature Previews → New Ship HUD.</figcaption>
@@ -1627,13 +1597,6 @@
 
   <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
 
-  <dialog class="lightbox" id="lightbox" aria-label="Screenshot preview">
-    <div class="lightbox-wrap">
-      <button class="lightbox-close" type="button" aria-label="Close preview"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-      <img src="../assets/feature-previews.webp" alt="">
-    </div>
-  </dialog>
-
   <script>
     // Before/after comparison slider.
     (function () {
@@ -1652,28 +1615,6 @@
       range.addEventListener('input', function () { update(range.value); });
       if (reset) reset.addEventListener('click', function () { update(50); });
       update(range.value);
-    })();
-
-    // Lightbox for the Feature Previews screenshot.
-    (function () {
-      var dialog = document.getElementById('lightbox');
-      if (!dialog || typeof dialog.showModal !== 'function') return;
-      var image = dialog.querySelector('img');
-      var close = dialog.querySelector('.lightbox-close');
-
-      document.querySelectorAll('[data-lightbox]').forEach(function (trigger) {
-        trigger.addEventListener('click', function () {
-          var inner = trigger.querySelector('img');
-          image.src = trigger.dataset.full || (inner ? inner.src : '');
-          image.alt = inner ? inner.alt : '';
-          dialog.showModal();
-        });
-      });
-
-      close.addEventListener('click', function () { dialog.close(); });
-      dialog.addEventListener('click', function (event) {
-        if (event.target === dialog) dialog.close();
-      });
     })();
 
     // Reveal sections on scroll.
@@ -1705,5 +1646,6 @@
       onScroll();
     })();
   </script>
+  <script src="../assets/lightbox.js"></script>
 </body>
 </html>

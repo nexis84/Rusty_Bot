@@ -1,0 +1,115 @@
+/* Shared click-to-enlarge image lightbox for Fractured Skies pages. */
+
+body.lightbox-open { overflow: hidden; }
+
+.image-zoom {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: zoom-in;
+}
+.image-zoom img { display: block; width: 100%; height: auto; }
+
+.zoom-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  background: rgba(13, 13, 13, 0.75);
+  color: #ffffff;
+  font-size: 0.85rem;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.image-zoom:hover .zoom-badge,
+.image-zoom:focus-visible .zoom-badge {
+  border-color: #e8d900;
+  background: #e8d900;
+  color: #0d0d0d;
+}
+
+/* Plain images picked up automatically by lightbox.js. */
+img[data-lightbox-ready] {
+  cursor: zoom-in;
+  transition: filter 0.2s;
+}
+img[data-lightbox-ready]:hover { filter: brightness(1.06); }
+img[data-lightbox-ready]:focus-visible {
+  outline: 2px solid #e8d900;
+  outline-offset: 3px;
+}
+
+.lightbox {
+  width: 94vw;
+  max-width: 1200px;
+  max-height: 92vh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  background: #0d0d0d;
+  color: #e8e8e8;
+  overflow: hidden;
+}
+.lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(3px);
+}
+.lightbox-inner { position: relative; }
+.lightbox img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: calc(88vh - 48px);
+  margin: 0 auto;
+  background: #000;
+}
+.lightbox-caption {
+  margin: 0;
+  padding: 10px 16px;
+  border-top: 1px solid #2a2a2a;
+  color: #a8a8a8;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.lightbox-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  background: rgba(13, 13, 13, 0.8);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.lightbox-close:hover {
+  border-color: #e8d900;
+  background: #e8d900;
+  color: #0d0d0d;
+}
+
+@media (max-width: 480px) {
+  .lightbox-close {
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+  }
+}
