@@ -401,6 +401,96 @@
             padding: 1rem 0.9rem;
         }
 
+        .expansion-countdown {
+            max-width: 420px;
+            margin: 18px auto 0;
+            padding: 14px 18px 12px;
+            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--accent);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .expansion-countdown[hidden] { display: none; }
+
+        .expansion-countdown .countdown-label {
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .expansion-countdown .countdown-label i { margin-right: 5px; }
+
+        .expansion-countdown .countdown-clock {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .expansion-countdown .countdown-unit {
+            flex: 1 1 0;
+            max-width: 82px;
+            padding: 7px 4px 6px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .expansion-countdown .countdown-unit strong {
+            display: block;
+            color: #fff;
+            font-size: clamp(1.3rem, 5vw, 1.7rem);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.1;
+        }
+
+        .expansion-countdown .countdown-unit small {
+            display: block;
+            margin-top: 2px;
+            color: var(--dim);
+            font-size: 0.58rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .expansion-countdown .countdown-meta {
+            margin-top: 9px;
+            color: var(--dim);
+            font-size: 0.7rem;
+        }
+
+        .expansion-countdown .countdown-live-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: countdown-pulse 1.6s ease-in-out infinite;
+        }
+
+        .expansion-countdown.is-live .countdown-clock { display: none; }
+        .expansion-countdown.is-live .countdown-label {
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+        }
+
+        @keyframes countdown-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .expansion-countdown .countdown-live-dot { animation: none; }
+        }
+
         #tools .card-grid {
             display: flex;
             flex-wrap: wrap;
@@ -872,6 +962,18 @@
                     <span class="card-cta">Open Launch Hub</span>
                 </a>
             </div>
+            <div class="expansion-countdown" id="fracturedCountdown" role="timer" hidden>
+                <p class="countdown-label" id="fracturedCountdownLabel">
+                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Fractured Skies goes live in
+                </p>
+                <div class="countdown-clock">
+                    <span class="countdown-unit"><strong id="countdownDays">00</strong><small>Days</small></span>
+                    <span class="countdown-unit"><strong id="countdownHours">00</strong><small>Hours</small></span>
+                    <span class="countdown-unit"><strong id="countdownMinutes">00</strong><small>Mins</small></span>
+                    <span class="countdown-unit"><strong id="countdownSeconds">00</strong><small>Secs</small></span>
+                </div>
+                <p class="countdown-meta" id="fracturedCountdownMeta">Tuesday 10 November 2026 &middot; 11:10 UTC (EVE time)</p>
+            </div>
         </section>
 
         <section class="section" id="giveaway">
@@ -1180,6 +1282,51 @@
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden) checkGiveaway();
             });
+        })();
+    </script>
+    <script>
+        // Fractured Skies launch countdown: Tuesday 10 November 2026, 11:10 UTC (EVE time).
+        (function () {
+            var countdown = document.getElementById('fracturedCountdown');
+            if (!countdown) return;
+
+            var launch = Date.UTC(2026, 10, 10, 11, 10, 0);
+            var label = document.getElementById('fracturedCountdownLabel');
+            var meta = document.getElementById('fracturedCountdownMeta');
+            var daysEl = document.getElementById('countdownDays');
+            var hoursEl = document.getElementById('countdownHours');
+            var minsEl = document.getElementById('countdownMinutes');
+            var secsEl = document.getElementById('countdownSeconds');
+
+            function pad(value) {
+                return value < 10 ? '0' + value : String(value);
+            }
+
+            function tick() {
+                var remaining = launch - Date.now();
+
+                if (remaining <= 0) {
+                    countdown.hidden = false;
+                    countdown.classList.add('is-live');
+                    label.innerHTML = '<span class="countdown-live-dot" aria-hidden="true"></span> Live Now';
+                    meta.textContent = 'Fractured Skies launched Tuesday 10 November 2026 · 11:10 UTC (EVE time)';
+                    return false;
+                }
+
+                countdown.hidden = false;
+                var totalSeconds = Math.floor(remaining / 1000);
+                daysEl.textContent = pad(Math.floor(totalSeconds / 86400));
+                hoursEl.textContent = pad(Math.floor((totalSeconds % 86400) / 3600));
+                minsEl.textContent = pad(Math.floor((totalSeconds % 3600) / 60));
+                secsEl.textContent = pad(totalSeconds % 60);
+                return true;
+            }
+
+            if (tick()) {
+                var timer = setInterval(function () {
+                    if (!tick()) clearInterval(timer);
+                }, 1000);
+            }
         })();
     </script>
 </body>
