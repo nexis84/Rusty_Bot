@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    NEW PLAYER GUIDE TEMPLATE
+    Duplicate this page for future AIR Academy / new-player guides. Swap the role cards,
+    restriction lists, achievement list and images; the layout is reusable.
+  -->
+
+  <title>AIR Academy — Fractured Skies | RustyBot</title>
+  <meta name="description" content="AIR Academy in Fractured Skies: 13 free pre-fitted ships, claiming and fitting rules, travel and economy restrictions, Ship Tree and 78 new career achievements.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/air-academy/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/air-academy/">
+  <meta property="og:title" content="AIR Academy — Fractured Skies | RustyBot">
+  <meta property="og:description" content="13 free pre-fitted ships, claiming and fitting rules, restrictions and the new AIR Career Program achievements.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-air-academy.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="AIR Academy Ships in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AIR Academy — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="13 free pre-fitted ships, claiming and fitting rules, restrictions and the new AIR Career Program achievements.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-air-academy.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "AIR Academy — Fractured Skies",
+    "description": "AIR Academy in Fractured Skies: 13 free pre-fitted ships, claiming and fitting rules, restrictions, Ship Tree and career achievements.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/air-academy/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-air-academy.jpg",
+    "datePublished": "2026-11-09",
+    "dateModified": "2026-11-09",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-1"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.7rem, 5.4vw, 4.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    .hero-visual { min-width: 0; }
+    .academy-frame {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #000;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+    .academy-frame img { display: block; width: 100%; height: auto; }
+    .academy-caption {
+      margin: 10px 0 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 82ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- Role cards ---------- */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .role-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .role-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .role-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .role-card h3 { margin: 0; color: #ffffff; font-size: 1.05rem; }
+    .role-count {
+      margin-left: auto;
+      padding: 3px 7px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--dim);
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .role-desc { margin: 0 0 12px; color: var(--dim); font-size: 0.78rem; line-height: 1.5; }
+    .ship-group { margin-top: 10px; }
+    .ship-group-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--faction-color, var(--dim));
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .ship-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .ship-chip {
+      padding: 4px 7px;
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--faction-color, var(--accent));
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      color: #d0d0d0;
+      font-size: 0.7rem;
+      line-height: 1.35;
+    }
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+    .f-ore { --faction-color: var(--hud); }
+
+    .notes-figure {
+      margin: 22px 0 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #000;
+    }
+    .notes-figure img { display: block; width: 100%; height: auto; }
+    .notes-caption {
+      margin: 10px 2px 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .notes-caption a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .notes-caption a:hover { color: var(--accent); }
+
+    /* ---------- Steps / rules ---------- */
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+    .step { display: flex; align-items: flex-start; gap: 12px; }
+    .step-num {
+      display: grid;
+      place-items: center;
+      flex: 0 0 28px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .step strong { display: block; color: #ffffff; font-size: 0.9rem; }
+    .step p { margin: 2px 0 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    .side-panel {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .side-panel h3 { margin: 0 0 10px; color: #ffffff; font-size: 1rem; }
+    .side-panel ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.83rem; line-height: 1.7; }
+    .side-panel li { margin: 5px 0; }
+    .side-panel li::marker { color: var(--accent); }
+
+    .check-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+    .check-list li {
+      position: relative;
+      padding-left: 18px;
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .restriction-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .restriction-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-top: 3px solid #d9534f;
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .restriction-card h3 { margin: 0 0 10px; color: #ffffff; font-size: 1rem; }
+    .restriction-card h3 i { color: #ff9b95; margin-right: 6px; }
+    .restriction-card ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.83rem; line-height: 1.65; }
+    .restriction-card li { margin: 5px 0; }
+    .restriction-card li::marker { color: #ff9b95; }
+
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .feature-panel {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .feature-panel h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.02rem; }
+    .feature-panel h3 i { color: var(--accent); margin-right: 6px; }
+    .feature-panel p { margin: 0 0 10px; color: var(--dim); font-size: 0.83rem; line-height: 1.6; }
+    .feature-panel ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.82rem; line-height: 1.65; }
+    .feature-panel li { margin: 4px 0; }
+    .feature-panel li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    /* ---------- Career ---------- */
+    .career-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .career-grid .notes-figure { margin: 0; }
+    .career-copy h3 { margin: 0 0 10px; color: #ffffff; font-size: 1.15rem; }
+    .career-copy p { margin: 0 0 10px; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .career-copy ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.83rem; line-height: 1.65; }
+    .career-copy li { margin: 4px 0; }
+    .career-copy li::marker { color: var(--accent); }
+
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .achievement-card {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .achievement-card i { color: var(--accent); margin-bottom: 8px; }
+    .achievement-card h3 { margin: 0 0 4px; color: #ffffff; font-size: 0.9rem; }
+    .achievement-card p { margin: 0; color: var(--dim); font-size: 0.78rem; line-height: 1.5; }
+
+    /* ---------- FAQ / source / footer ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .role-grid { grid-template-columns: 1fr; }
+      .split, .career-grid { grid-template-columns: 1fr; }
+      .restriction-grid, .feature-grid { grid-template-columns: 1fr; }
+      .achievement-grid { grid-template-columns: 1fr 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .check-list { grid-template-columns: 1fr; }
+      .achievement-grid { grid-template-columns: 1fr; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">Academy</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">AIR Academy</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-1" target="_blank" rel="noopener noreferrer">
+      Expansion notes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 13 ships · 1 at a time · Exordium &amp; Abyss</div>
+        <p class="kicker">Fractured Skies · New Player Experience</p>
+        <h1 id="hero-title">AIR <span>Academy</span></h1>
+        <p class="hero-sub">13 free, pre-fitted ships to help new capsuleers try combat, exploration and mining without fitting first.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-1" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-file-lines" aria-hidden="true"></i> Read expansion notes
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>Combat 8</span>
+          <span>Exploration 4</span>
+          <span>Mining 1</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="academy-frame">
+          <img src="../assets/air-interface.webp" alt="AIR Academy Ships: combat, exploration and mining role selection" width="1200" height="522" fetchpriority="high">
+        </div>
+        <p class="academy-caption">AIR Academy Ships: combat, exploration and mining. Image: CCP Games / Fenris Creations.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- What is it -->
+      <section class="section" id="what" aria-labelledby="what-title">
+        <div class="section-header">
+          <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+          <h2 id="what-title">What is AIR Academy?</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">AIR Academy Ships are <strong>free, pre-fitted ships</strong> available at stations throughout Exordium. They let new capsuleers experiment with different ships, weapons and activities without needing to master the fitting system first.</p>
+        <p class="lead">The first selection contains 13 ships. Each fitting introduces the weapons, defenses, ranges and playstyle associated with its faction and role. Ships from every faction can be claimed regardless of your character's faction.</p>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Designed exclusively for Exordium.</strong> Academy Ships operate in Exordium and the Abyss, with travel and economy restrictions covered below.</span>
+        </div>
+      </section>
+
+      <!-- The 13 ships -->
+      <section class="section" id="ships" aria-labelledby="ships-title">
+        <div class="section-header">
+          <i class="fa-solid fa-ship" aria-hidden="true"></i>
+          <h2 id="ships-title">The 13 ships</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Eight combat ships, four exploration ships and one mining ship.</p>
+
+        <div class="role-grid">
+          <div class="role-card">
+            <div class="role-top">
+              <div class="role-icon"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i></div>
+              <h3>Combat</h3>
+              <span class="role-count">8 ships</span>
+            </div>
+            <p class="role-desc">Level 1 Security Missions and Combat Anomalies.</p>
+            <div class="ship-group f-amarr">
+              <span class="ship-group-label">Amarr</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Punisher</span><span class="ship-chip">Academy Tormentor</span></div>
+            </div>
+            <div class="ship-group f-caldari">
+              <span class="ship-group-label">Caldari</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Merlin</span><span class="ship-chip">Academy Kestrel</span></div>
+            </div>
+            <div class="ship-group f-gallente">
+              <span class="ship-group-label">Gallente</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Incursus</span><span class="ship-chip">Academy Tristan</span></div>
+            </div>
+            <div class="ship-group f-minmatar">
+              <span class="ship-group-label">Minmatar</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Rifter</span><span class="ship-chip">Academy Breacher</span></div>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <div class="role-top">
+              <div class="role-icon"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></div>
+              <h3>Exploration</h3>
+              <span class="role-count">4 ships</span>
+            </div>
+            <p class="role-desc">Scanning Signatures and exploring Data and Relic Sites.</p>
+            <div class="ship-group f-amarr">
+              <span class="ship-group-label">Amarr</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Magnate</span></div>
+            </div>
+            <div class="ship-group f-caldari">
+              <span class="ship-group-label">Caldari</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Heron</span></div>
+            </div>
+            <div class="ship-group f-gallente">
+              <span class="ship-group-label">Gallente</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Imicus</span></div>
+            </div>
+            <div class="ship-group f-minmatar">
+              <span class="ship-group-label">Minmatar</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Probe</span></div>
+            </div>
+          </div>
+
+          <div class="role-card">
+            <div class="role-top">
+              <div class="role-icon"><i class="fa-solid fa-pickaxe" aria-hidden="true"></i></div>
+              <h3>Mining</h3>
+              <span class="role-count">1 ship</span>
+            </div>
+            <p class="role-desc">Level 1 Mining Missions and Asteroid Belts.</p>
+            <div class="ship-group f-ore">
+              <span class="ship-group-label">Mining</span>
+              <div class="ship-chips"><span class="ship-chip">Academy Venture</span></div>
+            </div>
+          </div>
+        </div>
+
+        <figure class="notes-figure">
+          <img src="../assets/air-ships.webp" alt="The AIR Academy Ships selection in the EVE Online client" width="1200" height="677" loading="lazy" decoding="async">
+        </figure>
+        <p class="notes-caption">The AIR Academy Ships selection in the client. Image: CCP Games / Fenris Creations. <a href="../assets/air-ships.webp" target="_blank" rel="noopener noreferrer">View full size</a></p>
+      </section>
+
+      <!-- Claiming -->
+      <section class="section" id="claiming" aria-labelledby="claiming-title">
+        <div class="section-header">
+          <i class="fa-solid fa-hand-holding" aria-hidden="true"></i>
+          <h2 id="claiming-title">Claiming &amp; switching</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Visit a station in Exordium and open the AIR Academy Ships service. You can hold one Academy Ship at a time.</p>
+        <div class="split">
+          <ol class="steps">
+            <li class="step">
+              <span class="step-num">1</span>
+              <div><strong>Open AIR Academy Ships</strong><p>Visit a station in Exordium and open the AIR Academy Ships service.</p></div>
+            </li>
+            <li class="step">
+              <span class="step-num">2</span>
+              <div><strong>Accept the conditions</strong><p>Accept the conditions of use before claiming your first ship.</p></div>
+            </li>
+            <li class="step">
+              <span class="step-num">3</span>
+              <div><strong>Claim one ship</strong><p>You can have one Academy Ship at a time.</p></div>
+            </li>
+            <li class="step">
+              <span class="step-num">4</span>
+              <div><strong>Switching ships</strong><p>Claiming a new Academy Ship removes the previous ship and its supplied Academy equipment. Player-added cargo and standard equipment are returned to your inventory.</p></div>
+            </li>
+            <li class="step">
+              <span class="step-num">5</span>
+              <div><strong>First-claim animation</strong><p>The first claim of each ship type plays a special introduction animation.</p></div>
+            </li>
+          </ol>
+          <div class="side-panel">
+            <h3>Good to know</h3>
+            <ul>
+              <li>One Academy Ship at a time.</li>
+              <li>Any faction can claim any Academy Ship, regardless of character faction.</li>
+              <li>Your first claim of each ship type has a special animation.</li>
+              <li>Claiming a new ship returns your added cargo and standard equipment.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fitting -->
+      <section class="section" id="fitting" aria-labelledby="fitting-title">
+        <div class="section-header">
+          <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+          <h2 id="fitting-title">Fitting &amp; skills</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Academy Ships use a mix of Academy and standard equipment, with a few restrictions.</p>
+        <ul class="check-list">
+          <li>Academy Ships can use both Academy and standard equipment.</li>
+          <li>Academy modules can only be fitted to Academy Ships.</li>
+          <li>Academy ammunition can only be loaded into Academy modules.</li>
+          <li>Academy drones can only be used by Academy Ships.</li>
+          <li>Skills that improve standard ships and equipment also improve their Academy versions.</li>
+          <li>Academy Ships, modules and charges cannot be traded or reprocessed.</li>
+        </ul>
+        <div class="callout">
+          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+          <span><strong>Your skills still matter.</strong> Anything that improves the standard version of a ship or module also improves its Academy counterpart.</span>
+        </div>
+      </section>
+
+      <!-- Restrictions -->
+      <section class="section" id="restrictions" aria-labelledby="restrictions-title">
+        <div class="section-header">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <h2 id="restrictions-title">Travel &amp; economy restrictions</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Academy Ships are designed for Exordium and the Abyss. They are not normal market ships.</p>
+        <div class="restriction-grid">
+          <div class="restriction-card">
+            <h3><i class="fa-solid fa-route" aria-hidden="true"></i> Where you can fly</h3>
+            <ul>
+              <li>Academy Ships can only operate in Exordium and the Abyss.</li>
+              <li>They cannot leave Exordium through the Yulai stargate or the Shipcaster routes to Mondaekus, Ichorah, Dettisolin or Tatrys.</li>
+              <li>Outside Exordium and the Abyss, they cannot undock or warp.</li>
+              <li>Players cannot eject from an Academy Ship.</li>
+              <li>Blocked travel displays an explanation and an option to purchase the equivalent standard ship and fitting.</li>
+            </ul>
+          </div>
+          <div class="restriction-card">
+            <h3><i class="fa-solid fa-ban" aria-hidden="true"></i> Economy restrictions</h3>
+            <ul>
+              <li>Academy Ships, modules and charges cannot be traded or reprocessed.</li>
+              <li>Academy Ships and modules cannot be repackaged.</li>
+              <li>They cannot be stored in ship maintenance bays, ship cargo holds or containers.</li>
+              <li>Academy Ship wrecks do not provide salvage.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>These restrictions apply to the Academy versions.</strong> Standard ships, modules and cargo are unaffected.</span>
+        </div>
+      </section>
+
+      <!-- Standard / Ship Tree -->
+      <section class="section" id="standard" aria-labelledby="standard-title">
+        <div class="section-header">
+          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+          <h2 id="standard-title">From Academy to standard</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">When you find a ship you like, you can buy the standard version and fitting without losing your Academy Ship.</p>
+        <div class="feature-grid">
+          <div class="feature-panel">
+            <h3><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Buy Standard Version</h3>
+            <ul>
+              <li>Opens Multibuy with the standard versions of the selected ship, fitting, ammunition and drones.</li>
+              <li>Standard market prices, availability and purchase rules apply.</li>
+              <li>Buying the standard version does not remove your Academy Ship.</li>
+            </ul>
+          </div>
+          <div class="feature-panel">
+            <h3><i class="fa-solid fa-sitemap" aria-hidden="true"></i> AIR Academy Ship Tree</h3>
+            <ul>
+              <li>Ships with an AIR Academy version are highlighted in the Ship Tree.</li>
+              <li>The Academy Ships interface includes a shortcut to the relevant Ship Tree view.</li>
+              <li>You can compare Academy Ships with their standard counterparts.</li>
+              <li>Hovering over a ship displays additional information in the standard tooltip.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Career -->
+      <section class="section" id="career" aria-labelledby="career-title">
+        <div class="section-header">
+          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+          <h2 id="career-title">AIR Career Program</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="career-grid">
+          <figure class="notes-figure">
+            <img src="../assets/air-achievements.webp" alt="AIR Career Program achievements in the EVE Online NEOCOM" width="1200" height="675" loading="lazy" decoding="async">
+          </figure>
+          <div class="career-copy">
+            <h3>78 new achievements</h3>
+            <p>The AIR Career Program moves into Paragon's Achievement System. All capsuleers can take part and complete it, including those who completed it before — completing it again grants all its rewards.</p>
+            <ul>
+              <li>Achievements are now in the NEOCOM.</li>
+              <li>New Discoverable achievements hide their exact requirements but offer hints through their name, rewards and flavor text.</li>
+              <li>Four Discoverable achievements launch with the expansion.</li>
+              <li>New early-game achievements reward new capsuleers for exploring and learning.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="notes-caption" style="margin-top:10px;">AIR Career Program achievements in the NEOCOM. Image: CCP Games / Fenris Creations.</p>
+
+        <div class="achievement-grid">
+          <div class="achievement-card">
+            <i class="fa-solid fa-ship" aria-hidden="true"></i>
+            <h3>Academy Pilot</h3>
+            <p>Board an AIR Academy ship.</p>
+          </div>
+          <div class="achievement-card">
+            <i class="fa-solid fa-compass" aria-hidden="true"></i>
+            <h3>Stellar Explorations</h3>
+            <p>Enter 30 different solar systems.</p>
+          </div>
+          <div class="achievement-card">
+            <i class="fa-solid fa-house" aria-hidden="true"></i>
+            <h3>Home of High-Sec</h3>
+            <p>Enter the Yulai system.</p>
+          </div>
+          <div class="achievement-card">
+            <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+            <h3>Tour the Embassy</h3>
+            <p>Visit any system within the four Empire constellations in Exordium.</p>
+          </div>
+          <div class="achievement-card">
+            <i class="fa-solid fa-flag" aria-hidden="true"></i>
+            <h3>Report for Duty</h3>
+            <p>Visit a Factional Warfare HQ. This replaces the previous “One Way Ticket” achievement.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What are AIR Academy Ships? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Free, pre-fitted ships available at stations throughout Exordium. They let new capsuleers try different ships and activities without needing to master fitting first.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How many ships are there? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>13: eight combat ships, four exploration ships and one mining ship.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I keep more than one? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. You can have one Academy Ship at a time. Claiming a new one removes the previous ship and its supplied Academy equipment.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I use my own modules? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes, Academy Ships can use both Academy and standard equipment. Academy modules, ammunition and drones are restricted to Academy Ships.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where can I fly them? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Only in Exordium and the Abyss. They cannot leave Exordium through the Yulai stargate or the Shipcaster routes to Mondaekus, Ichorah, Dettisolin or Tatrys.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I sell or store them? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. Academy Ships, modules and charges cannot be traded, reprocessed, repackaged or stored in ship maintenance bays, cargo holds or containers. Their wrecks do not provide salvage.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How do I move to a standard ship? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Use “Buy Standard Version” on the Academy Ship. It opens Multibuy with the standard ship, fitting, ammunition and drones. Buying the standard version does not remove your Academy Ship.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are the new achievements? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The AIR Career Program adds 78 achievements and moves into Paragon's Achievement System. All capsuleers can complete it, including repeat completions for rewards. Early-game examples include Academy Pilot, Stellar Explorations, Home of High-Sec, Tour the Embassy and Report for Duty.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do Academy Ships appear in the Ship Tree? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. Ships with an Academy version are highlighted, and you can compare them with the standard hulls or open the relevant Ship Tree view from the Academy Ships interface.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary sources</p>
+            <h2>Fractured Skies Expansion Notes — AIR Academy</h2>
+            <p>EVE Online Team · 6 November 2026</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-1" target="_blank" rel="noopener noreferrer">
+              AIR Academy Ships <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-4" target="_blank" rel="noopener noreferrer">
+              New achievements <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>Academy</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-1" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">AIR Academy images and expansion details: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+</body>
+</html>
