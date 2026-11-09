@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    VANGUARD GUIDE TEMPLATE
+    Duplicate this page for future EVE Vanguard updates. Swap the map cards,
+    progression notes, connection details and access information.
+  -->
+
+  <title>EVE Vanguard — Fractured Skies | RustyBot</title>
+  <meta name="description" content="EVE Vanguard's 24/7 paid Alpha: Founder's Access, High Castle, Vorago, The Vault, Weapon Telemetry, the BR-60 and the ground-to-space connection.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/eve-vanguard/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/eve-vanguard/">
+  <meta property="og:title" content="EVE Vanguard — Fractured Skies | RustyBot">
+  <meta property="og:description" content="24/7 paid Alpha, three new battlegrounds, deeper progression and the ground-to-space connection.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-vanguard.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="EVE Vanguard in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="EVE Vanguard — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="24/7 paid Alpha, three new battlegrounds, deeper progression and the ground-to-space connection.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-vanguard.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "EVE Vanguard — Fractured Skies",
+    "description": "EVE Vanguard's 24/7 paid Alpha: Founder's Access, new battlegrounds, progression and the ground-to-space connection.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/eve-vanguard/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-vanguard.jpg",
+    "datePublished": "2026-11-09",
+    "dateModified": "2026-11-09",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --high: #65d98a;
+      --low: #f0a35c;
+      --null: #ff6b6b;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.8rem, 5.8vw, 4.8rem);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    .hero-visual { min-width: 0; }
+    .vanguard-frame {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #000;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    }
+    .vanguard-frame img { display: block; width: 100%; height: auto; }
+    .vanguard-caption {
+      margin: 10px 0 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 82ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- Info cards ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    /* ---------- Maps ---------- */
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .map-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--sec-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .map-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .map-card h3 { margin: 0; color: #ffffff; font-size: 1.08rem; }
+    .security-tag {
+      padding: 3px 7px;
+      border: 1px solid var(--sec-color, var(--border));
+      border-radius: 4px;
+      color: var(--sec-color, var(--dim));
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .map-card p { margin: 0; color: var(--dim); font-size: 0.83rem; line-height: 1.6; }
+    .map-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .map-card li { margin: 4px 0; }
+    .map-card li::marker { color: var(--sec-color, var(--accent)); }
+    .map-high { --sec-color: var(--high); }
+    .map-low { --sec-color: var(--low); }
+    .map-null { --sec-color: var(--null); }
+
+    /* ---------- Progression ---------- */
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .progress-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .progress-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .progress-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Connection ---------- */
+    .connection-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .connection-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .connection-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.02rem; }
+    .connection-card h3 i { color: var(--hud); margin-right: 6px; }
+    .connection-card p { margin: 0 0 8px; color: var(--dim); font-size: 0.83rem; line-height: 1.6; }
+    .connection-card ul { margin: 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .connection-card li { margin: 4px 0; }
+    .connection-card li::marker { color: var(--hud); }
+
+    .vanguard-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--hud);
+      border-radius: 0 8px 8px 0;
+      background: rgba(99, 216, 230, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .vanguard-note i { color: var(--hud); margin-top: 3px; }
+    .vanguard-note strong { color: #ffffff; }
+
+    /* ---------- Video ---------- */
+    .video-card {
+      position: relative;
+      display: block;
+      max-width: 900px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #000;
+      text-decoration: none;
+    }
+    .video-card img { display: block; width: 100%; height: auto; }
+    .video-card .play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(13, 13, 13, 0.82);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 1.2rem;
+      transform: translate(-50%, -50%);
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .video-card:hover .play {
+      background: var(--accent);
+      color: #0d0d0d;
+      transform: translate(-50%, -50%) scale(1.06);
+    }
+    .video-caption {
+      max-width: 900px;
+      margin: 10px auto 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    /* ---------- Access ---------- */
+    .access-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      padding: 22px 24px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .access-panel h3 { margin: 0 0 6px; color: #ffffff; font-size: 1.05rem; }
+    .access-panel p { margin: 0; color: #d0d0d0; font-size: 0.85rem; line-height: 1.6; }
+
+    /* ---------- FAQ / source / footer ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .info-grid, .map-grid, .progress-grid { grid-template-columns: 1fr; }
+      .connection-grid { grid-template-columns: 1fr; }
+      .access-panel { grid-template-columns: 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">Vanguard</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">EVE Vanguard</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+      Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 24/7 paid Alpha · 10 November 2026</div>
+        <p class="kicker">Fractured Skies · Ground Warfare</p>
+        <h1 id="hero-title">EVE <span>Vanguard</span></h1>
+        <p class="hero-sub">24/7 paid Alpha, three new battlegrounds, deeper progression, and a permanent link between the ground war and New Eden.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-play" aria-hidden="true"></i> Watch studio update
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>24/7 Alpha</span>
+          <span>3 new maps</span>
+          <span>Ground → space</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="vanguard-frame">
+          <img src="../assets/eve-vanguard.webp" alt="An EVE Vanguard warclone" width="1200" height="675" fetchpriority="high">
+        </div>
+        <p class="vanguard-caption">EVE Vanguard warclone. Image: CCP Games / Fenris Creations.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- What is it -->
+      <section class="section" id="what" aria-labelledby="what-title">
+        <div class="section-header">
+          <i class="fa-solid fa-person-rifle" aria-hidden="true"></i>
+          <h2 id="what-title">What is EVE Vanguard?</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">EVE Vanguard is the ground-combat side of New Eden. On <strong>10 November 2026</strong> it becomes playable <strong>24/7 as a paid Alpha</strong> alongside Fractured Skies, with Founder's Access purchased through the EVE launcher.</p>
+        <p class="lead">Warclones take on contracts and expeditions for the four empires. Their combined efforts connect directly to the war in EVE Online — unlocking sites, feeding campaigns and, from February, contributing Conquest Power.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
+            <h3>24/7 paid Alpha</h3>
+            <p>Playable around the clock from 10 November 2026, not just during limited playtest windows.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-file-signature" aria-hidden="true"></i></div>
+            <h3>Warclone contracts</h3>
+            <p>Take contracts for the four empires, complete expeditions and advance your warclone.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-link" aria-hidden="true"></i></div>
+            <h3>Permanent connection</h3>
+            <p>Ground actions feed the war in space. The link follows the Operation Nemesis and Operation Avalon playtests.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>What we know so far:</strong> CCP has announced the Alpha, the new maps and the connection to EVE. Exact Founder's Access pricing, the full progression numbers and the complete Alpha ruleset have not been published.</span>
+        </div>
+      </section>
+
+      <!-- Maps -->
+      <section class="section" id="maps" aria-labelledby="maps-title">
+        <div class="section-header">
+          <i class="fa-solid fa-map" aria-hidden="true"></i>
+          <h2 id="maps-title">The three battlegrounds</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Three new maps with different security levels, each built around a different kind of fight.</p>
+        <div class="map-grid">
+          <div class="map-card map-high">
+            <div class="map-top">
+              <h3>High Castle</h3>
+              <span class="security-tag">Highsec</span>
+            </div>
+            <p>A siege-like fortress where you can operate without PvP damage.</p>
+            <ul>
+              <li>Deploy solo or with a squad.</li>
+              <li>Tackle shared objectives.</li>
+              <li>No PvP damage.</li>
+            </ul>
+          </div>
+          <div class="map-card map-low">
+            <div class="map-top">
+              <h3>Vorago</h3>
+              <span class="security-tag">Lowsec</span>
+            </div>
+            <p>A hostile chasm where enemy forces and rival warclones stand between you and extraction.</p>
+            <ul>
+              <li>Fight through hostile terrain.</li>
+              <li>Fight for your haul.</li>
+              <li>Try to make it out alive.</li>
+            </ul>
+          </div>
+          <div class="map-card map-null">
+            <div class="map-top">
+              <h3>The Vault</h3>
+              <span class="security-tag">Nullsec</span>
+            </div>
+            <p>A deadly PvP labyrinth that pits three squads of three against one another.</p>
+            <ul>
+              <li>The layout changes between deployments.</li>
+              <li>Extract rare Weapon Cores for high-tier weapons.</li>
+              <li>Only one squad makes it out with the prize.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progression -->
+      <section class="section" id="progression" aria-labelledby="progression-title">
+        <div class="section-header">
+          <i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>
+          <h2 id="progression-title">Progression &amp; combat</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The November update expands progression, equipment and the new-player journey.</p>
+        <div class="progress-grid">
+          <div class="progress-card">
+            <h3>Weapon Telemetry</h3>
+            <p>Gain experience with a weapon family to earn Weapon Telemetry, unlocking stronger variants and new loadout options.</p>
+          </div>
+          <div class="progress-card">
+            <h3>New equipment &amp; BR-60</h3>
+            <p>New equipment joins the arsenal, including the Gallente BR-60. Deeper weapon progression opens more loadout choices.</p>
+          </div>
+          <div class="progress-card">
+            <h3>New-player journey</h3>
+            <p>An improved new-player journey and a refreshed combat experience make the Alpha easier to approach.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Connection -->
+      <section class="section" id="connection" aria-labelledby="connection-title">
+        <div class="section-header">
+          <i class="fa-solid fa-satellite-dish" aria-hidden="true"></i>
+          <h2 id="connection-title">Ground war, space consequences</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Vanguard is not a separate game. Ground actions unlock opportunities in New Eden.</p>
+        <div class="connection-grid">
+          <div class="connection-card">
+            <h3><i class="fa-solid fa-handshake" aria-hidden="true"></i> Contracts &amp; expeditions</h3>
+            <p>Warclones complete contracts and expeditions for the four empires. Their combined efforts unlock additional combat, hacking and mining sites across highsec and lowsec.</p>
+            <ul>
+              <li>Capsuleers can enter these sites for valuable rewards.</li>
+              <li>Rewards include items that contribute to Military Campaigns.</li>
+            </ul>
+          </div>
+          <div class="connection-card">
+            <h3><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> SARO Black Sites</h3>
+            <p>During the new Military Campaigns, Vanguard players completing expeditions and contracts spawn temporary SARO Black Sites.</p>
+            <ul>
+              <li>PvE, mining and exploration sites in highsec and lowsec.</li>
+              <li>More campaign-related drops than regular sites.</li>
+              <li>Short-lived; check the Theaters of War section or the Activity map filter.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="vanguard-note">
+          <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+          <span><strong>From February 2027:</strong> Vanguard expeditions contribute Conquest Power to the chosen side, making the ground war part of the race for the final Siege.</span>
+        </div>
+      </section>
+
+      <!-- Video -->
+      <section class="section" id="studio-update" aria-labelledby="studio-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
+          <h2 id="studio-title">Watch the studio update</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">CCP's Alpha News and Studio Update covers the new battlegrounds, deeper progression and the next chapter of ground warfare.</p>
+        <a class="video-card" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer" aria-label="Watch the EVE Vanguard Alpha News and Studio Update on YouTube">
+          <img src="../assets/vanguard-video.webp" alt="EVE Vanguard Alpha News and Studio Update video thumbnail" width="1280" height="720" loading="lazy" decoding="async">
+          <span class="play"><i class="fa-solid fa-play" aria-hidden="true"></i></span>
+        </a>
+        <p class="video-caption">EVE Vanguard Alpha News and Studio Update. Video: CCP Games / Fenris Creations.</p>
+      </section>
+
+      <!-- Access -->
+      <section class="section" id="access" aria-labelledby="access-title">
+        <div class="section-header">
+          <i class="fa-solid fa-key" aria-hidden="true"></i>
+          <h2 id="access-title">How to get access</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Founder's Access is purchased through the EVE launcher from 10 November. Pricing and the full access details are still to be announced.</p>
+        <div class="access-panel">
+          <div>
+            <h3>Founder's Access</h3>
+            <p>From 10 November 2026, all players can purchase Founder's Access to join the Alpha through the EVE launcher. CCP has not yet published pricing or the full details of what is included.</p>
+          </div>
+          <a class="btn btn-primary" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer">
+            Watch for details <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          </a>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <span><strong>Pricing TBA:</strong> treat any exact Founder's Access price or bundle contents you see outside CCP's channels as unconfirmed until CCP publishes them.</span>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What is EVE Vanguard? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The ground-combat side of New Eden. Warclones take on contracts and expeditions for the four empires, with actions that connect back to EVE Online.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>When does the Alpha start? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>10 November 2026, alongside the Fractured Skies expansion. It becomes playable 24/7 as a paid Alpha.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Is it free? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. EVE Vanguard enters paid Alpha with Founder's Access. CCP has not yet published the pricing.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How do I get Founder's Access? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Founder's Access is purchased through the EVE launcher from 10 November. CCP said more details on pricing and access would follow.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are the new maps? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>High Castle (highsec siege fortress), Vorago (lowsec hostile chasm) and The Vault (nullsec 3v3v3 PvP labyrinth).</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What is Weapon Telemetry? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Experience earned with a weapon family. It unlocks stronger variants and new loadout options.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What is the BR-60? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The Gallente BR-60 weapon joining the expanding Vanguard arsenal in the November update.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How does Vanguard affect EVE Online? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Warclone contracts and expeditions unlock combat, hacking and mining sites in highsec and lowsec. During Military Campaigns they spawn SARO Black Sites with extra campaign drops. From February 2027, expeditions also contribute Conquest Power.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are SARO Black Sites? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Temporary PvE, mining and exploration sites that spawn during Military Campaigns when Vanguard players complete expeditions and contracts. They offer more campaign-related drops than regular sites but are short-lived.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What is still unknown? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Exact Founder's Access pricing, the full progression numbers and equipment list, Alpha duration and the complete ruleset. CCP has not published those details yet.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary sources</p>
+            <h2>Fractured Skies — EVE Vanguard</h2>
+            <p>EVE Online Team · expansion article and notes</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-12" target="_blank" rel="noopener noreferrer">
+              Vanguard connection <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.youtube.com/watch?v=ETP5WfpSB04" target="_blank" rel="noopener noreferrer">
+              Studio update <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>Vanguard</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="../air-academy/">AIR Academy</a>
+          <a href="../conquests/">Conquests</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">Expansion article</a>
+        </nav>
+      </div>
+      <p class="footer-credit">EVE Vanguard images, video thumbnail and expansion details: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+</body>
+</html>
