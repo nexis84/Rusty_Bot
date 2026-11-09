@@ -399,6 +399,47 @@
       line-height: 1.5;
     }
 
+    /* ---------- Currency conversions ---------- */
+    .currency-block { margin-top: 22px; }
+    .currency-title { margin: 0 0 4px; color: #ffffff; font-size: 0.95rem; }
+    .currency-note { margin: 0 0 12px; color: var(--dim); font-size: 0.78rem; line-height: 1.6; }
+    .currency-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .currency-table {
+      width: 100%;
+      min-width: 620px;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .currency-table th,
+    .currency-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .currency-table thead th {
+      background: rgba(232, 217, 0, 0.04);
+      color: var(--accent);
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .currency-table th:first-child,
+    .currency-table td:first-child { text-align: left; }
+    .currency-table tbody th { color: #ffffff; font-weight: 600; }
+    .currency-table tbody td { color: #d0d0d0; font-variant-numeric: tabular-nums; }
+    .currency-table tbody td.usd { color: var(--accent); font-weight: 700; }
+    .currency-table tbody tr:last-child th,
+    .currency-table tbody tr:last-child td { border-bottom: 0; }
+    .currency-table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .currency-foot { margin: 8px 0 0; color: var(--dim); font-size: 0.7rem; line-height: 1.5; }
+
     /* ---------- Info cards ---------- */
     .info-grid {
       display: grid;
@@ -704,6 +745,37 @@
       .hero-actions .btn { flex: 1 1 auto; }
       .container { padding: 0 18px; }
       .section { padding: 38px 0; }
+      .currency-scroll { overflow: visible; border: 0; border-radius: 0; }
+      .currency-table { min-width: 0; }
+      .currency-table thead { display: none; }
+      .currency-table, .currency-table tbody, .currency-table tr, .currency-table th, .currency-table td { display: block; width: 100%; }
+      .currency-table tr {
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      }
+      .currency-table tr + tr { margin-top: 10px; }
+      .currency-table tbody th { padding: 0 0 6px; border: 0; font-size: 0.92rem; }
+      .currency-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 4px 0;
+        border: 0;
+        text-align: right;
+      }
+      .currency-table tbody td::before {
+        content: attr(data-label);
+        color: var(--dim);
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+      }
+      .currency-table tbody tr:last-child th,
+      .currency-table tbody tr:last-child td { border-bottom: 0; }
+      .currency-table tbody tr:hover { background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%); }
       .source-card { flex-direction: column; align-items: flex-start; }
       .back-top { right: 16px; bottom: 16px; }
     }
@@ -1004,6 +1076,59 @@
               <li>EVE Fanfest 2027 ticket</li>
             </ul>
           </div>
+        </div>
+        <div class="currency-block">
+          <h3 class="currency-title">Approximate prices in other currencies</h3>
+          <p class="currency-note">Converted from USD list prices at 1 USD = &pound;0.7484 / &euro;0.8969 / &#8381;81.93 / &yen;6.6798 on 9 November 2026.</p>
+          <div class="currency-scroll" tabindex="0" role="region" aria-label="Founder's Pack currency conversion table">
+            <table class="currency-table" aria-label="Founder's Pack prices in USD, GBP, EUR, RUB and CNY">
+              <thead>
+                <tr>
+                  <th scope="col">Pack</th>
+                  <th scope="col">USD</th>
+                  <th scope="col">GBP</th>
+                  <th scope="col">EUR</th>
+                  <th scope="col">RUB</th>
+                  <th scope="col">CNY</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Resonant</th>
+                  <td class="usd" data-label="USD">$15</td>
+                  <td data-label="GBP">&pound;11.23</td>
+                  <td data-label="EUR">&euro;13.45</td>
+                  <td data-label="RUB">&#8381;1,229</td>
+                  <td data-label="CNY">&yen;100.20</td>
+                </tr>
+                <tr>
+                  <th scope="row">Contraband (each)</th>
+                  <td class="usd" data-label="USD">$30</td>
+                  <td data-label="GBP">&pound;22.45</td>
+                  <td data-label="EUR">&euro;26.91</td>
+                  <td data-label="RUB">&#8381;2,458</td>
+                  <td data-label="CNY">&yen;200.39</td>
+                </tr>
+                <tr>
+                  <th scope="row">Fulcrum</th>
+                  <td class="usd" data-label="USD">$100</td>
+                  <td data-label="GBP">&pound;74.84</td>
+                  <td data-label="EUR">&euro;89.69</td>
+                  <td data-label="RUB">&#8381;8,193</td>
+                  <td data-label="CNY">&yen;667.98</td>
+                </tr>
+                <tr>
+                  <th scope="row">Legacy</th>
+                  <td class="usd" data-label="USD">$514</td>
+                  <td data-label="GBP">&pound;384.66</td>
+                  <td data-label="EUR">&euro;461.02</td>
+                  <td data-label="RUB">&#8381;42,111</td>
+                  <td data-label="CNY">&yen;3,433.42</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="currency-foot">Contraband Packs are sold individually at $30 each. Exchange rates are approximate; actual prices depend on your region, storefront and payment method.</p>
         </div>
         <div class="callout">
           <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
