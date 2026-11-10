@@ -69,6 +69,20 @@
     'CONCORD': 'concord',
   };
 
+  // ===== PVE SITES (lazy) =====
+  let pveInitPromise = null;
+
+  function ensurePveSites() {
+    if (!pveInitPromise) {
+      pveInitPromise = window.PveSites.init().catch(err => {
+        console.error('PvE sites failed to load:', err);
+        const stats = document.getElementById('pveStats');
+        if (stats) stats.textContent = 'Failed to load PvE sites. Try refreshing.';
+      });
+    }
+    return pveInitPromise;
+  }
+
   // ===== INIT =====
   async function init() {
     showLoading(true);
@@ -230,6 +244,14 @@
 
     if (!tab) return;
     activateTab(tab);
+
+    if (tab === 'pve') {
+      ensurePveSites().then(() => {
+        const current = (window.location.hash.replace('#', '') || 'missions').split('/')[0];
+        if (current === 'pve') window.PveSites.applyHash(parts);
+      });
+      return;
+    }
 
     if (parts[1] === 'detail' && parts[2]) {
       // Detail view
