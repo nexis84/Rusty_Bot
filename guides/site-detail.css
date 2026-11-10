@@ -441,3 +441,13 @@
   .site-detail table.sd-table th:nth-child(3),
   .site-detail table.sd-table td:nth-child(3) { width: 55%; }
 }
+/* Center the overview copy block within the section */
+.site-detail #sd-overview .sd-lead,
+.site-detail #sd-overview .sd-callout {
+  max-width: 78ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Center the overview heading with its copy */
+.site-detail #sd-overview .sd-section-head { justify-content: center; }
+.site-detail #sd-overview .sd-section-head .sd-line { display: none; }
