@@ -1,0 +1,192 @@
+{
+  "generatedAt": "2026-11-10T14:24:33.060Z",
+  "applied": true,
+  "indexEntries": 385,
+  "matched": 340,
+  "unmatched": [
+    {
+      "name": "Serpentis Capital Staging",
+      "page": "Serpentis_Capital_Staging"
+    },
+    {
+      "name": "Teeming Drone Horde",
+      "page": "Teeming_Drone_Horde"
+    },
+    {
+      "name": "Blood Annex",
+      "page": "Blood_Annex"
+    },
+    {
+      "name": "Angel Chemical Lab",
+      "page": "Angel_Chemical_Lab"
+    },
+    {
+      "name": "Angel Gas Processing Site",
+      "page": "Angel_Gas_Processing_Site"
+    },
+    {
+      "name": "Elohim Sooth Sayer Distribution Base",
+      "page": "Elohim_Sooth_Sayer_Distribution_Base"
+    },
+    {
+      "name": "Elohim X-Instinct Distribution Base",
+      "page": "Elohim_X-Instinct_Distribution_Base"
+    },
+    {
+      "name": "Elohim Sooth Sayer Production Facility",
+      "page": "Elohim_Sooth_Sayer_Production_Facility"
+    },
+    {
+      "name": "Elohim X-Instinct Production Facility",
+      "page": "Elohim_X-Instinct_Production_Facility"
+    },
+    {
+      "name": "Digital Matrix",
+      "page": "Digital_Matrix"
+    },
+    {
+      "name": "Digital Network",
+      "page": "Digital_Network"
+    },
+    {
+      "name": "Blood Raider Chemical Lab",
+      "page": "Blood_Raider_Chemical_Lab"
+    },
+    {
+      "name": "Blood Raider Gas Processing Site",
+      "page": "Blood_Raider_Gas_Processing_Site"
+    },
+    {
+      "name": "CHAIN Mindflood Distribution Base",
+      "page": "CHAIN_Mindflood_Distribution_Base"
+    },
+    {
+      "name": "CHAIN Mindflood Production Facility",
+      "page": "CHAIN_Mindflood_Production_Facility"
+    },
+    {
+      "name": "Digital Complex",
+      "page": "Digital_Complex"
+    },
+    {
+      "name": "Guristas Chemical Lab",
+      "page": "Guristas_Chemical_Lab"
+    },
+    {
+      "name": "Guristas Gas Processing Site",
+      "page": "Guristas_Gas_Processing_Site"
+    },
+    {
+      "name": "H-PA Crew Blue Pill Distribution Base",
+      "page": "H-PA_Crew_Blue_Pill_Distribution_Base"
+    },
+    {
+      "name": "H-PA Crew Crash Distribution Base",
+      "page": "H-PA_Crew_Crash_Distribution_Base"
+    },
+    {
+      "name": "H-PA Crew Blue Pill Production Facility",
+      "page": "H-PA_Crew_Blue_Pill_Production_Facility"
+    },
+    {
+      "name": "H-PA Crew Crash Production Facility",
+      "page": "H-PA_Crew_Crash_Production_Facility"
+    },
+    {
+      "name": "Digital Plexus",
+      "page": "Digital_Plexus"
+    },
+    {
+      "name": "Digital Convolution",
+      "page": "Digital_Convolution"
+    },
+    {
+      "name": "Sansha Chemical Lab",
+      "page": "Sansha_Chemical_Lab"
+    },
+    {
+      "name": "Sansha Gas Processing Site",
+      "page": "Sansha_Gas_Processing_Site"
+    },
+    {
+      "name": "PDW-09FX Frentix Distribution Base",
+      "page": "PDW-09FX_Frentix_Distribution_Base"
+    },
+    {
+      "name": "PDW-09FX Frentix Production Facility",
+      "page": "PDW-09FX_Frentix_Production_Facility"
+    },
+    {
+      "name": "Digital Circuitry",
+      "page": "Digital_Circuitry"
+    },
+    {
+      "name": "Serpentis Chemical Lab",
+      "page": "Serpentis_Chemical_Lab"
+    },
+    {
+      "name": "Serpentis Gas Processing Site",
+      "page": "Serpentis_Gas_Processing_Site"
+    },
+    {
+      "name": "Core Runner Drop Distribution",
+      "page": "Core_Runner_Drop_Distribution"
+    },
+    {
+      "name": "Core Runner Exile Distribution Base",
+      "page": "Core_Runner_Exile_Distribution_Base"
+    },
+    {
+      "name": "Core Runner Drop Production Facility",
+      "page": "Core_Runner_Drop_Production_Facility"
+    },
+    {
+      "name": "Core Runner Exile Production Facility",
+      "page": "Core_Runner_Exile_Production_Facility"
+    },
+    {
+      "name": "Digital Compound",
+      "page": "Digital_Compound"
+    },
+    {
+      "name": "Digital Tessellation",
+      "page": "Digital_Tessellation"
+    },
+    {
+      "name": "Bloated Ruins",
+      "page": "Bloated_Ruins"
+    },
+    {
+      "name": "Crumbling Ruins",
+      "page": "Crumbling_Ruins"
+    },
+    {
+      "name": "The Big Blue",
+      "page": "The_Big_Blue"
+    },
+    {
+      "name": "Sanshas Powergrid",
+      "page": "Sansha_Powergrid"
+    },
+    {
+      "name": "Molting Season",
+      "page": "Molting_Season"
+    },
+    {
+      "name": "Serpentis Capital Staging",
+      "page": "Serpentis_Capital_Staging"
+    },
+    {
+      "name": "Collapsed Drifter Cache",
+      "page": "Collapsed_Drifter_Cache"
+    },
+    {
+      "name": "Fabricated Rogue Cache",
+      "page": "Fabricated_Rogue_Cache"
+    }
+  ],
+  "infoAdded": 30,
+  "pocketsAdded": 302,
+  "descriptionsAdded": 286,
+  "untouched": 36
+}
