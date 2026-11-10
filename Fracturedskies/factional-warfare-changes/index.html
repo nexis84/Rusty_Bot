@@ -1,0 +1,1225 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    FW GUIDE TEMPLATE
+    Duplicate this page for future Factional Warfare updates. Swap the change
+    cards, drop notes, quote and source links.
+  -->
+
+  <title>Factional Warfare Changes — Fractured Skies | RustyBot</title>
+  <meta name="description" content="Fractured Skies Factional Warfare changes: five-wave complexes, more NPC tags, SKINR components, campaign boosters and boss NPC drops.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/factional-warfare-changes/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/factional-warfare-changes/">
+  <meta property="og:title" content="Factional Warfare Changes — Fractured Skies | RustyBot">
+  <meta property="og:description" content="Five-wave FW complexes, increased NPC tag drops, SKINR components and campaign boosters in Fractured Skies.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-factional-warfare-changes.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Factional Warfare changes in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Factional Warfare Changes — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="Five-wave FW complexes, increased NPC tag drops, SKINR components and campaign boosters in Fractured Skies.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-factional-warfare-changes.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Factional Warfare Changes — Fractured Skies",
+    "description": "Fractured Skies Factional Warfare changes: five-wave complexes, more NPC tags, SKINR components, campaign boosters and boss NPC drops.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/factional-warfare-changes/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-factional-warfare-changes.jpg",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-14"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --blood: #e05a5a;
+      --angel: #d9a441;
+      --guristas: #5fd0c3;
+      --serpentis: #b38cff;
+      --sansha: #e6d38a;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.6rem, 5vw, 4.25rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    /* ---------- Rig matrix ---------- */
+    .hero-visual { min-width: 0; }
+    .rig-matrix {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 11px 10px;
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--faction-color, var(--accent));
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .matrix-cell:hover {
+      background: rgba(232, 217, 0, 0.04);
+      border-color: var(--accent-dim);
+      border-top-color: var(--faction-color, var(--accent));
+    }
+    .matrix-cell span {
+      color: var(--faction-color, var(--dim));
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .matrix-cell strong {
+      color: #ffffff;
+      font-size: 0.76rem;
+      line-height: 1.25;
+    }
+    .matrix-caption {
+      margin: 12px 0 0;
+      color: var(--dim);
+      font-size: 0.68rem;
+      line-height: 1.5;
+    }
+
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+    .f-blood { --faction-color: var(--blood); }
+    .f-angel { --faction-color: var(--angel); }
+    .f-guristas { --faction-color: var(--guristas); }
+    .f-serpentis { --faction-color: var(--serpentis); }
+    .f-sansha { --faction-color: var(--sansha); }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 80ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- How it works ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Notes figure ---------- */
+    .notes-figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #000;
+    }
+    .notes-figure img { display: block; width: 100%; height: auto; }
+    .notes-caption {
+      margin: 10px 2px 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .notes-caption a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .notes-caption a:hover { color: var(--accent); }
+
+    /* ---------- Rig cards ---------- */
+    .rig-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .rig-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--faction-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .rig-card:hover { border-color: var(--accent-dim); border-top-color: var(--faction-color, var(--accent)); transform: translateY(-2px); }
+    .rig-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .faction-tag {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.6);
+      color: var(--faction-color, var(--dim));
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .rig-kind {
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .rig-card h3 {
+      margin: 0 0 12px;
+      color: #ffffff;
+      font-size: 1.2rem;
+      line-height: 1.25;
+    }
+    .rig-bonuses {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .rig-bonuses li {
+      position: relative;
+      margin: 5px 0;
+      padding-left: 16px;
+      color: #d0d0d0;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .rig-bonuses li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .rig-scaling {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 5px;
+      background: rgba(232, 217, 0, 0.04);
+      color: var(--accent);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+    .rig-drawback {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border-left: 2px solid #d9534f;
+      border-radius: 0 5px 5px 0;
+      background: rgba(217, 83, 79, 0.06);
+      color: #e0b0ae;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+    .rig-drawback strong { color: #ff9b95; }
+    .rig-source {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.72rem;
+    }
+    .rig-source i { color: var(--accent); }
+
+    .rig-note-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px;
+      border: 1px dashed var(--accent-dim);
+      border-radius: 8px;
+      background: rgba(232, 217, 0, 0.03);
+    }
+    .rig-note-card i { margin-bottom: 10px; color: var(--accent); font-size: 1.2rem; }
+    .rig-note-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.05rem; }
+    .rig-note-card p { margin: 0 0 10px; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .rig-note-card a { color: var(--accent); font-size: 0.74rem; text-decoration: none; }
+    .rig-note-card a:hover { text-decoration: underline; }
+
+    /* ---------- Table ---------- */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    table { width: 100%; min-width: 1020px; border-collapse: collapse; }
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ffffff; font-weight: 600; white-space: nowrap; }
+    td .sub { display: block; color: var(--dim); font-size: 0.68rem; font-weight: 400; margin-top: 2px; }
+    .table-note { margin: 10px 0 0; color: var(--dim); font-size: 0.72rem; }
+
+    /* ---------- Sources / skill / manufacturing ---------- */
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .lp-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .lp-card .card-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .lp-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.98rem; }
+    .lp-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+    .lp-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .lp-card li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    .skill-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .skill-panel h3 { margin: 4px 0 8px; color: #ffffff; font-size: 1.15rem; }
+    .skill-panel p { margin: 0; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .skill-facts { margin: 0; padding-left: 18px; color: #d0d0d0; font-size: 0.84rem; line-height: 1.7; }
+    .skill-facts li { margin: 6px 0; }
+    .skill-facts li::marker { color: var(--accent); }
+
+    .manufacturing {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 28px;
+    }
+    .manufacturing h3 { margin: 4px 0 10px; color: #ffffff; font-size: 1.15rem; }
+    .manufacturing p { margin: 0 0 12px; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .check-list { margin: 0; padding: 0; list-style: none; }
+    .check-list li {
+      position: relative;
+      padding-left: 18px;
+      margin: 7px 0;
+      color: #d0d0d0;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .quote {
+      margin: 22px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p { margin: 0; color: #f0f0f0; font-size: 1.05rem; line-height: 1.6; }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- FAQ ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    /* ---------- Source / footer ---------- */
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Aberrant module extras ---------- */
+    .module-matrix { grid-template-columns: repeat(2, 1fr); }
+    .m-overdrive { --faction-color: #e8d900; }
+    .m-shield { --faction-color: #63d8e6; }
+    .m-drone { --faction-color: #65d98a; }
+    .m-cap { --faction-color: #b38cff; }
+    .module-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling strong { color: #ffffff; }
+    .module-card .rig-source i { color: var(--faction-color, var(--accent)); }
+
+    /* ---------- Balance extras ---------- */
+    .balance-matrix { grid-template-columns: repeat(2, 1fr); }
+    .b-carrier { --faction-color: #63d8e6; }
+    .b-t3c { --faction-color: #b38cff; }
+    .b-hull { --faction-color: #65d98a; }
+    .b-bomb { --faction-color: #f0a35c; }
+    .balance-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling strong { color: #ffffff; }
+    .balance-card .rig-source i { color: var(--faction-color, var(--accent)); }
+    .balance-chip {
+      display: inline-block;
+      margin-right: 4px;
+      padding: 2px 6px;
+      border: 1px solid var(--faction-color, var(--accent));
+      border-radius: 4px;
+      color: var(--faction-color, var(--accent));
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .rig-grid { grid-template-columns: 1fr; }
+      .lp-grid { grid-template-columns: 1fr; }
+      .skill-panel { grid-template-columns: 1fr; }
+      .manufacturing { grid-template-columns: 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .info-grid { grid-template-columns: 1fr; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">FW Guides</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">Factional Warfare Changes</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-14" target="_blank" rel="noopener noreferrer">
+      FW changes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 5 waves · More tags · SKINR · Boosters</div>
+        <p class="kicker">Fractured Skies · Factional Warfare</p>
+        <h1 id="hero-title">Factional Warfare <span>Changes</span></h1>
+        <p class="hero-sub">FW complexes are capped at five waves, tag drops are up, and NPCs can drop SKINR components and current-campaign boosters.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#at-a-glance">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> See the changes
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>5-wave complexes</span>
+          <span>More tags</span>
+          <span>SKINR + boosters</span>
+          <span>Haulers + bosses</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="rig-matrix">
+          <div class="matrix-head">
+            <span>Fractured Skies FW</span>
+            <span>6 changes</span>
+          </div>
+          <div class="matrix-grid">
+            <a class="matrix-cell b-carrier" href="#complexes">
+              <span>Complex NPCs</span>
+              <strong>5 waves</strong>
+            </a>
+            <a class="matrix-cell b-t3c" href="#tags">
+              <span>Tag drops</span>
+              <strong>Greatly increased</strong>
+            </a>
+            <a class="matrix-cell b-hull" href="#skinr">
+              <span>SKINR</span>
+              <strong>Small chance</strong>
+            </a>
+            <a class="matrix-cell b-hull" href="#boosters">
+              <span>Boosters</span>
+              <strong>Current campaign</strong>
+            </a>
+            <a class="matrix-cell b-bomb" href="#tags">
+              <span>Haulers</span>
+              <strong>Drop tags</strong>
+            </a>
+            <a class="matrix-cell b-bomb" href="#tags">
+              <span>Boss NPCs</span>
+              <strong>More tags</strong>
+            </a>
+          </div>
+          <p class="matrix-caption">The full FW change list from the Fractured Skies expansion notes.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- At a glance -->
+      <section class="section" id="at-a-glance" aria-labelledby="glance-title">
+        <div class="section-header">
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <h2 id="glance-title">FW changes at a glance</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Finite complexes, better tag drops and new loot chances.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></div>
+            <h3>Five waves</h3>
+            <p>NPCs in FW complexes are capped at five waves instead of respawning infinitely in capture complexes.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-tags" aria-hidden="true"></i></div>
+            <h3>More tags</h3>
+            <p>The drop rate of NPC tags from FW NPCs is greatly increased.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-gem" aria-hidden="true"></i></div>
+            <h3>SKINR &amp; boosters</h3>
+            <p>FW NPCs can drop SKINR components again, and all FW NPCs can drop boosters from the current campaign.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-ship" aria-hidden="true"></i></div>
+            <h3>Haulers &amp; bosses</h3>
+            <p>FW mission haulers now drop tags, and boss NPCs such as the Field Commander drop more.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>The goal:</strong> make FW complexes worth completing, not just farming infinite respawns. Fewer waves, but better loot per NPC.</span>
+        </div>
+      </section>
+
+      <!-- Complexes -->
+      <section class="section" id="complexes" aria-labelledby="complexes-title">
+        <div class="section-header">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          <h2 id="complexes-title">Complex NPCs capped at 5 waves</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">NPCs in FW complexes are now limited to <strong>five waves</strong>, instead of respawning infinitely in capture complexes.</p>
+        <p class="lead">That gives a complex a finite NPC population. You get incremental value while completing it, rather than an endless spawn cycle.</p>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Capture complexes are the specific example in the notes.</strong> They previously respawned NPCs indefinitely; now the NPC waves are capped.</span>
+        </div>
+      </section>
+
+      <!-- Tags -->
+      <section class="section" id="tags" aria-labelledby="tags-title">
+        <div class="section-header">
+          <i class="fa-solid fa-tags" aria-hidden="true"></i>
+          <h2 id="tags-title">Tag drops are up</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">More tags from regular FW NPCs, haulers and bosses.</p>
+        <div class="rig-grid">
+          <article class="rig-card balance-card b-t3c">
+            <div class="rig-top">
+              <span class="faction-tag">FW NPCs</span>
+              <span class="rig-kind">Drop rate</span>
+            </div>
+            <h3>Regular NPC tags</h3>
+            <ul class="rig-bonuses">
+              <li>The drop rate of NPC tags from FW NPCs is <strong>greatly increased</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> more tag income from the NPCs you already kill in FW complexes.</p>
+          </article>
+
+          <article class="rig-card balance-card b-bomb">
+            <div class="rig-top">
+              <span class="faction-tag">FW missions</span>
+              <span class="rig-kind">Haulers</span>
+            </div>
+            <h3>Haulers drop tags</h3>
+            <ul class="rig-bonuses">
+              <li>Haulers in FW missions now drop tags when they are destroyed.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> the hauler in an FW mission is now a loot target, not just an objective.</p>
+          </article>
+
+          <article class="rig-card balance-card b-bomb">
+            <div class="rig-top">
+              <span class="faction-tag">FW missions</span>
+              <span class="rig-kind">Boss NPCs</span>
+            </div>
+            <h3>Boss NPC tags</h3>
+            <ul class="rig-bonuses">
+              <li>The amount of tags dropped by boss NPCs, such as the <strong>Field Commander</strong>, is increased.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> boss NPCs are worth more of your time.</p>
+          </article>
+
+          <article class="rig-card balance-card b-t3c">
+            <div class="rig-top">
+              <span class="faction-tag">Income</span>
+              <span class="rig-kind">What it means</span>
+            </div>
+            <h3>More value per complex</h3>
+            <ul class="rig-bonuses">
+              <li>Fewer NPC respawns, but more tags per NPC.</li>
+              <li>Haulers and boss NPCs are priority loot targets.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> clear the five waves and loot everything — the notes say the loot per NPC is better.</p>
+          </article>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>No exact rates are published.</strong> The notes say the drop rate and boss amounts increased, but not by how much.</span>
+        </div>
+      </section>
+
+      <!-- SKINR -->
+      <section class="section" id="skinr" aria-labelledby="skinr-title">
+        <div class="section-header">
+          <i class="fa-solid fa-gem" aria-hidden="true"></i>
+          <h2 id="skinr-title">SKINR components</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">FW NPCs once again have a small chance to drop <strong>SKINR components</strong>.</p>
+        <p class="lead">The notes do not list which components, the drop rate, or which NPC types can drop them. Treat it as an extra roll on top of the tag drops.</p>
+      </section>
+
+      <!-- Boosters -->
+      <section class="section" id="boosters" aria-labelledby="boosters-title">
+        <div class="section-header">
+          <i class="fa-solid fa-flask" aria-hidden="true"></i>
+          <h2 id="boosters-title">Campaign boosters</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">All FW NPCs now have a small chance to drop <strong>boosters from the current campaign</strong>.</p>
+        <p class="lead">This ties FW NPC farming to the active Military Campaign. The notes do not list the booster types or the drop chance.</p>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Check the current campaign:</strong> the booster pool follows whichever Military Campaign is active, so its value can change over time.</span>
+        </div>
+      </section>
+
+      <!-- What it means -->
+      <section class="section" id="what-it-means" aria-labelledby="meaning-title">
+        <div class="section-header">
+          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+          <h2 id="meaning-title">What it means</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">FW complexes now have a finite NPC population, but each NPC is worth more. The notes describe this as a trade: fewer respawns, better loot per kill, and incremental value while completing a complex.</p>
+        <blockquote class="quote">
+          <p>“We're limiting the number of times NPCs respawn in FW complexes. This means we don't have to be as conservative with their loot drop values, and can increase the amount of loot they drop. It also means players get incremental value while completing FW complexes.”</p>
+          <cite>EVE Online Team — Fractured Skies expansion notes</cite>
+        </blockquote>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Practical effect:</strong> clear the five waves, loot the tags, and check for SKINR components or campaign boosters. Haulers and boss NPCs are priority loot targets.</span>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What changed in FW complexes? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>NPCs are now limited to five waves instead of respawning infinitely in capture complexes.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do NPCs still respawn? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Up to five waves. The endless respawn in capture complexes is gone.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Did tag drops increase? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. The drop rate of NPC tags from FW NPCs is greatly increased.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do haulers drop tags? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. Haulers in FW missions now drop tags when destroyed.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do boss NPCs drop more tags? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. Boss NPCs such as the Field Commander drop an increased amount of tags.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can FW NPCs drop SKINR components? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. They have a small chance to drop SKINR components again.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can FW NPCs drop boosters? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. All FW NPCs have a small chance to drop boosters from the current campaign.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What does this mean for FW income? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Fewer NPC respawns, but better loot per NPC: more tags, plus small chances at SKINR components and campaign boosters.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What is still unknown? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Exact tag drop rates, tag values, which SKINR components and boosters can drop, and the exact boss NPC amounts.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary source</p>
+            <h2>Fractured Skies Expansion Notes — Factional Warfare Changes</h2>
+            <p>EVE Online Team · 6 November 2026</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-14" target="_blank" rel="noopener noreferrer">
+              Read expansion notes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>FW Guides</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../aberrant-modules/">Aberrant modules</a>
+          <a href="../ship-balance/">Ship &amp; module balance</a>
+          <a href="../rogue-drone-outbreaks/">Rogue Drone Outbreaks</a>
+          <a href="../level-1-missions/">Level 1 missions</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="../air-academy/">AIR Academy</a>
+          <a href="../conquests/">Conquests</a>
+          <a href="../eve-vanguard/">EVE Vanguard</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-14" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Factional Warfare details and expansion notes: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script src="../assets/lightbox.js"></script>
+</body>
+</html>
