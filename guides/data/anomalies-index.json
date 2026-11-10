@@ -3482,7 +3482,7 @@
     "page": "Provisional_Angel_Outpost",
     "escalation": {
       "page": "Domination_Surveillance_Squad",
-      "name": "Domination Surveillance Squad"
+      "name": "Dominion Surveillance Squad"
     },
     "variant": "Normal",
     "anomalyType": null,
@@ -3826,7 +3826,7 @@
     },
     "page": "Sansha_Annex",
     "escalation": {
-      "name": "Sansha Powergrid",
+      "name": "Sanshas Powergrid",
       "page": "Sansha_Powergrid"
     },
     "variant": "Normal",
@@ -3903,7 +3903,7 @@
     },
     "page": "Gurista_Base",
     "escalation": {
-      "name": "Consequences Smonsequences",
+      "name": "Consequences Schmonsequences!",
       "page": "Consequences_Smonsequences"
     },
     "variant": "Normal",
@@ -4086,7 +4086,7 @@
     "anomalySubtype": "scanable"
   },
   {
-    "name": "Gurista Military Complex",
+    "name": "Guristas Military Complex",
     "faction": "Guristas Pirates",
     "tier": 0,
     "level": null,
@@ -4180,7 +4180,7 @@
     "anomalySubtype": "expedition"
   },
   {
-    "name": "Gurista Provincial HQ",
+    "name": "Guristas Provincial HQ",
     "faction": "Guristas Pirates",
     "tier": 0,
     "level": null,
@@ -4462,7 +4462,7 @@
     "anomalySubtype": "scanable"
   },
   {
-    "name": "Pith Robux Asteroid Mining & Co.",
+    "name": "Pith-Robux Asteroid Mining Co.",
     "faction": "Guristas Pirates",
     "tier": 1,
     "level": 1,
@@ -5703,7 +5703,7 @@
     "anomalySubtype": "expedition"
   },
   {
-    "name": "Domination Surveillance Squad",
+    "name": "Dominion Surveillance Squad",
     "faction": "Angel Cartel",
     "tier": 0,
     "level": null,
@@ -5924,7 +5924,7 @@
     "anomalySubtype": "expedition"
   },
   {
-    "name": "Sansha Powergrid",
+    "name": "Sanshas Powergrid",
     "faction": "Sansha's Nation",
     "tier": 0,
     "level": null,
@@ -5975,7 +5975,7 @@
     "anomalySubtype": "expedition"
   },
   {
-    "name": "Consequences Smonsequences",
+    "name": "Consequences Schmonsequences!",
     "faction": "Guristas Pirates",
     "tier": 0,
     "level": null,

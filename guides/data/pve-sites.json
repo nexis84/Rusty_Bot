@@ -1891,7 +1891,7 @@
   },
   "pith-robux-asteroid-mining-co": {
     "id": "pith-robux-asteroid-mining-co",
-    "name": "Pith Robux Asteroid Mining & Co.",
+    "name": "Pith-Robux Asteroid Mining Co.",
     "Classification": "DED Rated Complex (1/10)",
     "Location/Space": "High-Sec / Low-Sec",
     "Enemy Faction": "Guristas Pirates",
@@ -2997,7 +2997,7 @@
   },
   "gurista-military-complex": {
     "id": "gurista-military-complex",
-    "name": "Gurista Military Complex",
+    "name": "Guristas Military Complex",
     "Classification": "Unrated Complex (Cosmic Signature)",
     "Location/Space": "Null-Sec; Caldari null/low/high regions (The Forge, Lonetrek, Tenal, etc.)",
     "Enemy Faction": "Guristas Pirates",
@@ -3025,7 +3025,7 @@
   },
   "gurista-provincial-hq": {
     "id": "gurista-provincial-hq",
-    "name": "Gurista Provincial HQ",
+    "name": "Guristas Provincial HQ",
     "Classification": "Unrated Complex (Cosmic Signature)",
     "Location/Space": "Null-Sec; Caldari null/low/high regions (The Forge, Lonetrek, Tenal, etc.)",
     "Enemy Faction": "Guristas Pirates",
@@ -6847,7 +6847,7 @@
   },
   "consequences-smonsequences-part-1": {
     "id": "consequences-smonsequences-part-1",
-    "name": "Consequences Smonsequences — Part 1",
+    "name": "Consequences Schmonsequences! — Part 1",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Null-Sec; random system several jumps away",
     "Enemy Faction": "Guristas Pirates",
@@ -6861,7 +6861,7 @@
   },
   "consequences-smonsequences-part-2": {
     "id": "consequences-smonsequences-part-2",
-    "name": "Consequences Smonsequences — Part 2",
+    "name": "Consequences Schmonsequences! — Part 2",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Null-Sec; random system several jumps away",
     "Enemy Faction": "Guristas Pirates",
@@ -6875,7 +6875,7 @@
   },
   "consequences-smonsequences-part-3": {
     "id": "consequences-smonsequences-part-3",
-    "name": "Consequences Smonsequences — Part 3",
+    "name": "Consequences Schmonsequences! — Part 3",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Null-Sec; random system several jumps away",
     "Enemy Faction": "Guristas Pirates",
@@ -6889,7 +6889,7 @@
   },
   "consequences-smonsequences-part-4": {
     "id": "consequences-smonsequences-part-4",
-    "name": "Consequences Smonsequences — Part 4",
+    "name": "Consequences Schmonsequences! — Part 4",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Null-Sec; random system several jumps away",
     "Enemy Faction": "Guristas Pirates",
@@ -7043,7 +7043,7 @@
   },
   "domination-surveillance-squad-part-1": {
     "id": "domination-surveillance-squad-part-1",
-    "name": "Domination Surveillance Squad — Part 1",
+    "name": "Dominion Surveillance Squad — Part 1",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Angel Cartel",
@@ -7057,7 +7057,7 @@
   },
   "domination-surveillance-squad-part-2": {
     "id": "domination-surveillance-squad-part-2",
-    "name": "Domination Surveillance Squad — Part 2",
+    "name": "Dominion Surveillance Squad — Part 2",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Angel Cartel",
@@ -7071,7 +7071,7 @@
   },
   "domination-surveillance-squad-part-3": {
     "id": "domination-surveillance-squad-part-3",
-    "name": "Domination Surveillance Squad — Part 3",
+    "name": "Dominion Surveillance Squad — Part 3",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Angel Cartel",
@@ -7085,7 +7085,7 @@
   },
   "domination-surveillance-squad-part-4": {
     "id": "domination-surveillance-squad-part-4",
-    "name": "Domination Surveillance Squad — Part 4",
+    "name": "Dominion Surveillance Squad — Part 4",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Angel Cartel",
@@ -8536,7 +8536,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Faction commander drops (modules, implants, BPCs).",
-    "Escalation / Mechanics": "Triggered from Gurista Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "no-quarter-part-2": {
@@ -8550,7 +8550,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Faction commander drops (modules, implants, BPCs).",
-    "Escalation / Mechanics": "Triggered from Gurista Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "no-quarter-part-3": {
@@ -8564,7 +8564,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Faction commander drops (modules, implants, BPCs).",
-    "Escalation / Mechanics": "Triggered from Gurista Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "no-quarter-part-4": {
@@ -8578,7 +8578,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Final stage: often guaranteed Deadspace module drop; highest value.",
-    "Escalation / Mechanics": "Triggered from Gurista Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Provincial HQ (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "operation-spring-cleaning-part-1": {
@@ -8704,7 +8704,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Faction commander drops (modules, implants, BPCs).",
-    "Escalation / Mechanics": "Triggered from Gurista Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "pirate-s-path-part-2": {
@@ -8718,7 +8718,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Faction commander drops (modules, implants, BPCs).",
-    "Escalation / Mechanics": "Triggered from Gurista Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "pirate-s-path-part-3": {
@@ -8732,7 +8732,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Faction commander drops (modules, implants, BPCs).",
-    "Escalation / Mechanics": "Triggered from Gurista Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "pirate-s-path-part-4": {
@@ -8746,7 +8746,7 @@
     "EWAR to Expect": "ECM (Jamming)",
     "Ship Restrictions/Recommendations": "Typically battleship for null parts; 24h timer from trigger.",
     "Notable Loot": "Final stage: often guaranteed Deadspace module drop; highest value.",
-    "Escalation / Mechanics": "Triggered from Gurista Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
+    "Escalation / Mechanics": "Triggered from Guristas Military Complex (~5% on commander kill). 50% chance per stage to advance. Agency/Expeditions tab only. Ungated; visible to combat probes.",
     "Brief Strategy Notes": "Bookmark on warp-in; scout for PvP. Final stages often need fleet. Counter ECM (Jamming)."
   },
   "pulverize-the-pioneers-part-1": {
@@ -8975,7 +8975,7 @@
   },
   "sansha-powergrid-part-1": {
     "id": "sansha-powergrid-part-1",
-    "name": "Sansha Powergrid — Part 1",
+    "name": "Sanshas Powergrid — Part 1",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Sansha's Nation",
@@ -8989,7 +8989,7 @@
   },
   "sansha-powergrid-part-2": {
     "id": "sansha-powergrid-part-2",
-    "name": "Sansha Powergrid — Part 2",
+    "name": "Sanshas Powergrid — Part 2",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Sansha's Nation",
@@ -9003,7 +9003,7 @@
   },
   "sansha-powergrid-part-3": {
     "id": "sansha-powergrid-part-3",
-    "name": "Sansha Powergrid — Part 3",
+    "name": "Sanshas Powergrid — Part 3",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Sansha's Nation",
@@ -9017,7 +9017,7 @@
   },
   "sansha-powergrid-part-4": {
     "id": "sansha-powergrid-part-4",
-    "name": "Sansha Powergrid — Part 4",
+    "name": "Sanshas Powergrid — Part 4",
     "Classification": "Expedition (Escalation Chain)",
     "Location/Space": "Low-Sec → lower; random system several jumps away",
     "Enemy Faction": "Sansha's Nation",

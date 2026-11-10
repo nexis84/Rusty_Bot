@@ -154,7 +154,7 @@ for (const [n, f] of fortressFactions) {
 const mcFactions = [
   ['Angel Military Complex', 'Angel Cartel'],
   ['Blood Military Complex', 'Blood Raiders'],
-  ['Gurista Military Complex', 'Guristas Pirates'],
+  ['Guristas Military Complex', 'Guristas Pirates'],
   ['Sansha Military Complex', "Sansha's Nation"],
   ['Serpentis Military Complex', 'Serpentis'],
 ];
@@ -168,7 +168,7 @@ for (const [n, f] of mcFactions) {
 const hqFactions = [
   ['Angel Provincial HQ', 'Angel Cartel'],
   ['Blood Provincial HQ', 'Blood Raiders'],
-  ['Gurista Provincial HQ', 'Guristas Pirates'],
+  ['Guristas Provincial HQ', 'Guristas Pirates'],
   ['Sansha Provincial HQ', "Sansha's Nation"],
   ['Serpentis Provincial HQ', 'Serpentis'],
 ];
@@ -223,7 +223,7 @@ function addDED(name, faction, dedRating, space) {
 // DED 1/10 - High only
 addDED('Minmatar Contracted Bio-Farm', 'Angel Cartel', 1, { high: true, low: true, null: false });
 addDED('Old Meanie - Cultivation Center', 'Blood Raiders', 1, { high: true, low: true, null: false });
-addDED('Pith Robux Asteroid Mining & Co.', 'Guristas Pirates', 1, { high: true, low: true, null: false });
+addDED('Pith-Robux Asteroid Mining Co.', 'Guristas Pirates', 1, { high: true, low: true, null: false });
 addDED('Sansha Military Outpost', "Sansha's Nation", 1, { high: true, low: true, null: false });
 addDED('Serpentis Drug Outlet', 'Serpentis', 1, { high: true, low: true, null: false });
 

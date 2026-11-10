@@ -23,7 +23,15 @@ const nameToPageOverrides = {
   "Sansha's Command Relay Outpost": "Sansha%27s_Command_Relay_Outpost",
   "Sansha's Nation Neural Paralytic Facility": "Sansha%27s_Nation_Neural_Paralytic_Facility",
   "Sansha's Rally Point": "Sansha%27s_Rally_Point",
-  "Pith Robux Asteroid Mining & Co.": "Pith_Robux_Asteroid_Mining_%26_Co.",
+  "Pith-Robux Asteroid Mining Co.": "Pith_Robux_Asteroid_Mining_%26_Co.",
+  "Consequences Schmonsequences!": "Consequences_Smonsequences",
+  "Sanshas Powergrid": "Sansha_Powergrid",
+};
+
+// Correct known misspellings in scraped escalation names so they match the SDE.
+const escalationNameFixes = {
+  "Consequences Smonsequences": "Consequences Schmonsequences!",
+  "Sansha Powergrid": "Sanshas Powergrid",
 };
 
 // Get the first meaningful sentence/lines from the Escalation section
@@ -158,24 +166,25 @@ for (const entry of index) {
     skipped++;
     continue;
   }
+  const resolvedName = escalationNameFixes[escName] || escName;
 
   // Determine page name for the escalation
-  let escPage = toPageName(escName);
+  let escPage = toPageName(resolvedName);
 
   // Check overrides
-  if (nameToPageOverrides[escName]) {
-    escPage = nameToPageOverrides[escName];
+  if (nameToPageOverrides[resolvedName]) {
+    escPage = nameToPageOverrides[resolvedName];
   }
 
   // Look for existing entries in the index that match the escalation name
   for (const existing of index) {
-    if (existing.name.toLowerCase() === escName.toLowerCase() && existing.page) {
+    if (existing.name.toLowerCase() === resolvedName.toLowerCase() && existing.page) {
       escPage = existing.page;
       break;
     }
   }
 
-  entry.escalation = { name: escName, page: escPage };
+  entry.escalation = { name: resolvedName, page: escPage };
   updated++;
 }
 
