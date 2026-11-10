@@ -62,6 +62,7 @@
       <a class="tab active" data-tab="missions" href="#missions">Missions</a>
       <a class="tab" data-tab="burners" href="#burners">Burners</a>
       <a class="tab" data-tab="anomalies" href="#anomalies">Anomalies</a>
+      <a class="tab" data-tab="fwinc" href="#fwinc">FW &amp; Incursions</a>
       <a class="tab" data-tab="agents" href="#agents">Agents</a>
       <a class="tab" data-tab="epicarcs" href="#epicarcs">Epic Arcs</a>
       <a class="tab" data-tab="npcs" href="#npcs">NPCs</a>
@@ -294,6 +295,35 @@
       </div>
     </div>
 
+    <!-- ========== FACTION WARFARE & INCURSIONS TAB ========== -->
+    <div id="tab-fwinc" class="tab-content">
+      <div class="anomaly-subtabs">
+        <button class="anomaly-subtab fwinc-subtab active" data-fwinc="fw">Faction Warfare</button>
+        <button class="anomaly-subtab fwinc-subtab" data-fwinc="incursions">Incursions</button>
+      </div>
+
+      <div id="fwincListView">
+        <div class="controls">
+          <input type="text" id="fwincSearchInput" placeholder="Search FW or incursion sites..." autocomplete="off">
+          <select id="fwincEmpireFilter">
+            <option value="">All Empires</option>
+          </select>
+          <select id="fwincTypeFilter">
+            <option value="">All Types</option>
+          </select>
+        </div>
+        <div id="fwincStats" class="stats">Loading...</div>
+        <div id="fwincList"></div>
+      </div>
+
+      <div id="fwincDetailView" style="display:none;">
+        <div style="margin-bottom:1rem;">
+          <a id="backToFwIncList" class="detail-back">&larr; Back to site list</a>
+        </div>
+        <div id="fwincDetailContent"></div>
+      </div>
+    </div>
+
     <!-- ========== AGENTS TAB ========== -->
     <div id="tab-agents" class="tab-content">
       <div id="agentListView">
@@ -381,6 +411,7 @@
     </footer>
   </div>
 
+  <script src="fw-incursions.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

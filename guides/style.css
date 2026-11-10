@@ -286,6 +286,27 @@ body {
 .anomaly-card.faction-edencom   { border-left-color: #2980b9; }
 .anomaly-card.faction-triglavian{ border-left-color: #8e44ad; }
 .anomaly-card.faction-concord   { border-left-color: #f1c40f; }
+.anomaly-card.faction-amarr     { border-left-color: #d4a017; }
+.anomaly-card.faction-caldari   { border-left-color: #2980b9; }
+.anomaly-card.faction-gallente  { border-left-color: #16a085; }
+.anomaly-card.faction-minmatar  { border-left-color: #d35400; }
+
+.fw-tier-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--secondary-color);
+  color: var(--text-color);
+  font-size: 0.7rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.fw-detail-value {
+  color: var(--text-color);
+  line-height: 1.6;
+}
 
 .anomaly-card.faction-angel:hover     { border-left-color: #e74c3c; }
 .anomaly-card.faction-blood:hover     { border-left-color: #c0392b; }

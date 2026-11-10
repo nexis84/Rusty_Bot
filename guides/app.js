@@ -69,6 +69,20 @@
     'CONCORD': 'concord',
   };
 
+  // ===== FW & INCURSIONS (lazy) =====
+  let fwincInitPromise = null;
+
+  function ensureFwIncursions() {
+    if (!fwincInitPromise) {
+      fwincInitPromise = window.FwIncursions.init().catch(err => {
+        console.error('FW & Incursions failed to load:', err);
+        const stats = document.getElementById('fwincStats');
+        if (stats) stats.textContent = 'Failed to load FW & Incursion sites. Try refreshing.';
+      });
+    }
+    return fwincInitPromise;
+  }
+
   // ===== INIT =====
   async function init() {
     showLoading(true);
@@ -230,6 +244,14 @@
 
     if (!tab) return;
     activateTab(tab);
+
+    if (tab === 'fwinc') {
+      ensureFwIncursions().then(() => {
+        const current = (window.location.hash.replace('#', '') || 'missions').split('/')[0];
+        if (current === 'fwinc') window.FwIncursions.applyHash(parts);
+      });
+      return;
+    }
 
     if (parts[1] === 'detail' && parts[2]) {
       // Detail view
@@ -572,6 +594,7 @@
 
     // Wire sub-tab buttons
     document.querySelectorAll('.anomaly-subtab').forEach(btn => {
+      if (!btn.dataset.type) return;
       btn.addEventListener('click', () => {
         document.querySelectorAll('.anomaly-subtab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
