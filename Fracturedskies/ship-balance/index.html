@@ -1,0 +1,1518 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    BALANCE GUIDE TEMPLATE
+    Duplicate this page for future balance/update guides. Swap the category
+    cards, before/after tables and patch-note sources.
+  -->
+
+  <title>Ship &amp; Module Balance — Fractured Skies | RustyBot</title>
+  <meta name="description" content="Every ship and module balance change in Fractured Skies: carriers and fighters, T3C subsystems, Sacrilege, Cerberus, Hawk, Vengeance, Void Bombs and more.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/ship-balance/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/ship-balance/">
+  <meta property="og:title" content="Ship &amp; Module Balance — Fractured Skies | RustyBot">
+  <meta property="og:description" content="Carriers and fighters, T3C subsystems, HACs, frigates, defenders and Void Bomb changes in Fractured Skies.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-ship-balance.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Ship and module balance changes in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ship &amp; Module Balance — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="Carriers and fighters, T3C subsystems, HACs, frigates, defenders and Void Bomb changes in Fractured Skies.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-ship-balance.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Ship & Module Balance — Fractured Skies",
+    "description": "Every ship and module balance change in Fractured Skies: carriers and fighters, T3C subsystems, HACs, frigates, defenders and bombs.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/ship-balance/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-ship-balance.jpg",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-9"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --blood: #e05a5a;
+      --angel: #d9a441;
+      --guristas: #5fd0c3;
+      --serpentis: #b38cff;
+      --sansha: #e6d38a;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.6rem, 5vw, 4.25rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    /* ---------- Rig matrix ---------- */
+    .hero-visual { min-width: 0; }
+    .rig-matrix {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 11px 10px;
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--faction-color, var(--accent));
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .matrix-cell:hover {
+      background: rgba(232, 217, 0, 0.04);
+      border-color: var(--accent-dim);
+      border-top-color: var(--faction-color, var(--accent));
+    }
+    .matrix-cell span {
+      color: var(--faction-color, var(--dim));
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .matrix-cell strong {
+      color: #ffffff;
+      font-size: 0.76rem;
+      line-height: 1.25;
+    }
+    .matrix-caption {
+      margin: 12px 0 0;
+      color: var(--dim);
+      font-size: 0.68rem;
+      line-height: 1.5;
+    }
+
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+    .f-blood { --faction-color: var(--blood); }
+    .f-angel { --faction-color: var(--angel); }
+    .f-guristas { --faction-color: var(--guristas); }
+    .f-serpentis { --faction-color: var(--serpentis); }
+    .f-sansha { --faction-color: var(--sansha); }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 80ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- How it works ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Notes figure ---------- */
+    .notes-figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #000;
+    }
+    .notes-figure img { display: block; width: 100%; height: auto; }
+    .notes-caption {
+      margin: 10px 2px 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .notes-caption a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .notes-caption a:hover { color: var(--accent); }
+
+    /* ---------- Rig cards ---------- */
+    .rig-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .rig-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--faction-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .rig-card:hover { border-color: var(--accent-dim); border-top-color: var(--faction-color, var(--accent)); transform: translateY(-2px); }
+    .rig-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .faction-tag {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.6);
+      color: var(--faction-color, var(--dim));
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .rig-kind {
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .rig-card h3 {
+      margin: 0 0 12px;
+      color: #ffffff;
+      font-size: 1.2rem;
+      line-height: 1.25;
+    }
+    .rig-bonuses {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .rig-bonuses li {
+      position: relative;
+      margin: 5px 0;
+      padding-left: 16px;
+      color: #d0d0d0;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .rig-bonuses li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .rig-scaling {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 5px;
+      background: rgba(232, 217, 0, 0.04);
+      color: var(--accent);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+    .rig-drawback {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border-left: 2px solid #d9534f;
+      border-radius: 0 5px 5px 0;
+      background: rgba(217, 83, 79, 0.06);
+      color: #e0b0ae;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+    .rig-drawback strong { color: #ff9b95; }
+    .rig-source {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.72rem;
+    }
+    .rig-source i { color: var(--accent); }
+
+    .rig-note-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px;
+      border: 1px dashed var(--accent-dim);
+      border-radius: 8px;
+      background: rgba(232, 217, 0, 0.03);
+    }
+    .rig-note-card i { margin-bottom: 10px; color: var(--accent); font-size: 1.2rem; }
+    .rig-note-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.05rem; }
+    .rig-note-card p { margin: 0 0 10px; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .rig-note-card a { color: var(--accent); font-size: 0.74rem; text-decoration: none; }
+    .rig-note-card a:hover { text-decoration: underline; }
+
+    /* ---------- Table ---------- */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    table { width: 100%; min-width: 1020px; border-collapse: collapse; }
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ffffff; font-weight: 600; white-space: nowrap; }
+    td .sub { display: block; color: var(--dim); font-size: 0.68rem; font-weight: 400; margin-top: 2px; }
+    .table-note { margin: 10px 0 0; color: var(--dim); font-size: 0.72rem; }
+
+    /* ---------- Sources / skill / manufacturing ---------- */
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .lp-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .lp-card .card-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .lp-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.98rem; }
+    .lp-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+    .lp-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .lp-card li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    .skill-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .skill-panel h3 { margin: 4px 0 8px; color: #ffffff; font-size: 1.15rem; }
+    .skill-panel p { margin: 0; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .skill-facts { margin: 0; padding-left: 18px; color: #d0d0d0; font-size: 0.84rem; line-height: 1.7; }
+    .skill-facts li { margin: 6px 0; }
+    .skill-facts li::marker { color: var(--accent); }
+
+    .manufacturing {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 28px;
+    }
+    .manufacturing h3 { margin: 4px 0 10px; color: #ffffff; font-size: 1.15rem; }
+    .manufacturing p { margin: 0 0 12px; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .check-list { margin: 0; padding: 0; list-style: none; }
+    .check-list li {
+      position: relative;
+      padding-left: 18px;
+      margin: 7px 0;
+      color: #d0d0d0;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .quote {
+      margin: 22px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p { margin: 0; color: #f0f0f0; font-size: 1.05rem; line-height: 1.6; }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- FAQ ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    /* ---------- Source / footer ---------- */
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Aberrant module extras ---------- */
+    .module-matrix { grid-template-columns: repeat(2, 1fr); }
+    .m-overdrive { --faction-color: #e8d900; }
+    .m-shield { --faction-color: #63d8e6; }
+    .m-drone { --faction-color: #65d98a; }
+    .m-cap { --faction-color: #b38cff; }
+    .module-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling strong { color: #ffffff; }
+    .module-card .rig-source i { color: var(--faction-color, var(--accent)); }
+
+    /* ---------- Balance extras ---------- */
+    .balance-matrix { grid-template-columns: repeat(2, 1fr); }
+    .b-carrier { --faction-color: #63d8e6; }
+    .b-t3c { --faction-color: #b38cff; }
+    .b-hull { --faction-color: #65d98a; }
+    .b-bomb { --faction-color: #f0a35c; }
+    .balance-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling strong { color: #ffffff; }
+    .balance-card .rig-source i { color: var(--faction-color, var(--accent)); }
+    .balance-chip {
+      display: inline-block;
+      margin-right: 4px;
+      padding: 2px 6px;
+      border: 1px solid var(--faction-color, var(--accent));
+      border-radius: 4px;
+      color: var(--faction-color, var(--accent));
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .rig-grid { grid-template-columns: 1fr; }
+      .lp-grid { grid-template-columns: 1fr; }
+      .skill-panel { grid-template-columns: 1fr; }
+      .manufacturing { grid-template-columns: 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .info-grid { grid-template-columns: 1fr; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">Balance Guides</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">Ship &amp; Module Balance</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-9" target="_blank" rel="noopener noreferrer">
+      Balance changes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> Carriers · T3Cs · HACs · Bombs</div>
+        <p class="kicker">Fractured Skies · Ship &amp; Module Balance</p>
+        <h1 id="hero-title">Ship &amp; Module <span>Balance</span></h1>
+        <p class="hero-sub">Carriers get application back, Navy Fighters get stronger, the least-used T3Cs get buffs, and Void Bombs get more counterplay.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#at-a-glance">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Jump to the changes
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>Carriers &amp; fighters</span>
+          <span>4 T3Cs</span>
+          <span>8 hulls</span>
+          <span>Defenders &amp; bombs</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="rig-matrix">
+          <div class="matrix-head">
+            <span>Fractured Skies 24.02</span>
+            <span>Full balance pass</span>
+          </div>
+          <div class="matrix-grid balance-matrix">
+            <a class="matrix-cell b-carrier" href="#carriers">
+              <span>Carriers &amp; Fighters</span>
+              <strong>ISA + Navy fighters</strong>
+            </a>
+            <a class="matrix-cell b-t3c" href="#t3c">
+              <span>Strategic Cruisers</span>
+              <strong>Legion · Proteus · Tengu · Loki</strong>
+            </a>
+            <a class="matrix-cell b-hull" href="#hulls">
+              <span>HACs &amp; Hulls</span>
+              <strong>Sacrilege · Cerberus · Hawk</strong>
+            </a>
+            <a class="matrix-cell b-bomb" href="#defenders">
+              <span>Defenders &amp; Bombs</span>
+              <strong>Void Bomb counterplay</strong>
+            </a>
+          </div>
+          <p class="matrix-caption">The full 24.02 balance pass, grouped by what it changes. Each section has the before-and-after numbers.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- At a glance -->
+      <section class="section" id="at-a-glance" aria-labelledby="glance-title">
+        <div class="section-header">
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <h2 id="glance-title">Balance at a glance</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The headline changes, before you dive into the numbers.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-jet-fighter-up" aria-hidden="true"></i></div>
+            <h3>Carriers</h3>
+            <p>Light Fighter application returns through the Integrated Sensor Array active effect. Tech II Heavy Fighters also gain 2–10% damage from Fighter Specialization skills.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
+            <h3>Navy Fighters</h3>
+            <p>Templar, Firbolg and Equite get more shield HP, damage, speed and sensor strength. Their charge count and rearm time also improve.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-cubes" aria-hidden="true"></i></div>
+            <h3>Strategic Cruisers</h3>
+            <p>Legion and Proteus hulls improve, Tengu and Proteus subsystems get utility, and the Loki gets a deliberately small powergrid bump.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-bomb" aria-hidden="true"></i></div>
+            <h3>Defenders &amp; bombs</h3>
+            <p>Defender Launchers cost just 5 GJ, Defender Missiles fly for 5 seconds, and Void Bombs are slower with a 12-second fuse.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>The theme:</strong> carriers must commit to the field, Navy Fighters become more viable, underused hulls get help, and bombs get more counterplay without a direct damage nerf.</span>
+        </div>
+      </section>
+
+      <!-- Carriers and fighters -->
+      <section class="section" id="carriers" aria-labelledby="carriers-title">
+        <div class="section-header">
+          <i class="fa-solid fa-jet-fighter-up" aria-hidden="true"></i>
+          <h2 id="carriers-title">Carriers &amp; Fighters</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Carrier application returns, and the Navy fighter line gets a broad buff.</p>
+
+        <div class="rig-grid">
+          <article class="rig-card balance-card b-carrier">
+            <div class="rig-top">
+              <span class="faction-tag">Heavy Fighters</span>
+              <span class="rig-kind">Skill requirement</span>
+            </div>
+            <h3>Tech II Heavy Fighters</h3>
+            <ul class="rig-bonuses">
+              <li>Now require the <strong>Fighter Specialization</strong> skills added in the Catalyst Major Update.</li>
+              <li>Gain <strong>2%–10% more damage</strong>, depending on the skill level trained.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> training the specialization skills is now part of using Tech II Heavy Fighters well.</p>
+          </article>
+
+          <article class="rig-card balance-card b-carrier">
+            <div class="rig-top">
+              <span class="faction-tag">Integrated Sensor Array</span>
+              <span class="rig-kind">Active effect</span>
+            </div>
+            <h3>Light Fighter application</h3>
+            <ul class="rig-bonuses">
+              <li><strong>+20%</strong> Light Fighter Attack Explosion Velocity.</li>
+              <li><strong>−10%</strong> Light Fighter Attack Explosion Radius.</li>
+              <li>Not penalized when stacked with Omnidirectional Tracking Links or Enhancers.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> the ISA active effect restores much of the Light Fighter application lost in 2019, but the carrier has to commit the module.</p>
+          </article>
+
+          <article class="rig-card balance-card b-carrier">
+            <div class="rig-top">
+              <span class="faction-tag">Navy Light Attack</span>
+              <span class="rig-kind">Templar · Firbolg</span>
+            </div>
+            <h3>More HP, damage and charges</h3>
+            <ul class="rig-bonuses">
+              <li>Shield HP: <strong>5,445 → 7,260</strong>.</li>
+              <li>Heavy Rocket Salvo charges: <strong>20 → 24</strong>.</li>
+              <li>Rearm time: <strong>4s → 3s</strong> per charge.</li>
+              <li>More primary weapon and salvo damage, plus higher speed and sensor strength.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> Navy attack fighters last longer and apply more damage between reloads.</p>
+          </article>
+
+          <article class="rig-card balance-card b-carrier">
+            <div class="rig-top">
+              <span class="faction-tag">Navy Space Superiority</span>
+              <span class="rig-kind">Equite</span>
+            </div>
+            <h3>Tougher anti-fighter platform</h3>
+            <ul class="rig-bonuses">
+              <li>Shield HP: <strong>2,640 → 3,520</strong>.</li>
+              <li>Micro Missile Swarm damage: <strong>40 → 42</strong>.</li>
+              <li>Max velocity: <strong>1,040 → 1,092 m/s</strong>.</li>
+              <li>Radar sensor strength: <strong>8 → 12</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> the Equite is tougher and faster, with a little more punch.</p>
+          </article>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Navy Light Attack Fighter</th>
+                <th>Imperial Navy Templar</th>
+                <th>Federation Navy Firbolg</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Shield HP</td>
+                <td>5,445 → 7,260</td>
+                <td>5,445 → 7,260</td>
+              </tr>
+              <tr>
+                <td>Primary weapon damage</td>
+                <td>Pulse Cannon 103 → 108</td>
+                <td>Blaster Cannon 118.5 → 124.5</td>
+              </tr>
+              <tr>
+                <td>Heavy Rocket Salvo damage</td>
+                <td>187.5 → 196.5</td>
+                <td>217.5 → 228</td>
+              </tr>
+              <tr>
+                <td>Heavy Rocket Salvo charges</td>
+                <td>20 → 24</td>
+                <td>20 → 24</td>
+              </tr>
+              <tr>
+                <td>Rearm per charge</td>
+                <td>4s → 3s</td>
+                <td>4s → 3s</td>
+              </tr>
+              <tr>
+                <td>Max velocity</td>
+                <td>867 → 910 m/s</td>
+                <td>743 → 780 m/s</td>
+              </tr>
+              <tr>
+                <td>Sensor strength</td>
+                <td>Radar 7 → 10</td>
+                <td>Magnetometric 7 → 10</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">The notes list the other Navy fighter hulls (Dragonfly, Einherji, Locust, Satyr and Gram) in the same pass, but give full stat blocks for Templar, Firbolg and Equite.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Navy Space Superiority Fighter</th>
+                <th>Imperial Navy Equite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Shield HP</td>
+                <td>2,640 → 3,520</td>
+              </tr>
+              <tr>
+                <td>Micro Missile Swarm damage</td>
+                <td>40 → 42</td>
+              </tr>
+              <tr>
+                <td>Max velocity</td>
+                <td>1,040 → 1,092 m/s</td>
+              </tr>
+              <tr>
+                <td>Sensor strength</td>
+                <td>Radar 8 → 12</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <blockquote class="quote">
+          <p>“Now that the Specialization skill exists, we are bumping their base damage up to Tech II fighters (Tech II fighters still deal more damage with the skill) and increasing their hitpoints to 2x, matching the same relationship and trade-offs that faction drones have with normal drones.”</p>
+          <cite>EVE Online Team — Fractured Skies expansion notes</cite>
+        </blockquote>
+      </section>
+
+      <!-- T3Cs -->
+      <section class="section" id="t3c" aria-labelledby="t3c-title">
+        <div class="section-header">
+          <i class="fa-solid fa-cubes" aria-hidden="true"></i>
+          <h2 id="t3c-title">Strategic Cruisers &amp; Subsystems</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The least-used T3C hulls and subsystems get help. The Loki gets a deliberately smaller boost.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ship / subsystem</th>
+                <th>Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Legion — hull<span class="sub">Least-used T3C</span></td>
+                <td>Max velocity 185 → 200 m/s · base powergrid 625 → 650</td>
+              </tr>
+              <tr>
+                <td>Proteus — hull</td>
+                <td>Signature radius 190 → 165 · now between the Loki (160) and Legion (170)</td>
+              </tr>
+              <tr>
+                <td>Tengu &amp; Proteus — Electronic Efficiency Gate</td>
+                <td>+3% Sensor Warfare and Weapon Disruption resistance per level</td>
+              </tr>
+              <tr>
+                <td>Tengu — Obfuscation Manifold</td>
+                <td>ECM optimal and strength bonus 10 → 12.5% per level · +500 armor HP</td>
+              </tr>
+              <tr>
+                <td>Legion — Augmented Plating</td>
+                <td>Flat armor HP bonus +1,000 → +1,500</td>
+              </tr>
+              <tr>
+                <td>Proteus — Augmented Plating</td>
+                <td>Armor plate mass penalty reduction 25 → 37.5%</td>
+              </tr>
+              <tr>
+                <td>Legion — Liquid Crystal Magnifiers</td>
+                <td>Powergrid bonus +400 → +430</td>
+              </tr>
+              <tr>
+                <td>Tengu — Magnetic Infusion Basin</td>
+                <td>Damage bonus per level 5 → 7.5%</td>
+              </tr>
+              <tr>
+                <td>Loki — Projectile Scoping Array</td>
+                <td>Powergrid bonus +300 → +330</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">The notes describe all four T3Cs as improvements, but the Loki is already the most-used PvP ship in the game, so CCP kept its change conservative.</p>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Why the Loki gets less:</strong> it has the highest damage on solo and small-gang player ship kills and ranks high on total killmail damage. The other three T3Cs were the priority.</span>
+        </div>
+      </section>
+
+      <!-- HACs, battlecruisers, destroyers, frigates -->
+      <section class="section" id="hulls" aria-labelledby="hulls-title">
+        <div class="section-header">
+          <i class="fa-solid fa-ship" aria-hidden="true"></i>
+          <h2 id="hulls-title">HACs, Battlecruisers &amp; Frigates</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Small improvements for underused hulls, plus corrective changes for the Sacrilege and Hawk.</p>
+
+        <div class="rig-grid">
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Battlecruiser</span>
+              <span class="rig-kind">Myrmidon Navy Issue</span>
+            </div>
+            <h3>Myrmidon Navy Issue</h3>
+            <ul class="rig-bonuses">
+              <li>Maximum capacitor: <strong>2,900 → 3,000</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> a small capacitor bump for the least-used Navy combat battlecruiser.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Heavy Assault Cruiser</span>
+              <span class="rig-kind">Sacrilege</span>
+            </div>
+            <h3>Sacrilege</h3>
+            <ul class="rig-bonuses">
+              <li>HAC bonus to missile launcher rate of fire: <strong>7.5% → 5%</strong> per level.</li>
+              <li>Amarr Cruiser bonus to HAM and Heavy Missile damage: <strong>5% → 7.5%</strong> per level.</li>
+              <li>Effective launchers: <strong>10 → 9.17</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> a correction to the Cradle of War buff — still stronger than before that update, just less buffy.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Heavy Assault Cruiser</span>
+              <span class="rig-kind">Cerberus</span>
+            </div>
+            <h3>Cerberus</h3>
+            <ul class="rig-bonuses">
+              <li>The 2.5% all-missile damage bonus is split.</li>
+              <li>Kinetic missile damage: <strong>2.5% → 5%</strong>.</li>
+              <li>EM, Thermal and Explosive: <strong>stays 2.5%</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> more damage when using kinetic missiles, while keeping the Cerberus' damage-type versatility.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Destroyer</span>
+              <span class="rig-kind">Catalyst</span>
+            </div>
+            <h3>Catalyst</h3>
+            <ul class="rig-bonuses">
+              <li>Maximum velocity: <strong>265 → 275 m/s</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> a small ship-vs-ship boost to help it stay in range, without changing its ganking profile.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Frigate</span>
+              <span class="rig-kind">Maulus Navy Issue</span>
+            </div>
+            <h3>Maulus Navy Issue</h3>
+            <ul class="rig-bonuses">
+              <li>Armor HP: <strong>525 → 625</strong>.</li>
+              <li>Structure HP: <strong>550 → 575</strong>.</li>
+              <li>Total base HP: <strong>1,600</strong>, matching the Crucifier Navy Issue and Griffin Navy Issue.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> a durability bump to bring it in line with the other Navy electronic-attack frigates.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Frigate</span>
+              <span class="rig-kind">Vengeance</span>
+            </div>
+            <h3>Vengeance</h3>
+            <ul class="rig-bonuses">
+              <li>Base capacitor recharge time: <strong>187.5 → 140.625s</strong>.</li>
+              <li>Removed: 5% capacitor recharge rate per Assault Frigate level.</li>
+              <li>Added: <strong>3% armor HP</strong> per Assault Frigate level.</li>
+              <li>Shield HP <strong>664 → 464</strong>; armor HP <strong>816 → 1,016</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> the old cap-recharge bonus is built into the hull, and the Vengeance shifts further toward armor.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Frigate</span>
+              <span class="rig-kind">Hawk</span>
+            </div>
+            <h3>Hawk</h3>
+            <ul class="rig-bonuses">
+              <li>Removed: 7.5% bonus to rocket and light missile damage.</li>
+              <li>Added: <strong>10% kinetic</strong> rocket and light missile damage.</li>
+              <li>Added: <strong>5% EM, Thermal and Explosive</strong> rocket and light missile damage.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> kinetic damage is restored, and the Hawk keeps better damage-type versatility than before the Major Update.</p>
+          </article>
+
+          <article class="rig-card balance-card b-hull">
+            <div class="rig-top">
+              <span class="faction-tag">Expedition Frigate</span>
+              <span class="rig-kind">Odysseus</span>
+            </div>
+            <h3>Odysseus</h3>
+            <ul class="rig-bonuses">
+              <li>The Expedition Hold can now store drones.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> a quality-of-life fix for the Odysseus' expedition storage.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Defenders and bombs -->
+      <section class="section" id="defenders" aria-labelledby="defenders-title">
+        <div class="section-header">
+          <i class="fa-solid fa-bomb" aria-hidden="true"></i>
+          <h2 id="defenders-title">Defenders &amp; Bombs</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">More counterplay to bombs without directly reducing bomb damage.</p>
+
+        <div class="rig-grid">
+          <article class="rig-card balance-card b-bomb">
+            <div class="rig-top">
+              <span class="faction-tag">Defender Launchers</span>
+              <span class="rig-kind">Capacitor cost</span>
+            </div>
+            <h3>Defender Launchers</h3>
+            <ul class="rig-bonuses">
+              <li>Capacitor cost to activate: <strong>50 → 5 GJ</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> much easier for destroyers to use, especially with lower capacitor skills.</p>
+          </article>
+
+          <article class="rig-card balance-card b-bomb">
+            <div class="rig-top">
+              <span class="faction-tag">Defender Missiles</span>
+              <span class="rig-kind">Flight time</span>
+            </div>
+            <h3>Defender Missiles</h3>
+            <ul class="rig-bonuses">
+              <li>Maximum flight time: <strong>3 → 5 seconds</strong>.</li>
+              <li>Effective range: roughly <strong>30–45km → 50–75km</strong>.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> more consistent interception, and new players with Defender Launchers trained to level 1 can do the job.</p>
+          </article>
+
+          <article class="rig-card balance-card b-bomb">
+            <div class="rig-top">
+              <span class="faction-tag">Void Bomb</span>
+              <span class="rig-kind">Explosion delay</span>
+            </div>
+            <h3>Void Bomb</h3>
+            <ul class="rig-bonuses">
+              <li>Explosion delay: <strong>7.5 → 12 seconds</strong>.</li>
+              <li>Maximum velocity: <strong>4,000 → 2,500 m/s</strong>.</li>
+              <li>Focused Void Bomb is unchanged.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> matches damage bombs, giving targets more time to move, firewall or use Defender Launchers.</p>
+          </article>
+
+          <article class="rig-card balance-card b-bomb">
+            <div class="rig-top">
+              <span class="faction-tag">CONCORD Beacon</span>
+              <span class="rig-kind">Deployment distance</span>
+            </div>
+            <h3>Rogue Analysis Beacon</h3>
+            <ul class="rig-bonuses">
+              <li>Minimum deployment distance from starbases: <strong>30,000 → 50,000km</strong>.</li>
+              <li>Applies to the regular and CONCORD-Carrier versions.</li>
+            </ul>
+            <p class="rig-scaling"><strong>Bottom line:</strong> beacons must be deployed farther from structures.</p>
+          </article>
+        </div>
+
+        <div class="callout">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          <span><strong>Bombs still hit hard.</strong> The change is about reaction time: Defenders are cheaper and longer-ranged, and Void Bombs are slower with a longer fuse.</span>
+        </div>
+      </section>
+
+      <!-- What it means -->
+      <section class="section" id="what-it-means" aria-labelledby="meaning-title">
+        <div class="section-header">
+          <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+          <h2 id="meaning-title">What it means</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="lead">The balance pass is not one big swing; it is a set of targeted changes. Carriers trade safety for application, Navy Fighters become more than a niche option, and the least-used T3Cs get quality-of-life improvements.</p>
+        <p class="lead">The Sacrilege and Hawk changes are corrections rather than removals. The Vengeance keeps its capacitor strength but becomes more clearly an armor ship. Defenders and Void Bombs get more counterplay without a direct damage reduction.</p>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Check live values in-game.</strong> The expansion notes are the source for this page; CCP can still adjust numbers with hotfixes after launch.</span>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What is the headline change? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Carriers get Light Fighter application back through the Integrated Sensor Array active effect, and Navy Fighters receive broad HP, damage and speed buffs.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do Tech II Heavy Fighters need a new skill? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. They now require the Fighter Specialization skills added in the Catalyst Major Update. Training them adds 2%–10% damage, depending on the level.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Which T3C changed the most? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The Legion and Proteus get hull improvements, while the Tengu and Proteus get subsystem utility. The Loki gets a deliberately small powergrid bump.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Is the Sacrilege nerfed? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>It is a correction to the Cradle of War buff. Effective launchers drop from 10 to 9.17, but it is still stronger than before that update.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed for the Hawk? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The flat 7.5% rocket and light missile damage bonus is replaced by 10% kinetic damage and 5% EM, Thermal and Explosive damage. Kinetic damage is restored, and the Hawk keeps better damage-type versatility.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed for the Vengeance? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Its capacitor recharge is built into the hull, the old per-level capacitor bonus is removed, and it gains 3% armor HP per Assault Frigate level. Some hitpoints move from shield to armor.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How did Void Bombs change? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Explosion delay increased from 7.5 to 12 seconds and maximum velocity dropped from 4,000 to 2,500 m/s. The Focused Void Bomb is unchanged.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Did Defender Launchers get cheaper? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. Activation cost dropped from 50 GJ to 5 GJ, and Defender Missiles now fly for 5 seconds instead of 3.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What about CONCORD beacons? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The minimum deployment distance from starbases increased from 30,000km to 50,000km for both the regular and carrier versions.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where can I see the exact live numbers? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>In the in-game module and ship info windows. The expansion notes are the source for this page, but CCP can adjust values with hotfixes.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary source</p>
+            <h2>Fractured Skies Expansion Notes — Ship and Module Balance</h2>
+            <p>EVE Online Team · 6 November 2026</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-9" target="_blank" rel="noopener noreferrer">
+              Read expansion notes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/patch-notes-version-24-02" target="_blank" rel="noopener noreferrer">
+              Patch notes 24.02 <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>Balance Guides</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../aberrant-modules/">Aberrant modules</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="../air-academy/">AIR Academy</a>
+          <a href="../conquests/">Conquests</a>
+          <a href="../eve-vanguard/">EVE Vanguard</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-9" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Ship art, expansion details and balance changes: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script src="../assets/lightbox.js"></script>
+</body>
+</html>
