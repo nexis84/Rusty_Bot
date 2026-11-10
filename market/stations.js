@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total stations: 5210
-// Generated: 2026-11-04 18:27:15 UTC
+// Total stations: 5211
+// Generated: 2026-11-10 13:03:20 UTC
 
 const Stations = {
     60015187: { name: '- The Fulcrum - Ancient Jovian Outpost', systemId: 30100000 },
@@ -2678,6 +2678,7 @@ const Stations = {
     60015032: { name: 'Gallente Station Hub', systemId: 30044971 },
     60015214: { name: 'Gallente Station Hub', systemId: 30100059 },
     60015215: { name: 'Gallente Station Hub', systemId: 30100058 },
+    60015266: { name: 'Hall of Restoration - Minmatar Station', systemId: 30002960 },
     60015152: { name: 'Halls of Liberation - Minmatar Station', systemId: 30002544 },
     60007750: { name: 'Information Center - Amarr Station Hub', systemId: 30002263 },
     60007756: { name: 'Information Center - Amarr Station Hub', systemId: 30002265 },

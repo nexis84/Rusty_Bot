@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total systems: 8490
-// Generated: 2026-11-04 18:27:15 UTC
+// Generated: 2026-11-10 13:03:20 UTC
 
 const Systems = [
     { id: 30000995, name: '0-3VW8', regionId: 10000011, securityStatus: -0.033765 },
@@ -1327,7 +1327,6 @@ const Systems = [
     { id: 30003007, name: 'Arveyil', regionId: 10000036, securityStatus: 0.525393 },
     { id: 30002078, name: 'Arwa', regionId: 10000042, securityStatus: 0.12731 },
     { id: 30005086, name: 'Arza', regionId: 10000065, securityStatus: 0.327651 },
-    { id: 30002960, name: 'Arzad', regionId: 10000036, securityStatus: 0.22043 },
     { id: 30003885, name: 'Arzanni', regionId: 10000049, securityStatus: 0.551305 },
     { id: 30005065, name: 'Arzi', regionId: 10000065, securityStatus: 0.138333 },
     { id: 30003921, name: 'Arzieh', regionId: 10000049, securityStatus: 0.296703 },
@@ -7310,6 +7309,7 @@ const Systems = [
     { id: 30002422, name: 'SR-KBB', regionId: 10000029, securityStatus: -0.292992 },
     { id: 30001288, name: 'SS-GED', regionId: 10000015, securityStatus: -0.163631 },
     { id: 30003794, name: 'Stacmon', regionId: 10000048, securityStatus: 0.60528 },
+    { id: 30002960, name: 'Starkman', regionId: 10000036, securityStatus: 0.22043 },
     { id: 30002675, name: 'Stayme', regionId: 10000032, securityStatus: 0.582954 },
     { id: 30100043, name: 'Steadfast', regionId: 10001004, securityStatus: 1.0 },
     { id: 30002696, name: 'Stegette', regionId: 10000032, securityStatus: 0.453173 },

@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE
-// Ships: 426
-// Generated: 2026-11-04
+// Ships: 430
+// Generated: 2026-11-10
 
 const SHIPS = [
   {
@@ -1504,6 +1504,12 @@ const SHIPS = [
     "race": "Caldari"
   },
   {
+    "id": 95630,
+    "name": "Naga Navy Issue",
+    "class": "Attack Battlecruiser",
+    "race": "Caldari"
+  },
+  {
     "id": 19722,
     "name": "Naglfar",
     "class": "Dreadnought",
@@ -1638,6 +1644,12 @@ const SHIPS = [
   {
     "id": 4302,
     "name": "Oracle",
+    "class": "Attack Battlecruiser",
+    "race": "Amarr"
+  },
+  {
+    "id": 95629,
+    "name": "Oracle Navy Issue",
     "class": "Attack Battlecruiser",
     "race": "Amarr"
   },
@@ -2206,6 +2218,12 @@ const SHIPS = [
     "race": "Gallente"
   },
   {
+    "id": 95631,
+    "name": "Talos Navy Issue",
+    "class": "Attack Battlecruiser",
+    "race": "Gallente"
+  },
+  {
     "id": 32878,
     "name": "Talwar",
     "class": "Destroyer",
@@ -2316,6 +2334,12 @@ const SHIPS = [
   {
     "id": 4310,
     "name": "Tornado",
+    "class": "Attack Battlecruiser",
+    "race": "Minmatar"
+  },
+  {
+    "id": 95632,
+    "name": "Tornado Fleet Issue",
     "class": "Attack Battlecruiser",
     "race": "Minmatar"
   },

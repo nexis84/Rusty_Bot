@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE by top-trumps/build_stats.py — do not edit by hand
-// SDE build: 3670638
-// Ships: 426
-// Generated: 2026-11-04
+// SDE build: 3682781
+// Ships: 430
+// Generated: 2026-11-10
 
 const SHIPS = [
   {
@@ -2540,6 +2540,30 @@ const SHIPS = [
     "id": 92825,
     "name": "Ymir",
     "class": "Command Carrier",
+    "race": "Minmatar"
+  },
+  {
+    "id": 95629,
+    "name": "Oracle Navy Issue",
+    "class": "Attack Battlecruiser",
+    "race": "Amarr"
+  },
+  {
+    "id": 95630,
+    "name": "Naga Navy Issue",
+    "class": "Attack Battlecruiser",
+    "race": "Caldari"
+  },
+  {
+    "id": 95631,
+    "name": "Talos Navy Issue",
+    "class": "Attack Battlecruiser",
+    "race": "Gallente"
+  },
+  {
+    "id": 95632,
+    "name": "Tornado Fleet Issue",
+    "class": "Attack Battlecruiser",
     "race": "Minmatar"
   },
   {

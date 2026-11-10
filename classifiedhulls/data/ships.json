@@ -899,7 +899,8 @@
     "bonuses": [
       "reduction in Microwarpdrive signature radius penalty",
       "Can fit Assault Damage Controls",
-      "bonus to Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to Kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage",
+      "bonus to EM, explosive, thermal Light Missile, Heavy Missile and Heavy Assault Missile damage",
       "bonus to Heavy Assault Missile max velocity",
       "bonus to Shield Booster amount",
       "bonus to Rapid Light Missile, Heavy Missile and Heavy Assault Missile Launcher rate of fire"
@@ -2045,7 +2046,8 @@
     "bonuses": [
       "reduction in Microwarpdrive signature radius penalty",
       "Can fit Assault Damage Controls",
-      "bonus to Light Missile and Rocket damage",
+      "bonus to kinetic Light Missile and Rocket damage",
+      "bonus to EM, explosive, thermal Light Missile and Rocket damage",
       "bonus to Light Missile and Rocket Launcher rate of fire",
       "bonus to Light Missile and Rocket max velocity",
       "bonus to Shield Booster amount"
@@ -3314,6 +3316,18 @@
     ]
   },
   {
+    "name": "Naga Navy Issue",
+    "race": "Caldari",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Cruise Missile and Torpedo Launcher powergrid requirement",
+      "reduction in Cruise Missile and Torpedo Launcher cpu requirement",
+      "bonus to kinetic Cruise Missile and Torpedo damage",
+      "bonus to EM, thermal, explosive Cruise Missile and Torpedo damage",
+      "bonus to Cruise Missile and Torpedo max velocity"
+    ]
+  },
+  {
     "name": "Naglfar",
     "race": "Minmatar",
     "class": "Dreadnought",
@@ -3636,6 +3650,19 @@
       "reduction in Large Energy Turret activation cost",
       "reduction in Large Energy Turret activation cost",
       "bonus to Large Energy Turret damage"
+    ]
+  },
+  {
+    "name": "Oracle Navy Issue",
+    "race": "Amarr",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Energy Turret powergrid requirement",
+      "reduction in Large Energy Turret CPU requirement",
+      "reduction in Large Energy Turret activation cost",
+      "reduction in Large Energy Turret activation cost",
+      "bonus to Large Energy Turret damage",
+      "bonus to Large Energy Turret optimal range"
     ]
   },
   {
@@ -4962,6 +4989,19 @@
     ]
   },
   {
+    "name": "Talos Navy Issue",
+    "race": "Gallente",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Hybrid Turret powergrid requirement",
+      "reduction in Large Hybrid Turret CPU requirement",
+      "reduction in Large Hybrid Turret activation cost",
+      "bonus to Large Hybrid Turret damage",
+      "bonus to Large Hybrid Turret falloff",
+      "reduction in Armor Plate mass penalty"
+    ]
+  },
+  {
     "name": "Talwar",
     "race": "Minmatar",
     "class": "Destroyer",
@@ -5199,6 +5239,18 @@
     ]
   },
   {
+    "name": "Tornado Fleet Issue",
+    "race": "Minmatar",
+    "class": "Attack Battlecruiser",
+    "bonuses": [
+      "reduction in Large Projectile Turret powergrid requirement",
+      "reduction in Large Projectile Turret CPU requirement",
+      "bonus to Large Projectile Turret rate of fire",
+      "bonus to Large Projectile Turret falloff",
+      "reduction in Microwarpdrive signature radius penalty"
+    ]
+  },
+  {
     "name": "Torrent",
     "race": "Upwell",
     "class": "Deep Space Transport",
@@ -5411,7 +5463,7 @@
       "bonus to Light Missile and Rocket damage",
       "bonus to Light Missile and Rocket Launcher rate of fire",
       "bonus to all armor resistances",
-      "bonus to ship capacitor recharge rate"
+      "bonus to ship armor hitpoints"
     ]
   },
   {

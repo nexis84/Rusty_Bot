@@ -2,7 +2,7 @@
 // Systems: 5378 (main: 5298)
 // Section exordium: 53
 // Section pochven: 27
-// Generated: 2026-11-04 18:27:15 UTC
+// Generated: 2026-11-10 13:03:20 UTC
 //
 // Excludes wormhole space, Jove space (UUA-F4) and other special
 // regions. Pochven/Exordium entries carry a "group" tag and are
@@ -1102,7 +1102,6 @@ const GATECHECK_SYSTEMS = [
     { id: 30003007, name: 'Arveyil', sec: 0.525 },
     { id: 30002078, name: 'Arwa', sec: 0.127 },
     { id: 30005086, name: 'Arza', sec: 0.328 },
-    { id: 30002960, name: 'Arzad', sec: 0.22 },
     { id: 30003885, name: 'Arzanni', sec: 0.551 },
     { id: 30005065, name: 'Arzi', sec: 0.138 },
     { id: 30003921, name: 'Arzieh', sec: 0.297 },
@@ -4432,6 +4431,7 @@ const GATECHECK_SYSTEMS = [
     { id: 30002422, name: 'SR-KBB', sec: -0.293 },
     { id: 30001288, name: 'SS-GED', sec: -0.164 },
     { id: 30003794, name: 'Stacmon', sec: 0.605 },
+    { id: 30002960, name: 'Starkman', sec: 0.22 },
     { id: 30002675, name: 'Stayme', sec: 0.583 },
     { id: 30100043, name: 'Steadfast', sec: 1.0, group: 'exordium' },
     { id: 30002696, name: 'Stegette', sec: 0.453 },
