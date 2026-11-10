@@ -1,0 +1,1914 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    ACHIEVEMENTS GUIDE TEMPLATE
+    Duplicate this page for future achievement/checklist updates. Swap the
+    career lists, targets, early-game entries and source links.
+  -->
+
+  <title>AIR Career Achievements — Fractured Skies | RustyBot</title>
+  <meta name="description" content="All 78 AIR Career Program achievements in Fractured Skies: Explorer, Enforcer, Industrialist and Soldier lists, early-game achievements and discoverables.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/achievements/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/achievements/">
+  <meta property="og:title" content="AIR Career Achievements — Fractured Skies | RustyBot">
+  <meta property="og:description" content="All 78 AIR Career Program achievements, plus early-game and discoverable achievements.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-achievements.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="AIR Career achievements in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AIR Career Achievements — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="All 78 AIR Career Program achievements, plus early-game and discoverable achievements.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-achievements.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "AIR Career Achievements — Fractured Skies",
+    "description": "All 78 AIR Career Program achievements in Fractured Skies, plus early-game and discoverable achievements.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/achievements/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-achievements.jpg",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-4"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --blood: #e05a5a;
+      --angel: #d9a441;
+      --guristas: #5fd0c3;
+      --serpentis: #b38cff;
+      --sansha: #e6d38a;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.6rem, 5vw, 4.25rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    /* ---------- Rig matrix ---------- */
+    .hero-visual { min-width: 0; }
+    .rig-matrix {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 11px 10px;
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--faction-color, var(--accent));
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .matrix-cell:hover {
+      background: rgba(232, 217, 0, 0.04);
+      border-color: var(--accent-dim);
+      border-top-color: var(--faction-color, var(--accent));
+    }
+    .matrix-cell span {
+      color: var(--faction-color, var(--dim));
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .matrix-cell strong {
+      color: #ffffff;
+      font-size: 0.76rem;
+      line-height: 1.25;
+    }
+    .matrix-caption {
+      margin: 12px 0 0;
+      color: var(--dim);
+      font-size: 0.68rem;
+      line-height: 1.5;
+    }
+
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+    .f-blood { --faction-color: var(--blood); }
+    .f-angel { --faction-color: var(--angel); }
+    .f-guristas { --faction-color: var(--guristas); }
+    .f-serpentis { --faction-color: var(--serpentis); }
+    .f-sansha { --faction-color: var(--sansha); }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 80ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- How it works ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Notes figure ---------- */
+    .notes-figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #000;
+    }
+    .notes-figure img { display: block; width: 100%; height: auto; }
+    .notes-caption {
+      margin: 10px 2px 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .notes-caption a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .notes-caption a:hover { color: var(--accent); }
+
+    /* ---------- Rig cards ---------- */
+    .rig-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .rig-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--faction-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .rig-card:hover { border-color: var(--accent-dim); border-top-color: var(--faction-color, var(--accent)); transform: translateY(-2px); }
+    .rig-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .faction-tag {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.6);
+      color: var(--faction-color, var(--dim));
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .rig-kind {
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .rig-card h3 {
+      margin: 0 0 12px;
+      color: #ffffff;
+      font-size: 1.2rem;
+      line-height: 1.25;
+    }
+    .rig-bonuses {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .rig-bonuses li {
+      position: relative;
+      margin: 5px 0;
+      padding-left: 16px;
+      color: #d0d0d0;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .rig-bonuses li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .rig-scaling {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 5px;
+      background: rgba(232, 217, 0, 0.04);
+      color: var(--accent);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+    .rig-drawback {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border-left: 2px solid #d9534f;
+      border-radius: 0 5px 5px 0;
+      background: rgba(217, 83, 79, 0.06);
+      color: #e0b0ae;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+    .rig-drawback strong { color: #ff9b95; }
+    .rig-source {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.72rem;
+    }
+    .rig-source i { color: var(--accent); }
+
+    .rig-note-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px;
+      border: 1px dashed var(--accent-dim);
+      border-radius: 8px;
+      background: rgba(232, 217, 0, 0.03);
+    }
+    .rig-note-card i { margin-bottom: 10px; color: var(--accent); font-size: 1.2rem; }
+    .rig-note-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.05rem; }
+    .rig-note-card p { margin: 0 0 10px; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .rig-note-card a { color: var(--accent); font-size: 0.74rem; text-decoration: none; }
+    .rig-note-card a:hover { text-decoration: underline; }
+
+    /* ---------- Table ---------- */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    table { width: 100%; min-width: 1020px; border-collapse: collapse; }
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ffffff; font-weight: 600; white-space: nowrap; }
+    td .sub { display: block; color: var(--dim); font-size: 0.68rem; font-weight: 400; margin-top: 2px; }
+    .table-note { margin: 10px 0 0; color: var(--dim); font-size: 0.72rem; }
+
+    /* ---------- Sources / skill / manufacturing ---------- */
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .lp-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .lp-card .card-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .lp-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.98rem; }
+    .lp-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+    .lp-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .lp-card li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    .skill-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .skill-panel h3 { margin: 4px 0 8px; color: #ffffff; font-size: 1.15rem; }
+    .skill-panel p { margin: 0; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .skill-facts { margin: 0; padding-left: 18px; color: #d0d0d0; font-size: 0.84rem; line-height: 1.7; }
+    .skill-facts li { margin: 6px 0; }
+    .skill-facts li::marker { color: var(--accent); }
+
+    .manufacturing {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 28px;
+    }
+    .manufacturing h3 { margin: 4px 0 10px; color: #ffffff; font-size: 1.15rem; }
+    .manufacturing p { margin: 0 0 12px; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .check-list { margin: 0; padding: 0; list-style: none; }
+    .check-list li {
+      position: relative;
+      padding-left: 18px;
+      margin: 7px 0;
+      color: #d0d0d0;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .quote {
+      margin: 22px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p { margin: 0; color: #f0f0f0; font-size: 1.05rem; line-height: 1.6; }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- FAQ ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    /* ---------- Source / footer ---------- */
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Aberrant module extras ---------- */
+    .module-matrix { grid-template-columns: repeat(2, 1fr); }
+    .m-overdrive { --faction-color: #e8d900; }
+    .m-shield { --faction-color: #63d8e6; }
+    .m-drone { --faction-color: #65d98a; }
+    .m-cap { --faction-color: #b38cff; }
+    .module-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling strong { color: #ffffff; }
+    .module-card .rig-source i { color: var(--faction-color, var(--accent)); }
+
+    /* ---------- Balance extras ---------- */
+    .balance-matrix { grid-template-columns: repeat(2, 1fr); }
+    .b-carrier { --faction-color: #63d8e6; }
+    .b-t3c { --faction-color: #b38cff; }
+    .b-hull { --faction-color: #65d98a; }
+    .b-bomb { --faction-color: #f0a35c; }
+    .balance-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling strong { color: #ffffff; }
+    .balance-card .rig-source i { color: var(--faction-color, var(--accent)); }
+    .balance-chip {
+      display: inline-block;
+      margin-right: 4px;
+      padding: 2px 6px;
+      border: 1px solid var(--faction-color, var(--accent));
+      border-radius: 4px;
+      color: var(--faction-color, var(--accent));
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- QoL extras ---------- */
+    .little-matrix { grid-template-columns: repeat(4, 1fr); }
+    .qol-list { border-top: 1px solid var(--border); }
+    .qol-item {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .qol-item > i { color: var(--accent); margin-top: 3px; font-size: 0.9rem; }
+    .qol-item h3 { margin: 0 0 3px; color: #ffffff; font-size: 0.95rem; }
+    .qol-item p { margin: 0; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .qol-item p strong { color: #ffffff; }
+    .qol-meta { margin: 5px 0 0; color: var(--accent); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.3px; }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .little-matrix { grid-template-columns: repeat(2, 1fr); }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .rig-grid { grid-template-columns: 1fr; }
+      .lp-grid { grid-template-columns: 1fr; }
+      .skill-panel { grid-template-columns: 1fr; }
+      .manufacturing { grid-template-columns: 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .info-grid { grid-template-columns: 1fr; }
+      .qol-item { grid-template-columns: 28px 1fr; gap: 10px; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">Achievement Guides</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">Achievements</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-4" target="_blank" rel="noopener noreferrer">
+      Achievements <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 78 career achievements · 4 paths</div>
+        <p class="kicker">Fractured Skies · Paragon Achievement System</p>
+        <h1 id="hero-title">AIR Career <span>Achievements</span></h1>
+        <p class="hero-sub">All 78 AIR Career Program achievements, plus the early-game and discoverable milestones around them.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#explorer">
+            <i class="fa-solid fa-compass" aria-hidden="true"></i> Browse the list
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>78 career achievements</span>
+          <span>4 paths</span>
+          <span>Early-game</span>
+          <span>Discoverables</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <figure class="notes-figure">
+          <img src="../assets/air-achievements.webp" alt="AIR Career Program achievements in the EVE Online NEOCOM" width="1200" height="675" fetchpriority="high">
+        </figure>
+        <p class="notes-caption">AIR Career Program achievements in the NEOCOM. Image: CCP Games / Fenris Creations. Click to enlarge.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- How it works -->
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <h2 id="how-title">How the Career Program works</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The AIR Career Program now lives inside Paragon's Achievement System.</p>
+        <p class="lead">The Career Program is the structured introduction to New Eden's play styles. It is split into four paths — <strong>Explorer</strong>, <strong>Enforcer</strong>, <strong>Industrialist</strong> and <strong>Soldier</strong> — with <strong>78 achievements</strong> in total.</p>
+        <p class="lead">All capsuleers can take part, including characters who completed the old Career Program. Completing it again grants its rewards again. Achievements are now found in the <strong>NEOCOM</strong>.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-trophy" aria-hidden="true"></i></div>
+            <h3>78 achievements</h3>
+            <p>14 Explorer, 14 Enforcer, 24 Industrialist and 26 Soldier achievements.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></div>
+            <h3>Four paths</h3>
+            <p>Each path tracks a different play style and has its own milestones and rewards.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i></div>
+            <h3>Repeatable rewards</h3>
+            <p>All capsuleers can complete the program, and repeat completions grant the rewards again.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-window-restore" aria-hidden="true"></i></div>
+            <h3>In the NEOCOM</h3>
+            <p>The Career Program has a new home in the NEOCOM's Achievement System.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Career paths -->
+      <!-- Explorer -->
+      <section class="section" id="explorer" aria-labelledby="explorer-title">
+        <div class="section-header">
+          <i class="fa-solid fa-compass" aria-hidden="true"></i>
+          <h2 id="explorer-title">Explorer</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">14 achievements · Scan, hack, travel and explore New Eden.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Explorer Career</h3>
+          <p>Start a conversation with an Explorer Career Agent and complete their missions</p>
+        <p class="qol-meta">Tiers: 1–5</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Low-Sec Hacking</h3>
+          <p>Successfully hack 20 containers in low-sec space</p>
+        <p class="qol-meta">Target: 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Null-Sec Hacking</h3>
+          <p>Successfully hack 20 containers in null-sec space</p>
+        <p class="qol-meta">Target: 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Wormhole Hacking</h3>
+          <p>Successfully hack 20 containers in wormhole space</p>
+        <p class="qol-meta">Target: 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>High-Sec Navigation</h3>
+          <p>Visit 5 different systems in high-sec space</p>
+        <p class="qol-meta">Target: 5</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Low-Sec Navigation</h3>
+          <p>Visit 5 different systems in low-sec space</p>
+        <p class="qol-meta">Target: 5</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Null-Sec Navigation</h3>
+          <p>Visit 5 different systems in null-sec space</p>
+        <p class="qol-meta">Target: 5</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Visit Combat Sites</h3>
+          <p>Enter 15 combat sites</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Visit Gas Sites</h3>
+          <p>Enter 15 gas sites</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Hacking</h3>
+          <p>Successfully hack 25 containers with a Data or Relic Analyzer</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15 / 25</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Navigation</h3>
+          <p>Make 100 Stargate jumps</p>
+        <p class="qol-meta">Tiers: 25 / 50 / 100</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Project Discovery</h3>
+          <p>Submit 50 samples in Project Discovery</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 25 / 50</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Scanning</h3>
+          <p>Scan 50 Cosmic Signatures to 100% signal strength</p>
+        <p class="qol-meta">Tiers: 1 / 10 / 25 / 50</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Scan Wormholes</h3>
+          <p>Scan 15 Wormholes to 100% signal strength</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15</p>
+        </div>
+      </div>
+      </div>
+      </section>
+
+      <!-- Enforcer -->
+      <section class="section" id="enforcer" aria-labelledby="enforcer-title">
+        <div class="section-header">
+          <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+          <h2 id="enforcer-title">Enforcer</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">14 achievements · Combat, Abyssal Deadspace, bounties and Epic Arcs.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Enforcer Career</h3>
+          <p>Start a conversation with an Enforcer Career Agent and complete the missions they offer you</p>
+        <p class="qol-meta">Tiers: 1–10</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Security Agent</h3>
+          <p>Start a conversation with a Security Agent and complete their missions</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15 / 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Enter the Abyss</h3>
+          <p>Enter a Tranquil (Tier 0) Abyssal Deadspace site</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Abyssal Survival</h3>
+          <p>Complete 5 Tranquil (Tier 0) Abyssal Deadspace sites</p>
+        <p class="qol-meta">Tiers: 1 / 5</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Abyssal Kills</h3>
+          <p>Destroy 30 enemies in Abyssal Deadspace</p>
+        <p class="qol-meta">Target: 30</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Bounty Hunter</h3>
+          <p>Earn 5,000,000 ISK from Bounties</p>
+        <p class="qol-meta">Tiers: 250,000 / 500,000 / 1,000,000 / 5,000,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Combat Sites</h3>
+          <p>Complete 25 combat sites</p>
+        <p class="qol-meta">Tiers: 5 / 15 / 25</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Destroy Hostiles</h3>
+          <p>Destroy 300 hostile non-capsuleers</p>
+        <p class="qol-meta">Tiers: 100 / 150 / 200 / 250 / 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Epic Arc Missions</h3>
+          <p>Complete 20 Epic Arc missions</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Epic Arc Completed</h3>
+          <p>Complete an Epic Arc</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Loyalty Points</h3>
+          <p>Earn 500 Loyalty Points</p>
+        <p class="qol-meta">Tiers: 50 / 100 / 250 / 500</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Spend Loyalty Points</h3>
+          <p>Spend 300 Loyalty Points</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Market Spending</h3>
+          <p>Spend 1,000,000 ISK on the Regional Marketplace</p>
+        <p class="qol-meta">Tiers: 50,000 / 250,000 / 500,000 / 1,000,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Earn Standings</h3>
+          <p>Increase your standings with a corporation by 100</p>
+        <p class="qol-meta">Tiers: 10 / 25 / 50 / 100</p>
+        </div>
+      </div>
+      </div>
+      </section>
+
+      <!-- Industrialist -->
+      <section class="section" id="industrialist" aria-labelledby="industrialist-title">
+        <div class="section-header">
+          <i class="fa-solid fa-industry" aria-hidden="true"></i>
+          <h2 id="industrialist-title">Industrialist</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">24 achievements · Mine, build, reprocess, trade and salvage.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Entrepreneur Career</h3>
+          <p>Start a conversation with an Industrialist - Entrepreneur Career Agent and complete their Missions</p>
+        <p class="qol-meta">Tiers: 2 / 4 / 6 / 8 / 10</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Producer Career</h3>
+          <p>Start a conversation with an Industrialist - Producer Career Agent and complete their Missions</p>
+        <p class="qol-meta">Tiers: 2 / 4 / 6 / 8 / 10</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Buy a Blueprint</h3>
+          <p>Buy a Blueprint from the Regional Marketplace</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Copy a Blueprint</h3>
+          <p>Create a Blueprint Copy</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>BP Material Research</h3>
+          <p>Research a Blueprint to 1% Material Efficiency</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>BP Time Research</h3>
+          <p>Research a Blueprint to 2% Time Efficiency</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Distribution Agent</h3>
+          <p>Start a conversation with a Distribution Agent and complete their missions</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15 / 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Manufacture Shuttle</h3>
+          <p>Manufacture a Shuttle</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Manufacture Frigate</h3>
+          <p>Manufacture a Frigate</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Manufacture Destroyer</h3>
+          <p>Manufacture a Destroyer</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Manufacture Cruiser</h3>
+          <p>Manufacture a Cruiser</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Market Earnings</h3>
+          <p>Earn 1,000,000 ISK on the Regional Marketplace</p>
+        <p class="qol-meta">Tiers: 50,000 / 100,000 / 250,000 / 500,000 / 1,000,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Mining Agent</h3>
+          <p>Start a conversation with a Mining Agent and complete their missions</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15 / 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Reprocess Veldspar</h3>
+          <p>Reprocess 49,000 units of Veldspar</p>
+        <p class="qol-meta">Target: 49,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Reprocess Scordite</h3>
+          <p>Reprocess 30,000 units of Scordite</p>
+        <p class="qol-meta">Target: 30,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Reprocess Pyroxeres</h3>
+          <p>Reprocess 16,000 units of Pyroxeres</p>
+        <p class="qol-meta">Target: 16,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Reprocess Plagioclase</h3>
+          <p>Reprocess 14,000 units of Plagioclase</p>
+        <p class="qol-meta">Target: 14,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Reprocess Kernite</h3>
+          <p>Reprocess 4,000 units of Kernite</p>
+        <p class="qol-meta">Target: 4,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Veldspar Miner</h3>
+          <p>Mine 49,000 units of Veldspar</p>
+        <p class="qol-meta">Target: 49,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Scordite Miner</h3>
+          <p>Mine 30,000 units of Scordite</p>
+        <p class="qol-meta">Target: 30,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Pyroxeres Miner</h3>
+          <p>Mine 16,000 units of Pyroxeres</p>
+        <p class="qol-meta">Target: 16,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Plagioclase Miner</h3>
+          <p>Mine 14,000 units of Plagioclase</p>
+        <p class="qol-meta">Target: 14,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Kernite Miner</h3>
+          <p>Mine 4,000 units of Kernite</p>
+        <p class="qol-meta">Target: 4,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-industry" aria-hidden="true"></i>
+        <div>
+          <h3>Salvage</h3>
+          <p>Salvage 50 wrecks</p>
+        <p class="qol-meta">Tiers: 10 / 25 / 50</p>
+        </div>
+      </div>
+      </div>
+      </section>
+
+      <!-- Soldier -->
+      <section class="section" id="soldier" aria-labelledby="soldier-title">
+        <div class="section-header">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          <h2 id="soldier-title">Soldier</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">26 achievements · PvP, Factional Warfare, fleets and support.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Soldier Career</h3>
+          <p>Start a conversation with a Soldier agent and complete their missions</p>
+        <p class="qol-meta">Tiers: 1–10</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Capacitor Drain</h3>
+          <p>Drain 250 GJs of energy from a hostile target</p>
+        <p class="qol-meta">Tiers: 50 / 100 / 250</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Capacitor Neut</h3>
+          <p>Neutralize 2,000 GJs of energy from a hostile target</p>
+        <p class="qol-meta">Tiers: 100 / 500 / 2,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Frigate Combat</h3>
+          <p>Destroy 75 non-capsuleers while piloting a frigate</p>
+        <p class="qol-meta">Target: 75</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Destroyer Combat</h3>
+          <p>Destroy 75 non-capsuleers while piloting a destroyer</p>
+        <p class="qol-meta">Target: 75</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Cruiser Combat</h3>
+          <p>Destroy 75 non-capsuleers while piloting a cruiser</p>
+        <p class="qol-meta">Target: 75</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Cost of War</h3>
+          <p>Lose 20 ships</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15 / 20</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Dueling</h3>
+          <p>Participate in 15 Duels with other capsuleers</p>
+        <p class="qol-meta">Tiers: 1 / 5 / 10 / 15</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Webifier</h3>
+          <p>Webify another ship for 300 seconds</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Target Painter</h3>
+          <p>Target Paint another ship for 300 seconds</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Warp Disruptor</h3>
+          <p>Use a Warp Disruptor for 300 seconds on another ship</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Warp Scrambler</h3>
+          <p>Use a Warp Scrambler for 300 seconds on another ship</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Weapon Disruptor</h3>
+          <p>Use a Weapon Disruptor for 300 seconds on another ship</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>FW Enlist</h3>
+          <p>Enlist with an Empire for Factional Warfare</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>FW Final Blow</h3>
+          <p>Deal the final damage that destroys another capsuleer in Factional Warfare</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>FW Mission</h3>
+          <p>Complete a level 1 Factional Warfare mission</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>FW Scout Defender</h3>
+          <p>Defend a Scout Complex in Factional Warfare</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>FW Scout Capture</h3>
+          <p>Capture a Scout Complex in Factional Warfare</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Final Blow</h3>
+          <p>Deal the final damage that destroys 5 capsuleers</p>
+        <p class="qol-meta">Tiers: 2–5</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Chat</h3>
+          <p>Send a chat message</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Join Fleet</h3>
+          <p>Join a Fleet with other capsuleers</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Join Corp</h3>
+          <p>Join a capsuleer run corporation</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>EVE Mail</h3>
+          <p>Send an EVE Mail to another capsuleer</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Contact</h3>
+          <p>Add a capsuleer to your Contact List</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Remote Shield Boost</h3>
+          <p>Use a Remote Shield Booster to boost another capsuleer’s shield by 2,500 hp.</p>
+        <p class="qol-meta">Tiers: 500 / 1,000 / 2,500</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <div>
+          <h3>Remote Armor Repair</h3>
+          <p>Use a Remote Armor Repairer to repair another capsuleer’s armor by 2,500 hp</p>
+        <p class="qol-meta">Tiers: 500 / 1,000 / 2,500</p>
+        </div>
+      </div>
+      </div>
+      </section>
+
+      <!-- Early game -->
+      <section class="section" id="early-game" aria-labelledby="early-title">
+        <div class="section-header">
+          <i class="fa-solid fa-seedling" aria-hidden="true"></i>
+          <h2 id="early-title">Early-game achievements</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The new-player milestones called out in the expansion notes.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+        <div>
+          <h3>Academy Pilot</h3>
+          <p>Board an AIR Academy ship.</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-compass" aria-hidden="true"></i>
+        <div>
+          <h3>Stellar Exploration</h3>
+          <p>Enter 30 different solar systems.</p>
+        <p class="qol-meta">Target: 30</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-house" aria-hidden="true"></i>
+        <div>
+          <h3>Home of High-Sec</h3>
+          <p>Enter the Yulai system.</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+        <div>
+          <h3>Tour the Embassy</h3>
+          <p>Visit any of the systems in the four Empire constellations within Exordium.</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-flag" aria-hidden="true"></i>
+        <div>
+          <h3>Report For Duty</h3>
+          <p>Travel to an Empire factional warfare headquarters system.</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      </div>
+      </section>
+
+      <!-- Discoverable -->
+      <section class="section" id="discoverable" aria-labelledby="discoverable-title">
+        <div class="section-header">
+          <i class="fa-solid fa-question" aria-hidden="true"></i>
+          <h2 id="discoverable-title">Discoverable achievements</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Hidden requirements, with hints in the name, rewards and flavor text.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <div>
+          <h3>Part of the Pack</h3>
+          <p>Join 200 Fleets.</p>
+        <p class="qol-meta">Target: 200</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-crosshairs" aria-hidden="true"></i>
+        <div>
+          <h3>Bite the Hand That Feeds</h3>
+          <p>Hunt down and deliver the killing blow to 100 FC Corp Pilots.</p>
+        <p class="qol-meta">Target: 100</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-comments" aria-hidden="true"></i>
+        <div>
+          <h3>Loquacious</h3>
+          <p>Send 10,000 chat messages.</p>
+        <p class="qol-meta">Target: 10,000</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        <div>
+          <h3>Head of the Class</h3>
+          <p>Complete all 78 Career Program achievements.</p>
+        <p class="qol-meta">Target: 78</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-skull" aria-hidden="true"></i>
+        <div>
+          <h3>Scrambled, Poached, Fried</h3>
+          <p>Deal the final damage that destroys 300 capsuleer capsules.</p>
+        <p class="qol-meta">Target: 300</p>
+        </div>
+      </div>
+      </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Count note:</strong> the expansion notes highlight four Discoverable achievements at launch, while the current client data flags five in the Other category. The list above follows the client data.</span>
+        </div>
+      </section>
+
+      <!-- Other -->
+      <section class="section" id="other" aria-labelledby="other-title">
+        <div class="section-header">
+          <i class="fa-solid fa-star" aria-hidden="true"></i>
+          <h2 id="other-title">Other notable achievements</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">A few more entries from the Other category.</p>
+        <div class="qol-list">
+      <div class="qol-item">
+        <i class="fa-solid fa-star" aria-hidden="true"></i>
+        <div>
+          <h3>Stellar Career</h3>
+          <p>Complete all the missions in any career agent&#x27;s mission chain.</p>
+        <p class="qol-meta">Target: 1</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-book" aria-hidden="true"></i>
+        <div>
+          <h3>Epic Initiate</h3>
+          <p>Complete 15 Epic Arcs.</p>
+        <p class="qol-meta">Tiers: 3 / 15</p>
+        </div>
+      </div>
+      <div class="qol-item">
+        <i class="fa-solid fa-flask" aria-hidden="true"></i>
+        <div>
+          <h3>Peer Reviewed</h3>
+          <p>Process 2,000 samples for Project Discovery.</p>
+        <p class="qol-meta">Tiers: 200 / 2,000</p>
+        </div>
+      </div>
+      </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Beyond the Career Program:</strong> the client also has Factional Warfare, Combat, Exploration, Industry and Other achievement categories, plus time-limited campaign and Path to Conquest achievements.</span>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>How many AIR Career achievements are there? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>78, split across Explorer (14), Enforcer (14), Industrialist (24) and Soldier (26).</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Are these all the achievements in the game? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. The client also has Factional Warfare, Combat, Exploration, Industry and Other categories, plus time-limited campaign and Path to Conquest achievements.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Do I have to complete the paths in order? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. Each achievement tracks its own progress. The paths group the content and each has its own milestones.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I complete the Career Program again? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Yes. All capsuleers can take part, including characters who completed the old program, and completing it again grants its rewards again.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where are achievements in the UI? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The Career Program is now in the NEOCOM's Paragon Achievement System.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are Discoverable achievements? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Achievements that hide their exact requirements. Their name, rewards and flavor text provide hints.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are the early-game achievements? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Academy Pilot, Stellar Exploration, Home of High-Sec, Tour the Embassy and Report For Duty.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Why do some descriptions show a higher target? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Many achievements have several tiers. The description uses the highest tier for readability; the exact tier values are listed underneath each entry.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where did this list come from? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The EVE client's achievement data and English localization, cross-checked against the Fractured Skies expansion notes on 10 November 2026.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary sources</p>
+            <h2>Fractured Skies Expansion Notes — New Achievements</h2>
+            <p>EVE Online Team · 6 November 2026 · achievement data extracted from the EVE client</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-4" target="_blank" rel="noopener noreferrer">
+              Read expansion notes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="../air-academy/" target="_blank" rel="noopener noreferrer">
+              AIR Academy guide <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>Achievement Guides</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../air-academy/">AIR Academy</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../aberrant-modules/">Aberrant modules</a>
+          <a href="../ship-balance/">Ship &amp; module balance</a>
+          <a href="../rogue-drone-outbreaks/">Rogue Drone Outbreaks</a>
+          <a href="../level-1-missions/">Level 1 missions</a>
+          <a href="../factional-warfare-changes/">Factional Warfare changes</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="../conquests/">Conquests</a>
+          <a href="../eve-vanguard/">EVE Vanguard</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-4" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Achievement data, icons and expansion details: CCP Games / Fenris Creations. List extracted from the EVE client on 10 November 2026. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script src="../assets/lightbox.js"></script>
+</body>
+</html>
