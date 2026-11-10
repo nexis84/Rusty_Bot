@@ -1,0 +1,1390 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    QOL GUIDE TEMPLATE
+    Duplicate this page for future quality-of-life roundups. Swap the category
+    sections, item rows and source links.
+  -->
+
+  <title>Little Things &amp; Audio — Fractured Skies | RustyBot</title>
+  <meta name="description" content="Every Little Thing and Audio change in Fractured Skies: fleet broadcasts, overview groups, fitting and industry, skills, interface and tutorial audio.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/little-things/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/little-things/">
+  <meta property="og:title" content="Little Things &amp; Audio — Fractured Skies | RustyBot">
+  <meta property="og:description" content="24 quality-of-life changes across fleet, overview, fitting, skills, interface and audio.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-little-things.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Little Things and Audio changes in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Little Things &amp; Audio — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="24 quality-of-life changes across fleet, overview, fitting, skills, interface and audio.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-little-things.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Little Things & Audio — Fractured Skies",
+    "description": "Every Little Thing and Audio change in Fractured Skies: fleet broadcasts, overview groups, fitting and industry, skills, interface and tutorial audio.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/little-things/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-little-things.jpg",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "isBasedOn": [
+      "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-5",
+      "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-15"
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --blood: #e05a5a;
+      --angel: #d9a441;
+      --guristas: #5fd0c3;
+      --serpentis: #b38cff;
+      --sansha: #e6d38a;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.6rem, 5vw, 4.25rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    /* ---------- Rig matrix ---------- */
+    .hero-visual { min-width: 0; }
+    .rig-matrix {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 11px 10px;
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--faction-color, var(--accent));
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .matrix-cell:hover {
+      background: rgba(232, 217, 0, 0.04);
+      border-color: var(--accent-dim);
+      border-top-color: var(--faction-color, var(--accent));
+    }
+    .matrix-cell span {
+      color: var(--faction-color, var(--dim));
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .matrix-cell strong {
+      color: #ffffff;
+      font-size: 0.76rem;
+      line-height: 1.25;
+    }
+    .matrix-caption {
+      margin: 12px 0 0;
+      color: var(--dim);
+      font-size: 0.68rem;
+      line-height: 1.5;
+    }
+
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+    .f-blood { --faction-color: var(--blood); }
+    .f-angel { --faction-color: var(--angel); }
+    .f-guristas { --faction-color: var(--guristas); }
+    .f-serpentis { --faction-color: var(--serpentis); }
+    .f-sansha { --faction-color: var(--sansha); }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 80ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- How it works ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Notes figure ---------- */
+    .notes-figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #000;
+    }
+    .notes-figure img { display: block; width: 100%; height: auto; }
+    .notes-caption {
+      margin: 10px 2px 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .notes-caption a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .notes-caption a:hover { color: var(--accent); }
+
+    /* ---------- Rig cards ---------- */
+    .rig-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .rig-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--faction-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .rig-card:hover { border-color: var(--accent-dim); border-top-color: var(--faction-color, var(--accent)); transform: translateY(-2px); }
+    .rig-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .faction-tag {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.6);
+      color: var(--faction-color, var(--dim));
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .rig-kind {
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .rig-card h3 {
+      margin: 0 0 12px;
+      color: #ffffff;
+      font-size: 1.2rem;
+      line-height: 1.25;
+    }
+    .rig-bonuses {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .rig-bonuses li {
+      position: relative;
+      margin: 5px 0;
+      padding-left: 16px;
+      color: #d0d0d0;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .rig-bonuses li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .rig-scaling {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 5px;
+      background: rgba(232, 217, 0, 0.04);
+      color: var(--accent);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+    .rig-drawback {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border-left: 2px solid #d9534f;
+      border-radius: 0 5px 5px 0;
+      background: rgba(217, 83, 79, 0.06);
+      color: #e0b0ae;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+    .rig-drawback strong { color: #ff9b95; }
+    .rig-source {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.72rem;
+    }
+    .rig-source i { color: var(--accent); }
+
+    .rig-note-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px;
+      border: 1px dashed var(--accent-dim);
+      border-radius: 8px;
+      background: rgba(232, 217, 0, 0.03);
+    }
+    .rig-note-card i { margin-bottom: 10px; color: var(--accent); font-size: 1.2rem; }
+    .rig-note-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.05rem; }
+    .rig-note-card p { margin: 0 0 10px; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .rig-note-card a { color: var(--accent); font-size: 0.74rem; text-decoration: none; }
+    .rig-note-card a:hover { text-decoration: underline; }
+
+    /* ---------- Table ---------- */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    table { width: 100%; min-width: 1020px; border-collapse: collapse; }
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ffffff; font-weight: 600; white-space: nowrap; }
+    td .sub { display: block; color: var(--dim); font-size: 0.68rem; font-weight: 400; margin-top: 2px; }
+    .table-note { margin: 10px 0 0; color: var(--dim); font-size: 0.72rem; }
+
+    /* ---------- Sources / skill / manufacturing ---------- */
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .lp-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .lp-card .card-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .lp-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.98rem; }
+    .lp-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+    .lp-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .lp-card li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    .skill-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .skill-panel h3 { margin: 4px 0 8px; color: #ffffff; font-size: 1.15rem; }
+    .skill-panel p { margin: 0; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .skill-facts { margin: 0; padding-left: 18px; color: #d0d0d0; font-size: 0.84rem; line-height: 1.7; }
+    .skill-facts li { margin: 6px 0; }
+    .skill-facts li::marker { color: var(--accent); }
+
+    .manufacturing {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 28px;
+    }
+    .manufacturing h3 { margin: 4px 0 10px; color: #ffffff; font-size: 1.15rem; }
+    .manufacturing p { margin: 0 0 12px; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .check-list { margin: 0; padding: 0; list-style: none; }
+    .check-list li {
+      position: relative;
+      padding-left: 18px;
+      margin: 7px 0;
+      color: #d0d0d0;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .quote {
+      margin: 22px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p { margin: 0; color: #f0f0f0; font-size: 1.05rem; line-height: 1.6; }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- FAQ ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    /* ---------- Source / footer ---------- */
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Aberrant module extras ---------- */
+    .module-matrix { grid-template-columns: repeat(2, 1fr); }
+    .m-overdrive { --faction-color: #e8d900; }
+    .m-shield { --faction-color: #63d8e6; }
+    .m-drone { --faction-color: #65d98a; }
+    .m-cap { --faction-color: #b38cff; }
+    .module-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling strong { color: #ffffff; }
+    .module-card .rig-source i { color: var(--faction-color, var(--accent)); }
+
+    /* ---------- Balance extras ---------- */
+    .balance-matrix { grid-template-columns: repeat(2, 1fr); }
+    .b-carrier { --faction-color: #63d8e6; }
+    .b-t3c { --faction-color: #b38cff; }
+    .b-hull { --faction-color: #65d98a; }
+    .b-bomb { --faction-color: #f0a35c; }
+    .balance-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .balance-card .rig-scaling strong { color: #ffffff; }
+    .balance-card .rig-source i { color: var(--faction-color, var(--accent)); }
+    .balance-chip {
+      display: inline-block;
+      margin-right: 4px;
+      padding: 2px 6px;
+      border: 1px solid var(--faction-color, var(--accent));
+      border-radius: 4px;
+      color: var(--faction-color, var(--accent));
+      font-size: 0.56rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- QoL extras ---------- */
+    .little-matrix { grid-template-columns: repeat(4, 1fr); }
+    .qol-list { border-top: 1px solid var(--border); }
+    .qol-item {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .qol-item > i { color: var(--accent); margin-top: 3px; font-size: 0.9rem; }
+    .qol-item h3 { margin: 0 0 3px; color: #ffffff; font-size: 0.95rem; }
+    .qol-item p { margin: 0; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .qol-item p strong { color: #ffffff; }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .little-matrix { grid-template-columns: repeat(2, 1fr); }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .rig-grid { grid-template-columns: 1fr; }
+      .lp-grid { grid-template-columns: 1fr; }
+      .skill-panel { grid-template-columns: 1fr; }
+      .manufacturing { grid-template-columns: 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .info-grid { grid-template-columns: 1fr; }
+      .qol-item { grid-template-columns: 28px 1fr; gap: 10px; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">QoL Guides</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">Little Things &amp; Audio</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-15" target="_blank" rel="noopener noreferrer">
+      Little Things <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 24 changes · 8 areas · QoL + audio</div>
+        <p class="kicker">Fractured Skies · Quality of Life</p>
+        <h1 id="hero-title">Little Things <span>&amp; Audio</span></h1>
+        <p class="hero-sub">24 quality-of-life changes across fleet, overview, fitting, skills, interface and audio.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#at-a-glance">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i> Browse the changes
+          </a>
+          <a class="btn btn-ghost" href="../">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to launch hub
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>24 changes</span>
+          <span>8 areas</span>
+          <span>Fleet &amp; UI</span>
+          <span>Audio fixes</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="rig-matrix">
+          <div class="matrix-head">
+            <span>Fractured Skies</span>
+            <span>QoL + audio</span>
+          </div>
+          <div class="matrix-grid little-matrix">
+            <a class="matrix-cell b-carrier" href="#insurgency">
+              <span>Pirate Insurgency</span>
+              <strong>FOB assets</strong>
+            </a>
+            <a class="matrix-cell b-t3c" href="#character">
+              <span>Character &amp; Corp</span>
+              <strong>Memberships tab</strong>
+            </a>
+            <a class="matrix-cell b-hull" href="#fleet">
+              <span>Fleet &amp; Broadcasts</span>
+              <strong>Watchlist + radial</strong>
+            </a>
+            <a class="matrix-cell b-bomb" href="#overview">
+              <span>Overview</span>
+              <strong>Groups + sorting</strong>
+            </a>
+            <a class="matrix-cell b-carrier" href="#fitting">
+              <span>Fitting &amp; Industry</span>
+              <strong>Imports + search</strong>
+            </a>
+            <a class="matrix-cell b-t3c" href="#skills">
+              <span>Skills</span>
+              <strong>Plan totals</strong>
+            </a>
+            <a class="matrix-cell b-hull" href="#interface">
+              <span>Interface</span>
+              <strong>Links + bookmarks</strong>
+            </a>
+            <a class="matrix-cell b-bomb" href="#audio">
+              <span>Audio</span>
+              <strong>Tutorial + jump</strong>
+            </a>
+          </div>
+          <p class="matrix-caption">The full Little Things list plus the Audio changes from the Fractured Skies notes.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- At a glance -->
+      <section class="section" id="at-a-glance" aria-labelledby="glance-title">
+        <div class="section-header">
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <h2 id="glance-title">At a glance</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Small changes, grouped by the part of the client they touch.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></div>
+            <h3>24 changes</h3>
+            <p>Quality-of-life fixes across seven Little Things categories plus two Audio changes.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></div>
+            <h3>8 areas</h3>
+            <p>Pirate Insurgency, character/corp, fleet, overview, fitting/industry, skills, interface and audio.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></div>
+            <h3>Mostly automatic</h3>
+            <p>Many changes apply without any setup: broadcast options, overview groups, fitting imports and audio cleanup.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></div>
+            <h3>A few new settings</h3>
+            <p>Watchlist auto-open, overview header sorting and bookmark expiry are optional toggles you can control.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pirate Insurgency -->
+      <section class="section" id="insurgency" aria-labelledby="insurgency-title">
+        <div class="section-header">
+          <i class="fa-solid fa-skull" aria-hidden="true"></i>
+          <h2 id="insurgency-title">Pirate Insurgency</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">FOB asset delivery now defaults to Zarzakh.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-boxes-packing" aria-hidden="true"></i>
+            <div>
+              <h3>FOB assets go to Zarzakh</h3>
+              <p>Pirate Insurgency FOB assets are now sent to <strong>Zarzakh by default</strong>, rather than the closest lowsec system. If the pirate faction wins the Insurgency, the tax is lowered to <strong>0.5% instead of 15%</strong>. Assets can be delivered manually immediately and will auto-redeem after one day on victory.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Character and Corporation -->
+      <section class="section" id="character" aria-labelledby="character-title">
+        <div class="section-header">
+          <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+          <h2 id="character-title">Character &amp; Corporation</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Corporation management moves into a new Memberships tab.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-users-gear" aria-hidden="true"></i>
+            <div>
+              <h3>Memberships tab</h3>
+              <p><strong>Resign as CEO</strong> and <strong>Quit Corp</strong> are removed from the right-click menu. A new <strong>Memberships</strong> tab under Character Sheet &gt; Character shows corporation, alliance and faction memberships, and lets you remove roles, block role assignment, resign as CEO and quit your corporation.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fleet and Broadcasts -->
+      <section class="section" id="fleet" aria-labelledby="fleet-title">
+        <div class="section-header">
+          <i class="fa-solid fa-users" aria-hidden="true"></i>
+          <h2 id="fleet-title">Fleet &amp; Broadcasts</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">More feedback for jumps, and more control over the watchlist.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            <div>
+              <h3>Cyno jump/bridge feedback</h3>
+              <p>The HUD now shows temporary text when jumping or bridging to a cyno: <strong>“Preparing jump/bridge to {system}”</strong> before the command is issued, then <strong>“Jumping/bridging to {system}”</strong> while the jump or bridge is in progress.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i>
+            <div>
+              <h3>Heal Target broadcast</h3>
+              <p>The broadcast radial menu now includes a <strong>Heal Target</strong> option.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+            <div>
+              <h3>Broadcast history radial menu</h3>
+              <p>The radial menu now opens for entries in the broadcast history. It shows the broadcaster, target, item or location depending on the broadcast type. If the target is no longer accessible, the menu is empty.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+            <div>
+              <h3>Watchlist auto-open setting</h3>
+              <p>The <strong>More</strong> menu in the Fleet Watchlist now has an option to stop the watchlist opening automatically when you join a fleet. The main Fleet window can still open it at any time.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-palette" aria-hidden="true"></i>
+            <div>
+              <h3>Multi-select watchlist colors</h3>
+              <p>Select several watchlist entries with <strong>Ctrl+A</strong> or <strong>Shift</strong>, then change one selected entry's color to change them all. Changing an unselected entry still only affects that entry.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Overview -->
+      <section class="section" id="overview" aria-labelledby="overview-title">
+        <div class="section-header">
+          <i class="fa-solid fa-table-list" aria-hidden="true"></i>
+          <h2 id="overview-title">Overview</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">New groups and a header-sorting toggle.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-flag" aria-hidden="true"></i>
+            <div>
+              <h3>FW Rally Point group</h3>
+              <p>Rally Point beacons in FW Battlefields and Insurgency Ice Heists moved out of Large Collidable Object into a new <strong>FW Rally Point</strong> group. You can add them to custom overviews without adding every large collidable object.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-store" aria-hidden="true"></i>
+            <div>
+              <h3>Item Traders group</h3>
+              <p>Item Traders, including campaign item traders, now have their own group. Add them to custom overviews without other objects. The item trader window also updates after inventory changes.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
+            <div>
+              <h3>Overview header sorting toggle</h3>
+              <p>Right-clicking overview headers shows <strong>“Header sorting enabled”</strong>, checked by default. Uncheck it to stop header clicks changing the sort column or order. A message and header icon show the state. The setting applies to all overviews, is saved per character and persists between sessions on the same computer.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fitting, Industry and Inventory -->
+      <section class="section" id="fitting" aria-labelledby="fitting-title">
+        <div class="section-header">
+          <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+          <h2 id="fitting-title">Fitting, Industry &amp; Inventory</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Faster imports, item-ID search and wider industry previews.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-copy" aria-hidden="true"></i>
+            <div>
+              <h3>Duplicate fitting names</h3>
+              <p>Importing an XML fitting with the same name as an existing fitting now appends <strong>“_&lt;number&gt;”</strong> to the new fitting name.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+            <div>
+              <h3>Clipboard fittings to Multibuy</h3>
+              <p>Fittings in the clipboard can now be imported into Multibuy. Text in <strong>“[shipType, shipName]”</strong> is handled when importing a shopping list, so the ship name can be included.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-filter" aria-hidden="true"></i>
+            <div>
+              <h3>Item Filter text import</h3>
+              <p>The Item Filter window has a text import button. It imports items from the clipboard without changing the <strong>Match</strong> checkboxes or the filter name, and existing conditions stay unchanged. You can also drop a fit into the window to add it.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <div>
+              <h3>Search by item ID</h3>
+              <p>You can now search by exact item ID in item containers, asset search and Industry. Asset search also has a new advanced search option for item IDs.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+            <div>
+              <h3>Wider Industry preview fields</h3>
+              <p>Preview fields in the Industry window are wider so their full values are visible. The preview appears when you double-click in the section.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section class="section" id="skills" aria-labelledby="skills-title">
+        <div class="section-header">
+          <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+          <h2 id="skills-title">Skills</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">More useful skill-plan totals and a cleaner catalogue tooltip.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+            <div>
+              <h3>Skill plan SP totals</h3>
+              <p>Skill Plans now show total SP information. When viewing a skill plan, the text under the progress circle shows the SP you have trained and the total training time.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <div>
+              <h3>Skill Catalogue info icon</h3>
+              <p>In the Skill Catalogue, the info icon moved from the skill description tooltip to the entry itself, where it appears on mouseover. Skill Plan entries still show info icons in their tooltips.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interface -->
+      <section class="section" id="interface" aria-labelledby="interface-title">
+        <div class="section-header">
+          <i class="fa-solid fa-window-maximize" aria-hidden="true"></i>
+          <h2 id="interface-title">Interface</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Chat links, bookmark expiry, tag shortcuts and fewer annoying pop-ups.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-link" aria-hidden="true"></i>
+            <div>
+              <h3>Drop links into chat</h3>
+              <p>Drop any link onto a chat tab to add it to that chat's input field. Nothing is sent automatically. The link is appended to the end of any existing text, and the tab blinks briefly.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-bookmark" aria-hidden="true"></i>
+            <div>
+              <h3>Edit bookmark expiry</h3>
+              <p>Bookmark expiry times can now be edited. The old <strong>Cancel expiry</strong> checkbox is replaced by <strong>edit expiry</strong>, which lets you add an expiry time. The options only apply when checked. Moving a bookmark between folders preselects the folder's default expiry, but only applies it if <strong>edit expiry</strong> is checked.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+            <div>
+              <h3>Reset tag sequences shortcut</h3>
+              <p>A new shortcut, <strong>Reset tag sequences</strong>, resets all tag sequences at once.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-rectangle-xmark" aria-hidden="true"></i>
+            <div>
+              <h3>“Do not show again” on site pop-ups</h3>
+              <p>Site pop-ups that only have a Close button now include a <strong>Do not show again</strong> option. It only suppresses the pop-up when you use the Close button, not the X in the upper-right. Messages with warp or set-destination buttons are not affected.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+            <div>
+              <h3>New help pointers</h3>
+              <p>New help pointers are added for <strong>Brand management</strong>, <strong>Wallet - PLEX</strong>, <strong>Wallet - Evermarks</strong> and <strong>Corporation Ads</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio -->
+      <section class="section" id="audio" aria-labelledby="audio-title">
+        <div class="section-header">
+          <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+          <h2 id="audio-title">Audio</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Tutorial music and a fix for stuck jump/dock sounds.</p>
+        <div class="qol-list">
+          <div class="qol-item">
+            <i class="fa-solid fa-music" aria-hidden="true"></i>
+            <div>
+              <h3>Tutorial music re-synced</h3>
+              <p>The tutorial music has been updated and re-synchronized, and now adapts to recent narrative changes. The timing of some NPC conversations was adjusted to improve the dramatic flow.</p>
+            </div>
+          </div>
+          <div class="qol-item">
+            <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+            <div>
+              <h3>Jump and dock audio cleanup</h3>
+              <p>Safeguards were added to jumping and docking to prevent sounds repeating indefinitely. When you jump through a stargate or dock in a hangar, the audio system now cleans up sounds that may have gotten stuck on your camera.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What are the Little Things? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Small quality-of-life changes that improve everyday EVE Online use. This page covers the Little Things section plus the Audio changes from the same expansion.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How many changes are covered? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>24 changes across eight areas: Pirate Insurgency, character/corporation, fleet and broadcasts, overview, fitting/industry/inventory, skills, interface and audio.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Is this a new system? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. These are fixes and improvements to existing systems rather than a new feature set.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed for fleet watchlists? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>You can stop the watchlist opening automatically when joining a fleet, and you can change the color of multiple selected entries at once.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed for broadcasts? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>The radial menu has a new Heal Target option, and it now opens for broadcast history entries with context for the broadcast type.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed for the overview? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>FW Rally Points and Item Traders have their own groups, and overview header sorting can be disabled with a new right-click toggle.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed for fittings and industry? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Duplicate XML fitting names get a number suffix, clipboard fittings import into Multibuy, Item Filter supports text import, item-ID search works in more places, and Industry preview fields are wider.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What changed in audio? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Tutorial music was updated and re-synced, and new safeguards clean up sounds that could repeat indefinitely when jumping or docking.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary source</p>
+            <h2>Fractured Skies Expansion Notes — Little Things &amp; Audio</h2>
+            <p>EVE Online Team · 6 November 2026</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-15" target="_blank" rel="noopener noreferrer">
+              Little Things <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-5" target="_blank" rel="noopener noreferrer">
+              Audio <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>QoL Guides</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../aberrant-modules/">Aberrant modules</a>
+          <a href="../ship-balance/">Ship &amp; module balance</a>
+          <a href="../rogue-drone-outbreaks/">Rogue Drone Outbreaks</a>
+          <a href="../level-1-missions/">Level 1 missions</a>
+          <a href="../factional-warfare-changes/">Factional Warfare changes</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="../air-academy/">AIR Academy</a>
+          <a href="../conquests/">Conquests</a>
+          <a href="../eve-vanguard/">EVE Vanguard</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-15" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Expansion details, Little Things and Audio changes: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script src="../assets/lightbox.js"></script>
+</body>
+</html>
