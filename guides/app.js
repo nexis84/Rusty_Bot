@@ -840,6 +840,310 @@
     return html;
   }
 
+  // Pages that use the new scoped site-detail layout.
+  const SITE_DETAIL_PAGES = new Set(['Sansha_Haven']);
+
+  function formatDamage(value) {
+    const map = { em: 'EM', th: 'Thermal', therm: 'Thermal', kin: 'Kinetic', ex: 'Explosive', explosive: 'Explosive' };
+    return String(value || '')
+      .split(/[\s,/]+/)
+      .filter(Boolean)
+      .map(part => map[part.toLowerCase()] || part)
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .join(' / ');
+  }
+
+  function siteSpaceLabels(entry) {
+    const labels = [];
+    const space = entry.space || {};
+    if (space.high) labels.push('High-Sec');
+    if (space.low) labels.push('Low-Sec');
+    if (space.null) labels.push('Null-Sec');
+    if (space.pochven) labels.push('Pochven');
+    return labels.length ? labels.join(' · ') : 'Unknown';
+  }
+
+  function parseSpawnLine(line) {
+    const m = /^(\d[\d\s\-–]*)\s*x\s+(.+?)\s+\(([^)]+)\)(?:\s*[—-]\s*(.*))?$/.exec(line);
+    if (!m) return null;
+    return {
+      count: m[1].replace(/\s+/g, ''),
+      shipClass: m[2].trim(),
+      ships: m[3].split('/').map(s => s.trim()).filter(Boolean),
+      note: (m[4] || '').trim(),
+    };
+  }
+
+  function buildSpawnVariants(survival) {
+    const variants = [];
+    let variant = null;
+    let wave = null;
+
+    const ensureVariant = () => {
+      if (!variant) {
+        variant = { title: 'Spawn waves', intro: [], waves: [] };
+        variants.push(variant);
+      }
+      return variant;
+    };
+    const ensureWave = () => {
+      const v = ensureVariant();
+      if (!wave) {
+        wave = { title: 'Initial', rows: [], notes: [] };
+        v.waves.push(wave);
+      }
+      return wave;
+    };
+
+    for (const pocket of survival.pockets || []) {
+      if (pocket.level === 'h3') {
+        variant = { title: pocket.heading || 'Spawn waves', intro: [], waves: [] };
+        variants.push(variant);
+        wave = null;
+      } else if (pocket.level === 'h4') {
+        const v = ensureVariant();
+        wave = { title: pocket.heading || 'Wave', rows: [], notes: [] };
+        v.waves.push(wave);
+      }
+      for (const line of pocket.lines || []) {
+        const row = parseSpawnLine(line);
+        if (row) {
+          ensureWave().rows.push(row);
+        } else if (wave) {
+          const note = String(line || '').trim();
+          if (note && wave.rows.length && /^(scramble|web|tracking|trigger|target|warp|stasis)/i.test(note)) {
+            const last = wave.rows[wave.rows.length - 1];
+            last.note = last.note ? last.note + '; ' + note : note;
+          } else if (note) {
+            wave.notes.push(note);
+          }
+        } else {
+          ensureVariant().intro.push(line);
+        }
+      }
+    }
+    return variants;
+  }
+
+  function sanitizeDescription(text) {
+    if (!text) return '';
+    const first = String(text).split(/\n+/)[0].trim();
+    const sentences = first.match(/[^.!?]+[.!?]+/g);
+    return sentences ? sentences.slice(0, 2).join(' ').trim() : first;
+  }
+
+  function renderSiteDetail(entry, container) {
+    let key = entry.page.replace(/_/g, '');
+    try { key = decodeURIComponent(key); } catch (e) { /* keep */ }
+
+    const survival = anomaliesDetails[key] || null;
+    const uni = anomaliesUniWiki[entry.page] || null;
+    const info = (uni && uni.info) || {};
+    const description = (uni && uni.description) || '';
+    const variants = survival ? buildSpawnVariants(survival) : [];
+    const faction = info.Faction || entry.faction || 'Unknown';
+
+    const space = siteSpaceLabels(entry);
+    const rating = info.Rating || (entry.tier ? 'Class ' + entry.tier : 'Unrated');
+    const shipLimit = info['Max ship size'] || 'Unrestricted';
+    const damageDealt = formatDamage(info['Best damage to deal'] || (survival && survival.info && survival.info['Damage Dealt']) || '');
+    const damageResist = formatDamage(info['Damage to resist'] || '');
+    const rawEwar = (survival && survival.info && survival.info['Web/Scramble']) || '';
+    const pocketLines = survival && survival.pockets
+      ? survival.pockets.flatMap(p => p.lines || [])
+      : [];
+    const ewarParts = [];
+    if (rawEwar) ewarParts.push('Scramble / Web');
+    if (pocketLines.some(line => /tracking disruption/i.test(line))) ewarParts.push('Tracking Disruption');
+    const ewar = ewarParts.join(' · ');
+
+    const variantCount = variants.length;
+    const waveCount = variants.reduce((n, v) => n + v.waves.length, 0);
+    const rowCount = variants.reduce((n, v) => n + v.waves.reduce((m, w) => m + w.rows.length, 0), 0);
+
+    const isFav = isFavorite(entry.page);
+    const uniUrl = 'https://wiki.eveuniversity.org/' + encodeURIComponent(entry.page);
+    const survUrl = 'https://eve-survival.org/?wakka=' + encodeURIComponent(key);
+
+    let escalationHtml = '';
+    if (entry.escalation && entry.escalation.name) {
+      const target = findEntryByPage(entry.escalation.page || '');
+      const href = target
+        ? '#anomalies/detail/' + encodeURIComponent(target.page)
+        : 'https://wiki.eveuniversity.org/' + encodeURIComponent(entry.escalation.page || entry.escalation.name.replace(/ /g, '_'));
+      escalationHtml = `
+        <div class="sd-escalation">
+          <div>
+            <h3>${escapeHtml(entry.escalation.name)}</h3>
+            <p>Clearing the final wave can escalate this anomaly. The escalation is not guaranteed.</p>
+          </div>
+          <a class="sd-btn sd-btn-ghost" href="${href}" ${target ? '' : 'target="_blank" rel="noopener noreferrer"'}>
+            Open escalation <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          </a>
+        </div>`;
+    }
+
+    const spawnHtml = variants.length
+      ? variants.map(v => {
+          const intro = v.intro.length
+            ? `<p class="sd-variant-intro">${v.intro.map(escapeHtml).join(' ')}</p>`
+            : '';
+          const waves = v.waves.map(w => {
+            const rows = w.rows.map(row => `
+              <tr>
+                <td>${escapeHtml(row.shipClass)}</td>
+                <td>${escapeHtml(row.count)}</td>
+                <td>${row.ships.map(s => `<span class="sd-chip">${escapeHtml(s)}</span>`).join('')}</td>
+                <td>${row.note ? `<span class="sd-note"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>${escapeHtml(row.note)}</span>` : '<span class="muted">—</span>'}</td>
+              </tr>`).join('');
+            const notes = w.notes.length
+              ? `<ul class="sd-wave-notes">${w.notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
+              : '';
+            return `
+              <div class="sd-wave">
+                <div class="sd-wave-head">
+                  <h4>${escapeHtml(w.title)}</h4>
+                  <span class="sd-wave-count">${w.rows.length ? w.rows.length + ' group' + (w.rows.length === 1 ? '' : 's') : 'Notes'}</span>
+                </div>
+                ${w.rows.length ? `<div class="sd-table-wrap"><table class="sd-table">
+                  <thead><tr><th>Class</th><th>Count</th><th>Ships</th><th>Notes</th></tr></thead>
+                  <tbody>${rows}</tbody>
+                </table></div>` : ''}
+                ${notes}
+              </div>`;
+          }).join('');
+          return `
+            <div class="sd-variant">
+              <div class="sd-variant-head">
+                <h3>${escapeHtml(v.title)}</h3>
+                <span class="sd-tag">${v.waves.length} wave${v.waves.length === 1 ? '' : 's'}</span>
+              </div>
+              ${intro}
+              ${waves}
+            </div>`;
+        }).join('')
+      : '<p class="sd-lead">No spawn data available for this site yet.</p>';
+
+    const lootBullets = [
+      `${faction} faction modules and ammunition can drop from the site.`,
+      'Rare faction spawns in the final wave can drop additional faction modules.',
+      'Salvage the battleship and battlecruiser wrecks after clearing.',
+    ];
+
+    const strategyBullets = [
+      'The final kill in a wave often triggers the next spawn; clear triggers deliberately.',
+      rawEwar ? 'Scramble and web come from the Centii Loyal frigates listed in the profile.' : 'Watch for warp disruption and stasis webifiers on the frigates.',
+      'Tracking disruption appears in the later waves and from elite cruisers.',
+      'The Chem Factory variant auto-aggros on warp-in and has less obvious wave triggers.',
+    ];
+
+    const html = `
+      <div class="site-detail">
+        <div class="sd-hero">
+          <div>
+            <div class="sd-status"><span class="dot" aria-hidden="true"></span>${escapeHtml(rating)} · ${escapeHtml(space)} · Combat Anomaly</div>
+            <p class="sd-kicker">Cosmic Anomaly · ${escapeHtml(faction)}</p>
+            <h1 class="sd-title">${escapeHtml(entry.name)}</h1>
+            <p class="sd-sub">${escapeHtml(sanitizeDescription(description))}</p>
+            <div class="sd-actions">
+              <button class="sd-btn sd-btn-primary" data-scroll="sd-spawns"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Jump to spawns</button>
+              <a class="sd-btn sd-btn-ghost" href="#anomalies"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to anomalies</a>
+              <button class="favorite-star-btn${isFav ? ' active' : ''}" data-fav-page="${escapeHtml(entry.page)}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}">&#9733;</button>
+            </div>
+            <div class="sd-fact-chips">
+              <span><strong>${escapeHtml(rating)}</strong></span>
+              <span><strong>${escapeHtml(space)}</strong></span>
+              <span><strong>${escapeHtml(shipLimit)}</strong></span>
+              ${damageDealt ? `<span><strong>${escapeHtml(damageDealt)}</strong></span>` : ''}
+            </div>
+          </div>
+          <aside class="sd-profile">
+            <h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Site profile</h2>
+            <dl class="sd-facts">
+              <div class="sd-fact"><dt>Faction</dt><dd>${escapeHtml(faction)}</dd></div>
+              <div class="sd-fact"><dt>Rating</dt><dd>${escapeHtml(rating)}</dd></div>
+              <div class="sd-fact"><dt>Space</dt><dd>${escapeHtml(space)}</dd></div>
+              <div class="sd-fact"><dt>Ship limit</dt><dd>${escapeHtml(shipLimit)}</dd></div>
+              ${damageDealt ? `<div class="sd-fact"><dt>Damage dealt</dt><dd>${escapeHtml(damageDealt)}</dd></div>` : ''}
+              ${damageResist ? `<div class="sd-fact"><dt>Damage to resist</dt><dd>${escapeHtml(damageResist)}</dd></div>` : ''}
+              <div class="sd-fact"><dt>EWAR</dt><dd>${escapeHtml(ewar || 'None listed')}</dd></div>
+              ${entry.escalation ? `<div class="sd-fact"><dt>Escalation</dt><dd>${escapeHtml(entry.escalation.name)}</dd></div>` : ''}
+            </dl>
+          </aside>
+        </div>
+
+        <section class="sd-section" id="sd-overview">
+          <div class="sd-section-head"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i><h2>Overview</h2><span class="sd-line"></span></div>
+          <p class="sd-lead">${escapeHtml(description.split(/\n+/)[0] || '')}</p>
+          <div class="sd-callout">
+            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+            <span><strong>${variantCount} spawn variant${variantCount === 1 ? '' : 's'}.</strong> The site has ${waveCount} waves across ${rowCount} spawn groups. Auto-aggro and wave triggers vary by variant.</span>
+          </div>
+        </section>
+
+        <section class="sd-section" id="sd-spawns">
+          <div class="sd-section-head"><i class="fa-solid fa-ship" aria-hidden="true"></i><h2>Spawn waves</h2><span class="sd-line"></span></div>
+          <p class="sd-section-sub">Counts, hull classes and ship names are from EVE-Survival and the EVE University Wiki.</p>
+          <div class="sd-spawn-grid">${spawnHtml}</div>
+        </section>
+
+        ${escalationHtml ? `<section class="sd-section" id="sd-escalation">
+          <div class="sd-section-head"><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i><h2>Escalation</h2><span class="sd-line"></span></div>
+          ${escalationHtml}
+        </section>` : ''}
+
+        <section class="sd-section" id="sd-loot">
+          <div class="sd-section-head"><i class="fa-solid fa-coins" aria-hidden="true"></i><h2>Loot &amp; strategy</h2><span class="sd-line"></span></div>
+          <div class="sd-two-col">
+            <div class="sd-panel">
+              <h3><i class="fa-solid fa-box-open" aria-hidden="true"></i> Notable loot</h3>
+              <ul>${lootBullets.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+            </div>
+            <div class="sd-panel">
+              <h3><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> Running it</h3>
+              <ul>${strategyBullets.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="sd-section" id="sd-source">
+          <div class="sd-section-head"><i class="fa-solid fa-book" aria-hidden="true"></i><h2>Sources</h2><span class="sd-line"></span></div>
+          <div class="sd-source">
+            <div>
+              <p class="sd-kicker">Data attribution</p>
+              <h3>EVE University Wiki &amp; EVE-Survival</h3>
+              <p>Spawn data and site description are adapted from the EVE University Wiki (CC BY-SA 4.0), with EVE-Survival used as a cross-check.</p>
+            </div>
+            <div class="sd-source-links">
+              <a class="sd-btn sd-btn-ghost" href="${uniUrl}" target="_blank" rel="noopener noreferrer">EVE University <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+              <a class="sd-btn sd-btn-ghost" href="${survUrl}" target="_blank" rel="noopener noreferrer">EVE-Survival <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+            </div>
+          </div>
+        </section>
+      </div>`;
+
+    container.innerHTML = html;
+
+    container.querySelectorAll('[data-scroll]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.scroll);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    const favBtn = container.querySelector('.favorite-star-btn');
+    if (favBtn) {
+      favBtn.addEventListener('click', () => {
+        const page = favBtn.dataset.favPage;
+        if (!page) return;
+        toggleFavorite(page);
+        const fav = isFavorite(page);
+        favBtn.classList.toggle('active', fav);
+        favBtn.title = fav ? 'Remove from favorites' : 'Add to favorites';
+      });
+    }
+  }
+
   function showAnomalyDetail(entry) {
     $('#anomalyListView').style.display = 'none';
     $('#probeScanView').style.display = 'none';
@@ -847,6 +1151,11 @@
     window.scrollTo(0, 0);
 
     const container = $('#anomalyDetailContent');
+
+    if (SITE_DETAIL_PAGES.has(entry.page)) {
+      renderSiteDetail(entry, container);
+      return;
+    }
 
     // === Data lookup ===
     // 1) EVE-Survival data
