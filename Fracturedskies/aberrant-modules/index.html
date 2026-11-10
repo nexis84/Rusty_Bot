@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    MODULE GUIDE TEMPLATE
+    Duplicate this page for future module/loot guides. Swap the module cards,
+    passive and active effects, drop locations and source links.
+  -->
+
+  <title>Aberrant Modules — Fractured Skies | RustyBot</title>
+  <meta name="description" content="The four Vigilant 'Vital' Aberrant modules in Fractured Skies: Overdrive, Shield Boost Amp, Drone Nav Comp and Cap Recharger stats, active modes and C1–C3 wormhole drops.">
+  <link rel="canonical" href="https://www.rustybot.co.uk/Fracturedskies/aberrant-modules/">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0d0d0d">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="RustyBot">
+  <meta property="og:url" content="https://www.rustybot.co.uk/Fracturedskies/aberrant-modules/">
+  <meta property="og:title" content="Aberrant Modules — Fractured Skies | RustyBot">
+  <meta property="og:description" content="Four rare Vigilant 'Vital' modules with 20-second active modes, 2-minute cooldowns and C1–C3 wormhole drops.">
+  <meta property="og:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-aberrant-modules.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Aberrant modules in EVE Online: Fractured Skies">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Aberrant Modules — Fractured Skies | RustyBot">
+  <meta name="twitter:description" content="Four rare Vigilant 'Vital' modules with 20-second active modes, 2-minute cooldowns and C1–C3 wormhole drops.">
+  <meta name="twitter:image" content="https://www.rustybot.co.uk/Fracturedskies/assets/og-aberrant-modules.jpg">
+
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-1EELB9VSCK');
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Aberrant Modules — Fractured Skies",
+    "description": "The four Vigilant 'Vital' Aberrant modules in Fractured Skies: stats, active modes, drop locations and C1–C3 wormhole sources.",
+    "url": "https://www.rustybot.co.uk/Fracturedskies/aberrant-modules/",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "RustyBot",
+      "url": "https://www.rustybot.co.uk/"
+    },
+    "about": { "@type": "VideoGame", "name": "EVE Online" },
+    "image": "https://www.rustybot.co.uk/Fracturedskies/assets/og-aberrant-modules.jpg",
+    "datePublished": "2026-11-10",
+    "dateModified": "2026-11-10",
+    "isBasedOn": "https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-8"
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --panel: #1a1a1a;
+      --panel-hover: #222222;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --dim: #a8a8a8;
+      --accent: #e8d900;
+      --accent-hover: #f5e53b;
+      --accent-dim: rgba(232, 217, 0, 0.25);
+      --hud: #63d8e6;
+      --hud-dim: rgba(99, 216, 230, 0.28);
+      --amarr: #e8d900;
+      --caldari: #63d8e6;
+      --gallente: #65d98a;
+      --minmatar: #f08a5c;
+      --blood: #e05a5a;
+      --angel: #d9a441;
+      --guristas: #5fd0c3;
+      --serpentis: #b38cff;
+      --sansha: #e6d38a;
+      --max: 1120px;
+      --font: 'Titillium Web', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px 520px at 12% -8%, rgba(232, 217, 0, 0.07), transparent 60%),
+        radial-gradient(1000px 520px at 88% -8%, rgba(99, 216, 230, 0.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    img { max-width: 100%; }
+    ::selection { background: var(--accent); color: #0d0d0d; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 300;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-weight: 700;
+      border-radius: 0 0 6px 0;
+    }
+    .skip-link:focus { left: 0; }
+
+    /* ---------- Top bar ---------- */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 12px 24px;
+      background: rgba(13, 13, 13, 0.93);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .brand { flex-shrink: 0; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 6px rgba(232, 217, 0, 0.35));
+    }
+    .brand-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .brand-name .accent { color: var(--accent); }
+
+    .breadcrumb {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--dim);
+      font-size: 0.78rem;
+    }
+    .breadcrumb a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb .sep { color: #555; }
+    .breadcrumb [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+    .source-link {
+      flex-shrink: 0;
+      padding-left: 18px;
+      border-left: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .source-link:hover { color: var(--accent); }
+    .source-link i { margin-left: 4px; font-size: 0.6rem; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 62px 24px 50px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+      gap: 44px;
+      align-items: center;
+    }
+    .hero-copy { min-width: 0; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 5px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 999px;
+      background: rgba(232, 217, 0, 0.06);
+      color: var(--accent);
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+    .status-pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0 0 16px;
+      color: #ffffff;
+      font-size: clamp(2.6rem, 5vw, 4.25rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      max-width: 580px;
+      margin: 0 0 24px;
+      color: #c9c9c9;
+      font-size: 1.02rem;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: #0d0d0d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(232, 217, 0, 0.2);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.02);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: rgba(232, 217, 0, 0.04);
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .hero-facts span {
+      padding: 5px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--dim);
+      font-size: 0.64rem;
+      letter-spacing: 0.4px;
+    }
+
+    /* ---------- Rig matrix ---------- */
+    .hero-visual { min-width: 0; }
+    .rig-matrix {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 11px 10px;
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--faction-color, var(--accent));
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .matrix-cell:hover {
+      background: rgba(232, 217, 0, 0.04);
+      border-color: var(--accent-dim);
+      border-top-color: var(--faction-color, var(--accent));
+    }
+    .matrix-cell span {
+      color: var(--faction-color, var(--dim));
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .matrix-cell strong {
+      color: #ffffff;
+      font-size: 0.76rem;
+      line-height: 1.25;
+    }
+    .matrix-caption {
+      margin: 12px 0 0;
+      color: var(--dim);
+      font-size: 0.68rem;
+      line-height: 1.5;
+    }
+
+    .f-amarr { --faction-color: var(--amarr); }
+    .f-caldari { --faction-color: var(--caldari); }
+    .f-gallente { --faction-color: var(--gallente); }
+    .f-minmatar { --faction-color: var(--minmatar); }
+    .f-blood { --faction-color: var(--blood); }
+    .f-angel { --faction-color: var(--angel); }
+    .f-guristas { --faction-color: var(--guristas); }
+    .f-serpentis { --faction-color: var(--serpentis); }
+    .f-sansha { --faction-color: var(--sansha); }
+
+    /* ---------- Sections ---------- */
+    section[id] { scroll-margin-top: 92px; }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .section { padding: 48px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header i { color: var(--accent); font-size: 0.9rem; }
+    .section-header h2 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-header .line { flex: 1; height: 1px; background: var(--border); }
+    .section-sub { margin: -6px 0 20px; color: var(--dim); font-size: 0.9rem; max-width: 80ch; }
+    .lead { margin: 0 0 18px; color: #d6d6d6; font-size: 1rem; line-height: 1.7; max-width: 75ch; }
+    .lead strong { color: #fff; }
+
+    /* ---------- How it works ---------- */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .info-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .info-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .info-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.95rem; }
+    .info-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+
+    /* ---------- Notes figure ---------- */
+    .notes-figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #000;
+    }
+    .notes-figure img { display: block; width: 100%; height: auto; }
+    .notes-caption {
+      margin: 10px 2px 0;
+      color: var(--dim);
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .notes-caption a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .notes-caption a:hover { color: var(--accent); }
+
+    /* ---------- Rig cards ---------- */
+    .rig-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .rig-card {
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--faction-color, var(--accent));
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .rig-card:hover { border-color: var(--accent-dim); border-top-color: var(--faction-color, var(--accent)); transform: translateY(-2px); }
+    .rig-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .faction-tag {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: rgba(13, 13, 13, 0.6);
+      color: var(--faction-color, var(--dim));
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    .rig-kind {
+      color: var(--dim);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .rig-card h3 {
+      margin: 0 0 12px;
+      color: #ffffff;
+      font-size: 1.2rem;
+      line-height: 1.25;
+    }
+    .rig-bonuses {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .rig-bonuses li {
+      position: relative;
+      margin: 5px 0;
+      padding-left: 16px;
+      color: #d0d0d0;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .rig-bonuses li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .rig-scaling {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 5px;
+      background: rgba(232, 217, 0, 0.04);
+      color: var(--accent);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+    .rig-drawback {
+      margin: 12px 0 0;
+      padding: 9px 11px;
+      border-left: 2px solid #d9534f;
+      border-radius: 0 5px 5px 0;
+      background: rgba(217, 83, 79, 0.06);
+      color: #e0b0ae;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+    .rig-drawback strong { color: #ff9b95; }
+    .rig-source {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.72rem;
+    }
+    .rig-source i { color: var(--accent); }
+
+    .rig-note-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px;
+      border: 1px dashed var(--accent-dim);
+      border-radius: 8px;
+      background: rgba(232, 217, 0, 0.03);
+    }
+    .rig-note-card i { margin-bottom: 10px; color: var(--accent); font-size: 1.2rem; }
+    .rig-note-card h3 { margin: 0 0 8px; color: #ffffff; font-size: 1.05rem; }
+    .rig-note-card p { margin: 0 0 10px; color: var(--dim); font-size: 0.84rem; line-height: 1.6; }
+    .rig-note-card a { color: var(--accent); font-size: 0.74rem; text-decoration: none; }
+    .rig-note-card a:hover { text-decoration: underline; }
+
+    /* ---------- Table ---------- */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    table { width: 100%; min-width: 1020px; border-collapse: collapse; }
+    th, td {
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--accent);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ffffff; font-weight: 600; white-space: nowrap; }
+    td .sub { display: block; color: var(--dim); font-size: 0.68rem; font-weight: 400; margin-top: 2px; }
+    .table-note { margin: 10px 0 0; color: var(--dim); font-size: 0.72rem; }
+
+    /* ---------- Sources / skill / manufacturing ---------- */
+    .lp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .lp-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .lp-card .card-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-dim);
+      border-radius: 6px;
+      background: rgba(232, 217, 0, 0.08);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .lp-card h3 { margin: 0 0 6px; color: #ffffff; font-size: 0.98rem; }
+    .lp-card p { margin: 0; color: var(--dim); font-size: 0.82rem; line-height: 1.6; }
+    .lp-card ul { margin: 8px 0 0; padding-left: 17px; color: #d0d0d0; font-size: 0.8rem; line-height: 1.6; }
+    .lp-card li::marker { color: var(--accent); }
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.04);
+      color: #d0d0d0;
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    .callout i { margin-top: 3px; color: var(--accent); }
+    .callout strong { color: #ffffff; }
+
+    .skill-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .skill-panel h3 { margin: 4px 0 8px; color: #ffffff; font-size: 1.15rem; }
+    .skill-panel p { margin: 0; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .skill-facts { margin: 0; padding-left: 18px; color: #d0d0d0; font-size: 0.84rem; line-height: 1.7; }
+    .skill-facts li { margin: 6px 0; }
+    .skill-facts li::marker { color: var(--accent); }
+
+    .manufacturing {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 28px;
+    }
+    .manufacturing h3 { margin: 4px 0 10px; color: #ffffff; font-size: 1.15rem; }
+    .manufacturing p { margin: 0 0 12px; color: var(--dim); font-size: 0.85rem; line-height: 1.65; }
+    .check-list { margin: 0; padding: 0; list-style: none; }
+    .check-list li {
+      position: relative;
+      padding-left: 18px;
+      margin: 7px 0;
+      color: #d0d0d0;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .quote {
+      margin: 22px 0 0;
+      padding: 20px 24px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      background: rgba(232, 217, 0, 0.05);
+    }
+    .quote p { margin: 0; color: #f0f0f0; font-size: 1.05rem; line-height: 1.6; }
+    .quote cite {
+      display: block;
+      margin-top: 10px;
+      color: var(--dim);
+      font-size: 0.68rem;
+      font-style: normal;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* ---------- FAQ ---------- */
+    .faq { margin-top: 24px; border-top: 1px solid var(--border); }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-item summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 15px 0;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary i { color: var(--accent); font-size: 0.72rem; transition: transform 0.2s; }
+    .faq-item[open] summary i { transform: rotate(45deg); }
+    .faq-answer {
+      max-width: 85ch;
+      padding: 0 0 15px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    .faq-answer p { margin: 0; }
+    .faq-answer a { color: var(--accent); }
+
+    /* ---------- Source / footer ---------- */
+    .source-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 24px 26px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
+    }
+    .source-card h2 { margin: 6px 0 4px; color: #ffffff; font-size: 1.08rem; line-height: 1.3; }
+    .source-card p { margin: 0; color: var(--dim); font-size: 0.8rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .footer {
+      margin-top: 12px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--dim);
+      font-size: 0.76rem;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .footer-brand { color: #ffffff; font-size: 1rem; font-weight: 700; }
+    .footer-brand span { color: var(--accent); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .footer-links a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-credit { max-width: 92ch; margin: 0; }
+    .footer-legal { margin: 0; color: #666666; font-size: 0.7rem; }
+
+    .back-top {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--dim);
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .back-top.visible { opacity: 1; pointer-events: auto; }
+    .back-top:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+    /* ---------- Aberrant module extras ---------- */
+    .module-matrix { grid-template-columns: repeat(2, 1fr); }
+    .m-overdrive { --faction-color: #e8d900; }
+    .m-shield { --faction-color: #63d8e6; }
+    .m-drone { --faction-color: #65d98a; }
+    .m-cap { --faction-color: #b38cff; }
+    .module-card .rig-bonuses strong { color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling { border-color: var(--faction-color, var(--accent)); }
+    .module-card .rig-scaling strong { color: #ffffff; }
+    .module-card .rig-source i { color: var(--faction-color, var(--accent)); }
+
+    @media (max-width: 1000px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .hero-visual { max-width: 760px; }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .rig-grid { grid-template-columns: 1fr; }
+      .lp-grid { grid-template-columns: 1fr; }
+      .skill-panel { grid-template-columns: 1fr; }
+      .manufacturing { grid-template-columns: 1fr; }
+      .source-link { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .top-bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
+      .breadcrumb { order: 3; flex: 0 0 100%; font-size: 0.7rem; }
+      .hero { padding: 36px 18px 32px; }
+      .hero h1 { font-size: 2.45rem; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 0 18px; }
+      .section { padding: 38px 0; }
+      .info-grid { grid-template-columns: 1fr; }
+      .source-card { flex-direction: column; align-items: flex-start; }
+      .back-top { right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 2.1rem; }
+      .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/lightbox.css">
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="top-bar">
+    <div class="brand">
+      <a class="brand-link" href="../">
+        <img class="brand-logo" src="../assets/rustybot-logo.webp" alt="RustyBot logo" width="160" height="157">
+        <span class="brand-name">RustyBot <span class="accent">Module Guides</span></span>
+      </a>
+    </div>
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <span><a href="../../">Home</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span><a href="../">Fractured Skies</a></span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span aria-current="page">Aberrant Modules</span>
+    </nav>
+    <a class="source-link" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-8" target="_blank" rel="noopener noreferrer">
+      New modules <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="status-pill"><span class="dot" aria-hidden="true"></span> 4 modules · 20s active · 2m cooldown</div>
+        <p class="kicker">Fractured Skies · New Modules</p>
+        <h1 id="hero-title">Aberrant <span>Modules</span></h1>
+        <p class="hero-sub">Four rare Vigilant 'Vital' modules that trade weaker passive stats for a powerful 20-second active mode. The best odds are in C1–C3 wormhole caches.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#modules">
+            <i class="fa-solid fa-table-list" aria-hidden="true"></i> Compare the modules
+          </a>
+          <a class="btn btn-ghost" href="#farming">
+            <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> How to farm them
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Key facts">
+          <span>4 modules</span>
+          <span>C1–C3 wormholes</span>
+          <span>No mutaplasmids</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="rig-matrix">
+          <div class="matrix-head">
+            <span>Vigilant 'Vital'</span>
+            <span>4 modules</span>
+          </div>
+          <div class="matrix-grid module-matrix">
+            <a class="matrix-cell m-overdrive" href="#overdrive">
+              <span>Overdrive</span>
+              <strong>15% burst speed</strong>
+            </a>
+            <a class="matrix-cell m-shield" href="#shield-boost-amp">
+              <span>Shield Boost Amp</span>
+              <strong>43.2% burst boost</strong>
+            </a>
+            <a class="matrix-cell m-drone" href="#drone-nav-comp">
+              <span>Drone Nav Comp</span>
+              <strong>36% burst speed</strong>
+            </a>
+            <a class="matrix-cell m-cap" href="#cap-recharger">
+              <span>Cap Recharger</span>
+              <strong>25% burst recharge</strong>
+            </a>
+          </div>
+          <p class="matrix-caption">Every active mode lasts 20 seconds and has a 2-minute cooldown. Passive effects are weaker than Tech I.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <!-- What are they -->
+      <section class="section" id="what" aria-labelledby="what-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <h2 id="what-title">What are Aberrant modules?</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Rare meta modules from Drifter and Rogue Drone cache sites.</p>
+        <p class="lead">Aberrant modules are modified versions of existing passive modules. Each keeps a passive effect, then adds an active mode that Drifter nanites reconfigure for a short, powerful burst.</p>
+        <p class="lead">The trade-off is deliberate: the passive bonus is weaker than the equivalent Tech I module, while the active effect is much stronger. Every active mode lasts <strong>20 seconds</strong> and has a <strong>2-minute cooldown</strong>.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-arrow-down-short-wide" aria-hidden="true"></i></div>
+            <h3>Weaker passive</h3>
+            <p>The always-on bonus sits below the equivalent Tech I module. You fit it for the active mode, not the passive.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></div>
+            <h3>Stronger active</h3>
+            <p>Activating the module gives a much larger effect for a short window — 20 seconds.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
+            <h3>2-minute cooldown</h3>
+            <p>One burst every two minutes. Time the window around the fight, not the other way round.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-ban" aria-hidden="true"></i></div>
+            <h3>No mutaplasmids</h3>
+            <p>The Vital variant cannot be modified by mutaplasmids. Using more than one type, or similar modules affecting the same attribute, is penalized.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>All four are 'Vigilant Vital' variants.</strong> They include an active mode and cannot be modified by mutaplasmids. The stacking penalty applies to multiple types or similar modules affecting the same attribute.</span>
+        </div>
+      </section>
+
+      <!-- The four modules -->
+      <section class="section" id="modules" aria-labelledby="modules-title">
+        <div class="section-header">
+          <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
+          <h2 id="modules-title">The four modules</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Passive and active effects, plus the cache site for each module.</p>
+
+        <div class="rig-grid">
+          <article class="rig-card module-card m-overdrive" id="overdrive">
+            <div class="rig-top">
+              <span class="faction-tag">Collapsed Drifter Cache</span>
+              <span class="rig-kind">Communications section</span>
+            </div>
+            <h3>Vigilant 'Vital' Overdrive Injector System</h3>
+            <ul class="rig-bonuses">
+              <li><strong>Passive:</strong> 8% speed boost</li>
+              <li><strong>Active:</strong> 15% speed boost</li>
+              <li><strong>Duration:</strong> 20 seconds</li>
+              <li><strong>Cooldown:</strong> 2 minutes</li>
+            </ul>
+            <p class="rig-scaling"><strong>Burst:</strong> 15% speed for 20s — use it to reposition, travel or escape.</p>
+            <div class="rig-drawback"><strong>Trade-off</strong> — passive speed is weaker than the Tech I Overdrive Injector System.</div>
+            <div class="rig-source"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Rare drop · Communications section</div>
+          </article>
+
+          <article class="rig-card module-card m-shield" id="shield-boost-amp">
+            <div class="rig-top">
+              <span class="faction-tag">Collapsed Drifter Cache</span>
+              <span class="rig-kind">Logistics section</span>
+            </div>
+            <h3>Vigilant 'Vital' Shield Boost Amplifier</h3>
+            <ul class="rig-bonuses">
+              <li><strong>Passive:</strong> 24% shield booster bonus</li>
+              <li><strong>Active:</strong> 43.2% shield booster bonus</li>
+              <li><strong>Duration:</strong> 20 seconds</li>
+              <li><strong>Cooldown:</strong> 2 minutes</li>
+            </ul>
+            <p class="rig-scaling"><strong>Burst:</strong> 43.2% shield booster bonus for 20s — pair it with a shield booster for a burst tank.</p>
+            <div class="rig-drawback"><strong>Trade-off</strong> — passive bonus is weaker than the Tech I Shield Boost Amplifier.</div>
+            <div class="rig-source"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Rare drop · Logistics section</div>
+          </article>
+
+          <article class="rig-card module-card m-drone" id="drone-nav-comp">
+            <div class="rig-top">
+              <span class="faction-tag">Fabricated Rogue Cache</span>
+              <span class="rig-kind">Site drop</span>
+            </div>
+            <h3>Vigilant 'Vital' Drone Navigation Computer</h3>
+            <ul class="rig-bonuses">
+              <li><strong>Passive:</strong> 20% drone &amp; fighter speed</li>
+              <li><strong>Active:</strong> 36% drone &amp; fighter speed</li>
+              <li><strong>Duration:</strong> 20 seconds</li>
+              <li><strong>Cooldown:</strong> 2 minutes</li>
+            </ul>
+            <p class="rig-scaling"><strong>Burst:</strong> 36% drone and fighter speed for 20s — helps drones close, kite or catch a target.</p>
+            <div class="rig-drawback"><strong>Trade-off</strong> — passive bonus is weaker than the Tech I Drone Navigation Computer.</div>
+            <div class="rig-source"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Rare drop · Fabricated Rogue Cache</div>
+          </article>
+
+          <article class="rig-card module-card m-cap" id="cap-recharger">
+            <div class="rig-top">
+              <span class="faction-tag">Collapsed Drifter Cache</span>
+              <span class="rig-kind">Engineering section</span>
+            </div>
+            <h3>Vigilant 'Vital' Cap Recharger</h3>
+            <ul class="rig-bonuses">
+              <li><strong>Passive:</strong> 12% capacitor recharge bonus</li>
+              <li><strong>Active:</strong> 25% capacitor recharge bonus</li>
+              <li><strong>Duration:</strong> 20 seconds</li>
+              <li><strong>Cooldown:</strong> 2 minutes</li>
+            </ul>
+            <p class="rig-scaling"><strong>Burst:</strong> 25% capacitor recharge for 20s — a burst of cap recovery when the fight is tight.</p>
+            <div class="rig-drawback"><strong>Trade-off</strong> — passive bonus is weaker than the Tech I Cap Recharger.</div>
+            <div class="rig-source"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Rare drop · Engineering section</div>
+          </article>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Source</th>
+                <th>Passive</th>
+                <th>Active</th>
+                <th>Window</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Overdrive Injector System<span class="sub">Vigilant 'Vital'</span></td>
+                <td>Communications · Collapsed Drifter Cache</td>
+                <td>8% speed</td>
+                <td>15% speed</td>
+                <td>20s / 2m cooldown</td>
+              </tr>
+              <tr>
+                <td>Shield Boost Amplifier<span class="sub">Vigilant 'Vital'</span></td>
+                <td>Logistics · Collapsed Drifter Cache</td>
+                <td>24% shield booster bonus</td>
+                <td>43.2% shield booster bonus</td>
+                <td>20s / 2m cooldown</td>
+              </tr>
+              <tr>
+                <td>Drone Navigation Computer<span class="sub">Vigilant 'Vital'</span></td>
+                <td>Fabricated Rogue Cache</td>
+                <td>20% drone &amp; fighter speed</td>
+                <td>36% drone &amp; fighter speed</td>
+                <td>20s / 2m cooldown</td>
+              </tr>
+              <tr>
+                <td>Cap Recharger<span class="sub">Vigilant 'Vital'</span></td>
+                <td>Engineering · Collapsed Drifter Cache</td>
+                <td>12% capacitor recharge</td>
+                <td>25% capacitor recharge</td>
+                <td>20s / 2m cooldown</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">All four are rare cache drops. No blueprint source has been announced.</p>
+
+        <figure class="notes-figure">
+          <img src="../assets/aberrant-modules.webp" alt="The four Vigilant Vital Aberrant module information windows: Shield Boost Amplifier, Capacitor Recharger, Drone Navigation Computer and Overdrive Injector System" width="1200" height="818" loading="lazy" decoding="async">
+        </figure>
+        <p class="notes-caption">The four module information windows from the expansion notes. Image: CCP Games / Fenris Creations. Click to enlarge.</p>
+      </section>
+
+      <!-- Farming -->
+      <section class="section" id="farming" aria-labelledby="farming-title">
+        <div class="section-header">
+          <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+          <h2 id="farming-title">Where to farm them</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Rare drops from Drifter and Rogue Drone cache sites, with the best chance in low-class wormholes.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></div>
+            <h3>Collapsed Drifter Cache</h3>
+            <p>Three sections: Engineering, Logistics and Communications. You can only restore power to one of them per site.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-hard-drive" aria-hidden="true"></i></div>
+            <h3>Fabricated Rogue Cache</h3>
+            <p>The listed source of the Drone Navigation Computer. Check the cache containers after hacking.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-cubes" aria-hidden="true"></i></div>
+            <h3>Omega Logging &amp; Rogue Stockpile</h3>
+            <p>The highest chance for Aberrant modules. These containers are found exclusively in C1–C3 wormhole space.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></div>
+            <h3>Scan and hack</h3>
+            <p>Both cache sites are exploration content. Scan them down, hack the cans and check every container.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Site / section</th>
+                <th>Module</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Collapsed Drifter Cache — Communications<span class="sub">Choose this section</span></td>
+                <td>Overdrive Injector System</td>
+              </tr>
+              <tr>
+                <td>Collapsed Drifter Cache — Logistics<span class="sub">Choose this section</span></td>
+                <td>Shield Boost Amplifier</td>
+              </tr>
+              <tr>
+                <td>Collapsed Drifter Cache — Engineering<span class="sub">Choose this section</span></td>
+                <td>Cap Recharger</td>
+              </tr>
+              <tr>
+                <td>Fabricated Rogue Cache<span class="sub">No section specified</span></td>
+                <td>Drone Navigation Computer</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-note">The Drifter cache lets you power only one of its three sections. Match the section to the module you want before committing.</p>
+
+        <div class="callout">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <span><strong>Highest drop chance:</strong> Omega Logging and Rogue Stockpile containers in Class 1–3 wormhole space. Every cache site has a rare chance, but these containers are the best target.</span>
+        </div>
+      </section>
+
+      <!-- Other loot -->
+      <section class="section" id="loot" aria-labelledby="loot-title">
+        <div class="section-header">
+          <i class="fa-solid fa-gift" aria-hidden="true"></i>
+          <h2 id="loot-title">Other cache loot</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">Aberrant modules are not the only reason to open these containers.</p>
+        <div class="lp-grid">
+          <div class="lp-card">
+            <div class="card-icon"><i class="fa-solid fa-palette" aria-hidden="true"></i></div>
+            <h3>Penumbral Shadows SKINs</h3>
+            <p>Cosmetic SKINs are also on the possible loot table for these cache sites.</p>
+          </div>
+          <div class="lp-card">
+            <div class="card-icon"><i class="fa-solid fa-microchip" aria-hidden="true"></i></div>
+            <h3>Rig-drawback hardwirings</h3>
+            <p>New hardwirings that reduce rig drawbacks are listed as possible drops. CCP has not published the full stats yet.</p>
+          </div>
+          <div class="lp-card">
+            <div class="card-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></div>
+            <h3>And more</h3>
+            <p>The notes say there are additional possible drops. Check each container rather than assuming the first can is the only one.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- How to use -->
+      <section class="section" id="using" aria-labelledby="using-title">
+        <div class="section-header">
+          <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+          <h2 id="using-title">How to use them</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">These are burst modules. Plan the 20-second window around the moment it matters.</p>
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></div>
+            <h3>Overdrive</h3>
+            <p>Burst speed for travel, repositioning or escaping a bad fight. The passive alone is weaker than Tech I.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
+            <h3>Shield Boost Amp</h3>
+            <p>Pair the 43.2% active bonus with a shield booster for a short, strong burst tank.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-jet-fighter" aria-hidden="true"></i></div>
+            <h3>Drone Nav Comp</h3>
+            <p>Use the 36% active speed bonus to help drones or fighters close, kite or catch a target.</p>
+          </div>
+          <div class="info-card">
+            <div class="info-icon"><i class="fa-solid fa-battery-three-quarters" aria-hidden="true"></i></div>
+            <h3>Cap Recharger</h3>
+            <p>Use the 25% active recharge bonus when the capacitor is the thing keeping you in the fight.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <span><strong>Plan the burst.</strong> A 20-second window on a 2-minute cooldown usually means one use per fight. Do not fit an Aberrant module for its passive alone, and check the stacking penalty before fitting several.</span>
+        </div>
+      </section>
+
+      <!-- Unknowns -->
+      <section class="section" id="unknown" aria-labelledby="unknown-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="unknown-title">What we don't know yet</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <p class="section-sub">The expansion notes give the headline numbers, but not the full fitting sheet.</p>
+        <div class="skill-panel">
+          <div>
+            <p class="kicker">Still to confirm</p>
+            <h3>What CCP has not published</h3>
+            <p>Treat drop rates, market prices and activation costs as unknown until CCP or the in-game client provides them.</p>
+          </div>
+          <ul class="skill-facts">
+            <li><strong>Drop rates</strong> — exact chances per site and container</li>
+            <li><strong>Active costs</strong> — capacitor or fitting requirements to activate</li>
+            <li><strong>Cooldown sharing</strong> — whether multiple modules share a cooldown</li>
+            <li><strong>More modules</strong> — whether the Vital line is the full set</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq" aria-labelledby="faq-title">
+        <div class="section-header">
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+          <h2 id="faq-title">FAQ</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="faq">
+          <details class="faq-item">
+            <summary>What are Aberrant modules? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Rare meta modules that modify existing passive modules. They keep a weaker passive effect and add a much stronger active mode for a short duration.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Where do Aberrant modules drop? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>From Collapsed Drifter Cache and Fabricated Rogue Cache sites. The highest chance is in Omega Logging and Rogue Stockpile containers, found exclusively in Class 1–3 wormhole space.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Which cache section should I choose? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>In the Collapsed Drifter Cache, choose Communications for the Overdrive, Logistics for the Shield Boost Amp, or Engineering for the Cap Recharger. You can only power one section per site. The Drone Navigation Computer comes from the Fabricated Rogue Cache.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What are the four modules? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Vigilant 'Vital' Overdrive Injector System, Shield Boost Amplifier, Drone Navigation Computer and Cap Recharger.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>How long does the active mode last? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>20 seconds, with a 2-minute cooldown. The passive effect remains active the whole time.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I modify them with mutaplasmids? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No. The Vital variant cannot be modified by mutaplasmids.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Can I fit more than one? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>You can fit more than one, but using more than one type of this module — or similar modules affecting the same attribute — will be penalized.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>Are there blueprints for them? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>No blueprint source has been announced. The expansion notes describe them as rare loot drops, not manufactured modules.</p></div>
+          </details>
+          <details class="faq-item">
+            <summary>What is still unknown? <i class="fa-solid fa-plus" aria-hidden="true"></i></summary>
+            <div class="faq-answer"><p>Exact drop rates, activation costs, whether multiple modules share a cooldown, the full market supply, and whether more Aberrant modules exist beyond the four Vital variants.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Source -->
+      <section class="section" id="source" aria-labelledby="source-title">
+        <div class="section-header">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+          <h2 id="source-title">Source</h2>
+          <span class="line" aria-hidden="true"></span>
+        </div>
+        <div class="source-card">
+          <div>
+            <p class="kicker">Primary source</p>
+            <h2>Fractured Skies Expansion Notes — New Modules</h2>
+            <p>EVE Online Team · 6 November 2026</p>
+          </div>
+          <div class="source-links">
+            <a class="btn btn-primary" href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-8" target="_blank" rel="noopener noreferrer">
+              Read expansion notes <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+            <a class="btn btn-ghost" href="https://www.eveonline.com/news/view/fractured-skies-expansion-arrives-10-nov" target="_blank" rel="noopener noreferrer">
+              Expansion article <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">RustyBot <span>Module Guides</span></div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="../../">Home</a>
+          <a href="../">Fractured Skies</a>
+          <a href="../hud/">HUD deep dive</a>
+          <a href="../navy-battlecruisers/">Navy battlecruisers</a>
+          <a href="../synchronizer-rigs/">Synchronizer rigs</a>
+          <a href="../military-campaigns/">Military campaigns</a>
+          <a href="../air-academy/">AIR Academy</a>
+          <a href="../conquests/">Conquests</a>
+          <a href="../eve-vanguard/">EVE Vanguard</a>
+          <a href="https://ko-fi.com/rustybot" target="_blank" rel="noopener noreferrer">Ko-fi</a>
+          <a href="https://www.eveonline.com/news/view/fractured-skies-expansion-notes#h2-8" target="_blank" rel="noopener noreferrer">Expansion notes</a>
+        </nav>
+      </div>
+      <p class="footer-credit">Module icons, information windows and expansion details: CCP Games / Fenris Creations. This is an unofficial fan page and is not affiliated with CCP Games or Fenris Creations.</p>
+      <p class="footer-legal">EVE Online and the EVE logo are the registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners. © 2026 RustyBot.</p>
+    </div>
+  </footer>
+
+  <a class="back-top" id="backTop" href="#top" aria-label="Back to top"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
+
+  <script>
+    (function () {
+      var button = document.getElementById('backTop');
+      if (!button) return;
+      function onScroll() {
+        button.classList.toggle('visible', window.scrollY > 600);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
+  <script src="../assets/lightbox.js"></script>
+</body>
+</html>
