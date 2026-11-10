@@ -6942,5 +6942,39 @@
     "anomalyType": null,
     "siteType": "combat_complex",
     "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Collapsed Drifter Cache",
+    "faction": "Drifters",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Collapsed_Drifter_Cache",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Fabricated Rogue Cache",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Fabricated_Rogue_Cache",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
   }
 ]
