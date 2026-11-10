@@ -305,6 +305,14 @@
 .site-detail table.sd-table tr:last-child td { border-bottom: 0; }
 .site-detail table.sd-table td:first-child { color: #fff; white-space: nowrap; }
 .site-detail table.sd-table td:nth-child(2) { color: var(--sd-accent); font-weight: 700; white-space: nowrap; }
+.site-detail .sd-row-note {
+  display: block;
+  margin-top: 5px;
+  color: #ffb4a8;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+.site-detail .sd-row-note i { margin-right: 3px; }
 .site-detail .sd-chip {
   display: inline-block;
   margin: 2px 4px 2px 0;
@@ -402,8 +410,6 @@
 @media (max-width: 600px) {
   .site-detail .sd-title { font-size: 2.1rem; }
   .site-detail .sd-actions .sd-btn { flex: 1 1 auto; justify-content: center; }
-  .site-detail table.sd-table th:nth-child(4),
-  .site-detail table.sd-table td:nth-child(4) { display: none; }
   .site-detail table.sd-table { min-width: 0; }
   .site-detail table.sd-table td:first-child,
   .site-detail table.sd-table td:nth-child(2) { white-space: normal; }

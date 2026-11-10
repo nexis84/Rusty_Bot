@@ -993,8 +993,10 @@
               <tr>
                 <td>${escapeHtml(row.shipClass)}</td>
                 <td>${escapeHtml(row.count)}</td>
-                <td>${row.ships.map(s => `<span class="sd-chip">${escapeHtml(s)}</span>`).join('')}</td>
-                <td>${row.note ? `<span class="sd-note"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>${escapeHtml(row.note)}</span>` : '<span class="muted">—</span>'}</td>
+                <td>
+                  ${row.ships.map(s => `<span class="sd-chip">${escapeHtml(s)}</span>`).join('')}
+                  ${row.note ? `<span class="sd-row-note"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>${escapeHtml(row.note)}</span>` : ''}
+                </td>
               </tr>`).join('');
             const notes = w.notes.length
               ? `<ul class="sd-wave-notes">${w.notes.map(n => `<li>${escapeHtml(n)}</li>`).join('')}</ul>`
@@ -1006,7 +1008,7 @@
                   <span class="sd-wave-count">${w.rows.length ? w.rows.length + ' group' + (w.rows.length === 1 ? '' : 's') : 'Notes'}</span>
                 </div>
                 ${w.rows.length ? `<div class="sd-table-wrap"><table class="sd-table">
-                  <thead><tr><th>Class</th><th>Count</th><th>Ships</th><th>Notes</th></tr></thead>
+                  <thead><tr><th>Class</th><th>Count</th><th>Ships</th></tr></thead>
                   <tbody>${rows}</tbody>
                 </table></div>` : ''}
                 ${notes}
