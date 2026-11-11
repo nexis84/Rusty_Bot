@@ -1,4 +1,4 @@
-// Auto-generated from SDE (build 3682781, 2026-11-10) by scripts/build-bv-materials.mjs — DO NOT EDIT.
+// Auto-generated from SDE (build 3687575, 2026-11-11) by scripts/build-bv-materials.mjs — DO NOT EDIT.
 // Browser + Node compatible (Node test harnesses have no window).
 var BV_GLOBAL = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : {});
 // Industry materials = Material, Reaction, Asteroid, Ancient Relics, Decryptors, Planetary Industry, Planetary Resources, Planetary Commodities categories

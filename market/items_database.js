@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
-// Total items: 23887
-// SDE build: 3682781
-// Generated: 2026-11-10 13:03:16 UTC
+// Total items: 23840
+// SDE build: 3687575
+// Generated: 2026-11-11 17:42:40 UTC
 
 const AllMarketItems = {
     // Ships
@@ -14169,6 +14169,7 @@ const AllMarketItems = {
             { id: 93128, name: "Imperial Projection Booster IV" },
             { id: 93343, name: "Imperial Supremacy - Limited" },
             { id: 93344, name: "Imperial Supremacy - Unlimited" },
+            { id: 93609, name: "Imperial War Reserves Supply Package" },
             { id: 25621, name: "Impetus Console" },
             { id: 24714, name: "Important Surveillance Data" },
             { id: 21566, name: "Impregnable Safe" },
@@ -15769,7 +15770,6 @@ const AllMarketItems = {
             { id: 56625, name: "Talassonite II-Grade" },
             { id: 56626, name: "Talassonite III-Grade" },
             { id: 56632, name: "Talassonite Processing" },
-            { id: 93609, name: "Talman’s Ashimmu" },
             { id: 21085, name: "Talocan Automation Accounts" },
             { id: 21089, name: "Talocan Ignition Device" },
             { id: 21077, name: "Talocan Info Shards" },
@@ -18315,7 +18315,6 @@ const AllMarketItems = {
             { id: 76151, name: "Coercer Versus Redforce SKIN" },
             { id: 59210, name: "Coercer War Reserves Lieutenant SKIN" },
             { id: 57057, name: "Coercer Zakura Shumyu SKIN" },
-            { id: 94035, name: "Complex Alpha" },
             { id: 85979, name: "CONCORD Victory SKIN" },
             { id: 81023, name: "Condor Arkombine Arisen SKIN" },
             { id: 53370, name: "Condor Aurora Universalis SKIN" },
@@ -18716,6 +18715,7 @@ const AllMarketItems = {
             { id: 52731, name: "Deimos Inner Zone Vanguard SKIN" },
             { id: 36387, name: "Deimos Intaki Syndicate SKIN" },
             { id: 46408, name: "Deimos Kopis Edge SKIN" },
+            { id: 94035, name: "Deimos Presidential Agent SKIN" },
             { id: 42170, name: "Deimos Serpentis SKIN" },
             { id: 44914, name: "Deimos Spirit SKIN" },
             { id: 37567, name: "Deimos Valimor Legacy SKIN" },
@@ -26484,11 +26484,11 @@ const AllMarketItems = {
             { id: 72265, name: "Sukuuvestaa Jacket Crate" },
             { id: 46050, name: "Superior Exoplanets Hunter Reward Crate" },
             { id: 55359, name: "Superior Flow Cytometry Rewards Crate" },
+            { id: 93643, name: "Supplies: Battle of Pator" },
             { id: 93641, name: "Supplies: Caldari Prime Breakout" },
             { id: 93640, name: "Supplies: Golgothan Fields" },
             { id: 93642, name: "Supplies: Intaki Liberation" },
             { id: 91410, name: "Suspicious “mining permit”" },
-            { id: 93643, name: "Talman’s Ashimmu" },
             { id: 94316, name: "Talwar Fleet Issue Blueprint Crate" },
             { id: 49645, name: "Tarot of St. Jamyl" },
             { id: 84519, name: "Tau Decay Resonance" },
