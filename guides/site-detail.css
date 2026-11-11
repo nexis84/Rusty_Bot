@@ -2,6 +2,8 @@
    Everything is nested under .site-detail so it cannot affect the rest of the app. */
 
 .site-detail {
+  min-width: 0;
+  max-width: 100%;
   --sd-bg: #0d0d0d;
   --sd-panel: #1a1a1a;
   --sd-border: #2a2a2a;
@@ -36,6 +38,18 @@
   align-items: center;
   padding: 8px 0 28px;
 }
+.site-detail .sd-hero > * { min-width: 0; }
+.site-detail .sd-spawn-grid,
+.site-detail .sd-variant,
+.site-detail .sd-wave,
+.site-detail .sd-table-wrap,
+.site-detail .sd-two-col > *,
+.site-detail .sd-source > *,
+.site-detail .sd-nav > *,
+.site-detail .sd-raw,
+.site-detail .sd-raw-block,
+.site-detail .sd-raw-tables,
+.site-detail .sd-npc-list { min-width: 0; max-width: 100%; }
 
 .site-detail .sd-status {
   display: inline-flex;
@@ -121,6 +135,34 @@
   border-color: var(--sd-accent-dim);
   color: var(--sd-accent);
   background: rgba(232, 217, 0, 0.04);
+}
+.site-detail .sd-actions .favorite-star-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--sd-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--sd-dim);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.site-detail .sd-actions .favorite-star-btn:hover {
+  color: var(--sd-accent);
+  border-color: var(--sd-accent-dim);
+  background: rgba(232, 217, 0, 0.04);
+  transform: none;
+}
+.site-detail .sd-actions .favorite-star-btn.active {
+  color: var(--sd-accent);
+  border-color: var(--sd-accent-dim);
+  background: rgba(232, 217, 0, 0.08);
+  text-shadow: none;
 }
 .site-detail .sd-fact-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
 .site-detail .sd-fact-chips span {
@@ -404,7 +446,7 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .site-detail .sd-hero { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .site-detail .sd-profile { max-width: 620px; }
+  .site-detail .sd-profile { max-width: 100%; width: 100%; }
   .site-detail .sd-two-col { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
@@ -451,3 +493,172 @@
 /* Center the overview heading with its copy */
 .site-detail #sd-overview .sd-section-head { justify-content: center; }
 .site-detail #sd-overview .sd-section-head .sd-line { display: none; }
+
+/* ---------- Long names / empty states ---------- */
+.site-detail .sd-title { overflow-wrap: anywhere; }
+.site-detail .sd-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 14px 16px;
+  border: 1px solid var(--sd-border);
+  border-left: 3px solid var(--sd-accent);
+  border-radius: 0 7px 7px 0;
+  background: rgba(232, 217, 0, 0.04);
+  color: var(--sd-dim);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.site-detail .sd-empty i { margin-top: 3px; color: var(--sd-accent); }
+
+/* ---------- UniWiki fallback tables ---------- */
+.site-detail .sd-raw { display: grid; gap: 14px; }
+.site-detail .sd-raw-block {
+  padding: 14px 16px;
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+}
+.site-detail .sd-raw-block h3 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 0.88rem;
+  letter-spacing: 0.2px;
+}
+.site-detail .sd-raw-block p {
+  margin: 0 0 7px;
+  color: #d6d6d6;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.site-detail .sd-raw-block p:last-child { margin-bottom: 0; }
+.site-detail .sd-raw .npc-line {
+  margin: 0 0 5px;
+  color: #d6d6d6;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.site-detail .sd-raw-tables { display: grid; gap: 14px; }
+.site-detail .sd-raw-tables .npc-group { overflow-x: auto; }
+.site-detail .sd-npc-list { display: grid; gap: 7px; }
+.site-detail .sd-npc-row {
+  padding: 8px 10px;
+  border: 1px solid rgba(42, 42, 42, 0.55);
+  border-left: 2px solid var(--sd-accent-dim);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.015);
+  color: #d6d6d6;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.site-detail .sd-npc-row .badge {
+  display: inline-block;
+  margin: 1px 3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.site-detail .sd-npc-row .badge-ewar { background: rgba(239, 68, 68, 0.22); color: #ffb4a8; }
+.site-detail .sd-npc-row .badge-trigger { background: rgba(245, 158, 11, 0.2); color: #f5c04a; }
+.site-detail .sd-npc-row .badge-note { background: rgba(59, 130, 246, 0.2); color: #93b8ff; }
+.site-detail .uniwiki-npc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.site-detail .uniwiki-npc-table th {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--sd-border);
+  background: rgba(232, 217, 0, 0.035);
+  color: var(--sd-dim);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: left;
+  text-transform: uppercase;
+}
+.site-detail .uniwiki-npc-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.55);
+  color: #d6d6d6;
+  line-height: 1.5;
+  vertical-align: top;
+}
+.site-detail .uniwiki-npc-table tr:last-child td { border-bottom: 0; }
+.site-detail .uniwiki-npc-table tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+.site-detail .uniwiki-npc-table td.npc-desc { color: #fff; }
+.site-detail .uniwiki-npc-table .badge {
+  display: inline-block;
+  margin: 1px 3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.site-detail .uniwiki-npc-table .badge-ewar { background: rgba(239, 68, 68, 0.22); color: #ffb4a8; }
+.site-detail .uniwiki-npc-table .badge-trigger { background: rgba(245, 158, 11, 0.2); color: #f5c04a; }
+.site-detail .uniwiki-npc-table .badge-note { background: rgba(59, 130, 246, 0.2); color: #93b8ff; }
+.site-detail .uniwiki-inline-table {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+.site-detail .uniwiki-inline-table .inline-row {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.55);
+  color: #d6d6d6;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.site-detail .uniwiki-inline-table .inline-row:last-child { border-bottom: 0; }
+.site-detail .uniwiki-inline-table .inline-header {
+  color: var(--sd-dim);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.site-detail .uniwiki-inline-table .inline-sep { margin: 0 6px; color: var(--sd-border); }
+
+/* ---------- Previous / next anomaly ---------- */
+.site-detail .sd-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding-top: 24px;
+  margin-top: 8px;
+  border-top: 1px solid var(--sd-border);
+}
+.site-detail .sd-nav-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.site-detail .sd-nav-btn:hover {
+  border-color: var(--sd-accent-dim);
+  background: rgba(232, 217, 0, 0.04);
+}
+.site-detail .sd-nav-next { text-align: right; }
+.site-detail .sd-nav-label {
+  color: var(--sd-accent);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+.site-detail .sd-nav-name { color: #ddd; font-size: 0.85rem; font-weight: 600; }
+@media (max-width: 600px) {
+  .site-detail .sd-nav { grid-template-columns: 1fr; }
+  .site-detail .sd-nav-next { text-align: left; }
+}
