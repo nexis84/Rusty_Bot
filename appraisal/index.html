@@ -6,25 +6,25 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>EVE Online Item Appraisal — Price Check Jita, Amarr, Dodixie, Hek, Rens | RustyAppraisal</title>
-    <meta name="description" content="Free EVE Online item appraisal tool. Paste your inventory and get instant ISK buy, sell and split prices from Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback-ready % rates, shareable links, no login needed.">
-    <meta name="keywords" content="EVE Online, eve appraisal, eve online item appraisal, janice alternative, eve price check, eve buyback appraisal, Jita, Amarr, Dodixie, Hek, Rens, trade hubs, ISK, RustyBot">
+    <title>EVE Online Item Appraisal & Mining Refinery — Jita, Amarr, Dodixie, Hek, Rens | RustyAppraisal</title>
+    <meta name="description" content="Free EVE Online item appraisal and mining refinery calculator. Paste your inventory or mining hold, set your reprocessing efficiency, and get instant ISK values from Jita, Amarr, Dodixie, Hek, Rens and C-J6MT.">
+    <meta name="keywords" content="EVE Online, eve appraisal, eve online item appraisal, eve mining calculator, ore reprocessing calculator, mining refinery, janice alternative, eve price check, eve buyback appraisal, Jita, Amarr, Dodixie, Hek, Rens, trade hubs, ISK, RustyBot">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0f1420">
     <link rel="canonical" href="https://www.rustybot.co.uk/appraisal/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="RustyBot">
     <meta property="og:url" content="https://www.rustybot.co.uk/appraisal/">
-    <meta property="og:title" content="RustyAppraisal — Free EVE Online Item Appraisal & Price Check">
-    <meta property="og:description" content="Paste items, get instant buy/sell/split ISK values from every major trade hub. Includes buyback % rates and shareable appraisal links.">
+    <meta property="og:title" content="RustyAppraisal — Free EVE Online Item Appraisal & Mining Refinery">
+    <meta property="og:description" content="Paste items or a mining hold, get instant buy/sell/split ISK values from every major trade hub. Includes reprocessing efficiency, buyback % rates and shareable appraisal links.">
     <meta property="og:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <meta property="og:image:alt" content="RustyBot logo">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="RustyAppraisal — Free EVE Online Item Appraisal & Price Check">
-    <meta name="twitter:description" content="Instant ISK appraisal across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback % rates, shareable links, no login.">
+    <meta name="twitter:title" content="RustyAppraisal — Free EVE Online Item Appraisal & Mining Refinery">
+    <meta name="twitter:description" content="Instant ISK appraisal and ore reprocessing calculator across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback % rates, shareable links, no login.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <base href="/appraisal/">
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=8">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -41,7 +41,7 @@
       "@type": "WebApplication",
       "name": "RustyAppraisal - RustyBot EVE Online Item Appraisal",
       "url": "https://www.rustybot.co.uk/appraisal/",
-      "description": "Free EVE Online item appraisal tool. Paste a list of items and get instant buy and sell prices from the major trade hubs including Jita, Amarr, Dodixie, Hek and Rens.",
+      "description": "Free EVE Online item appraisal and mining refinery tool. Paste items or a mining hold and get instant buy, sell and split prices from the major trade hubs including Jita, Amarr, Dodixie, Hek and Rens.",
       "applicationCategory": "GameApplication",
       "operatingSystem": "All",
       "browserRequirements": "Requires JavaScript",
@@ -95,6 +95,14 @@
         },
         {
           "@type": "Question",
+          "name": "How does the Mining Refinery tab work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Paste your mining hold, enter the reprocessing efficiency shown in the EVE client, and the tool calculates the minerals produced and their live market value. Normal ore, compressed ore, ice and special asteroid types are supported."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "Is RustyAppraisal free? Do I need to log in?",
           "acceptedAnswer": {
             "@type": "Answer",
@@ -135,9 +143,19 @@
         <section class="hero-section">
             <img src="../rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
             <h2>Rusty<span class="accent">Appraisal</span></h2>
-            <p>Paste a list of items and instantly see what they're worth at the major trade hubs.</p>
+            <p>Paste items or your mining hold and instantly see what they're worth at the major trade hubs.</p>
         </section>
 
+        <div class="app-tabs" role="tablist" aria-label="RustyAppraisal tools">
+            <button class="app-tab active" id="tab-appraisal" role="tab" aria-selected="true" aria-controls="appraisalTab" data-tab="appraisal">
+                <i class="fas fa-clipboard-list"></i> Item Appraisal
+            </button>
+            <button class="app-tab" id="tab-mining" role="tab" aria-selected="false" aria-controls="miningTab" data-tab="mining">
+                <i class="fas fa-gem"></i> Mining Refinery
+            </button>
+        </div>
+
+        <div id="appraisalTab" class="tab-panel active" role="tabpanel" aria-labelledby="tab-appraisal">
         <!-- Appraisal Form -->
         <section class="appraisal-panel">
             <div class="appraisal-inputs">
@@ -287,18 +305,161 @@
                 <ul id="unmatchedList" class="unmatched-list"></ul>
             </div>
         </section>
+        </div><!-- /appraisalTab -->
+
+        <div id="miningTab" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-mining">
+            <section class="appraisal-panel">
+                <div class="appraisal-inputs">
+                    <div class="filter-group input-group">
+                        <label for="miningText"><i class="fas fa-gem"></i> Mining hold (paste from game clipboard)</label>
+                        <textarea id="miningText" spellcheck="false" placeholder="Arkonor 1020&#10;Veldspar 5000&#10;Bistot 750&#10;Compressed Arkonor 100&#10;Paste inventory rows or &quot;Ore 1020&quot;"></textarea>
+                        <p class="field-hint">Normal, compressed, ice and special ore types are supported. Paste straight from the EVE client or use <code>Ore 1020</code>. Ore left over after a full reprocessing batch is shown separately.</p>
+                    </div>
+                    <div class="hub-group mining-controls">
+                        <div class="filter-group">
+                            <label for="miningHubSelect"><i class="fas fa-map-marker-alt"></i> Trade Hub</label>
+                            <select id="miningHubSelect">
+                                <option value="all">All Trade Hubs (Jita, Amarr, Dodixie, Hek, Rens, C-J6MT)</option>
+                                <option value="10000002" selected>Jita (The Forge)</option>
+                                <option value="10000043">Amarr (Domain)</option>
+                                <option value="10000032">Dodixie (Sinq Laison)</option>
+                                <option value="10000042">Hek (Metropolis)</option>
+                                <option value="10000030">Rens (Heimatar)</option>
+                                <option value="10000009">C-J6MT (Catch)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="miningEfficiency"><i class="fas fa-percent"></i> Reprocessing efficiency</label>
+                            <div class="efficiency-row">
+                                <input id="miningEfficiency" type="number" min="0" max="100" step="0.1" value="75" aria-label="Reprocessing efficiency percentage">
+                                <span class="rate-suffix">%</span>
+                                <button class="rate-preset" data-mining-rate="50" title="Set 50%">50</button>
+                                <button class="rate-preset" data-mining-rate="75" title="Set 75%">75</button>
+                                <button class="rate-preset" data-mining-rate="85" title="Set 85%">85</button>
+                                <button class="rate-preset" data-mining-rate="90" title="Set 90%">90</button>
+                                <button class="rate-preset" data-mining-rate="100" title="Set 100%">100</button>
+                            </div>
+                            <p class="field-hint">Use the percentage shown in the in-game reprocessing window. Reprocessing tax and market fees are not included.</p>
+                        </div>
+                        <div class="mining-actions">
+                            <button id="mineBtn" class="appraise-btn">
+                                <i class="fas fa-industry"></i> Calculate Refining
+                            </button>
+                            <button id="clearMiningBtn" class="clear-btn" title="Clear the mining hold field">
+                                <i class="fas fa-eraser"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="miningResults" class="results-section hidden">
+                <div class="results-header">
+                    <h3>Mining <span class="accent">Refinery</span> Results</h3>
+                </div>
+                <p id="miningHubNote" class="results-hub-note"></p>
+
+                <div class="market-summary">
+                    <div class="summary-card sell" title="Instant-sale value of the refined minerals">
+                        <div class="summary-header">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Refined Buy Value</span>
+                        </div>
+                        <div class="summary-value" id="miningBuyTotal">—</div>
+                        <div class="summary-note">Using best buy orders for minerals</div>
+                    </div>
+                    <div class="summary-card buy" title="Replacement cost of the refined minerals">
+                        <div class="summary-header">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Refined Sell Value</span>
+                        </div>
+                        <div class="summary-value" id="miningSellTotal">—</div>
+                        <div class="summary-note">Using best sell orders for minerals</div>
+                    </div>
+                    <div class="summary-card spread" title="Midpoint between mineral buy and sell values">
+                        <div class="summary-header">
+                            <i class="fas fa-divide"></i>
+                            <span>Refined Split Value</span>
+                        </div>
+                        <div class="summary-value" id="miningSplitTotal">—</div>
+                        <div class="summary-note">Midpoint between buy and sell</div>
+                    </div>
+                    <div class="summary-card volume" title="Ore processed and mineral types produced">
+                        <div class="summary-header">
+                            <i class="fas fa-boxes-stacked"></i>
+                            <span>Ore Refined</span>
+                        </div>
+                        <div class="summary-value" id="miningOutputTotal">—</div>
+                        <div class="summary-note" id="miningOutputNote">—</div>
+                    </div>
+                </div>
+
+                <div id="miningProgress" class="progress-area hidden">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="miningProgressBarFill"></div>
+                    </div>
+                    <p id="miningProgressText">Fetching mineral prices...</p>
+                    <button id="miningCancelBtn" class="cancel-btn">
+                        <i class="fas fa-ban"></i> Cancel
+                    </button>
+                </div>
+
+                <div class="results-table-container">
+                    <table class="results-table" id="miningTable">
+                        <thead>
+                            <tr>
+                                <th>Mineral</th>
+                                <th class="num">Quantity</th>
+                                <th class="num">Best Buy</th>
+                                <th class="num">Best Sell</th>
+                                <th class="num">Buy Total</th>
+                                <th class="num">Sell Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="miningBody"></tbody>
+                        <tfoot id="miningFoot"></tfoot>
+                    </table>
+                </div>
+
+                <div class="mining-breakdown">
+                    <h4><i class="fas fa-layer-group"></i> Ore breakdown</h4>
+                    <div class="results-table-container">
+                        <table class="results-table mining-ore-table" id="miningOreTable">
+                            <thead>
+                                <tr>
+                                    <th>Ore</th>
+                                    <th class="num">Quantity</th>
+                                    <th class="num">Batches</th>
+                                    <th class="num">Refined</th>
+                                    <th class="num">Left over</th>
+                                    <th>Minerals produced</th>
+                                </tr>
+                            </thead>
+                            <tbody id="miningOreBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="miningUnmatched" class="unmatched-section hidden">
+                    <h4><i class="fas fa-triangle-exclamation"></i> Unmatched Ore</h4>
+                    <p class="unmatched-note">These lines could not be matched to a known ore or ice type. Check the spelling.</p>
+                    <ul id="miningUnmatchedList" class="unmatched-list"></ul>
+                </div>
+            </section>
+        </div><!-- /miningTab -->
 
         <!-- SEO Content Section -->
         <section class="seo-content">
-            <h2>RustyAppraisal - EVE Online Item Appraisal Tool</h2>
+            <h2>RustyAppraisal - EVE Online Item Appraisal & Mining Refinery</h2>
             <p>This free tool lets capsuleers paste a list of items from the EVE Online clipboard and instantly appraise their market value. Choose between the major trade hubs — <strong>Jita (The Forge)</strong>, <strong>Amarr (Domain)</strong>, <strong>Dodixie (Sinq Laison)</strong>, <strong>Hek (Metropolis)</strong> and <strong>Rens (Heimatar)</strong> — or get a combined appraisal across all five hubs.</p>
             <p>For every item you'll see the best buy order price (the highest price buyers are currently willing to pay) and the best sell order price (the lowest price sellers are asking). Totals are shown for both, so you can quickly value a hangar, a loot drop or a shopping list in ISK.</p>
+            <p>The <strong>Mining Refinery</strong> tab takes a copied mining hold, applies your reprocessing efficiency, and shows the minerals you would get plus their live market value. It supports normal ore, compressed ore, ice and special asteroid types.</p>
             <p>Prices are pulled live from CCP's ESI API and cached briefly, so repeated appraisals are fast while staying up to date.</p>
             <p>Looking for a single item instead? Browse live orders in the <a href="../market/">EVE Online Market Browser</a>, learn the game with our <a href="../guides/">EVE Online Guides</a>, or return to the <a href="../">RustyBot homepage</a> for more free tools.</p>
         </section>
 
         <footer class="main-footer">
-            <p class="footer-nav"><a href="../">Home</a> · <a href="../market/">Market Browser</a> · <a href="../guides/">Guides</a> · <a href="./">Item Appraisal</a></p>
+            <p class="footer-nav"><a href="../">Home</a> · <a href="../market/">Market Browser</a> · <a href="../guides/">Guides</a> · <a href="./">Item Appraisal</a> · <a href="./?tab=mining">Mining Refinery</a></p>
             <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
             <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
             <p class="eve-time-display"><i class="far fa-clock"></i> EVE Time: <span id="eveClock">--:--:--</span></p>
@@ -330,6 +491,8 @@
 </script>
 
 <script src="../market/items_database.js"></script>
-<script src="app.js?v=7"></script>
+<script src="mining-data.js?v=1"></script>
+<script src="app.js?v=8"></script>
+<script src="mining.js?v=1"></script>
 </body>
 </html>
