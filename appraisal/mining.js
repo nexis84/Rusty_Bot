@@ -564,6 +564,8 @@
         if (!MINING_DATA) {
             el('mineBtn').disabled = true;
             el('mineBtn').title = 'Mining data failed to load';
+        } else if (el('footerSdeBuild')) {
+            el('footerSdeBuild').textContent = `Build ${MINING_DATA.build}`;
         }
     });
 })();

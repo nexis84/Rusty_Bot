@@ -1171,37 +1171,135 @@ body {
 
 /* Footer */
 .main-footer {
-    margin-top: auto;
-    padding: 20px 24px;
+    margin-top: 36px;
+    padding: 0;
     background: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow: hidden;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 28px;
+    padding: 28px 26px 24px;
+}
+
+.footer-brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+}
+
+.footer-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(255, 140, 61, 0.3));
+}
+
+.footer-brand-link span {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.footer-brand-link .accent {
+    color: var(--accent-2);
+}
+
+.footer-brand p {
+    margin: 10px 0 0;
+    max-width: 250px;
+    line-height: 1.6;
     color: var(--text-muted);
 }
 
-.main-footer a {
-    color: var(--accent);
-    text-decoration: none;
+.footer-col h4 {
+    margin: 0 0 10px;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-.main-footer a:hover {
+.footer-col a {
+    display: block;
+    width: fit-content;
+    padding: 3px 0;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-col a:hover {
+    color: var(--accent);
+}
+
+.footer-data p {
+    margin: 0 0 8px;
+    color: var(--text-secondary);
+}
+
+.footer-data p:last-child {
+    margin-bottom: 0;
+}
+
+.footer-build {
+    margin-top: -2px !important;
+    font-size: 11px;
+    color: var(--text-muted) !important;
+}
+
+.footer-eve-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.footer-eve-time i {
+    color: var(--accent-2);
+}
+
+.footer-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 26px 18px;
+    border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+.footer-top-link {
+    align-self: flex-end;
+    margin-top: 4px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.footer-top-link:hover {
     text-decoration: underline;
 }
 
-.data-source {
-    margin-top: 6px;
-    opacity: 0.8;
-}
-
-.eve-time-display {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.eve-time-display i {
-    color: var(--accent-2);
+.footer-top-link i {
+    margin-left: 4px;
 }
 
 /* Responsive */
@@ -1222,6 +1320,9 @@ body {
         justify-content: space-between;
         flex-wrap: wrap;
     }
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 600px) {
@@ -1237,5 +1338,15 @@ body {
     .results-table.filter-buy,
     .results-table.filter-sell {
         min-width: 520px;
+    }
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+    .footer-brand p {
+        max-width: none;
+    }
+    .footer-top-link {
+        align-self: flex-start;
     }
 }
