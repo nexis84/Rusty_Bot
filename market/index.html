@@ -22,7 +22,7 @@
     <meta name="twitter:title" content="EVE Online Market Browser & Trend Tracker | RustyBot">
     <meta name="twitter:description" content="Free, no-login EVE Online market browser and trend tracker covering every region.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -612,7 +612,11 @@
         </div>
 
         <!-- SEO Content Section -->
-        <section class="seo-content">
+        <details class="seo-content market-seo-collapsible">
+            <summary class="market-seo-summary">
+                <span class="market-seo-summary-title"><i class="fas fa-circle-info"></i> About the RustyBot Market Browser</span>
+                <i class="fas fa-chevron-down market-seo-chevron" aria-hidden="true"></i>
+            </summary>
             <div class="seo-shell">
                 <div class="seo-intro">
                     <span class="seo-eyebrow"><i class="fas fa-chart-line"></i> RustyBot Market</span>
@@ -661,12 +665,51 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </details>
 
         <footer class="main-footer">
-            <p>EVE Online and the EVE logo are the registered trademarks of <a href="https://www.ccpgames.com" target="_blank">Fenris Creations</a>. All rights are reserved worldwide. All other trademarks are the property of their respective owners.</p>
-            <p class="data-source">Data provided by <a href="https://esi.evetech.net/" target="_blank">ESI</a></p>
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="../" class="footer-brand-link">
+                        <img src="../rusty_bot.png" alt="" class="footer-logo">
+                        <span>Rusty<span class="accent">Bot</span></span>
+                    </a>
+                    <p>Free market tools and guides for EVE Online capsuleers.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Market</h4>
+                    <a href="./">Market Browser</a>
+                    <a href="../appraisal/">Item Appraisal</a>
+                    <a href="../appraisal/?tab=mining">Mining Refinery</a>
+                    <a href="../guides/">Guides</a>
+                </div>
+                <div class="footer-col">
+                    <h4>More tools</h4>
+                    <a href="../skillplanner/">Skill Planner</a>
+                    <a href="../shiptree/">Ship Tree</a>
+                    <a href="../PI/">PI Planner</a>
+                    <a href="../top-trumps/">Top Trumps</a>
+                </div>
+                <div class="footer-col footer-data">
+                    <h4>Data</h4>
+                    <p><a href="https://esi.evetech.net/" target="_blank" rel="noopener">ESI market prices</a></p>
+                    <p><a href="https://sde.evetech.net/" target="_blank" rel="noopener">SDE item data</a></p>
+                    <p class="footer-eve-time"><i class="far fa-clock"></i> EVE Time <span id="footerEveTime">--:--:--</span></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© <span id="footerYear">2026</span> RustyBot. Not affiliated with CCP Games.</p>
+                <p>EVE Online and the EVE logo are registered trademarks of Fenris Creations. All rights reserved worldwide. All other trademarks are the property of their respective owners.</p>
+                <a href="#" class="footer-top-link">Back to top <i class="fas fa-arrow-up"></i></a>
+            </div>
         </footer>
+
+        <script>
+        (function () {
+            const year = document.getElementById('footerYear');
+            if (year) year.textContent = new Date().getFullYear();
+        })();
+        </script>
     </main>
 </div>
 
@@ -677,6 +720,6 @@
 <script src="categories.js"></script>
 <script src="systems.js"></script>
 <script src="stations.js"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

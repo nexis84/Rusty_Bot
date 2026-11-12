@@ -3577,6 +3577,8 @@ function updateEveTime() {
     const timeStr = now.toISOString().substring(11, 19) + ' UTC';
     const el_time = el('sidebarEveTime');
     if (el_time) el_time.textContent = timeStr;
+    const footerTime = el('footerEveTime');
+    if (footerTime) footerTime.textContent = timeStr;
 }
 
 // Show/hide loading
