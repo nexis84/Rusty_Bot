@@ -1025,6 +1025,14 @@ async function resolveShortCode(code) {
         const res = await fetch(API_BASE + '/appraisal/share/' + encodeURIComponent(code));
         if (!res.ok) return;
         const data = await res.json();
+        if (data.kind === 'mining') {
+            if (typeof window.loadMiningShare === 'function') {
+                window.loadMiningShare(data);
+            } else {
+                setTimeout(() => window.loadMiningShare && window.loadMiningShare(data), 50);
+            }
+            return;
+        }
         if (data.items) {
             const decoded = data.items.split('\n').map(line => {
                 const m = line.trim().match(/^(\d+):(\d+)$/);

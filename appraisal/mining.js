@@ -11,13 +11,16 @@
 
     const byLower = new Map();
     const byNorm = new Map();
+    const byId = new Map();
     let miningController = null;
+    let lastShare = null;
 
     if (MINING_DATA) {
         for (const ore of MINING_DATA.ores) {
             const lower = ore.name.toLowerCase();
             byLower.set(lower, ore);
             byNorm.set(miningNorm(ore.name), ore);
+            byId.set(Number(ore.id), ore);
         }
     }
 
@@ -109,6 +112,97 @@
         };
     }
 
+    function priceBasis(price, basis) {
+        if (!price) return null;
+        if (basis === 'buy') return price.buy !== null && price.buy !== undefined ? price.buy : null;
+        if (basis === 'sell') return price.sell !== null && price.sell !== undefined ? price.sell : null;
+        if (price.buy !== null && price.buy !== undefined && price.sell !== null && price.sell !== undefined) {
+            return (price.buy + price.sell) / 2;
+        }
+        return price.buy !== null && price.buy !== undefined ? price.buy : (price.sell ?? null);
+    }
+
+    function renderComparison(result, prices, mineralRows) {
+        const bases = ['buy', 'sell', 'split'];
+        const raw = { buy: 0, sell: 0, split: 0 };
+        const leftover = { buy: 0, sell: 0, split: 0 };
+        const missingOre = { buy: 0, sell: 0, split: 0 };
+        const missingMineral = { buy: 0, sell: 0, split: 0 };
+        const mineralValue = { buy: 0, sell: 0, split: 0 };
+
+        for (const row of result.breakdown) {
+            for (const basis of bases) {
+                const price = priceBasis(prices[row.ore.id] || null, basis);
+                if (price === null) {
+                    missingOre[basis]++;
+                    continue;
+                }
+                raw[basis] += row.qty * price;
+                leftover[basis] += row.leftover * price;
+            }
+        }
+
+        for (const row of mineralRows) {
+            for (const basis of bases) {
+                const price = priceBasis(prices[row.id] || null, basis);
+                if (price === null) {
+                    missingMineral[basis]++;
+                    continue;
+                }
+                mineralValue[basis] += row.qty * price;
+            }
+        }
+
+        const refined = {};
+        for (const basis of bases) refined[basis] = mineralValue[basis] + leftover[basis];
+
+        const signed = value => {
+            const cls = value >= 0 ? 'compare-positive' : 'compare-negative';
+            return `<span class="${cls}">${num(value)}</span>`;
+        };
+
+        el('miningCompareBody').innerHTML = `
+            <tr>
+                <td>Sell raw ore</td>
+                <td class="num">${num(raw.buy)}</td>
+                <td class="num">${num(raw.sell)}</td>
+                <td class="num">${num(raw.split)}</td>
+            </tr>
+            <tr>
+                <td>Refine (includes leftovers)</td>
+                <td class="num">${num(refined.buy)}</td>
+                <td class="num">${num(refined.sell)}</td>
+                <td class="num">${num(refined.split)}</td>
+            </tr>
+            <tr class="compare-diff">
+                <td>Difference</td>
+                <td class="num">${missingOre.buy || missingMineral.buy ? '—' : signed(refined.buy - raw.buy)}</td>
+                <td class="num">${missingOre.sell || missingMineral.sell ? '—' : signed(refined.sell - raw.sell)}</td>
+                <td class="num">${missingOre.split || missingMineral.split ? '—' : signed(refined.split - raw.split)}</td>
+            </tr>`;
+
+        const headline = el('miningCompareHeadline');
+        const missingBuy = missingOre.buy + missingMineral.buy;
+        if (missingBuy) {
+            const parts = [];
+            if (missingOre.buy) parts.push(`${missingOre.buy} ore type${missingOre.buy === 1 ? '' : 's'}`);
+            if (missingMineral.buy) parts.push(`${missingMineral.buy} mineral type${missingMineral.buy === 1 ? '' : 's'}`);
+            headline.textContent = `Comparison incomplete: no buy price for ${parts.join(' and ')}.`;
+            headline.className = 'mining-compare-headline mining-compare-warning';
+            return;
+        }
+
+        const difference = refined.buy - raw.buy;
+        const refineLabel = result.totalLeftover > 0 ? 'refining and selling leftovers' : 'refining';
+        if (difference >= 0) {
+            headline.textContent = `At buy value, ${refineLabel} is worth ${num(difference)} ISK more than selling all the ore.`;
+            headline.className = 'mining-compare-headline compare-positive';
+        } else {
+            headline.textContent = `At buy value, selling all the ore is worth ${num(Math.abs(difference))} ISK more than ${refineLabel}.`;
+            headline.className = 'mining-compare-headline compare-negative';
+        }
+    }
+
     function renderMining(result, prices, region, efficiency) {
         const rows = result.minerals.map(mineral => priceRow(mineral, prices[mineral.id] || null));
         const buyTotal = rows.reduce((sum, row) => sum + (row.buyTotal || 0), 0);
@@ -125,7 +219,7 @@
         const regionLabel = region === 'all'
             ? 'all trade hubs'
             : (typeof HUB_REGIONS !== 'undefined' && HUB_REGIONS[region] ? HUB_REGIONS[region] : `region ${region}`);
-        el('miningHubNote').textContent = `Refined at ${efficiency}% efficiency using ${regionLabel} mineral prices. Ore left after a partial reprocessing batch is not refined.`;
+        el('miningHubNote').textContent = `Refined at ${efficiency}% efficiency using ${regionLabel} ore and mineral prices. Ore left after a partial reprocessing batch is not refined.`;
 
         const tbody = el('miningBody');
         tbody.innerHTML = rows.map(row => {
@@ -182,6 +276,8 @@
         if (!result.breakdown.length) {
             oreBody.innerHTML = '<tr><td colspan="6" class="empty-state">No ore to display.</td></tr>';
         }
+
+        renderComparison(result, prices, rows);
     }
 
     function showUnmatched(unmatched) {
@@ -246,29 +342,33 @@
 
         el('miningResults').classList.remove('hidden');
         showUnmatched(unmatched);
-        setMiningProgress(true, 'Fetching mineral prices...', 0);
+        setMiningProgress(true, 'Fetching ore and mineral prices...', 0);
         el('mineBtn').disabled = true;
+        el('shareMiningBtn').disabled = true;
+        lastShare = null;
         appraisalCancelled = false;
         miningController = new AbortController();
 
         const region = el('miningHubSelect').value;
         const mineralIds = result.minerals.map(mineral => mineral.id);
+        const oreIds = result.breakdown.map(row => row.ore.id);
+        const priceIds = [...new Set([...mineralIds, ...oreIds])];
         let prices = {};
 
         try {
             const priceResults = await mapPool(
-                mineralIds,
+                priceIds,
                 6,
                 async typeId => getBestPrices(typeId, region, miningController.signal),
-                (done, total) => setMiningProgress(true, `Fetching mineral prices for ${done} of ${total} minerals...`, (done / total) * 100),
+                (done, total) => setMiningProgress(true, `Fetching ore and mineral prices for ${done} of ${total} items...`, (done / total) * 100),
             );
-            mineralIds.forEach((typeId, index) => {
+            priceIds.forEach((typeId, index) => {
                 if (priceResults[index]) prices[typeId] = priceResults[index];
             });
         } catch (error) {
             if (!error || error.name !== 'AbortError') {
                 console.error('Mining price fetch failed:', error);
-                showMessage('Some mineral prices could not be fetched. Showing available prices.', 'error');
+                showMessage('Some ore or mineral prices could not be fetched. Showing available prices.', 'error');
             }
         } finally {
             setMiningProgress(false);
@@ -277,11 +377,108 @@
         }
 
         renderMining(result, prices, region, efficiency);
+        lastShare = {
+            items: buildShareItems(result, unmatched),
+            efficiency,
+            hub: region,
+        };
+        el('shareMiningBtn').disabled = false;
         if (appraisalCancelled) {
             showMessage('Mining appraisal cancelled. Showing partial results.', 'error');
         }
         el('miningResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    function buildShareItems(result, unmatched) {
+        const lines = result.breakdown.map(row => `${row.qty}:${row.ore.id}`);
+        for (const item of unmatched) {
+            lines.push(item.qty > 1 ? `${item.qty} x ${item.raw}` : item.raw);
+        }
+        return lines.join('\n');
+    }
+
+    function decodeShareItems(items) {
+        return String(items || '').split('\n').map(line => {
+            const match = line.trim().match(/^(\d+):(\d+)$/);
+            if (match && byId.has(Number(match[2]))) {
+                return `${match[1]} x ${byId.get(Number(match[2])).name}`;
+            }
+            return line;
+        }).join('\n');
+    }
+
+    async function copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (error) {
+            const area = document.createElement('textarea');
+            area.value = text;
+            document.body.appendChild(area);
+            area.select();
+            try {
+                document.execCommand('copy');
+                return true;
+            } catch (copyError) {
+                return false;
+            } finally {
+                document.body.removeChild(area);
+            }
+        }
+    }
+
+    async function shareMining() {
+        if (!lastShare) {
+            showMessage('Calculate a mining hold first.', 'error');
+            return;
+        }
+        if (typeof API_BASE === 'undefined') {
+            showMessage('Share service is unavailable.', 'error');
+            return;
+        }
+
+        const body = {
+            kind: 'mining',
+            items: lastShare.items,
+            efficiency: lastShare.efficiency,
+        };
+        if (lastShare.hub && lastShare.hub !== 'all') body.hub = lastShare.hub;
+
+        try {
+            const response = await fetch(`${API_BASE}/appraisal/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.code) {
+                throw new Error(data.error || `Share failed (${response.status})`);
+            }
+            const path = location.pathname.replace(/\/index\.html$/, '/');
+            const link = `${location.origin}${path}?tab=mining#${data.code}`;
+            if (!await copyText(link)) {
+                showMessage('Share link created but clipboard copy failed.', 'error');
+                return;
+            }
+            showMessage('Mining share link copied to clipboard', 'success');
+        } catch (error) {
+            console.error('Mining share link failed:', error);
+            showMessage('Could not create share link. Try again.', 'error');
+        }
+    }
+
+    function loadMiningShare(data) {
+        if (!data || data.kind !== 'mining' || !data.items) return;
+        showTab('mining');
+        el('miningText').value = decodeShareItems(data.items);
+        if (data.hub && el('miningHubSelect').querySelector(`option[value="${data.hub}"]`)) {
+            el('miningHubSelect').value = data.hub;
+        }
+        setEfficiency(data.efficiency);
+        setTimeout(runMining, 50);
+    }
+
+    window.loadMiningShare = loadMiningShare;
 
     function publicLastMining(text, hub, efficiency) {
         try {
@@ -297,6 +494,10 @@
         el('miningSplitTotal').textContent = '—';
         el('miningOutputTotal').textContent = '—';
         el('miningOutputNote').textContent = '—';
+        el('miningCompareHeadline').textContent = '';
+        el('miningCompareBody').innerHTML = '';
+        el('shareMiningBtn').disabled = true;
+        lastShare = null;
         showUnmatched([]);
         setMiningProgress(false);
         try { localStorage.removeItem('rustyMiningLast'); } catch (error) { /* ignore */ }
@@ -330,6 +531,7 @@
 
         el('mineBtn').addEventListener('click', runMining);
         el('clearMiningBtn').addEventListener('click', clearMining);
+        el('shareMiningBtn').addEventListener('click', shareMining);
 
         document.querySelectorAll('[data-mining-rate]').forEach(button => {
             button.addEventListener('click', () => setEfficiency(button.dataset.miningRate));

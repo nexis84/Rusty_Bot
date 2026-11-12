@@ -24,7 +24,7 @@
     <meta name="twitter:description" content="Instant ISK appraisal and ore reprocessing calculator across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback % rates, shareable links, no login.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <base href="/appraisal/">
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -356,6 +356,11 @@
             <section id="miningResults" class="results-section hidden">
                 <div class="results-header">
                     <h3>Mining <span class="accent">Refinery</span> Results</h3>
+                    <div class="results-actions">
+                        <button id="shareMiningBtn" class="copy-btn" title="Copy a shareable link to this mining calculation" disabled>
+                            <i class="fas fa-link"></i> Share
+                        </button>
+                    </div>
                 </div>
                 <p id="miningHubNote" class="results-hub-note"></p>
 
@@ -402,6 +407,25 @@
                     <button id="miningCancelBtn" class="cancel-btn">
                         <i class="fas fa-ban"></i> Cancel
                     </button>
+                </div>
+
+                <div class="mining-compare" id="miningCompare">
+                    <h4><i class="fas fa-scale-balanced"></i> Sell ore vs refine</h4>
+                    <p id="miningCompareHeadline" class="mining-compare-headline"></p>
+                    <div class="results-table-container">
+                        <table class="results-table mining-compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Option</th>
+                                    <th class="num">Buy Value</th>
+                                    <th class="num">Sell Value</th>
+                                    <th class="num">Split Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="miningCompareBody"></tbody>
+                        </table>
+                    </div>
+                    <p class="field-hint">Buy value is instant liquidation. Refine value includes the value of leftover ore below a full reprocessing batch. Market fees are not included.</p>
                 </div>
 
                 <div class="results-table-container">
@@ -497,7 +521,7 @@
 
 <script src="../market/items_database.js"></script>
 <script src="mining-data.js?v=1"></script>
-<script src="app.js?v=8"></script>
-<script src="mining.js?v=1"></script>
+<script src="app.js?v=9"></script>
+<script src="mining.js?v=2"></script>
 </body>
 </html>

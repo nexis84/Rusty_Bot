@@ -417,10 +417,11 @@ body {
     flex: 1;
 }
 
-.mining-breakdown {
-    margin-top: 28px;
+.mining-compare {
+    margin: 0 0 28px;
 }
 
+.mining-compare h4,
 .mining-breakdown h4 {
     display: flex;
     align-items: center;
@@ -430,8 +431,41 @@ body {
     color: var(--text);
 }
 
+.mining-compare h4 i,
 .mining-breakdown h4 i {
     color: var(--accent);
+}
+
+.mining-compare-headline {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.mining-compare-warning {
+    color: var(--warning);
+}
+
+.compare-positive {
+    color: var(--success);
+}
+
+.compare-negative {
+    color: var(--danger);
+}
+
+.mining-compare-table {
+    min-width: 620px;
+}
+
+.mining-compare-table tr.compare-diff td {
+    border-top: 1px solid var(--border-color);
+    font-weight: 600;
+}
+
+.mining-breakdown {
+    margin-top: 28px;
 }
 
 .mining-ore-table {
