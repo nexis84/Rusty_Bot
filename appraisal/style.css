@@ -1069,6 +1069,55 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
+.seo-collapsible {
+    padding: 0;
+}
+
+.seo-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 0;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    transition: color 0.2s;
+}
+
+.seo-summary::-webkit-details-marker {
+    display: none;
+}
+
+.seo-summary::marker {
+    content: '';
+}
+
+.seo-summary:hover {
+    color: var(--accent);
+}
+
+.seo-summary i {
+    flex-shrink: 0;
+    color: var(--accent);
+    font-size: 13px;
+    transition: transform 0.2s;
+}
+
+.seo-collapsible[open] .seo-summary i {
+    transform: rotate(180deg);
+}
+
+.seo-body {
+    padding: 0 0 20px;
+}
+
+.seo-body p:last-child {
+    margin-bottom: 0;
+}
+
 .seo-content h2 {
     font-size: 18px;
     margin: 0 0 12px 0;

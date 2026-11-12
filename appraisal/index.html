@@ -24,7 +24,7 @@
     <meta name="twitter:description" content="Instant ISK appraisal and ore reprocessing calculator across Jita, Amarr, Dodixie, Hek, Rens and C-J6MT. Buyback % rates, shareable links, no login.">
     <meta name="twitter:image" content="https://www.rustybot.co.uk/og-image.jpg">
     <base href="/appraisal/">
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google tag (gtag.js) -->
@@ -449,14 +449,19 @@
         </div><!-- /miningTab -->
 
         <!-- SEO Content Section -->
-        <section class="seo-content">
-            <h2>RustyAppraisal - EVE Online Item Appraisal & Mining Refinery</h2>
-            <p>This free tool lets capsuleers paste a list of items from the EVE Online clipboard and instantly appraise their market value. Choose between the major trade hubs — <strong>Jita (The Forge)</strong>, <strong>Amarr (Domain)</strong>, <strong>Dodixie (Sinq Laison)</strong>, <strong>Hek (Metropolis)</strong> and <strong>Rens (Heimatar)</strong> — or get a combined appraisal across all five hubs.</p>
-            <p>For every item you'll see the best buy order price (the highest price buyers are currently willing to pay) and the best sell order price (the lowest price sellers are asking). Totals are shown for both, so you can quickly value a hangar, a loot drop or a shopping list in ISK.</p>
-            <p>The <strong>Mining Refinery</strong> tab takes a copied mining hold, applies your reprocessing efficiency, and shows the minerals you would get plus their live market value. It supports normal ore, compressed ore, ice and special asteroid types.</p>
-            <p>Prices are pulled live from CCP's ESI API and cached briefly, so repeated appraisals are fast while staying up to date.</p>
-            <p>Looking for a single item instead? Browse live orders in the <a href="../market/">EVE Online Market Browser</a>, learn the game with our <a href="../guides/">EVE Online Guides</a>, or return to the <a href="../">RustyBot homepage</a> for more free tools.</p>
-        </section>
+        <details class="seo-content seo-collapsible">
+            <summary class="seo-summary">
+                <span>RustyAppraisal - EVE Online Item Appraisal & Mining Refinery</span>
+                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            </summary>
+            <div class="seo-body">
+                <p>This free tool lets capsuleers paste a list of items from the EVE Online clipboard and instantly appraise their market value. Choose between the major trade hubs — <strong>Jita (The Forge)</strong>, <strong>Amarr (Domain)</strong>, <strong>Dodixie (Sinq Laison)</strong>, <strong>Hek (Metropolis)</strong> and <strong>Rens (Heimatar)</strong> — or get a combined appraisal across all five hubs.</p>
+                <p>For every item you'll see the best buy order price (the highest price buyers are currently willing to pay) and the best sell order price (the lowest price sellers are asking). Totals are shown for both, so you can quickly value a hangar, a loot drop or a shopping list in ISK.</p>
+                <p>The <strong>Mining Refinery</strong> tab takes a copied mining hold, applies your reprocessing efficiency, and shows the minerals you would get plus their live market value. It supports normal ore, compressed ore, ice and special asteroid types.</p>
+                <p>Prices are pulled live from CCP's ESI API and cached briefly, so repeated appraisals are fast while staying up to date.</p>
+                <p>Looking for a single item instead? Browse live orders in the <a href="../market/">EVE Online Market Browser</a>, learn the game with our <a href="../guides/">EVE Online Guides</a>, or return to the <a href="../">RustyBot homepage</a> for more free tools.</p>
+            </div>
+        </details>
 
         <footer class="main-footer">
             <p class="footer-nav"><a href="../">Home</a> · <a href="../market/">Market Browser</a> · <a href="../guides/">Guides</a> · <a href="./">Item Appraisal</a> · <a href="./?tab=mining">Mining Refinery</a></p>
