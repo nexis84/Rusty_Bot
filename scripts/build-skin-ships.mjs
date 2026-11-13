@@ -80,7 +80,8 @@ async function main() {
   let licenseRows = 0;
   for await (const license of jsonl(path.join(SDE, 'skinLicenses.jsonl'))) {
     licenseRows++;
-    const skinTypeId = license.licenseTypeID ?? license._key;
+    // New SDE releases dropped the redundant licenseTypeID field; the row key is the license type ID.
+    const skinTypeId = license._key;
     const skin = skins.get(license.skinID);
     if (skin) addSkin(skinTypeId, skin.types);
   }
