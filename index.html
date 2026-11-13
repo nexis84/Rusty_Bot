@@ -393,73 +393,6 @@
             padding: 1rem 0.9rem;
         }
 
-        .expansion-countdown {
-            max-width: 340px;
-            margin: 14px auto 0;
-            padding: 10px 12px 9px;
-            background: linear-gradient(160deg, var(--panel) 0%, var(--bg) 100%);
-            border: 1px solid var(--border);
-            border-top: 2px solid var(--accent);
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .expansion-countdown[hidden] { display: none; }
-
-        .expansion-countdown .countdown-label {
-            color: var(--accent);
-            font-size: 0.6rem;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-        }
-
-        .expansion-countdown .countdown-label i { margin-right: 4px; }
-
-        .expansion-countdown .countdown-clock {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 7px;
-        }
-
-        .expansion-countdown .countdown-unit {
-            flex: 1 1 0;
-            max-width: 68px;
-            padding: 5px 3px 4px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-        }
-
-        .expansion-countdown .countdown-unit strong {
-            display: block;
-            color: #fff;
-            font-size: clamp(1rem, 4vw, 1.2rem);
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            line-height: 1.1;
-        }
-
-        .expansion-countdown .countdown-unit small {
-            display: block;
-            margin-top: 1px;
-            color: var(--dim);
-            font-size: 0.5rem;
-            font-weight: 600;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
-
-        .expansion-countdown .countdown-meta {
-            margin-top: 6px;
-            color: var(--dim);
-            font-size: 0.62rem;
-        }
-
-        .expansion-countdown.is-live .countdown-clock { display: none; }
-        .expansion-countdown.is-live .countdown-meta { margin-top: 0; }
-
         #tools .card-grid {
             display: flex;
             flex-wrap: wrap;
@@ -957,18 +890,6 @@
                     <span class="card-cta">Open Launch Hub</span>
                 </a>
             </div>
-            <div class="expansion-countdown" id="fracturedCountdown" role="timer" hidden>
-                <p class="countdown-label" id="fracturedCountdownLabel">
-                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Fractured Skies goes live in
-                </p>
-                <div class="countdown-clock">
-                    <span class="countdown-unit"><strong id="countdownDays">00</strong><small>Days</small></span>
-                    <span class="countdown-unit"><strong id="countdownHours">00</strong><small>Hours</small></span>
-                    <span class="countdown-unit"><strong id="countdownMinutes">00</strong><small>Mins</small></span>
-                    <span class="countdown-unit"><strong id="countdownSeconds">00</strong><small>Secs</small></span>
-                </div>
-                <p class="countdown-meta" id="fracturedCountdownMeta">Tuesday 10 November 2026 &middot; 11:10 UTC (EVE time)</p>
-            </div>
         </section>
 
         <section class="section" id="tools">
@@ -1242,51 +1163,6 @@
             document.addEventListener('visibilitychange', function () {
                 if (!document.hidden) checkGiveaway();
             });
-        })();
-    </script>
-    <script>
-        // Fractured Skies launch countdown: Tuesday 10 November 2026, 11:10 UTC (EVE time).
-        (function () {
-            var countdown = document.getElementById('fracturedCountdown');
-            if (!countdown) return;
-
-            var launch = Date.UTC(2026, 10, 10, 11, 10, 0);
-            var label = document.getElementById('fracturedCountdownLabel');
-            var meta = document.getElementById('fracturedCountdownMeta');
-            var daysEl = document.getElementById('countdownDays');
-            var hoursEl = document.getElementById('countdownHours');
-            var minsEl = document.getElementById('countdownMinutes');
-            var secsEl = document.getElementById('countdownSeconds');
-
-            function pad(value) {
-                return value < 10 ? '0' + value : String(value);
-            }
-
-            function tick() {
-                var remaining = launch - Date.now();
-
-                if (remaining <= 0) {
-                    countdown.hidden = false;
-                    countdown.classList.add('is-live');
-                    label.remove();
-                    meta.textContent = 'Fractured Skies launched Tuesday 10 November 2026 · 11:10 UTC (EVE time)';
-                    return false;
-                }
-
-                countdown.hidden = false;
-                var totalSeconds = Math.floor(remaining / 1000);
-                daysEl.textContent = pad(Math.floor(totalSeconds / 86400));
-                hoursEl.textContent = pad(Math.floor((totalSeconds % 86400) / 3600));
-                minsEl.textContent = pad(Math.floor((totalSeconds % 3600) / 60));
-                secsEl.textContent = pad(totalSeconds % 60);
-                return true;
-            }
-
-            if (tick()) {
-                var timer = setInterval(function () {
-                    if (!tick()) clearInterval(timer);
-                }, 1000);
-            }
         })();
     </script>
 </body>
