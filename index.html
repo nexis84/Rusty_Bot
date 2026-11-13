@@ -457,31 +457,8 @@
             font-size: 0.62rem;
         }
 
-        .expansion-countdown .countdown-live-dot {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            margin-right: 5px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 8px var(--accent);
-            animation: countdown-pulse 1.6s ease-in-out infinite;
-        }
-
         .expansion-countdown.is-live .countdown-clock { display: none; }
-        .expansion-countdown.is-live .countdown-label {
-            font-size: 0.8rem;
-            letter-spacing: 1.5px;
-        }
-
-        @keyframes countdown-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.35; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .expansion-countdown .countdown-live-dot { animation: none; }
-        }
+        .expansion-countdown.is-live .countdown-meta { margin-top: 0; }
 
         #tools .card-grid {
             display: flex;
@@ -914,8 +891,8 @@
             <a href="#giveaway">Giveaway</a>
             <a href="shoutouts/">ShoutOuts</a>
             <span class="nav-disabled">Rustybot Source</span>
-            <a href="#tools">Tools</a>
             <a href="#expansions">Expansions</a>
+            <a href="#tools">Tools</a>
             <a href="#coming-soon">Coming Soon</a>
             <a href="blueprint-visualizer/">Blueprint Visualizer</a>
             <a href="#games">Games</a>
@@ -929,35 +906,6 @@
     </div>
 
     <div class="container">
-
-        <section class="section" id="expansions">
-            <div class="section-header">
-                <i class="fa-solid fa-meteor"></i>
-                <h2>Expansions</h2>
-                <span class="line"></span>
-            </div>
-            <p class="section-sub">Launch hubs and deep dives for the latest EVE Online expansions</p>
-            <div class="card-grid">
-                <a href="Fracturedskies/" class="card">
-                    <div class="card-icon"><i class="fa-solid fa-meteor"></i></div>
-                    <h3>Fractured Skies</h3>
-                    <p>New HUD, navy attack battlecruisers, Factional Warfare, and EVE Vanguard.</p>
-                    <span class="card-cta">Open Launch Hub</span>
-                </a>
-            </div>
-            <div class="expansion-countdown" id="fracturedCountdown" role="timer" hidden>
-                <p class="countdown-label" id="fracturedCountdownLabel">
-                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Fractured Skies goes live in
-                </p>
-                <div class="countdown-clock">
-                    <span class="countdown-unit"><strong id="countdownDays">00</strong><small>Days</small></span>
-                    <span class="countdown-unit"><strong id="countdownHours">00</strong><small>Hours</small></span>
-                    <span class="countdown-unit"><strong id="countdownMinutes">00</strong><small>Mins</small></span>
-                    <span class="countdown-unit"><strong id="countdownSeconds">00</strong><small>Secs</small></span>
-                </div>
-                <p class="countdown-meta" id="fracturedCountdownMeta">Tuesday 10 November 2026 &middot; 11:10 UTC (EVE time)</p>
-            </div>
-        </section>
 
         <section class="section" id="giveaway">
             <div class="section-header">
@@ -991,6 +939,35 @@
                     <p>Automatic live alerts for streamers and communities</p>
                     <span class="card-cta">Explore ShoutOuts</span>
                 </a>
+            </div>
+        </section>
+
+        <section class="section" id="expansions">
+            <div class="section-header">
+                <i class="fa-solid fa-meteor"></i>
+                <h2>Expansions</h2>
+                <span class="line"></span>
+            </div>
+            <p class="section-sub">Launch hubs and deep dives for the latest EVE Online expansions</p>
+            <div class="card-grid">
+                <a href="Fracturedskies/" class="card">
+                    <div class="card-icon"><i class="fa-solid fa-meteor"></i></div>
+                    <h3>Fractured Skies</h3>
+                    <p>New HUD, navy attack battlecruisers, Factional Warfare, and EVE Vanguard.</p>
+                    <span class="card-cta">Open Launch Hub</span>
+                </a>
+            </div>
+            <div class="expansion-countdown" id="fracturedCountdown" role="timer" hidden>
+                <p class="countdown-label" id="fracturedCountdownLabel">
+                    <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Fractured Skies goes live in
+                </p>
+                <div class="countdown-clock">
+                    <span class="countdown-unit"><strong id="countdownDays">00</strong><small>Days</small></span>
+                    <span class="countdown-unit"><strong id="countdownHours">00</strong><small>Hours</small></span>
+                    <span class="countdown-unit"><strong id="countdownMinutes">00</strong><small>Mins</small></span>
+                    <span class="countdown-unit"><strong id="countdownSeconds">00</strong><small>Secs</small></span>
+                </div>
+                <p class="countdown-meta" id="fracturedCountdownMeta">Tuesday 10 November 2026 &middot; 11:10 UTC (EVE time)</p>
             </div>
         </section>
 
@@ -1291,7 +1268,7 @@
                 if (remaining <= 0) {
                     countdown.hidden = false;
                     countdown.classList.add('is-live');
-                    label.innerHTML = '<span class="countdown-live-dot" aria-hidden="true"></span> Live Now';
+                    label.remove();
                     meta.textContent = 'Fractured Skies launched Tuesday 10 November 2026 · 11:10 UTC (EVE time)';
                     return false;
                 }
