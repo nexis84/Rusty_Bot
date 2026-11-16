@@ -1,7 +1,7 @@
 // Auto-generated from EVE Online SDE JSONL
 // Total items: 23840
 // SDE build: 3698585
-// Generated: 2026-11-13 15:29:04 UTC
+// Generated: 2026-11-16 14:13:19 UTC
 
 const AllMarketItems = {
     // Ships

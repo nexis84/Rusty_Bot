@@ -1,12 +1,12 @@
 // Auto-generated from EVE Online SDE JSONL
 // Ore types: 456
 // SDE build: 3698585
-// Generated: 2026-11-13T15:29:05.625Z
+// Generated: 2026-11-16T14:13:20.074Z
 
 const MiningData = {
   "build": 3698585,
-  "releaseDate": "2026-11-13T11:06:47Z",
-  "generated": "2026-11-13T15:29:05.625Z",
+  "releaseDate": "2026-11-16T12:40:06Z",
+  "generated": "2026-11-16T14:13:20.074Z",
   "ores": [
     {
       "id": 50015,
