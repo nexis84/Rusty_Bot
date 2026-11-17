@@ -1,9 +1,18 @@
 {
-  "generatedAt": "2026-11-10T14:24:33.060Z",
+  "generatedAt": "2026-11-17T23:25:36.891Z",
   "applied": true,
-  "indexEntries": 385,
+  "mode": "refresh",
+  "indexEntries": 387,
   "matched": 340,
   "unmatched": [
+    {
+      "name": "Infestation Harborage",
+      "page": "Infestation_Harborage"
+    },
+    {
+      "name": "Infested Research Facility",
+      "page": "Infested_Research_Facility"
+    },
     {
       "name": "Serpentis Capital Staging",
       "page": "Serpentis_Capital_Staging"
@@ -185,8 +194,11 @@
       "page": "Fabricated_Rogue_Cache"
     }
   ],
-  "infoAdded": 30,
-  "pocketsAdded": 302,
-  "descriptionsAdded": 286,
-  "untouched": 36
+  "infoAdded": 6,
+  "infoUpdated": 262,
+  "pocketsAdded": 0,
+  "pocketsUpdated": 338,
+  "descriptionsAdded": 18,
+  "descriptionsUpdated": 279,
+  "untouched": 0
 }

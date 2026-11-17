@@ -1,5 +1,73 @@
 [
   {
+    "name": "Ambushed Federation Expedition",
+    "faction": "Gallente Federation",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Ambushed_Federation_Expedition",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Ambushed Imperial Expedition",
+    "faction": "Amarr Empire",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Ambushed_Imperial_Expedition",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Ambushed Republic Expedition",
+    "faction": "Minmatar Republic",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Ambushed_Republic_Expedition",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "Ambushed State Expedition",
+    "faction": "Caldari State",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Ambushed_State_Expedition",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
     "name": "Angel Hideaway",
     "faction": "Angel Cartel",
     "tier": 1,
@@ -106,6 +174,40 @@
     "anomalyType": "Hideaway",
     "siteType": "combat_anomaly",
     "anomalySubtype": "green"
+  },
+  {
+    "name": "SARO Lockup",
+    "faction": "CONCORD Assembly",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "SARO_Lockup",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
+    "name": "SARO Surveillance Outpost",
+    "faction": "CONCORD Assembly",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "SARO_Surveillance_Outpost",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
   },
   {
     "name": "Serpentis Hideaway",

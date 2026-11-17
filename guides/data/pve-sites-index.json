@@ -1,5 +1,77 @@
 [
   {
+    "id": "ambushed-federation-expedition",
+    "name": "Ambushed Federation Expedition",
+    "categoryId": "01-combat-anomalies",
+    "category": "Combat Anomalies",
+    "subcategory": "",
+    "faction": "Gallente Federation",
+    "classification": "Combat Anomaly (Military Campaign)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "ambushed-imperial-expedition",
+    "name": "Ambushed Imperial Expedition",
+    "categoryId": "01-combat-anomalies",
+    "category": "Combat Anomalies",
+    "subcategory": "",
+    "faction": "Amarr Empire",
+    "classification": "Combat Anomaly (Military Campaign)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "ambushed-republic-expedition",
+    "name": "Ambushed Republic Expedition",
+    "categoryId": "01-combat-anomalies",
+    "category": "Combat Anomalies",
+    "subcategory": "",
+    "faction": "Minmatar Republic",
+    "classification": "Combat Anomaly (Military Campaign)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "ambushed-state-expedition",
+    "name": "Ambushed State Expedition",
+    "categoryId": "01-combat-anomalies",
+    "category": "Combat Anomalies",
+    "subcategory": "",
+    "faction": "Caldari State",
+    "classification": "Combat Anomaly (Military Campaign)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
     "id": "angel-burrow",
     "name": "Angel Burrow",
     "categoryId": "01-combat-anomalies",
@@ -378,6 +450,24 @@
     }
   },
   {
+    "id": "collapsed-drifter-cache",
+    "name": "Collapsed Drifter Cache",
+    "categoryId": "16-hacking-sites-expanded",
+    "category": "Hacking Sites",
+    "subcategory": "",
+    "faction": "Drifters",
+    "classification": "Relic Site (Level 2/3)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
     "id": "drone-assembly",
     "name": "Drone Assembly",
     "categoryId": "01-combat-anomalies",
@@ -553,6 +643,24 @@
       "high": false,
       "low": true,
       "null": true,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "fabricated-rogue-cache",
+    "name": "Fabricated Rogue Cache",
+    "categoryId": "16-hacking-sites-expanded",
+    "category": "Hacking Sites",
+    "subcategory": "",
+    "faction": "Rogue Drones",
+    "classification": "Relic Site (Level 2/3)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
       "pochven": false,
       "zarzakh": false
     }
@@ -2245,6 +2353,42 @@
       "high": false,
       "low": true,
       "null": true,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "saro-lockup",
+    "name": "SARO Lockup",
+    "categoryId": "01-combat-anomalies",
+    "category": "Combat Anomalies",
+    "subcategory": "",
+    "faction": "CONCORD Assembly",
+    "classification": "Combat Anomaly (SARO Black Site)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "saro-surveillance-outpost",
+    "name": "SARO Surveillance Outpost",
+    "categoryId": "16-hacking-sites-expanded",
+    "category": "Hacking Sites",
+    "subcategory": "",
+    "faction": "CONCORD Assembly",
+    "classification": "Data Signature (Level 2)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
       "pochven": false,
       "zarzakh": false
     }

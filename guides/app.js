@@ -84,6 +84,25 @@
   }
 
   // ===== INIT =====
+  async function loadDataUpdated() {
+    const el = document.getElementById('dataUpdated');
+    if (!el) return;
+    try {
+      const res = await fetch('data/last-updated.json', { cache: 'no-cache' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const parts = [];
+      if (data.generatedAt) {
+        const when = new Date(data.generatedAt);
+        if (!Number.isNaN(when.getTime())) {
+          parts.push('Guides data updated ' + when.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }));
+        }
+      }
+      if (data.sdeBuild) parts.push('EVE SDE ' + data.sdeBuild);
+      if (parts.length) el.textContent = parts.join(' · ');
+    } catch (error) { /* ignore missing update metadata */ }
+  }
+
   async function init() {
     showLoading(true);
     try {
@@ -138,6 +157,7 @@
       }
       loadFavorites();
       buildAnomalyNameMap();
+      loadDataUpdated();
 
       // Normalize mission factions
       var factionMap = {

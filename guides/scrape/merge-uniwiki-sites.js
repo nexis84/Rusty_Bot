@@ -15,6 +15,7 @@ const DETAIL = path.join(DATA, 'anomalies-uniwiki.json');
 const REPORT = path.join(DATA, 'uniwiki-merge-report.json');
 
 const apply = process.argv.includes('--apply');
+const refresh = process.argv.includes('--refresh');
 
 const uniwiki = JSON.parse(fs.readFileSync(UNI, 'utf8')).sites;
 const index = JSON.parse(fs.readFileSync(INDEX, 'utf8'));
@@ -92,12 +93,16 @@ function infoFrom(site) {
 const report = {
   generatedAt: new Date().toISOString(),
   applied: apply,
+  mode: refresh ? 'refresh' : 'fill',
   indexEntries: index.length,
   matched: 0,
   unmatched: [],
   infoAdded: 0,
+  infoUpdated: 0,
   pocketsAdded: 0,
+  pocketsUpdated: 0,
   descriptionsAdded: 0,
+  descriptionsUpdated: 0,
   untouched: 0,
 };
 
@@ -130,19 +135,29 @@ for (const entry of index) {
       existing.info[k] = v;
       changed = true;
       report.infoAdded++;
+    } else if (refresh && existing.info[k] !== v) {
+      existing.info[k] = v;
+      changed = true;
+      report.infoUpdated++;
     }
   }
 
-  if ((!existing.pockets.length || site.pockets.length > existing.pockets.length) && site.pockets.length) {
+  if (site.pockets.length && (refresh || !existing.pockets.length || site.pockets.length > existing.pockets.length)) {
+    const grew = site.pockets.length > existing.pockets.length;
     existing.pockets = site.pockets;
     changed = true;
-    report.pocketsAdded++;
+    if (refresh && !grew) report.pocketsUpdated++;
+    else report.pocketsAdded++;
   }
 
-  if (!existing.description && site.description) {
-    existing.description = site.description;
-    changed = true;
-    report.descriptionsAdded++;
+  if (site.description && (refresh || !existing.description)) {
+    const hadDescription = !!existing.description;
+    if (existing.description !== site.description) {
+      existing.description = site.description;
+      changed = true;
+      if (refresh && hadDescription) report.descriptionsUpdated++;
+      else report.descriptionsAdded++;
+    }
   }
 
   if (!existing.title && site.title) {
@@ -161,11 +176,12 @@ for (const entry of index) {
 fs.writeFileSync(REPORT, JSON.stringify(report, null, 2), 'utf8');
 
 console.log(`Index entries: ${report.indexEntries}`);
+console.log(`Mode: ${report.mode}`);
 console.log(`Matched UniWiki pages: ${report.matched}`);
 console.log(`Unmatched: ${report.unmatched.length}`);
-console.log(`Info fields added: ${report.infoAdded}`);
-console.log(`Pocket sets added/upgraded: ${report.pocketsAdded}`);
-console.log(`Descriptions added: ${report.descriptionsAdded}`);
+console.log(`Info fields added: ${report.infoAdded} | updated: ${report.infoUpdated}`);
+console.log(`Pocket sets added: ${report.pocketsAdded} | refreshed: ${report.pocketsUpdated}`);
+console.log(`Descriptions added: ${report.descriptionsAdded} | refreshed: ${report.descriptionsUpdated}`);
 console.log(`Untouched: ${report.untouched}`);
 console.log(`Report: ${REPORT}`);
 

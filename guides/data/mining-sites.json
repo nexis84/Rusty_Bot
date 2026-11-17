@@ -707,5 +707,29 @@
     "ores": [],
     "totalVolume": null,
     "space": "Unknown"
+  },
+  "Phased_Field": {
+    "name": "Phased Field",
+    "page": "Phased_Field",
+    "info": {
+      "Space": "High-Sec (Minmatar), Low-Sec, Null-Sec",
+      "Ore": "Prismaticite plus high-grade asteroids"
+    },
+    "description": "Phased Asteroid Fields are high-value mining sites built around a moving hyperspace fracture. Phased asteroids can be mined at reduced efficiency until a Mobile Phase Anchor phases them in. Fractured Skies added a high-sec instance in Minmatar space and adjusted its value and ore availability for high-sec.",
+    "ores": [],
+    "totalVolume": null,
+    "space": "High, Low, Null"
+  },
+  "SARO_Ore_Holding": {
+    "name": "SARO Ore Holding",
+    "page": "SARO_Ore_Holding",
+    "info": {
+      "Space": "High-Sec / Low-Sec (SARO Black Site systems)",
+      "Ore": "Campaign ore: X-Grade in high-sec, Z-Grade in low-sec"
+    },
+    "description": "SARO Ore Holding sites are mining anomalies that spawn in systems affected by EVE Vanguard activity (SARO Black Sites). High-sec sites provide X-Grade campaign ore for all four empires; low-sec sites provide Z-Grade. Find them with the in-game map activity filter set to \"SARO Black Sites\".",
+    "ores": [],
+    "totalVolume": null,
+    "space": "High, Low"
   }
 }

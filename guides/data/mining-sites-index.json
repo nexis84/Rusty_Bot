@@ -262,5 +262,13 @@
   {
     "name": "W-Space Blue A0 Rare Asteroids",
     "page": "W-Space_Blue_A0_Rare_Asteroids"
+  },
+  {
+    "name": "Phased Field",
+    "page": "Phased_Field"
+  },
+  {
+    "name": "SARO Ore Holding",
+    "page": "SARO_Ore_Holding"
   }
 ]
