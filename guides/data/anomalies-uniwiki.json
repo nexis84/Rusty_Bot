@@ -415290,5 +415290,49 @@
     ],
     "title": "Mare Sargassum",
     "sourceUrl": "https://wiki.eveuniversity.org/Mare_Sargassum"
+  },
+  "Infested_Research_Facility": {
+    "page": "Infested_Research_Facility",
+    "title": "Infested Research Facility",
+    "sourceUrl": "https://wiki.erst.live/books/combat-sites-EPV/page/infested-research-facility",
+    "sourceTitle": "wiki.erst.live - Fractured Skies",
+    "info": {
+      "Type": "Combat Anomaly",
+      "Rating": "Event",
+      "Found in": "Gallente Federation space - Rogue Drone Outbreak systems",
+      "Max ship size": "Unrestricted",
+      "Faction": "Rogue Drones",
+      "Best damage to deal": "EM Th",
+      "Damage to resist": "EM Th",
+      "Sig. strength": "N/A"
+    },
+    "description": "Infested Research Facility is a combat anomaly found in systems affected by Rogue Drone Outbreaks in Gallente Federation space. Outbreaks are listed in the Opportunities window under Interstellar Events, and clearing infested sites shuts down the outbreak.",
+    "sections": {
+      "Walkthrough": "Single open pocket.\n\nKill 3 waves of Rogue Drone NPCs, up to battlecruiser size. Jamming drones are present - remove them first.\n\nKeep at range of about 8 km from the targets.\n\nAfter the last wave is destroyed, shoot the Infestation Rendezvous Cluster structure to release the loot.",
+      "Loot": "The NPCs pay about 1M ISK in total bounties per site.\n\nThe Infestation Rendezvous Cluster is the only loot drop and provides roughly 10M ISK worth of Outbreak Initiation Threads. Threads are sold to NPC corporation buy orders at about 100K ISK each.",
+      "Notes": "Rogue Drone fleets roam systems with active outbreaks, so watch local and your route.\n\nOutbreaks can be located through the Opportunities window (Interstellar Events).\n\nSite data adapted from wiki.erst.live (Fractured Skies shelf), cross-checked against EVE SDE build 3698585."
+    }
+  },
+  "Infestation_Harborage": {
+    "page": "Infestation_Harborage",
+    "title": "Infestation Harborage",
+    "sourceUrl": "https://wiki.erst.live/books/hacking-sites-3Qf/page/infestation-harborage",
+    "sourceTitle": "wiki.erst.live - Fractured Skies",
+    "info": {
+      "Type": "Data Signature (Level 2)",
+      "Rating": "Event",
+      "Found in": "Gallente Federation space - Rogue Drone Outbreak systems",
+      "Max ship size": "Unrestricted",
+      "Faction": "Rogue Drones",
+      "Best damage to deal": "None (hacking site)",
+      "Damage to resist": "None (hacking site)",
+      "Sig. strength": "Level 2"
+    },
+    "description": "Infestation Harborage is a level 2 data signature that spawns in systems affected by Rogue Drone Outbreaks in Gallente Federation space. Outbreaks are listed in the Opportunities window under Interstellar Events.",
+    "sections": {
+      "Walkthrough": "Scan down the data signature like any other exploration site.\n\nThree hackable cans. There are no combat NPCs to clear at the site.",
+      "Loot": "Only drops Outbreak Initiation Threads.\n\nThreads sell to NPC corporation buy orders for about 100K ISK each, roughly 10M ISK of loot per site.",
+      "Notes": "Clearing infested sites shuts down the outbreak.\n\nOutbreaks can be located through the Opportunities window (Interstellar Events), and Rogue Drone fleets roam systems with active outbreaks.\n\nSite data adapted from wiki.erst.live (Fractured Skies shelf), cross-checked against EVE SDE build 3698585."
+    }
   }
 }

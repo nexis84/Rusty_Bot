@@ -54,6 +54,40 @@
     "anomalySubtype": "green"
   },
   {
+    "name": "Infestation Harborage",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Infestation_Harborage",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_complex",
+    "anomalySubtype": "scanable"
+  },
+  {
+    "name": "Infested Research Facility",
+    "faction": "Rogue Drones",
+    "tier": 0,
+    "level": null,
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false
+    },
+    "page": "Infested_Research_Facility",
+    "escalation": null,
+    "variant": "Normal",
+    "anomalyType": null,
+    "siteType": "combat_anomaly",
+    "anomalySubtype": "green"
+  },
+  {
     "name": "Sansha Hideaway",
     "faction": "Sansha's Nation",
     "tier": 1,

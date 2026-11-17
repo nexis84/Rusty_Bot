@@ -1404,7 +1404,9 @@
     const ewarText = ewar.length ? ewar.join(' · ') : 'None listed';
     const region = getRegionLabel(info);
     const isFav = page ? isFavorite(page) : false;
-    const uniUrl = page ? wikiUrlForPage(page) : 'https://wiki.eveuniversity.org/';
+    const sourceUrl = (uni && uni.sourceUrl) ? String(uni.sourceUrl) : '';
+    const sourceLabel = (uni && uni.sourceTitle) ? String(uni.sourceTitle) : 'EVE University';
+    const uniUrl = sourceUrl || (page ? wikiUrlForPage(page) : 'https://wiki.eveuniversity.org/');
     const survUrl = 'https://eve-survival.org/?wakka=' + encodeURIComponent(decodePageName(page).replace(/_/g, ''));
 
     let variants = survival ? buildSpawnVariants(survival.pockets || [], { singleVariant: false }) : [];
@@ -1484,10 +1486,14 @@
       'Damage to resist': info['Damage to resist'] || survivalInfo['Damage Dealt'] || '',
     };
     const strategyBullets = buildStrategyBullets(entry, damageInfo, ewar, variants);
-    const sourceTitle = survival ? 'EVE University Wiki &amp; EVE-Survival' : 'EVE University Wiki';
-    const sourceCopy = survival
-      ? 'Spawn data and site description are adapted from the EVE University Wiki (CC BY-SA 4.0), with EVE-Survival used as a cross-check.'
-      : 'Site data is adapted from the EVE University Wiki (CC BY-SA 4.0).';
+    const sourceTitle = sourceUrl
+      ? escapeHtml(sourceLabel)
+      : (survival ? 'EVE University Wiki &amp; EVE-Survival' : 'EVE University Wiki');
+    const sourceCopy = sourceUrl
+      ? 'Site data adapted from the wiki.erst.live Fractured Skies guide and cross-checked against the EVE SDE.'
+      : (survival
+        ? 'Spawn data and site description are adapted from the EVE University Wiki (CC BY-SA 4.0), with EVE-Survival used as a cross-check.'
+        : 'Site data is adapted from the EVE University Wiki (CC BY-SA 4.0).');
 
     const favoriteButton = page
       ? `<button class="favorite-star-btn${isFav ? ' active' : ''}" data-fav-page="${escapeHtml(page)}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">&#9733;</button>`
@@ -1572,7 +1578,7 @@
               <p>${sourceCopy}</p>
             </div>
             <div class="sd-source-links">
-              <a class="sd-btn sd-btn-ghost" href="${uniUrl}" target="_blank" rel="noopener noreferrer">EVE University <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+              <a class="sd-btn sd-btn-ghost" href="${uniUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceLabel)} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
               ${survival ? `<a class="sd-btn sd-btn-ghost" href="${survUrl}" target="_blank" rel="noopener noreferrer">EVE-Survival <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : ''}
             </div>
           </div>

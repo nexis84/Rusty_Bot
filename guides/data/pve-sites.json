@@ -17988,5 +17988,33 @@
     "Notable Loot": "Pirate LP at Fulcrum; insurgency campaign rewards.",
     "Escalation / Mechanics": "Mass-based toll; 6h emanation lock; D-Scan disabled in Zarzakh.",
     "Brief Strategy Notes": "Pirate FW enlistment avoids gate tolls; expect PvP."
+  },
+  "infested-research-facility": {
+    "id": "infested-research-facility",
+    "name": "Infested Research Facility",
+    "Classification": "Combat Anomaly (Outbreak Event)",
+    "Location/Space": "Gallente Federation space - Rogue Drone Outbreak systems (High-Sec / Low-Sec)",
+    "Enemy Faction": "Rogue Drones",
+    "Damage to Deal": "Electromagnetic / Thermal",
+    "Damage to Resist": "Electromagnetic / Thermal",
+    "EWAR to Expect": "Jamming (kill jammer drones first)",
+    "Ship Restrictions/Recommendations": "No ship restrictions; cruiser or battlecruiser recommended.",
+    "Notable Loot": "~1M ISK total bounties plus ~10M ISK in Outbreak Initiation Threads from the Infestation Rendezvous Cluster (~100K ISK each to NPC buy orders).",
+    "Escalation / Mechanics": "Single pocket, 3 waves up to battlecruisers. After the final wave, destroy the Infestation Rendezvous Cluster structure to release the loot. Clearing infested sites shuts down the outbreak.",
+    "Brief Strategy Notes": "Keep at ~8 km, clear jamming rats first and deal EM/Thermal damage. Watch for roaming Rogue Drone fleets. Find outbreaks in Opportunities - Interstellar Events."
+  },
+  "infestation-harborage": {
+    "id": "infestation-harborage",
+    "name": "Infestation Harborage",
+    "Classification": "Data Signature (Level 2) - Outbreak Event",
+    "Location/Space": "Gallente Federation space - Rogue Drone Outbreak systems (High-Sec / Low-Sec)",
+    "Enemy Faction": "Rogue Drones (no site guards)",
+    "Damage to Deal": "None - hacking site",
+    "Damage to Resist": "None - hacking site",
+    "EWAR to Expect": "None - hacking site",
+    "Ship Restrictions/Recommendations": "Exploration frigate with a data analyzer recommended.",
+    "Notable Loot": "3 hackable cans. Only Outbreak Initiation Threads (~100K ISK each to NPC buy orders, ~10M ISK per site).",
+    "Escalation / Mechanics": "Level 2 data signature in outbreak systems. Three cans and no other loot. Clearing infested sites shuts down the outbreak.",
+    "Brief Strategy Notes": "Scan down in outbreak systems (Opportunities - Interstellar Events). No combat expected at the site."
   }
 }

@@ -2034,6 +2034,42 @@
     }
   },
   {
+    "id": "infestation-harborage",
+    "name": "Infestation Harborage",
+    "categoryId": "16-hacking-sites-expanded",
+    "category": "Hacking Sites",
+    "subcategory": "",
+    "faction": "Rogue Drones",
+    "classification": "Data Signature (Level 2) - Outbreak Event",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
+    "id": "infested-research-facility",
+    "name": "Infested Research Facility",
+    "categoryId": "01-combat-anomalies",
+    "category": "Combat Anomalies",
+    "subcategory": "",
+    "faction": "Rogue Drones",
+    "classification": "Combat Anomaly (Outbreak Event)",
+    "tier": null,
+    "variant": "Normal",
+    "space": {
+      "high": true,
+      "low": true,
+      "null": false,
+      "pochven": false,
+      "zarzakh": false
+    }
+  },
+  {
     "id": "sansha-burrow",
     "name": "Sansha Burrow",
     "categoryId": "01-combat-anomalies",
