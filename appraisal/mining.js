@@ -505,25 +505,32 @@
     }
 
     function showTab(name) {
-        const appraisal = el('appraisalTab');
-        const mining = el('miningTab');
-        if (!appraisal || !mining) return;
-        const isMining = name === 'mining';
-        appraisal.classList.toggle('hidden', isMining);
-        mining.classList.toggle('hidden', !isMining);
+        const panels = {
+            appraisal: el('appraisalTab'),
+            mining: el('miningTab'),
+            recycle: el('recycleTab'),
+        };
+        if (!panels.appraisal || !panels.mining) return;
+        const target = panels[name] ? name : 'appraisal';
+        for (const key of Object.keys(panels)) {
+            const panel = panels[key];
+            if (panel) panel.classList.toggle('hidden', key !== target);
+        }
         document.querySelectorAll('.app-tab').forEach(button => {
-            const active = button.dataset.tab === name;
+            const active = button.dataset.tab === target;
             button.classList.toggle('active', active);
             button.setAttribute('aria-selected', active ? 'true' : 'false');
         });
+        document.dispatchEvent(new CustomEvent('apptabchange', { detail: { tab: target } }));
     }
+    window.showAppTab = showTab;
 
     function setupTabs() {
         document.querySelectorAll('.app-tab').forEach(button => {
             button.addEventListener('click', () => showTab(button.dataset.tab));
         });
         const requested = new URLSearchParams(location.search).get('tab');
-        if (requested === 'mining') showTab('mining');
+        if (requested === 'mining' || requested === 'recycle') showTab(requested);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
