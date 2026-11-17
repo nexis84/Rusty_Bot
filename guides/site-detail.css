@@ -662,3 +662,218 @@
   .site-detail .sd-nav { grid-template-columns: 1fr; }
   .site-detail .sd-nav-next { text-align: left; }
 }
+
+/* ---------- Mission detail content inside the shared shell ---------- */
+.site-detail .sd-legacy { display: grid; gap: 0; }
+.site-detail .pocket-section { display: grid; gap: 14px; }
+.site-detail .pocket-title {
+  margin: 4px 0 0;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.site-detail .pocket-subtitle {
+  margin: 4px 0 6px;
+  color: var(--sd-accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+.site-detail .pocket-subgroup {
+  margin: 4px 0;
+  color: #ddd;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.site-detail .npc-group {
+  padding: 10px 14px;
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.015);
+}
+.site-detail .npc-line {
+  margin: 2px 0;
+  color: #d6d6d6;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.site-detail .briefing-section {
+  margin: 0 0 12px;
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+  overflow: hidden;
+}
+.site-detail .briefing-heading {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--sd-border);
+  background: rgba(232, 217, 0, 0.035);
+  color: var(--sd-accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.site-detail .briefing-content { padding: 12px 14px; }
+.site-detail .briefing-toggle {
+  margin: 0 14px 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--sd-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--sd-dim);
+  font-family: var(--sd-font);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.site-detail .briefing-toggle:hover {
+  border-color: var(--sd-accent-dim);
+  color: var(--sd-accent);
+}
+.site-detail .briefing-section .detail-section {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.site-detail .video-link a { display: inline-block; margin: 1px 0; }
+.site-detail .sd-fact dd a { color: var(--sd-accent); text-decoration: none; }
+.site-detail .sd-fact dd a:hover { color: var(--sd-accent-hover); }
+
+
+/* ---------- Shared content for converted detail pages ---------- */
+.site-detail .info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.site-detail .info-card {
+  padding: 10px 12px;
+  border: 1px solid var(--sd-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.site-detail .info-card .label {
+  color: var(--sd-dim);
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.site-detail .info-card .value {
+  margin-top: 3px;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.site-detail .corp-agent-list { display: grid; gap: 6px; }
+.site-detail .agent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--sd-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.015);
+  cursor: pointer;
+}
+.site-detail .agent-row:hover { border-color: var(--sd-accent-dim); background: rgba(232, 217, 0, 0.04); }
+.site-detail .agent-name { color: #fff; font-weight: 600; font-size: 0.84rem; }
+.site-detail .agent-location,
+.site-detail .agent-security { color: var(--sd-dim); font-size: 0.74rem; }
+.site-detail .related-missions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.site-detail .mission-pill {
+  display: inline-block;
+  padding: 4px 9px;
+  border: 1px solid var(--sd-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #d6d6d6;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.site-detail .mission-pill:hover { border-color: var(--sd-accent-dim); color: var(--sd-accent); }
+.site-detail .mission-pill-more { color: var(--sd-dim); font-size: 0.72rem; padding: 4px 2px; }
+.site-detail .browse-link { color: var(--sd-accent); font-size: 0.8rem; }
+.site-detail .epic-arc-chapters { display: grid; gap: 10px; }
+.site-detail .epic-arc-chapter {
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.012);
+}
+.site-detail .epic-arc-chapter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(232, 217, 0, 0.035);
+  cursor: pointer;
+}
+.site-detail .epic-arc-chapter-name { color: #fff; font-weight: 600; font-size: 0.85rem; }
+.site-detail .epic-arc-chapter-count {
+  margin-left: auto;
+  color: var(--sd-dim);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.site-detail .epic-arc-chapter-toggle { color: var(--sd-accent); font-size: 0.7rem; }
+.site-detail .epic-arc-chapter-content { display: none; padding: 8px 14px 12px; }
+.site-detail .epic-arc-chapter-content.open { display: block; }
+.site-detail .chapter-mission-list { display: grid; gap: 4px; }
+.site-detail .chapter-mission-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--sd-border);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.015);
+  cursor: pointer;
+}
+.site-detail .chapter-mission-item:hover { border-color: var(--sd-accent-dim); }
+.site-detail .chapter-mission-number { color: var(--sd-accent); font-weight: 700; font-size: 0.72rem; }
+.site-detail .chapter-mission-name { color: #fff; font-size: 0.82rem; }
+.site-detail .chapter-mission-type { margin-left: auto; color: var(--sd-dim); font-size: 0.68rem; }
+.site-detail .chapter-coming-soon { color: var(--sd-dim); font-size: 0.78rem; }
+.site-detail .npc-detail-stat-card {
+  padding: 14px 16px;
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.012);
+}
+.site-detail .npc-detail-damage-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.site-detail .npc-detail-damage-label { width: 80px; color: var(--sd-dim); font-size: 0.75rem; }
+.site-detail .npc-detail-damage-bar-bg {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.site-detail .npc-detail-damage-bar { height: 100%; border-radius: 999px; }
+.site-detail .npc-dmg-em { background: #ffd54a; }
+.site-detail .npc-dmg-thermal { background: #ff8a65; }
+.site-detail .npc-dmg-kinetic { background: #64b5f6; }
+.site-detail .npc-dmg-explosive { background: #ef9a9a; }
+.site-detail .npc-detail-damage-pct { width: 44px; text-align: right; color: #fff; font-weight: 600; font-size: 0.75rem; }
+.site-detail .npc-detail-ewar-list { margin: 0; padding-left: 18px; color: #d6d6d6; font-size: 0.82rem; line-height: 1.7; }
+.site-detail .npc-detail-ewar-list li::marker { color: var(--sd-accent); }
+.site-detail .mining-card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.site-detail .mining-tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid var(--sd-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #d6d6d6;
+  font-size: 0.72rem;
+}
+.site-detail .mining-tag-ore { cursor: pointer; }
+.site-detail .mining-tag-ore:hover { border-color: var(--sd-accent-dim); color: var(--sd-accent); }
+.site-detail .mining-site-pills { display: flex; flex-wrap: wrap; gap: 6px; }

@@ -232,23 +232,50 @@
     $('#fwincDetailView').style.display = 'block';
     window.scrollTo(0, 0);
 
-    let html = '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(entry.name) + '</h2>';
-    html += '<span class="detail-level-badge">' + escapeHtml(entry.type) + '</span>';
-    html += '<span class="detail-faction">' + escapeHtml(detail['Enemy Faction'] || entry.faction || '') + '</span>';
-    html += '<span class="detail-faction" style="color:var(--info-color);font-size:0.85rem;">' + escapeHtml(entry.category) + '</span>';
-    html += '</div>';
+    const ui = window.RustyDetailUI;
+    if (ui) {
+      const facts = DETAIL_FIELDS
+        .filter(([, key]) => detail[key])
+        .map(([label, key]) => [label, escapeHtml(detail[key])]);
+      const body = DETAIL_FIELDS
+        .filter(([, key]) => detail[key])
+        .map(([label, key]) => ui.section('fa-circle-info', label, '<p class="sd-lead">' + escapeHtml(detail[key]) + '</p>'))
+        .join('');
+      const militia = entry.empire === 'Sansha' ? "Sansha's Nation" : (entry.empire ? entry.empire + ' Militia' : (entry.faction || ''));
+      const actions = '<a class="sd-btn sd-btn-ghost" href="#fwinc/' + activeTab + '"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to ' + (entry.category === 'Incursions' ? 'Incursions' : 'Faction Warfare') + '</a>';
+      $('#fwincDetailContent').innerHTML = ui.shell({
+        kicker: entry.category + ' · ' + militia,
+        title: entry.name,
+        status: entry.type + (entry.empire ? ' · ' + entry.empire : ''),
+        sub: entry.type + ' site' + (entry.empire ? ' for the ' + militia : '') + '.',
+        chips: [entry.type, militia, entry.category].filter(Boolean),
+        facts, actions, body,
+        source: {
+          title: 'EVE University Wiki',
+          copy: 'Site details are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+          links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/' }],
+        },
+        profileTitle: 'Site profile',
+      });
+    } else {
+      let html = '<div class="detail-header">';
+      html += '<h2>' + escapeHtml(entry.name) + '</h2>';
+      html += '<span class="detail-level-badge">' + escapeHtml(entry.type) + '</span>';
+      html += '<span class="detail-faction">' + escapeHtml(detail['Enemy Faction'] || entry.faction || '') + '</span>';
+      html += '<span class="detail-faction" style="color:var(--info-color);font-size:0.85rem;">' + escapeHtml(entry.category) + '</span>';
+      html += '</div>';
 
-    DETAIL_FIELDS.forEach(([label, key]) => {
-      const val = detail[key];
-      if (!val) return;
-      html += '<div class="detail-section"><h3>' + escapeHtml(label) + '</h3>';
-      html += '<div class="fw-detail-value">' + escapeHtml(val) + '</div></div>';
-    });
+      DETAIL_FIELDS.forEach(([label, key]) => {
+        const val = detail[key];
+        if (!val) return;
+        html += '<div class="detail-section"><h3>' + escapeHtml(label) + '</h3>';
+        html += '<div class="fw-detail-value">' + escapeHtml(val) + '</div></div>';
+      });
 
-    html += '<div class="detail-section"><h3>Sources</h3><div><a href="https://wiki.eveuniversity.org/" target="_blank" rel="noopener">EVE University Wiki</a></div></div>';
+      html += '<div class="detail-section"><h3>Sources</h3><div><a href="https://wiki.eveuniversity.org/" target="_blank" rel="noopener">EVE University Wiki</a></div></div>';
 
-    $('#fwincDetailContent').innerHTML = html;
+      $('#fwincDetailContent').innerHTML = html;
+    }
   }
 
   function showListView() {

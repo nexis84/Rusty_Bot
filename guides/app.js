@@ -439,6 +439,128 @@
     return t.replace(/\uFFFD/g, "'").replace(/�/g, "'").replace(/\\uFFFD/g, "'");
   }
 
+  // ===== SHARED DETAIL SHELL (new site-detail layout) =====
+  function sdSection(icon, title, content, sub = '') {
+    if (!content) return '';
+    return `<section class="sd-section">
+      <div class="sd-section-head"><i class="fa-solid ${icon}" aria-hidden="true"></i><h2>${escapeHtml(title)}</h2><span class="sd-line"></span></div>
+      ${sub ? `<p class="sd-section-sub">${escapeHtml(sub)}</p>` : ''}
+      ${content}
+    </section>`;
+  }
+
+  function renderDetailShell(options = {}) {
+    const {
+      kicker = '', title = '', status = '', sub = '', chips = [], facts = [],
+      actions = '', body = '', source = null, profileTitle = 'Quick facts',
+    } = options;
+    const chipHtml = chips.length
+      ? `<div class="sd-fact-chips">${chips.filter(Boolean).map((chip) => `<span><strong>${escapeHtml(chip)}</strong></span>`).join('')}</div>`
+      : '';
+    const factHtml = facts
+      .filter(([, value]) => value !== null && value !== undefined && String(value).trim() !== '')
+      .map(([label, value]) => `<div class="sd-fact"><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`)
+      .join('');
+    const profile = factHtml
+      ? `<aside class="sd-profile"><h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> ${escapeHtml(profileTitle)}</h2><dl class="sd-facts">${factHtml}</dl></aside>`
+      : '';
+    const sourceHtml = source
+      ? `<section class="sd-section" id="sd-source">
+          <div class="sd-section-head"><i class="fa-solid fa-book" aria-hidden="true"></i><h2>Sources</h2><span class="sd-line"></span></div>
+          <div class="sd-source">
+            <div><p class="sd-kicker">Data attribution</p><h3>${source.title || ''}</h3><p>${source.copy || ''}</p></div>
+            <div class="sd-source-links">${(source.links || []).map((link) => `<a class="sd-btn sd-btn-ghost" href="${escapeHtml(link.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>`).join('')}</div>
+          </div>
+        </section>`
+      : '';
+    return `<div class="site-detail">
+      <div class="sd-hero">
+        <div>
+          ${status ? `<div class="sd-status"><span class="dot" aria-hidden="true"></span>${escapeHtml(status)}</div>` : ''}
+          <p class="sd-kicker">${escapeHtml(kicker)}</p>
+          <h1 class="sd-title">${escapeHtml(title)}</h1>
+          ${sub ? `<p class="sd-sub">${sub}</p>` : ''}
+          <div class="sd-actions">${actions}</div>
+          ${chipHtml}
+        </div>
+        ${profile}
+      </div>
+      <div class="sd-legacy">${body}</div>
+      ${sourceHtml}
+    </div>`;
+  }
+
+  function buildPocketSection(detail) {
+    if (!detail || !detail.pockets || !detail.pockets.length) return '';
+    let html = '<div class="pocket-section">';
+    for (const pocket of detail.pockets) {
+      const heading = pocket.heading;
+      const lowerHeading = String(heading || '').toLowerCase();
+      const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
+
+      if (/^tip(s)?$/i.test(heading) && detail.tips) continue;
+
+      if (isBriefing) {
+        html += '<div class="briefing-section">';
+        html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
+        html += '<div class="briefing-content">';
+      } else if (pocket.level === 'h3') {
+        html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
+      } else if (pocket.level === 'h4') {
+        html += '<div class="pocket-subtitle">' + escapeHtml(heading) + '</div>';
+      } else if (pocket.level === 'h5') {
+        html += '<div class="pocket-subgroup">' + escapeHtml(heading) + '</div>';
+      }
+
+      if (pocket.lines && pocket.lines.length) {
+        const cleanLines = pocket.lines.map(cleanMissionLine).filter(Boolean);
+        if (cleanLines.length) {
+          if (heading === 'Ship Detail') {
+            html += '<div class="npc-group"><table class="uniwiki-npc-table">';
+            for (let li = 0; li < cleanLines.length; li++) {
+              const cells = cleanLines[li].split(/\s{2,}/);
+              html += '<tr>';
+              for (const cell of cells) {
+                if (li === 0) html += '<th>' + escapeHtml(cell) + '</th>';
+                else html += '<td>' + escapeHtml(cell) + '</td>';
+              }
+              html += '</tr>';
+            }
+            html += '</table></div>';
+          } else {
+            html += '<div class="npc-group">';
+            for (const line of cleanLines) {
+              html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
+            }
+            html += '</div>';
+          }
+        }
+      }
+
+      if (isBriefing) {
+        html += '</div>';
+        html += '<button class="briefing-toggle">Show more</button>';
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function buildMissionBody(detail) {
+    const info = detail.info || {};
+    let body = '';
+    const blitzText = getInfoValue(info, 'Blitz');
+    if (blitzText) body += sdSection('fa-bolt', 'Blitz', `<p class="sd-lead">${escapeHtml(blitzText)}</p>`);
+    const pockets = buildPocketSection(detail);
+    if (pockets) body += sdSection('fa-map', 'Walkthrough', pockets);
+    if (detail.tips) body += sdSection('fa-lightbulb', 'Tips', `<p class="sd-lead">${escapeHtml(detail.tips)}</p>`);
+    if (detail.loot) body += sdSection('fa-box-open', 'Loot & Bounty', `<p class="sd-lead">${escapeHtml(detail.loot)}</p>`);
+    return body;
+  }
+
+  window.RustyDetailUI = { shell: renderDetailShell, section: sdSection };
+
   function showMissionDetail(mission, level, pageName) {
     $('#missionListView').style.display = 'none';
     $('#missionDetailView').style.display = 'block';
@@ -454,123 +576,38 @@
 
     const info = detail.info || {};
     const videoLinks = detail.videoLinks || [];
-
-    let html = '';
-
-    // Header
-    html += '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(detail.title || mission.name) + '</h2>';
-    html += '<span class="detail-level-badge">Level ' + level + '</span>';
-    var blitzVal = getInfoValue(info, 'Blitz');
-    if (blitzVal) html += '<span class="detail-blitz-badge">Blitzable</span>';
-    html += '<span class="detail-faction">' + escapeHtml(getInfoValue(info, 'Faction') || mission.faction) + '</span>';
-    html += '</div>';
-
-    // Info grid
-    const infoFields = [
-      ['Mission type', getInfoValue(info, 'Mission type')],
-      ['Space type', getInfoValue(info, 'Space type')],
-      ['Damage dealt', getInfoValue(info, 'Damage dealt')],
-      ['Recommended damage', getInfoValue(info, 'Recommended damage dealing')],
-      ['Web / Scramble', getInfoValue(info, 'Web/Scramble')],
-      ['Recommended ships', getInfoValue(info, 'Recommended ship classes')],
-    ].filter(([, v]) => v && v.trim());
-
-    if (infoFields.length) {
-      html += '<div class="info-grid">';
-      for (const [label, value] of infoFields) {
-        html += '<div class="info-card"><div class="label">' + label + '</div><div class="value">' + escapeHtml(value) + '</div></div>';
-      }
-      const videoInfo = getInfoValue(info, 'Video');
-      if (videoLinks.length) {
-        html += '<div class="info-card"><div class="label">Video guides</div><div class="value video-link">';
-        html += videoLinks.map(v => '<a href="' + escapeHtml(v.url) + '" target="_blank" rel="noopener">' + escapeHtml(v.text || v.url) + '</a>').join(', ');
-        html += '</div></div>';
-      } else if (videoInfo) {
-        html += '<div class="info-card"><div class="label">Video</div><div class="value">' + escapeHtml(videoInfo) + '</div></div>';
-      }
-      html += '</div>';
+    const faction = getInfoValue(info, 'Faction') || mission.faction || '';
+    const spaceType = getInfoValue(info, 'Space type') || '';
+    const missionType = getInfoValue(info, 'Mission type') || '';
+    const facts = [
+      ['Mission type', escapeHtml(missionType)],
+      ['Space type', escapeHtml(spaceType)],
+      ['Damage dealt', escapeHtml(getInfoValue(info, 'Damage dealt') || '')],
+      ['Recommended damage', escapeHtml(getInfoValue(info, 'Recommended damage dealing') || '')],
+      ['Web / Scramble', escapeHtml(getInfoValue(info, 'Web/Scramble') || '')],
+      ['Recommended ships', escapeHtml(getInfoValue(info, 'Recommended ship classes') || '')],
+    ];
+    if (videoLinks.length) {
+      facts.push(['Video guides', videoLinks.map((v) => '<a href="' + escapeHtml(v.url) + '" target="_blank" rel="noopener">' + escapeHtml(v.text || v.url) + '</a>').join('<br>')]);
     }
+    const chips = ['Level ' + level, faction, spaceType, getInfoValue(info, 'Blitz') ? 'Blitzable' : ''].filter(Boolean);
+    const sub = (missionType || 'Encounter') + ' mission' + (spaceType ? ' in ' + spaceType.toLowerCase() + ' space' : '') + '.';
+    const actions = '<a class="sd-btn sd-btn-ghost" href="#missions"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to missions</a>';
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Mission layout, NPC counts and loot notes are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: wikiUrlForPage(pageName) }],
+    };
 
-    // Blitz instructions
-    const blitzText = getInfoValue(info, 'Blitz');
-    if (blitzText) {
-      html += '<div class="detail-section detail-section--blitz"><h3>Blitz</h3><div>' + escapeHtml(blitzText) + '</div></div>';
-    }
-
-    // Pockets
-    if (detail.pockets && detail.pockets.length) {
-      if (infoFields.length || blitzText) {
-        html += '<div class="content-divider"></div>';
-      }
-      html += '<div class="pocket-section">';
-      for (const pocket of detail.pockets) {
-        const heading = pocket.heading;
-        const lowerHeading = heading.toLowerCase();
-        const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
-
-        if (/^tip(s)?$/i.test(heading) && detail.tips) continue;
-
-        if (isBriefing) {
-          html += '<div class="briefing-section">';
-          html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
-          html += '<div class="briefing-content">';
-        } else if (pocket.level === 'h3') {
-          html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
-        } else if (pocket.level === 'h4') {
-          html += '<div class="pocket-subtitle">' + escapeHtml(heading) + '</div>';
-        } else if (pocket.level === 'h5') {
-          html += '<div class="pocket-subgroup">' + escapeHtml(heading) + '</div>';
-        }
-
-        if (pocket.lines && pocket.lines.length) {
-          const cleanLines = pocket.lines.map(cleanMissionLine).filter(Boolean);
-          if (cleanLines.length) {
-            if (heading === 'Ship Detail') {
-              html += '<div class="npc-group"><table class="uniwiki-npc-table">';
-              for (let li = 0; li < cleanLines.length; li++) {
-                const cells = cleanLines[li].split(/\s{2,}/);
-                html += '<tr>';
-                for (const cell of cells) {
-                  if (li === 0) html += '<th>' + escapeHtml(cell) + '</th>';
-                  else html += '<td>' + escapeHtml(cell) + '</td>';
-                }
-                html += '</tr>';
-              }
-              html += '</table></div>';
-            } else {
-              html += '<div class="npc-group">';
-              for (const line of cleanLines) {
-                html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
-              }
-              html += '</div>';
-            }
-          }
-        }
-
-        if (isBriefing) {
-          html += '</div>';
-          html += '<button class="briefing-toggle">Show more</button>';
-          html += '</div>';
-        }
-      }
-      html += '</div>';
-    }
-
-    // Tips and loot
-    if (detail.tips) {
-      html += '<div class="briefing-section">';
-      html += '<div class="briefing-heading">Tips</div>';
-      html += '<div class="briefing-content"><div class="detail-section detail-section--tips"><div>' + escapeHtml(detail.tips) + '</div></div></div>';
-      html += '<button class="briefing-toggle">Show more</button>';
-      html += '</div>';
-    }
-    if (detail.loot) {
-      if (detail.tips || (detail.pockets && detail.pockets.length)) html += '<div class="content-divider"></div>';
-      html += '<div class="detail-section detail-section--loot"><h3>Loot & Bounty</h3><div>' + escapeHtml(detail.loot) + '</div></div>';
-    }
-
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Mission · ' + (faction || 'Mission'),
+      title: detail.title || mission.name,
+      status: 'Level ' + level + (spaceType ? ' · ' + spaceType : ''),
+      sub, chips, facts, actions,
+      body: buildMissionBody(detail),
+      source,
+      profileTitle: 'Mission profile',
+    });
   }
 
   function showMissionList() {
@@ -1840,71 +1877,50 @@
     const survival = survivalKey ? burnersSurvival[survivalKey] : null;
     const hasSurvival = survival && survival.info && Object.keys(survival.info).length > 0;
 
-    // Build info grid — consistent basic fields for all burners
     const shipRestrict = entry.type === 'Base' ? 'Battlecruiser' : 'Frigate';
-    let infoGrid = [
-      ['Faction', entry.faction],
-      ['Best damage to deal', entry.bestDamageToDeal],
-      ['Damage to resist', entry.damageToResist],
-      ['Ship restriction', shipRestrict],
+    const facts = [
+      ['Faction', escapeHtml(entry.faction || '')],
+      ['Best damage to deal', escapeHtml(entry.bestDamageToDeal || '')],
+      ['Damage to resist', escapeHtml(entry.damageToResist || '')],
+      ['Ship restriction', escapeHtml(shipRestrict)],
       ['Mission type', 'Encounter'],
       ['Space type', 'Deadspace'],
-    ].filter(([, v]) => v && v.trim());
-
-    let html = '';
-
-    // Header
-    html += '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(entry.name) + '</h2>';
-    html += '<span class="detail-level-badge">' + escapeHtml(entry.type) + '</span>';
-    html += '<span class="detail-faction">' + escapeHtml(entry.faction) + '</span>';
-    html += '</div>';
-
-    // Info grid
-    html += '<div class="info-grid">';
-    for (var ii = 0; ii < infoGrid.length; ii++) {
-      html += '<div class="info-card"><div class="label">' + infoGrid[ii][0] + '</div><div class="value">' + escapeHtml(infoGrid[ii][1]) + '</div></div>';
-    }
-    var vLinks = survival ? (survival.videoLinks || []) : [];
+    ];
+    const vLinks = survival ? (survival.videoLinks || []) : [];
     if (vLinks.length) {
-      html += '<div class="info-card"><div class="label">Video guides</div><div class="value video-link">';
-      html += vLinks.map(function(v) { return '<a href="' + escapeHtml(v.url) + '" target="_blank" rel="noopener">' + escapeHtml(v.text || v.url) + '</a>'; }).join(', ');
-      html += '</div></div>';
+      facts.push(['Video guides', vLinks.map((v) => '<a href="' + escapeHtml(v.url) + '" target="_blank" rel="noopener">' + escapeHtml(v.text || v.url) + '</a>').join('<br>')]);
     } else if (hasSurvival && survival.info['Video']) {
-      html += '<div class="info-card"><div class="label">Video</div><div class="value">' + escapeHtml(survival.info['Video']) + '</div></div>';
+      facts.push(['Video', escapeHtml(survival.info['Video'])]);
     }
-    html += '</div>';
 
-    // === Mission content: always use UniWiki data for consistency ===
-    var briefing = '';
-    var pocketGroups = [];
+    let briefing = '';
+    const pocketGroups = [];
 
-    var tables = (entry.npcTables || []).slice();
+    const tables = (entry.npcTables || []).slice();
     if (tables.length > 0 && tables[0].type === 'table' && tables[0].rows && tables[0].rows.length >= 2) {
-      var firstRow = tables[0].rows[0] || [];
+      const firstRow = tables[0].rows[0] || [];
       if (firstRow[0] === 'Mission briefing') {
-        briefing = tables[0].rows.slice(1).map(function(r) { return r.join(' '); }).join(' ');
+        briefing = tables[0].rows.slice(1).map((r) => r.join(' ')).join(' ');
         tables.shift();
       }
     }
 
-    var sections = entry.sections || {};
-    var secKeys = Object.keys(sections);
-    var secIdx = 0;
+    const sections = entry.sections || {};
+    const secKeys = Object.keys(sections);
+    let secIdx = 0;
 
-    for (var ti = 0; ti < tables.length; ti++) {
-      var tbl = tables[ti];
+    for (let ti = 0; ti < tables.length; ti++) {
+      const tbl = tables[ti];
       if (tbl.type !== 'table' || !tbl.rows || tbl.rows.length < 1) continue;
 
-      var sectionName = (secIdx < secKeys.length) ? secKeys[secIdx] : 'Room ' + (ti + 1);
-      var rows = [];
-      for (var ri = 1; ri < tbl.rows.length; ri++) {
-        var line = tbl.rows[ri].join(' ').trim();
-        if (line) {
-          line = line.replace(/^Wave\s+\d+\s*[-–]\s*/i, '');
-          if (/Acceleration Gate/i.test(line)) continue;
-          rows.push(line);
-        }
+      const sectionName = (secIdx < secKeys.length) ? secKeys[secIdx] : 'Room ' + (ti + 1);
+      const rows = [];
+      for (let ri = 1; ri < tbl.rows.length; ri++) {
+        let line = tbl.rows[ri].join(' ').trim();
+        if (!line) continue;
+        line = line.replace(/^Wave\s+\d+\s*[-–]\s*/i, '');
+        if (/Acceleration Gate/i.test(line)) continue;
+        rows.push(line);
       }
       if (rows.length) {
         pocketGroups.push({ title: sectionName, lines: rows });
@@ -1912,51 +1928,50 @@
       }
     }
 
-    if (briefing) {
-      html += '<div class="briefing-section">';
-      html += '<div class="briefing-heading">Mission briefing</div>';
-      html += '<div class="briefing-content"><div class="detail-section"><div>' + escapeHtml(briefing) + '</div></div></div>';
-      html += '<button class="briefing-toggle">Show more</button>';
-      html += '</div>';
-    }
-
+    let body = '';
+    if (briefing) body += sdSection('fa-scroll', 'Mission briefing', '<p class="sd-lead">' + escapeHtml(briefing) + '</p>');
     if (pocketGroups.length) {
-      var shipDamage = entry.shipDamage || {};
-      html += '<div class="pocket-section">';
-      for (var gi = 0; gi < pocketGroups.length; gi++) {
-        var group = pocketGroups[gi];
-        html += '<div class="pocket-title">' + escapeHtml(group.title) + '</div>';
-        html += '<div class="npc-group">';
-        for (var li = 0; li < group.lines.length; li++) {
-          var line = group.lines[li];
-          var dmgTag = '';
-          for (var shipName in shipDamage) {
+      const shipDamage = entry.shipDamage || {};
+      let pocketsHtml = '<div class="pocket-section">';
+      for (const group of pocketGroups) {
+        pocketsHtml += '<div class="pocket-title">' + escapeHtml(group.title) + '</div>';
+        pocketsHtml += '<div class="npc-group">';
+        for (const line of group.lines) {
+          let dmgTag = '';
+          for (const shipName in shipDamage) {
             if (line.toLowerCase().includes(shipName.toLowerCase())) {
-              var dmgTypes = shipDamage[shipName].split(/\s+/);
-              var tags = [];
-              for (var t = 0; t < dmgTypes.length; t++) {
-                var cls = dmgTypes[t].toLowerCase();
-                tags.push('<span class="tag tag-dmg tag-dmg-' + cls + '">deal ' + dmgTypes[t] + '</span>');
-              }
+              const dmgTypes = shipDamage[shipName].split(/\s+/);
+              const tags = dmgTypes.map((dmg) => '<span class="tag tag-dmg tag-dmg-' + dmg.toLowerCase() + '">deal ' + dmg + '</span>');
               dmgTag = ' ' + tags.join(' ');
               break;
             }
           }
-          html += '<div class="npc-line">' + renderNpcLine(line) + dmgTag + '</div>';
+          pocketsHtml += '<div class="npc-line">' + renderNpcLine(line) + dmgTag + '</div>';
         }
-        html += '</div>';
+        pocketsHtml += '</div>';
       }
-      html += '</div>';
+      pocketsHtml += '</div>';
+      body += sdSection('fa-map', 'Walkthrough', pocketsHtml);
     }
 
-    // External link
-    if (entry.page) {
-      html += '<div class="detail-section external-link">';
-      html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/' + entry.page) + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
-      html += '</div>';
-    }
+    const actions = '<a class="sd-btn sd-btn-ghost" href="#burners"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to burners</a>';
+    const source = entry.page
+      ? {
+        title: 'EVE University Wiki',
+        copy: 'Mission layout and NPC data are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+        links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/' + entry.page }],
+      }
+      : null;
 
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Anomic / Burner · ' + (entry.faction || ''),
+      title: entry.name,
+      status: entry.type + ' · ' + shipRestrict + ' only',
+      sub: 'Anomic mission flown in a ' + shipRestrict.toLowerCase() + '.',
+      chips: [entry.type, entry.faction, shipRestrict].filter(Boolean),
+      facts, actions, body, source,
+      profileTitle: 'Burner profile',
+    });
   }
 
   function showBurnerList() {
@@ -2063,77 +2078,64 @@
     window.scrollTo(0, 0);
 
     const container = $('#agentDetailContent');
+    const facts = [
+      ['Corporation', escapeHtml(agent.corporation || '')],
+      ['Division', escapeHtml(agent.division || '')],
+      ['Agent type', escapeHtml(agent.agentType || '')],
+      ['Level', escapeHtml(String(agent.level || ''))],
+      ['System', escapeHtml(agent.solarSystem || '')],
+      ['Security', formatSecurity(agent.securityStatus)],
+      ['Station', escapeHtml(agent.station || (agent.locationType === 'space' ? 'In space' : ''))],
+    ];
+    const chips = ['Level ' + agent.level, agent.faction, agent.division].filter(Boolean);
 
-    let html = '';
-
-    // Header
-    html += '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(agent.name) + '</h2>';
-    html += '<span class="detail-level-badge">Level ' + agent.level + '</span>';
-    html += '<span class="detail-faction">' + escapeHtml(agent.faction) + '</span>';
-    html += '</div>';
-
-    // Info grid
-    const infoFields = [
-      ['Corporation', agent.corporation],
-      ['Division', agent.division],
-      ['Agent type', agent.agentType],
-      ['Level', agent.level],
-      ['System', agent.solarSystem],
-      ['Security', agent.securityStatus !== null ? agent.securityStatus.toFixed(3) : ''],
-      ['Station', agent.station || (agent.locationType === 'space' ? 'In space' : '')],
-    ].filter(([, v]) => v && v.trim());
-
-    html += '<div class="info-grid">';
-    for (const [label, value] of infoFields) {
-      html += '<div class="info-card"><div class="label">' + label + '</div><div class="value">';
-      if (label === 'Security') {
-        html += formatSecurity(agent.securityStatus);
-      } else {
-        html += escapeHtml(value);
-      }
-      html += '</div></div>';
-    }
-    html += '</div>';
-
-    // Same-corp agents
+    let body = '';
     const corpAgents = agentsData.filter(a => a.corporationID === agent.corporationID && a.characterID !== agent.characterID);
     if (corpAgents.length > 0) {
-      html += '<div class="detail-section"><h3>Other ' + escapeHtml(agent.corporation) + ' agents</h3>';
-      html += '<div class="corp-agent-list">';
+      let list = '<div class="corp-agent-list">';
       for (const ca of corpAgents) {
-        html += '<div class="agent-row" data-cid="' + ca.characterID + '">';
-        html += '<span class="agent-name">' + escapeHtml(ca.name) + '</span>';
-        html += '<span class="agent-division badge-' + ca.division.toLowerCase() + '">' + escapeHtml(ca.division) + '</span>';
-        html += '<span class="level-badge active agent-level">' + ca.level + '</span>';
-        html += '<span class="agent-location">' + escapeHtml(ca.solarSystem) + '</span>';
-        html += '<span class="agent-security">' + formatSecurity(ca.securityStatus) + '</span>';
-        html += '</div>';
+        list += '<div class="agent-row" data-cid="' + ca.characterID + '">';
+        list += '<span class="agent-name">' + escapeHtml(ca.name) + '</span>';
+        list += '<span class="agent-division badge-' + ca.division.toLowerCase() + '">' + escapeHtml(ca.division) + '</span>';
+        list += '<span class="level-badge active agent-level">' + ca.level + '</span>';
+        list += '<span class="agent-location">' + escapeHtml(ca.solarSystem) + '</span>';
+        list += '<span class="agent-security">' + formatSecurity(ca.securityStatus) + '</span>';
+        list += '</div>';
       }
-      html += '</div></div>';
+      list += '</div>';
+      body += sdSection('fa-users', 'Other ' + escapeHtml(agent.corporation) + ' agents', list);
     }
 
-    // Browse missions link
-    html += '<div class="detail-section mission-ref">';
-    html += '<h3>Related Missions</h3>';
-    html += '<p>Missions potentially available at Level ' + agent.level + ' (' + agent.division + '):</p>';
-
+    let missionsHtml = '<p class="sd-lead">Missions potentially available at Level ' + agent.level + ' (' + escapeHtml(agent.division || '') + '):</p>';
     const matchingMissions = missionsIndex.filter(m => m.levels[agent.level]);
     if (matchingMissions.length > 0) {
-      html += '<div class="related-missions">';
+      missionsHtml += '<div class="related-missions">';
       for (const m of matchingMissions.slice(0, 10)) {
-        html += '<span class="mission-pill" data-mission="' + escapeHtml(m.name) + '" data-level="' + agent.level + '" data-page="' + escapeHtml(m.levels[agent.level]) + '">' + escapeHtml(m.name) + '</span>';
+        missionsHtml += '<span class="mission-pill" data-mission="' + escapeHtml(m.name) + '" data-level="' + agent.level + '" data-page="' + escapeHtml(m.levels[agent.level]) + '">' + escapeHtml(m.name) + '</span>';
       }
       if (matchingMissions.length > 10) {
-        html += '<span class="mission-pill-more">+' + (matchingMissions.length - 10) + ' more</span>';
+        missionsHtml += '<span class="mission-pill-more">+' + (matchingMissions.length - 10) + ' more</span>';
       }
-      html += '</div>';
+      missionsHtml += '</div>';
     }
+    missionsHtml += '<p style="margin-top:10px;"><a href="#" class="browse-link" data-level="' + agent.level + '" data-division="' + escapeHtml(agent.division) + '">Browse all Level ' + agent.level + ' missions &rarr;</a></p>';
+    body += sdSection('fa-list-check', 'Related missions', missionsHtml);
 
-    html += '<p><a href="#" class="browse-link" data-level="' + agent.level + '" data-division="' + escapeHtml(agent.division) + '">Browse all Level ' + agent.level + ' missions &rarr;</a></p>';
-    html += '</div>';
+    const actions = '<a class="sd-btn sd-btn-ghost" href="#agents"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to agents</a>';
+    const source = {
+      title: 'EVE SDE',
+      copy: 'Agent, corporation and location data are read from the EVE Static Data Export (SDE).',
+      links: [{ label: 'EVE SDE', href: 'https://developers.eveonline.com/static-data/' }],
+    };
 
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Agent · ' + (agent.faction || ''),
+      title: agent.name,
+      status: 'Level ' + agent.level + ' agent',
+      sub: escapeHtml(agent.agentType || 'Agent') + ' for ' + escapeHtml(agent.corporation || '') + ' in ' + escapeHtml(agent.solarSystem || '') + '.',
+      chips, facts, actions, body, source,
+      profileTitle: 'Agent profile',
+    });
 
     container.querySelectorAll('.agent-row').forEach(row => {
       row.addEventListener('click', () => {
@@ -2238,81 +2240,73 @@
     currentArcId = arc.id;
 
     const container = $('#epicArcDetailContent');
-
     const totalMissions = arc.chapters.reduce((sum, ch) => sum + (ch.missions ? ch.missions.length : 0), 0);
+    const facts = [
+      ['Starting Agent', escapeHtml(arc.startingAgent || '')],
+      ['Starting System', escapeHtml(arc.startingSystem || '')],
+      ['Region', escapeHtml(arc.region || '')],
+      ['Chapters', String(arc.chapters.length)],
+      ['Missions', String(totalMissions)],
+      ['Standings required', escapeHtml(arc.standingsRequired || '')],
+      ['Additional requirements', escapeHtml(arc.additionalRequirements || '')],
+    ];
 
-    let html = '';
-
-    // Header
-    html += '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(arc.name) + '</h2>';
-    html += '<span class="detail-level-badge">Level ' + arc.level + '</span>';
-    html += '<span class="detail-faction">' + escapeHtml(arc.faction) + '</span>';
-    html += '</div>';
-
-    // Overview info grid
-    html += '<div class="info-grid">';
-    if (arc.startingAgent) {
-      html += '<div class="info-card"><div class="label">Starting Agent</div><div class="value">' + escapeHtml(arc.startingAgent) + '</div></div>';
-    }
-    if (arc.startingSystem) {
-      html += '<div class="info-card"><div class="label">Starting System</div><div class="value">' + escapeHtml(arc.startingSystem) + '</div></div>';
-    }
-    if (arc.region) {
-      html += '<div class="info-card"><div class="label">Region</div><div class="value">' + escapeHtml(arc.region) + '</div></div>';
-    }
-    html += '<div class="info-card"><div class="label">Chapters</div><div class="value">' + arc.chapters.length + '</div></div>';
-    html += '<div class="info-card"><div class="label">Missions</div><div class="value">' + totalMissions + '</div></div>';
-    if (arc.standingsRequired) {
-      html += '<div class="info-card"><div class="label">Standings Required</div><div class="value">' + escapeHtml(arc.standingsRequired) + '</div></div>';
-    }
-    if (arc.additionalRequirements) {
-      html += '<div class="info-card"><div class="label">Additional Requirements</div><div class="value">' + escapeHtml(arc.additionalRequirements) + '</div></div>';
-    }
-    html += '</div>';
-
-    // Description
+    let body = '';
     if (arc.description) {
-      html += '<div class="detail-section"><h3>About</h3><div>' + escapeHtml(arc.description) + '</div></div>';
+      body += sdSection('fa-book-open', 'About', '<p class="sd-lead">' + escapeHtml(arc.description) + '</p>');
     }
 
-    // Chapters accordion
-    html += '<div class="epic-arc-chapters">';
+    let chaptersHtml = '<div class="epic-arc-chapters">';
     for (const ch of arc.chapters) {
       const hasMissions = ch.missions && ch.missions.length > 0;
-      html += '<div class="epic-arc-chapter">';
-      html += '<div class="epic-arc-chapter-header" data-chapter="' + escapeHtml(ch.name) + '">';
-      html += '<span class="epic-arc-chapter-name">Chapter ' + ch.order + ': ' + escapeHtml(ch.name) + '</span>';
-      html += '<span class="epic-arc-chapter-count">' + (hasMissions ? ch.missions.length + ' mission' + (ch.missions.length !== 1 ? 's' : '') : 'Coming Soon') + '</span>';
-      html += '<span class="epic-arc-chapter-toggle">&#9660;</span>';
-      html += '</div>';
-      html += '<div class="epic-arc-chapter-content">';
+      chaptersHtml += '<div class="epic-arc-chapter">';
+      chaptersHtml += '<div class="epic-arc-chapter-header" data-chapter="' + escapeHtml(ch.name) + '">';
+      chaptersHtml += '<span class="epic-arc-chapter-name">Chapter ' + ch.order + ': ' + escapeHtml(ch.name) + '</span>';
+      chaptersHtml += '<span class="epic-arc-chapter-count">' + (hasMissions ? ch.missions.length + ' mission' + (ch.missions.length !== 1 ? 's' : '') : 'Coming Soon') + '</span>';
+      chaptersHtml += '<span class="epic-arc-chapter-toggle">&#9660;</span>';
+      chaptersHtml += '</div>';
+      chaptersHtml += '<div class="epic-arc-chapter-content">';
       if (hasMissions) {
-        html += '<div class="chapter-mission-list">';
+        chaptersHtml += '<div class="chapter-mission-list">';
         for (let mi = 0; mi < ch.missions.length; mi++) {
           const missionKey = ch.missions[mi];
           const detail = epicArcsDetails[missionKey];
           const missionName = detail ? detail.title : missionKey;
-          html += '<div class="chapter-mission-item" data-mission-key="' + escapeHtml(missionKey) + '">';
-          html += '<span class="chapter-mission-number">' + (mi + 1) + '.</span>';
-          html += '<span class="chapter-mission-name">' + escapeHtml(missionName) + '</span>';
+          chaptersHtml += '<div class="chapter-mission-item" data-mission-key="' + escapeHtml(missionKey) + '">';
+          chaptersHtml += '<span class="chapter-mission-number">' + (mi + 1) + '.</span>';
+          chaptersHtml += '<span class="chapter-mission-name">' + escapeHtml(missionName) + '</span>';
           if (detail && detail.info && detail.info['Mission type']) {
-            html += '<span class="chapter-mission-type">' + escapeHtml(detail.info['Mission type']) + '</span>';
+            chaptersHtml += '<span class="chapter-mission-type">' + escapeHtml(detail.info['Mission type']) + '</span>';
           }
-          html += '</div>';
+          chaptersHtml += '</div>';
         }
-        html += '</div>';
+        chaptersHtml += '</div>';
       } else {
-        html += '<div class="chapter-coming-soon">Mission data coming soon.</div>';
+        chaptersHtml += '<div class="chapter-coming-soon">Mission data coming soon.</div>';
       }
-      html += '</div>';
-      html += '</div>';
+      chaptersHtml += '</div>';
+      chaptersHtml += '</div>';
     }
-    html += '</div>';
+    chaptersHtml += '</div>';
+    body += sdSection('fa-layer-group', 'Chapters', chaptersHtml);
 
-    container.innerHTML = html;
+    const actions = '<a class="sd-btn sd-btn-ghost" href="#epicarcs"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to epic arcs</a>';
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Epic arc overview and mission data are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/Epic_Arcs' }],
+    };
 
-    // Wire chapter accordion toggles
+    container.innerHTML = renderDetailShell({
+      kicker: 'Epic arc · ' + (arc.faction || ''),
+      title: arc.name,
+      status: 'Level ' + arc.level + ' · ' + totalMissions + ' missions',
+      sub: arc.region ? 'Epic arc set in ' + escapeHtml(arc.region) + '.' : 'Epic arc overview.',
+      chips: ['Level ' + arc.level, arc.faction, arc.chapters.length + ' chapters', totalMissions + ' missions'].filter(Boolean),
+      facts, actions, body, source,
+      profileTitle: 'Epic arc profile',
+    });
+
     container.querySelectorAll('.epic-arc-chapter-header').forEach(header => {
       header.addEventListener('click', () => {
         const content = header.nextElementSibling;
@@ -2322,7 +2316,6 @@
       });
     });
 
-    // Wire mission click handlers
     container.querySelectorAll('.chapter-mission-item').forEach(item => {
       item.addEventListener('click', () => {
         const missionKey = item.dataset.missionKey;
@@ -2347,145 +2340,52 @@
       return;
     }
 
+    const info = detail.info || {};
+    const arc = detail.arc ? epicArcsIndex.find(a => a.id === detail.arc) : null;
+    const arcName = arc ? arc.name : (detail.arc || '');
+    const faction = info['Faction'] || (arc && arc.faction) || '';
+    const actions = '<a class="sd-btn sd-btn-ghost" href="' + (currentArcId ? '#epicarcs/detail/' + encodeURIComponent(currentArcId) : '#epicarcs') + '"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to epic arc</a>';
+
     if (detail.comingSoon) {
-      container.innerHTML = '<div class="coming-soon-page"><h2>Coming Soon</h2><p>Detailed mission data for <strong>Vision of Greatness</strong> is not yet available. This epic arc was released on June 9, 2026 as part of the <em>Cradle of War</em> expansion. Check back once community guides are published.</p><div class="info-grid"><div class="info-card"><div class="label">Faction</div><div class="value">' + escapeHtml(detail.info['Faction'] || '') + '</div></div><div class="info-card"><div class="label">Starting System</div><div class="value">' + escapeHtml(detail.info['Starting System'] || '') + '</div></div><div class="info-card"><div class="label">Region</div><div class="value">' + escapeHtml(detail.info['Region'] || '') + '</div></div></div></div>';
+      const facts = [
+        ['Faction', escapeHtml(info['Faction'] || '')],
+        ['Starting System', escapeHtml(info['Starting System'] || '')],
+        ['Region', escapeHtml(info['Region'] || '')],
+      ];
+      container.innerHTML = renderDetailShell({
+        kicker: 'Epic arc mission · ' + escapeHtml(faction),
+        title: detail.title || 'Vision of Greatness',
+        status: 'Coming soon',
+        sub: 'Detailed mission data for this epic arc mission is not yet available.',
+        chips: [arcName, faction].filter(Boolean),
+        facts, actions,
+        body: sdSection('fa-hourglass-half', 'Coming soon', '<p class="sd-lead">This epic arc was released on 9 June 2026 as part of the Cradle of War expansion. Check back once community guides are published.</p>'),
+        profileTitle: 'Mission profile',
+      });
       return;
     }
 
-    const info = detail.info || {};
+    const facts = Object.entries(info)
+      .filter(([, value]) => value && String(value).trim())
+      .map(([key, value]) => [key, escapeHtml(value)]);
+    const missionType = info['Mission type'] || 'Mission';
+    const spaceType = info['Space type'] || '';
+    const chips = [arcName, faction, spaceType].filter(Boolean);
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Epic arc mission layout and NPC data are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/Epic_Arcs' }],
+    };
 
-    let html = '';
-
-    // Header
-    html += '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(detail.title) + '</h2>';
-    html += '<span class="detail-faction">' + escapeHtml(info['Faction'] || '') + '</span>';
-    if (detail.arc) {
-      const arc = epicArcsIndex.find(a => a.id === detail.arc);
-      html += '<span class="detail-faction" style="color:var(--accent-color);font-size:0.85rem;">' + escapeHtml(arc ? arc.name : detail.arc) + '</span>';
-    }
-    html += '</div>';
-
-    // Info grid — show all available info fields
-    const infoEntries = Object.entries(info).filter(([, v]) => v && v.trim());
-    if (infoEntries.length) {
-      html += '<div class="info-grid">';
-      for (const [key, value] of infoEntries) {
-        html += '<div class="info-card"><div class="label">' + escapeHtml(key) + '</div><div class="value">' + escapeHtml(value) + '</div></div>';
-      }
-      html += '</div>';
-    }
-
-    // Pockets
-    if (detail.pockets && detail.pockets.length) {
-      html += '<div class="pocket-section">';
-      for (const pocket of detail.pockets) {
-        const heading = pocket.heading;
-        const lowerHeading = heading.toLowerCase();
-        const isBriefing = /^(mission )?brief(ing)?|message on warp in|info popup/i.test(lowerHeading);
-
-        if (/^tip(s)?$/i.test(heading) && detail.tips) continue;
-
-        if (isBriefing) {
-          html += '<div class="briefing-section">';
-          html += '<div class="briefing-heading">' + escapeHtml(heading) + '</div>';
-          html += '<div class="briefing-content">';
-        } else if (pocket.level === 'h3') {
-          html += '<div class="pocket-title">' + escapeHtml(heading) + '</div>';
-        } else if (pocket.level === 'h4') {
-          html += '<div class="pocket-subtitle">' + escapeHtml(heading) + '</div>';
-        } else if (pocket.level === 'h5') {
-          html += '<div class="pocket-subgroup">' + escapeHtml(heading) + '</div>';
-        }
-
-        if (pocket.lines && pocket.lines.length) {
-          const cleanLines = pocket.lines.map(cleanMissionLine).filter(Boolean);
-          if (cleanLines.length) {
-            html += '<div class="npc-group">';
-            for (const line of cleanLines) {
-              html += '<div class="npc-line">' + renderNpcLine(line) + '</div>';
-            }
-            html += '</div>';
-          }
-        }
-
-        if (isBriefing) {
-          html += '</div>';
-          html += '<button class="briefing-toggle">Show more</button>';
-          html += '</div>';
-        }
-      }
-      html += '</div>';
-    }
-
-    // Tips and loot
-    if (detail.tips) {
-      html += '<div class="briefing-section">';
-      html += '<div class="briefing-heading">Tips</div>';
-      html += '<div class="briefing-content"><div class="detail-section detail-section--tips"><div>' + escapeHtml(detail.tips) + '</div></div></div>';
-      html += '<button class="briefing-toggle">Show more</button>';
-      html += '</div>';
-    }
-    if (detail.loot) {
-      if (detail.tips) html += '<div class="content-divider"></div>';
-      html += '<div class="detail-section detail-section--loot"><h3>Loot & Bounty</h3><div>' + escapeHtml(detail.loot) + '</div></div>';
-    }
-
-    // Next / Previous mission navigation
-    if (detail.arc) {
-      const arc = epicArcsIndex.find(a => a.id === detail.arc);
-      if (arc) {
-        const chapters = arc.chapters.slice().sort((a, b) => a.order - b.order);
-        let prevKey = null;
-        let prevTitle = null;
-        let nextKey = null;
-        let nextTitle = null;
-
-        for (let ci = 0; ci < chapters.length; ci++) {
-          const ch = chapters[ci];
-          if (!ch.missions) continue;
-          const mi = ch.missions.indexOf(pageName);
-          if (mi >= 0) {
-            if (mi > 0) {
-              prevKey = ch.missions[mi - 1];
-            } else if (ci > 0 && chapters[ci - 1].missions) {
-              const prevCh = chapters[ci - 1];
-              prevKey = prevCh.missions[prevCh.missions.length - 1];
-            }
-            if (mi < ch.missions.length - 1) {
-              nextKey = ch.missions[mi + 1];
-            } else if (ci < chapters.length - 1 && chapters[ci + 1].missions) {
-              const nextCh = chapters[ci + 1];
-              nextKey = nextCh.missions[0];
-            }
-            break;
-          }
-        }
-
-        if (prevKey || nextKey) {
-          html += '<div class="epic-arc-nav">';
-          if (prevKey) {
-            const pd = epicArcsDetails[prevKey];
-            prevTitle = pd ? pd.title : prevKey;
-            html += '<button class="nav-mission-btn prev-btn" data-mission-key="' + escapeHtml(prevKey) + '">&larr; ' + escapeHtml(prevTitle) + '</button>';
-          }
-          if (nextKey) {
-            const nd = epicArcsDetails[nextKey];
-            nextTitle = nd ? nd.title : nextKey;
-            html += '<button class="nav-mission-btn next-btn" data-mission-key="' + escapeHtml(nextKey) + '">' + escapeHtml(nextTitle) + ' &rarr;</button>';
-          }
-          html += '</div>';
-        }
-      }
-    }
-
-    container.innerHTML = html;
-
-    container.querySelectorAll('.nav-mission-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const key = btn.dataset.missionKey;
-        if (key) window.location.hash = '#epicarcs/mission/' + encodeURIComponent(key);
-      });
+    container.innerHTML = renderDetailShell({
+      kicker: 'Epic arc mission · ' + (arcName || faction),
+      title: detail.title || pageName,
+      status: missionType + (spaceType ? ' · ' + spaceType : ''),
+      sub: (missionType || 'Mission') + (spaceType ? ' in ' + spaceType.toLowerCase() + ' space' : '') + '.',
+      chips, facts, actions,
+      body: buildMissionBody(detail),
+      source,
+      profileTitle: 'Mission profile',
     });
   }
 
@@ -2611,58 +2511,51 @@
     $('#npcDetailView').style.display = 'block';
     window.scrollTo(0, 0);
 
-    var catClass = 'npc-cat-other';
-    if (faction.category === 'Empire') catClass = 'npc-cat-empire';
-    if (faction.category === 'Pirate') catClass = 'npc-cat-pirate';
+    let dealRows = '';
+    dealRows += renderDetailDamageRow('EM', faction.damage_dealt.em, 'npc-dmg-em');
+    dealRows += renderDetailDamageRow('Thermal', faction.damage_dealt.thermal, 'npc-dmg-thermal');
+    dealRows += renderDetailDamageRow('Kinetic', faction.damage_dealt.kinetic, 'npc-dmg-kinetic');
+    dealRows += renderDetailDamageRow('Explosive', faction.damage_dealt.explosive, 'npc-dmg-explosive');
 
-    var html = '';
+    let weakRows = '';
+    weakRows += renderDetailDamageRow('EM', faction.damage_weakness.em, 'npc-dmg-em');
+    weakRows += renderDetailDamageRow('Thermal', faction.damage_weakness.thermal, 'npc-dmg-thermal');
+    weakRows += renderDetailDamageRow('Kinetic', faction.damage_weakness.kinetic, 'npc-dmg-kinetic');
+    weakRows += renderDetailDamageRow('Explosive', faction.damage_weakness.explosive, 'npc-dmg-explosive');
 
-    html += '<div class="npc-detail-header">';
-    html += '<h2>' + escapeHtml(faction.name) + '</h2>';
-    html += '<span class="npc-detail-category ' + catClass + '">' + escapeHtml(faction.category) + '</span>';
-    html += '</div>';
-
-    html += '<div class="npc-detail-locations">Locations: ' + escapeHtml(faction.locations) + '</div>';
-
-    html += '<div class="npc-detail-description">' + escapeHtml(faction.description) + '</div>';
-
-    html += '<div class="npc-detail-stats">';
-
-    // Damage Dealt card
-    html += '<div class="npc-detail-stat-card">';
-    html += '<h3>Damage They Deal</h3>';
-    html += renderDetailDamageRow('EM', faction.damage_dealt.em, 'npc-dmg-em');
-    html += renderDetailDamageRow('Thermal', faction.damage_dealt.thermal, 'npc-dmg-thermal');
-    html += renderDetailDamageRow('Kinetic', faction.damage_dealt.kinetic, 'npc-dmg-kinetic');
-    html += renderDetailDamageRow('Explosive', faction.damage_dealt.explosive, 'npc-dmg-explosive');
-    html += '</div>';
-
-    // Damage Weakness card
-    html += '<div class="npc-detail-stat-card">';
-    html += '<h3>Best Damage To Use</h3>';
-    html += renderDetailDamageRow('EM', faction.damage_weakness.em, 'npc-dmg-em');
-    html += renderDetailDamageRow('Thermal', faction.damage_weakness.thermal, 'npc-dmg-thermal');
-    html += renderDetailDamageRow('Kinetic', faction.damage_weakness.kinetic, 'npc-dmg-kinetic');
-    html += renderDetailDamageRow('Explosive', faction.damage_weakness.explosive, 'npc-dmg-explosive');
-    html += '</div>';
-
-    // E-War card
-    html += '<div class="npc-detail-stat-card">';
-    html += '<h3>Electronic Warfare</h3>';
+    let ewarHtml = '';
     if (faction.ewar && faction.ewar.length > 0) {
-      html += '<ul class="npc-detail-ewar-list">';
-      faction.ewar.forEach(function (ew) {
-        html += '<li>' + escapeHtml(ew) + '</li>';
-      });
-      html += '</ul>';
+      ewarHtml = '<ul class="npc-detail-ewar-list">' + faction.ewar.map((ew) => '<li>' + escapeHtml(ew) + '</li>').join('') + '</ul>';
     } else {
-      html += '<p style="color:var(--text-subtle-color);font-size:0.9rem;">None reported</p>';
+      ewarHtml = '<p class="sd-lead">None reported.</p>';
     }
-    html += '</div>';
 
-    html += '</div>';
+    const facts = [
+      ['Category', escapeHtml(faction.category || '')],
+      ['Locations', escapeHtml(faction.locations || '')],
+    ];
 
-    $('#npcDetailContent').innerHTML = html;
+    let body = '';
+    body += sdSection('fa-burst', 'Damage they deal', '<div class="npc-detail-stat-card">' + dealRows + '</div>');
+    body += sdSection('fa-crosshairs', 'Best damage to use', '<div class="npc-detail-stat-card">' + weakRows + '</div>');
+    body += sdSection('fa-satellite-dish', 'Electronic warfare', ewarHtml);
+
+    const actions = '<a class="sd-btn sd-btn-ghost" href="#npcs"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to NPCs</a>';
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'NPC faction damage profiles are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/NPC_Damage_Types' }],
+    };
+
+    $('#npcDetailContent').innerHTML = renderDetailShell({
+      kicker: 'NPC faction · ' + (faction.category || ''),
+      title: faction.name,
+      status: faction.category + (faction.locations ? ' · ' + faction.locations : ''),
+      sub: escapeHtml(faction.description || ''),
+      chips: [faction.category].filter(Boolean),
+      facts, actions, body, source,
+      profileTitle: 'Faction profile',
+    });
   }
 
   function renderDetailDamageRow(label, pct, barClass) {
@@ -3091,74 +2984,69 @@
     window.scrollTo(0, 0);
 
     const container = $('#miningOreDetailContent');
-    let html = '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(ore.name) + '</h2>';
-    html += '<span class="anomaly-level-badge ded-low">' + ore.volume + ' m\u00B3</span>';
-    html += '</div>';
+    const mineralKeys = Object.keys(ore.minerals || {});
+    const variantText = (ore.variants || []).map(v => v.name + ' +' + ((v.multiplier - 1) * 100).toFixed(0) + '%').join(', ');
+    const facts = [
+      ['Volume', ore.volume + ' m\u00B3'],
+      ['Compressed', (ore.volume * 0.01) + ' m\u00B3'],
+      ['Variants', escapeHtml(variantText)],
+    ];
 
-    // Info grid
-    html += '<div class="info-grid">';
-    html += '<div class="info-card"><div class="label">Volume</div><div class="value">' + ore.volume + ' m\u00B3</div></div>';
-    html += '<div class="info-card"><div class="label">Compressed</div><div class="value">' + (ore.volume * 0.01) + ' m\u00B3</div></div>';
-    if (ore.variants && ore.variants.length) {
-      html += '<div class="info-card"><div class="label">Variants</div><div class="value">' + ore.variants.map(v => '+' + ((v.multiplier - 1) * 100).toFixed(0) + '% (' + v.grade + ')').join(', ') + '</div></div>';
-    }
-    html += '</div>';
-
-    // Minerals
-    const mineralKeys = Object.keys(ore.minerals);
-    if (mineralKeys.length) {
-      html += '<div class="detail-section"><h3>Minerals per Unit</h3><div class="info-grid">';
-      for (const key of mineralKeys) {
-        html += '<div class="info-card"><div class="label">' + mineralDisplayNames[key] + '</div><div class="value">' + ore.minerals[key] + '</div></div>';
-      }
-      html += '</div></div>';
-
-      // Variant comparison
-      if (ore.variants && ore.variants.length) {
-        html += '<div class="detail-section"><h3>Variant Yields</h3>';
-        html += '<div class="info-grid">';
-        for (const v of ore.variants) {
-          const gradeLabel = ore.name.includes(' ') ? v.name : v.name + ' (' + v.grade + ')';
-          html += '<div class="info-card"><div class="label">' + escapeHtml(v.name) + '</div><div class="value">+' + ((v.multiplier - 1) * 100).toFixed(0) + '%</div></div>';
-        }
-        html += '</div></div>';
-      }
-    }
-
-    // Space
     const spaces = ore.siteNames.reduce((acc, sn) => {
       for (const key of Object.keys(spaceLabels)) {
         if (sn.toLowerCase().includes(key)) acc.add(key);
       }
       return acc;
     }, new Set());
+    const chips = [...spaces].map(s => spaceLabels[s] || s);
+
+    let body = '';
+    if (mineralKeys.length) {
+      let grid = '<div class="info-grid">';
+      for (const key of mineralKeys) {
+        grid += '<div class="info-card"><div class="label">' + (mineralDisplayNames[key] || key) + '</div><div class="value">' + ore.minerals[key] + '</div></div>';
+      }
+      grid += '</div>';
+      body += sdSection('fa-flask', 'Minerals per unit', grid);
+    }
+    if (ore.variants && ore.variants.length) {
+      let grid = '<div class="info-grid">';
+      for (const v of ore.variants) {
+        grid += '<div class="info-card"><div class="label">' + escapeHtml(v.name) + '</div><div class="value">+' + ((v.multiplier - 1) * 100).toFixed(0) + '%</div></div>';
+      }
+      grid += '</div>';
+      body += sdSection('fa-layer-group', 'Variant yields', grid);
+    }
     if (spaces.size) {
-      html += '<div class="detail-section"><h3>Found In</h3><div>';
+      let tags = '';
       for (const s of spaces) {
-        html += '<span class="mining-tag ' + (spaceTagClasses[s] || '') + '">' + spaceLabels[s] + '</span> ';
+        tags += '<span class="mining-tag ' + (spaceTagClasses[s] || '') + '">' + (spaceLabels[s] || s) + '</span>';
       }
-      html += '</div></div>';
+      body += sdSection('fa-map-location-dot', 'Found in', '<div class="mining-card-tags">' + tags + '</div>');
     }
-
-    // Sites containing this ore
     if (ore.siteNames && ore.siteNames.length) {
-      html += '<div class="detail-section"><h3>Mining Sites</h3>';
-      html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">';
+      let pills = '';
       for (const siteName of ore.siteNames) {
-        html += '<span class="mission-pill" data-site="' + escapeHtml(siteName) + '">' + escapeHtml(siteName) + '</span>';
+        pills += '<span class="mission-pill" data-site="' + escapeHtml(siteName) + '">' + escapeHtml(siteName) + '</span>';
       }
-      html += '</div></div>';
+      body += sdSection('fa-mountain-sun', 'Mining sites', '<div class="mining-site-pills">' + pills + '</div>');
     }
 
-    // External link
-    html += '<div class="detail-section external-link">';
-    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/Asteroids_and_ore') + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
-    html += '</div>';
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Ore volumes, variants and mineral yields are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/Asteroids_and_ore' }],
+    };
 
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Mining · Ore',
+      title: ore.name,
+      status: ore.volume + ' m\u00B3 per unit',
+      sub: 'Asteroid ore type and the minerals it refines into.',
+      chips, facts, body, source,
+      profileTitle: 'Ore profile',
+    });
 
-    // Wire site pill clicks to switch to ore sites tab
     container.querySelectorAll('.mission-pill').forEach(pill => {
       pill.addEventListener('click', function () {
         const siteName = this.dataset.site;
@@ -3173,8 +3061,6 @@
       });
     });
   }
-
-  // ---- ORE SITES ----
 
   function initMiningSiteControls() {
     $('#miningSiteSearchInput').addEventListener('input', function () { renderMiningSiteList(); });
@@ -3262,44 +3148,43 @@
 
     const detail = miningSites[entry.page];
     const container = $('#miningSiteDetailContent');
+    const facts = (detail && detail.info)
+      ? Object.entries(detail.info).filter(([, v]) => v).map(([k, v]) => [k, escapeHtml(v)])
+      : [];
 
-    let html = '<div class="detail-header">';
-    html += '<h2>' + escapeHtml(entry.name) + '</h2>';
-    html += '</div>';
-
-    if (detail) {
-      if (detail.info && Object.keys(detail.info).length) {
-        html += '<div class="info-grid">';
-        for (const [key, val] of Object.entries(detail.info)) {
-          if (val) html += '<div class="info-card"><div class="label">' + escapeHtml(key) + '</div><div class="value">' + escapeHtml(val) + '</div></div>';
-        }
-        html += '</div>';
-      }
-
-      if (detail.description) {
-        html += '<div class="detail-section"><h3>Description</h3><div>' + escapeHtml(detail.description) + '</div></div>';
-      }
-
-      if (detail.ores && detail.ores.length) {
-        html += '<div class="detail-section"><h3>Ore Types</h3><div class="mining-card-tags">';
-        for (const ore of detail.ores) {
-          html += '<span class="mining-tag mining-tag-ore" data-ore="' + escapeHtml(ore) + '">' + escapeHtml(ore) + '</span>';
-        }
-        html += '</div></div>';
-      }
-
-      if (detail.totalVolume) {
-        html += '<div class="detail-section"><h3>Total Volume</h3><div>' + detail.totalVolume.toLocaleString() + ' m\u00B3</div></div>';
-      }
+    let body = '';
+    if (!detail) {
+      body += sdSection('fa-circle-info', 'Details', '<p class="sd-lead">No detailed guide data available for this site.</p>');
     } else {
-      html += '<div class="empty-state">No detailed guide data available for this site.</div>';
+      if (detail.description) {
+        body += sdSection('fa-book-open', 'Description', '<p class="sd-lead">' + escapeHtml(detail.description) + '</p>');
+      }
+      if (detail.ores && detail.ores.length) {
+        let tags = '';
+        for (const ore of detail.ores) {
+          tags += '<span class="mining-tag mining-tag-ore" data-ore="' + escapeHtml(ore) + '">' + escapeHtml(ore) + '</span>';
+        }
+        body += sdSection('fa-gem', 'Ore types', '<div class="mining-card-tags">' + tags + '</div>');
+      }
+      if (detail.totalVolume) {
+        body += sdSection('fa-cubes', 'Total volume', '<p class="sd-lead">' + detail.totalVolume.toLocaleString() + ' m\u00B3</p>');
+      }
     }
 
-    html += '<div class="detail-section external-link">';
-    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/' + entry.page) + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
-    html += '</div>';
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Mining site layout and ore data are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/' + entry.page }],
+    };
 
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Mining · Site',
+      title: entry.name,
+      status: 'Mining site',
+      sub: 'Asteroid mining site and the ore it contains.',
+      chips: [], facts, body, source,
+      profileTitle: 'Site profile',
+    });
 
     container.querySelectorAll('.mining-tag-ore').forEach(tag => {
       tag.addEventListener('click', function () {
@@ -3312,8 +3197,6 @@
       });
     });
   }
-
-  // ---- ICE ----
 
   function initMiningIceControls() {
     $('#miningIceSearchInput').addEventListener('input', renderMiningIceList);
@@ -3393,31 +3276,37 @@
     window.scrollTo(0, 0);
 
     const container = $('#miningIceDetailContent');
-    let html = '<div class="detail-header"><h2>' + escapeHtml(ice.name) + '</h2><span class="detail-level-badge">' + escapeHtml(ice.category) + '</span></div>';
+    const facts = [
+      ['Category', escapeHtml(ice.category)],
+      ['Space', escapeHtml(ice.space)],
+    ];
 
-    html += '<div class="info-grid">';
-    html += '<div class="info-card"><div class="label">Category</div><div class="value">' + escapeHtml(ice.category) + '</div></div>';
-    html += '<div class="info-card"><div class="label">Space</div><div class="value">' + escapeHtml(ice.space) + '</div></div>';
-    html += '</div>';
-
-    html += '<div class="detail-section"><h3>Refining Yields (0% Waste)</h3>';
-    html += '<div class="info-grid">';
-    html += '<div class="info-card"><div class="label">Heavy Water</div><div class="value">' + ice.heavyWater + '</div></div>';
-    html += '<div class="info-card"><div class="label">Liquid Ozone</div><div class="value">' + ice.liquidOzone + '</div></div>';
-    html += '<div class="info-card"><div class="label">Strontium Clathrates</div><div class="value">' + ice.strontium + '</div></div>';
+    let grid = '<div class="info-grid">';
+    grid += '<div class="info-card"><div class="label">Heavy Water</div><div class="value">' + ice.heavyWater + '</div></div>';
+    grid += '<div class="info-card"><div class="label">Liquid Ozone</div><div class="value">' + ice.liquidOzone + '</div></div>';
+    grid += '<div class="info-card"><div class="label">Strontium Clathrates</div><div class="value">' + ice.strontium + '</div></div>';
     if (ice.isotopes) {
-      html += '<div class="info-card"><div class="label">' + escapeHtml(ice.isotopes.type) + ' Isotopes</div><div class="value">' + ice.isotopes.amount + '</div></div>';
+      grid += '<div class="info-card"><div class="label">' + escapeHtml(ice.isotopes.type) + ' Isotopes</div><div class="value">' + ice.isotopes.amount + '</div></div>';
     }
-    html += '</div></div>';
+    grid += '</div>';
 
-    html += '<div class="detail-section external-link">';
-    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/Ice_harvesting') + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
-    html += '</div>';
+    const body = sdSection('fa-snowflake', 'Refining yields (0% waste)', grid);
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Ice refining yields are adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/Ice_harvesting' }],
+    };
 
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Mining · Ice',
+      title: ice.name,
+      status: ice.category,
+      sub: 'Ice type found in ' + ice.space + '.',
+      chips: [ice.category, ice.space].filter(Boolean),
+      facts, body, source,
+      profileTitle: 'Ice profile',
+    });
   }
-
-  // ---- GAS ----
 
   function initMiningGasControls() {
     $('#miningGasSearchInput').addEventListener('input', renderMiningGasList);
@@ -3495,30 +3384,39 @@
     window.scrollTo(0, 0);
 
     const container = $('#miningGasDetailContent');
-    let html = '<div class="detail-header"><h2>' + escapeHtml(gas.name) + '</h2><span class="detail-level-badge">' + escapeHtml(gas.gasCategory) + '</span></div>';
+    const facts = [
+      ['Category', escapeHtml(gas.gasCategory)],
+      ['Flavor', escapeHtml(gas.flavor || '')],
+      ['Booster', escapeHtml(gas.booster || '')],
+      ['Units per cloud', escapeHtml(gas.unitsPerCloud || '')],
+      ['Volume', gas.volume ? gas.volume + ' m\u00B3' : ''],
+      ['Value', escapeHtml(gas.value || '')],
+      ['Space', escapeHtml(gas.space || '')],
+    ];
 
-    html += '<div class="info-grid">';
-    if (gas.gasCategory !== 'Fullerenes') {
-      if (gas.flavor) html += '<div class="info-card"><div class="label">Flavor</div><div class="value">' + escapeHtml(gas.flavor) + '</div></div>';
-      if (gas.booster) html += '<div class="info-card"><div class="label">Booster</div><div class="value">' + escapeHtml(gas.booster) + '</div></div>';
-      if (gas.unitsPerCloud) html += '<div class="info-card"><div class="label">Units per Cloud</div><div class="value">' + escapeHtml(gas.unitsPerCloud) + '</div></div>';
-    }
-    if (gas.volume) html += '<div class="info-card"><div class="label">Volume (m\u00B3)</div><div class="value">' + gas.volume + '</div></div>';
-    if (gas.value) html += '<div class="info-card"><div class="label">Value</div><div class="value">' + escapeHtml(gas.value) + '</div></div>';
-    html += '</div>';
-
+    let body = '';
     if (gas.location || gas.foundIn) {
-      html += '<div class="detail-section"><h3>Location</h3><div>' + escapeHtml(gas.location || gas.foundIn) + '</div></div>';
+      body += sdSection('fa-map-location-dot', 'Location', '<p class="sd-lead">' + escapeHtml(gas.location || gas.foundIn) + '</p>');
     }
     if (gas.space) {
-      html += '<div class="detail-section"><h3>Space</h3><div>' + escapeHtml(gas.space) + '</div></div>';
+      body += sdSection('fa-satellite-dish', 'Space', '<p class="sd-lead">' + escapeHtml(gas.space) + '</p>');
     }
 
-    html += '<div class="detail-section external-link">';
-    html += '<p>View on <a href="' + escapeHtml('https://wiki.eveuniversity.org/Gas_cloud_harvesting') + '" target="_blank" rel="noopener">EVE University Wiki</a> for more details.</p>';
-    html += '</div>';
+    const source = {
+      title: 'EVE University Wiki',
+      copy: 'Gas cloud data is adapted from the EVE University Wiki (CC BY-SA 4.0).',
+      links: [{ label: 'EVE University', href: 'https://wiki.eveuniversity.org/Gas_cloud_harvesting' }],
+    };
 
-    container.innerHTML = html;
+    container.innerHTML = renderDetailShell({
+      kicker: 'Mining · Gas',
+      title: gas.name,
+      status: gas.gasCategory,
+      sub: gas.flavor || 'Gas cloud type.',
+      chips: [gas.gasCategory, gas.space].filter(Boolean),
+      facts, body, source,
+      profileTitle: 'Gas profile',
+    });
   }
 
   document.addEventListener('DOMContentLoaded', init);
