@@ -373,6 +373,7 @@ body {
 /* Mining refinery controls */
 .mining-controls {
     min-width: 300px;
+    max-width: 380px;
 }
 
 .mining-controls .filter-group {
@@ -1310,6 +1311,7 @@ body {
     .hub-group,
     .mining-controls {
         min-width: 0;
+        max-width: none;
     }
     .results-header {
         flex-direction: column;
