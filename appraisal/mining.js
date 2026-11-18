@@ -14,6 +14,7 @@
     const byId = new Map();
     let miningController = null;
     let lastShare = null;
+    let lastCopyText = '';
 
     if (MINING_DATA) {
         for (const ore of MINING_DATA.ores) {
@@ -211,6 +212,7 @@
         const pricedCount = rows.filter(row => row.buy !== null || row.sell !== null).length;
 
         el('miningBuyTotal').textContent = num(buyTotal);
+        lastCopyText = `${num(buyTotal)} ISK`;
         el('miningSellTotal').textContent = num(sellTotal);
         el('miningSplitTotal').textContent = num(splitTotal);
         el('miningOutputTotal').textContent = int(result.totalRefined);
@@ -293,6 +295,13 @@
         list.innerHTML = unmatched.map(item => `<li><strong>${esc(item.raw)}</strong>${item.qty ? ` × ${int(item.qty)}` : ''}</li>`).join('');
     }
 
+    function setMiningActionsEnabled(enabled) {
+        const copy = el('copyMiningBtn');
+        const share = el('shareMiningBtn');
+        if (copy) copy.disabled = !enabled;
+        if (share) share.disabled = !enabled;
+    }
+
     async function runMining() {
         if (!MINING_DATA) {
             showMessage('Mining data failed to load. Please refresh the page.', 'error');
@@ -344,8 +353,9 @@
         showUnmatched(unmatched);
         setMiningProgress(true, 'Fetching ore and mineral prices...', 0);
         el('mineBtn').disabled = true;
-        el('shareMiningBtn').disabled = true;
+        setMiningActionsEnabled(false);
         lastShare = null;
+        lastCopyText = '';
         appraisalCancelled = false;
         miningController = new AbortController();
 
@@ -382,7 +392,7 @@
             efficiency,
             hub: region,
         };
-        el('shareMiningBtn').disabled = false;
+        setMiningActionsEnabled(true);
         if (appraisalCancelled) {
             showMessage('Mining appraisal cancelled. Showing partial results.', 'error');
         }
@@ -425,6 +435,18 @@
                 document.body.removeChild(area);
             }
         }
+    }
+
+    async function copyMining() {
+        if (!lastCopyText) {
+            showMessage('Nothing to copy yet.', 'error');
+            return;
+        }
+        if (!await copyText(lastCopyText)) {
+            showMessage('Could not copy amount automatically', 'error');
+            return;
+        }
+        showMessage('Amount copied to clipboard', 'success');
     }
 
     async function shareMining() {
@@ -496,8 +518,9 @@
         el('miningOutputNote').textContent = '—';
         el('miningCompareHeadline').textContent = '';
         el('miningCompareBody').innerHTML = '';
-        el('shareMiningBtn').disabled = true;
+        setMiningActionsEnabled(false);
         lastShare = null;
+        lastCopyText = '';
         showUnmatched([]);
         setMiningProgress(false);
         try { localStorage.removeItem('rustyMiningLast'); } catch (error) { /* ignore */ }
@@ -538,6 +561,7 @@
 
         el('mineBtn').addEventListener('click', runMining);
         el('clearMiningBtn').addEventListener('click', clearMining);
+        el('copyMiningBtn')?.addEventListener('click', copyMining);
         el('shareMiningBtn').addEventListener('click', shareMining);
 
         document.querySelectorAll('[data-mining-rate]').forEach(button => {

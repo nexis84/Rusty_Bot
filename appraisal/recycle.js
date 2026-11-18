@@ -14,6 +14,8 @@
     let recycleData = null;
     let loadingPromise = null;
     let controller = null;
+    let lastShare = null;
+    let lastCopyText = '';
 
     function el(id) { return document.getElementById(id); }
     function esc(value) { return typeof escapeHtml === 'function' ? escapeHtml(value) : String(value ?? ''); }
@@ -308,6 +310,14 @@
 
         el('recycleResults').classList.remove('hidden');
         el('recycleResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return mineralTotals;
+    }
+
+    function setRecycleActionsEnabled(enabled) {
+        const copy = el('copyRecycleBtn');
+        const share = el('shareRecycleBtn');
+        if (copy) copy.disabled = !enabled;
+        if (share) share.disabled = !enabled;
     }
 
     async function runRecycle() {
@@ -336,6 +346,9 @@
         appraisalCancelled = false;
         controller = new AbortController();
         setProgress(true, 'Fetching prices...', 0);
+        setRecycleActionsEnabled(false);
+        lastShare = null;
+        lastCopyText = '';
         try {
             const priceRows = await mapPool(
                 ids,
@@ -348,7 +361,14 @@
                 return;
             }
             const prices = new Map(ids.map((id, index) => [id, priceRows[index]]));
-            renderRecycle(result, prices, region, efficiency);
+            const totals = renderRecycle(result, prices, region, efficiency);
+            lastCopyText = `${num(totals.buy)} ISK`;
+            lastShare = {
+                items: buildShareItems(result),
+                efficiency,
+                hub: region,
+            };
+            setRecycleActionsEnabled(true);
             saveLast(el('recycleText').value, region, efficiency);
         } catch (error) {
             if (error && error.name === 'AbortError') {
@@ -379,6 +399,9 @@
         el('recycleItemBody').innerHTML = '';
         el('recycleUnmatched').classList.add('hidden');
         el('recycleUnmatchedList').innerHTML = '';
+        setRecycleActionsEnabled(false);
+        lastShare = null;
+        lastCopyText = '';
         setProgress(false);
         try { localStorage.removeItem(LAST_KEY); } catch (error) { /* ignore */ }
         el('recycleText').focus();
@@ -388,6 +411,113 @@
         appraisalCancelled = true;
         if (controller) controller.abort();
     }
+
+    function buildShareItems(result) {
+        const lines = result.rows.map((row) => `${row.qty}:${row.typeId}`);
+        for (const row of result.skipped) {
+            lines.push(row.qty > 1 ? `${row.qty} x ${row.name}` : row.name);
+        }
+        for (const row of result.unmatched) {
+            lines.push(row.qty > 1 ? `${row.qty} x ${row.name}` : row.name);
+        }
+        return lines.join('\n');
+    }
+
+    function decodeShareItems(items) {
+        return String(items || '').split('\n').map((line) => {
+            const match = line.trim().match(/^(\d+):(\d+)$/);
+            if (match && typeof ItemDB !== 'undefined' && ItemDB && ItemDB.byId) {
+                const entry = ItemDB.byId.get(Number(match[2]));
+                if (entry) return `${match[1]} x ${entry.name}`;
+            }
+            return line;
+        }).join('\n');
+    }
+
+    async function copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (error) {
+            const area = document.createElement('textarea');
+            area.value = text;
+            document.body.appendChild(area);
+            area.select();
+            try {
+                document.execCommand('copy');
+                return true;
+            } catch (copyError) {
+                return false;
+            } finally {
+                document.body.removeChild(area);
+            }
+        }
+    }
+
+    async function copyRecycle() {
+        if (!lastCopyText) {
+            showMessage('Nothing to copy yet.', 'error');
+            return;
+        }
+        if (!await copyText(lastCopyText)) {
+            showMessage('Could not copy amount automatically', 'error');
+            return;
+        }
+        showMessage('Amount copied to clipboard', 'success');
+    }
+
+    async function shareRecycle() {
+        if (!lastShare) {
+            showMessage('Calculate a loot recycle first.', 'error');
+            return;
+        }
+        if (typeof API_BASE === 'undefined') {
+            showMessage('Share service is unavailable.', 'error');
+            return;
+        }
+
+        const body = {
+            kind: 'recycle',
+            items: lastShare.items,
+            efficiency: lastShare.efficiency,
+        };
+        if (lastShare.hub && lastShare.hub !== 'all') body.hub = lastShare.hub;
+
+        try {
+            const response = await fetch(`${API_BASE}/appraisal/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.code) {
+                throw new Error(data.error || `Share failed (${response.status})`);
+            }
+            const path = location.pathname.replace(/\/index\.html$/, '/');
+            const link = `${location.origin}${path}?tab=recycle#${data.code}`;
+            if (!await copyText(link)) {
+                showMessage('Share link created but clipboard copy failed.', 'error');
+                return;
+            }
+            showMessage('Loot recycle share link copied to clipboard', 'success');
+        } catch (error) {
+            console.error('Loot recycle share link failed:', error);
+            showMessage('Could not create share link. Try again.', 'error');
+        }
+    }
+
+    function loadRecycleShare(data) {
+        if (!data || data.kind !== 'recycle' || !data.items) return;
+        if (typeof window.showAppTab === 'function') window.showAppTab('recycle');
+        el('recycleText').value = decodeShareItems(data.items);
+        if (data.hub && el('recycleHubSelect').querySelector(`option[value="${data.hub}"]`)) {
+            el('recycleHubSelect').value = data.hub;
+        }
+        setEfficiency(data.efficiency);
+        setTimeout(runRecycle, 50);
+    }
+
+    window.loadRecycleShare = loadRecycleShare;
 
     function setupTabsHooks() {
         document.addEventListener('apptabchange', (event) => {
@@ -402,6 +532,8 @@
 
         el('recycleBtn').addEventListener('click', runRecycle);
         el('clearRecycleBtn').addEventListener('click', clearRecycle);
+        el('copyRecycleBtn')?.addEventListener('click', copyRecycle);
+        el('shareRecycleBtn')?.addEventListener('click', shareRecycle);
         el('recycleCancelBtn').addEventListener('click', cancelRecycle);
 
         document.querySelectorAll('[data-recycle-rate]').forEach((button) => {

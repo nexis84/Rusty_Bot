@@ -368,6 +368,9 @@
                 <div class="results-header">
                     <h3>Mining <span class="accent">Refinery</span> Results</h3>
                     <div class="results-actions">
+                        <button id="copyMiningBtn" class="copy-btn" title="Copy the refined value to clipboard" disabled>
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
                         <button id="shareMiningBtn" class="copy-btn" title="Copy a shareable link to this mining calculation" disabled>
                             <i class="fas fa-link"></i> Share
                         </button>
@@ -533,6 +536,14 @@
             <section id="recycleResults" class="results-section hidden">
                 <div class="results-header">
                     <h3>Loot <span class="accent">Recycle</span> Results</h3>
+                    <div class="results-actions">
+                        <button id="copyRecycleBtn" class="copy-btn" title="Copy the recycled value to clipboard" disabled>
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button id="shareRecycleBtn" class="copy-btn" title="Copy a shareable link to this loot recycle calculation" disabled>
+                            <i class="fas fa-link"></i> Share
+                        </button>
+                    </div>
                 </div>
                 <p id="recycleHubNote" class="results-hub-note"></p>
 
@@ -729,8 +740,8 @@
 
 <script src="../market/items_database.js"></script>
 <script src="mining-data.js?v=1"></script>
-<script src="app.js?v=9"></script>
-<script src="mining.js?v=4"></script>
-<script src="recycle.js?v=1"></script>
+<script src="app.js?v=10"></script>
+<script src="mining.js?v=5"></script>
+<script src="recycle.js?v=2"></script>
 </body>
 </html>

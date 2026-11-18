@@ -1033,6 +1033,14 @@ async function resolveShortCode(code) {
             }
             return;
         }
+        if (data.kind === 'recycle') {
+            if (typeof window.loadRecycleShare === 'function') {
+                window.loadRecycleShare(data);
+            } else {
+                setTimeout(() => window.loadRecycleShare && window.loadRecycleShare(data), 50);
+            }
+            return;
+        }
         if (data.items) {
             const decoded = data.items.split('\n').map(line => {
                 const m = line.trim().match(/^(\d+):(\d+)$/);
