@@ -31,6 +31,16 @@ async function esiGet(path) {
     return r.json();
 }
 
+// Static universe data (systems, stargates) comes from the SDE API; ESI's
+// /universe static routes were removed with compatibility date 2026-11-19.
+const SDE_API = 'https://sde.evetech.net/tranquility/latest';
+
+async function sdeGet(path) {
+    const r = await fetch(`${SDE_API}${path}`, { headers: { 'User-Agent': UA } });
+    if (!r.ok) throw new Error(`SDE ${r.status}: ${path}`);
+    return r.json();
+}
+
 async function resolveSystemName(name) {
     const key = name.toLowerCase().trim();
     if (cache.ids.has(key)) return cache.ids.get(key);
@@ -58,7 +68,18 @@ async function batchNames(ids) {
 
 async function getSystemData(id) {
     if (cache.system.has(id)) return cache.system.get(id);
-    const data = await esiGet(`/universe/systems/${id}/`);
+    const s = await sdeGet(`/mapSolarSystems/${id}.json`);
+    // Same field names the app already reads, mapped from the SDE record.
+    const data = {
+        system_id:        s.solarSystemID,
+        name:             s.name?.en,
+        constellation_id: s.constellationID,
+        star_id:          s.starID,
+        security_status:  s.securityStatus,
+        stargates:        s.stargateIDs || [],
+        planets:          s.planetIDs || [],
+        position:         s.position,
+    };
     cache.system.set(id, data);
     cache.security.set(id, data.security_status ?? 0);
     return data;
@@ -66,12 +87,15 @@ async function getSystemData(id) {
 
 async function getStargate(id) {
     if (cache.stargate.has(id)) return cache.stargate.get(id);
-    const data = await esiGet(`/universe/stargates/${id}/`);
+    const g = await sdeGet(`/mapStargates/${id}.json`);
+    // SDE stargates carry no name; ESI's was "Stargate (<destination>)",
+    // which the UI strips back down to the destination name.
+    const dest = await getSystemData(g.destination?.solarSystemID);
     const sg = {
         id,
-        name:                  data.name,           // e.g. "Stargate (Maurasi)"
-        position:              data.position,        // {x, y, z}
-        destination_system_id: data.destination.system_id
+        name:                  `Stargate (${dest?.name ?? 'unknown'})`,
+        position:              g.position,        // {x, y, z}
+        destination_system_id: g.destination?.solarSystemID
     };
     cache.stargate.set(id, sg);
     return sg;

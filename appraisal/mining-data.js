@@ -1,12 +1,12 @@
 // Auto-generated from EVE Online SDE JSONL
 // Ore types: 456
-// SDE build: 3698585
-// Generated: 2026-11-16T14:13:20.074Z
+// SDE build: 3720952
+// Generated: 2026-11-19T11:36:35.128Z
 
 const MiningData = {
-  "build": 3698585,
-  "releaseDate": "2026-11-16T12:40:06Z",
-  "generated": "2026-11-16T14:13:20.074Z",
+  "build": 3720952,
+  "releaseDate": "2026-11-19T11:07:08Z",
+  "generated": "2026-11-19T11:36:35.128Z",
   "ores": [
     {
       "id": 50015,
@@ -4094,7 +4094,7 @@ const MiningData = {
         {
           "id": 97515,
           "name": "Aberrant Kangite",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -4118,7 +4118,7 @@ const MiningData = {
         {
           "id": 97515,
           "name": "Aberrant Kangite",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -4485,7 +4485,7 @@ const MiningData = {
         {
           "id": 97514,
           "name": "Aberrant Moissanite",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -4509,7 +4509,7 @@ const MiningData = {
         {
           "id": 97514,
           "name": "Aberrant Moissanite",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -4909,7 +4909,7 @@ const MiningData = {
         {
           "id": 97513,
           "name": "Aberrant Polycrase",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -4933,7 +4933,7 @@ const MiningData = {
         {
           "id": 97513,
           "name": "Aberrant Polycrase",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -5105,7 +5105,7 @@ const MiningData = {
         {
           "id": 97512,
           "name": "Aberrant Raspite",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -5129,7 +5129,7 @@ const MiningData = {
         {
           "id": 97512,
           "name": "Aberrant Raspite",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -7558,7 +7558,7 @@ const MiningData = {
         {
           "id": 97515,
           "name": "Aberrant Kangite",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -7582,7 +7582,7 @@ const MiningData = {
         {
           "id": 97515,
           "name": "Aberrant Kangite",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -7949,7 +7949,7 @@ const MiningData = {
         {
           "id": 97514,
           "name": "Aberrant Moissanite",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -7973,7 +7973,7 @@ const MiningData = {
         {
           "id": 97514,
           "name": "Aberrant Moissanite",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -8402,7 +8402,7 @@ const MiningData = {
         {
           "id": 97513,
           "name": "Aberrant Polycrase",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -8426,7 +8426,7 @@ const MiningData = {
         {
           "id": 97513,
           "name": "Aberrant Polycrase",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },
@@ -8617,7 +8617,7 @@ const MiningData = {
         {
           "id": 97512,
           "name": "Aberrant Raspite",
-          "quantity": 10
+          "quantity": 90
         }
       ]
     },
@@ -8641,7 +8641,7 @@ const MiningData = {
         {
           "id": 97512,
           "name": "Aberrant Raspite",
-          "quantity": 25
+          "quantity": 225
         }
       ]
     },

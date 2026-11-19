@@ -288,10 +288,12 @@ async function scanInventory(auth, selectedSystem, trustUnresolved) {
     const num = +id;
     if (num >= 60000000 && num < 61000000) {
       try {
-        const station = await fetchJSON(`${CONFIG.ESI_BASE}/universe/stations/${num}/`);
-        locSys[id] = station.system_id;
+        // Static station data from the SDE API; ESI's /universe/stations
+        // route was removed with compatibility date 2026-11-19.
+        const station = await fetchJSON(`https://sde.evetech.net/tranquility/latest/npcStations/${num}.json`);
+        locSys[id] = station.solarSystemID;
         stationsResolved++;
-        console.log(`[SCAN] Resolved station ${id}: system ${station.system_id}`);
+        console.log(`[SCAN] Resolved station ${id}: system ${station.solarSystemID}`);
       } catch (e) {
         stationsFailed++;
         console.log(`[SCAN] Failed to resolve station ${id}: ${e.message}`);

@@ -787,6 +787,29 @@
 
     const fetchESI = fetchWithTimeout;
 
+    // Blueprint data comes from the SDE API at sde.evetech.net. (ESI never
+    // had a /universe/blueprints route — that call always failed — and the
+    // SDE table is keyed by the blueprint typeID.) The record is mapped to
+    // the field names this calculator already reads.
+    const SDE_API_BASE = 'https://sde.evetech.net/tranquility/latest';
+
+    async function fetchSdeBlueprint(typeId) {
+      const bp = await fetchWithTimeout(`${SDE_API_BASE}/blueprints/${typeId}.json`, {}, 8000);
+      if (!bp || !bp.activities) return bp;
+      const mapActivity = (act) => act && {
+        ...act,
+        materials: Array.isArray(act.materials)
+          ? act.materials.map(m => ({ type_id: m.typeID, quantity: m.quantity }))
+          : act.materials,
+        products: Array.isArray(act.products)
+          ? act.products.map(p => ({ type_id: p.typeID, quantity: p.quantity }))
+          : act.products,
+      };
+      const activities = {};
+      for (const [name, act] of Object.entries(bp.activities)) activities[name] = mapActivity(act);
+      return { ...bp, activities, max_production_limit: bp.maxProductionLimit };
+    }
+
     // ========== CANDIDATE LOOKUP & BLUEPRINT RESOLUTION ==========
     
     async function lookupCandidates() {
@@ -984,15 +1007,17 @@
 
       let bpData;
       try {
-        statusUpdate('Fetching blueprint data from ESI...');
-        bpData = await fetchESI(`https://esi.evetech.net/latest/universe/blueprints/${typeId}/`, {}, 8000);
+        statusUpdate('Fetching blueprint data from the SDE API...');
+        bpData = await fetchSdeBlueprint(typeId);
       } catch (esiError) {
-        console.log('ESI blueprint endpoint failed:', esiError.message);
+        console.log('SDE blueprint lookup failed:', esiError.message);
         // Try to resolve if the provided typeId is actually the product/item type.
         try {
           statusUpdate('Blueprint not found. Attempting to resolve by type name...');
-          const typeInfo = await fetchESI(`https://esi.evetech.net/latest/universe/types/${typeId}/`, {}, 8000);
-          const baseName = typeInfo.name || '';
+          // Static type data from the SDE API; ESI's /universe/types route
+          // was removed with compatibility date 2026-11-19.
+          const typeInfo = await fetchWithTimeout(`${SDE_API_BASE}/types/${typeId}.json`, {}, 8000);
+          const baseName = (typeInfo && typeInfo.name && typeInfo.name.en) || '';
           const candidates = [
             `${baseName} Blueprint`,
             `${baseName} Blueprint Copy`,
@@ -1025,11 +1050,11 @@
 
         // If resolution failed, fall back to Everef blueprint data as before
         try {
-          statusUpdate('ESI blueprint failed, fetching Everef fallback...');
+          statusUpdate('SDE blueprint lookup failed, fetching Everef fallback...');
           const everefResp = await fetchWithTimeout(`https://ref-data.everef.net/blueprints/${typeId}`, {}, 8000);
           bpData = everefResp;
         } catch (e) {
-          document.getElementById('result').textContent = `Blueprint data not available for Type ID ${typeId}. ESI: ${esiError.message} , Everef: ${e.message}`;
+          document.getElementById('result').textContent = `Blueprint data not available for Type ID ${typeId}. SDE: ${esiError.message} , Everef: ${e.message}`;
           return;
         }
       }
@@ -1110,15 +1135,15 @@
           }
         }
 
-  // Helper: fetch a human-friendly type name with caching (ESI -> Everef fallback)
+  // Helper: fetch a human-friendly type name with caching (SDE API -> Everef fallback)
         async function fetchTypeName(typeId) {
           if (typeNameCache.has(typeId)) return typeNameCache.get(typeId);
           
           try {
-            const t = await fetchWithTimeout(`https://esi.evetech.net/latest/universe/types/${typeId}/`, {}, 8000);
-            if (t && t.name) {
-              typeNameCache.set(typeId, t.name);
-              return t.name;
+            const t = await fetchWithTimeout(`${SDE_API_BASE}/types/${typeId}.json`, {}, 8000);
+            if (t && t.name && t.name.en) {
+              typeNameCache.set(typeId, t.name.en);
+              return t.name.en;
             }
           } catch (e) {
             // ignore and try Everef

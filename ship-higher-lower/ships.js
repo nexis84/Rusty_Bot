@@ -1,6 +1,6 @@
 // Auto-generated from EVE Online SDE
 // Ships: 430
-// Generated: 2026-11-16
+// Generated: 2026-11-19
 
 const SHIPS = [
   {

@@ -1578,10 +1578,31 @@ const PLANET_RADIUS_KM = {
     temperate: 12000, barren: 9000, oceanic: 13000, ice: 10000,
     gas: 22000, lava: 6950, storm: 14000, plasma: 15000
 };
-// Planet info (radius from the SDE pi-planets.js build; name from ESI
-// /universe/planets/{id}/). Cached for the session; ESI caches the name route
-// for a day. Radius is used for link distance so every colony's CPU/PG matches
-// in-game without manual radius entry.
+// Planet info (radius from the SDE pi-planets.js build; name derived from
+// the SDE API — ESI's /universe/planets route was removed with compatibility
+// date 2026-11-19, and the SDE mapPlanets records carry no name field, so
+// names like "Jita I" are built from the system name + celestial index).
+// Cached for the session. Radius is used for link distance so every colony's
+// CPU/PG matches in-game without manual radius entry.
+const SDE_API = 'https://sde.evetech.net/tranquility/latest';
+const PLANET_ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII'];
+async function sdePlanetName(planetId) {
+    const p = await (await fetch(`${SDE_API}/mapPlanets/${planetId}.json`)).json();
+    const sys = await (await fetch(`${SDE_API}/mapSolarSystems/${p.solarSystemID}.json`)).json();
+    const sysName = sys?.name?.en;
+    if (!sysName) return null;
+    const roman = i => PLANET_ROMAN[(i || 1) - 1] || String(i);
+    try {
+        if (p.orbitID && p.orbitID !== sys.starID) {
+            // Moon: "<System> <roman(parent planet)> - Moon <orbit index>"
+            const parent = await (await fetch(`${SDE_API}/mapPlanets/${p.orbitID}.json`)).json();
+            if (parent?.celestialIndex != null) {
+                return `${sysName} ${roman(parent.celestialIndex)} - Moon ${p.orbitIndex ?? p.celestialIndex}`;
+            }
+        }
+    } catch (_) { /* plain planet */ }
+    return `${sysName} ${roman(p.celestialIndex)}`;
+}
 const planetInfoCache = {};
 async function ensurePlanetInfo(planetId) {
     if (planetId == null) return null;
@@ -1591,8 +1612,8 @@ async function ensurePlanetInfo(planetId) {
         info.radius = PI_PLANET_RADII[planetId];
     }
     try {
-        const data = await piEsiAuth.esiFetch('/universe/planets/' + planetId + '/');
-        if (data && typeof data.name === 'string') info.name = data.name;
+        const name = await sdePlanetName(planetId);
+        if (typeof name === 'string') info.name = name;
     } catch (_) {}
     planetInfoCache[planetId] = info;
     return info;

@@ -1477,6 +1477,28 @@ class SkillPlannerApp {
         return names;
     }
 
+    async resolveStationName(stationId) {
+        // NPC station names via the kept POST /universe/names route; ESI's
+        // /universe/stations route was removed with compatibility date
+        // 2026-11-19 (and the SDE npcStations records carry no name).
+        const cached = this.locationNameCache.get(`station:${stationId}`);
+        if (cached) return cached;
+        try {
+            const response = await fetch('https://esi.evetech.net/latest/universe/names/?datasource=tranquility', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([stationId]),
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const entries = await response.json();
+            const name = (entries && entries[0] && entries[0].name) || null;
+            if (name) this.locationNameCache.set(`station:${stationId}`, name);
+            return name;
+        } catch (_) {
+            return null;
+        }
+    }
+
     async renderCloneLocation(location) {
         const element = this.cloneLocation;
         if (!element) return;
@@ -1495,16 +1517,15 @@ class SkillPlannerApp {
             element.textContent = 'Station';
             element.title = 'Loading station name...';
             try {
-                const response = await fetch(
-                    `https://esi.evetech.net/latest/universe/stations/${locationId}/?datasource=tranquility`
-                );
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
+                const name = await this.resolveStationName(locationId);
                 if (token !== this.cloneLocationToken) return;
-                const name = data.name || 'Station';
-                this.locationNameCache.set(`station:${locationId}`, name);
-                element.textContent = name;
-                element.title = name;
+                if (name) {
+                    element.textContent = name;
+                    element.title = name;
+                } else {
+                    element.textContent = 'Station';
+                    element.title = 'Station name unavailable';
+                }
             } catch (_) {
                 if (token !== this.cloneLocationToken) return;
                 element.textContent = 'Station';
@@ -1536,19 +1557,14 @@ class SkillPlannerApp {
             console.warn('[Skill Planner] Structure lookup failed', { locationId, message });
 
             // A few ESI records use the station ID range even when tagged as a
-            // structure; try the public station endpoint as a fallback.
+            // structure; try the public names route as a fallback.
             try {
-                const fallback = await fetch(
-                    `https://esi.evetech.net/latest/universe/stations/${locationId}/?datasource=tranquility`
-                );
-                if (fallback.ok) {
-                    const data = await fallback.json();
-                    if (token !== this.cloneLocationToken) return;
-                    if (data.name) {
-                        element.textContent = data.name;
-                        element.title = data.name;
-                        return;
-                    }
+                const fallbackName = await this.resolveStationName(locationId);
+                if (token !== this.cloneLocationToken) return;
+                if (fallbackName) {
+                    element.textContent = fallbackName;
+                    element.title = fallbackName;
+                    return;
                 }
             } catch (_) { /* fall through */ }
 

@@ -245,8 +245,18 @@ async function typeInfo(id) {
   }
   if (!out) {
     try {
-      const t = await fetchJSON(ESI + '/universe/types/' + key + '/');
-      out = { id: key, name: t.name || await typeName(key), desc: t.description || '', group: '', category: '', marketGroup: '', volume: t.volume, packagedVolume: t.packaged_volume, portionSize: t.portion_size, basePrice: t.base_price, radius: undefined, mass: undefined, iconID: t.icon_id, source: 'ESI' };
+      // Static type data from the SDE API; ESI's /universe/types route was
+      // removed with compatibility date 2026-11-19.
+      const t = await fetchJSON('https://sde.evetech.net/tranquility/latest/types/' + key + '.json');
+      if (t && (t.name || t.typeID)) {
+        const nm = (t.name && (t.name.en || Object.values(t.name)[0])) || ('Type ' + key);
+        out = {
+          id: key, name: nm, desc: (t.description && t.description.en) || '', group: '', category: '', marketGroup: '',
+          volume: t.volume, packagedVolume: t.packagedVolume, portionSize: t.portionSize, basePrice: t.basePrice,
+          radius: (t.radius > 0 ? t.radius : undefined), mass: (t.mass > 0 ? t.mass : undefined), iconID: t.iconID,
+          source: 'SDE',
+        };
+      }
     } catch {}
   }
   if (!out) out = { id: key, name: await typeName(key).catch(() => 'Type ' + key), desc: '', group: '', category: '', marketGroup: '', source: 'minimal' };
@@ -356,7 +366,7 @@ async function openItemInfo(idRaw) {
     '<div class="bv-info-links">' +
       '<a class="mkt-link" target="_blank" rel="noopener" href="https://everef.net/types/' + id + '">Everef</a>' +
       '<a class="mkt-link" target="_blank" rel="noopener" href="' + marketURL(id, hubRegion) + '">Market</a>' +
-      '<a class="mkt-link" target="_blank" rel="noopener" href="' + ESI + '/universe/types/' + id + '/">ESI JSON</a>' +
+      '<a class="mkt-link" target="_blank" rel="noopener" href="https://sde.evetech.net/tranquility/latest/types/' + id + '.json">SDE JSON</a>' +
       '<span class="hint bv-info-src">source: ' + info.source + '</span>' +
     '</div>';
 }
@@ -402,7 +412,7 @@ function appraisalURL(lines, mode) {
 }
 async function typeName(id) {
   if (nameCache.has(id)) return nameCache.get(id);
-  try { const t = await fetchJSON(ESI + '/universe/types/' + id + '/'); nameCache.set(id, t.name); return t.name; }
+  try { const t = await fetchJSON('https://sde.evetech.net/tranquility/latest/types/' + id + '.json'); nameCache.set(id, t.name?.en || ('Type ' + id)); return nameCache.get(id); }
   catch { try { const r = await fetchJSON('https://ref-data.everef.net/types/' + id); nameCache.set(id, r.name || ('Type ' + id)); return nameCache.get(id); } catch { nameCache.set(id, 'Type ' + id); return nameCache.get(id); } }
 }
 async function marketPrice(typeId, region, basis) {
@@ -434,7 +444,7 @@ function saveVolCache() {
 async function typeVolume(id) {
   const key = +id;
   if (volCache.has(key)) return volCache.get(key);
-  try { const t = await fetchJSON(ESI + '/universe/types/' + id + '/'); volCache.set(key, t.volume || 0); return t.volume || 0; }
+  try { const t = await fetchJSON('https://sde.evetech.net/tranquility/latest/types/' + id + '.json'); volCache.set(key, t.volume || 0); return t.volume || 0; }
   catch { return 0; }
 }
 // Sync read of the volume cache — valid after preloadVolumes()/typeVolume()
@@ -611,14 +621,26 @@ function bpFromTable(typeId) {
 }
 async function blueprintData(typeId) {
   if (bpCache.has(typeId)) return bpCache.get(typeId);
-  // ESI first (live TQ data), then the baked SDE table (instant; covers the
-  // blueprints ESI 404s, e.g. Capital Capacitor Battery 21020), Everef last.
-  try { const b = await fetchJSON(ESI + '/universe/blueprints/' + typeId + '/'); bpCache.set(typeId, b); return b; }
+  // SDE API first (the blueprints table is keyed by the blueprint typeID;
+  // ESI never had a /universe/blueprints route), then the baked SDE table
+  // (instant; covers rare API gaps), Everef last.
+  try { const b = await fetchJSON('https://sde.evetech.net/tranquility/latest/blueprints/' + typeId + '.json'); const mapped = sdeBlueprintToEsi(b); bpCache.set(typeId, mapped); return mapped; }
   catch (e1) {
     const baked = bpFromTable(typeId);
     if (baked) { bpCache.set(typeId, baked); return baked; }
     const b = await fetchJSON('https://ref-data.everef.net/blueprints/' + typeId); bpCache.set(typeId, b); return b;
   }
+}
+// Map an SDE blueprint record to the ESI-style field names the tree code reads.
+function sdeBlueprintToEsi(b) {
+  if (!b || !b.activities) return b;
+  const mapList = arr => Array.isArray(arr) ? arr.map(x => ({ type_id: x.typeID, quantity: x.quantity })) : arr;
+  const acts = {};
+  for (const [name, act] of Object.entries(b.activities)) {
+    if (!act) { acts[name] = act; continue; }
+    acts[name] = { ...act, materials: mapList(act.materials), products: mapList(act.products) };
+  }
+  return { ...b, activities: acts, max_production_limit: b.maxProductionLimit };
 }
 async function childBlueprint(materialTypeId, materialName) {
   // Consult the batched cache first; on a miss do a single-name lookup. A
@@ -5641,8 +5663,8 @@ async function loadInventory() {
       if (num >= 60000000 && num < 61000000) {
         if (staSysCache[id] && now - staSysCache[id].ts < 7*864e5) { locSys[id] = staSysCache[id].sys; continue; }
         try {
-          const s = await fetchJSON(ESI + '/universe/stations/' + num + '/?datasource=tranquility');
-          if (s && s.system_id) { locSys[id] = s.system_id; staSysCache[id] = { sys: locSys[id], ts: now }; staSysChanged = true; }
+          const s = await fetchJSON('https://sde.evetech.net/tranquility/latest/npcStations/' + num + '.json');
+          if (s && s.solarSystemID) { locSys[id] = s.solarSystemID; staSysCache[id] = { sys: locSys[id], ts: now }; staSysChanged = true; }
         } catch {}
         continue;
       }

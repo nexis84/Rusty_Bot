@@ -41,6 +41,41 @@ async function esiGet(path) {
     return r.json();
 }
 
+// Static universe data comes from the SDE API; ESI's /universe static routes
+// were removed with compatibility date 2026-11-19.
+const SDE_API = 'https://sde.evetech.net/tranquility/latest';
+
+async function sdeGet(path) {
+    const r = await fetch(`${SDE_API}${path}`, { headers: { 'User-Agent': UA } });
+    if (!r.ok) throw new Error(`SDE ${r.status} GET ${path}`);
+    return r.json();
+}
+
+// NPC stations per system, from the SDE npcStations table. ESI's systems
+// route used to include a stations[] list; the SDE record does not, so the
+// table is fetched once and indexed by solarSystemID.
+let sdeStationsBySystem = null;
+async function getSystemStationIds(systemId) {
+    if (sdeStationsBySystem === null) {
+        try {
+            const r = await fetch(`${SDE_API}/npcStations.jsonl`, { headers: { 'User-Agent': UA } });
+            if (!r.ok) throw new Error(`SDE ${r.status} npcStations`);
+            sdeStationsBySystem = new Map();
+            for (const line of (await r.text()).split('\n')) {
+                if (!line.trim()) continue;
+                try {
+                    const st = JSON.parse(line);
+                    if (!sdeStationsBySystem.has(st.solarSystemID)) sdeStationsBySystem.set(st.solarSystemID, []);
+                    sdeStationsBySystem.get(st.solarSystemID).push(st.stationID);
+                } catch { /* skip bad line */ }
+            }
+        } catch {
+            sdeStationsBySystem = new Map(); // don't retry every call
+        }
+    }
+    return sdeStationsBySystem.get(systemId) || [];
+}
+
 // ── Name / ID resolution ──────────────────────────────────────
 
 const nameCache = new Map(); // lowercased name → id
@@ -155,14 +190,14 @@ function normName(s) {
 }
 
 // Resolve a station name to its id, restricted to the given solar system.
-// Uses the system's station list + /universe/names/ (reliable for stations;
-// /universe/ids/ is not). Returns { id, name } or null.
+// Uses the SDE npcStations table for the system's station list, then
+// /universe/names/ (reliable for stations; /universe/ids/ is not).
+// Returns { id, name } or null.
 async function resolveStationInSystem(systemId, stationName) {
     const want = normName(stationName);
     if (!want || systemId == null) return null;
     try {
-        const sys = await esiGet(`/universe/systems/${systemId}/`);
-        const ids = sys?.stations || [];
+        const ids = await getSystemStationIds(systemId);
         if (!ids.length) return null;
         const data = await esiPost('/universe/names/', ids);
         const hit = (data || []).find(d => normName(d.name) === want);
@@ -259,8 +294,8 @@ async function getSystemSec(id) {
         return idCache.get(id).sec;
     }
     try {
-        const data = await esiGet(`/universe/systems/${id}/`);
-        const sec = data?.security_status ?? null;
+        const data = await sdeGet(`/mapSolarSystems/${id}.json`);
+        const sec = data?.securityStatus ?? null;
         const cur = idCache.get(id) || { id, name: `#${id}`, sec: null };
         idCache.set(id, { ...cur, sec });
         return sec;

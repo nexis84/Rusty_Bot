@@ -2,6 +2,59 @@
 // Full-featured market browser with category navigation, search, and ESI integration
 
 const ESI_BASE = 'https://esi.evetech.net/latest';
+// Static universe data (types, regions, systems) comes from the SDE API at
+// sde.evetech.net — ESI's /universe static routes were removed with
+// compatibility date 2026-11-19. Helpers map SDE records back to the ESI
+// field names this file already reads.
+const SDE_API_BASE = 'https://sde.evetech.net/tranquility/latest';
+
+async function sdeType(typeId) {
+    const r = await fetch(`${SDE_API_BASE}/types/${typeId}.json`);
+    if (!r.ok) throw new Error(`SDE ${r.status} for type ${typeId}`);
+    const t = await r.json();
+    return {
+        type_id: t.typeID,
+        name: t.name?.en || `Type ${typeId}`,
+        description: t.description?.en || '',
+        published: t.published,
+        group_id: t.groupID,
+        market_group_id: t.marketGroupID,
+        icon_id: t.iconID,
+        volume: t.volume,
+        packaged_volume: t.packagedVolume,
+        portion_size: t.portionSize,
+        radius: t.radius,
+        mass: t.mass,
+        base_price: t.basePrice,
+    };
+}
+
+async function sdeRegionName(regionId) {
+    const r = await fetch(`${SDE_API_BASE}/mapRegions/${regionId}.json`);
+    if (!r.ok) throw new Error(`SDE ${r.status} for region ${regionId}`);
+    const data = await r.json();
+    return data.name?.en || null;
+}
+
+async function sdeSystemName(systemId) {
+    const r = await fetch(`${SDE_API_BASE}/mapSolarSystems/${systemId}.json`);
+    if (!r.ok) throw new Error(`SDE ${r.status} for system ${systemId}`);
+    const data = await r.json();
+    return data.name?.en || null;
+}
+
+// NPC station names are not in the SDE; the kept POST /universe/names route
+// resolves them in one call.
+async function esiStationName(stationId) {
+    const r = await fetch(`${ESI_BASE}/universe/names/?datasource=tranquility`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([stationId]),
+    });
+    if (!r.ok) throw new Error(`ESI ${r.status} for station ${stationId}`);
+    const entries = await r.json();
+    return entries?.[0]?.name || null;
+}
 const UNIVERSE_BASE = 'https://esi.evetech.net/universe';
 
 // Global state
@@ -903,10 +956,8 @@ async function findBlueprintType(productTypeId) {
         console.log('Finding blueprint for type ID:', productTypeId);
         
         // First, check if the current item is already a blueprint
-        const currentTypeUrl = `${ESI_BASE}/universe/types/${productTypeId}`;
-        const currentResponse = await fetch(currentTypeUrl);
-        if (currentResponse.ok) {
-            const currentTypeData = await currentResponse.json();
+        const currentTypeData = await sdeType(productTypeId).catch(() => null);
+        if (currentTypeData) {
             console.log('Current item name:', currentTypeData.name);
             if (currentTypeData.name.toLowerCase().includes('blueprint')) {
                 console.log('Item is already a blueprint');
@@ -916,10 +967,8 @@ async function findBlueprintType(productTypeId) {
         
         // Search local blueprint data first
         if (typeof AllMarketItems !== 'undefined' && AllMarketItems.blueprints) {
-            const productTypeUrl = `${ESI_BASE}/universe/types/${productTypeId}`;
-            const productResponse = await fetch(productTypeUrl);
-            if (productResponse.ok) {
-                const productTypeData = await productResponse.json();
+            const productTypeData = await sdeType(productTypeId).catch(() => null);
+            if (productTypeData) {
                 const productName = productTypeData.name;
                 console.log('Product name:', productName);
                 
@@ -942,13 +991,8 @@ async function findBlueprintType(productTypeId) {
         
         for (const blueprintTypeId of attempts) {
             try {
-                const typeUrl = `${ESI_BASE}/universe/types/${blueprintTypeId}`;
-                const response = await fetch(typeUrl);
-                
-                if (!response.ok) continue;
-                
-                const typeData = await response.json();
-                
+                const typeData = await sdeType(blueprintTypeId);
+
                 // Check if this is actually a blueprint
                 if (typeData.name.toLowerCase().includes('blueprint')) {
                     console.log('Found blueprint via pattern:', blueprintTypeId);
@@ -1208,9 +1252,8 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
                     // Filter for items that might be T2 variants (contain " II" or are known T2 ships)
                     for (const typeId of searchData.inventory_type) {
                         if (typeId === productTypeId) continue; // Skip the original item
-                        const typeResponse = await fetch(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
-                        if (typeResponse.ok) {
-                            const typeData = await typeResponse.json();
+                        const typeData = await sdeType(typeId).catch(() => null);
+                        if (typeData) {
                             if (typeData.name.includes(' II') || typeData.name.includes('Navy') || typeData.name.includes('Federation') || typeData.name.includes('Cruor') || typeData.name.includes('Phantasm') || typeData.name.includes('Vigilant') || typeData.name.includes('Ashimmu') || typeData.name.includes('Bhaalgorn') || typeData.name.includes('Nightmare') || typeData.name.includes('Machariel') || typeData.name.includes('Vindicator') || typeData.name.includes('Rattlesnake') || typeData.name.includes('Chimera') || typeData.name.includes('Nidhoggur') || typeData.name.includes('Thanatos') || typeData.name.includes('Archon') || typeData.name.includes('Aeon') || typeData.name.includes('Wyvern') || typeData.name.includes('Hel') || typeData.name.includes('Nyx') || typeData.name.includes('Revelation') || typeData.name.includes('Moros') || typeData.name.includes('Naglfar') || typeData.name.includes('Phoenix') || typeData.name.includes('Dreadnought')) {
                                 // Check if this is not already in the list
                                 if (!t2Variants.some(v => v.id === typeId)) {
@@ -1331,9 +1374,8 @@ async function displayFuzzworkManufacturingInfo(fuzzworkData, productTypeId) {
                                         if (searchData.inventory_type && searchData.inventory_type.length > 0) {
                                             // Filter for blueprints or reaction formulas
                                             for (const typeId of searchData.inventory_type) {
-                                                const typeResponse = await fetch(`https://esi.evetech.net/latest/universe/types/${typeId}/`);
-                                                if (typeResponse.ok) {
-                                                    const typeData = await typeResponse.json();
+                                                const typeData = await sdeType(typeId).catch(() => null);
+                                                if (typeData) {
                                                     const searchTerms = isReaction ? ['reaction', 'formula'] : ['blueprint'];
                                                     if (searchTerms.some(term => typeData.name.toLowerCase().includes(term))) {
                                                         blueprintTypeId = typeId;
@@ -1572,13 +1614,15 @@ async function getMarketPrice(typeId, regionId) {
         console.error(`Error fetching price for type ${typeId}:`, e);
 }
     
-    // Fallback to adjusted price if market orders fail
+    // Fallback to adjusted price if market orders fail. The old code fetched
+    // /universe/types/{id} here, which never carried adjusted_price; the
+    // correct (dynamic, still-live) ESI route is /markets/prices/.
     try {
-        const typeUrl = `${ESI_BASE}/universe/types/${typeId}/`;
-        const response = await fetch(typeUrl);
+        const pricesUrl = `${ESI_BASE}/markets/prices/?datasource=tranquility&type_id=${typeId}`;
+        const response = await fetch(pricesUrl);
         if (response.ok) {
-            const typeData = await response.json();
-            return typeData.adjusted_price || 0;
+            const prices = await response.json();
+            return prices?.[0]?.adjusted_price || 0;
 }
     } catch (e) {
         console.error(`Error fetching adjusted price for type ${typeId}:`, e);
@@ -2366,16 +2410,10 @@ async function loadItem(typeId, name, forceRefresh = false) {
 }
 }
 
-// Fetch item data from ESI
+// Fetch item data from the SDE API
 async function fetchItemData(typeId) {
     try {
-        const url = `${ESI_BASE}/universe/types/${typeId}/`;
-        const res = await fetch(url);
-        if (!res.ok) {
-            console.warn(`fetchItemData failed: ${res.status} for type ${typeId}`);
-            return null;
-}
-        return res.json();
+        return await sdeType(typeId);
     } catch (err) {
         console.error(`fetchItemData error for type ${typeId}:`, err);
         return null;
@@ -2550,16 +2588,23 @@ async function getAllRegionIds() {
 }
     
     try {
-        const url = `${ESI_BASE}/universe/regions/`;
+        // Region IDs come from the SDE API mapRegions table; the ESI
+        // /universe/regions/ list route was removed with compatibility
+        // date 2026-11-19.
+        const url = `${SDE_API_BASE}/mapRegions.jsonl`;
         console.log(`Fetching all region IDs from ${url}`);
         const r = await fetch(url);
         if (!r.ok) {
             throw new Error(`Failed to fetch regions: ${r.status}`);
 }
-        const regionIds = await r.json();
+        const text = await r.text();
+        const regionIds = [];
+        for (const line of text.split('\n')) {
+            if (!line.trim()) continue;
+            try { regionIds.push(JSON.parse(line).regionID); } catch { /* skip */ }
+}
         
         // Filter out wormhole space and other non-market regions
-        // ESI returns all regions including J-space which don't have markets
         AppState.allRegionIds = regionIds.filter(id => id < 11000000);
         console.log(`Found ${AppState.allRegionIds.length} market regions`);
         return AppState.allRegionIds;
@@ -2586,16 +2631,12 @@ async function getRegionName(regionId) {
         return Regions[regionId];
 }
     
-    // Fetch from ESI
+    // Fetch from the SDE API
     try {
-        const url = `${ESI_BASE}/universe/regions/${regionId}/`;
-        const r = await fetch(url);
-        if (!r.ok) {
-            throw new Error(`Failed to fetch region ${regionId}`);
-}
-        const data = await r.json();
-        AppState.regionCache[regionId] = data.name;
-        return data.name;
+        const name = await sdeRegionName(regionId);
+        if (!name) throw new Error(`No name for region ${regionId}`);
+        AppState.regionCache[regionId] = name;
+        return name;
     } catch (err) {
         console.error(`getRegionName error for ${regionId}:`, err.message || err);
         return `Region ${regionId}`;
@@ -2610,13 +2651,14 @@ async function getSystemSecurity(systemId) {
 }
     
     try {
-        const url = `${ESI_BASE}/universe/systems/${systemId}/`;
-        const r = await fetch(url);
+        // Static system data comes from the SDE API; ESI's /universe/systems
+        // route was removed with compatibility date 2026-11-19.
+        const r = await fetch(`${SDE_API_BASE}/mapSolarSystems/${systemId}.json`);
         if (!r.ok) {
             throw new Error(`Failed to fetch system ${systemId}`);
 }
         const data = await r.json();
-        const security = data.security_status;
+        const security = data.securityStatus;
         AppState.securityCache[systemId] = security;
         return security;
     } catch (err) {
@@ -2741,18 +2783,17 @@ async function resolveLocation(locationId, elementIdOrCallback) {
     
     try {
         // NPC station IDs are in range 60,000,000–64,000,000.
-        // Player Upwell structure IDs are >= 10^12 — the /stations/ endpoint
-        // returns 400 for these, so skip it entirely and go straight to fallback.
+        // Player Upwell structure IDs are >= 10^12 — the names route cannot
+        // resolve these publicly, so skip it and go straight to fallback.
         const isPlayerStructure = locationId >= 1000000000000;
         
         if (!isPlayerStructure) {
-            // Try NPC station endpoint
-            const url = `${ESI_BASE}/universe/stations/${locationId}/`;
-            const r = await fetch(url);
+            // NPC station name via the kept POST /universe/names route
+            // (ESI's /universe/stations was removed with compat date 2026-11-19)
+            const stationName = await esiStationName(locationId).catch(() => null);
             
-            if (r.ok) {
-                const data = await r.json();
-                name = data.name;
+            if (stationName) {
+                name = stationName;
                 AppState.locationCache[locationId] = name;
                 
                 if (typeof elementIdOrCallback === 'string') {
@@ -2828,18 +2869,13 @@ async function resolveLocationWithSystem(locationId, systemId, callback) {
     try {
         if (!locationName) {
             // NPC station IDs are in range 60,000,000–64,000,000.
-            // Player Upwell structure IDs are >= 10^12 — the /stations/ endpoint
-            // returns 400 for these, so skip it entirely.
+            // Player Upwell structure IDs are >= 10^12 — the names route
+            // cannot resolve these publicly, so skip it entirely.
             const isPlayerStructure = locationId >= 1000000000000;
             
             if (!isPlayerStructure) {
-                const url = `${ESI_BASE}/universe/stations/${locationId}/`;
-                const r = await fetch(url);
-                
-                if (r.ok) {
-                    const data = await r.json();
-                    locationName = data.name;
-}
+                // NPC station name via the kept POST /universe/names route
+                locationName = await esiStationName(locationId).catch(() => null);
 }
 }
         // Player Upwell structures (>= 10^12) require auth for /universe/structures/;
@@ -2851,14 +2887,9 @@ async function resolveLocationWithSystem(locationId, systemId, callback) {
             if (AppState.systemCache[systemId]) {
                 systemName = AppState.systemCache[systemId];
             } else {
-                const sysUrl = `${ESI_BASE}/universe/systems/${systemId}/`;
-                const sysR = await fetch(sysUrl);
-                
-                if (sysR.ok) {
-                    const sysData = await sysR.json();
-                    systemName = sysData.name;
-                    AppState.systemCache[systemId] = systemName;
-}
+                // Static system data comes from the SDE API
+                systemName = await sdeSystemName(systemId).catch(() => null);
+                if (systemName) AppState.systemCache[systemId] = systemName;
 }
             
             if (systemName) {
