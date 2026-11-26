@@ -1660,8 +1660,8 @@ async function calculateBulkCost() {
             { id: '10000002', name: 'Jita' },
             { id: '10000043', name: 'Amarr' },
             { id: '10000032', name: 'Dodixie' },
-            { id: '10000030', name: 'Hek' },
-            { id: '10000042', name: 'Rens' },
+            { id: '10000042', name: 'Hek' },
+            { id: '10000030', name: 'Rens' },
             { id: '10001004', name: 'Manifest' },
             { id: '10000009', name: 'C-J6MT' }
         ];
@@ -2201,8 +2201,8 @@ function switchTab(tabName) {
                     <option value="10000002">Jita</option>
                     <option value="10000043">Amarr</option>
                     <option value="10000032">Dodixie</option>
-                    <option value="10000030">Hek</option>
-                    <option value="10000042">Rens</option>
+                    <option value="10000042">Hek</option>
+                    <option value="10000030">Rens</option>
                     <option value="10001004">Manifest</option>
                     <option value="10000009">C-J6MT</option>
                 `;
@@ -2289,8 +2289,8 @@ async function loadItem(typeId, name, forceRefresh = false) {
                         <option value="10000002">Jita</option>
                         <option value="10000043">Amarr</option>
                         <option value="10000032">Dodixie</option>
-                        <option value="10000030">Hek</option>
-                        <option value="10000042">Rens</option>
+                        <option value="10000042">Hek</option>
+                        <option value="10000030">Rens</option>
                         <option value="10001004">Manifest</option>
                         <option value="10000009">C-J6MT</option>
                     `;
@@ -3216,7 +3216,7 @@ function updateSystemFilter(orders) {
         { value: 'Rens', label: 'Rens (Heimatar)' },
         { value: 'Hek', label: 'Hek (Metropolis)' },
         { value: 'Manifest', label: 'Manifest (Exordium)' },
-        { value: 'C-J6MT', label: 'C-J6MT (Catch)' }
+        { value: 'C-J6MT', label: 'C-J6MT (Insmother)' }
     ];
     
     majorHubs.forEach(hub => {
@@ -3905,7 +3905,7 @@ async function loadRegionalComparison(typeId) {
             { id: 10000030, name: 'Heimatar (Rens)' },
             { id: 10000042, name: 'Metropolis (Hek)' },
             { id: 10001004, name: 'Exordium (Manifest)' },
-            { id: 10000009, name: 'Catch (C-J6MT)' }
+            { id: 10000009, name: 'Insmother (C-J6MT)' }
         ];
 
         const regionalData = [];
