@@ -158,12 +158,12 @@ footer {
     padding: 2rem;
     margin-top: 2rem;
     border-top: 1px solid var(--secondary-color);
-    color: #777;
+    color: #9a9a9a;
 }
 
 footer a {
     color: var(--accent-color);
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 /* --- Contact Details --- */
@@ -296,5 +296,34 @@ footer a {
         display: block;
         text-align: center;
         margin-bottom: 1rem;
+    }
+}
+/* --- Accessibility: focus visibility and reduced motion --- */
+:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
+.skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -5rem;
+    z-index: 10000;
+    padding: 0.7rem 1rem;
+    background: var(--accent-color);
+    color: #111;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 0 0 6px 6px;
+    transition: top 0.15s ease;
+}
+.skip-link:focus {
+    top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
     }
 }

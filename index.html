@@ -25,7 +25,7 @@
             --panel-hover: #222;
             --border: #2a2a2a;
             --text: #ddd;
-            --dim: #888;
+            --dim: #999;
             --accent: #e8d900;
             --accent-dim: rgba(232, 217, 0, 0.25);
         }
@@ -266,7 +266,7 @@
             letter-spacing: 1px;
             padding: 5px 14px;
             border-radius: 3px;
-            opacity: 0.4;
+            opacity: 0.8;
             cursor: not-allowed;
         }
 
@@ -563,6 +563,7 @@
         .ko-fi-wrap .kofi-button:hover {
             transform: translateY(-2px);
         }
+        .ko-fi-wrap .kofitext { color: #fff !important; }
 
         .support-wall-link {
             display: inline-flex;
@@ -709,11 +710,11 @@
             text-align: center;
             padding: 28px 0;
             border-top: 1px solid var(--border);
-            color: #555;
+            color: #9a9a9a;
             font-size: 0.85rem;
         }
 
-        footer a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+        footer a { color: var(--dim); text-decoration: underline; transition: color 0.2s; }
         footer a:hover { color: var(--accent); }
 
         footer .social-links {
@@ -732,7 +733,7 @@
             margin-bottom: 12px;
         }
 
-        footer .footer-links span { color: #444; }
+        footer .footer-links span { color: #777; }
 
         @media (max-width: 768px) {
             .feat-grid .feat { flex: 0 1 45%; }
@@ -784,6 +785,8 @@
   </script>
 </head>
 <body>
+
+    <a class="skip-link" href="#tools">Skip to tools</a>
 
     <div class="promo-row">
         <div class="promo-card plex-sale" id="plex-sale" data-expires="2026-11-26T00:00:00">

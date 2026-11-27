@@ -59,8 +59,10 @@ def main():
 
     print("Loading SDE files...")
     systems_sde = load_jsonl("mapSolarSystems.jsonl")
+    stargates_sde = load_jsonl("mapStargates.jsonl")
 
     system_list = []
+    included_ids = set()
     skipped = {}
     for sid, s in systems_sde.items():
         if not isinstance(sid, int):
@@ -87,6 +89,7 @@ def main():
         if group:
             entry["group"] = group
         system_list.append(entry)
+        included_ids.add(sid)
 
     system_list.sort(key=lambda x: x["name"].lower())
 
@@ -127,6 +130,58 @@ def main():
     with open(out_path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(output))
     print(f"  Wrote {len(system_list)} systems to {out_path}")
+
+    # Route graph: [fromSystemID, toSystemID, x, y, z] with gate positions
+    # stored in kilometres. The Gate Check UI only needs ~10,000 km accuracy,
+    # so kilometre precision keeps the generated file manageable.
+    print("\nBuilding gate graph...")
+    gate_rows = []
+    skipped_gates = 0
+    for gid, g in stargates_sde.items():
+        a = g.get("solarSystemID")
+        b = (g.get("destination") or {}).get("solarSystemID")
+        pos = g.get("position") or {}
+        if a not in included_ids or b not in included_ids:
+            skipped_gates += 1
+            continue
+        try:
+            x = int(round(float(pos["x"]) / 1000.0))
+            y = int(round(float(pos["y"]) / 1000.0))
+            z = int(round(float(pos["z"]) / 1000.0))
+        except (KeyError, TypeError, ValueError):
+            skipped_gates += 1
+            continue
+        gate_rows.append((a, b, x, y, z))
+
+    gate_rows.sort()
+    edge_set = {(a, b) for a, b, _, _, _ in gate_rows}
+    missing_reverse = [(a, b) for a, b, _, _, _ in gate_rows if (b, a) not in edge_set]
+    if missing_reverse:
+        print(f"  WARNING: {len(missing_reverse)} gate edges lack a reverse edge")
+
+    route_output = []
+    route_output.append("// Auto-generated from EVE Online SDE JSONL")
+    route_output.append(f"// Gates: {len(gate_rows)} (from, to, x, y, z — positions in km)")
+    route_output.append(f"// Generated: {datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    route_output.append("//")
+    route_output.append("// Only gates whose source and destination are in systems.js are")
+    route_output.append("// included. Positions are rounded to the nearest kilometre.")
+    route_output.append("")
+    route_output.append("const GATECHECK_GATES = [")
+    for a, b, x, y, z in gate_rows:
+        route_output.append(f"    [{a}, {b}, {x}, {y}, {z}],")
+    route_output.append("];")
+    route_output.append("")
+    route_output.append('if (typeof module !== "undefined" && module.exports) module.exports = GATECHECK_GATES;')
+    route_output.append("")
+
+    route_path = GATECHECK_DIR / "route-data.js"
+    with open(route_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(route_output))
+    print(f"  Wrote {len(gate_rows)} gates to {route_path}")
+    print(f"  Skipped {skipped_gates} gates outside included systems")
+    if missing_reverse:
+        print(f"  Reverse-edge warning: {len(missing_reverse)}")
 
     print("\nDone!")
 

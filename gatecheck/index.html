@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>EVE Gate Check — Route Safety &amp; Camp Scanner | RustyBot</title>
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
@@ -33,6 +33,7 @@
   <meta name="robots" content="index, follow">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="top-bar">
     <div class="brand">
         <a href="../" class="brand-link">
@@ -46,7 +47,7 @@
     </div>
 </header>
 
-<div class="container">
+<div class="container" id="main">
     <section class="hero-section">
         <img src="https://www.rustybot.co.uk/rusty_bot.png" alt="RustyBot Logo" class="hero-logo">
         <h2>Gate <span class="accent">Check</span></h2>
@@ -56,21 +57,24 @@
     <section class="form-card">
         <div class="form-row">
             <div class="field">
-                <label>From</label>
+                <label for="origin">From</label>
                 <div class="ac-wrap">
                     <input id="origin" type="text" placeholder="Jita" autocomplete="off" />
                     <div id="origin-ac" class="ac-box"></div>
                 </div>
             </div>
+            <button id="swapBtn" class="swap-btn" type="button" title="Swap origin and destination" aria-label="Swap origin and destination">
+                <span aria-hidden="true">⇅</span>
+            </button>
             <div class="field">
-                <label>To</label>
+                <label for="destination">To</label>
                 <div class="ac-wrap">
                     <input id="destination" type="text" placeholder="Amarr" autocomplete="off" />
                     <div id="destination-ac" class="ac-box"></div>
                 </div>
             </div>
             <div class="field short">
-                <label>Prefer</label>
+                <label for="preference">Prefer</label>
                 <select id="preference">
                     <option value="shortest">Shortest</option>
                     <option value="secure">Secure</option>
@@ -78,7 +82,7 @@
                 </select>
             </div>
             <div class="field short">
-                <label>Window</label>
+                <label for="duration">Window</label>
                 <select id="duration">
                     <option value="3600">1 Hour</option>
                     <option value="7200">2 Hours</option>
@@ -92,10 +96,13 @@
             </button>
         </div>
         <div class="field avoid-field">
-            <label>Avoid systems (comma separated)</label>
-            <input id="avoid" type="text" placeholder="e.g. Uedama, Niarja" autocomplete="off" />
+            <label for="avoid">Avoid systems</label>
+            <div id="avoid-chips" class="avoid-chips hidden" role="list" aria-label="Avoided systems"></div>
+            <input id="avoid" type="text" placeholder="e.g. Uedama, Niarja — comma or Enter" autocomplete="off" aria-describedby="avoid-help" />
+            <span id="avoid-help" class="field-help">Routes will be calculated around these systems.</span>
         </div>
-        <div id="error" class="error hidden"></div>
+        <div id="error" class="error hidden" role="alert" aria-live="assertive"></div>
+        <div id="scanProgress" class="scan-progress hidden" role="status" aria-live="polite"></div>
     </section>
 
     <section class="legend">
@@ -113,13 +120,22 @@
         <span class="leg-item"><span class="emoji">🚫</span> Avoided system</span>
     </section>
 
-    <section id="summary" class="summary hidden"></section>
+    <section id="summary" class="summary hidden" aria-live="polite"></section>
 
-    <section id="results" class="results hidden">
+    <section id="results" class="results hidden" aria-busy="false">
         <div class="results-title">
-            <span id="route-label"></span>
+            <span class="results-heading">
+                <span id="route-label"></span>
+                <span id="scanTime" class="scan-time hidden"></span>
+            </span>
             <span class="results-actions">
                 <span class="eve-time" id="eve-time"></span>
+                <button id="refreshBtn" class="share-btn refresh-btn hidden" type="button" title="Refresh kill data for this route">
+                    <span aria-hidden="true">↻</span> <span class="refresh-label">Refresh</span>
+                </button>
+                <button id="copySummaryBtn" class="share-btn summary-btn hidden" type="button" title="Copy a text summary of this route">
+                    <span aria-hidden="true">📋</span> <span class="summary-label">Copy summary</span>
+                </button>
                 <button id="shareBtn" class="share-btn hidden" type="button" title="Copy a link to this route">
                     <span aria-hidden="true">🔗</span> <span class="share-label">Share route</span>
                 </button>
@@ -141,6 +157,6 @@
     </footer>
 </div>
 <script src="systems.js?v=2"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

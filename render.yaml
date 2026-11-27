@@ -33,6 +33,53 @@ services:
     buildCommand: ""
     staticPublishPath: .
     headers:
+      # Baseline security headers for the whole static site.
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000
+      # Report-only first: the site still relies on inline scripts and several
+      # CDNs. Review console reports, then enforce once the allowlist is clean.
+      - path: /*
+        name: Content-Security-Policy-Report-Only
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://storage.ko-fi.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; media-src 'self' https: blob:; connect-src 'self' https://api.rustybot.co.uk https://esi.evetech.net https://sde.evetech.net https://zkillboard.com https://login.eveonline.com https://ref-data.everef.net https://market.fuzzwork.co.uk https://www.fuzzwork.co.uk https://data.eveos.space https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://storage.ko-fi.com https://www.twitch.tv https://kick.com https://source.rustybot.co.uk https://shoutbot.rustybot.co.uk; frame-src 'self' https://source.rustybot.co.uk https://shoutbot.rustybot.co.uk https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://login.eveonline.com; frame-ancestors 'self'; upgrade-insecure-requests"
+      # HTML must revalidate so new asset versions are picked up quickly.
+      - path: /*.html
+        name: Cache-Control
+        value: public, max-age=0, s-maxage=300, must-revalidate
+      - path: /gatecheck/
+        name: Cache-Control
+        value: public, max-age=0, s-maxage=300, must-revalidate
+      - path: /gatecheck/index.html
+        name: Cache-Control
+        value: public, max-age=0, s-maxage=300, must-revalidate
+      - path: /patchnotes/patches.json
+        name: Cache-Control
+        value: public, max-age=60, must-revalidate
+      - path: /gatecheck/app.js
+        name: Cache-Control
+        value: public, max-age=3600, must-revalidate
+      - path: /gatecheck/style.css
+        name: Cache-Control
+        value: public, max-age=3600, must-revalidate
+      - path: /gatecheck/systems.js
+        name: Cache-Control
+        value: public, max-age=3600, must-revalidate
+      - path: /gatecheck/route-data.js
+        name: Cache-Control
+        value: public, max-age=3600, must-revalidate
+
       # The tree's data files are served at fixed paths. Revalidate every load
       # (ETag makes it a cheap 304) so a new SDE build cannot sit behind a
       # 5-minute edge cache.

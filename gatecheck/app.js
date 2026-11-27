@@ -21,7 +21,10 @@ const cache = {
     stargate: new Map(), // id → {name, position, destination_system_id}
 };
 
-// Last successfully-rendered route, used by "Send to EVE".
+// Local SDE data loaded from systems.js / route-data.js.
+let systemById = new Map();
+
+// Last successfully-rendered route, used by "Send to EVE" and refresh.
 let lastRoute = null;
 
 // ── ESI ──────────────────────────────────────────────────────────────────────
@@ -79,10 +82,59 @@ async function batchNames(ids) {
     return new Map(ids.map(id => [id, cache.names.get(id) || `#${id}`]));
 }
 
+async function routeNames(ids) {
+    const names = new Map();
+    const missing = [];
+    for (const id of ids) {
+        const s = systemById.get(id);
+        if (s) names.set(id, s.name);
+        else missing.push(id);
+    }
+    if (missing.length) {
+        const remote = await batchNames(missing);
+        for (const [id, name] of remote) names.set(id, name);
+    }
+    return names;
+}
+
+function localSystemData(id) {
+    const s = systemById.get(id);
+    if (!s || !routeGraph) return null;
+
+    const stargates = (routeGraph.get(id) || []).map(edge => ({
+        id: null,
+        name: `Stargate (${systemById.get(edge.to)?.name || 'unknown'})`,
+        position: edge.pos,
+        destination_system_id: edge.to
+    }));
+
+    return {
+        system_id:        id,
+        name:             s.name,
+        constellation_id: null,
+        star_id:          null,
+        security_status:  s.sec,
+        stargates,
+        planets:          [],
+        position:         null
+    };
+}
+
 async function getSystemData(id) {
     if (cache.system.has(id)) return cache.system.get(id);
+
+    const local = localSystemData(id);
+    if (local) {
+        cache.system.set(id, local);
+        cache.security.set(id, local.security_status ?? 0);
+        return local;
+    }
+
+    // Fallback for a missing graph or a system outside the generated data.
+    // Stargates stay as IDs here; resolveSystemGates() fetches them after all
+    // route systems are cached, which avoids recursing through connected systems.
     const s = await sdeGet(`/mapSolarSystems/${id}.json`);
-    // Same field names the app already reads, mapped from the SDE record.
+
     const data = {
         system_id:        s.solarSystemID,
         name:             s.name?.en,
@@ -96,6 +148,15 @@ async function getSystemData(id) {
     cache.system.set(id, data);
     cache.security.set(id, data.security_status ?? 0);
     return data;
+}
+
+async function resolveSystemGates(sd) {
+    if (!sd?.stargates?.length) return;
+    if (typeof sd.stargates[0] !== 'number') return; // local graph already has objects
+
+    sd.stargates = (await Promise.all(
+        sd.stargates.map(gateId => getStargate(gateId))
+    )).filter(Boolean);
 }
 
 async function getStargate(id) {
@@ -114,7 +175,136 @@ async function getStargate(id) {
     return sg;
 }
 
-async function getRoute(originId, destId, flag) {
+// ── Local route graph ────────────────────────────────────────────────────────
+
+let routeGraph = null;
+let routeGraphPromise = null;
+
+function loadRouteGraph() {
+    if (routeGraph) return Promise.resolve(routeGraph);
+    if (routeGraphPromise) return routeGraphPromise;
+
+    routeGraphPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'route-data.js?v=1';
+        script.onload = () => {
+            if (typeof GATECHECK_GATES === 'undefined') {
+                reject(new Error('Route data loaded but GATECHECK_GATES is missing'));
+                return;
+            }
+            const graph = new Map();
+            for (const [from, to, x, y, z] of GATECHECK_GATES) {
+                let edges = graph.get(from);
+                if (!edges) { edges = []; graph.set(from, edges); }
+                // Positions are stored in kilometres; kill positions are metres.
+                edges.push({ to, pos: { x: x * 1000, y: y * 1000, z: z * 1000 } });
+            }
+            routeGraph = graph;
+            resolve(graph);
+        };
+        script.onerror = () => reject(new Error('Could not load route graph'));
+        document.head.appendChild(script);
+    });
+
+    routeGraphPromise.catch(() => { routeGraphPromise = null; });
+    return routeGraphPromise;
+}
+
+class MinHeap {
+    constructor() { this.items = []; }
+    get size() { return this.items.length; }
+    push(node, priority) {
+        const a = this.items;
+        a.push([priority, node]);
+        let i = a.length - 1;
+        while (i > 0) {
+            const p = (i - 1) >> 1;
+            if (a[p][0] <= a[i][0]) break;
+            [a[p], a[i]] = [a[i], a[p]];
+            i = p;
+        }
+    }
+    pop() {
+        const a = this.items;
+        if (!a.length) return null;
+        const top = a[0];
+        const last = a.pop();
+        if (a.length) {
+            a[0] = last;
+            let i = 0;
+            while (true) {
+                const l = i * 2 + 1;
+                const r = l + 1;
+                let smallest = i;
+                if (l < a.length && a[l][0] < a[smallest][0]) smallest = l;
+                if (r < a.length && a[r][0] < a[smallest][0]) smallest = r;
+                if (smallest === i) break;
+                [a[smallest], a[i]] = [a[i], a[smallest]];
+                i = smallest;
+            }
+        }
+        return top;
+    }
+}
+
+function routeEdgeCost(toId, flag) {
+    const sec = systemById.get(toId)?.sec ?? 0;
+    if (flag === 'secure') {
+        if (sec >= 0.45) return 1;
+        if (sec > 0)     return 1000;
+        return 10000;
+    }
+    if (flag === 'insecure') {
+        if (sec >= 0.45) return 1000;
+        return 1;
+    }
+    return 1;
+}
+
+function findRoute(originId, destId, flag, avoidIds) {
+    if (!routeGraph) return [];
+    if (avoidIds.has(originId) || avoidIds.has(destId)) return [];
+    if (originId === destId) return [originId];
+
+    const dist = new Map([[originId, 0]]);
+    const prev = new Map();
+    const heap = new MinHeap();
+    heap.push(originId, 0);
+
+    while (heap.size) {
+        const [d, u] = heap.pop();
+        if (d !== dist.get(u)) continue;
+        if (u === destId) break;
+
+        for (const edge of (routeGraph.get(u) || [])) {
+            if (avoidIds.has(edge.to)) continue;
+            const nd = d + routeEdgeCost(edge.to, flag);
+            if (nd < (dist.get(edge.to) ?? Infinity)) {
+                dist.set(edge.to, nd);
+                prev.set(edge.to, u);
+                heap.push(edge.to, nd);
+            }
+        }
+    }
+
+    if (!dist.has(destId)) return [];
+    const path = [];
+    let cur = destId;
+    while (cur !== undefined) {
+        path.push(cur);
+        if (cur === originId) break;
+        cur = prev.get(cur);
+    }
+    if (path[path.length - 1] !== originId) return [];
+    return path.reverse();
+}
+
+async function getRoute(originId, destId, flag, avoidIds = null) {
+    if (avoidIds && avoidIds.size) {
+        if (!routeGraph) throw new Error('Avoid routing is unavailable right now.');
+        return findRoute(originId, destId, flag, avoidIds);
+    }
+
     try {
         const data = await esiGet(`/route/${originId}/${destId}/?flag=${flag}`);
         return data || [];
@@ -252,11 +442,13 @@ function loadSystemDatabase() {
         return;
     }
     systemGroups = { main: [] };
+    systemById = new Map();
     for (const section of AC_SECTIONS) systemGroups[section.id] = [];
 
     for (const s of GATECHECK_SYSTEMS) {
         const entry = { id: s.id, name: s.name, sec: s.sec, key: s.name.toLowerCase() };
         (systemGroups[s.group] || systemGroups.main).push(entry);
+        systemById.set(entry.id, entry);
         // Pre-populate the ESI name→id cache so typed system names resolve instantly
         cache.ids.set(entry.key, entry.id);
     }
@@ -304,12 +496,99 @@ let acTimer = null;
 // System picked from the dropdown per input — lets us skip the ESI name lookup
 const pickedSystem = { origin: null, destination: null };
 
+// Avoid systems are kept as chips so the route input stays readable.
+let avoidChips = [];
+
+function getAvoidText() {
+    const pending = document.getElementById('avoid').value
+        .split(',').map(s => s.trim()).filter(Boolean);
+    return [...avoidChips, ...pending].join(', ');
+}
+
+function getAvoidNames() {
+    return new Set(
+        getAvoidText().split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+    );
+}
+
+function renderAvoidChips() {
+    const box = document.getElementById('avoid-chips');
+    if (!box) return;
+    box.innerHTML = '';
+    avoidChips.forEach((name, idx) => {
+        const chip = document.createElement('span');
+        chip.className = 'avoid-chip';
+        chip.setAttribute('role', 'listitem');
+
+        const label = document.createElement('span');
+        label.textContent = name;
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'avoid-chip-remove';
+        remove.setAttribute('aria-label', `Remove ${name}`);
+        remove.textContent = '×';
+        remove.addEventListener('click', () => {
+            avoidChips.splice(idx, 1);
+            renderAvoidChips();
+            hideResultActions();
+        });
+
+        chip.append(label, remove);
+        box.appendChild(chip);
+    });
+    box.classList.toggle('hidden', avoidChips.length === 0);
+}
+
+function commitAvoidInput() {
+    const input = document.getElementById('avoid');
+    if (!input) return;
+    const parts = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    if (!parts.length) return;
+
+    for (const part of parts) {
+        const id = cache.ids.get(part.toLowerCase());
+        const display = id ? (systemById.get(id)?.name || part) : part;
+        if (!avoidChips.some(name => name.toLowerCase() === display.toLowerCase())) {
+            avoidChips.push(display);
+        }
+    }
+    input.value = '';
+    renderAvoidChips();
+    hideResultActions();
+}
+
+function setAvoidFromText(text) {
+    avoidChips = [];
+    const input = document.getElementById('avoid');
+    input.value = text || '';
+    if (input.value.trim()) commitAvoidInput();
+    else renderAvoidChips();
+}
+
 function setupAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     const box   = document.getElementById(`${inputId}-ac`);
 
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-controls', box.id);
+    input.setAttribute('aria-haspopup', 'listbox');
+    box.setAttribute('role', 'listbox');
+    box.setAttribute('aria-label',
+        inputId === 'origin' ? 'Origin system suggestions' : 'Destination system suggestions');
+
+    const close = () => {
+        box.style.display = 'none';
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+        box.querySelectorAll('.ac-item.active').forEach(el => el.classList.remove('active'));
+    };
+
     const open = () => {
         clearTimeout(acTimer);
+        input.setAttribute('aria-expanded', 'true');
         acTimer = setTimeout(() => showSuggestions(input.value, input, box), 80);
     };
 
@@ -331,30 +610,34 @@ function setupAutocomplete(inputId) {
             const next = idx < 0 ? 0 : Math.min(idx + 1, items.length - 1);
             active?.classList.remove('active');
             items[next].classList.add('active');
+            input.setAttribute('aria-activedescendant', items[next].id);
             items[next].scrollIntoView({ block: 'nearest' });
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             if (idx > 0) {
                 active.classList.remove('active');
                 items[idx - 1].classList.add('active');
+                input.setAttribute('aria-activedescendant', items[idx - 1].id);
                 items[idx - 1].scrollIntoView({ block: 'nearest' });
             }
         } else if (e.key === 'Enter' && active) {
             e.stopPropagation();
             pickSystem(input, box, { id: Number(active.dataset.id), name: active.dataset.name });
         } else if (e.key === 'Escape') {
-            box.style.display = 'none';
+            close();
         }
     });
 
     document.addEventListener('click', e => {
-        if (!input.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
+        if (!input.contains(e.target) && !box.contains(e.target)) close();
     });
 }
 
 function pickSystem(input, box, system) {
     input.value = system.name;
     pickedSystem[input.id] = system;
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
     box.style.display = 'none';
 }
 
@@ -373,6 +656,9 @@ function highlightMatch(name, q) {
 function makeItem(system, ql, input, box) {
     const item = document.createElement('div');
     item.className = 'ac-item';
+    item.id = `${input.id}-opt-${system.id}`;
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', 'false');
     item.dataset.name = system.name;
     item.dataset.id = system.id;
     item.innerHTML = `<span class="ac-name">${highlightMatch(system.name, ql)}</span>`
@@ -396,29 +682,45 @@ function showSuggestions(query, input, box) {
 
     const { main, sections, total, shown } = filterSystems(q);
     box.innerHTML = '';
+    input.removeAttribute('aria-activedescendant');
 
     if (!shown) {
+        box.setAttribute('role', 'status');
+        box.setAttribute('aria-live', 'polite');
+        input.setAttribute('aria-expanded', 'false');
         box.innerHTML = `<div class="ac-empty">No systems match “${escapeHtml(q)}”</div>`;
         box.style.display = 'block';
         return;
     }
+
+    box.setAttribute('role', 'listbox');
+    box.removeAttribute('aria-live');
+    input.setAttribute('aria-expanded', 'true');
 
     const frag = document.createDocumentFragment();
     for (const s of main.items) frag.appendChild(makeItem(s, ql, input, box));
 
     for (const section of sections) {
         if (!section.items.length) continue;
+
+        const group = document.createElement('div');
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', section.label);
+
         const head = document.createElement('div');
         head.className = 'ac-section';
+        head.setAttribute('role', 'presentation');
         head.innerHTML = `<span class="ac-section-label">${section.label}</span>`
             + `<span class="ac-section-note">${section.note}</span>`;
-        frag.appendChild(head);
-        for (const s of section.items) frag.appendChild(makeItem(s, ql, input, box));
+        group.appendChild(head);
+        for (const s of section.items) group.appendChild(makeItem(s, ql, input, box));
+        frag.appendChild(group);
     }
     box.appendChild(frag);
 
     const hint = document.createElement('div');
     hint.className = 'ac-hint';
+    hint.setAttribute('role', 'presentation');
     hint.textContent = shown < total
         ? `Showing ${shown} of ${total.toLocaleString()} systems — keep typing to narrow`
         : `${total.toLocaleString()} system${total === 1 ? '' : 's'}`;
@@ -445,6 +747,7 @@ function setLoading(on) {
     document.getElementById('checkBtn').disabled = on;
     document.getElementById('btnText').textContent = on ? 'Checking...' : 'Check!';
     document.getElementById('btnSpinner').classList.toggle('hidden', !on);
+    document.getElementById('results').setAttribute('aria-busy', on ? 'true' : 'false');
 }
 
 function showError(msg) {
@@ -494,6 +797,14 @@ function renderResults(systems, origin, dest, avoidSet) {
 
         const row = document.createElement('div');
         row.className = `route-row row-${threat}`;
+        row.tabIndex = 0;
+        row.setAttribute('role', 'group');
+        row.setAttribute('aria-roledescription', 'route row');
+        row.setAttribute('aria-expanded', 'false');
+        row.setAttribute('aria-controls', `detail-${i}`);
+        row.setAttribute('aria-label',
+            `${sys.name}, security ${secLabel(sys.security)}, `
+            + `${sys.hazard.killCount} gate kill${sys.hazard.killCount === 1 ? '' : 's'}, ${threat}`);
         row.innerHTML = `
             <div class="hop">${i + 1}</div>
             <div>
@@ -504,20 +815,31 @@ function renderResults(systems, origin, dest, avoidSet) {
             <div class="kills ${kClass}">${sys.hazard.killCount > 0 ? sys.hazard.killCount : '—'}</div>
             <div class="hazard-icons">${icons}</div>
             <div class="status-badge ${threat}">${threat.charAt(0).toUpperCase()+threat.slice(1)}</div>
-            <a class="zkill-btn" href="https://zkillboard.com/system/${sys.id}/" target="_blank">zKill ↗</a>
+            <a class="zkill-btn" href="https://zkillboard.com/system/${sys.id}/" target="_blank" rel="noopener">zKill ↗</a>
         `;
 
         const detail = document.createElement('div');
         detail.className = 'detail-row';
+        detail.id = `detail-${i}`;
         const tags = sys.hazard.details.length
             ? sys.hazard.details.map(d => `<span class="detail-tag warn">${d}</span>`).join('')
             : '<span class="detail-tag">No gate activity detected</span>';
         detail.innerHTML = tags + `<span class="detail-tag">ID: ${sys.id}</span>`;
 
-        row.addEventListener('click', () => {
-            detail.classList.toggle('open');
+        const toggleDetails = () => {
+            const open = detail.classList.toggle('open');
             row.classList.toggle('expanded');
+            row.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
+
+        row.addEventListener('click', toggleDetails);
+        row.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleDetails();
+            }
         });
+        row.querySelector('.zkill-btn')?.addEventListener('click', e => e.stopPropagation());
 
         body.appendChild(row);
         body.appendChild(detail);
@@ -534,7 +856,7 @@ function routeState() {
         destination: document.getElementById('destination').value.trim(),
         pref:        document.getElementById('preference').value,
         duration:    document.getElementById('duration').value,
-        avoid:       document.getElementById('avoid').value.trim(),
+        avoid:       getAvoidText(),
     };
 }
 
@@ -548,7 +870,7 @@ function applyRouteState(state) {
     if (['3600', '7200', '21600', '86400'].includes(String(state.duration))) {
         document.getElementById('duration').value = String(state.duration);
     }
-    if (typeof state.avoid === 'string') document.getElementById('avoid').value = state.avoid;
+    if (typeof state.avoid === 'string') setAvoidFromText(state.avoid);
 }
 
 function buildShareUrl() {
@@ -604,8 +926,10 @@ async function copyText(text) {
 }
 
 function hideResultActions() {
-    document.getElementById('shareBtn').classList.add('hidden');
-    document.getElementById('sendEveBtn').classList.add('hidden');
+    ['shareBtn', 'sendEveBtn', 'refreshBtn', 'copySummaryBtn'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    setScanTime(0);
     setEveStatus('');
 }
 
@@ -856,9 +1180,13 @@ async function sendRouteToEve(auto = false) {
     let pushed = 0;
     try {
         let ids = null;
-        try {
-            ids = await buildSmartAnchors(lastRoute.systems, lastRoute.pref);
-        } catch { /* fall back to the full chain */ }
+        // Smart anchors use ESI routing, which does not know our avoid list.
+        // For avoided routes, send the full chain so EVE follows the scan.
+        if (!lastRoute.avoidIds?.length) {
+            try {
+                ids = await buildSmartAnchors(lastRoute.systems, lastRoute.pref);
+            } catch { /* fall back to the full chain */ }
+        }
         if (!ids || !ids.length) ids = lastRoute.systems.map(s => s.id);
         if (!ids.length) throw new Error('Route has no systems.');
         if (ids.length > 500) throw new Error('Route is too long to send (max 500 waypoints).');
@@ -901,6 +1229,175 @@ async function sendRouteToEve(auto = false) {
     }
 }
 
+// ── Scan / refresh / summary ─────────────────────────────────────────────────
+
+function setScanProgress(done, total) {
+    const el = document.getElementById('scanProgress');
+    if (!el) return;
+    if (!total) {
+        el.textContent = '';
+        el.classList.add('hidden');
+        return;
+    }
+    el.textContent = done >= total
+        ? `Scanned ${total} systems.`
+        : `Scanning kills ${done}/${total} systems…`;
+    el.classList.remove('hidden');
+}
+
+function setScanTime(ts) {
+    const el = document.getElementById('scanTime');
+    if (!el) return;
+    if (!ts) {
+        el.textContent = '';
+        el.classList.add('hidden');
+        return;
+    }
+    const d = new Date(ts);
+    const pad = n => String(n).padStart(2, '0');
+    el.textContent = `Scanned ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} EVE`;
+    el.classList.remove('hidden');
+}
+
+function routeVerdict(systems) {
+    const order = ['safe', 'moderate', 'high', 'extreme'];
+    const worst = systems.reduce((w, x) =>
+        order.indexOf(x.threat) > order.indexOf(w) ? x.threat : w, 'safe');
+    return {
+        worst,
+        label: { safe: '✅ Clear', moderate: '⚠️ Caution', high: '🔴 Danger', extreme: '☠️ Extreme' }[worst]
+    };
+}
+
+async function scanKills(systemDataArr, routeIds, duration, nameById) {
+    let done = 0;
+    setScanProgress(0, routeIds.length);
+
+    const rawKillsArr = await Promise.all(
+        routeIds.map((id, i) =>
+            getKillsRaw(id, duration, i * 80).then(result => {
+                done++;
+                setScanProgress(done, routeIds.length);
+                return result;
+            })
+        )
+    );
+
+    const systems = await Promise.all(
+        routeIds.map(async (id, i) => {
+            const sd = systemDataArr[i];
+            const stargates = sd.stargates || [];
+            const gateKills = await filterGateKills(rawKillsArr[i], stargates);
+            const hazard = analyzeKills(gateKills);
+
+            return {
+                id,
+                name: nameById.get(id),
+                security: sd.security_status ?? 0,
+                stargates,
+                hazard,
+                threat: getThreat(hazard)
+            };
+        })
+    );
+
+    setScanProgress(0, 0);
+    return systems;
+}
+
+async function refreshKillScan() {
+    if (!lastRoute) return;
+
+    hideError();
+    const btn = document.getElementById('refreshBtn');
+    const label = btn.querySelector('.refresh-label');
+    btn.disabled = true;
+    label.textContent = 'Refreshing…';
+
+    try {
+        const nameById = new Map(lastRoute.systems.map(s => [s.id, s.name]));
+        const systems = await scanKills(
+            lastRoute.systemData,
+            lastRoute.routeIds,
+            lastRoute.duration,
+            nameById
+        );
+
+        lastRoute.systems = systems;
+        lastRoute.scannedAt = Date.now();
+
+        renderSummary(systems);
+        renderResults(
+            systems,
+            lastRoute.originName,
+            lastRoute.destName,
+            new Set(lastRoute.avoidSet)
+        );
+        setScanTime(lastRoute.scannedAt);
+    } catch (e) {
+        showError(`Refresh failed: ${e.message}`);
+    } finally {
+        btn.disabled = false;
+        label.textContent = 'Refresh';
+    }
+}
+
+function buildRouteSummary() {
+    if (!lastRoute) return '';
+    const systems = lastRoute.systems || [];
+    const totalKills = systems.reduce((sum, x) => sum + x.hazard.killCount, 0);
+    const verdict = routeVerdict(systems);
+    const hot = systems
+        .filter(x => x.hazard.killCount > 0)
+        .sort((a, b) => b.hazard.killCount - a.hazard.killCount)
+        .slice(0, 3)
+        .map(x => `${x.name} (${x.hazard.killCount})`)
+        .join(', ');
+
+    return `${lastRoute.originName} → ${lastRoute.destName} · ${systems.length} jumps · `
+        + `${totalKills} gate kills · ${verdict.label}`
+        + (hot ? `\nHot: ${hot}` : '')
+        + `\n${window.location.href}`;
+}
+
+let summaryTimer = null;
+async function copySummary() {
+    const text = buildRouteSummary();
+    if (!text) {
+        setEveStatus('Run a route first.', true);
+        return;
+    }
+
+    const btn = document.getElementById('copySummaryBtn');
+    const label = btn.querySelector('.summary-label');
+    if (!(await copyText(text))) {
+        window.prompt('Copy this route summary:', text);
+        return;
+    }
+
+    label.textContent = 'Summary copied';
+    clearTimeout(summaryTimer);
+    summaryTimer = setTimeout(() => { label.textContent = 'Copy summary'; }, 2200);
+}
+
+function swapSystems() {
+    const origin = document.getElementById('origin');
+    const destination = document.getElementById('destination');
+    const tmp = origin.value;
+    origin.value = destination.value;
+    destination.value = tmp;
+    pickedSystem.origin = null;
+    pickedSystem.destination = null;
+    hideResultActions();
+}
+
+function showResultActions() {
+    ['shareBtn', 'sendEveBtn', 'refreshBtn', 'copySummaryBtn'].forEach(id => {
+        document.getElementById(id).classList.remove('hidden');
+    });
+    setScanTime(lastRoute?.scannedAt);
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function runGatecheck() {
@@ -908,8 +1405,7 @@ async function runGatecheck() {
     const dest     = document.getElementById('destination').value.trim();
     const pref     = document.getElementById('preference').value;
     const duration = parseInt(document.getElementById('duration').value);
-    const avoidRaw = document.getElementById('avoid').value;
-    const avoidSet = new Set(avoidRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
+    const avoidNames = getAvoidNames();
 
     hideError();
     document.getElementById('summary').classList.add('hidden');
@@ -928,15 +1424,44 @@ async function runGatecheck() {
         if (!originId) { showError(`System not found: "${origin}"`); return; }
         if (!destId)   { showError(`System not found: "${dest}"`);   return; }
 
-        // Get route
-        const routeIds = await getRoute(originId, destId, pref);
-        if (!routeIds.length) { showError('No route found.'); return; }
+        // Resolve the avoid list to system IDs.
+        const avoidIds = new Set();
+        const missingAvoid = [];
+        await Promise.all([...avoidNames].map(async name => {
+            let id = cache.ids.get(name);
+            if (!id) {
+                try { id = await resolveSystemName(name); } catch { id = null; }
+            }
+            if (id) avoidIds.add(id);
+            else missingAvoid.push(name);
+        }));
+        if (missingAvoid.length) {
+            showError(`Unknown avoided system${missingAvoid.length === 1 ? '' : 's'}: `
+                + missingAvoid.join(', '));
+            return;
+        }
+        if (avoidIds.has(originId) || avoidIds.has(destId)) {
+            showError('Origin or destination is in the avoid list.');
+            return;
+        }
 
-        // Fetch all system data in parallel (gives us stargate IDs + security)
+        // Load the local graph once; fall back to ESI/SDE if it cannot load.
+        try { await loadRouteGraph(); }
+        catch { routeGraph = null; }
+
+        const routeIds = await getRoute(originId, destId, pref, avoidIds);
+        if (!routeIds.length) {
+            showError(avoidIds.size
+                ? 'No gate route found with those avoid systems. Remove some and try again.'
+                : 'No route found.');
+            return;
+        }
+
         const systemDataArr = await Promise.all(routeIds.map(id => getSystemData(id)));
+        await Promise.all(systemDataArr.map(resolveSystemGates));
 
-        // Batch resolve system names and canonicalise the form values
-        const nameById = await batchNames(routeIds);
+        // Local names are instant; ESI is only used for systems missing from systems.js.
+        const nameById = await routeNames(routeIds);
         const originName = nameById.get(originId) || origin;
         const destName   = nameById.get(destId) || dest;
         document.getElementById('origin').value = originName;
@@ -944,54 +1469,34 @@ async function runGatecheck() {
         pickedSystem.origin = { id: originId, name: originName };
         pickedSystem.destination = { id: destId, name: destName };
 
-        // Fetch all stargates for all systems in parallel
-        const allStargateIds = systemDataArr.flatMap(sd => sd.stargates || []);
-        const stargateArr    = await Promise.all(allStargateIds.map(id => getStargate(id)));
-        const stargateById   = new Map(stargateArr.map(sg => [sg.id, sg]));
-
-        // Fetch raw kills for all systems in parallel (staggered 80ms)
-        const rawKillsArr = await Promise.all(
-            routeIds.map((id, i) => getKillsRaw(id, duration, i * 80))
-        );
-
-        // For each system, filter kills to gate-only, then analyze
-        const systems = await Promise.all(
-            routeIds.map(async (id, i) => {
-                const sd       = systemDataArr[i];
-                const stargates = (sd.stargates || []).map(sgId => stargateById.get(sgId)).filter(Boolean);
-                const rawKills  = rawKillsArr[i];
-
-                // Filter to gate kills only
-                const gateKills = await filterGateKills(rawKills, stargates);
-                const hazard    = analyzeKills(gateKills);
-
-                return {
-                    id,
-                    name:     nameById.get(id),
-                    security: sd.security_status ?? 0,
-                    stargates,
-                    hazard,
-                    threat:   getThreat(hazard)
-                };
-            })
-        );
+        const systems = await scanKills(systemDataArr, routeIds, duration, nameById);
 
         renderSummary(systems);
-        renderResults(systems, originName, destName, avoidSet);
+        renderResults(systems, originName, destName, avoidNames);
         updateShareUrl();
 
         lastRoute = {
-            systems: systems.map(s => ({ id: s.id, name: s.name })),
-            pref
+            routeIds: [...routeIds],
+            systems,
+            systemData: systemDataArr,
+            pref,
+            duration,
+            avoidSet: [...avoidNames],
+            avoidIds: [...avoidIds],
+            originName,
+            destName,
+            scannedAt: Date.now()
         };
-        document.getElementById('shareBtn').classList.remove('hidden');
-        document.getElementById('sendEveBtn').classList.remove('hidden');
+
+        showResultActions();
         if (consumeAutoSend()) setTimeout(() => sendRouteToEve(true), 100);
 
     } catch (e) {
+        sessionStorage.removeItem(SEND_AFTER_LOGIN_KEY);
         showError(`Error: ${e.message}`);
     } finally {
         setLoading(false);
+        setScanProgress(0, 0);
     }
 }
 
@@ -1003,11 +1508,29 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAutocomplete('destination');
     document.getElementById('shareBtn').addEventListener('click', shareRoute);
     document.getElementById('sendEveBtn').addEventListener('click', () => sendRouteToEve(false));
+    document.getElementById('swapBtn')?.addEventListener('click', swapSystems);
+    document.getElementById('refreshBtn').addEventListener('click', refreshKillScan);
+    document.getElementById('copySummaryBtn').addEventListener('click', copySummary);
     ['origin', 'destination', 'preference', 'duration', 'avoid'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', hideResultActions);
         el.addEventListener('change', hideResultActions);
     });
+
+    const avoidInput = document.getElementById('avoid');
+    avoidInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            commitAvoidInput();
+        } else if (e.key === 'Backspace' && !avoidInput.value && avoidChips.length) {
+            avoidChips.pop();
+            renderAvoidChips();
+            hideResultActions();
+        }
+    });
+    avoidInput.addEventListener('blur', commitAvoidInput);
+    renderAvoidChips();
+
     restoreRouteFromUrl();
 });
 
