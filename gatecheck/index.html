@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>EVE Gate Check — Route Safety &amp; Camp Scanner | RustyBot</title>
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
     <link rel="icon" type="image/png" href="https://www.rustybot.co.uk/rusty_bot.png">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1EELB9VSCK"></script>
@@ -123,8 +123,12 @@
                 <button id="shareBtn" class="share-btn hidden" type="button" title="Copy a link to this route">
                     <span aria-hidden="true">🔗</span> <span class="share-label">Share route</span>
                 </button>
+                <button id="sendEveBtn" class="share-btn send-btn hidden" type="button" title="Send this route to your EVE client">
+                    <span aria-hidden="true">🚀</span> <span class="send-label">Send to EVE</span>
+                </button>
             </span>
         </div>
+        <div id="eveStatus" class="eve-status hidden" role="status" aria-live="polite"></div>
         <div class="route-head">
             <span>#</span><span>System</span><span>Sec</span>
             <span>Kills</span><span>Hazards</span><span>Status</span><span>zKill</span>
@@ -137,6 +141,6 @@
     </footer>
 </div>
 <script src="systems.js?v=2"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

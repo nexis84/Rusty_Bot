@@ -3,6 +3,13 @@ const ZKILL = 'https://zkillboard.com/api';
 const API   = 'https://api.rustybot.co.uk/api';
 const UA    = 'RustyBot-GateCheck/1.0';
 
+// Shared with Rusty Routes: the existing EVE SSO app already has the
+// esi-ui.write_waypoint.v1 scope, so Gate Check can reuse its login.
+const RR_AUTH_KEY   = 'rustyroutes:v1:auth';
+const RR_STATE_KEY  = 'rustyroutes:v1:oauth_state';
+const RR_RETURN_KEY = 'rustyroutes:v1:return_to';
+const SEND_AFTER_LOGIN_KEY = 'gatecheck:send_after_login';
+
 // Gate kill proximity threshold — 10,000 km in metres
 const GATE_RADIUS_M = 10_000 * 1_000;
 
@@ -13,6 +20,9 @@ const cache = {
     system:   new Map(), // id → full system data (stargates[])
     stargate: new Map(), // id → {name, position, destination_system_id}
 };
+
+// Last successfully-rendered route, used by "Send to EVE".
+let lastRoute = null;
 
 // ── ESI ──────────────────────────────────────────────────────────────────────
 
@@ -593,8 +603,10 @@ async function copyText(text) {
     } catch { return false; }
 }
 
-function hideShareButton() {
+function hideResultActions() {
     document.getElementById('shareBtn').classList.add('hidden');
+    document.getElementById('sendEveBtn').classList.add('hidden');
+    setEveStatus('');
 }
 
 let shareTimer = null;
@@ -660,6 +672,235 @@ function restoreRouteFromUrl() {
     if (params.get('origin') && params.get('destination')) runGatecheck();
 }
 
+// ── Send to EVE ──────────────────────────────────────────────────────────────
+
+function setEveStatus(message, isError = false) {
+    const el = document.getElementById('eveStatus');
+    el.textContent = message || '';
+    el.classList.toggle('hidden', !message);
+    el.classList.toggle('error', !!isError);
+}
+
+function setSendButton(label, busy = false) {
+    const btn = document.getElementById('sendEveBtn');
+    btn.disabled = busy;
+    btn.querySelector('.send-label').textContent = label;
+}
+
+function loadEveAuth() {
+    try { return JSON.parse(sessionStorage.getItem(RR_AUTH_KEY) || 'null'); }
+    catch { return null; }
+}
+
+function saveEveAuth(auth) {
+    if (auth) sessionStorage.setItem(RR_AUTH_KEY, JSON.stringify(auth));
+    else sessionStorage.removeItem(RR_AUTH_KEY);
+}
+
+async function refreshEveAuth(auth) {
+    if (!auth?.refresh_token) return null;
+    try {
+        const res = await fetch(`${API}/auth/rr/token-exchange`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                grant_type: 'refresh_token',
+                refresh_token: auth.refresh_token
+            })
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.access_token) return null;
+
+        const next = {
+            ...auth,
+            access_token:   data.access_token,
+            refresh_token:  data.refresh_token || auth.refresh_token,
+            expires_at:     Date.now() + (data.expires_in || 1200) * 1000
+        };
+        saveEveAuth(next);
+        return next;
+    } catch { return null; }
+}
+
+async function ensureEveAuth() {
+    let auth = loadEveAuth();
+    if (!auth?.access_token) return null;
+    if (auth.expires_at && Date.now() >= auth.expires_at - 60000) {
+        auth = await refreshEveAuth(auth);
+        if (!auth) saveEveAuth(null);
+    }
+    return auth;
+}
+
+async function startEveLogin() {
+    setSendButton('Connecting…', true);
+    setEveStatus('Opening EVE login…');
+    try {
+        const res = await fetch(`${API}/auth/rr/login`);
+        if (!res.ok) throw new Error(`Login endpoint returned ${res.status}`);
+        const data = await res.json();
+        if (!data.url) throw new Error('No login URL returned');
+
+        sessionStorage.setItem(RR_STATE_KEY, data.state || '');
+        sessionStorage.setItem(RR_RETURN_KEY,
+            window.location.pathname + window.location.search + window.location.hash);
+        sessionStorage.setItem(SEND_AFTER_LOGIN_KEY, '1');
+        window.location.href = data.url;
+    } catch (e) {
+        setSendButton('Send to EVE');
+        setEveStatus(`Could not start EVE login: ${e.message}`, true);
+    }
+}
+
+async function postWaypointChunk(auth, systems, clearFirst) {
+    return fetch(`${API}/waypoints/push`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            access_token: auth.access_token,
+            character_id: auth.character_id,
+            systems,
+            clear_first: clearFirst
+        })
+    });
+}
+
+// Same idea as Rusty Routes: send the fewest waypoints that still force EVE's
+// autopilot along the planned chain. Returns null when the full chain is
+// already the best option.
+async function buildSmartAnchors(systems, flag) {
+    if (!Array.isArray(systems) || systems.length < 2) return null;
+    const ids    = systems.map(s => s.id);
+    const last   = ids.length - 1;
+    const anchors = [ids[0]];
+
+    const MAX_CALLS   = 80;
+    const MAX_ANCHORS = 40;
+    let calls = 0;
+
+    let i = 0;
+    while (i < last) {
+        if (++calls > MAX_CALLS || anchors.length > MAX_ANCHORS) return null;
+
+        let route;
+        try {
+            route = await getRoute(ids[i], ids[last], flag);
+        } catch {
+            return null;
+        }
+        if (!Array.isArray(route) || route.length < 2) return null;
+
+        const tail = last - i + 1;
+        let common = 1;
+        while (common < route.length && common < tail && route[common] === ids[i + common]) common++;
+
+        if (common === route.length && common === tail) {
+            anchors.push(ids[last]);
+            break;
+        }
+
+        let ci = i + Math.max(common - 1, 1);
+        if (ci > last) ci = last;
+
+        while (ci > i + 1) {
+            if (++calls > MAX_CALLS) return null;
+            let leg;
+            try {
+                leg = await getRoute(ids[i], ids[ci], flag);
+            } catch {
+                return null;
+            }
+            if (Array.isArray(leg) && leg.length === ci - i + 1 &&
+                leg.every((v, k) => v === ids[i + k])) break;
+            ci--;
+        }
+
+        if (ids[ci] === anchors[anchors.length - 1]) return null;
+        anchors.push(ids[ci]);
+        i = ci;
+    }
+
+    if (anchors[anchors.length - 1] !== ids[last]) anchors.push(ids[last]);
+    if (anchors.length >= ids.length) return null;
+    return anchors;
+}
+
+function consumeAutoSend() {
+    if (sessionStorage.getItem(SEND_AFTER_LOGIN_KEY) !== '1') return false;
+    sessionStorage.removeItem(SEND_AFTER_LOGIN_KEY);
+    return !!(loadEveAuth()?.access_token);
+}
+
+async function sendRouteToEve(auto = false) {
+    if (!lastRoute?.systems?.length) {
+        setEveStatus('Run a route first.', true);
+        return;
+    }
+
+    let auth = await ensureEveAuth();
+    if (!auth) {
+        if (auto) {
+            setEveStatus('EVE login expired — click Send to EVE to reconnect.', true);
+            return;
+        }
+        await startEveLogin();
+        return;
+    }
+
+    const btn = document.getElementById('sendEveBtn');
+    btn.disabled = true;
+    setSendButton('Routing…', true);
+    setEveStatus(`Preparing route for ${auth.character_name || 'your pilot'}…`);
+
+    let pushed = 0;
+    try {
+        let ids = null;
+        try {
+            ids = await buildSmartAnchors(lastRoute.systems, lastRoute.pref);
+        } catch { /* fall back to the full chain */ }
+        if (!ids || !ids.length) ids = lastRoute.systems.map(s => s.id);
+        if (!ids.length) throw new Error('Route has no systems.');
+        if (ids.length > 500) throw new Error('Route is too long to send (max 500 waypoints).');
+
+        for (let i = 0; i < ids.length; i += 50) {
+            const chunk = ids.slice(i, i + 50);
+            const clearFirst = i === 0;
+
+            let res = await postWaypointChunk(auth, chunk, clearFirst);
+            if (res.status === 401) {
+                auth = await refreshEveAuth(auth);
+                if (!auth) {
+                    saveEveAuth(null);
+                    throw new Error('EVE session expired — click Send to EVE to log in again.');
+                }
+                res = await postWaypointChunk(auth, chunk, clearFirst);
+            }
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || `Waypoint push failed (${res.status})`);
+            }
+
+            const data = await res.json().catch(() => ({}));
+            pushed += Number(data.pushed) || chunk.length;
+            setSendButton(`Sending ${Math.min(pushed, ids.length)}/${ids.length}…`, true);
+        }
+
+        setSendButton('Sent to EVE', true);
+        setEveStatus(
+            `Route sent to ${auth.character_name || 'your EVE client'} ` +
+            `(${pushed} waypoint${pushed === 1 ? '' : 's'}). Check your EVE client.`
+        );
+        setTimeout(() => setSendButton('Send to EVE', false), 3000);
+    } catch (e) {
+        setSendButton('Send to EVE', false);
+        const partial = pushed
+            ? ` (${pushed} waypoint${pushed === 1 ? '' : 's'} already added)`
+            : '';
+        setEveStatus(`Send failed${partial}: ${e.message}`, true);
+    }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function runGatecheck() {
@@ -673,7 +914,8 @@ async function runGatecheck() {
     hideError();
     document.getElementById('summary').classList.add('hidden');
     document.getElementById('results').classList.add('hidden');
-    hideShareButton();
+    hideResultActions();
+    lastRoute = null;
     if (!origin || !dest) { showError('Enter both origin and destination.'); return; }
 
     setLoading(true);
@@ -737,7 +979,14 @@ async function runGatecheck() {
         renderSummary(systems);
         renderResults(systems, originName, destName, avoidSet);
         updateShareUrl();
+
+        lastRoute = {
+            systems: systems.map(s => ({ id: s.id, name: s.name })),
+            pref
+        };
         document.getElementById('shareBtn').classList.remove('hidden');
+        document.getElementById('sendEveBtn').classList.remove('hidden');
+        if (consumeAutoSend()) setTimeout(() => sendRouteToEve(true), 100);
 
     } catch (e) {
         showError(`Error: ${e.message}`);
@@ -753,10 +1002,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAutocomplete('origin');
     setupAutocomplete('destination');
     document.getElementById('shareBtn').addEventListener('click', shareRoute);
+    document.getElementById('sendEveBtn').addEventListener('click', () => sendRouteToEve(false));
     ['origin', 'destination', 'preference', 'duration', 'avoid'].forEach(id => {
         const el = document.getElementById(id);
-        el.addEventListener('input', hideShareButton);
-        el.addEventListener('change', hideShareButton);
+        el.addEventListener('input', hideResultActions);
+        el.addEventListener('change', hideResultActions);
     });
     restoreRouteFromUrl();
 });

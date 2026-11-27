@@ -88,6 +88,15 @@
         const state = params.get('state');
         const err   = params.get('error');
 
+        // If Gate Check started this login, brand the callback accordingly.
+        const returnTo = sessionStorage.getItem('rustyroutes:v1:return_to') || './';
+        if (returnTo.includes('/gatecheck')) {
+            document.querySelector('.card h1').innerHTML = '<i class="fa-solid fa-rocket"></i> Gate Check Login';
+            const back = document.getElementById('backLink');
+            back.href = '../gatecheck/';
+            back.textContent = '← Back to Gate Check';
+        }
+
         // API base: static (www) and API (api.rustybot.co.uk) are separate services.
         const RR_API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
             ? 'http://localhost:8080/api'
@@ -130,7 +139,7 @@
             sessionStorage.setItem('rustyroutes:v1:auth', JSON.stringify(auth));
 
             // Send the user back to the planner (or homepage as fallback)
-            const ret = sessionStorage.getItem('rustyroutes:v1:return_to') || './';
+            const ret = returnTo;
             sessionStorage.removeItem('rustyroutes:v1:return_to');
             status.innerHTML = `<p>Logged in as <strong>${escapeHtml(data.character_name)}</strong>. Redirecting…</p>`;
             setTimeout(() => { window.location.href = ret; }, 400);
