@@ -1,3 +1,7 @@
+# NOTE: the live static site is a manually-created Render service, not a
+# Blueprint-managed one. The headers/routes below document the intended config;
+# apply them in the Render Dashboard (or link the service to this Blueprint)
+# for them to take effect.
 services:
   - type: web
     name: rustybot
