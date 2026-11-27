@@ -1,5 +1,6 @@
 const ESI   = 'https://esi.evetech.net/latest';
 const ZKILL = 'https://zkillboard.com/api';
+const API   = 'https://api.rustybot.co.uk/api';
 const UA    = 'RustyBot-GateCheck/1.0';
 
 // Gate kill proximity threshold — 10,000 km in metres
@@ -515,6 +516,150 @@ function renderResults(systems, origin, dest, avoidSet) {
     document.getElementById('results').classList.remove('hidden');
 }
 
+// ── Shareable route URLs ─────────────────────────────────────────────────────
+
+function routeState() {
+    return {
+        origin:      document.getElementById('origin').value.trim(),
+        destination: document.getElementById('destination').value.trim(),
+        pref:        document.getElementById('preference').value,
+        duration:    document.getElementById('duration').value,
+        avoid:       document.getElementById('avoid').value.trim(),
+    };
+}
+
+function applyRouteState(state) {
+    if (!state) return;
+    if (state.origin)      document.getElementById('origin').value = state.origin;
+    if (state.destination) document.getElementById('destination').value = state.destination;
+    if (['shortest', 'secure', 'insecure'].includes(state.pref)) {
+        document.getElementById('preference').value = state.pref;
+    }
+    if (['3600', '7200', '21600', '86400'].includes(String(state.duration))) {
+        document.getElementById('duration').value = String(state.duration);
+    }
+    if (typeof state.avoid === 'string') document.getElementById('avoid').value = state.avoid;
+}
+
+function buildShareUrl() {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = '';
+
+    const state = routeState();
+    if (state.origin)      url.searchParams.set('origin', state.origin);
+    if (state.destination) url.searchParams.set('destination', state.destination);
+    if (state.pref !== 'shortest') url.searchParams.set('pref', state.pref);
+    if (state.duration !== '3600') url.searchParams.set('duration', state.duration);
+    if (state.avoid)       url.searchParams.set('avoid', state.avoid);
+    return url.toString();
+}
+
+function updateShareUrl() {
+    try { history.replaceState(null, '', buildShareUrl()); } catch { /* ignore */ }
+}
+
+async function createShortLink() {
+    const res = await fetch(`${API}/gatecheck/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(routeState())
+    });
+    if (!res.ok) throw new Error(`Share API ${res.status}`);
+    const data = await res.json();
+    if (!data.code) throw new Error('Share API returned no code');
+
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = data.code;
+    return url.toString();
+}
+
+async function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+        try { await navigator.clipboard.writeText(text); return true; } catch { /* fall through */ }
+    }
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+    } catch { return false; }
+}
+
+function hideShareButton() {
+    document.getElementById('shareBtn').classList.add('hidden');
+}
+
+let shareTimer = null;
+async function shareRoute() {
+    const btn   = document.getElementById('shareBtn');
+    const label = btn.querySelector('.share-label');
+
+    let url, short = true;
+    try {
+        url = await createShortLink();
+        try { history.replaceState(null, '', url); } catch { /* ignore */ }
+    } catch {
+        short = false;
+        url = buildShareUrl();
+        updateShareUrl();
+    }
+
+    if (!(await copyText(url))) {
+        window.prompt('Copy this route link:', url);
+        return;
+    }
+
+    btn.classList.add('copied');
+    label.textContent = short ? 'Short link copied' : 'Link copied';
+    clearTimeout(shareTimer);
+    shareTimer = setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = 'Share route';
+    }, 2200);
+}
+
+async function resolveShortRoute(code) {
+    try {
+        const res = await fetch(`${API}/gatecheck/share/${encodeURIComponent(code)}`);
+        if (!res.ok) throw new Error(`Share API ${res.status}`);
+        applyRouteState(await res.json());
+
+        if (document.getElementById('origin').value.trim()
+            && document.getElementById('destination').value.trim()) {
+            runGatecheck();
+        }
+    } catch {
+        showError('This share link is invalid or has expired.');
+    }
+}
+
+function restoreRouteFromUrl() {
+    const code = window.location.hash.slice(1);
+    if (/^[A-Za-z0-9_-]{4,16}$/.test(code)) {
+        resolveShortRoute(code);
+        return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    applyRouteState({
+        origin:      params.get('origin'),
+        destination: params.get('destination'),
+        pref:        params.get('pref'),
+        duration:    params.get('duration'),
+        avoid:       params.get('avoid') || ''
+    });
+
+    if (params.get('origin') && params.get('destination')) runGatecheck();
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function runGatecheck() {
@@ -528,6 +673,7 @@ async function runGatecheck() {
     hideError();
     document.getElementById('summary').classList.add('hidden');
     document.getElementById('results').classList.add('hidden');
+    hideShareButton();
     if (!origin || !dest) { showError('Enter both origin and destination.'); return; }
 
     setLoading(true);
@@ -547,8 +693,14 @@ async function runGatecheck() {
         // Fetch all system data in parallel (gives us stargate IDs + security)
         const systemDataArr = await Promise.all(routeIds.map(id => getSystemData(id)));
 
-        // Batch resolve system names
+        // Batch resolve system names and canonicalise the form values
         const nameById = await batchNames(routeIds);
+        const originName = nameById.get(originId) || origin;
+        const destName   = nameById.get(destId) || dest;
+        document.getElementById('origin').value = originName;
+        document.getElementById('destination').value = destName;
+        pickedSystem.origin = { id: originId, name: originName };
+        pickedSystem.destination = { id: destId, name: destName };
 
         // Fetch all stargates for all systems in parallel
         const allStargateIds = systemDataArr.flatMap(sd => sd.stargates || []);
@@ -583,7 +735,9 @@ async function runGatecheck() {
         );
 
         renderSummary(systems);
-        renderResults(systems, origin, dest, avoidSet);
+        renderResults(systems, originName, destName, avoidSet);
+        updateShareUrl();
+        document.getElementById('shareBtn').classList.remove('hidden');
 
     } catch (e) {
         showError(`Error: ${e.message}`);
@@ -598,6 +752,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSystemDatabase();
     setupAutocomplete('origin');
     setupAutocomplete('destination');
+    document.getElementById('shareBtn').addEventListener('click', shareRoute);
+    ['origin', 'destination', 'preference', 'duration', 'avoid'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', hideShareButton);
+        el.addEventListener('change', hideShareButton);
+    });
+    restoreRouteFromUrl();
 });
 
 document.addEventListener('keydown', e => {
