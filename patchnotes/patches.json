@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-11-27",
+    "title": "Gate Check — Share Routes & Send to EVE",
+    "raw": "**WHAT'S NEW**\n\n**Gate Check route sharing**\n- Every route now has a **Share route** button that copies a short link (`/gatecheck/#code`).\n- Links restore the origin, destination, preference, time window and avoid list, then automatically re-run the scan.\n- Short links last 30 days. If the share API is unavailable, Gate Check falls back to a readable query-string link.\n\n**Send routes straight to EVE**\n- New **Send to EVE** button pushes the scanned route to your EVE client's autopilot.\n- Uses smart waypoints: only the systems needed to keep EVE on the scanned path, with a full-route fallback.\n- Clears your existing autopilot waypoints first. Long routes are sent in chunks.\n- First use asks you to log in with EVE; the route is sent automatically when you return. Tokens refresh automatically.\n\n**Fixes**\n- Firefox: Gate Check and Rusty Routes no longer fail with `NetworkError` when loading SDE data. The old `User-Agent` header triggered a CORS preflight that `sde.evetech.net` rejects with 403.\n- Firefox: Gate Check zKillboard lookups now use a simple GET, so kill data loads correctly — zKillboard rejects preflight requests with 405.\n\n**Notes**\n- The EVE client must be running and logged in for waypoints to appear.\n- The avoid list still highlights systems rather than changing the ESI route."
+  },
+  {
     "date": "2026-10-31",
     "title": "Rusty Light is now Rustybot Source",
     "raw": "**RENAMED**\n\n**Rusty Light is now Rustybot Source.**\n- The same browser giveaways, alerts and combined chat tool for Twitch, Kick and OBS.\n- Same room codes, overlay URLs and control panels — existing links keep working.\n- Launch page: https://www.rustybot.co.uk/source/\n- Tool: https://source.rustybot.co.uk/"
