@@ -1337,6 +1337,7 @@ async function refreshKillScan() {
     } catch (e) {
         showError(`Refresh failed: ${e.message}`);
     } finally {
+        setScanProgress(0, 0);
         btn.disabled = false;
         label.textContent = 'Refresh';
     }
