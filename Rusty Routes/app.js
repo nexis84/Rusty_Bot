@@ -46,7 +46,9 @@ async function esiGet(path) {
 const SDE_API = 'https://sde.evetech.net/tranquility/latest';
 
 async function sdeGet(path) {
-    const r = await fetch(`${SDE_API}${path}`, { headers: { 'User-Agent': UA } });
+    // No custom headers: sde.evetech.net answers CORS preflights (OPTIONS) with
+    // 403, so this must stay a simple GET or Firefox blocks it as a network error.
+    const r = await fetch(`${SDE_API}${path}`);
     if (!r.ok) throw new Error(`SDE ${r.status} GET ${path}`);
     return r.json();
 }
@@ -58,7 +60,8 @@ let sdeStationsBySystem = null;
 async function getSystemStationIds(systemId) {
     if (sdeStationsBySystem === null) {
         try {
-            const r = await fetch(`${SDE_API}/npcStations.jsonl`, { headers: { 'User-Agent': UA } });
+            // Simple GET only — sde.evetech.net rejects CORS preflights (OPTIONS 403).
+            const r = await fetch(`${SDE_API}/npcStations.jsonl`);
             if (!r.ok) throw new Error(`SDE ${r.status} npcStations`);
             sdeStationsBySystem = new Map();
             for (const line of (await r.text()).split('\n')) {

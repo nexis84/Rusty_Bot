@@ -36,7 +36,9 @@ async function esiGet(path) {
 const SDE_API = 'https://sde.evetech.net/tranquility/latest';
 
 async function sdeGet(path) {
-    const r = await fetch(`${SDE_API}${path}`, { headers: { 'User-Agent': UA } });
+    // No custom headers: sde.evetech.net answers CORS preflights (OPTIONS) with
+    // 403, so this must stay a simple GET or Firefox blocks it as a network error.
+    const r = await fetch(`${SDE_API}${path}`);
     if (!r.ok) throw new Error(`SDE ${r.status}: ${path}`);
     return r.json();
 }
@@ -116,9 +118,8 @@ async function getRoute(originId, destId, flag) {
 async function getKillsRaw(systemId, duration, delayMs) {
     await new Promise(r => setTimeout(r, delayMs));
     try {
-        const r = await fetch(`${ZKILL}/kills/systemID/${systemId}/pastSeconds/${duration}/`, {
-            headers: { 'User-Agent': UA }
-        });
+        // Simple GET only — zKillboard answers CORS preflights (OPTIONS) with 405.
+        const r = await fetch(`${ZKILL}/kills/systemID/${systemId}/pastSeconds/${duration}/`);
         if (!r.ok) return [];
         return await r.json();
     } catch { return []; }
